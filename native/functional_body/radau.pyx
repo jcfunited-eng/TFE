@@ -1,9 +1,9 @@
 """Compiled, unmounted two-stage Radau body candidate.
 
-Same instantaneous native forces and reviewed offline equations. Typed loops
-remove repeated Python vector algebra, not force evaluations or acceptance
-checks. No organism import, persistent solver state, controller or motor plan.
-The fixed diagnostic trace is returned to its offline caller only.
+Same instantaneous forces, coupled stage residual and physical acceptance.
+Bounded inverse-secant correction reuses only actual residual differences within
+one primitive solve. No persistent solver memory, controller or motor plan.
+The low-rank inverse is a numerical proposal, never successor authority.
 """
 import base64
 import hashlib
@@ -15,11 +15,9 @@ import numpy as np
 import guala_body_interval as interval
 from libc.math cimport fabs, isfinite, pow, sqrt, tan
 
-RADAU_LAW = "radau-iia2-krylov-candidate-v1"
-MAX_NEWTON = 6
+RADAU_LAW = "radau-iia2-secant-candidate-v1"
 MAX_LINE = 16
-MAX_KRYLOV = 32
-EPS = np.finfo(float).eps
+MAX_SECANT = 32
 B = np.array((.75, .25))
 cdef double MACHINE_EPS = 2.220446049250313e-16
 
@@ -57,13 +55,13 @@ cdef double norm_inf(double[::1] a) except *:
 
 cdef class _Stages:
     cdef object e, m, d, owner, base, q_array, sigma_array
-    cdef object x_array, r_array, h_array, target_array, last_value, last_residual
+    cdef object x_array, r_array, last_value, last_residual
     cdef double dt, t0, tolerance
-    cdef Py_ssize_t n, size, kmax
+    cdef Py_ssize_t n, size, kmax, rank
     cdef double[::1] q0, v0, q, v, acceleration, sigma_buffer
-    cdef double[::1] x, residual, scale, plus, minus, rp, rm, w, update
-    cdef double[::1] trial, trial_residual, target, weights
-    cdef double[:,::1] acc, tangent, basis, hessenberg
+    cdef double[::1] x, residual, scale, update, delta_x, delta_r, image
+    cdef double[::1] trial, trial_residual
+    cdef double[:,::1] acc, tangent, inverse_left, inverse_right
 
     def __init__(self, e, base, double dt, owner):
         self.e, self.m, self.d, self.owner, self.base = e, e._model, e._data, owner, base
@@ -73,7 +71,8 @@ cdef class _Stages:
             raise ValueError('invalid existing residual tolerance')
         self.n = self.m.nv
         self.size = 2*self.n+6
-        self.kmax = min(self.size, MAX_KRYLOV)
+        self.kmax = min(self.size, MAX_SECANT)
+        self.rank = 0
         self.q0 = self.d.qpos.copy()
         self.v0 = self.d.qvel.copy()
         self.q_array = self.d.qpos
@@ -83,17 +82,12 @@ cdef class _Stages:
         self.x_array, self.r_array = np.empty(self.size), np.empty(self.size)
         self.x, self.residual = self.x_array, self.r_array
         self.scale = np.empty(self.size)
-        self.plus, self.minus = np.empty(self.size), np.empty(self.size)
-        self.rp, self.rm, self.w = np.empty(self.size), np.empty(self.size), np.empty(self.size)
         self.update = np.empty(self.size)
+        self.delta_x, self.delta_r, self.image = np.empty(self.size), np.empty(self.size), np.empty(self.size)
         self.trial, self.trial_residual = np.empty(self.size), np.empty(self.size)
         self.acc, self.tangent = np.empty((2, self.n)), np.empty((2, 3))
-        # Krylov directions are rows: scalar sweeps touch contiguous storage.
-        self.basis = np.empty((self.kmax+1, self.size))
-        self.h_array = np.zeros((self.kmax+1, self.kmax))
-        self.hessenberg = self.h_array
-        self.target_array = np.zeros(self.kmax+1)
-        self.target = self.target_array
+        self.inverse_left = np.empty((self.kmax, self.size))
+        self.inverse_right = np.empty((self.kmax, self.size))
         self.last_value = self.last_residual = None
         cdef Py_ssize_t i, j
         cdef double linear_scale = .001+.001*sqrt(
@@ -174,99 +168,33 @@ cdef class _Stages:
         norm_inf(out)
         return stages
 
-    cdef void correction(self, object record) except *:
-        cdef Py_ssize_t i, j, k, sweep
-        cdef double beta, limit, radius, pnorm, epsilon, coefficient, length, predicted, value
-        cdef bint different, plus_valid = False, minus_valid = False
-        beta = norm2(self.residual)
-        limit = max(self.tolerance, sqrt(MACHINE_EPS)*beta)
-        record.update(completed=False,initial_norm=beta,predicted_tolerance=limit,
-                      krylov_ceiling=self.kmax,directions=[])
-        if beta == 0:
-            for i in range(self.size): self.update[i] = 0
-            record.update(completed=True,predicted_residual=0.)
-            return
-        for i in range(self.size): self.w[i] = self.x[i]/self.scale[i]
-        radius = pow(MACHINE_EPS,1./3)*max(1.,norm2(self.w))
-        for i in range(self.size): self.basis[0,i] = -self.residual[i]/beta
-        self.h_array.fill(0.)
-        self.target_array.fill(0.)
-        self.target[0] = beta
-        try:
-            for k in range(self.kmax):
-                plus_valid = minus_valid = False
-                pnorm = norm2(self.basis[k])
-                if pnorm == 0: raise ValueError('zero matrix-free direction')
-                epsilon = radius/pnorm
-                if not isfinite(epsilon) or epsilon <= 0:
-                    raise ValueError('invalid matrix-free perturbation')
-                different = False
-                for i in range(self.size):
-                    value = self.scale[i]*(epsilon*self.basis[k,i])
-                    self.plus[i], self.minus[i] = self.x[i]+value,self.x[i]-value
-                    if self.plus[i] != self.minus[i]: different = True
-                if not different: raise ValueError('unrepresentable matrix-free perturbation')
-                self.evaluate(self.plus,self.rp,False)
-                plus_valid = True
-                self.evaluate(self.minus,self.rm,False)
-                minus_valid = True
-                for i in range(self.size): self.w[i] = (self.rp[i]-self.rm[i])/(2*epsilon)
-                norm2(self.w)
-                for sweep in range(2):
-                    for j in range(k+1):
-                        coefficient = 0
-                        for i in range(self.size): coefficient += self.basis[j,i]*self.w[i]
-                        if not isfinite(coefficient): raise ValueError('nonfinite Krylov projection')
-                        self.hessenberg[j,k] += coefficient
-                        for i in range(self.size): self.w[i] -= coefficient*self.basis[j,i]
-                length = norm2(self.w)
-                self.hessenberg[k+1,k] = length
-                weights,_,rank,_ = np.linalg.lstsq(self.h_array[:k+2,:k+1],self.target_array[:k+2],rcond=None)
-                self.weights = weights
-                norm2(self.weights)
-                predicted = 0
-                for j in range(k+2):
-                    value = -self.target[j]
-                    for i in range(k+1): value += self.hessenberg[j,i]*self.weights[i]
-                    predicted += value*value
-                if not isfinite(predicted): raise ValueError('nonfinite predicted residual')
-                predicted = sqrt(predicted)
-                record['directions'].append(dict(index=k,epsilon=epsilon,rank=int(rank),
-                    predicted_residual=predicted,next_norm=length))
-                if predicted <= limit:
-                    for i in range(self.size):
-                        value = 0
-                        for j in range(k+1): value += self.basis[j,i]*self.weights[j]
-                        self.update[i] = self.scale[i]*value
-                    norm2(self.update)
-                    record.update(completed=True,predicted_residual=predicted)
-                    return
-                if length == 0: raise ValueError('matrix-free Krylov breakdown without convergence')
-                for i in range(self.size): self.basis[k+1,i] = self.w[i]/length
-            raise ValueError('bounded matrix-free Krylov directions exhausted')
-        except BaseException as error:
-            record.update(failure=repr(error),last_direction=packed_numbers(self.basis[k]),
-                          last_residual_plus=packed_numbers(self.rp) if plus_valid else None,
-                          last_residual_minus=packed_numbers(self.rm) if minus_valid else None)
-            raise
+    cdef void inverse_product(self, double[::1] operand, double[::1] out) except *:
+        cdef Py_ssize_t i, j
+        cdef double coefficient
+        for i in range(self.size): out[i] = operand[i]
+        for j in range(self.rank):
+            coefficient = 0
+            for i in range(self.size): coefficient += self.inverse_right[j,i]*operand[i]
+            if not isfinite(coefficient): raise ValueError('nonfinite inverse-secant projection')
+            for i in range(self.size): out[i] += self.inverse_left[j,i]*coefficient
+        norm_inf(out)
 
     cdef object solve(self, object receipt):
         cdef Py_ssize_t iteration, power, i
-        cdef double norm, trial_norm, multiplier
+        cdef double norm, trial_norm, multiplier, length
         cdef bint accepted, differs
+        # H_0=I is the zero-duration Jacobian limit in the existing scaled variables.
         self.evaluate(self.x,self.residual,False)
         norm = norm_inf(self.residual)
-        for iteration in range(MAX_NEWTON):
+        for iteration in range(self.kmax):
             if norm <= self.tolerance: break
-            record = {}
-            receipt['linear_solves'].append(record)
-            self.correction(record)
+            self.inverse_product(self.residual,self.update)
             accepted = False
             for power in range(MAX_LINE):
                 multiplier = math.ldexp(1.,-power)
                 differs = False
                 for i in range(self.size):
-                    self.trial[i] = self.x[i]+multiplier*self.update[i]
+                    self.trial[i] = self.x[i]-multiplier*self.scale[i]*self.update[i]
                     if self.trial[i] != self.x[i]: differs = True
                 if not differs: break
                 self.evaluate(self.trial,self.trial_residual,False)
@@ -274,11 +202,26 @@ cdef class _Stages:
                 if trial_norm < norm or trial_norm <= self.tolerance:
                     receipt['iterations'].append(dict(before=norm,after=trial_norm,line_divisions=power))
                     for i in range(self.size):
+                        self.delta_x[i] = (self.trial[i]-self.x[i])/self.scale[i]
+                        self.delta_r[i] = self.trial_residual[i]-self.residual[i]
                         self.x[i], self.residual[i] = self.trial[i],self.trial_residual[i]
                     norm,accepted = trial_norm,True
                     break
             if not accepted: raise ValueError('coupled Radau residual failed to decrease')
-        if norm > self.tolerance: raise ValueError('bounded coupled Radau iterations exhausted')
+            if norm <= self.tolerance: break
+            # H+=H+(s-Hy)y^T/(y^Ty), normalized to avoid squaring a small denominator.
+            length = norm2(self.delta_r)
+            if length == 0: raise ValueError('zero residual change in inverse-secant update')
+            for i in range(self.size): self.delta_r[i] /= length
+            self.inverse_product(self.delta_r,self.image)
+            for i in range(self.size):
+                self.inverse_left[self.rank,i] = self.delta_x[i]/length-self.image[i]
+                self.inverse_right[self.rank,i] = self.delta_r[i]
+                if not isfinite(self.inverse_left[self.rank,i]):
+                    raise ValueError('nonfinite inverse-secant update')
+            self.rank += 1
+            receipt['secant_updates'].append(dict(rank=self.rank,residual_change_norm=length))
+        if norm > self.tolerance: raise ValueError('bounded inverse-secant iterations exhausted')
         stages = self.evaluate(self.x,self.residual,True)
         norm = norm_inf(self.residual)
         if norm > self.tolerance: raise ValueError('captured coupled stage residual differs')
@@ -321,7 +264,7 @@ class RadauProbe:
         if not math.isfinite(end) or end <= t0: raise ValueError('unrepresentable interval')
         dt = end-t0
         m.opt.timestep = dt
-        receipt = dict(dt_s=dt,start_s=t0,iterations=[],linear_solves=[],converged=False,
+        receipt = dict(dt_s=dt,start_s=t0,iterations=[],secant_updates=[],converged=False,
                        calls_start=self.calls,failure=None)
         self.steps.append(receipt)
         try:
@@ -362,7 +305,8 @@ class RadauProbe:
             interval._restore(e,base,original_dt)
             restored = interval._state(e)
             receipt['raw_rollback_state'] = packed_numbers(restored)
-            receipt['rollback_exact'] = bool(np.array_equal(restored,base))
+            receipt['rollback_exact'] = (restored.astype('<f8',copy=False).tobytes()
+                                          == base.astype('<f8',copy=False).tobytes())
             if not receipt['rollback_exact']: raise AssertionError('diagnostic rollback differs') from error
             raise
 
@@ -385,9 +329,8 @@ class RadauProbe:
         self.last_admission = report
         maximum_depth = int(np.finfo(float).nmant)+1
         refinable = {
-            'bounded matrix-free Krylov directions exhausted',
             'coupled Radau residual failed to decrease',
-            'bounded coupled Radau iterations exhausted',
+            'bounded inverse-secant iterations exhausted',
             'captured coupled stage residual differs',
         }
 

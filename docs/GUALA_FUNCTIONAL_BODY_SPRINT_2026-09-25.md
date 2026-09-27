@@ -10630,3 +10630,151 @@ verified here for two hinge segments only; generic use and later accumulated
 motion remain unqualified. Gravity, intrinsic couple impulse, runtime custody/
 restart, world mounting and real-time cost remain open. No push, Slack, production,
 food, caretaker, DSF or cognition change. Full body objective remains ACTIVE.
+
+
+### FB-01aj bounded inverse-secant numerical correction contract — 2026-09-27
+
+Previous goal turn PROGRESS: commit622d55154 resolves the two retained numerical
+knee-crossing times without changing physics. This item addresses the separately
+measured force-call cost, not cognition, food, new anatomy or production. Requested:
+solve the same coupled body equations within the same accuracy limits at lower
+cost. Reality: 644 of 903 force calls in the retained last proposal batch estimate
+directional derivatives. Conflict: YES with claiming affordable body operation.
+No extension of physical softness, thresholds, controllers or production custody.
+This is authorized body-only numerical approximation; no DSF field is evaluated,
+flattened or replaced by the numerical residual norm.
+
+The isolated radau.pyx candidate retains the exact evaluate() stage-force and
+SO(3) residual implementation, stage work/impulse quadrature, ordinary local
+admission checks, physical refusals and endpoint feedback. Only its nonlinear
+correction algorithm changes. In scaled variables z=x/S, initialize H_0=I (the
+zero-duration residual Jacobian limit), propose delta_z=-H_k R_k, and retain the
+existing sixteen-division line search requiring measured true-residual decrease.
+For actual accepted differences s=delta_z and y=delta_R, use Broyden's second
+inverse update H_next=H+(s-H*y)*y^T/(y^T*y). Implementation normalizes y by its norm
+to avoid squaring a small denominator and stores rank-one vectors. An approximate
+inverse proposes a trial only; the unchanged full force residual must converge
+to the existing model tolerance, and all physical checks remain authoritative.
+
+Storage is bounded by two 32-by-n arrays (n=146 here), plus existing stage state.
+Thirty-two secant iterations and sixteen line divisions are diagnostic refusal
+ceilings, not physical parameters or convergence guarantees. No restart, rank
+truncation, across-step derivative cache, heuristic damping, residual acceptance
+relaxation or alternate-solver fallback. Nonfinite/zero-update degeneracy and
+failed decrease refuse; ordinary numerical admission may subdivide as before.
+The inverse is discarded at every primitive step and never enters body memory.
+Raw rollback verification now compares canonical bytes, including signed zero.
+
+The primary numerical reference is the inverse-update identity documented at
+https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.broyden2.html .
+Kelley's treatment explicitly warns that secant directions need not be descent
+directions: https://epubs.siam.org/doi/10.1137/1.9780898718898.ch4 . Neither source
+guarantees this body will converge or run faster. No new library dependency is
+introduced; code implements the displayed bounded update and measured refusal.
+
+Single focused proof: four authenticated retained predecessor states, never a
+whole history. Three are the published event80/84/86 contact-regime states; one
+is the admitted-motion predecessor at20.3ms. Run the unchanged compiled Krylov
+control first and require its three archived successors/work/observations exact.
+Then run the new compiled candidate on identical inputs and physical intervals;
+compare all ratified pose, rate, sensory, work and contact channels, preserving
+the explicit intrinsic-couple-impulse qualification gap. Actual stage domains
+must agree. Require fresh raw-input repeat and exact zero-energy/force-budget
+rollback. Report paired call counts and timing separately; lower calls is not
+real-time or accumulated-motion qualification.
+
+At most six candidate primitive proposals plus one one-call refusal. Each main
+primitive has maximum 5+32*2*16=1029 stage forwards; outside setup/restore has its
+own seventy-call cap. Existing2core/60CPU/1GiBAS/90wall child limits, offline socket
+denial, read-only AWS pre/post, exact child census, source freeze and independent
+source-only review remain. One build and one control/candidate comparison only.
+No broad regression rerun, numerical threshold change, push, Slack or live writes.
+If it fails convergence or does not reduce measured work, preserve the result
+and do not promote it as the performance solution. Full body goal remains open.
+
+
+### FB-01aj fourth-control classification correction — 2026-09-27 07:50Z
+
+The single build succeeded in12.72s; no rebuild is needed. The unchanged Krylov
+control reproduced all three archived contact/release successors exactly, then
+correctly refused the100us proposal from20.3ms. The harness incorrectly assumed
+this was an accepted primitive. The earlier admitted-motion receipt already
+records that exact coarse refusal followed by37 adaptive proposals and16 accepted
+fine pieces. This is a harness reference-selection mistake, not a production
+incident or proof that the new solver failed: the candidate has NOT yet run.
+The negative control and exact rollback are retained in
+FB-01aj-radau-secant-proof.json SHA256
+aafdd48393eb2b66d6162bd16973f7935c940d404d18f8d0396b0c65cbed5411.
+
+Corrected bounded continuation reuses the three completed positive control
+records and the already-authenticated fourth ADMITTED endpoint/work/observation.
+No old successful control is replayed, no failed receipt rewritten. The candidate
+will run three matched primitives and the fourth100us interval through ordinary
+admit(), using the pre-existing162-trial representability cap. The overall6174
+stage-forward budget and70 outside-forward cap remain unchanged; resource limits
+are not raised. Failure still preserves raw state/work before sensor collection.
+Positive energy and one-call refusal controls use the first known-successful
+primitive, not the known-refused coarse proposal. The original coarse failure
+remains explicitly disclosed.
+
+Compare physical endpoint channels for all four states. Exact stage-domain
+comparison applies to the three common primitive paths only; the fourth can use
+its own adaptive mesh and its cross-history event timing remains UNQUALIFIED.
+Force-call speed comparison covers only the three positive matched primitives;
+there is no new claim of fourth-case timing improvement or whole-motion speed.
+A complete failure or higher cost remains a recorded rejection, never a pass.
+Same compiled candidate module cbe9c22083b77731b65c3222e51789c28edb97ceac4cff4edf09be1bee2d02cc;
+no force, tolerance, algorithm, body source or production changes in this correction.
+
+### FB-01aj saved-state secant comparison passes; full-motion cost still open — 2026-09-27 07:58Z
+
+PROGRESS, continuing FB-01aj. Requested architecture: the same bounded body
+mechanics at lower numerical cost. Current code reality: compiled-unmounted
+inverse-secant correction now passes four retained-state physical comparisons.
+Conflict: YES with any claim that the complete body is qualified or real-time;
+those gates remain open. Do not extend cognition, food, caretaker, physical
+softness, accuracy limits or production custody. Single next item: bound the
+new solver's accumulated-motion accuracy and cost using retained evidence,
+without replaying the unchanged old controls or raising their budgets.
+This is body-only numerical approximation, not DSF evaluation; no DSF field
+is flattened or replaced. Gravity, full motion, intrinsic couple impulse,
+world mounting, runtime restart and production remain unqualified.
+
+Frozen independent source review passed before this continuation. Fingerprint
+c3cb4b7a608bc7940461b4d9a9a35b84bf7df9fae464f04692f2d08727316bb3
+matched before and after execution. Proof SHA256
+273dee52ff18afa6993c09b83846d334a61f1fa5f9e83ac5122417c875fa0140;
+runner da97276c87e8161f2f132614be204f4cb3258edefbb71cbf8ff2ef6a3fbf0989.
+Receipt docs/evidence/FB-01aj-radau-secant-proof-v2.json SHA256
+436deba429bb4f40588f721870b8ea3aa436a5f4b16212c2b09eaac2fc3e6a2f
+retains the loaded source, all measurements and operational envelope.
+
+On the three common successful primitive steps, native force calls fall from
+49/61/81 to 23/25/31: 191 to 79 total, a 58.64 percent reduction in these cases.
+All ratified endpoint channels pass unchanged limits; actual stage domains
+match. This is NOT a 58.64 percent whole-body wall-time speedup. The fourth
+100us interval uses ordinary adaptive admission and passes against the earlier
+authenticated admitted endpoint/work/sensory reference, using 583 force calls.
+Its cross-history event timing and speed comparison remain unqualified.
+
+Fresh replay is exact. Zero-energy and one-forward-budget refusals restore
+raw input bytes and timestep exactly. Total proof: 708 solver calls including
+the one-call limited refusal, plus 40 outside calls: 748 calls altogether.
+Numerical proof wall0.251834s / CPU0.251925s; entire child wall1.035133s /
+aggregate CPU1.028843s, maximum single-process RSS174952KiB. Resource ceilings
+unchanged; 1GiB address-space enforcement is per process, not aggregate RAM.
+Session25986 and child/group15867 are terminal. Exact host census finds neither
+the PID nor a group survivor. No rebuild, old-control replay or broad suite.
+
+The first harness reference-selection failure remains preserved in the prior
+receipt. Never claim the fourth coarse old primitive succeeded. An inspection
+command also initially treated the compressed measurement envelope as a direct
+JSON object; decode and verify its raw length/SHA before extracting bounded
+summaries. Do not print complete channel maps or encoded states during review.
+
+Read-only AWS07:53:27->07:53:30Z retains sole task1559, same task/image/identity,
+ticks2567892->2567900, checkpoint/cleanup null, durability false. Existing
+clock-stalled ALARM remains despite advancing samples; other four alarms OK.
+CPU51.2825 percent average, RAM3.0640 percent. No live health repair claimed.
+No push, Slack, production or G1-owned cognition/food/caretaker changes.
+The complete functional-body goal remains ACTIVE and incomplete.
