@@ -11113,3 +11113,130 @@ an unchanged prior prefix was checked by this new estimator merely because it
 passed the old law. Keep existing event/localization limits and cost ceilings.
 No new build is required. No push, Slack, production, cognition or G1 changes.
 The full body goal remains ACTIVE and incomplete.
+
+### FB-01aj contact-corrected sustained continuation contract — 2026-09-27
+
+Previous turn PROGRESS:1bb861e5a fixes the saved contact integration defect.
+Continue the same body accuracy/cost item, not its closed focused proof. Requested:
+bounded articulated motion with truthful feedback. Current reality: two verified
+contact-corrected successors at~26ms, not sustained-motion-qualified. Conflict:YES
+with claiming complete body delivery. No extension of force softening, cognitive
+controls, relaxed accuracy, production or native source in this turn. Single next
+item: one bounded sustained continuation from those authenticated successors.
+Body-only numerical qualification; no DSF field is evaluated or replaced.
+
+Restore each raw successor and exact remaining physical energy from
+FB-01aj-contact-estimator-proof.json SHA256
+42d4f6c3567871f56dd91db89e2ab22fdf1f7ec2607c59beb3bb3f90cf260fb3.
+Require exact raw state, clock, observation, initial constraint-domain match and
+complete initial paired physical comparison before any advance. The predecessors
+are genuinely different numerical histories; do not pretend they are identical.
+Existing tests proved each local successor. They do NOT prove their pre26ms
+history was executed under this new estimator, and this run makes no such claim.
+Work/impulse accumulators measure increments AFTER the authenticated restart
+boundary; remaining energy carries forward exactly, with no replenishment.
+
+Reuse unchanged body anatomy, benchmark effort and supply,100/50us nominal
+admission, complete local/sensory/impulse comparisons, event evidence and exact
+hinge localizer from the reviewed motion-v2 proof. Check48/250/500ms absolute
+body times, releasing effort at250ms if reached. Stop on first discrepancy,
+unresolved correspondence or existing50CPU/30000primitive diagnostic ceiling.
+These are observation checkpoints, not a rewritten body clock or success waiver.
+Compiled interval/radau modules from qmush2pu remain byte-authenticated; no build.
+One offline child,2cores/60CPU/1GiBAS-per-process/90wall hard envelope; read-only
+AWS before/after and exact process-group survivor census. Preserve all partial
+results if the budget or physical checks stop progression. Record current raw
+states, accepted prefixes, work/supply, constraints and native/observer cost.
+No test loosening, repeated focused proof, whole-history replay, push or Slack.
+The skill-required independent frozen source review precedes this one run.
+
+### FB-01aj continued motion boundary measured — 2026-09-27 08:56Z
+
+One approved no-build continuation completed its measurement and stopped on
+physical discrepancy at47.95ms, from the authenticated26ms restart boundary.
+Receipt docs/evidence/FB-01aj-contact-estimator-motion.json SHA256
+2b1c53fdc2ab498ac4658e9d94d50402482a8c6d306eb237f5f11c610a108caa.
+This is a FAILED sustained qualification, not a crash or qualified half-second.
+Saved raw predecessors/successors, accepted paths, energy, impulses and complete
+sensory outputs are retained. Earlier contact correction remains locally proved.
+
+Right palm/digit4 distal contact onset differs across numerical histories:
+coarse bracket47.93671875..47.9375ms versus half47.93359375..47.934375ms;
+union3.90625us exceeds1us allowance. At47.95ms proximal angular-rate disagreement
+0.04870086rad/s exceeds0.01984837; distal joint-rate ratio4.15115; local contact
+force ratio1.65746; specific-force ratio1.61227; impulse ratio1.01494.
+Surface positions, orientations, work and gyroscopes remain within limits.
+These results do not alone distinguish inherited trajectory error from the last
+50us integration error. No force law, tolerance or event check has been relaxed.
+
+4079 primitives,76199 solver forwards,77735 total audited forwards. Numerical
+13.7815s wall/13.7742s CPU for21.95ms additional simulated motion; native forward
+time5.2339s. This instrumented result is NOT real-time performance. Full child
+14.6188s wall/14.5977s aggregate CPU,223748KiB peak single-process RSS.
+Session60788/group38800 terminated; independent exact host census has no
+survivors. Read-only AWS08:50:31->08:50:48Z retains task1559/image/identity,
+ticks2576141->2576182, checkpoint/cleanup null, durability false. Existing
+clock-stalled ALARM remains; other4OK. No production repair claimed.
+
+Single next item: attribute this exact final50us from each saved47.9ms predecessor.
+Replay only the recorded accepted tail to verify state/work; independently refine
+each predecessor on two fixed grids with maximum spacing EVENT_S/2 and EVENT_S/4.
+The powers-of-two counts derive from interval length and the existing event bound
+(128/256 pieces), not a new acceptance threshold. Compare same-predecessor grid
+refinement separately from different-history fine-grid discrepancy. Query signed
+native capsule/box separation and retain actual onset brackets, endpoint state,
+work, impulses and full sensory comparisons. This diagnostic observes the same
+physical laws, not a new motor controller or global-error certificate. At most1024
+primitives/8CPU seconds internally; existing hard child resource envelope remains.
+One no-build offline child; read-only AWS envelope; frozen source review required.
+Proof:/tmp/a1-body-contact-time-attribution-20260927.py. No production, cognition,
+force, admission or tolerance changes. No whole-prefix replay, push or Slack.
+
+### FB-01aj inherited contact-timing discrepancy isolated — 2026-09-27 09:04Z
+
+PROGRESS: one frozen source review, one localized evidence correction (retain and
+compare archived/actual final sensory observations), and final PASS preceded one
+no-build diagnostic. Reviewer withdrew a proposed domain-serialization correction:
+current_domain already returns plain_domain; no redundant conversion was added.
+Freeze33a72d77e723adc815cdf2c9332b26bf0957ae5590dfb2db26b7333cbc5f81fd.
+Proof43eaf9ab10df129666d9eb2089d7e4505f18c8ef41e651f8653f3e2e7947da5d;
+runner3d6272e636e00dd6bc29851c9f8cc70734724a1e2fd2d27a42dec9a6b8573300.
+Receipt docs/evidence/FB-01aj-contact-time-attribution.json SHA256
+230a64146221e91a8e4ae748267d9a2f35c50c47c734b688af91b1454de39a72.
+
+Both saved final50us control paths reproduced every raw successor/work value and
+final full sensory observation exactly. Fixed128/256-piece comparisons from EACH
+same predecessor pass the complete existing physical tolerances. However, the
+two DIFFERENT predecessors retain the discrepancy under the256-piece grid:
+onset separation is bracketed2.9296875..3.3203125us, still greater than1us.
+At47.9ms the native signed gaps already differ:0.747879842um versus0.688163836um
+(59.716006nm). Different-history fine-grid joint-rate ratio4.85912, angular-rate
+ratio2.87359, force ratio1.96351 and specific-force ratio1.90960 remain failures.
+The fine-grid impulse comparison here is incremental over final50us, NOT the
+longer continuation's cumulative impulse metric; its ratio2.25352 is not a direct
+comparison with the earlier1.01494 accumulated ratio.
+
+Thus refining only the last contact or changing contact forces is not supported.
+The mismatch is inherited BEFORE47.9ms. This result does not yet isolate whether
+it originates in the pre26ms histories, their restart-state difference, or their
+subsequent independently admitted motion. Initial within-tolerance states are
+not identical states, and nonlinear contact can amplify their differences.
+Do not label that remaining distinction a new solver-law defect without evidence.
+
+792 primitive steps,8126 solver forwards/8144 total;2.0261s numerical wall,
+2.0278s CPU,0.5716s native forward. Complete child2.7759s wall/2.7730s aggregate
+CPU,203656KiB peak single-process RSS. Session48606/group43290 terminal, separate
+host census empty. No rebuild, full-history replay or physical-source change.
+Read-only AWS09:02:38->09:02:43Z retained sole1559/same image/identity,
+ticks2577930->2577944; checkpoint/cleanup null, durability false. Existing
+clock-stalled ALARM remains, other4OK. CPU51.3526->51.3503percent averages,
+RAM3.0782->3.0762percent. No live remediation claimed.
+
+Single next item: distinguish inherited restart-state error from new-law global
+trajectory error using the already saved common boundaries before proposing a
+propagated-error admission correction. A same-start comparison must use EXACTLY
+the same authenticated state and remaining energy; merely passing an initial
+endpoint tolerance does not establish that equivalence. Do not rerun the closed
+final-window proof. Preserve all failed and passed evidence; no tolerance change,
+force smoothing, new controller, cognition, production, push or Slack. Full body
+integration, gravity, sustained accuracy, performance and restart remain open.
