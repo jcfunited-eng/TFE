@@ -14,7 +14,7 @@ import numpy as np
 import guala_body_interval as interval
 from libc.math cimport fabs, isfinite, pow, sqrt, tan
 
-RADAU_LAW = "radau-iia3-secant-positive-embedded-v2"
+RADAU_LAW = "radau-iia3-secant-stage-events-v3"
 MAX_LINE = 16
 MAX_SECANT = 32
 STAGE_COUNT = 3
@@ -258,6 +258,45 @@ cdef class _Stages:
         return stages
 
 
+def sampled_event_path(before, values):
+    """Observed numerical-path brackets; not an enclosure of unseen crossings."""
+    sequence = [before['domain']]
+    brackets = []
+    resolved = True
+    for piece_index, value in enumerate(values):
+        samples = [before, *(stage['snapshot'] for stage in value[3]), value[0]]
+        for index in range(1, len(samples)):
+            left, right = samples[index-1], samples[index]
+            lo, hi = left['time'], right['time']
+            if not (math.isfinite(lo) and math.isfinite(hi)) or hi < lo:
+                raise ValueError('invalid chronological event sample')
+            if left['domain'] != right['domain']:
+                # Contradictory observations at one time are unresolved, not
+                # zero-width physical transitions.
+                resolved = resolved and hi > lo
+                brackets.append(dict(piece_index=piece_index, from_sample=index-1,
+                    to_sample=index, start_s=lo, end_s=hi))
+                sequence.append(right['domain'])
+        before = value[0]
+    return dict(sequence=tuple(sequence), brackets=brackets, resolved=resolved)
+
+
+def sampled_event_comparison(before, coarse, left, right):
+    coarse_events = sampled_event_path(before, (coarse,))
+    fine_events = sampled_event_path(before, (left,right))
+    same_sequence = coarse_events['sequence'] == fine_events['sequence']
+    resolved = coarse_events['resolved'] and fine_events['resolved']
+    narrow = all(event['end_s']-event['start_s'] <= interval.EVENT_S
+                 for event in fine_events['brackets'])
+    overlap = same_sequence and all(
+        max(a['start_s'],b['start_s']) <= min(a['end_s'],b['end_s'])
+        for a,b in zip(coarse_events['brackets'],fine_events['brackets']))
+    return dict(passed=resolved and same_sequence and narrow and overlap,
+        same_sequence=same_sequence, resolved=resolved, fine_brackets_within_limit=narrow,
+        corresponding_brackets_overlap=overlap, coarse_brackets=coarse_events['brackets'],
+        fine_brackets=fine_events['brackets'])
+
+
 class RadauProbe:
     """Offline call-bounded probe; never imported into organism/runtime custody."""
     def __init__(self, ceiling):
@@ -415,6 +454,7 @@ class RadauProbe:
                     remaining = supply-total[0]
                     coarse = left = right = None
                     numeric_refusal = None
+                    event_test = None
                     try:
                         if reused is None:
                             coarse = trial(target,remaining)
@@ -439,28 +479,27 @@ class RadauProbe:
                         c, l, r = coarse['value'],left['value'],right['value']
                         work = interval._work_add(l[1],r[1])
                         impulse = interval._impulse_add(l[2],r[2])
-                        domains = [before['domain']]
-                        for value in (c,l,r):
-                            domains.extend(stage['snapshot']['domain'] for stage in value[3])
-                            domains.append(value[0]['domain'])
-                        boundary_change = any(domain != domains[0] for domain in domains[1:])
-                        accepted = ((not boundary_change or max(midpoint-begin,target-midpoint) <= interval.EVENT_S)
+                        event_test = sampled_event_comparison(before,c,l,r)
+                        accepted = (event_test['passed']
                             and interval._close(e,c[0],r[0],c[1],work,c[2],impulse,dt))
                         if accepted:
                             total = interval._work_add(total,work)
                             impulses = interval._impulse_add(impulses,impulse)
                             if total[0] > supply:
                                 raise ValueError('mechanical energy supply exhausted; no successor')
-                            for piece in (left,right):
+                            for piece_index, piece in enumerate((left,right)):
                                 value = piece['value']
                                 report['accepted'].append(dict(start_s=piece['begin'],end_s=piece['end'],
                                     predecessor_sha256=hashlib.sha256(piece['predecessor'].astype('<f8').tobytes()).hexdigest(),
                                     state=packed_numbers(value[0]['state']),work=value[1],
-                                    available_work_j=piece['supply']))
+                                    available_work_j=piece['supply'],
+                                    event_brackets=[event for event in event_test['fine_brackets']
+                                                    if event['piece_index'] == piece_index]))
                             before = r[0]
                             continue
                     report['rejected'].append(dict(start_s=begin,end_s=target,
-                        numerical_refusal=numeric_refusal,local_accuracy_rejected=numeric_refusal is None))
+                        numerical_refusal=numeric_refusal,local_accuracy_rejected=numeric_refusal is None,
+                        event_test=event_test))
                     interval._restore(e,base,original_dt)
                     if depth >= maximum_depth:
                         raise ValueError('bounded Radau admission subdivision exhausted')

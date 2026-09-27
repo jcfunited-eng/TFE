@@ -12142,3 +12142,126 @@ ALARM remains,other4OK. No build, mounted change, push, Slack or production
 mutation. Positive estimator source remains compiled-unmounted; interval cost,
 sustained/global accuracy, gravity, world/sensory mount and restart are OPEN.
 Goal ACTIVE. This evidence closes attribution, not body qualification.
+
+### FB-01aj chronological event-admission contract — 2026-09-27 11:48Z
+
+Continue d8f357879, PROGRESS. Seventeen authenticated rejected intervals pass
+all physical comparisons. Static reading of their saved domains and actual
+Radau time formula finds narrow fine-path event brackets in cases2,5,6,7,12,16;
+all coarse-path brackets remain wider than1us. Coarse/fine domain sequences
+match in fifteen cases; cases8 and16 differ and must remain unresolved. Thus
+five measured cases support more precise event admission, not a blanket removal
+of event checking. This metadata calculation performs no native motion replay.
+
+Independent source analysis agrees: coarse proposals are unpublished error
+estimates, not the committed body path; their bracket WIDTH need not dictate
+the committed fine path's temporal resolution. But coarse-only or mismatched
+sequences cannot be discarded because endpoint _close passes. Current Radau3
+genesis observer also assumes whole-piece widths and drops stage-only event
+correspondence; it must consume the same chronological evidence before any
+sustained-motion claim. The existing global independent-history correspondence
+gate remains mandatory and is not redefined by local admission.
+
+Single correction authorized in native/functional_body/radau.pyx: derive
+ordered observed-domain transitions from each path's start, actual stage times
+and endpoint. Preserve all seven domain components (joint boundary flags,
+constraint types/ids/states, geometric and loaded pairs). Require monotone
+finite sample times, no contradictory domains at one time, identical reduced
+coarse/fine DOMAIN SEQUENCES (only adjacent duplicates removed), overlapping
+corresponding coarse/fine brackets, and every committed fine bracket <=1us.
+The domain sequence is numerical mechanical evidence, not a DSF reduction or
+cognitive representation. Do not intersect brackets to invent a tighter time,
+infer hidden crossings, interpolate force, or accept endpoint agreement alone.
+Coarse/fine motion, sensory, contact, impulse and work comparisons stay exact
+to their current tolerance. Stage-only excursions retain both transitions.
+
+Expose the one numerical event comparison helper to the offline proof, and
+reuse it in admit(). Accepted-piece diagnostic receipts carry only sample
+indices and measured start/end times for their brackets; their domains come
+from the original captured snapshots, not a second body store. No body schema,
+runtime mount, controller, physical law or production caller changes. Existing
+caller census keeps Radau compiled-unmounted. Temporary work scales with the
+same fixed stage count and reached constraint/contact domain; no new force
+evaluation or retained body state. Left-trial reuse, debit/commit order and
+full input/timestep rollback remain unchanged. Update numerical-law identity.
+
+Verification after one frozen independent review and one compile: classify the
+same17 saved cases without replaying their motion; preserve wide brackets,
+coarse-only/mismatched sequences and contradictory same-time observations as
+negative controls, retain stage-only excursions. Then retry ONLY the original
+21.8->21.9ms interval under the same162-trial allowance. Capture accepted work/
+state immediately and actual chronological brackets. If complete, compare
+against two independent references at <=0.5/0.25us, including physical fields,
+work, impulse, observed event sequence/timing, exact repeat and energy/budget
+rollback. Original2048-primitive/20CPU proof limits stay; no failed proof is
+restarted with larger bounds. No37-case repetition, full-history replay, changed
+force constants, tolerance relaxation, push, Slack or production mutation.
+Read-only AWS and exact host process census wrap the bounded offline proof.
+
+One source-construction preflight initially assumed the old gate block was
+eight lines; the explicit boundary assertion refused BEFORE any file mutation.
+Use exact structural start/end markers to delimit the complete replacement;
+do not retry the guessed offset. No compiled or numerical run occurred.
+Full body qualification, integration/restart and performance remain OPEN.
+
+### FB-01aj chronological event admission verified — 2026-09-27 11:59Z
+
+PROGRESS, continuing the same numerical accuracy/cost item. Frozen candidate
+3d7a2afe6d75e9a35e08494394f187180f56bd4fdc3afa8b2d94cfe7fe72eb6b.
+Independent source review found no event-gate architecture defect and two
+LOCALIZED proof faults: raw NumPy domain scalars were not JSON-safe, and late
+path assignment could lose partial stage evidence after failure. One batch
+canonicalized only observer types and attached partial admission/reference
+paths before assertions, retaining execution and observer errors separately.
+Final independent review PASS; no source edits after review. Proof SHA256
+9e00295b506ec6b32393e2f54cf7402cbf7e2f048d1e3658a711cf2188578ba2;
+runner ad3bb31d09a8600b06de6f7495f9f02bb34665db78783a440a4a4dbd39d6a54a.
+
+ONE native rebuild and ONE offline bounded proof completed. All17 saved cases
+were classified from authenticated saved observations without replaying their
+motion: cases2,5,6,7,12 pass the new timing gate; other12 remain refused.
+Observer controls retain stage-only excursions and reject wide fine brackets,
+coarse-only changes, disjoint brackets, same-time contradictions, decreasing or
+nonfinite times. No force, energy, anatomy, physical tolerance or budget changed.
+
+The original21.8->21.9ms interval now COMPLETES in139 of162allowed trials:
+64accepted fine pieces,31refinements,12exact-input reuses. Prior v2 failed at162
+and rolled back. Two independent references (nominal256/512 pieces, actual
+264/519 after their own estimator refinement) pass motion/sensory/contact/work
+and impulse comparisons; candidate versus finest reference also passes.
+Material event sequences agree; maximum candidate/reference bracket union is
+0.7654655446200087us, below unchanged1us. All seven mechanical-domain components
+remain captured; global material correspondence retains its prior physical
+keys. This is observed numerical-path evidence, NOT continuum event enclosure.
+Same-input replay is exact. Zero-energy and one-trial refusals preserve exact
+raw body state and original timestep. Full-history/global qualification is NOT
+inferred from this100us witness. Existing global intrinsic-couple qualification
+remains open; local impulse gate has not been promoted into that claim.
+
+Receipt docs/evidence/FB-01aj-radau3-stage-events-proof.json:4868510bytes,
+SHA25623f8610650dd716e8241307d412d4af48bf18793206584426a1d0fda9c36974e.
+Source SHA714391817f603f0bc7c0a46f5af7391181cc1a11b13cba14fca447ec3256fe29,
+law radau-iia3-secant-stage-events-v3; compiled ABI in
+/tmp/guala-body-stage-events.2omn8l5l/python/ has SHA256
+b6aa6ee30e22f18d78359b0dbad002f8ddd9c149dd70279917dd3b6e0a005d10.
+1078primitive attempts,21696force calls,5.505numerical CPU seconds under the
+original2048/20sec proof bounds. Build14.866s/363268KiB; proof child6.418s,
+282348KiB peak single-process RSS. Two-core affinity,1GiB address-space and
+90s child-group wall limits; no aggregate-memory guarantee claimed.
+
+Host preflight found no concurrent Python/compiler work. Build group10167 and
+proof group10244 ended with zero survivors. Independent post-census initially
+matched its own parent shell because of substring searching, NOT a surviving
+proof. Corrected the read-only census to exact argv entries plus exact groups;
+result empty. Permanent recurrence guard: never infer orphan status from a
+script name embedded in the inspection command itself; match actual argv.
+No process was signaled and no numerical proof was repeated.
+
+Read-only AWS11:57:04->11:57:28Z retains sole1559/same image and identity,
+ticks2603522->2603580,no custody errors,CPU50.9516%/RAM3.1494% (latest metric
+11:55Z). Pre-existing clock-stalled ALARM persists;other4OK. No production
+mutation, push or Slack. G1 cognition/caretaker/deployment files untouched.
+Body remains compiled-unmounted. Next: carry these accepted chronological
+brackets into the existing sustained same-genesis qualification observer;
+preserve full physical, event, work, restart and cost gates. Do not repeat the
+closed37-case estimator panel or this completed local proof. Goal ACTIVE.
