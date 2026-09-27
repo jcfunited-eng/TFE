@@ -12636,3 +12636,110 @@ integration and restart remain OPEN. A later receipt inspection accidentally
 printed the admission lists instead of their lengths; it changed no state and
 did not trigger a rerun. Future evidence readers must inspect field types and
 print counts, not nested admission histories.
+
+### FB-01aj v4 sustained qualification contract — 2026-09-27 13:20Z
+
+Continues FB-01aj; prior turn PROGRESS at0b1f55c7c. Receipt
+d1e5de4d9372b944c89253c5a3f567c4c042afc7ff07ddb36df7d4ed48a9abc0
+keeps the solved-domain translation and local restart/rollback seam closed.
+Requested architecture: bounded articulated body with truthful sensory return.
+Current reality: v4 compiled-unmounted, local proof passed, sustained accuracy
+and cost remain open. Conflict with claiming delivery: YES. No extension of
+cognition/kernel, anatomy, force equations, tolerances, world mount or production.
+Reduced numerical rigid-body mechanics; not full DSF or microscopic biology.
+Single next item: one current-law same-genesis sustained qualification.
+
+Reuse the complete reviewed v3 witness from authenticated receipt49a444a5...
+with only v4/schema/binary identity updates and compact console output. Both
+lanes start from the identical original raw body/energy, not any v3 accepted
+prefix. The changed observer affects numerical admission, making fresh histories
+necessary. Preserve100us/50us proposals, <=100us common sampling, checkpoints
+.048/.25/.5s, effort release at.25s, all physical/sensory/work/impulse metrics,
+chronological event records and unchanged material-event correspondence. Solver
+state transitions remain captured and checked locally; no new global event
+claim. Exact cubic hinge localizer and observer algebra checks are unchanged.
+No standalone local proof/panel repeat and no native build.
+
+Same30000primitive/50CPU-second measurement limits and162trials per admission.
+Stop on first causal failure, ambiguous event, or resource limit. Retain exact
+accepted prefixes, raw states, supplied energy, work, impulses and last failed
+transaction. Resource exhaustion is INCOMPLETE, not PASS or permission to weaken
+limits. Reuse a retained current-law prefix if continuation is later justified;
+never restart a completed prefix solely because an observation window ended.
+Cost is measured separately from observer work; no real-time claim from passage
+of an accuracy gate. Intrinsic-couple impulse and unsampled continuum crossings
+remain unqualified as in the existing contract.
+
+Proof /tmp/a1-body-radau3-solved-genesis-20260927.py SHA256
+6f6999a513f752fb5c23946cde660ddadac5de2e86bd39302255fd4110f13636;
+runner /tmp/a1-body-radau3-solved-genesis-run-20260927.py SHA256
+5a8b33b7756737f3cd1bbf65878517b09c0fa4a5a85a172ce53f88603c9e5de9.
+Use the two already measured wxenj18y binaries with exact source/binary hashes.
+One frozen source-only review, one offline run:2cores/1GiB AS per process,
+60CPU seconds per process/90wall per group. Read-only AWS pre/post and exact
+terminal process census. No push, Slack, production or G1 changes.
+
+Skill routes refreshed; four named historical authority/parsimony documents
+remain absent in this worktree. Do not invoke the known-failing generic root
+script or fabricate them. Current AGENTS, ratified body-only numerical approvals,
+verified branch/root and this existing sprint contract govern the bounded work.
+
+### FB-01aj v4 retained sustained prefix and cost boundary — 2026-09-27 13:28Z
+
+Independent frozen source review PASS; no localized corrections or native build.
+One bounded execution stopped at its declared50CPU-second budget, not at an
+accuracy failure. Both v4 paths agree through68.4ms (685completed common-sample
+comparisons; initial equality checked separately), pass the48ms checkpoint and
+material-event correspondence. The
+old v3 failure at58.2ms does not recur on this measured v4 prefix. This is not
+qualification of the full500ms protocol, global continuum accuracy or speed.
+
+At stop, coarse has advanced to68.5ms, half remains at68.4ms with exact failed-
+interval rollback. Retain both separately: never move the half state to the
+coarse state, discard the extra coarse interval or restart either history.
+Any future continuation must finish the existing half interval, compare both
+at68.5ms, and preserve prior work/impulses/events before further advancement.
+The original native source/binaries and all numerical/physical limits unchanged.
+
+Receipt docs/evidence/FB-01aj-radau3-solved-genesis.json:17115346bytes,
+SHA256 c243a427cb3344d7ff1ebde75f1aaef353e4fad4d50ad2d1e791c3a1e974e85d.
+10890primitive attempts,283648probe force calls,287696total observed forwards;
+50.006021numerical CPU seconds. Child51.391103wall/51.336622aggregate CPU seconds,
+354212KiB peak RSS, no timeout. The .006021s cap overshoot is one bounded
+primitive/check interval, NOT a silently increased allowance. Failure and
+partial history retained; requested_motion_accuracy_passed=False.
+
+Cost attribution: primitive execution41.702058s, of which force evaluations
+19.402748s; observer3.578210s. The other primitive time is NOT all proven waste:
+it includes the nonlinear solve, physical/sensory checks and representation.
+Removing observer work alone cannot qualify live cost. Coarse2130accepted
+pieces/3870completed trials/296reuses, half4322pieces/7018completed trials/239reuses.
+Mean accepted piece lengths32.159624us/15.826006us; minimum0.000762939us.
+Coarse refusal counts:272event,23other local accuracy,8nonlinear decrease,
+76embedded contact-impulse. Half:217event,22other accuracy,57embedded impulse.
+Typical accepted coarse pieces require28forwards, half22; this is a source of
+real repeated numerical work, not a UI, logging or process-stall defect.
+
+Source-only cost preflight preserves prior rejected methods: full implicit and
+implicitfast histories remain rejected for measured accuracy, dense finite-
+difference stage Jacobians remain rejected for cost, and blind uniform step
+shrinking/order increases remain rejected. A larger nominal step is not an
+innocent performance setting here: engine_core_constraint.c:1244-1257 clamps
+positive solref to>=2*dt, and the current fixed response is200us with REFSAFE
+enabled. Exceeding100us would change instantaneous force coefficients. Do not
+do it or weaken the event/accuracy gate to reduce work.
+
+Single next item remains sustained accuracy/cost: attribute the remaining
+numerical/representation work on a bounded selection of these saved current-law
+states before choosing a correction. Use exact raw/work controls, no genesis
+replay, no force changes or speculative speed claim. The solved-state handoff
+and its local lifecycle proof remain closed; the full objective remains ACTIVE.
+One source search guessed a nonexistent native-body path and returned exit2;
+the existing probe import resolves the actual module as
+dsf_ai_service/substrate/functional_body_native.py. Use that inspected path.
+
+Owned session87360/group44229 terminal, no survivors; exact host census empty.
+Read-only AWS13:22:47->13:23:40Z: sole1559/same image/identity,
+ticks2616211->2616343,no checkpoint/cleanup/durability errors. Existing clock
+ALARM remains,other4OK; CPU50.930792%/memory3.198242% at13:21Z. No production,
+G1 source, push or Slack changes. Gravity, integration and restart remain open.
