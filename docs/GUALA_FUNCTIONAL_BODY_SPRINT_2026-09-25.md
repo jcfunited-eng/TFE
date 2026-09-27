@@ -13074,3 +13074,116 @@ another emitted whole event-domain arrays; a scalar common-sample value was
 also treated as a mapping by a read-only inspection and raised TypeError.
 These did not execute mechanics or change evidence. Subsequent inspection
 selected scalar bounds, changed indices and digests only. Do not repeat them.
+
+### FB-01aj palm-boundary attribution contract — 2026-09-27 14:28Z
+
+Previous turn PROGRESS:81b176325 retained the173.5ms acceleration rejection and
+changed the next action from continuation to local causal diagnosis. Body tree
+is clean at that commit. Numerical source still f55ae5926, compiled-unmounted.
+The prior result heading14:27Z was entered before that clock time; authoritative
+execution timestamps are the receipt's14:19:47--14:20:34Z. This heading corrects
+that documentation time error, not the measured execution or evidence hashes.
+
+Requested architecture: unchanged bounded functional-body precursor. Current
+reality: sustained acceleration accuracy and cost unqualified. Conflict with
+production-ready claim YES. No native body/cognition/kernel/G1/production source
+or force/tolerance changes. Reduced articulated rigid mechanics, not full
+biological anatomy or full DSF evaluation. Next one item: attribute the saved
+173.4--173.5ms interval's left-palm specific-force error.
+
+Input authority: continuation-1 receipt SHA256
+0dde7d4af486bf88ff89de9c91b84a7c0161fda16c8ec0329c3367b89ab645af,
+unchanged v4 law/probe and velocity ABI. First independently restore both failed
+endpoints and require bit-exact body state and complete observation. Then replay
+only the last100us from each lane's own last_attempt predecessor/supply, with
+nominal proposals H/{1,2,4,8} for H=100us. Keep the existing<=100us force-law
+response boundary. Require original coarse H and half H/2 rows to reproduce
+their saved raw successor, whole observation, interval work and supply exactly.
+
+This8row matrix distinguishes local discretization sensitivity from inherited
+state separation. Compare coarse-vs-half inputs at each equal resolution and
+neighboring resolutions within each input using the unchanged Errors observer.
+Reproduce the original cross-resolution palm failure exactly. Store complete
+row endpoints, observations, interval work, accepted/refused admission receipts
+and event evidence; summarize only scalar metrics on console. Historical work
+and impulse totals are not reverse-subtracted or fabricated: diagnostic totals
+are explicitly new-interval-only and have no production authority.
+
+Scope/input->native->evidence: authenticated retained predecessor -> existing
+interval._restore -> accepted v4 Lane.advance/Radau admission -> native forward
+and physical feedback -> unchanged Errors comparison -> one diagnostic receipt.
+No schema migration, mount, new body law, historical replay, selected winner,
+or continuation from the previously rejected trajectory. Either restore or
+reproduction mismatch rejects diagnostic interpretation and retains operands.
+Exceptions retain current row state/last_attempt and report failure. Existing
+fail-closed admission rollback remains authoritative.
+
+Single script /tmp/a1-body-palm-boundary-20260927.py SHA256
+85e3b019478cbff81ddc0f0681edc97c6d32ef5199d8c25d83ba27dfb00e8219.
+No build. At most3000primitive attempts and10numerical CPU seconds under the
+existing2core/1GiB-AS/60CPU-s-per-process/90wall-s-group envelope; network-denied
+child, immutable binary/source hashes and read-only AWS pre/post. Source review
+under one frozen fingerprint before execution, exact terminal host census after.
+No push/Slack/live changes. Full objective ACTIVE, no readiness claim.
+
+Source-only review found one LOCALIZED diagnostic evidence-ordering gap: an
+exception during restore or observation could precede attachment of its row.
+One batch corrected both endpoint/predecessor branches to pre-attach expected
+operands, retain actual raw state/time in finally, and record observation errors
+separately. No numerical path change. Replacement script SHA256
+ec5b903bf34d138a61e5ffa5329e703fec48324488e47fc00c2da8d120e94e9a.
+Final source review before the single bounded run. No execution yet.
+
+### FB-01aj palm-boundary attribution result — 2026-09-27 14:37Z
+
+Final source review PASS; one offline diagnostic completed. Frozen fingerprint
+1e37f395c8602937e3d9144908cfcf2069159eef9afc1ab4a54bbc247f0fc5a5
+verified pre/post; native source and binaries unchanged. Both saved endpoint
+states and entire observations reproduce exactly. Original coarse H and half
+H/2 replays reproduce raw endpoints, work, supply and observations exactly;
+the original failing palm metric is identical. All8matrix rows completed.
+
+Receipt docs/evidence/FB-01aj-palm-boundary-diagnostic.json:
+733344bytes, SHA256
+8172e90ee1324166e2c7220b6c88b81924dd8e61b1f09197eee250ea6757122b.
+Authenticated payload2453583bytes, SHA256
+1fae995978ba33f614334eae501e7c039ec80bc21d42e88a4937c0c7dbd8a67e.
+310primitives/6060probe forwards;1.667858numerical CPU seconds,
+2.311966child wall,2.211065child self CPU,305588KiB peak RSS.
+Owned group71246 exited normally; independent host census empty.
+
+Decisive result: refining only the last100us from100us to12.5us nominal
+changes the left-palm output by approximately1e-10m/s^2 within either input.
+The cross-input disagreement remains0.04354165409m/s^2 (ratio1.015821262),
+regardless of the local resolution. Therefore the failed measurement is not
+an observation/restoration error, nor removable by repeatedly refining this
+last interval. The incoming trajectories already differ. This closes local
+attribution, NOT whole-motion accuracy or body delivery.
+
+The activated joint is guala/left/forearm/elbow. At173.5ms, coarse/half elbow
+angles are -4.5589758550415885e-7/-4.7105974037155846e-7rad, and rates are
+-0.0991821734689424/-0.09900608824679329rad/s. A read-only traversal of4010
+common retained endpoints (no mechanics execution) verifies the qpos layout
+against the saved complete observation, qpos index16/qvel index15/nq71.
+Largest elbow rate-error jump occurs across the elbow-limit event at
+173.4953125--173.49609375ms:1.8327405407e-4rad/s. Before it, the largest
+recorded rate-error jump is9.0765693646e-6rad/s at59.6875--59.690625ms,
+coincident with lower-limit index11 activation. Another earlier jump is
+1.4993707111e-6rad/s at26.7--26.8ms. These are trace locations, not yet proof
+that changing a particular event algorithm repairs the full history.
+
+Relevant causal source is native/functional_body/radau.pyx:admit: each
+interval._close comparison starts both trials from one identical predecessor.
+It bounds local disagreement, not amplification of already different incoming
+states at a later unilateral constraint. A local pass is consequently not a
+global sensory-error guarantee. Next bounded item: use the retained earlier
+event boundaries to derive/test event-accurate trajectory control, preserving
+the actual force law and all sensory limits. Do not synchronize histories,
+loosen limits, replay the full history before a local correction is proved,
+or keep halving the final100us that this matrix has already cleared.
+
+Read-only AWS14:33:47->14:33:52Z retains sole1559/same image/identity,
+ticks2626508->2626520,persisted2626476->2626508; no custody errors.
+Existing clock alarm persists; other4alarms OK. No G1/production source,
+push or Slack. Goal ACTIVE. Sustained accuracy/cost, gravity, integration,
+cold lifecycle and final production delivery remain open.
