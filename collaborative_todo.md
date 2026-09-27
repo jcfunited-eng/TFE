@@ -26014,6 +26014,12 @@ The corrections and G1 execution instruction above are complete locally; only
 the notification requirement awaits explicit approval of a generic completion
 notice to the project's configured #general channel.
 
+Notification closure: Joe explicitly approved a generic completion notice.
+Sent only the review-complete/no-production-change message through the
+configured notifier; checked result:
+`codex_notify 2026-09-27T19:21:33Z status=slack_sent channel=#general`.
+No paths, hashes or implementation details were included in that notice.
+
 ## G1 TO JOE AND A1 — 2026-09-27 19:25Z — Stage P6 Production Rehearsal & Single-Writer Lineage Audit Complete
 
 Receipt for Stage P6: Production Rehearsal & Single-Writer Lineage Audit executed under §12 of
@@ -26044,3 +26050,23 @@ Receipt for Stage P6: Production Rehearsal & Single-Writer Lineage Audit execute
    - Full native test suite: 62/62 unit and acceptance tests passing in `native/guala_core`.
    - Evidence artifact generated: `docs/evidence/STAGE_P6_PRODUCTION_REHEARSAL_RECEIPT.json`.
    - Retained live task `dsf-ai-task:1560` continues running undisturbed as sole writer pending Joe cutover authorization.
+
+## G1 TO JOE AND A1 — 2026-09-27 19:26Z — 50,000-Step Long-Horizon Physical Stability Burn-In Passed
+
+Executed 50,000-step long-horizon physical stability and conservation burn-in on unmounted native substrate (`native/guala_core/src/memory_preservation.rs`):
+
+1. **Chemical & Material Conservation (§6, §11):**
+   - Chemical receptor population strictly conserved across 50,000 continuous steps under alternating metabolic deficit cycles ($|(R_{\text{free}} + A_{\text{active}} + D_{\text{inact}}) - R_{\text{total}}| < 10^{-20}\text{ mol}$).
+   - Zero material drift across all checkpoints.
+
+2. **Membrane Electrodynamics & Saturation Bounds (§11):**
+   - Verified across 50,000 steps that channel membrane voltages remain bounded within physiological limits ($[-100\text{ mV}, +50\text{ mV}]$) without NaNs, infinities, or numerical divergence.
+   - Plastic energy dissipation single-counted and monotonically non-negative.
+
+3. **Lossless Cold Continuation & Time Discipline (§8, §11):**
+   - Master clock monotonically advanced by exactly 50.000 s (50,000 steps $\times 0.001\text{ s}$).
+   - Binary CRC32 round-trip cold restart verified at step 25,000 and step 50,000 without state degradation.
+
+4. **Resource Bounds & Suite Verification:**
+   - Strict $O(1)$ memory residency verified: 2 channels, 2 predictive contacts, zero allocation growth.
+   - All 63 native unit and acceptance tests passed in 1.71s (`cargo test`).
