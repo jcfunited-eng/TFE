@@ -10225,3 +10225,82 @@ not excluded by the small outer Radau residual. No new solver, physical law,
 tolerance, material coefficient or production exposure. Use existing same
 resource/health envelope with no native rebuild,6Radau steps+6scratchforces,
 explicit setup/restore accounting, and exact first-failure operands.
+
+### FB-01aj right-foot inertial error causally localized — 2026-09-27 06:25Z
+
+Previous goal turn was PROGRESS5fd4152cb; this turn continues the same body-only
+numerical seam. Source/ABI/receipt hashes and clean body branch were rechecked.
+Requested: preserve ratified mechanical and sensory accuracy without changing
+forces. Reality: Radau remains compiled-unmounted, full-motion check fails.
+Conflict: YES with claiming complete accuracy; no authority to weaken limits.
+No extension to cognition, food/caretaker logic, material parameters or live
+runtime. Reduction: numerical articulated mechanics only; this probe does not
+evaluate DSF joint fields or cognition. Next is generic error-controlled mesh
+selection using existing channel limits, not a semantic rule or force change.
+
+One reviewed6-step/6zero-time-force attribution map completed; receipt
+FB-01aj-radau-force-attribution.json SHA256
+336d81a0d4a081e24e0dbbba2fb2b75658bdafedc5991407c5898ebb3d4e81e6.
+Both original whole-motion successors reproduce exact state/work/supply/feedback.
+From each retained19.1ms input, compare100us versus2x50us to the same saved
+19.2ms output time. Vector decomposition closes exactly, without adding norms:
+observed discrepancy norm0.14816675301907373m/s2;
+coarse-input mesh term0.14817316432342098m/s2;
+inherited-state term under same half-step mesh0.000006411939213480448m/s2.
+Opposite decomposition agrees (mesh0.14817302101122737, inherited0.000006268640625927764).
+Thus the final100us mesh dominates this measured discrepancy. This is numerical
+attribution, not a bound against the exact continuum or a whole-motion pass.
+
+At the two archived endpoints, retained/zero/crossed warmstart force evaluations
+keep physical time/state/control unchanged and restore original integration
+bytes exactly. Retained feedback reproduces exactly. Largest changed warmstart
+specific-force difference8.674316223802008e-13m/s2; largest native dynamic
+residual |M*a-qfrc_smooth-qfrc_constraint|7.167599846980011e-13. These operands
+exclude meaningful force-solve/warmstart sensitivity for this discrepancy.
+Native joint57 is guala/right/shin/knee, unchanged solref[.0002,1]. No physical
+contact pair is present; sampled limit-event brackets already matched.
+
+326Radau forward calls plus24setup/restore/scratch forwards =350total.
+0.020287snative-forward time; child0.863051swall/0.855817saggregateCPU,
+165848KiBRSS. Session67933/child82191 terminal; exact host census PID82705
+confirms zero survivors. One initial read guessed absent installed .pyi/test
+paths; no file changed or model ran. File discovery resolved authoritative
+introspect/functions.py and source/include/mujoco/mjdata.h. Do not repeat those
+absent-path reads. A sandbox ps view is NOT host process evidence; explicit
+escalated read-only host census is required (now performed and recorded).
+
+Read-onlyAWS06:24:53Z->06:24:56Z retains sole1559task/image/identity,counts1/1/0,
+ticks2555000->2555008,checkpoint/cleanupnull,durabilityfalse,CPU51.3282percent,
+RAM3.0762percent. Existingclock-stalledALARM remains;other4OK. No push,Slack,
+production mutation, native rebuild, material/tolerance change or whole replay.
+
+Corrective direction: reuse existing interval._close physical channel/work/
+impulse criteria and dyadic full-versus-two-half selection for Radau, committing
+only accepted fine motion and debiting only that motion. Same complete-state
+rollback and left-coarse-result reuse; numerical convergence and sampled event
+boundaries remain checked. This closes the measured absent mesh-admission seam;
+local acceptance alone will NOT be advertised as accumulated-history accuracy.
+Whole common-genesis qualification, gravity/integration/restart/performance and
+production delivery all remain open. No broad test or scene-specific tuning.
+
+06:29Z source-only correction contract confirmed by independent body reviewer:
+Radau trials may use the existing generic dyadic admission transaction and
+unchanged interval._close physical criteria. This is numerical approximation
+already authorized for body mechanics, not a new physical force or cognition.
+Preserve stage-based<=1us observed-domain brackets, exact full-state/supply/
+timestep-keyed left-trial reuse, recomputed right branches after a changed
+accepted left state, all-native-forward/trial limits, complete interval rollback,
+and commit only fine-state work/impulses once. A rejected coarse/fine proposal
+must not debit chemical reserve or heat or enter persisted body custody.
+
+Next executable implementation is one unmounted numerical admission method,
+then the saved19.1->19.2ms proof on both authenticated inputs at nominal100
+and50us. Existing raw one/two-step receipt supplies the falsifying control:
+unchanged _close must reject its100us error. Record actual accepted grids and
+all rejections; no assumed sufficient step size. Exact repetition and raw-state
+continuation can support this local proof, but they are NOT production cold
+restart or permission to wrap new-law states in predecessor custody headers.
+Energy and call-budget refusals must restore the complete interval predecessor.
+If schedules collapse to identical grids, label agreement determinism evidence,
+not independent continuum convergence. Full common-genesis histories are still
+required afterward and cannot be reset at this saved boundary for that claim.
