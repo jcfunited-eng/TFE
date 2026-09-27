@@ -10985,6 +10985,87 @@ Body remains compiled-unmounted, not real-time or fully qualified. Gravity,
 world integration, restart and remaining safety/performance gates remain open.
 No push, Slack, production, cognition, food or caretaker changes. Goal ACTIVE.
 
+### FB-01aj matched contact-tail refinement contract — 2026-09-27
+
+The intervening user exchange was status only (NO PROGRESS), not a live wait.
+Revalidated clean body HEAD d2b14d4304b731f4bcb1350411f7f533481b8f02 and
+the authenticated crossed-history and original fine-tail receipts. Continue
+FB-01aj; the closed local estimator and crossed-history attribution stay closed.
+Only two missing final50us cells execute: coarse-start/half-step tail and
+half-start/coarse-step tail from their exact47.9ms saved states/remaining energy.
+Replay their existing14/12 accepted pieces as exact controls; run128/256-piece
+dyadic tails using the unchanged compiled law. Reuse original coarse/half256
+outcomes without reintegration. Maximum794 primitive attempts,8s internal CPU;
+2cores/60CPU/1GiB address-space/90wall external envelope. No build.
+
+Impact path: authenticated saved body -> RadauProbe.step -> numerical body
+successor/work/contact impulses -> native observations and geometric gap ->
+offline comparison -> immutable evidence. No runtime/schema/codec/mount edits.
+Existing diagnostic helpers are authenticated before reuse. Failed step operands,
+rollback, partial progress, expected/actual control observations, exact references,
+timing bounds and cost survive failure. Fixed-grid results are altered numerical
+successors, not exact enclosures of prior accepted trajectories or continuum truth.
+Both128/256 same-tail comparisons must pass existing full physical/sensory limits.
+Original256 vs crossed256 comparisons share the same26ms initial state/energy;
+their final50us incremental impulse/work origin is explicitly identical in time.
+Record initial47.9ms states separately: they remain history-dependent.
+
+Event separation for corresponding pair(23,33) onset brackets[a,b],[c,d] is
+[max(0,a-d,c-b), max(b-c,d-a)]. Upper<=1us passes, lower>1us fails,
+otherwise unresolved. Missing, duplicate or unmatched events cannot pass.
+No tolerance relaxation or physical-law change. Intrinsic couple impulse and
+whole-history accuracy remain separately unqualified. Restored references must
+match raw/time/full observation before being compared; do not trust a receipt
+label alone. Test-only limits never enter the body law or cognition.
+
+One frozen independent source review precedes one offline run, with read-only AWS
+pre/post and owned-group census. No push, Slack, production or G1-owned edits.
+Success closes only the same-initial-state final-contact ambiguity; remaining
+new-law history, cost, gravity, mounting and restart gates are not waived.
+
+### FB-01aj matched contact-tail ambiguity resolved — 2026-09-27 09:34Z
+
+PROGRESS: one independent source review, one localized failure-evidence ordering
+batch, final PASS, then one no-build diagnostic. Source physics is unchanged.
+The review prevented loss of raw/accounting operands when an observation raises;
+raw/time/work/supply now precede fallible observation and reference checks are
+attached before restore. This is an observer correction, not a body-law change.
+Freeze3b094873ab7498a464755f0fa5a49dce516240f5519e9fd55969344c2feda88b;
+proof580ffdee6948a74136d1d318bed49b05d553e8f167859e3da949ef0307ac9abc;
+runner6632c28dbb826012686940dcc4a7ae5e4396568235cf8746fb0b71a12b03d1f2.
+Receipt docs/evidence/FB-01aj-matched-contact-tail.json SHA256
+f6d17a2a7adf6f43ed13f8c6128654e1d84fcba79762ba2421bd908bc4c0a4d1.
+
+Both14/12-piece controls reproduce every raw successor/work and final native
+observation exactly. Original coarse/half256-piece references restore raw/time/
+observation exactly without reintegration. Both crossed128/256 refinements pass
+all measured endpoint/work/impulse/sensory limits and have event separation upper
+bounds0.390625us. Matching26ms initial states across old/new fine-tail references
+gives geometric event separation0.390625..0.781250us for BOTH comparisons, below
+the unchanged1us ceiling. Joint-rate worst ratios0.733974/0.703918; all measured
+physical groups pass. The previously ambiguous same-start final event is closed.
+
+These are altered final50us numerical successors. They do NOT retroactively
+certify the old accepted trajectories, the continuous physical solution, the
+inherited pre26ms history, or full-body readiness. Intrinsic couple impulse still
+has no separately ratified qualification ceiling. Earlier failed evidence stays
+unchanged. No force law, anatomy, timestep tolerance, or cognition was tuned.
+
+794 primitives,8148 solver/8172 total forward calls;2.200s numerical wall/CPU,
+0.591s native forward. Full child3.155s wall/3.149s aggregate CPU,246984KiB peak
+single-process RSS. Session23135/group54504 terminal; separate host census empty.
+Read-only AWS09:31:40->09:31:46Z retained sole1559/same digest/identity,
+ticks2582187->2582200; checkpoint/cleanup null,durability false. CPU51.2509percent,
+RAM3.07617percent. Existing clock-stalled ALARM persists; other4OK. No live health
+correction claimed. No build, push, Slack, production, G1-source or kernel edit.
+
+Next accuracy path must begin with one byte-identical initial body and remaining
+energy under the current contact estimator, not splice histories from the old
+law at26ms and mislabel them identical. Reuse archived accepted controls as
+evidence, but do not rerun this now-closed final-tail comparison. The full goal
+remains ACTIVE: sustained accuracy/cost, gravity, ordinary body/world mount,
+restart integration and eventual production safety remain unproved.
+
 ### FB-01aj contact quadrature correction contract — 2026-09-27
 
 Continue32a4b0053's authenticated false-convergence case. Requested architecture:
