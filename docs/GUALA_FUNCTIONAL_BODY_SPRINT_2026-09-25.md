@@ -11667,3 +11667,117 @@ or truthful accepted-piece timing bracket must be used, with unresolved timing
 left unresolved. No second local-panel run, no body-force/threshold change, no
 claimed all-future trajectory bound. Reuse the new binary; no rebuild without a
 causal source change. Full objective remains ACTIVE/incomplete.
+
+### FB-01aj Radau3 same-genesis sustained contract — 2026-09-27 10:17Z
+
+Continues FB-01aj; previous turn PROGRESS in ca7d8497b. Saved-state panel receipt
+7f62ca5c19929b7948d2f36f40866921304aafaf2958d9fa45c916dff203d10d
+keeps the new three-stage primitive, algebra and local rollback prerequisite
+closed. Current law is compiled-unmounted; full body delivery remains in conflict
+with claiming completion. No force, anatomy, cognitive/kernel, tolerance, motor
+interface or production extension. Reduced numerical body mechanics only; this
+proof neither evaluates seven-field cognition nor microscopic biological anatomy.
+
+One new SAME-genesis comparison uses the current Radau3 law on both paths,
+nominal100us/50us, unchanged100us-or-less common samples and .048/.25/.5s
+checkpoints, with effort released at .25s. No inherited two-stage prefix, no
+state synchronization/reset, no new load or retuned coefficient. All existing
+state, sensory, work, force, impulse and event tolerances remain. Stop on first
+causal failure or50CPU seconds/30000primitive attempts; save full accepted
+prefix and last attempt to continue a resource-limited trajectory without
+restarting. No repeat build or local regime panel. Intrinsic-couple impulse and
+hidden continuum crossings remain expressly unqualified.
+
+Observer correction only: joint-limit times must use actual THREE stage q/v,
+not the predecessor's quadratic polynomial. With binary Radau nodes c_j,
+form q_v(theta)=q0+h*sum(v_j*integral_0^theta L_j(s)ds), a cubic. Independently
+form the cubic q_p through measured (0,q0),(c1,q1),(c2,q2),(1,q3). Their exact
+rational difference E(theta) has degree3. Its Bernstein coefficients beta_k
+give |E(theta)|<=max|beta_k| on[0,1] by the convex-hull property. For monotone
+decreasing event coordinates, enclose the roots using q_v minus/plus that
+bound, clipped only to the already observed numerical event interval. Certify
+monotonicity from the derivative's Bernstein coefficients, and verify exact
+rational sign brackets for both q_v and q_p. Never call this a continuum
+trajectory enclosure or alter native state to improve the bracket. Ambiguous/
+uncertified events remain a qualification failure, not a guessed event time.
+
+Cheap linear/cubic algebra and sign-reflection checks precede native history.
+Event narrowing occurs only when accepted-piece brackets are insufficient;
+geometric contacts retain truthful accepted-piece brackets. Exact two-stage
+observer evidence remains historical evidence, not a three-stage validator.
+Current saved limits proof supplies the known relevant physical regime.
+
+Reuse only the reviewed observer/Lane/evidence shape from the prior source;
+all stage-specific law assertions, force-call budgets and event mathematics
+are updated. Raw states, per-stage event operands, partial-lane times, physical
+work/impulse and failed rollback evidence must survive refusals. A resource cap
+is an incomplete measurement; no whole-motion PASS or real-time claim follows.
+No source repair is implied if the next failure is only insufficient evidence.
+
+One frozen source-only review of proof/runner, no new native compile; same
+offline2core/60CPU-per-process/1GiB-AS/90wall envelope and read-only AWS pre/post.
+No push, Slack, live writes, or G1 edits. Independent terminal process census
+required. One bounded exact next action: execute this sustained numerical
+qualification, then follow only its first causal result.
+
+### FB-01aj Radau3 sustained prefix and resource boundary — 2026-09-27 10:21Z
+
+PROGRESS: one same-genesis/current-Radau3 run reached218 common100us samples,
+21.8ms, with every completed state/sensory/work/impulse/tactile comparison and
+event correspondence PASS. The stage-correct cubic observer passed its exact
+linear/cubic/sign-reflection checks. This is not a whole-motion pass: the next
+coarse interval21.8..21.9ms exhausted162 primitive admission trials and rolled
+back byte-exactly to21.8ms. The half lane also remains21.8ms; its last completed
+interval was21.7..21.8ms. No mismatch of those statuses is hidden.
+
+Receipt docs/evidence/FB-01aj-radau3-genesis.json,6446423bytes,SHA256
+5a2827aa1c371e346c5e1612cb76accee8576fed7f0232b9e006497a8dc849fb.
+Frozen source-only review PASS with no corrections:
+c06086300a79f9c41f9684ee7b5c75ef948571adc74351b79e9e9a4f8169e951.
+Proof /tmp/a1-body-radau3-genesis-20260927.py SHA256
+da1e98d439548807658d4e4fa5d36e500f725272e3bf3fee8f92040e7e2bc193;
+runner /tmp/a1-body-radau3-genesis-run-20260927.py SHA256
+08eb5a269a7fcfc466bed044b2301371687861598e1818c5baa242f8a50a0a5b.
+No build or physical/numerical source change this run.
+
+3937primitive attempts,99062solver/100671total forwards.17.2344s numerical wall,
+17.2173s CPU,6.7734s native forces,14.6046s primitive transitions,1.1013s observer.
+Full child18.0707s wall/18.0307s aggregate CPU,214828KiB peak RSS. Session64293
+terminal; exact owned group72517 terminal and separate host census empty.
+Read-only AWS10:18:59->10:19:19Z retains sole1559/same image/identity,
+ticks2589080->2589131,no checkpoint/cleanup/durability errors. Existing clock
+ALARM remains,other4OK; CPU51.4203percent average,RAM3.07617percent. No live write.
+
+The saved failed interval contains76 provisionally accepted pieces ending at
+21.8875ms, not a published successor.162trials,38refinements,10reused left trials.
+27 refinements were caused by the passive start-inclusive trapezoid/Radau impulse
+comparison,10 by local accuracy or domain change,1 by coupled residual descent.
+All134 successful primitive trials and28 primitive refusals remain inspectable;
+the entire100us admission rolled back. Do not simply raise the trial allowance
+or retry the identical full-origin trajectory. No demonstrated force/sensor
+defect follows from this resource refusal.
+
+Single next item: quantify the contact-impulse estimator's contribution using
+only the saved failed interval. Compare the actual Radau impulse against an
+independently refined same-predecessor trajectory and the passive estimator;
+retain refused-trial endpoint/stage evidence without changing the return verdict.
+Use already recorded provisional prefixes as authenticated numerical controls,
+not as newly published state. The measurement must distinguish real impulse
+error from a lower-order estimator demanding unnecessary subdivision.
+
+One possible numerical replacement, NOT approved by this evidence alone:
+a positive three-point start-inclusive embedded quadrature through0,c2,1,
+where c2=(4+sqrt6)/10 is the only existing interior Radau node in[1/3,2/3].
+For a node a in that interval, exact integration of the quadratic Lagrange basis
+gives weights (3a-1)/(6a),1/(6a(1-a)),(2-3a)/(6(1-a)).
+These are nonnegative, integrate degrees0..2, use existing force evaluations,
+and retain both start and end evidence. This differs from the order2 trapezoid
+and requires no new dynamics, negative work, force calls, thresholds or state.
+Do not replace the estimator unless the saved-state regime evidence shows it
+retains genuine impulse-error refusal, including the prior loaded-contact
+counterexample. It is a diagnostic candidate, not an assumed remedy.
+
+No complete-history replay is authorized until a causally justified numerical
+change is reviewed. Exact native forces, physical tolerances and rollback remain
+closed. Full sustained accuracy, speed, gravity, mounting and restart remain
+open. Goal ACTIVE; no push, Slack, cognition, food or caretaker edits.
