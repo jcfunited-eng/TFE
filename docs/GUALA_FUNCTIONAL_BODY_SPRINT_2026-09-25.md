@@ -11873,3 +11873,139 @@ raw state/work/impulse continuity; a refused step remains unpublished. Native
 force laws and cognitive scope stay closed. Sustained numerical accuracy and
 performance, gravity, body/world mounting and restart integration remain OPEN.
 Goal ACTIVE; no push, Slack, G1-owned edits or production changes.
+
+### FB-01aj refined reference contract — 2026-09-27 10:43Z
+
+Continues60c1e5245's exact reference-step refusal. No physical law, numerical
+solver, anatomy, tolerance, production or cognitive change. The first128-piece
+reference cannot cross the contact boundary on a fixed grid even though its
+nonlinear solve converged. A comparison cannot establish estimator quality
+without a converged reference; the former diagnostic correctly stopped.
+
+One offline proof correction: subdivide a reference step only after the exact
+known contact-impulse estimator refusal, requiring byte-exact rollback before
+halving. Other refusals and work exhaustion remain terminal. Both independent
+reference grids retain their original maximum spacing,0.5us/0.25us, and can only
+refine. Terminate if the midpoint is unrepresentable or existing2500primitive/
+20CPU limits are exhausted. No fallback state or changed caller verdict.
+Maintain the original saved-state/proposal matrix and complete channelwise
+reference agreement requirement. Neither reference is a continuum certificate.
+
+Avoid repeated work: authenticate prior receipt3b1f624bd4f8b97346c23870516a345919c777d6840fbb7a6a59d0327c0e826b,
+its first proposal, and seventeen accepted reference pieces. Verify exact raw
+predecessor/successor chain, grid timestamps, work, supply and impulse totals
+before reusing that prefix. Resume from the accepted state, never the refused
+endpoint. The old50us coarse proposal may be observed from its authenticated
+unpublished endpoint; this does not turn a refused proposal into body experience.
+No repeat proposal or reference-prefix integration. Other paths begin from their
+original authenticated physical predecessor and remain independently integrated.
+
+Capture each new refused step and rollback, accepted successor and work/impulse,
+any incomplete reference, and comparisons before the first terminal error. Keep
+the same offline2core/60CPU-process/1GiB-AS/90wall and read-only AWS envelope.
+One frozen source-only review before this one run; no rebuild or whole-history
+trajectory. Source and binary hashes unchanged. Intrinsic-couple comparison is
+the existing local gate, not a newly ratified global impulse tolerance. Body
+mounting, gravity, restart and sustained cost remain open.
+
+### FB-01aj refined-reference result and exact rejection frontier — 2026-09-27 10:50Z
+
+Refined references completed all nine loaded-state comparisons, agreeing on
+state/sensory/work/contact and local force/couple impulse. Seven proposed coarse
+motions genuinely fail; both older12.5us proposals pass reference accuracy but
+are refused by BOTH estimators. Their original/alternative maximum ratios are
+21.6576/1.5912 and21.6711/1.6055; actual impulse-error ratios0.6602/0.6464.
+The three current21.8ms proposals50/25/12.5us genuinely fail, with actual impulse
+ratios135.846/124.953/347.199. Replacing the gate is not yet justified: the alternate
+accepted none of these loaded proposals. No false acceptance occurred in them.
+
+The exact force discontinuity is resolvable with the existing law. Reference
+subdivision reached0.000381469727us locally; coarse/fine reference agreement
+does not certify the continuum. The original prefix/proposal restored exactly,
+including sensory observations. Source-only review PASS after one localized
+evidence-order correction. No native edit or build.
+
+The run stopped at2500primitives during the finalgenesis control's fine grid,
+after250/256 pieces. That control is incomplete; no full-matrix PASS. Do not
+increase the allowance or replay completed cases to obtain a green label.
+45706forwards,11.284s numerical wall/11.283s CPU. Full child12.286s wall,
+12.266s aggregate CPU,291028KiB peak RSS. Session43156 terminal; owned83418
+gone with separate host census empty. Read-only AWS10:46:22->10:46:36Z retains
+sole1559/same image/identity,ticks2593146->2593182,no custody errors; existing
+clock ALARM persists,other4OK. Receipt7398228bytes,SHA256
+c7ea6decfea2ba92c95b3d1b7928f5e4b89223c4b5ad862443347d4e7fb6948e,
+docs/evidence/FB-01aj-radau3-refined-impulse-attribution.json.
+Freeze e7e453ef90ffa38846acf241130bab089b40ad95fd7b4ab5518ba28d577ddc60;
+proof8de7591399dbe7b9e5c11326ff4df7921d95ed4837ae64226d982cc4b7e0ff7d,
+runner56f89224180d417b285b301a629c9d77b3bdcc971641aa7f818535bd965d5e25.
+
+Source-data analysis now identifies the exact small-step rejection frontier
+that produced the162-trial limit:27 saved impulse refusals, all with raw exact
+rollback state and supply matching a provisionally accepted prefix. Those
+states remain diagnostic proposals, not published/lived successors. Seventeen
+refusals localize the sharp onset; the later ten sample smooth loaded contact.
+The tested50/25/12.5us initial proposals alone do not resolve that latter cost.
+
+Single next bounded measurement: passively replay the remaining24 actual saved
+refusals (indices7..143 as listed in the authenticated solver record; the first
+three already have negative reference evidence), plus6.25us at each of the two
+older loaded predecessors. Reuse the completed nine negative/reference results,
+do not redo them or finish the irrelevant quiet-control matrix. For each exact
+saved proposal, retain original caller refusal and evaluate0,c2,1 off-path. Only
+if the alternate passes, establish its true motion/impulse error against TWO
+independently refined references using the unchanged solver and previous
+subdivision law. Stop on any false acceptance, unresolved reference or ordinary
+solver error. At most2500primitives/20CPU seconds; no budget increase, native
+change or rebuild. This maps the actual rejection frontier before deciding
+whether an estimator change is justified. Authenticate source supply by exact
+predecessor hash, not a guessed energy amount. Same frozen-review/offline/AWS
+envelope, no production/push/Slack/cognitive/food/caretaker changes.
+
+Frozen frontier review found one localized provenance distinction: saved solver
+index1 has dt4.999999999999796e-05, whereas the prior50us comparison used
+5.000000000000143e-05. Those endpoints are one binary ULP apart; comparative
+negative evidence is not byte-exact coverage. Include index1 in this run, skip
+only the exactly matching indices2/3. The final matrix is25 actual refusals
+plus2 older6.25us proposals, not24+2. Same2500primitive/20CPU budget, no physics
+change, one final source review before execution. No other finding reported.
+
+### FB-01aj exact refusal frontier PASS — 2026-09-27 10:56Z
+
+All27 proposals completed within the unchanged budget:25 actual saved refusals
+plus two older6.25us controls. All25 reproduced the original refusal exactly.
+The alternative0,c2,1 estimate accepted nine of those25; EVERY newly supported
+proposal passed full state/sensory/work/contact and local force/couple impulse
+comparison against two independently refined same-predecessor references.
+The other16 remain refused. Both older6.25us controls pass both estimators and
+the same full comparison. Combined with the retained nine earlier comparisons,
+no tested alternative acceptance concealed a real physical error. This is a
+bounded numerical regime map, not a global-error or whole-body certificate.
+
+Newly supported original solver indices34,38,66,70,83,110,120,121,143 include
+both sharp-onset and smooth-loaded regimes. This supports a derived higher-order
+start-inclusive estimator instead of the low-order trapezoid; not a tolerance
+relaxation or larger admission allowance. Contact force evaluations, actual
+Radau state/work/impulse, original signs, anatomy and physical laws remain exact
+relative to the same numerical candidate. No source change was made by this
+diagnostic and no real-time/body deployment claim follows.
+
+Receipt docs/evidence/FB-01aj-radau3-refusal-frontier.json,4666019bytes,SHA256
+273771de2bb0a2be2470022d299292bd583af69569a8c704f16df3f80a7aa20b.
+Frozen review PASS fd418f72c6db55c1e3a6b43682c606f01dfea605f012882cfa7dcf27b6fd274b.
+Proofdc30409c4e160fed67e69f6d066f3c017ccd544ad3332ac7fa4592b49f01a0b9;
+runner217004dcaff8b2aa79e21146ae5ebda5e17ee393a9dde809e32b7d6e9e7c4583.
+1169primitive attempts,22289forwards,6.695s numerical wall/6.687s CPU;
+full child7.619s wall/7.599s aggregate CPU,301652KiB peak RSS. Session94943
+terminal; group86457 gone, separate host census empty. Read-only AWS retains
+sole1559/same image/identity,ticks2594380->2594406,no custody errors; existing
+clock ALARM persists,other4OK. No production/push/Slack/G1-owned source change.
+
+Next single numerical correction may replace only the passive trapezoid impulse
+estimate with the positive quadratic0,c2,1 rule already derived and measured.
+Reuse existing stage impulses/forces; add no native force evaluation, body state,
+controller, cache, physical tolerance, semantic action or custody mechanism.
+Before any whole-history replay, require exact saved-proposal successor/work/
+impulse equivalence, known-error refusal, unchanged exact rollback and the
+original failed100us admission under the SAME162-trial allowance. Follow only
+that result. Gravity, sustained motion accuracy/cost, world mount, body sensory
+integration, cold restart and production remain open. Goal ACTIVE.
