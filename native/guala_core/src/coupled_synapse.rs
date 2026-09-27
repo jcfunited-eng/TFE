@@ -8,7 +8,8 @@
 //! 4. Nernst driving force and exact carrier transport with remainder custody (§5)
 //! 5. Physical participation tracking (integrated active exposure A_e) (§6)
 //! 6. Consequence-driven plastic yield return map with selective participation (§7)
-//! 7. Cell metabolic reservoir accounting (Delta M_i = -D_pl) (§8)
+//! 7. Single-counted energy accounting: passive yield releases stored elastic energy;
+//!    active remodeling separately accounts metabolic ATP work (§7, §8)
 //! 8. Explicit material provenance descriptor and validation gate (§10)
 //!
 //! UNMOUNTED: No import into production decision selection.
@@ -324,17 +325,20 @@ impl CoupledSynapse {
         })
     }
 
-    /// Evaluates physical consequence coupling with selective participation (§7, §8).
+    /// Evaluates passive plastic yield at fixed physical coordinate x (§7, §8).
     ///
-    /// Rules:
+    /// Energy Conservation Law (§7 line 304, §8):
+    ///   Passive plastic dissipation D_pl is energy released from stored elastic energy:
+    ///     Delta U_elastic = U(x, l_{n+1}) - U(x, l_n) = -D_pl <= 0
+    ///     Q_heat = D_pl >= 0
+    ///     Delta U_elastic + Q_heat = 0
+    ///   It is NOT charged a second time to metabolic reserves (ATP).
+    ///
+    /// Participation Gating (§6, §7):
     ///   - If participation factor Pi_e == 0 (unreached pathway):
     ///     No plastic deformation occurs: Delta l = 0, D_pl = 0.
     ///   - If participation factor Pi_e > 0:
-    ///     Engages rate-independent return map.
-    ///     If yielding occurs (f > 0):
-    ///       Updates reference length l_ref.
-    ///       Plastic dissipation D_pl is debited from metabolic reserve M_i.
-    ///       If metabolic reserve is insufficient (M_i < D_pl), halts with ExhaustedReservoir.
+    ///     Engages rate-independent mechanical return map.
     pub fn apply_consequence(
         &mut self,
         consequence_x: f64,
@@ -356,23 +360,35 @@ impl CoupledSynapse {
         self.mechanics.x = consequence_x;
         let return_res = self.mechanics.return_map_fixed_x()?;
 
-        if return_res.is_yielded {
-            let d_pl = return_res.dissipated_energy;
-            if self.metabolic_reserve < d_pl {
-                // Revert reference length change if metabolic reservoir cannot support remodeling
-                self.mechanics.l_ref -= return_res.delta_l;
-                self.mechanics.cumulative_dissipated_energy -= d_pl;
-                return Err(ConstitutiveError::ExhaustedReservoir {
-                    required: (d_pl * 1e12).ceil() as u64,
-                    available: (self.metabolic_reserve * 1e12).floor() as u64,
-                    reservoir_name: "metabolic_reserve_pJ".to_string(),
-                });
-            }
-            // Debit metabolic energy
-            self.metabolic_reserve -= d_pl;
-        }
+        // Passive plastic yield energy D_pl is released from stored elastic energy (Delta U = -D_pl).
+        // It does NOT debit metabolic reserve M_i.
 
         Ok(Some(return_res))
+    }
+
+    /// Active biochemical remodeling against load (§8).
+    /// Unlike passive plastic yield (which releases stored elastic energy into heat),
+    /// active remodeling consumes metabolic energy (ATP) to synthesize new reference structure.
+    pub fn apply_active_metabolic_remodeling(
+        &mut self,
+        target_delta_l: f64,
+        metabolic_energy_cost: f64,
+    ) -> Result<(), ConstitutiveError> {
+        if metabolic_energy_cost < 0.0 || !metabolic_energy_cost.is_finite() {
+            return Err(ConstitutiveError::InvalidDomain(
+                "metabolic_energy_cost must be non-negative and finite".to_string(),
+            ));
+        }
+        if self.metabolic_reserve < metabolic_energy_cost {
+            return Err(ConstitutiveError::ExhaustedReservoir {
+                required: (metabolic_energy_cost * 1e12).ceil() as u64,
+                available: (self.metabolic_reserve * 1e12).floor() as u64,
+                reservoir_name: "metabolic_reserve_pJ".to_string(),
+            });
+        }
+        self.metabolic_reserve -= metabolic_energy_cost;
+        self.mechanics.l_ref += target_delta_l;
+        Ok(())
     }
 }
 
@@ -464,12 +480,37 @@ mod tests {
         assert!(r1.is_yielded);
         assert!(r1.delta_l > 0.0);
         assert!(r1.dissipated_energy > 0.0);
-        assert!(syn1.metabolic_reserve < 1.0e-6, "Metabolic energy must be debited");
+
+        // Single-counting check (§7 line 305):
+        // Passive yield dissipation comes from stored elastic energy release (Delta U = -D_pl).
+        // It does NOT debit metabolic ATP reserve!
+        assert_eq!(
+            syn1.metabolic_reserve, 1.0e-6,
+            "Passive yield must not double-charge metabolic ATP"
+        );
 
         // Syn2 (unreached) must undergo ZERO plastic remodeling
         assert!(res2.is_none(), "Unreached synapse must be untouched by consequence");
         assert_eq!(syn2.mechanics.l_ref, 1.0e-6, "Reference length must remain unchanged");
         assert_eq!(syn2.metabolic_reserve, 1.0e-6, "Metabolic reserve must be untouched");
+    }
+
+    #[test]
+    fn test_active_metabolic_remodeling_accounting() {
+        let mut synapse = create_fixture_synapse("active_remodel", 50, 100.0e-9, 20.0e-9, 50.0e-9);
+
+        // Active remodeling work (e.g. ATP-driven actin restructuring: 10 nJ)
+        synapse.apply_active_metabolic_remodeling(0.1e-6, 10.0e-9).unwrap();
+        assert_eq!(synapse.mechanics.l_ref, 1.1e-6);
+        assert!((synapse.metabolic_reserve - 40.0e-9).abs() < 1e-15);
+
+        // Depletion check: request 100 nJ when only 40 nJ remains
+        let err = synapse.apply_active_metabolic_remodeling(0.5e-6, 100.0e-9);
+        assert!(matches!(
+            err,
+            Err(ConstitutiveError::ExhaustedReservoir { .. })
+        ));
+        assert_eq!(synapse.mechanics.l_ref, 1.1e-6, "Length must not mutate on failure");
     }
 
     #[test]
@@ -492,21 +533,5 @@ mod tests {
             unverified_prov.validate_for_mounting(),
             Err(ConstitutiveError::InvalidDomain(_))
         ));
-    }
-
-    #[test]
-    fn test_metabolic_depletion_boundary() {
-        // Create synapse with very low metabolic reserve (1 pJ = 1e-12 J)
-        let mut synapse = create_fixture_synapse("starved_syn", 50, 100.0e-9, 20.0e-9, 1.0e-12);
-        synapse.advance_afferent_step(5, 0.010).unwrap();
-
-        // Displacement that requires ~10 nJ of plastic work (which exceeds 1 pJ reserve)
-        let err = synapse.apply_consequence(1.5e-6);
-        assert!(matches!(
-            err,
-            Err(ConstitutiveError::ExhaustedReservoir { .. })
-        ));
-        // Ensure reference length was not mutated on failure
-        assert_eq!(synapse.mechanics.l_ref, 1.0e-6);
     }
 }
