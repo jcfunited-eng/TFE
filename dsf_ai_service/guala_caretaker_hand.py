@@ -232,11 +232,12 @@ def _is_core(her: Any, item: Any) -> bool:
 
 
 def _is_stray_apple(her: Any, item: Any) -> bool:
-    if not item.object_id.startswith("apple") or item.position is None or item.held_by_body_id is not None:
+    is_food_kind = item.object_id.startswith("apple") or item.object_id.startswith("bread") or item.object_id == "bottle-milk"
+    if not is_food_kind or item.position is None or item.held_by_body_id is not None:
         return False
     if _is_core(her, item):
         return True
-    if _distance_mm(her.pose.position, item.position) > her.reach_mm:
+    if item.object_id.startswith("apple") and _distance_mm(her.pose.position, item.position) > her.reach_mm:
         return True
     return False
 
@@ -309,7 +310,7 @@ def withdraw(world: Any) -> dict[str, object] | None:
         held_id = person.held_object_id
         if record["home"] and held_id is not None:
             held = next((item for item in world.observation_snapshot().objects if item.object_id == held_id), None)
-            if held is not None and (held_id == "apple-core" or (held_id.startswith("apple") and nothing_left_to_bite(person, held))):
+            if held is not None and (held_id == "apple-core" or ((held_id.startswith("apple") or held_id.startswith("bread") or held_id == "bottle-milk") and _is_core(person, held))):
                 # An eaten core or stray discarded core goes out at the world's boundary: the bin.
                 world.admit_authored_departure(held_id)
                 record["binned"] = held_id
@@ -830,7 +831,7 @@ def deliver_thing(world: Any, template_id: str) -> str | None:
         mat = existing.material
         digestible_mass = mat.digestible_mass_micrograms if (mat and hasattr(mat, "digestible_mass_micrograms")) else 0
         edible_tastant = sum(mat.tastant_mass_micrograms) if (mat and hasattr(mat, "tastant_mass_micrograms")) else getattr(existing, "tastant_remaining_micrograms", 0)
-        if template_id not in ("bread-slice", "bottle-milk") or (digestible_mass > 0 and edible_tastant > 0):
+        if template_id not in ("bread-slice", "bottle-milk") or (digestible_mass > 0 and edible_tastant > 10):
             return template_id
         if existing.held_by_body_id != snapshot.self_body_id:
             try:
@@ -1125,7 +1126,10 @@ def clean_up_house(world: Any) -> dict[str, object]:
             for item in snapshot.objects:
                 if item.position is None or item.held_by_body_id is not None:
                     continue
-                if not item.object_id.startswith("apple"):
+                is_food_kind = item.object_id.startswith("apple") or item.object_id.startswith("bread") or item.object_id == "bottle-milk"
+                if not is_food_kind:
+                    continue
+                if not _is_core(her, item):
                     continue
                 if _distance_mm(her.pose.position, item.position) <= her.reach_mm:
                     continue

@@ -1881,14 +1881,27 @@ def nocturnal_house_tidying(authority: Any) -> None:
                             updated.append(replace(obj, position=PositionMM(4_800, 9_200, 0), elevation_mm=0))
                         else:
                             updated.append(obj)
-                    elif obj.object_id.startswith("apple") and obj.position is not None:
-                        # Clear stray abandoned floor apples during nocturnal house tidying so Guala wakes to a clean home
+                    elif (obj.object_id.startswith("apple") or obj.object_id.startswith("bread") or obj.object_id == "bottle-milk") and obj.position is not None:
+                        # Clear stray abandoned floor depleted foods/empty containers during nocturnal house tidying
                         if obj.held_by_body_id is not None:
                             updated.append(obj)
                         else:
-                            continue
+                            mat = obj.material
+                            tastant = sum(mat.tastant_mass_micrograms) if (mat and hasattr(mat, "tastant_mass_micrograms")) else 0
+                            dig = getattr(mat, "digestible_mass_micrograms", 0) if mat else 0
+                            if tastant > 10 or dig > 10:
+                                updated.append(obj)
+                            else:
+                                continue
                     else:
                         updated.append(obj)
+                # Ensure nourishing food is restocked in the pantry / kitchen / dining during nocturnal reset
+                _regions, _portals, declared_templates = _home_rooms_and_things()
+                template_map = {item.object_id: item for item in declared_templates}
+                current_ids = {obj.object_id for obj in updated}
+                for food_id in ("apple", "bread-slice", "bottle-milk"):
+                    if food_id not in current_ids and food_id in template_map:
+                        updated.append(template_map[food_id])
                 remaining_ids = {obj.object_id for obj in updated}
                 updated_bodies = tuple(
                     replace(b, held_object_id=None)
@@ -2500,3 +2513,41 @@ def renovate_her_room_layout(authority: Any) -> bool:
         new_world = replace(cur_world, revision=cur_world.revision + 1, bodies=tuple(updated_bodies), objects=tuple(updated))
         _commit_world_successor(authority, new_world)
         return True
+
+
+def replenish_home_food(authority: Any) -> list[str]:
+    """Ensure nourishing food is physically available in the home:
+    checks whether apple, bread-slice, or bottle-milk are absent or depleted.
+    If depleted or absent (and not held), replaces them with fresh declared items.
+    Returns list of replenished object IDs.
+    """
+    with _world_thermal_transaction(authority):
+        if not (hasattr(authority, "_state") and hasattr(authority._state, "world")):
+            return []
+        cur_world = authority._state.world
+        from dataclasses import replace
+        _regions, _portals, declared_templates = _home_rooms_and_things()
+        template_map = {item.object_id: item for item in declared_templates}
+        updated = []
+        replenished = []
+        for obj in cur_world.objects:
+            if obj.object_id in ("apple", "bread-slice", "bottle-milk") and obj.held_by_body_id is None:
+                mat = obj.material
+                tastant = sum(mat.tastant_mass_micrograms) if (mat and hasattr(mat, "tastant_mass_micrograms")) else 0
+                dig = getattr(mat, "digestible_mass_micrograms", 0) if mat else 0
+                if tastant <= 10 and dig <= 10:
+                    fresh_item = template_map.get(obj.object_id)
+                    if fresh_item is not None:
+                        updated.append(fresh_item)
+                        replenished.append(obj.object_id)
+                    continue
+            updated.append(obj)
+        current_ids = {obj.object_id for obj in updated}
+        for food_id in ("apple", "bread-slice", "bottle-milk"):
+            if food_id not in current_ids and food_id in template_map:
+                updated.append(template_map[food_id])
+                replenished.append(food_id)
+        if replenished:
+            new_world = replace(cur_world, revision=cur_world.revision + 1, objects=tuple(updated))
+            _commit_world_successor(authority, new_world)
+        return replenished

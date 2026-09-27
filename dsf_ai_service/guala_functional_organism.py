@@ -2175,6 +2175,10 @@ class FunctionalOrganism:
         if state.get("asleep"):
             if pressure <= 0:
                 state["asleep"], state["sleep_pressure"] = False, 0
+                for c_entry in state.get("conserved_objects", {}).values():
+                    if isinstance(c_entry, dict) and (int(c_entry.get("fed_count", 0)) > 0 or int(c_entry.get("historical_intake_micrograms", 0)) > 0):
+                        c_entry["currently_depleted"] = False
+                        c_entry["is_food"] = True
             else:
                 state["sleep_pressure"] = pressure - SLEEP_RECOVERY_PER_BEAT
                 dreamt = self._dream(tick)
@@ -3003,6 +3007,10 @@ class FunctionalOrganism:
                 }
         elif applied_action == "bite" and decision.target_object_id:
             state["unsuccessful_bite_held_id"] = decision.target_object_id
+            conserved = state.setdefault("conserved_objects", {})
+            if decision.target_object_id in conserved:
+                conserved[decision.target_object_id]["currently_depleted"] = True
+                conserved[decision.target_object_id]["is_food"] = False
         geom = getattr(self, "_receptor_geometry", None)
         nociception_span = max(1, int(geom.touch_temperature_max_millikelvin) - NOCICEPTION_MILLIKELVIN) if geom is not None else 23_000
         action_pain = _clamp((contact_millikelvin - NOCICEPTION_MILLIKELVIN) / float(nociception_span), 0.0, 1.0) if contact_millikelvin is not None else 0.0

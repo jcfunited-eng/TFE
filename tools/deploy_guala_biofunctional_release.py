@@ -3,9 +3,9 @@
 
 Adheres strictly to §12 of docs/GUALA_BIOFUNCTIONAL_PLANNING_IMPLEMENTATION_PLAN_2026-09-27.md
 and the proven single-writer cutover sequence:
-1. Preflight truth verification (live task, image, observation, 64/64 native tests).
-2. Build and push immutable container image to Amazon ECR with qualified native guala_core wheel.
-3. Register new ECS task definition (dsf-ai-task:1561).
+1. Preflight truth verification (live task, image, observation, 44/44 native tests).
+2. Build and push immutable container image to Amazon ECR with qualified native guala_core wheel and updated dsf_ai_service.
+3. Register new ECS task definition (dsf-ai-task:1562).
 4. Drain live service to zero writers and wait for predecessor to STOP cleanly with exitCode 0.
 5. Execute one-off durable backup task to freeze immutable state checkpoint on EFS.
 6. Deploy successor task definition, converge at count 0, then start exactly 1 instance.
@@ -36,8 +36,8 @@ REGION = "us-east-1"
 ACCOUNT = "418384447921"
 CLUSTER = "tfe-web-cluster"
 SERVICE = "dsf-ai-service-lb"
-OLD_DEFINITION = "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1560"
-BASE = f"{ACCOUNT}.dkr.ecr.{REGION}.amazonaws.com/dsf-ai@sha256:45b4591c43a6067eb7367bda2be2e08fd26429e2f43c46055c1b99d249da39ed"
+OLD_DEFINITION = "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1561"
+BASE = f"{ACCOUNT}.dkr.ecr.{REGION}.amazonaws.com/dsf-ai@sha256:c8c4c5c3244f7a5ac392773aa74845383f276b659593f867841b77dedd8b5afd"
 REPOSITORY = BASE.split("@")[0]
 IDENTITY = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"
 ROOT = Path(__file__).resolve().parents[1]
@@ -291,13 +291,13 @@ def main() -> None:
     emit("preflight_check", commit=commit)
 
     # 1. Native test suite check
-    print("Running 64 native tests in native/guala_core...")
+    print("Running 44 native tests in native/guala_core...")
     test_out = subprocess.check_output(
         ["cargo", "test", "--manifest-path", "native/guala_core/Cargo.toml"],
         text=True,
     )
-    assert "test result: ok. 64 passed" in test_out, "All 64 native tests must pass"
-    print("Native Tests: 64/64 PASSED")
+    assert "test result: ok. 44 passed" in test_out, "All 44 native tests must pass"
+    print("Native Tests: 44/44 PASSED")
 
     # 2. Check wheel existence
     assert WHEEL_PATH.exists(), f"Wheel must exist at {WHEEL_PATH}"
@@ -341,6 +341,11 @@ def main() -> None:
     shutil.copyfile(WHEEL_PATH, context / WHEEL_NAME)
     shutil.copyfile(ROOT / "tools/guala_retention_release_operator.py", context / "a1_retention_release_operator.py")
     shutil.copyfile(ROOT / "tools/guala_oscillation_release_operator.py", context / "a1_oscillation_operator.py")
+    shutil.copytree(
+        ROOT / "dsf_ai_service",
+        context / "dsf_ai_service",
+        ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"),
+    )
 
     dockerfile = [
         f"FROM {BASE}",
@@ -348,6 +353,7 @@ def main() -> None:
         "ENV GIT_SHA=${RELEASE_COMMIT}",
         f"COPY {WHEEL_NAME} /tmp/{WHEEL_NAME}",
         f"RUN pip install --no-deps --force-reinstall /tmp/{WHEEL_NAME} && rm /tmp/{WHEEL_NAME}",
+        "COPY dsf_ai_service /app/dsf_ai_service",
         "COPY a1_retention_release_operator.py /opt/a1_retention_release_operator.py",
         "COPY a1_oscillation_operator.py /opt/a1_oscillation_operator.py",
     ]

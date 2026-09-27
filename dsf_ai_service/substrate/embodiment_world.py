@@ -5997,8 +5997,11 @@ class EmbodimentWorldAuthority:
             transferred_digestible: int = 0
             if isinstance(command, OralContactCommand) and item.material is not None:
                 cross_section = item.radius_mm * item.radius_mm
+                total_tastant = sum(item.material.tastant_mass_micrograms)
+                dig_mass = getattr(item.material, "digestible_mass_micrograms", 0)
+                crumb_scale = (total_tastant <= 100 and dig_mass <= 100)
                 bitten = tuple(
-                    mass - min(mass, (mass * patch) // max(1, cross_section))
+                    0 if crumb_scale else (mass - min(mass, max(1, (mass * patch) // max(1, cross_section))) if mass > 0 else 0)
                     for mass in item.material.tastant_mass_micrograms
                 )
                 dissolved_mouthful = tuple(
@@ -6009,8 +6012,11 @@ class EmbodimentWorldAuthority:
                 )
                 if not any(dissolved_mouthful):
                     dissolved_mouthful = ()
-                dig_mass = getattr(item.material, "digestible_mass_micrograms", 0)
-                bitten_dig = dig_mass - min(dig_mass, (dig_mass * patch) // max(1, cross_section))
+                if dig_mass > 0:
+                    dig_bite = dig_mass if crumb_scale else max(1, (dig_mass * patch) // max(1, cross_section))
+                    bitten_dig = dig_mass - min(dig_mass, dig_bite)
+                else:
+                    bitten_dig = 0
                 transferred_digestible = dig_mass - bitten_dig
                 if bitten != item.material.tastant_mass_micrograms or bitten_dig != dig_mass:
                     object_index = next(
