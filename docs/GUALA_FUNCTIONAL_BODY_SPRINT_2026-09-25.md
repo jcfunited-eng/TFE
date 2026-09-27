@@ -13961,3 +13961,77 @@ source patch or long-prefix replay. Declare finite CPU/primitive limits before
 running; preserve every failed level. Only measured results can justify a
 change to which disagreement the local numerical retry may resolve. Full
 functional-body qualification and production delivery remain open.
+
+### FB-01aj bounded local-error map preflight — 2026-09-27
+
+Previous turn is PROGRESS: pushed322a7396e localized the genuine360.6ms
+specific-force refusal without integrating motion; no prerequisite reopened.
+Current clean body branch/source/receipts match that head. Requested mechanics
+remain force/energy-limited and independently error-checked. Conflict remains
+YES at the unqualified long-trajectory accuracy gate; compiled source is
+unmounted. No DSF/cognition/source-force/tolerance change is authorized here.
+
+One scratch diagnostic /tmp/a1-body-local-error-map-20260927.py compares
+nominal divisors1,2,4,8 for the saved360.5->360.6ms pair and the earlier
+173.4->173.5ms control. Each mesh starts from each OWN authenticated predecessor;
+the current case retains complete cumulative work/impulses; the earlier case
+is explicitly local accounting with each actual saved positive allowance.
+First mesh must reproduce saved raw successors, cumulative work and impulses
+exactly before finer results count. No history synchronization or prefix replay.
+Retain each real returned state/work/impulse/event path before all comparisons,
+plus exact raw failed scratch state without masking the originating exception.
+
+This is a diagnostic parameter map, not runtime parameter tuning or a new
+acceptance law. A completed map can contain numerical failures and must not
+be described as qualified body motion. Ten numericalCPU seconds and3000 total
+primitives bound all eight pairs; same reviewed no-build offline child and
+read-only AWS envelope. No mature/live body writes. One frozen source review
+before execution. Any still-unresolved finer result remains unresolved; no
+claim that a finite mesh sweep establishes continuum convergence.
+
+Source-only review found one localized diagnostic-envelope mismatch: reused
+runner's final measured gate was50CPU/30000 rather than this map's10/3000.
+Corrected in the map's own terminal receipt gate before any execution; the
+physical child resource cap remains60CPU/90wall, separately declared. No
+expanded numerical allowance or physics change. External process8998/9045
+had exited at the next census (ps exit1 means those exact PIDs absent), not a
+body failure. Prior continuation's existing cost split is retained:10.37423s
+native forward calls,26.23305s observed primitives,2.53772s observer bookkeeping
+within32.58117s total numericalCPU; this remains NOT real-time qualification.
+
+### FB-01aj local-error map resolved; independent history refinement — 2026-09-27
+
+Final proof-only review PASS, frozen tree
+d2a1ba94a41e795d7571533170cc594f38c95439b05710cbec6ff6a1d2176a72,
+script5c7b6cb36a274569dfe88e534987fb235fad3661088f7b8f9bcf3429a942cca8.
+Receipt FB-01aj-local-error-map.json SHA
+5f4fd7c083fdde461a289952b091d72097a9e62f74be9b3979de1a547e99abf8.
+Both original controls reproduce exact state/work/impulses. All eight actual
+pairs (two100us boundaries, nominal divisors1/2/4/8) retain the specific-force
+disagreement while event sequence/timing pass. Current left-palm ratio stays
+1.22860 (error.86384045 vs bound.70310885); prior173.5ms control stays1.01582.
+Local final-interval refinement therefore does not resolve either inherited
+history mismatch. No force law or tolerance change; local refusal remains.
+Completed map means diagnostic completion, NOT numerical/body qualification.
+
+913primitives/17363forwards,4.211701161numericalCPU;
+child11933exit0,no survivors;4.930897aggregateCPU/4.936649103wall,
+181328KiBRSS. No compile or source mechanics modification.
+
+First preflight19:51:30.557964UTC refused BEFORE any child: G1's separate
+1560->1561 cutover exposed counts0/0/0 and observation503. Read-only census
+identified G1 deployment PID9095; A1 did not stop or mutate it. Same new task
+5b6539b07bb845989d4e05e0592cea92 became HEALTHY before unchanged diagnostic
+retry. Successful pre/post19:54:26.517850--19:54:34.658593UTC: sole1561,
+imagec8c4c5c3244f7a5ac392773aa74845383f276b659593f867841b77dedd8b5afd,
+same organism identity,ticks2686491->2686518,no custodyerrors. Clock alarm
+remainedALARM; otherfourOK. CPU51.398048%/memory3.002930% samples are19:49,
+BEFORE new task start19:53:11; they do NOT prove new-task resource health.
+
+Next single item remains FB-01aj: finer INDEPENDENT history from the same
+genesis, reusing authenticated25us reference observations without replaying
+accepted reference dynamics. Reuse prior finer-history method; explicitly
+map which stored states/impulses exist (newer343->360.5ms receipt lacks each
+ordinary raw state). Missing evidence must not become invented states or
+silent full-admission claims. Retain own raw state/work/impulses across bounded
+CPU stops, never synchronize histories. Full500ms and downstream gates OPEN.
