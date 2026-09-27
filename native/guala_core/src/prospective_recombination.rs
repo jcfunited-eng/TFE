@@ -179,9 +179,10 @@ impl LateralCompetitionEngine {
         let is_gate_open = self.gating_interneuron_voltage < -0.065;
 
         // 3. Lateral mutual inhibition: I_inhib = -g_inhib * (V_post - E_inhib)
+        // Presynaptic action potential or above-threshold state activates transmitter release
         for syn in &self.lateral_inhibitions {
             let v_pre = self.channels[syn.pre_channel].voltage();
-            if v_pre > DEFAULT_ACTION_THRESHOLD {
+            if self.channels[syn.pre_channel].compartment.is_spiking || v_pre > DEFAULT_ACTION_THRESHOLD {
                 let v_post = self.channels[syn.post_channel].voltage();
                 let i_inhib = -syn.conductance * (v_post - DEFAULT_INHIBITORY_REVERSAL);
                 net_currents[syn.post_channel] += i_inhib;
@@ -193,10 +194,17 @@ impl LateralCompetitionEngine {
             chan.compartment.step_leak(dt)?;
             chan.compartment.inject_current(net_currents[i], dt)?;
 
-            // Track physical activation momentum (integral of above-threshold depolarization)
+            // Track physical activation momentum (leaky integration of above-threshold depolarization and action potentials)
             let v = chan.voltage();
-            if v > DEFAULT_ACTION_THRESHOLD {
-                chan.prior_activation_momentum += (v - DEFAULT_ACTION_THRESHOLD) * dt;
+            if chan.compartment.is_spiking {
+                let inward_flux = net_currents[i].max(0.0) / chan.compartment.carrier.c_mem;
+                let delta_v = (0.030 - DEFAULT_ACTION_THRESHOLD) + inward_flux * dt;
+                chan.prior_activation_momentum =
+                    chan.prior_activation_momentum * (-dt / 0.050).exp() + delta_v * (dt / 0.050);
+            } else if v > DEFAULT_ACTION_THRESHOLD {
+                let delta_v = v - DEFAULT_ACTION_THRESHOLD;
+                chan.prior_activation_momentum =
+                    chan.prior_activation_momentum * (-dt / 0.050).exp() + delta_v * (dt / 0.050);
             } else {
                 chan.prior_activation_momentum *= (-dt / 0.050).exp(); // 50 ms momentum decay
             }
@@ -239,10 +247,8 @@ impl LateralCompetitionEngine {
 
                 let hysteresis_margin = max_mom - self.channels[second_chan].prior_activation_momentum;
 
-                // Enforce physical lockout: winner inhibits and repolarizes competitor
-                self.channels[second_chan].compartment.carrier.q_membrane =
-                    DEFAULT_RESET_VOLTAGE * DEFAULT_MEMBRANE_CAPACITANCE;
-                self.channels[second_chan].compartment.is_spiking = false;
+                // Enforce physical lockout on non-winner effector
+                self.channels[second_chan].effector_gated = true;
 
                 Ok(ExclusivityStatus::CollisionResolved {
                     winner_id: best_chan,

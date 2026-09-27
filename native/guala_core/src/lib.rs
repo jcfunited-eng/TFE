@@ -23,6 +23,7 @@
 //!  14. frame_observability -- Stage P1-C C19 frame-invariance and observability controls
 //!  15. persistence_prediction -- Stage P2 state persistence, bodily-need coupling, forward prediction
 //!  16. prospective_recombination -- Stage P3 prospective recombination, lateral competition, reversible means
+//!  17. mature_qualification -- Stage P4 mature integrated qualification harness (C01–C19)
 //!
 //! Design rules:
 //!   - EXACT Python operation order is preserved (e.g. `(omega_0 + kappa*s)
@@ -48,6 +49,7 @@ pub mod coupled_synapse;
 pub mod frame_observability;
 pub mod persistence_prediction;
 pub mod prospective_recombination;
+pub mod mature_qualification;
 mod kinematics;
 mod optical_raycast;
 
