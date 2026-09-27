@@ -9527,3 +9527,59 @@ health gates pass. No push or Slack. G1 ownership remains unchanged.
 Read-only inspection correction: first_failure_states is a LIST, not a mapping;
 one summary command raised AttributeError without altering evidence or running
 physics. Subsequent inspection checked the type before accessing its contents.
+
+### FB-01aj contact discrepancy follows incoming state — 2026-09-27 03:58Z
+
+Previous turn PROGRESS292e08c7d. Same accuracy defect; no runtime, solver,
+material, anatomy, tolerance or production change. Two bounded saved-state
+diagnostics reuse the reviewed v3 library; neither replays genesis.
+
+Common-predecessor test: each of the two recorded pre-onset states near48ms
+was branched at nominal100us and50us and advanced100us. All four intervals
+completed. Within each pair, full raw successors are BYTE-IDENTICAL and every
+ratified measure passes; contact onset brackets agree. This isolates the
+original mismatch to the different incoming states, not these short contact
+settlements. It does not prove that either incoming state is continuum-exact.
+128nativecalls,0.990s childwall,0.987s aggregateCPU,159852KiBpeakRSS.
+Session34022/child23101 terminal,no survivors. Frozen tree de6cdaabc...657f9b8.
+Artifact FB-01aj-midpoint-common-predecessor-onset.json SHA
+41fc5be1c8c335b5da2dd78a27c6b6546bee9d486b21b5d93b0aafa0243b8390.
+
+Resolution map: restore the SAME authenticated contact-release state at
+31.467968750ms and run the following16.7ms at100,50,25us nominal resolutions.
+All167 matched samples complete; both adjacent-resolution comparisons pass
+every ratified metric. All three find the next onset in the SAME
+47.964062500–47.964843750ms bracket. Position differences remain approximately
+1e-8m; no blanket free-flight resolution reduction is justified by this map.
+This confines the original incoming difference to the retained state at/before
+31.467968750ms. It does not establish which earlier settlement created it.
+4286calls under5433ceiling,8.027s childwall,8.011s aggregateCPU,
+162224KiBpeakRSS. Session90610/child24909 terminal,no survivors.
+Frozen tree343f26e8...0c4b8b46. Artifact
+FB-01aj-midpoint-freeflight-resolution-map.json SHA
+1d7a816badb907cfeecf36d0b9112e61356607bd0a86b33a9552b148966f15dc.
+
+Existing-data comparison (no physical execution): the original87-event sequences
+have identical support changes. The earlier right-palm/digit-4 onset ends at
+30.704296875ms vs30.703906250ms (0.390625us difference); subsequent release
+brackets agree. Their later48ms onset differs17.1875us. Thus passing LOCAL
+state/wrench checks and sub1us event brackets does not establish retained
+trajectory accuracy. A new special-case contact matcher or unmeasured global
+timestep cut would not address that demonstrated distinction.
+
+Next single item: use the retained pre-contact/event states around30.704–31.468ms
+to measure the incoming/outgoing state, impulse and work discrepancy and its
+response to the SAME physical law at100/50/25us. Include the observed retained
+predecessors, not only a convenient new common state. This is a bounded
+numerical error-allocation investigation, not permission to change forces,
+weaken acceptance, force mesh equality or rerun full500ms before its cause is
+resolved. No production candidate selected from a passing sample alone.
+
+AWS read-only03:48:08Z->03:48:12Z and03:52:50Z->03:53:01Z: same sole1559task,
+image and organism identity;counts1/1/0; ticks2532495->2532502 and
+2533168->2533194; errorsnull,durabilityfalse. CPU51.38/51.28%,RAM3.064%.
+Existingclock-stalledALARM remains;other4OK. Final actual-host census contains
+no proof/build/caretaker worker. No live mutation,pushorSlack. Full-body
+accuracy/gravity/integration/restart/performance/deployment remain incomplete.
+Rigorous continuum enclosure is not claimed; the ratified contract accepts
+explicitly labelled numerical estimates, not a claim of every future trajectory.
