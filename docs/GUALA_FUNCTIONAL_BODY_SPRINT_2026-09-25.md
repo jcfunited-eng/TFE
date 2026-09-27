@@ -13922,3 +13922,42 @@ No repeated long test, no relaxed bound, no invented impulse or synchronized
 history, no source edit justified merely by this refusal. Existing source
 already fails closed as required.500ms witness and all downstream body gates
 remain OPEN; the goal is ACTIVE and this turn made measured progress.
+
+### FB-01aj refused channel localized without motion — 2026-09-27 19:42Z
+
+Source-only gate PASS on tree
+f593728f50ca7154f3f4cb273288599369160676acef810a3b91e50c1064e408,
+diagnostic942d451a9d9fee9030e492ab2ca1b8787bfb41be6cb38a1b304f627b693d09f5.
+Receipt FB-01aj-saved-state-disagreement.json SHA
+8c92ca33cc8657cfd73e829ca48dc913f4480b7b964fc436b63c6915dbec1c17.
+Both saved comparator results reproduce exactly without integration:360.5ms
+predecessors PASS;360.6ms refused successors FAIL. Exact restored raw states
+remain unchanged after force/sensory observation. Zero primitives/zero native
+integrator calls;0.583967061numericalCPU,1.264734aggregateCPU/1.277602wall,
+185948KiBRSS. Child6342exit0,no survivors. Envelope19:42:33--19:42:36UTC:
+same sole1560/image/identity,ticks2684805->2684818,custodyerrorsnull,
+clockalarmstillALARM,otherfourOK,CPU51.250799%,memory3.0029296875%.
+
+ONLY specific-force channels fail at360.6ms (units m/s^2):
+head error.1120928419 vs allowed.09989703669 (ratio1.12208);
+left palm.8638404491 vs.7031088538 (ratio1.22860);
+right palm.04856770463 vs.04229437117 (ratio1.14833).
+Position/orientation/velocity/proprioception/gyro/work/impulse/tactile checks
+pass. Predecessor worst specific-force error2.764e-6 vs allowed.01366965.
+Endpoint acceleration rises sharply near the two recorded joint-limit domain
+changes. These measurements localize the refusal; they do not yet distinguish
+new local integration error from amplification of inherited history error.
+Do not call it definitively inherited solely because the native pair gate
+returns state_work_impulse_passed=False.
+
+Next exact bounded diagnostic: on the saved100us interval only, compare actual
+successors from both OWN360.5ms predecessors under successive dyadic meshes,
+retaining full cumulative work/impulse. Include the already known173.5ms
+inherited-error control, with its authenticated positive local allowance, to
+distinguish locally reducible error from inherited mismatch. First nominal
+level must reproduce actual saved refused state/work before finer evidence
+counts. No synchronization, tolerance relaxation, altered physical forces,
+source patch or long-prefix replay. Declare finite CPU/primitive limits before
+running; preserve every failed level. Only measured results can justify a
+change to which disagreement the local numerical retry may resolve. Full
+functional-body qualification and production delivery remain open.
