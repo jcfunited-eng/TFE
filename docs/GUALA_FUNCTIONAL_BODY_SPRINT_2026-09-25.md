@@ -8719,3 +8719,140 @@ Only then mount a qualified minimal native time-integration implementation;
 do not promote the offline Python diagnostic, its history digests, or its
 test-only resource caps into cognitive/body authority. Gravity/world mounting
 and live delivery remain original required gates, not waived deliverables.
+
+### FB-01aj common-genesis trajectory accuracy contract — 2026-09-27
+
+Previous turn PROGRESS:32ecdb831 contains measured endpoint continuation and
+exact fresh repeat. No worker is pending. This advances the SAME unresolved
+accuracy item; it does not reopen analytical equation, impulse or prefix proofs.
+Scope: one offline pair of complete0->250ms load->500ms release trajectories,
+same authenticated genesis anatomy and initial supply, same native midpoint law
+and generic numerical-refusal subdivision. Only nominal integration resolution
+differs100us/50us. Keep native100us model/limits/material identity while varying
+diagnostic dt, as in existing mesh comparisons. No serialized model-header
+transplant, runtime law, coefficient, tolerance, neural or production change.
+
+One new tools/guala_body_trajectory_accuracy.py uses existing engine_at,
+archived_controls and subdivide_refused_step; no duplicated mechanical solver.
+Every actual native call is counted/timed. Nominal calls5000/10000 plus existing
+642 extra-call ceiling per case bound16284 total. Preserve twoCPU/1GiB/60CPU/
+90wall child limits. Stop on physical/safety/resource refusal; subdivide only
+the named midpoint nonconvergence with exact predecessor/derived-geometry
+restoration and actual accepted-only work. No heavy regression suite rerun.
+
+Observe BOTH trajectories at common100us physical times, derived from integer
+microsecond indices. Compare primitive surface displacement including rotation,
+geodesic orientations, geometry linear/angular velocities, joint rates,
+proprioceptive angles, inertial specific force/gyro, local contact force/couple
+with unique position-bounded correspondence, and separate positive/signed/
+braking/bearing work under the already RATIFIED error ceilings. Use explicit
+per-channel numerical errors, not a cognitive score. Unmatched/ambiguous touch
+points remain unresolved, never paired by ordinal or nearest-neighbour guess.
+
+Read each converged native midpoint contact before interval post-kinematics
+overwrites its geometry. Accumulate accepted-only world-frame impulses and
+force-magnitude path integrals by actual geometry pair, retaining local touch
+separately. After each successful substep, restore only DERIVED endpoint fields
+with mj_forward, assert primary integration bytes unchanged, and observe contact
+support. Retain changed endpoint-support brackets and exact predecessor bytes
+for later native-flow localization. A bracket wider than1us is explicitly
+UNQUALIFIED; endpoints do not establish absence of hidden in/out events.
+Neither mesh agreement nor numerical convergence is a continuum enclosure.
+
+Memory/evidence: bounded per-channel worst errors and their physical times,
+first/worst failure samples, observed contact-event inputs and two phase
+endpoints, not full repeated sensory/world histories. Emit recoverable progress
+states every10ms of diagnostic physical time (observer only) so interruption
+does not force replay of completed prefixes. Keep accepted impulse and separate
+work, primary states, remaining supply and native-call counts in those records.
+Measure native-step, interval-wrapper and observation durations separately;
+observer overhead is not production latency. Whole history is sampled, not
+silently certified between observations. A failed accuracy assertion does not
+end the measurement early; a physical/numerical/resource refusal does.
+
+No production mount is authorized by this diagnostic. Its decisive output is
+the explicit accuracy PASS/FAIL/UNRESOLVED map and any retained causal failure,
+not a green invocation. Review one frozen source candidate before execution.
+
+### FB-01aj trajectory source review batch — 2026-09-27
+
+Frozen94fe2e60e993af3845cb10b69d0aa29409644c3376a0700e9f8674acc5ebe0c5
+reviewed source-only by body_force_review. Three LOCALIZED findings, no
+architectural rejection: stage impulse/endpoint receipts together, preserve
+nonfinite failure bytes and reject nonfinite derived sums/ratios, and retain
+accumulated metric summaries plus event deltas in10ms progress frames. All three
+corrected in one source batch before any native execution. No force, anatomy,
+tolerance, custody, production or cognitive source changes. All native reads
+assert unchanged complete integration bytes. Existing material/impulse/local
+correspondence and bounded chronological subdivision laws reused unchanged.
+The edit orchestration first had a JavaScript quoting syntax error before any
+shell execution; corrected transport quoting, no file/test/native side effect.
+Missing historical causal-parsimony markdown in this older worktree is recorded
+as skill/document drift; use the current bundled ratified instruction, do not
+invent that file or rerun its missing-file path. Read-only main ledger still
+shows1557 cutover and prior A1 body receipt; no conflicting source handoff.
+
+### FB-01aj complete sampled trajectory comparison FAILED accuracy — 2026-09-27 01:42Z
+
+Source-only final review PASS1aec5ae73fc1488e18a1b1b0a86199e645dbf9a3b793f0f6f58315aac95936c2.
+One bounded execution, session43709/child71317, terminal exit0, no timeout or
+survivors.29.109949s wall/29.096555s aggregateCPU; peak148480KiB. Exact loaded
+native/ABI fingerprints unchanged. Diagnostic source SHA
+a25a9c4782657fa85670bb75ca2d0a82cddb6bc1c1b5d687f60f20825278bb55.
+Artifact docs/evidence/FB-01aj-midpoint-trajectory-accuracy.json SHA
+c6ac46c2d01131f294f184847a3d9caa7a68d8eaa327af4c5dca6d91245cc01e,
+439583bytes. Packed measurement SHA
+15c2d45a4acc2b068f7b0b1200318651a2febcc41e5161ab9b0ea286394ca72d.
+A later read-only receipt-inspection command had a mismatched here-document
+terminator; Python parsed no code and executed no native/state operation.
+Corrected only that read command; the mechanical experiment was NOT rerun.
+
+Both common-genesis cases finish0->250ms load->500ms release. Total15664native
+calls<16284:100us5410(5205accepted/205refused),50us10254(10127accepted/127refused).
+All quantities remain finite, support empty at endpoints, same physical law.
+This DOES NOT pass accuracy. First sampled failure1800us:
+guala/right/digit-0/distal/flexion/rate. Both trajectories have zero accumulated
+surface impulse/support at this point. Original1.6->1.7ms joint-limit evidence
+remains intact; first disagreement precedes any sampled surface contact.
+Saved BOTH1800us full primary states/supplies/work, not just a failure string.
+
+Across5000 matched100us observations, worst surface displacement6.481560mm
+versus0.1mm limit; orientation.09087157rad versus.000174533rad; angular-rate
+34.061958rad/s versus.01589153rad/s; specific-force disagreement12276.128536m/s2
+at367900us versus.01670301m/s2. Force, impulse, positive/braking/bearing and
+signed-work histories fail their ratified limits.62tactile samples have
+unresolved correspondence;39matched points;4921both-empty samples. Matched
+intrinsic couples are zero but do NOT qualify missing/unmatched contact.
+40/44 endpoint-support brackets retained with exact raw predecessors; widths
+6.25–100us and25–50us respectively, all above1us. No hidden-event or continuum
+enclosure claimed. These are mesh disagreements, not a proof that the50us
+trajectory is the exact solution.
+
+Final positive work14.594895573304J vs14.571917204946J;
+braking.281012058447J vs.258033690059J;
+bearing4.015424616595J vs4.006762823292J.
+Final signed work nearly matches14.31388351486J yet its earlier history fails;
+endpoint agreement is not sufficient. No unexplained work is renamed heat.
+Native-step time7.228320s/5.607823s; interval overhead.733363s/1.175621s;
+observer4.726930s/5.733878s. This instrumented offline bench is not real-time
+production evidence; observer and solver costs are reported separately.
+
+AWS01:39:22.417068Z->01:39:53.914276Z same sole1557task
+b35c96647179444cabf98b6441c30fed, imageb5925e5f...655fa7,
+identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,counts1/1/0;
+ticks2517901->2517999,persisted2517893->2517989;checkpoint/cleanupnull,
+durabilityfalse. CPUmean51.201517->51.147431%,RAM2.551270%.
+Existing clock-stalled ALARM persists; remaining4alarmsOK. No live writes.
+
+Disposition: retain this as a truthful FAILED qualification, not a rejected
+force law or successful accuracy certificate. Convergence-only subdivision does
+not control time-discretization error. No deployment/mount, tolerance relaxation,
+force averaging or cognitive workaround. The next bounded item is to isolate
+the first1800us disagreement using the ALREADY AUTHENTICATED0.25us joint-event
+endpoint at1700us (joint-events artifactaf2dda02925dd22e16717625326ead2fbd7cae5ce267dfb5c789de8ec415d71d)
+as a common predecessor. Compare one100us advance with two50us advances, actual
+sensor/work consequences and boundary changes, before designing minimal
+accuracy/event-aware native advancement. Do not rerun the0->500ms proof or
+already closed joint-event construction to obtain this input. Contact-event
+qualification, gravity, whole-world mount, paired restart, performance and live
+delivery remain required. Goal ACTIVE, no user decision outstanding.
