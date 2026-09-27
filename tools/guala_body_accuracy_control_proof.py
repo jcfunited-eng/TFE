@@ -43,7 +43,7 @@ def read(reference):
 
 def main():
     assert mj.__version__ == mj.mj_versionString() == ENGINE_VERSION
-    assert interval.INTERVAL_ABI == 3 and interval.INTERVAL_LAW == "midpoint-dyadic-accuracy-v1"
+    assert interval.INTERVAL_ABI == 3 and interval.INTERVAL_LAW == "midpoint-dyadic-accuracy-v2"
     # Arithmetic falsifier only: two contact-point vectors partly cancel.
     # This exercises the same point-to-pair reduction used by native contacts.
     pair_impulse = interval._pair_impulses((

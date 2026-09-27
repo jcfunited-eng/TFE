@@ -1,0 +1,174 @@
+{
+  "candidate_fingerprint": "53df56bc19bf4d0749f652e11d6ef8820332d547a34f60ef2e403ece45d5a293",
+  "execution": {
+    "cpu_seconds": 0.7547429999999999,
+    "exit_code": 0,
+    "label": "loaded-contact-remaining-cold-refusal",
+    "owned_pid": 8191,
+    "stderr": "",
+    "stdout_bytes": 435,
+    "survivors": [],
+    "timed_out": false,
+    "wall_seconds": 0.7568871829998898
+  },
+  "full_body_qualification": false,
+  "health_error": null,
+  "previous_receipt_sha256": "74b07efaf411a6d6886415b1b053f9b3feac05d0841454f213af810f0bf63562",
+  "production_post": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 51.099721401929855,
+        "Maximum": 51.75781184434891,
+        "Timestamp": "2026-09-27T03:12:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 3.070068359375,
+        "Maximum": 3.08837890625,
+        "Timestamp": "2026-09-27T03:12:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2527820,
+      "persisted_tick": 2527788
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1559",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/5b56802a81ba4978a36aafb995e829a3",
+          "digests": [
+            "sha256:3c9fce0ce0eaed2196b883a061b424d27c7f1d1709f433039394fba51d2e4b5d"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-27T03:13:49.190999+00:00"
+  },
+  "production_pre": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 51.099721401929855,
+        "Maximum": 51.75781184434891,
+        "Timestamp": "2026-09-27T03:12:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 3.070068359375,
+        "Maximum": 3.08837890625,
+        "Timestamp": "2026-09-27T03:12:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2527813,
+      "persisted_tick": 2527788
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1559",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/5b56802a81ba4978a36aafb995e829a3",
+          "digests": [
+            "sha256:3c9fce0ce0eaed2196b883a061b424d27c7f1d1709f433039394fba51d2e4b5d"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-27T03:13:46.160584+00:00"
+  },
+  "result": {
+    "call_ceiling": 64,
+    "calls": 40,
+    "cold_calls": 36,
+    "cold_continuation_exact": true,
+    "completed": true,
+    "continued_state_sha256": "3c9f84a7a4ebede612882b57e03e04991239a19fd705b641cef932502012acdd",
+    "energy_refusal": {
+      "calls": 4,
+      "predecessor_exact": true,
+      "reason": "mechanical energy supply exhausted; no successor"
+    },
+    "failure": null,
+    "resources": {
+      "cpu_seconds": 0.6791179999999999,
+      "maxrss_kib": 145668
+    },
+    "resumed_h_us": 50
+  },
+  "schema": "guala.functional-body.loaded-contact-completion.v1",
+  "offline_continuation_source": "\"\"\"Finish only the two uncompleted saved-contact proof branches; no rebuild.\"\"\"\nfrom pathlib import Path\nimport hashlib\n\nrunner = Path('/tmp/a1-loaded-contact-run-20260927.py').read_bytes()\nassert hashlib.sha256(runner).hexdigest() == 'a75f28ae491567cd010e5ff4d50118d1b2cbe41298c9e9867055f3432acabb91'\n# Reuse only the existing imports and offline operational helper definitions.\nprefix, remainder = runner.decode().split('\\nassert Path.cwd()==ROOT and not TARGET.exists()', 1)\nexec(compile(prefix, '<existing body-proof operational helpers>', 'exec'))\nFP = '53df56bc19bf4d0749f652e11d6ef8820332d547a34f60ef2e403ece45d5a293'\nTARGET = ROOT/'docs/evidence/FB-01aj-midpoint-loaded-contact-completion.json'\nassert Path.cwd() == ROOT and not TARGET.exists()\nfingerprint()\nprevious = ROOT/'docs/evidence/FB-01aj-midpoint-loaded-contact-proof.json'\nassert hashlib.sha256(previous.read_bytes()).hexdigest() == '74b07efaf411a6d6886415b1b053f9b3feac05d0841454f213af810f0bf63562'\nabi = Path('/tmp/guala-body-loaded.s13rgk1v/python/guala_body_interval.cpython-311-x86_64-linux-gnu.so')\nassert hashlib.sha256(abi.read_bytes()).hexdigest() == 'c76880a83e18f6299026666f63bdd184da685b796fc97e9325ba721d02de3b65'\nassert hashlib.sha256(LIB.read_bytes()).hexdigest() == LIB_SHA\npre = health(); print('PRE_HEALTH', json.dumps(pre), flush=True); require_health(pre)\nenv = dict(os.environ, PYTHONDONTWRITEBYTECODE='1', OPENBLAS_NUM_THREADS='1', OMP_NUM_THREADS='1',\n    MKL_NUM_THREADS='1', LD_LIBRARY_PATH=str(LIB.parent),\n    PYTHONPATH=str(abi.parent)+':/tmp/guala-body-optics-native.U8I8en/python:/tmp/guala-body-native.pnUH8P/lib/python3.11/site-packages:.:tests:tools')\ncode = '''import socket\ndef deny(*a,**k): raise RuntimeError('offline child forbids network')\nsocket.socket.connect=deny\nsocket.socket.connect_ex=deny\nsocket.socket.sendto=deny\nimport base64,hashlib,json,resource,traceback\nimport mujoco as mj\nimport guala_body_interval as interval\nfrom guala_body_loaded_contact_proof import comparison_operand\nfrom guala_body_accuracy_control_proof import read\nfrom guala_body_contact_onset import archived_controls\nfrom guala_body_trajectory_accuracy import Trajectory, contact_support, packed_state\nassert mj.mj_versionString() == '3.3.7+guala.midpoint-step.1'\nassert interval.INTERVAL_LAW == 'midpoint-dyadic-accuracy-v2'\nassert interval.__file__ == '/tmp/guala-body-loaded.s13rgk1v/python/guala_body_interval.cpython-311-x86_64-linux-gnu.so'\nprior = read(('FB-01aj-midpoint-loaded-contact-proof.json',\n              '74b07efaf411a6d6886415b1b053f9b3feac05d0841454f213af810f0bf63562'))\nassert prior['completed'] is False and prior['calls'] == 480\nassert prior['failure']['error'] == 'bounded trajectory native-call allowance exhausted'\nrow, = [r for r in prior['cases'] if r['h_us'] == 50]\nassert row['exact_repeat'] and not row['completed']\ncontrol = archived_controls()[50]\nresult = dict(completed=False, resumed_h_us=50, calls=0, call_ceiling=64, failure=None)\nactive = None\ndef seed(state, supply):\n    global active\n    active = Trajectory(50, control)\n    active.e._restore(state)\n    active.initial_supply = active.supply = supply\n    active.last_accepted = active.initial = packed_state(active.e)\n    active.support = contact_support(active.e)\n    active.ceiling = 64-result['calls']\n    return active\ntry:\n    cold = seed(base64.b64decode(row['first']['state_base64']), row['first']['remaining_supply_j'])\n    successor = cold.advance_to((float(cold.d.time)+.0001)*1e6)\n    result['calls'] += cold.calls\n    measured = json.loads(json.dumps(comparison_operand(successor)))\n    assert measured == row['warm_continuation'], 'cold successor differs from retained warm result'\n    result.update(cold_continuation_exact=True, cold_calls=cold.calls,\n                  continued_state_sha256=hashlib.sha256(successor.state).hexdigest())\n    initial = base64.b64decode(row['initial_v2_state_base64'])\n    refused = seed(initial, 0.)\n    try:\n        refused.advance_to((float(refused.d.time)+.0001)*1e6)\n    except ValueError as error:\n        assert 'mechanical energy supply exhausted' in str(error)\n        assert refused.e._capture() == initial\n        assert refused.work == (0.,)*6 and not refused.events and not refused.impulses\n        assert float(refused.m.opt.timestep) == .00005\n        result['energy_refusal'] = dict(reason=str(error), calls=refused.calls, predecessor_exact=True)\n    else:\n        raise AssertionError('zero-energy interval was accepted')\n    result['calls'] += refused.calls\n    result['completed'] = True\nexcept Exception as error:\n    result['failure'] = dict(type=type(error).__name__, error=str(error), traceback=traceback.format_exc(),\n                            last_case=active.record(include_events=True) if active else None)\nr=resource.getrusage(resource.RUSAGE_SELF)\nresult['resources']=dict(cpu_seconds=r.ru_utime+r.ru_stime,maxrss_kib=r.ru_maxrss)\nprint('RESULT',json.dumps(result),flush=True)\n'''\nexecution, out = child(code, env, 'loaded-contact-remaining-cold-refusal')\npost = health(); print('POST_HEALTH', json.dumps(post), flush=True)\nhealth_error = None\ntry:\n    require_health(post)\n    assert pre['observation']['identity'] == post['observation']['identity']\n    assert post['observation']['live_tick'] >= pre['observation']['live_tick']\nexcept Exception as error:\n    health_error = repr(error)\nfingerprint()\nassert hashlib.sha256(abi.read_bytes()).hexdigest() == 'c76880a83e18f6299026666f63bdd184da685b796fc97e9325ba721d02de3b65'\nresult = None\nfor line in out.splitlines():\n    if line.startswith('RESULT '): result = json.loads(line[7:])\nreceipt = dict(schema='guala.functional-body.loaded-contact-completion.v1',\n    previous_receipt_sha256=hashlib.sha256(previous.read_bytes()).hexdigest(),\n    candidate_fingerprint=FP, execution=execution, production_pre=pre, production_post=post,\n    health_error=health_error, result=result, full_body_qualification=False)\ncontent=json.dumps(receipt,indent=2,sort_keys=True)+'\\n'\npatch='*** Begin Patch\\n*** Add File: '+str(TARGET)+'\\n'+'\\n'.join('+'+s for s in content.splitlines())+'\\n*** End Patch\\n'\nsubprocess.run(['apply_patch'],input=patch,text=True,check=True)\nprint('COMPLETION_RESULT',json.dumps({k:v for k,v in (result or {}).items() if k!='failure'}),flush=True)\nif result and result['failure']: print('FAILURE',result['failure']['error'],flush=True)\nsys.exit(0 if execution['exit_code']==0 and result and result['completed'] and health_error is None else 1)\n"
+}

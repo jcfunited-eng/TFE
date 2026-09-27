@@ -64,11 +64,11 @@ def contact_support(e):
 
 def plain_domain(value):
     return tuple(tuple(bool(x) for x in row) if i < 2 else
-                 tuple(tuple(int(x) for x in pair) for pair in row) if i == 5 else
+                 tuple(tuple(int(x) for x in pair) for pair in row) if i >= 5 else
                  tuple(int(x) for x in row) for i, row in enumerate(value))
 
 
-def current_domain(e):
+def current_domain(e, support):
     m, d = e._model, e._data
     q = d.qpos[e._limit_qpos]
     joints = np.asarray(e._limited, dtype=np.intp)
@@ -76,7 +76,8 @@ def current_domain(e):
         q <= m.jnt_range[joints, 0]+m.jnt_margin[joints],
         q >= m.jnt_range[joints, 1]-m.jnt_margin[joints],
         d.efc_type, d.efc_id, d.efc_state,
-        sorted(tuple(int(g) for g in c.geom) for c in d.contact if c.efc_address >= 0)))
+        sorted(tuple(int(g) for g in c.geom) for c in d.contact if c.efc_address >= 0),
+        tuple(pair for pair, count in support[1] for _ in range(count))))
 
 
 class Trajectory:
@@ -89,6 +90,10 @@ class Trajectory:
         assert hashlib.sha256(xml.encode()).hexdigest() == control["model_sha256"]
         assert hashlib.sha256(old_header+state[32:]).hexdigest() == control["initial_state_sha256"]
         assert np.all(self.m.opt.gravity == 0)
+        # Historical digest comparison only; never a restore/migration prefix.
+        self.v1_header = hashlib.sha256(
+            (VERSION+"midpoint-dyadic-accuracy-v1"+repr(limits)
+             +repr(self.e._sensory_root)+xml).encode()).digest()
         self.h_us = h_us
         self.ceiling = 3*(500000//h_us+642)
         self.motor = self.e.actuator_names.index(control["name"])
@@ -143,8 +148,9 @@ class Trajectory:
             assert e is self.e
             t = time.perf_counter()
             raw = primary(e)
+            support = contact_support(e)
             row = dict(start=float(self.d.time), stop=stop, before=raw,
-                       domain=current_domain(e), support=contact_support(e), supply=supply)
+                       domain=current_domain(e, support), support=support, supply=supply)
             self.last_attempt = dict(start_s=row["start"], end_s=stop,
                 predecessor_base64=base64.b64encode(raw).decode(), available_work_j=supply)
             self.observer_seconds += time.perf_counter()-t
@@ -381,19 +387,20 @@ def observer_control(case):
     case.support = contact_support(case.e)
     result = case.advance_to(1800)
     expected = proof["runs"][0]
-    assert hashlib.sha256(result.state).hexdigest() == expected["state_sha256"]
+    assert hashlib.sha256(case.v1_header+result.state[32:]).hexdigest() == expected["state_sha256"]
     assert result.positive_motor_work_j == expected["positive_work_j"]
     assert result.signed_motor_work_j == expected["signed_work_j"]
     assert result.motor_braking_work_j == expected["braking_work_j"]
     assert result.bearing_dissipation_j == expected["bearing_work_j"]
     assert case.calls == expected["native_calls"] == 8 and case.accepted == 4
-    return dict(archived_successor_exact=True, accepted_pieces=case.accepted,
-                calls=case.calls, state_sha256=expected["state_sha256"])
+    return dict(archived_physical_successor_exact=True, accepted_pieces=case.accepted,
+                calls=case.calls, archived_v1_state_sha256=expected["state_sha256"],
+                current_state_sha256=hashlib.sha256(result.state).hexdigest())
 
 
 def main():
     assert mj.mj_versionString() == mj.__version__ == VERSION
-    assert interval.INTERVAL_ABI == 3 and interval.INTERVAL_LAW == "midpoint-dyadic-accuracy-v1"
+    assert interval.INTERVAL_ABI == 3 and interval.INTERVAL_LAW == "midpoint-dyadic-accuracy-v2"
     controls = archived_controls()
     cases, errors = [], Errors()
     control_result = control_failure_state = failure = first_failure_states = None

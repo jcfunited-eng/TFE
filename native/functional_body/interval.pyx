@@ -11,7 +11,7 @@ import mujoco as mj
 import numpy as np
 
 INTERVAL_ABI = 3
-INTERVAL_LAW = "midpoint-dyadic-accuracy-v1"
+INTERVAL_LAW = "midpoint-dyadic-accuracy-v2"
 ANGLE_RAD = math.radians(.01)
 POSITION_M = .0001
 EVENT_S = .000001
@@ -95,6 +95,7 @@ def _snapshot(e):
     _finite(velocity)
     contacts = []
     geometric = []
+    loaded = []
     for i, contact in enumerate(d.contact):
         if contact.efc_address < 0:
             continue
@@ -105,6 +106,7 @@ def _snapshot(e):
         _finite(wrench)
         if not np.any(wrench):
             continue
+        loaded.append(tuple(sorted(pair)))
         _finite(contact.pos)
         frame = _finite(contact.frame).reshape(3, 3).T
         for side, geom in enumerate(pair):
@@ -121,7 +123,7 @@ def _snapshot(e):
     domain = (tuple(q <= m.jnt_range[joints, 0]+m.jnt_margin[joints]),
               tuple(q >= m.jnt_range[joints, 1]-m.jnt_margin[joints]),
               tuple(d.efc_type), tuple(d.efc_id), tuple(d.efc_state),
-              tuple(sorted(geometric)))
+              tuple(sorted(geometric)), tuple(sorted(loaded)))
     return dict(state=_state(e), time=float(d.time), dt=float(m.opt.timestep),
         position=_finite(d.geom_xpos).copy(), rotation=_finite(d.geom_xmat).reshape(-1, 3, 3).copy(),
         velocity=velocity, sensory=_finite(d.sensordata).copy(),

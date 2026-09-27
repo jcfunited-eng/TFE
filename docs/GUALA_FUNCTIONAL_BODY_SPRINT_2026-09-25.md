@@ -9232,3 +9232,127 @@ admission. Update only directly affected diagnostic law/version checks.
 First proof starts from the saved event input, not genesis, and verifies
 loaded-support brackets<=1us plus unchanged rollback/custody. Only then
 continue full-motion accuracy. Complete this narrow contract before source edit.
+
+### FB-01aj loaded-contact signature correction contract — 2026-09-27
+
+Previous turn PROGRESSc36bed036. Requested architecture: preserve physical
+loaded/unloaded contact transitions within the existing1us numerical boundary
+criterion. Current reality: _snapshot reads each nonzero wrench for feedback
+but omits its pair from domain; saved3.125us event proves the omission. Conflict:
+YES with that numerical-evidence criterion, not the force/material law.
+Do not extend geometry-only contact classification. Exact next item: append
+the loaded native pair roster (including multiplicity) to the existing
+transient domain tuple, reusing each already-read wrench. This reduced
+rigid-body/contact model does not evaluate DSF or microscopic tissue deformation.
+
+Caller/transaction/rollback remain exactly the99c81bc56 contract:
+NativeBody.advance -> advance_interval -> _snapshot.domain -> boundary_change
+-> accepted fine state/work -> MechanicalSuccessor -> existing world custody.
+No new physical solver, sensory channel, persistent memory, force threshold,
+contact label, cognitive authority or allocation scaling. Loaded means the
+same np.any(wrench) already used by tactile feedback; zero is not relabeled.
+Existing1us criterion and finite call bounds unchanged. Domain tuple is scratch
+only; numerical law identifier advances v1->v2 to reject old unmounted headers.
+No header fallback/migration in NativeBody or world authority.
+
+Authorized edits: native/functional_body/interval.pyx; directly affected law
+checks in tools/guala_body_accuracy_control_proof.py and observer/domain checks
+in tools/guala_body_trajectory_accuracy.py; one short saved-event proof tool.
+Offline archive comparisons may reconstruct the v1 digest prefix solely to
+compare the same raw physical payload against its authenticated old receipt;
+that prefix must never be restored as accepted current state. Explicit saved
+raw diagnostic input remains separate from cold persistence, which uses v2 only.
+
+First proof authenticates artifact07e1bb...4206e2 and each stored first-wide
+event. No prefix replay. For both100/50us cases restore the saved pre-event
+raw coordinates explicitly, advance100us, require actual loaded->unloaded
+contact support change and all observed brackets<=1us. Verify deterministic
+repeat and new-instance cold continuation, old-header refusal and zero-energy
+refusal with exact predecessor restoration. Carry exact native calls under480
+for this local proof;2CPU/1GiB/60CPU/90wall outer bounds. Record measured force/
+work/accepted state without claiming global continuum or fullmotion accuracy.
+Unchanged contact-free observer control must still match its archived physical
+payload/work even though current law header differs. One frozen source review
+before interval-only compile and this proof; no force-library build.
+
+Source-only reviewc3c28331db5d5c8c262614720a0022cc6fded6443c33afa85a83cab758b82f55
+found one LOCALIZED evidence omission: completed event and comparison operands
+could be lost if a later branch failed. Batched correction records each case
+incrementally and retains both complete MechanicalSuccessor operands only on
+actual repeat/cold mismatch. The first event receipt survives later failures;
+zero-energy refusal preserves expected input and active-case state. No runtime
+or physical assertion changed. No architectural finding. Final freeze/review
+before any execution.
+
+Operational continuity: prior-turn in-memory runner strings were unavailable
+after a container/session restart; no candidate process had launched. Recreated
+the same bounded read-only-health build/proof wrapper at the explicit temporary
+path /tmp/a1-loaded-contact-run-20260927.py using apply_patch, so its identity
+survives the next context loss. This is offline orchestration, not runtime or
+cognitive state. Current process census shows the restarted development
+container and no heavy Python/build job; do not assume old caretaker PIDs still
+exist. Revalidate exact library/dependency paths/hashes and live health in the
+launch command; no automatic process restart or service modification.
+
+### FB-01aj loaded-contact boundary verified locally — 2026-09-27 03:15Z
+
+CONTINUES FB-01aj. The geometry-present/force-unloaded omission is locally
+closed; whole-motion qualification remains the next item, not a new cognitive
+scope. The runtime reuses existing nonzero wrench evidence in its transient
+boundary signature and advances the numerical law to v2. No force law, material,
+anatomy, tolerance, cognitive state or production path changed.
+
+Independent source review identified only localized proof-evidence retention
+omissions. First-event and mismatch evidence were retained; final review found
+the warm result also needed recording before the cold call. Applied precisely
+that proof-only line and checked the delta directly, without another review
+cycle. Executed frozen fingerprint
+d324fe2a1e435016ee4d6515f889ce1db5e020b751006d5d9cd6f28dacecf7ff.
+One interval-only build, 8.021s wall, 7.791s aggregate CPU, 318976KiB peak RSS.
+Force library unchanged. New ABI library:
+c76880a83e18f6299026666f63bdd184da685b796fc97e9325ba721d02de3b65
+at /tmp/guala-body-loaded.s13rgk1v/python.
+
+Both authenticated saved unloading events pass: bracket 0.7812500000016487us
+versus the unchanged 1us limit, formerly 3.125us. Pair [6,22] genuinely unloads.
+Both repeat exactly; old-law state headers refuse without mutation. The
+contact-free observer control retains exactly the archived raw successor/work.
+
+Proof harness defect disclosed: the 480-call allowance exhausted during the
+second mesh's cold continuation. The first mesh completed all branches; second
+mesh completed the event, repeat and warm continuation. Receipt retains
+completed=False and the exact failure. No whole proof or prefix was rerun.
+A fresh isolated process restored only the retained second-mesh predecessor,
+compared its complete successor with the saved warm result, then checked zero-
+energy refusal. Both pass: 36 + 4 = 40 calls, 0.757s wall, 0.755s aggregate CPU,
+145668KiB peak RSS. First proof: 480 calls, 2.076s wall, 1.979s aggregate CPU,
+155364KiB peak RSS. Actual total 520 calls includes 15 discarded budget-limited
+attempt calls. Future diagnostic ceiling corrected from the measured complete
+branch cost: 8 control + 251 first mesh + 246 second mesh = 505 calls.
+This changes only the diagnostic allowance, not runtime limits or tolerances;
+the combined 505-call command was not rerun. Linked receipts prove the branches.
+
+First immutable receipt:
+docs/evidence/FB-01aj-midpoint-loaded-contact-proof.json
+SHA 74b07efaf411a6d6886415b1b053f9b3feac05d0841454f213af810f0bf63562.
+Completion receipt, including exact offline continuation source:
+docs/evidence/FB-01aj-midpoint-loaded-contact-completion.json
+SHA 4f634e3548a589596ceda0a1791d42095343f38ef03bbb1f9a8b8cb509928f88.
+Sessions79611/44405; build7321, proof7360, completion8191 all terminal; exact
+post-run PID/process-group census finds no survivors. No broad tests.
+
+Read-only AWS envelopes03:11:05Z->03:11:17Z and03:13:46Z->03:13:49Z:
+same sole1559task5b56802a81ba4978a36aafb995e829a3 and immutable image
+3c9fce0ce0eaed2196b883a061b424d27c7f1d1709f433039394fba51d2e4b5d;
+counts1/1/0,RUNNING/HEALTHY,sameidentity,ticks2527462->2527492 and
+2527813->2527820,checkpoint/cleanupnull,durabilityfalse. CPUmean51.10%;
+RAM3.07-3.09%. Existing clock-stalledALARM remains; other4OK. This is not
+a blanket organism-health claim. No live writes, process interference, push
+or Slack. Current container census does not establish prior caretaker7712
+continuity after the development-container restart.
+
+Next: resume the single whole-motion accuracy qualification with loaded-contact
+boundary evidence included. Full500ms, gravity, intrinsic-couple impulse,
+continuum enclosure, mounting and production qualification remain OPEN.
+Do not reopen the closed saved-event correction or rerun completed proof
+branches. Preserve approved numerical approximations and frozen cognition.
