@@ -13543,3 +13543,149 @@ line and failed, while its shell continued to an unpublished evidence commit.
 Inspected the actual tail and own commit, appended this result under set-e,
 and amended only that unpublished A1 commit. No evidence, physics or test was
 lost/repeated; future edit-and-commit command groups must stop on first error.
+
+### FB-01aj retained paired load/release contract — 2026-09-27 18:39Z
+
+Continue the accepted50us and25us independent states at173.5ms through the
+original250ms effort release and500ms endpoint. Script
+`/tmp/a1-body-paired-load-release-20260927.py` is an offline diagnostic only;
+native/body/world/cognitive production source stays unchanged. The cleared
+prefix remains in its authenticated receipts; neither history is replayed or
+synchronized with the other. Original anatomy, force, material, unit-bearing
+error limits and full sampled event correspondence remain authoritative.
+
+Input: exact recorded raw states plus own cumulative work/supply/impulses and
+actual stage-event sequences. Restore must match raw state and complete
+observation. Each new common sample compares both independently advanced
+histories through the existing native comparator and full sensory observer.
+The exact external zero-effort command at250ms advances no time/work and
+separates constant-input event segments; same-time command changes must not
+be fabricated as zero-width physical events. Commit release metadata only
+after both states and all sensory checks succeed; rollback raw states on any
+failure. Preserve pre-release changed-event operands once with the completed
+segment. Failure operands are attached before fallible observation.
+
+CPU-only stops retain each lane's actual endpoint, including one lane a common
+sample ahead of its counterpart. Resume only authenticated budget stops with
+passing prior comparisons, exact physical custody and two named lanes; advance
+the lagging state rather than replaying the leading one. Any physical/sensory
+or event discrepancy is terminal evidence, not a permitted budget resume.
+
+Operational envelope remains50 numerical CPU seconds/30000 primitives,
+2core affinity/1GiB address space/60CPU perprocess/90wall group. Child network
+is denied; AWS health is read-only pre/post; exact process census before and
+after; unchanged binaries, no compile. Production and body integration remain
+unqualified; intrinsic couple impulse is explicitly unavailable in the legacy
+observer, and this zero-gravity bench does not prove gravity or full embodiment.
+Next: freeze and source-only independent review, then this bounded continuation.
+
+### FB-01aj paired continuation pass to230.2ms — 2026-09-27 18:41Z
+
+Frozen continuation source review PASS; script SHA
+00ec0ce0a2e94b6254bb7801a4fcf41eea5918c16503b334353a65cd553f344b,
+tree01c59f5a55751c6505677e4da6ad25fcc50abe8127d8a135d720c8576797fb85.
+Receipt FB-01aj-paired-load-release.json SHA
+dc6673a881e44a6cd8d59e6a45166acce8661d1f3c990aadbfe3f4a00b8c4d54.
+Both own raw states and observations restore exactly.567new common samples
+pass to230.2ms, including full native cumulative work/impulse/event comparison.
+At50.011269CPU seconds/10274primitives/218889forwards the CPU bound stops
+the25us lane exactly at230.2ms;50us lane retains its actual230.3ms state.
+Resume advances only the lagging lane before proceeding. Intrinsic couple
+impulse remains UNQUALIFIED in the legacy observer; other evaluated channels
+PASS. Primitive wall40.3328s/native17.5363s/observer3.61995s overlap; not realtime.
+
+Child74201 exit0,51.506476aggregateCPU/51.549885wall,454108KiB RSS,no
+survivors; parentexit1 means budget-incomplete. Production read-only envelope
+18:39:11--18:40:05UTC remains solehealthy1560/sameimage/identity,
+ticks2672078->2672259,custodyerrorsnull,clockalarmstillALARM. No live writes.
+Continue exact reviewed resume source/binaries from this receipt, no rebuild,
+re-review or completed-prefix replay. Remaining250ms release/500ms endpoint open.
+
+### FB-01aj torque release passed; continued to294.1ms — 2026-09-27 18:43Z
+
+Unchanged reviewed proof, tree6bfbb3fb6fd8a0887a22a847145e433c2143c7ac4e90624fff8e2a8210eb392e.
+Receipt FB-01aj-paired-load-release-dc6673a881e4.json SHA
+b0c721f0845293024374b7025b335322dc1d1c54df3badc7c2a88124746755b9.
+Exact lagging-lane restore/continuation succeeded;640new samples pass.
+Both actual efforts change -28.627763055836986Nm->0 at250ms with no elapsed
+time/work. Native full comparisons immediately before/after release PASS;
+actual event segments remain separated. Histories continue agreeing to294.1ms.
+CPU-only stop50.008726s/11674primitives/246917forwards retains half294.2ms,
+quarter294.1ms with exact interrupted-step rollback. No accuracy failure.
+Child75356exit0,51.560979aggregateCPU/51.610362wall,397532KiB RSS,no survivors.
+Production18:41:14--18:42:08UTC unchanged1560/sameidentity,
+ticks2672490->2672671,custodyerrorsnull,clockalarmALARM. Goal still ACTIVE.
+Continue the same resume path to500ms; no prior motion or release replay.
+
+### FB-01aj solved-event timing boundary — 2026-09-27 18:44Z
+
+Receipt FB-01aj-paired-load-release-b0c721f08452.json SHA
+adc673abcb7d0ca23a97797ec77731458622e4a86e0f9d9da21541d67e4c02eb.
+487new samples pass through342.8ms. At342.9ms both actual histories still
+pass state/work/impulse and every evaluated sensory channel, with identical
+sampled event sequences, but corresponding event25 bracket union is
+1.3202327723282892us, exceeding unchanged1us limit. This is NOT a CPU stop
+and ordinary resume is prohibited. Saved all failure operands and real states.
+Native joint-limit constraint row (id28) changes solved state0->1 while
+geometric joint-limit flags and contact topology remain unchanged. Half bracket
+[.342869757732762,.3428703124999897]; quarter
+[.3428689922672174,.342869757732762]. These coarse brackets touch; they do not
+yet establish either a physical timing error or an admissible tighter union.
+
+Child76370exit0,45.934547numericalCPU/47.30677aggregateCPU/47.350454wall,
+361268KiB RSS,9476primitives/210644forwards,no survivors. Production same1560,
+18:43:12--18:44:02UTC,ticks2672885->2673052,custodyerrorsnull,clockalarmALARM.
+
+Next bounded measurement: source-reviewed offline
+`/tmp/a1-body-solved-event-refinement-20260927.py`. Restore each history's own
+actual1.5625us event-piece predecessor and exactly reproduce its accepted
+successor/work/stage domains as a control. Then use the SAME native admission
+and force law with dyadically smaller nominal intervals over ONLY that piece.
+Compare actual independent local event paths, state/work/impulse with unchanged
+1us bound. No polynomial substitute, event relabeling, weaker tolerance,
+full-prefix replay or new compile. Local work/impulse starts at zero only as
+an explicitly local measurement; it must not overwrite cumulative history.
+Preserve every failure, use the same finite CPU/operation/network/health
+envelope, and finish with process census. Success diagnoses sampling resolution;
+it does NOT retroactively repair or qualify the recorded342.9ms history.
+That history remains unqualified until an actual refined open-interval
+continuation preserves both prior independent states and cumulative accounting.
+
+### FB-01aj local timing resolution measured — 2026-09-27 18:56Z
+
+Independent review required two localized evidence-retention corrections:
+attach expected restore operands before construction/restore and retain actual
+raw state/time on error; retain last_attempt and changed-event rows even if
+admission or observer checks refuse. Applied together; final source PASS.
+Reviewed diagnostic SHA4fe499e3fb622948c63dcf91498c5801ed57f08c33941b2e4de8dcaa85b7889d,
+tree3ff3d1e16dc897d689af3da9d17543667ae8553d684043fc4d0b182ce5ada602.
+
+Receipt FB-01aj-saved-solved-event-refinement.json SHA
+5e17098452dc03b01a27943a4f23ad09ae7a24c8c0c8aef46f6588c18788a17d.
+Both original1.5625us numerical pieces reproduce exact raw successors, work,
+stage times and complete stage domains from their own saved predecessors.
+First dyadic nominal refinement to0.78125us produces independent actual paths
+whose state/work/impulse/event comparison PASSES. Event bracket union is now
+[.3428697265624897,.34286985252908625], width0.12596659654us (<1us).
+No coefficient, material, physical force, comparison tolerance or prior
+history changed. This shows the recorded coarse brackets were insufficient;
+it does NOT establish a continuum enclosure or repair the full failed history.
+
+20primitives/325forwards,0.539963867numericalCPU; primitivewall0.0588494s,
+nativeforwardwall0.02279334s. Child83062exit0,1.124525aggregateCPU,
+1.129875wall,296216KiB RSS,no survivors. Production18:55:16--18:55:20UTC
+same solehealthy1560/image/identity,ticks2675311->2675324,
+custodyerrorsnull; clockalarm remainsALARM. All exact body-proof PIDs terminal.
+
+Next FB-01aj correction: preserve independently retained prefixes and tighten
+only the current unpublished interval when its new paired event brackets are
+too wide, before any publication. Preserve own predecessor state, work, supply,
+impulses and event path on both sides; never synchronize states or merely
+substitute new bracket labels onto the old motion. Retain global refinement
+for inherited state/timing error that local refinement cannot resolve. Current
+native trajectory guard already refuses the bad pair; it must remain fail
+closed. Any recovery of the existing proof must derive exact predecessor
+cumulative accounting from authenticated accepted records, not subtract rounded
+totals or replay earlier motion. No new code for that correction is authored
+or approved in this receipt. Complete500ms witness, cost, gravity/couple impulse,
+body/world lifecycle and production gates remain OPEN; goal ACTIVE.
