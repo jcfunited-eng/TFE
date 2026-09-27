@@ -9109,3 +9109,126 @@ observes every native trial; it must NOT accumulate rejected adaptive trials as
 physical impulses/work. Use only accepted fine trajectories in any observer,
 with no change to the force law or ratified tolerance. Complete that bounded
 observer contract before editing or executing. Mount/gravity/live gates remain.
+
+### FB-01aj accepted-trajectory qualification contract — 2026-09-27
+
+Previous goal turn PROGRESS99c81bc56. Requested architecture: unchanged bounded
+body mechanics, now requiring honest whole-motion accuracy evidence. Current
+reality: new ABI3 local accuracy/repeat/cold/refusal proof passes, but full motion
+is unqualified. Conflict: no new architecture conflict; evidence remains
+incomplete. Do not extend old fixed-step refusal subdivision or count its
+rejected attempts as physical impulse. Exact next item: replace only the
+offline trajectory diagnostic and emit one bounded common-genesis comparison.
+This is reduced rigid-body/soft-contact numerical verification, not seven-field
+DSF, learned locomotion, real gravity or production qualification.
+
+Scope is tools/guala_body_trajectory_accuracy.py plus this ledger/evidence.
+Runtime source, interval ABI3 binary, native force library, material, anatomy,
+limits, cognitive source, persistence/world schemas and live deployment frozen.
+Same authenticated zero-gravity torso load250ms then release250ms; numerical
+nominal steps100us/50us with the SAME physical model and loads. Each uses
+NativeBody.advance on100us comparison intervals, not old raw-step subdivision.
+Their new-law headers differ only for declared numerical limits; physical
+genesis payloads must agree and authenticate against archived model/controls.
+Actual binary64 clocks are reported; never rewrite time to nominal grid labels.
+
+Offline observer wraps module _one_step and _close without changing their return
+values. Generated C confirms dynamic module lookup at both call sites. Retain
+only the last two fine trial records. _close is called only AFTER the runtime
+domain-width condition passes; when it returns True, stage its exact fine
+impulses/work and both contiguous fine intervals. Commit observer state only
+AFTER NativeBody.advance returns successfully. Any refusal discards that
+interval's staged observation. Both fine predecessor/successor bytes, domain and
+contact-support change brackets are retained for observed events; rejected
+trial forces/work never enter accumulated physical totals. All numerical calls
+still count for resources. State checks prove observation leaves primary bytes
+unchanged; finally restores all observer bindings.
+
+First falsifier: run this observer on the authenticated1700us input and match
+its full successor/work to the archived99c81bc56 unobserved proof (8evaluations,
+4acceptedfinepieces). This proves selection excludes rejected/coarse trials.
+Then run at most one full comparison, stopping immediately on first channel
+failure, unresolved tactile correspondence, wide observed event bracket or
+physical/numerical refusal. Preserve both paths' last-successful states,
+predecessors, accepted work/impulses, original failure and native call/timing
+counts. Continue to500ms ONLY while all sampled gates hold; no expensive
+post-failure replay. Existing per-channel thresholds unchanged; unresolved
+intrinsic-couple impulse or hidden crossing claims remain explicitly unqualified.
+
+Use prior whole-motion native-call envelope16284 scaled by the three numerical
+evaluations per coarse/fine attempt:48852overall ceiling, plus8control calls.
+This is a diagnostic work ceiling, not physical admission or a promised bound
+on effort needed to complete motion.2CPUs/1GiB/60CPU/90wall outside limits,
+progress every10ms plus final first-failure record. Source freeze/review required
+before first execution; no native rebuild. Read-only AWS before/after and exact
+child census. Record failures without weakening criteria or altering supply.
+
+Source-only review4eff95dd7f4d1e1d60221364d82b88e415e8e3c25a1acef77eaee951a7ab396b:
+one LOCALIZED evidence omission, no architectural findings. Added bounded
+8-frame traceback to interval and top-level exception receipts so an empty
+AssertionError cannot erase the failed-invariant location. No mechanics,
+observer selection, physical thresholds or budgets changed. Re-freeze/final
+source review before any diagnostic run. Unused Path/zlib imports were already
+removed in pre-freeze lean pass. Prior local source/runtime proof stays closed.
+
+Read-only shell hygiene: a grouped lookup used main-tree cwd for a body-only
+sprint path (absent), and later read the stale body-tree collaborative ledger.
+Neither was used as current serving evidence. Coordination reads/appends bind
+/workspaces/Tao_Financial_Engine/collaborative_todo.md explicitly; body sprint
+reads bind this worktree. No mutation or diagnostic followed either assumption.
+
+### FB-01aj accepted-trajectory measurement — 2026-09-27 02:50Z
+
+Final frozen source review PASS9e32cd935a7dd4e0cab0e2edfc58be76256faa024ad26eff3463b789bbf98717.
+No runtime or binary rebuild. Observer control exactly matches the prior
+unobserved1700us successor/work:8nativecalls,4acceptedfinepieces. Thus coarse/
+rejected trials are excluded and the observer preserves that physical result.
+
+One comparison ran to21,900us then stopped at first qualification failure:
+no sampled motion, proprioception, inertial, contact force/couple, contact
+impulse or work-channel failure; tactile correspondence matches10points with
+zero unresolved samples. Surface worst error ratio.0002425573; joint-rate.1209533;
+specific-force.1588922; contactforce.06159767; contactimpulse.2631811;
+positivework.00894391; bearingwork.0873203. These are prefix-only results, not
+full500msqualification. Intrinsic-couple impulse remains UNQUALIFIED.
+
+First blocker: one loaded/unloaded contact-support transition per mesh at
+21,843.75us->21,846.875us, width3.125us>1us. Geometry pair[6,22] remains in the
+collision roster while its force becomes zero. Before/after joint/constraint/
+geometric domain tuples are identical. Runtime _snapshot currently includes
+geometric contact pairs but omits loaded-pair presence, so its boundary_change
+condition cannot see this force-support event. This is a precise omission of
+existing measured contact evidence, not a new force/material-law problem.
+Both meshes retain exact predecessor/successor integration bytes, supply,
+accepted work and domains. Raw event predecessor SHA:
+100us c665c27b8e18711530ee831dfdf35af8423ef56f73c9567bd299656c40369bf6;
+50us d3e944325d76fd2a2cb37dc1afeaf6cccca95dfb2e5cbf66a0f311fb52dc3f55.
+All earlier observed event brackets satisfy1us. No prefix replay is needed to
+reproduce this next boundary. No hidden-event or continuum claim follows.
+
+Artifact docs/evidence/FB-01aj-midpoint-accepted-trajectory.json SHA
+07e1bb88682a25cc8e04d81a7301d156d606e012e31ef4f83b5325d7184206e2.
+Source eda3496c79299bffb822d8c7f05cf31617bc68fb421ff25801be66b984bc12bb.
+Session5224,child17495,exit0,no survivors;8.5655s wall,8.556829s aggregateCPU,
+157712KiB processpeakRSS.3726nativecalls incl8control,under48860ceiling.
+100uspath1586calls/816acceptedpieces/20numericalrefusals;
+50uspath2132calls/1208pieces/15refusals. All refused attempts remain unpublished.
+The process exit0 means diagnostic evidence completed, NOT qualification PASS.
+
+Read-only AWS02:48:45.112268Z->02:48:56.462495Z:samehealthy1559task
+5b56802a81ba4978a36aafb995e829a3,image3c9fce0c...d2e4b5d,
+sameorganismidentity,counts1/1/0,ticks2524532->2524557,persisted2524524,
+checkpoint/cleanupnull,durabilityfalse;CPUmean51.545477%,RAM3.029378%.
+Existing clock-stalledALARM persists;other4OK. Caretaker7712 remains G1-owned.
+No livewrites,pushorSlack.
+
+Next bounded correction: carry the existing nonzero native contact-wrench
+pair roster into _snapshot's numerical boundary signature, preserving
+multiplicity and the same zero/nonzero definition already used by tactile
+feedback. Reuse the wrench already read by that loop; no added force solve,
+threshold, sensory channel, material law or cognitive state. Advance numerical
+law identity so old unmounted headers cannot silently continue under new
+admission. Update only directly affected diagnostic law/version checks.
+First proof starts from the saved event input, not genesis, and verifies
+loaded-support brackets<=1us plus unchanged rollback/custody. Only then
+continue full-motion accuracy. Complete this narrow contract before source edit.

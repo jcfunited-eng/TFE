@@ -1,32 +1,37 @@
-"""Offline common-genesis load/release accuracy measurement, never body authority.
+"""Offline accepted-trajectory accuracy evidence for the frozen ABI3 body law.
 
-Two nominal meshes use the SAME native physical law and refusal subdivision.
-Sample disagreement is not a continuum enclosure. Contact brackets are retained
-for later localization; no hidden-event, real-gravity or production claim.
+The native interval alone chooses its numerical mesh. This observer stages only
+accepted fine motion and commits it only after the ordinary body call succeeds.
+Sample agreement is not a continuum enclosure or whole-body qualification.
 """
 from __future__ import annotations
 
 import base64
-from collections import Counter
+from collections import Counter, deque
 from dataclasses import asdict
 import hashlib
 import json
 import math
 import resource
 import time
+import traceback
 
 import mujoco as mj
 import numpy as np
+import guala_body_interval as interval
 
 from guala_body_contact_onset import archived_controls
 from guala_body_event_resolution import tactile_limits
 from guala_body_joint_boundary import encode
 from guala_body_load_release import engine_at
 from guala_body_local_refinement import add_receipts, state_copy
-from guala_body_midpoint import VERSION, subdivide_refused_step
+from guala_body_accuracy_control_proof import JOINT, read
 
-SCHEMA = "guala.functional-body.trajectory-accuracy.v1"
+SCHEMA = "guala.functional-body.accepted-trajectory-accuracy.v1"
+VERSION = "3.3.7+guala.midpoint-step.1"
 ANGLE = math.radians(.01)
+PROOF = ("FB-01aj-midpoint-accuracy-control-proof.json",
+         "bb7ae1f244540448208dd0ff4dd638651c47deb4d8e1f22ea915773014db2d63")
 
 
 def packed_state(e):
@@ -45,7 +50,6 @@ def finite(value):
 
 
 def contact_support(e):
-    # Native geometric constraints and physically loaded contact are distinct.
     geometric, loaded = Counter(), Counter()
     for i, c in enumerate(e._data.contact):
         pair = tuple(sorted(int(x) for x in c.geom))
@@ -58,36 +62,48 @@ def contact_support(e):
     return tuple(sorted(geometric.items())), tuple(sorted(loaded.items()))
 
 
+def plain_domain(value):
+    return tuple(tuple(bool(x) for x in row) if i < 2 else
+                 tuple(tuple(int(x) for x in pair) for pair in row) if i == 5 else
+                 tuple(int(x) for x in row) for i, row in enumerate(value))
+
+
+def current_domain(e):
+    m, d = e._model, e._data
+    q = d.qpos[e._limit_qpos]
+    joints = np.asarray(e._limited, dtype=np.intp)
+    return plain_domain((
+        q <= m.jnt_range[joints, 0]+m.jnt_margin[joints],
+        q >= m.jnt_range[joints, 1]-m.jnt_margin[joints],
+        d.efc_type, d.efc_id, d.efc_state,
+        sorted(tuple(int(g) for g in c.geom) for c in d.contact if c.efc_address >= 0)))
+
+
 class Trajectory:
     def __init__(self, h_us, control):
-        self.e, xml, limits = engine_at(100)
+        self.e, xml, limits = engine_at(h_us)
         self.m, self.d = self.e._model, self.e._data
         state = self.e.initial_state()
         old_header = hashlib.sha256(
-            ("3.3.7" + repr(limits) + repr(self.e._sensory_root) + xml).encode()
-        ).digest()
+            ("3.3.7"+repr(limits)+repr(self.e._sensory_root)+xml).encode()).digest()
         assert hashlib.sha256(xml.encode()).hexdigest() == control["model_sha256"]
-        assert hashlib.sha256(old_header + state[32:]).hexdigest() == control["initial_state_sha256"]
+        assert hashlib.sha256(old_header+state[32:]).hexdigest() == control["initial_state_sha256"]
         assert np.all(self.m.opt.gravity == 0)
         self.h_us = h_us
-        self.ceiling = 500000 // h_us + 642
+        self.ceiling = 3*(500000//h_us+642)
         self.motor = self.e.actuator_names.index(control["name"])
         self.d.ctrl[self.motor] = control["phases"][0]["effort_nm"]
         mj.mj_forward(self.m, self.d)
         self.e._check()
         self.initial_supply = self.supply = control["initial_supply_j"]
-        self.work = (0.,) * 6
+        self.work = (0.,)*6
         self.calls = self.accepted = self.refused = 0
         self.native_seconds = self.interval_seconds = self.observer_seconds = 0.
         self.impulses, self.events, self.endpoints = {}, [], []
         self.support = contact_support(self.e)
-        self.last_attempt = self.failed_partition = None
-        self.last_accepted = packed_state(self.e)
-        self.initial = self.last_accepted
-        self.original_interval = self.e._advance_interval
-        self.e._advance_interval = self.call
+        self.last_attempt = self.failed_interval = None
+        self.last_accepted = self.initial = packed_state(self.e)
         self.geom = np.asarray(sorted(self.e._self_geoms), dtype=int)
-        assert len(self.geom)
         self.geom_labels = [self.e.geom_names[i] for i in self.geom]
         self.velocity = np.empty((len(self.geom), 6))
         self.sensor_groups = {}
@@ -98,139 +114,124 @@ class Trajectory:
             ("proprioceptive_rate_rad_s", mj.mjtSensor.mjSENS_JOINTVEL),
         ):
             ids = [i for i in self.e._self_sensors if self.m.sensor_type[i] == kind]
-            assert ids, "required feedback channel absent: " + label
+            assert ids, "required feedback channel absent: "+label
             self.sensor_groups[label] = (
                 [self.e._sensor_names[i] for i in ids],
-                [slice(int(self.m.sensor_adr[i]), int(self.m.sensor_adr[i] + self.m.sensor_dim[i])) for i in ids],
-            )
+                [slice(int(self.m.sensor_adr[i]), int(self.m.sensor_adr[i]+self.m.sensor_dim[i])) for i in ids])
 
-    def call(self, engine, effort, steps, budget):
-        assert engine is self.e and steps == 1
-        if self.calls >= self.ceiling:
-            raise RuntimeError("bounded trajectory native-call allowance exhausted")
-        self.calls += 1
-        begin, dt = float(self.d.time), float(self.m.opt.timestep)
-        before = primary(self.e)
-        self.last_attempt = dict(start_s=begin, end_s=begin + dt, dt=dt,
-            predecessor_base64=base64.b64encode(before).decode(), available_work_j=budget)
-        step = mj.mj_step
-        pending = None
-
-        def observed_step(m, d):
-            nonlocal pending
-            t = time.perf_counter()
-            try:
-                step(m, d)
-            finally:
-                self.native_seconds += time.perf_counter() - t
-            self.last_attempt["native_step_completed"] = True
-            t = time.perf_counter()
-            saved = primary(self.e)
-            # Geometry/contact rows still describe the converged midpoint here;
-            # the enclosing interval has not run endpoint kinematics/collision.
-            totals = {}
-            for i, c in enumerate(d.contact):
-                if c.efc_address < 0:
-                    continue
-                force = np.empty(6)
-                mj.mj_contactForce(m, d, i, force)
-                force = finite(force)
-                pair = tuple(int(x) for x in c.geom)
-                rotation = finite(c.frame).reshape(3, 3).T
-                world_force = finite(rotation @ force[:3])
-                world_couple = finite(rotation @ force[3:])
-                if pair[0] > pair[1]:
-                    pair = pair[::-1]
-                    world_force, world_couple = -world_force, -world_couple
-                value = totals.setdefault(pair, [np.zeros(3), np.zeros(3)])
-                value[0] = finite(value[0] + world_force)
-                value[1] = finite(value[1] + world_couple)
-            assert primary(self.e) == saved, "midpoint observer changed integration state"
-            pending = totals
-            self.observer_seconds += time.perf_counter() - t
-
-        mj.mj_step = observed_step
+    def advance_to(self, nominal_us):
+        before = self.e._capture()
+        begin = float(self.d.time)
+        staged = dict(work=(0.,)*6, impulses={}, events=[], pieces=0,
+                      end=begin, state=primary(self.e))
+        recent = deque(maxlen=2)
+        one_step, close, native_step = interval._one_step, interval._close, mj.mj_step
         native_before, observer_before = self.native_seconds, self.observer_seconds
         started = time.perf_counter()
+
+        def observed_native(m, d):
+            if self.calls >= self.ceiling:
+                raise RuntimeError("bounded trajectory native-call allowance exhausted")
+            self.calls += 1
+            t = time.perf_counter()
+            try:
+                return native_step(m, d)
+            finally:
+                self.native_seconds += time.perf_counter()-t
+
+        def observed_step(e, effort, supply, stop):
+            assert e is self.e
+            t = time.perf_counter()
+            raw = primary(e)
+            row = dict(start=float(self.d.time), stop=stop, before=raw,
+                       domain=current_domain(e), support=contact_support(e), supply=supply)
+            self.last_attempt = dict(start_s=row["start"], end_s=stop,
+                predecessor_base64=base64.b64encode(raw).decode(), available_work_j=supply)
+            self.observer_seconds += time.perf_counter()-t
+            try:
+                result = one_step(e, effort, supply, stop)
+            except mj.FatalError:
+                self.refused += 1
+                raise
+            t = time.perf_counter()
+            row.update(result=result, after_support=contact_support(e))
+            assert primary(e) == result[0]["state"].astype("<f8").tobytes()
+            recent.append(row)
+            self.last_attempt["native_step_completed"] = True
+            self.observer_seconds += time.perf_counter()-t
+            return result
+
+        def observed_close(e, coarse, fine, coarse_work, fine_work,
+                           coarse_impulse, fine_impulse, dt):
+            accepted = close(e, coarse, fine, coarse_work, fine_work,
+                             coarse_impulse, fine_impulse, dt)
+            if not accepted:
+                return accepted
+            t = time.perf_counter()
+            assert e is self.e and len(recent) == 2
+            left, right = recent
+            assert right["result"][0] is fine
+            assert left["stop"] == right["start"] and right["stop"] == fine["time"]
+            assert left["start"] == staged["end"]
+            assert left["before"] == staged["state"]
+            assert left["result"][0]["state"].astype("<f8").tobytes() == right["before"]
+            assert right["stop"]-left["start"] == dt
+            # Runtime invokes _close only after its boundary-width gate passes.
+            # Stage without changing that return value; caller may still refuse.
+            staged["work"] = add_receipts(staged["work"], fine_work)
+            staged["impulses"] = interval._impulse_add(staged["impulses"], fine_impulse)
+            for row in (left, right):
+                after = row["result"][0]
+                after_domain = plain_domain(after["domain"])
+                if row["support"] != row["after_support"] or row["domain"] != after_domain:
+                    width = row["stop"]-row["start"]
+                    staged["events"].append(dict(start_s=row["start"], end_s=row["stop"],
+                        width_s=width, bracket_within_1us=width <= 1e-6,
+                        before_support=row["support"], after_support=row["after_support"],
+                        before_domain=row["domain"], after_domain=after_domain,
+                        predecessor_base64=base64.b64encode(row["before"]).decode(),
+                        successor_base64=base64.b64encode(after["state"].astype("<f8").tobytes()).decode(),
+                        available_work_j=row["supply"], accepted_work=row["result"][1]))
+            staged["pieces"] += 2
+            staged["end"] = fine["time"]
+            staged["state"] = fine["state"].astype("<f8").tobytes()
+            self.observer_seconds += time.perf_counter()-t
+            return accepted
+
+        interval._one_step, interval._close, mj.mj_step = observed_step, observed_close, observed_native
         try:
-            work = self.original_interval(engine, effort, steps, budget)
-        except mj.FatalError as error:
-            self.refused += 1
-            self.last_attempt.update(native_refusal=str(error),
-                primary_rollback_byte_exact=primary(self.e) == before)
-            assert self.last_attempt["primary_rollback_byte_exact"]
+            successor = self.e.advance(before, None, 100, self.supply)
+            returned = (successor.positive_motor_work_j, successor.signed_motor_work_j,
+                        successor.max_surface_travel_m, successor.motor_braking_work_j,
+                        successor.bearing_dissipation_j, successor.self_bearing_dissipation_j)
+            assert tuple(staged["work"]) == returned
+            assert staged["end"] == float(self.d.time) == begin+.0001
+            assert staged["state"] == successor.state[32:] == primary(self.e)
+            assert abs(float(self.d.time)-nominal_us/1e6) <= (nominal_us//100+1)*math.ulp(.5)
+            accumulated_impulses = interval._impulse_add(self.impulses, staged["impulses"])
+            accumulated_work = add_receipts(self.work, returned)
+            supply = self.initial_supply-accumulated_work[0]
+            assert math.isfinite(supply) and supply >= 0
+            support = contact_support(self.e)
+            last_accepted = packed_state(self.e)
+        except Exception as error:
+            # Runtime rollback proof is separate; retain exact status on any
+            # physical or diagnostic refusal, without rewriting the body here.
+            self.failed_interval = dict(type=type(error).__name__, error=str(error),
+                traceback=traceback.format_exc(limit=8),
+                predecessor_base64=base64.b64encode(before).decode(),
+                primary_rollback_exact=self.e._capture() == before,
+                uncommitted_fine_pieces=staged["pieces"])
             raise
         finally:
-            mj.mj_step = step
-            elapsed = time.perf_counter() - started
-            self.interval_seconds += elapsed - (self.native_seconds-native_before) - (self.observer_seconds-observer_before)
-        assert pending is not None and float(self.d.time) == begin + dt
-        assert np.isfinite(work).all()
-        # Stage the whole observer receipt. A derived-observation failure must
-        # not leave impulse history ahead of accepted work or primary state.
-        self.last_attempt["interval_work_returned"] = list(work)
-        started = time.perf_counter()
-        try:
-            staged = {}
-            for pair, (force, couple) in pending.items():
-                value = self.impulses.get(pair, [np.zeros(3), np.zeros(3), 0., 0.])
-                staged[pair] = [
-                    finite(value[0] + dt * force),
-                    finite(value[1] + dt * couple),
-                    float(finite(value[2] + dt * np.linalg.norm(force))),
-                    float(finite(value[3] + dt * np.linalg.norm(couple))),
-                ]
-            saved = primary(self.e)
-            mj.mj_forward(self.m, self.d)
-            assert primary(self.e) == saved, "endpoint observation changed integration state"
-            self.e._check()
-            support = contact_support(self.e)
-            event = None
-            if support != self.support:
-                event = dict(start_s=begin, end_s=float(self.d.time),
-                    width_s=dt, bracket_within_1us=dt <= 1e-6,
-                    before_support=self.support, after_support=support,
-                    predecessor_base64=base64.b64encode(before).decode(),
-                    successor_base64=base64.b64encode(saved).decode(),
-                    available_work_j=budget, accepted_work=work)
-            accepted_state = packed_state(self.e)
-        finally:
-            self.observer_seconds += time.perf_counter() - started
-        self.impulses.update(staged)
-        if event is not None:
-            self.events.append(event)
-        self.support = support
-        self.last_accepted = accepted_state
-        self.accepted += 1
-        self.last_attempt["observer_receipt_committed"] = True
-        return work
-
-    def advance_to(self, stop_us):
-        # Integer-derived endpoints avoid accumulating a different clock drift
-        # for each mesh. This is a test schedule, not a body/cognition timer.
-        for us in range(stop_us - 100 + self.h_us, stop_us + 1, self.h_us):
-            stop = us / 1_000_000
-            begin = float(self.d.time)
-            self.m.opt.timestep = stop - begin
-            assert begin < stop and begin + self.m.opt.timestep == stop
-            self.failed_partition = None
-            try:
-                work = self.e._advance_interval(self.e, self.d.ctrl.copy(), 1, self.supply)
-            except mj.FatalError as error:
-                if "midpoint residual did not converge" not in str(error):
-                    raise
-                partition = subdivide_refused_step(self.e, stop, self.supply,
-                    dict(self.last_attempt), min(5642, self.ceiling-self.calls))
-                if not partition["completed"]:
-                    self.failed_partition = partition
-                    self.work = add_receipts(self.work, partition["unpublished_accepted_work_receipt"])
-                    self.supply = partition["unpublished_remaining_supply_j"]
-                    raise RuntimeError("trajectory subdivision: " + partition["failure"])
-                work = tuple(partition["work_receipt"])
-            self.work = add_receipts(self.work, work)
-            self.supply = self.initial_supply - self.work[0]
-            assert np.isfinite(self.supply) and self.supply >= 0
-        assert self.d.time == stop_us / 1_000_000
+            interval._one_step, interval._close, mj.mj_step = one_step, close, native_step
+            self.interval_seconds += (time.perf_counter()-started
+                -(self.native_seconds-native_before)-(self.observer_seconds-observer_before))
+        self.impulses, self.work, self.supply = accumulated_impulses, accumulated_work, supply
+        self.events.extend(staged["events"])
+        self.support, self.last_accepted = support, last_accepted
+        self.accepted += staged["pieces"]
+        return successor
 
     def snapshot(self):
         started = time.perf_counter()
@@ -238,46 +239,38 @@ class Trajectory:
         for row, geom in enumerate(self.geom):
             mj.mj_objectVelocity(self.m, self.d, mj.mjtObj.mjOBJ_GEOM,
                                  int(geom), self.velocity[row], 0)
-        sensory = {
-            label: finite([self.d.sensordata[s] for s in addresses]).copy()
-            for label, (_, addresses) in self.sensor_groups.items()
-        }
+        sensory = {label: finite([self.d.sensordata[s] for s in addresses]).copy()
+                   for label, (_, addresses) in self.sensor_groups.items()}
         feedback = self.e._observation().self_feedback
         assert feedback is not None
         result = dict(position=self.d.geom_xpos[self.geom].copy(),
             rotation=self.d.geom_xmat[self.geom].reshape(-1, 3, 3).copy(),
             velocity=self.velocity.copy(), sensors=sensory, contacts=feedback.contacts)
         assert primary(self.e) == saved, "sample observer changed integration state"
-        self.observer_seconds += time.perf_counter() - started
+        self.observer_seconds += time.perf_counter()-started
         return result
 
     def record(self, include_events=False):
-        # A refusal can leave nonfinite unpublished scratch. Preserve its raw
-        # bytes rather than calling _capture() and losing the original failure.
         raw = primary(self.e)
         valid = bool(np.isfinite(np.frombuffer(raw, dtype="<f8")).all())
         clock = float(self.d.time)
         value = dict(h_us=self.h_us, native_call_ceiling=self.ceiling,
-            time_s=clock if math.isfinite(clock) else None,
-            native_dt_s=float(self.m.opt.timestep),
-            unpublished_clock_repr=repr(clock),
-            integration_values_finite=valid,
+            time_s=clock if math.isfinite(clock) else None, native_dt_s=float(self.m.opt.timestep),
+            unpublished_clock_repr=repr(clock), integration_values_finite=valid,
             unpublished_integration_base64=base64.b64encode(raw).decode() if not valid else None,
             state_base64=base64.b64encode(self.e._header+raw).decode() if valid else None,
             last_accepted_state_base64=self.last_accepted, calls=self.calls,
-            accepted=self.accepted, refused=self.refused, work=self.work,
-            remaining_supply_j=self.supply, support=self.support,
+            accepted_fine_pieces=self.accepted, numerical_refusals=self.refused,
+            work=self.work, remaining_supply_j=self.supply, support=self.support,
             impulses=[dict(pair=k, impulse_ns=v[0].tolist(),
                 intrinsic_couple_impulse_nms=v[1].tolist(),
                 force_path_ns=v[2], intrinsic_couple_path_nms=v[3])
                 for k, v in sorted(self.impulses.items())],
-            native_step_seconds=self.native_seconds,
-            interval_wrapper_seconds=self.interval_seconds,
-            observation_seconds=self.observer_seconds,
-            event_count=len(self.events))
+            native_step_seconds=self.native_seconds, interval_wrapper_seconds=self.interval_seconds,
+            observation_seconds=self.observer_seconds, event_count=len(self.events))
         if include_events:
             value.update(events=self.events, endpoints=self.endpoints,
-                         last_attempt=self.last_attempt, failed_partition=self.failed_partition)
+                         last_attempt=self.last_attempt, failed_interval=self.failed_interval)
         return value
 
 
@@ -376,17 +369,50 @@ class Errors:
         return groups
 
 
+def observer_control(case):
+    proof = read(PROOF)
+    joint = read(JOINT)
+    old = next(c for c in joint["cases"] if c["width_us"] == .25)
+    raw = base64.b64decode(old["endpoint_state_base64"], validate=True)
+    assert hashlib.sha256(raw).hexdigest() == proof["raw_predecessor_sha256"]
+    case.e._restore(case.e._header+raw)
+    case.initial_supply = case.supply = old["remaining_supply_j"]
+    case.last_accepted = case.initial = packed_state(case.e)
+    case.support = contact_support(case.e)
+    result = case.advance_to(1800)
+    expected = proof["runs"][0]
+    assert hashlib.sha256(result.state).hexdigest() == expected["state_sha256"]
+    assert result.positive_motor_work_j == expected["positive_work_j"]
+    assert result.signed_motor_work_j == expected["signed_work_j"]
+    assert result.motor_braking_work_j == expected["braking_work_j"]
+    assert result.bearing_dissipation_j == expected["bearing_work_j"]
+    assert case.calls == expected["native_calls"] == 8 and case.accepted == 4
+    return dict(archived_successor_exact=True, accepted_pieces=case.accepted,
+                calls=case.calls, state_sha256=expected["state_sha256"])
+
+
 def main():
     assert mj.mj_versionString() == mj.__version__ == VERSION
-    control = archived_controls()[100]
-    cases = [Trajectory(h, control) for h in (100, 50)]
-    assert cases[0].initial == cases[1].initial
-    errors = Errors()
-    first_failure_states = worst_failure_states = failure = None
+    assert interval.INTERVAL_ABI == 3 and interval.INTERVAL_LAW == "midpoint-dyadic-accuracy-v1"
+    controls = archived_controls()
+    cases, errors = [], Errors()
+    control_result = control_failure_state = failure = first_failure_states = None
+    control_calls = 0
     completed_us = 0
     emitted_events = [0, 0]
     started = time.perf_counter()
     try:
+        control_case = Trajectory(100, controls[100])
+        try:
+            control_result = observer_control(control_case)
+        except Exception:
+            control_failure_state = control_case.record(include_events=True)
+            raise
+        finally:
+            control_calls = control_case.calls
+            del control_case
+        cases = [Trajectory(h, controls[h]) for h in (100, 50)]
+        assert base64.b64decode(cases[0].initial)[32:] == base64.b64decode(cases[1].initial)[32:]
         for us in range(100, 500001, 100):
             if us == 250100:
                 for case in cases:
@@ -397,41 +423,42 @@ def main():
                     case.e._check()
             for case in cases:
                 case.advance_to(us)
-            sa, sb = (case.snapshot() for case in cases)
-            old_ratio = errors.worst_ratio
-            errors.compare(cases[0], cases[1], sa, sb, us)
-            if errors.first_failure is not None and first_failure_states is None:
-                first_failure_states = [case.record() for case in cases]
-            if errors.worst_ratio > old_ratio:
-                worst_failure_states = [case.record() for case in cases]
+            assert cases[0].d.time == cases[1].d.time
+            errors.compare(cases[0], cases[1], cases[0].snapshot(), cases[1].snapshot(), us)
             completed_us = us
+            wide = any(not event["bracket_within_1us"]
+                       for i, case in enumerate(cases) for event in case.events[emitted_events[i]:])
+            if errors.first_failure is not None or errors.unresolved_touch["samples"] or wide:
+                first_failure_states = [case.record(include_events=True) for case in cases]
+                failure = dict(type="AccuracyGateFailure", error="first sampled qualification failure",
+                    metric=errors.first_failure, unresolved_touch=bool(errors.unresolved_touch["samples"]),
+                    wide_observed_event=wide, time_us=us)
+                break
             if us in (250000, 500000):
                 for case in cases:
                     case.endpoints.append(case.record())
             if us % 10000 == 0:
-                print(json.dumps(encode(dict(event="trajectory_progress", time_us=us,
+                print(json.dumps(encode(dict(event="accepted_trajectory_progress", time_us=us,
                     cases=[case.record() for case in cases],
                     event_deltas=[case.events[emitted_events[i]:] for i, case in enumerate(cases)],
-                    metrics=errors.result(),
-                    first_failure=errors.first_failure, worst_failure=errors.worst_failure,
-                    first_failure_states=first_failure_states,
-                    worst_failure_states=worst_failure_states))), flush=True)
+                    metrics=errors.result()))), flush=True)
                 emitted_events = [len(case.events) for case in cases]
     except Exception as error:
         failure = dict(type=type(error).__name__, error=str(error),
+                       traceback=traceback.format_exc(limit=8),
                        last_completed_sample_us=completed_us)
-    result = dict(schema=SCHEMA, version=VERSION, model_sha256=control["model_sha256"],
-        common_initial_state_sha256=hashlib.sha256(base64.b64decode(cases[0].initial)).hexdigest(),
+    result = dict(schema=SCHEMA, version=VERSION, interval_abi=interval.INTERVAL_ABI,
+        observer_control=control_result, control_failure_state=control_failure_state,
+        model_sha256=controls[100]["model_sha256"],
         completed_us=completed_us, all_completed=completed_us == 500000 and failure is None,
-        calls=sum(c.calls for c in cases), call_ceiling=16284,
-        cases=[c.record(include_events=True) for c in cases], metrics=errors.result(),
-        first_failure=errors.first_failure, worst_failure=errors.worst_failure,
-        first_failure_states=first_failure_states, worst_failure_states=worst_failure_states,
-        failure=failure, wall_seconds=time.perf_counter()-started,
-        maxrss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
-        event_time_qualification="UNQUALIFIED: endpoint support brackets only; hidden crossings not excluded",
+        calls=sum(c.calls for c in cases)+control_calls,
+        call_ceiling=48860, cases=[c.record(include_events=True) for c in cases],
+        metrics=errors.result(), first_failure=errors.first_failure,
+        first_failure_states=first_failure_states, failure=failure,
+        wall_seconds=time.perf_counter()-started, maxrss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
+        event_time_qualification="Observed accepted-piece brackets only; hidden crossings not excluded",
         continuum_error_enclosure=False, full_body_qualification=False,
-        scope="Common-genesis zero-gravity load/release; sampled mesh disagreement, not continuum accuracy, gravity, cold mounted world or production.")
+        scope="Common-genesis zero-gravity accepted load/release trajectory; first failure stops the run. No gravity, mounted world or production qualification.")
     print(json.dumps(encode(result)), flush=True)
 
 
