@@ -14319,3 +14319,50 @@ The root-locator script names an absent older July handoff in this isolated
 body worktree; record that preflight mismatch without manufacturing the file.
 Actual git root/branch/HEAD and the reviewed fingerprint identify the approved
 body tree. No body harness child was started during the external hold.
+
+### FB-01aj resumed after1563 recovery; first event discrepancy retained
+
+2026-09-27 21:47--21:49UTC: production1563 verified sole RUNNING/HEALTHY
+taskbffa2636375a4423882adc8ebd56db71, imagee1533c00...83c0c1b7, unchanged
+identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1. Counts1/1/0 and public ticks
+2695390->2695533 with null checkpoint/cleanup errors and no durability block.
+Clock-stalled remainsALARM; serving recovery is not cadence or cognition
+acceptance. G1 release process was terminal before either body run.
+
+Executed the unchanged reviewed6.25us proof with the existing compiled law:
+- FB-01aj-independent-history-6us.json,
+  SHA162ab535a8a6dd03739973a388756fc1db16f6f4a3afeb86f7f41b22a6107b60:
+  own history0->21ms,210 retained common endpoints, CPU-only stop with exact
+  rollback;10893 primitives/207033 forwards/50.011339604 numericalCPU seconds.
+- FB-01aj-independent-history-6us-162ab535a8a6.json,
+  SHAbe60fb5dd78cced7b37363e71d041ec854e2a1caad7c2f8724dfeebdbd3aa059:
+  exact own-state resume21->28.5ms,75 new raw endpoints, then failed FIRST
+  archived-reference comparison;4168 primitives/92191 forwards/23.715062039
+  numericalCPU seconds. It is NOT an authorized CPU-only continuation point.
+
+At28.5ms state/sensory/work/impulse comparisons PASS, but actual sampled
+event sequences differ:12.5us reference77 transitions vs6.25us78. Exact
+first difference is near20.063ms, not a new365.1ms acceleration verdict.
+Reference domain goes from active lower-limit indices[27,36,38,56] directly
+to[27,56] within[.02006249999999989,.02006346906891065]s. Finer history
+retains intermediate[27,38,56]: first exit bracket
+[.020062751933192968,.020062890624999892]s and second exit
+[.020063341816806815,.02006353318319297]s. No contact/touch pair change at
+this difference. One inserted intermediate domain explains the whole sequence
+disagreement. Native sampled_event_path/trajectory_agreement truthfully refuse
+the unequal histories. No tolerance or event criterion was weakened.
+
+Both children60452/60945 exited0 with no survivors; wrapper1 records bounded
+incompletion/physical comparison refusal, not a child crash. PeakRSS402160/
+397572KiB. Aggregate child-processCPU75.218701s; numericalCPU73.726401643s.
+No replayed reference dynamics, mechanics build, cognition or production edit.
+The first read-only inspection overprinted event arrays; subsequent inspection
+reports counts and the exact differing transition only.
+
+Next single action: inspect/refine the SAVED local20.063ms event interval on
+both independent histories, preserving the merged and split observations.
+Both original reference prefix and finer changed-event rows retain raw
+predecessors/successors; no full-history replay is needed for this diagnosis.
+Do not skip this failure to reach365.1ms or declare either history exact truth.
+Full500ms, prior dense coverage, intrinsic couple/gravity, runtime cost,
+body/world integration, restart and live body qualification remain OPEN.
