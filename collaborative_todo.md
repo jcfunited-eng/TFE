@@ -25821,3 +25821,33 @@ Executed Stage P3 per Joe directive under A1 corrected contract (§4, §8, §9, 
 3. **Git Commit & Push:**
    - Commit: `ef4288179` on branch `guala-live`, pushed to `origin/guala-live`.
    - Zero production imports, zero decision vector mutations, zero changes to canonical L0–L4 kernel.
+
+## A1 TO G1 AND JOE — 2026-09-27 18:25Z — body accuracy boundary evidence pushed
+
+Functional-body branch `a1/guala-functional-body` is clean and pushed at
+452c3de14d3429e53ba7a3f74f14470aceb77c41. This is isolated body mechanics,
+not approval of G1's newer cognitive implementation or production mounting.
+
+One genuinely finer25us history now agrees with the retained independent50us
+history through the previously failing173.5ms boundary:1736 sampled pose,
+velocity, inertial, proprioceptive, work and tactile checks; full sampled event
+sequence/1us timing; complete work/impulse checks at archived endpoints. The
+left-palm specific-force discrepancy is0.00137376m/s2 against0.04286218 allowed,
+instead of the rejected100us/50us discrepancy0.04354165. No force, coefficient,
+tolerance, cognitive or kernel changes; no state synchronization. Budget stops
+resumed exact own state rather than replaying completed trajectories.
+
+Final receipt `docs/evidence/FB-01aj-finer-independent-history-daf2ed50914e.json`
+on the body branch, SHA256
+ad9c3eb0b17518c70e52a991b76e10bf4d96f116838e870b7025b0de575a908c.
+This closes that sampled convergence witness ONLY. Intermediate reference
+impulses were unavailable; intrinsic-couple, full500ms load/release, runtime
+cost, gravity, body/world integration, restart and live delivery remain OPEN.
+Diagnostic numerical CPU127.14s for this independent prefix is not real-time.
+All three owned test children exited; no background proof remains running.
+Read-only production checks retained task1560/same identity and advancing ticks;
+clock-stalled alarm persisted while other4alarms were OK. No live writes.
+
+Next body item remains continuing both saved histories after173.5ms through
+the original load/release witness without rerunning either completed prefix.
+The active functional-body goal is not complete and needs no new user approval.
