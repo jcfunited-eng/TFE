@@ -1,0 +1,181 @@
+{
+  "build_directory": "/tmp/guala-body-accuracy.f0fjtehc",
+  "build_execution": {
+    "cpu_seconds": 8.65099,
+    "exit_code": 0,
+    "label": "accuracy-interval-build",
+    "owned_pid": 7474,
+    "stderr": "",
+    "stdout_bytes": 1181,
+    "survivors": [],
+    "timed_out": false,
+    "wall_seconds": 8.660638022003695
+  },
+  "build_stdout": "Compiling /workspaces/guala-functional-body/native/functional_body/interval.pyx because it changed.\n[1/1] Cythonizing /workspaces/guala-functional-body/native/functional_body/interval.pyx\nrunning build_ext\nbuilding 'guala_body_interval' extension\ncreating /tmp/guala-body-accuracy.f0fjtehc/objects/tmp/guala-body-accuracy.f0fjtehc/generated/workspaces/guala-functional-body/native/functional_body\ngcc -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -fPIC -I/usr/local/include/python3.11 -c /tmp/guala-body-accuracy.f0fjtehc/generated/workspaces/guala-functional-body/native/functional_body/interval.c -o /tmp/guala-body-accuracy.f0fjtehc/objects/tmp/guala-body-accuracy.f0fjtehc/generated/workspaces/guala-functional-body/native/functional_body/interval.o -O3 -fno-fast-math -ffp-contract=off\ncreating /tmp/guala-body-accuracy.f0fjtehc/python\ngcc -shared /tmp/guala-body-accuracy.f0fjtehc/objects/tmp/guala-body-accuracy.f0fjtehc/generated/workspaces/guala-functional-body/native/functional_body/interval.o -L/usr/local/lib -o /tmp/guala-body-accuracy.f0fjtehc/python/guala_body_interval.cpython-311-x86_64-linux-gnu.so\nBUILD_RESOURCES {\"cpu_seconds\": 8.586841, \"maxrss_kib\": 318348}\n",
+  "candidate_fingerprint": "b3c7c1d088b244540dc91d109577b0ffd8f2fabb1c442b868369014895db98df",
+  "child_resources": {
+    "cpu_seconds": 0.8036859999999999,
+    "maxrss_kib": 152636
+  },
+  "execution": {
+    "cpu_seconds": 0.9340130000000004,
+    "exit_code": 0,
+    "label": "accuracy-control-proof",
+    "owned_pid": 7522,
+    "stderr": "",
+    "stdout_bytes": 1471,
+    "survivors": [],
+    "timed_out": false,
+    "wall_seconds": 0.9386195219994988
+  },
+  "full_body_qualification": false,
+  "head": "209397c878ad19ebbb5cde1d9c46d22d36632b69",
+  "health_error": null,
+  "library_sha256": "de96a1766223905d26b1df0e68ce7bc97608cf2c6238acef8dcf8b344a3fd48f",
+  "new_interval_sha256": "7a30227654117e48308d6d443f8a4e79d5b18600af0a8149a3f2a94c8dd07638",
+  "partial_frames": [],
+  "predecessor_interval_sha256": "a137418386a8288ac9e99324f0f7176674d14c0eb4b66d47ddc4104e589f2caf",
+  "production_post": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 50.98392780870199,
+        "Maximum": 51.070445239543915,
+        "Timestamp": "2026-09-27T02:33:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 2.294921875,
+        "Maximum": 2.685546875,
+        "Timestamp": "2026-09-27T02:33:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2522737,
+      "persisted_tick": 2522732
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1559",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/5b56802a81ba4978a36aafb995e829a3",
+          "digests": [
+            "sha256:3c9fce0ce0eaed2196b883a061b424d27c7f1d1709f433039394fba51d2e4b5d"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-27T02:34:55.570386+00:00"
+  },
+  "production_pre": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 50.98392780870199,
+        "Maximum": 51.070445239543915,
+        "Timestamp": "2026-09-27T02:33:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 2.294921875,
+        "Maximum": 2.685546875,
+        "Timestamp": "2026-09-27T02:33:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2522706,
+      "persisted_tick": 2522700
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1559",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/5b56802a81ba4978a36aafb995e829a3",
+          "digests": [
+            "sha256:3c9fce0ce0eaed2196b883a061b424d27c7f1d1709f433039394fba51d2e4b5d"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-27T02:34:43.302675+00:00"
+  },
+  "proof_sha256": "22e393321e3ebbe18fdce48826c3f4151775d2d05f358205c57244df03d92137",
+  "raw_measurement": {
+    "payload_zlib_base64": "eNrdVsuu2zYQ/RVB29oO3w931e8oCoEih7Z6aUoRJd9rBPn3jmTHdpILJIugiywMSPQ8Ds+cmdGn2o3+2J2hKUfHpKr3tQtMgo8OtNDSEk0EjyxSy6LUykbPQ3BattIryTnIyFtCwVrbRkMMtLze1N6l1HjoUpcP9V4Ycj0q9Z5pfOxTaHyfpy7Pbur63MCb81O9n8YZlr9PQ4IJwuNgNZ1PDYxjPzaQferLPEK9jy4VtIB86DI0ZxgLhsM78B3f6T8Os0tud+rC0Hd52pYJhh1FeNF1aXXPc0r3V0T396c6uRYSRljwVu0cDjChR0acyNHtEnxTDyME8FDKgucZ/QiurBCuLpXzfh6dv1RrQPz1ry57qODt6Oay3PLz5pF1OF5Kh5ZVmYchXb7LTH8m8wn80eU1DGQYD5dbtEfOP6vc46G/hvkKwTwEhxYVxNiPUzX2KbXOv/xfSP7BcmBRmlO/CuMjVrCL3aKFW6mxkDCeXWpc262VyPDalAkxPxTsSVQCQAMjMXBKLIRWgLNBi+AEEIrC5S1l0BJNaYySWGKNctEHEpQ0eNnBdWODmpjT5PLUuLGbjieYOt8MrpSHNkf32jzzcMdAQIagtG956xYYJBLiXGw5hEiNYowzohnFfEoJZYmIglllONHai1aoeqExwohih+Zjc3JvTeji7aDem53SXFHNtTVGEC5hS+2zy/kdF2OoNoJaTQhlkqGLQpc5X5XfAt4yH5rXfnxp/q33ZEcIYUoxojhVVhCmLcf2bUf38o0ddmByA9LSlPWdWk6oQOKtZkYJsbnLq7gTbJ8Iu/fHdwIzWIS+dOvRMyQjhWWSGmK1tXifTV26Q8bUPzD6WiLa46RiQkkP4CW0lorWg6cEy2OxPjFEoymnnhGsVwxYLx0VV4IEITm9du2vZExRZTRjOEeZYdQ8GFs7qxphADf9PiRZJZjBvNyiIg2TP0USdquRmkhrpZJs9bqP6+uOwMH1ZUC8O7Xf48oiGqmIoMJYpg17l6t3jL6ZOZR5Krw0jAhEqDzK3tJWOspctIQb4xWhhIHxGICpQFUwNliJ08CCdb+aK6oJ5UYrDIAdz9QzVSlUvwFfuCqKP8LJYbTrpo9z9svacGnb9uGy+zJbtsttcZPh4On7uDsv3wDF9wMOxfqveToCcuHXrZf6ZVeFrnhsONzTl2pIc6kyvE13oja3ZqxcDvgY5+LSh5VULEtGRGVdaofRnbvp8mHJjR38YVlrW6QI7W5bza8fP7v683+iywRF",
+    "raw_bytes": 2437,
+    "raw_sha256": "d7bb0554e694bfd2af64731553ec9c142f15a61f5bc3d11bcf0a4f738d5a7a8b"
+  },
+  "schema": "guala.functional-body.accuracy-control-proof-receipt.v1"
+}

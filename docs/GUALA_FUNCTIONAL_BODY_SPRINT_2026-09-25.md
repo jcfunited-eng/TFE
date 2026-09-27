@@ -8983,3 +8983,129 @@ state. Native residual convergence alone cannot admit a physical interval.
 Boundary changes and full-motion qualification remain separate required gates;
 local mesh agreement is not an exact global-error bound. Define complete
 transaction/call-budget/rollback contract before editing the advancement path.
+
+### FB-01aj accuracy-controlled interval implementation contract — 2026-09-27
+
+Previous goal turn PROGRESS209397c87:60calls establish local second-order
+discrepancy convergence; no fullmotion/contact/gravity pass. Keep same objective.
+Candidate scope: native/functional_body/interval.pyx and the adapter's ABI/header
+binding in substrate/functional_body_native.py, plus one focused offline proof.
+No force/native solver patch, anatomy, coefficient, safety-tolerance, cognition,
+world schema, thermal law or production change. Physical primitive remains the
+same native midpoint step; only numerical interval admission changes.
+
+Exact caller map: EmbodimentWorldAuthority._native_transition -> NativeBody.advance
+-> compiled advance_interval -> existing native midpoint force settlement ->
+MechanicalSuccessor -> native integration bytes/world projection -> existing
+prepared world/thermal publication. Observe/restore consume the same integration
+bytes. World/material time and chemical/thermal debit occur only AFTER successful
+interval return. No candidate step may publish to that authority early.
+
+One model/data scratch only. Save mjSTATE_INTEGRATION at the requested interval
+and current trial predecessor; restore through mj_setState plus mj_forward.
+No model/anatomy duplicate, checkpoint database, runtime history or callback.
+For each declared nominal step: one coarse step, restore predecessor, two half
+steps. Compare all modeled geometry position/orientation, geometry velocity,
+instrumented proprioceptive/inertial channels, endpoint physical contacts and
+actual midpoint contact impulses, plus separate signed/positive/braking/bearing
+work. Use unchanged ratified dimensional accuracy limits. Contacts require
+unambiguous corresponding native geometry pair and spatial point, not semantic
+identity. Observe limit/contact-domain changes; changed brackets wider than1us
+must refine. Domain samples do not certify hidden interior roots.
+
+On excessive discrepancy, unresolved contact correspondence, or named native
+midpoint-convergence refusal, restore trial predecessor and bisect chronological
+time. On any physical safety/supply refusal, nonfinite value, unrepresentable
+time, or exhausted call bound: restore whole interval predecessor and original
+model timestep, then raise. Never reduce effort, inject energy, average contact
+forces, fit parameters, weaken thresholds or rename residual work as heat.
+Only fine accepted motion/work is committed to the interval accumulation.
+All coarse, refused and accepted native calls count toward3*max_substeps: three
+native evaluations per caller-declared numerical work unit, not a timing loop.
+Refinement consumes this same finite allowance; it cannot allocate more work.
+Caller may later declare a measured larger budget, never a hidden retry budget.
+Pending binary partitions are bounded by representable binary64 subdivision.
+
+ABI advances to3 and header binds the new interval law. Old unmounted numerical
+state headers must fail closed; no implicit header rewrite or old-law fallback.
+Existing world mount schema remains unchanged. Cold proof uses new-law state;
+archived input is admitted only as explicitly authenticated diagnostic raw state,
+not a persistence migration. Final timestep is restored to declared nominal h.
+
+Local coarse/fine difference is an error indicator, NOT a global continuum
+enclosure. The full-motion comparison and contact-event gates remain mandatory
+before mounting. Proof first uses the already-authenticated1700us case: finer
+motion accepted without energy double debit, exact repeat/new-instance restore,
+and insufficient-budget refusal leaving predecessor bytes/time/effort unchanged.
+Frozen source-only review before compile; one bounded proof with AWS envelope
+and terminal child census. No broad regression or repeated fulltrajectory yet.
+
+### FB-01aj frozen source review correction — 2026-09-27 02:29Z
+
+Source-only review fde016c3e63012659cfba961cd10b9090ccde65de5c11e9a9701cb6901ca8709
+completed with one LOCALIZED finding and no architectural finding. Pair impulse
+relative allowance incorrectly summed individual point-force magnitudes. Restored
+the ratified resultant convention: sum oriented world force/couple vectors per
+native geometry pair first, then integrate each resultant magnitude. Signed
+impulses remain unchanged. The same reduction is exercised by a minimal partial-
+and complete-cancellation arithmetic falsifier; it is not a simulated contact or
+claim of full contact qualification. No threshold relaxation or force-law change.
+The intrinsic-couple impulse allowance integrates the ratified instantaneous
+1e-5 Nm tolerance over actual dt plus .001 times resultant couple-path integral;
+this is a local dimensional criterion, not closure of absent-contact evidence.
+
+Correction batch complete; re-freeze and final source review before compilation.
+No candidate execution has occurred. Read-only build preflight initially found
+no Cython in default Python; the already-recorded scoped dependency directory
+/tmp/guala-body-interval.Hdyavt/build-deps is present and reports Cython3.1.2,
+setuptools79.0.1 and numpy2.4.6. Build wrapper binds that directory explicitly;
+no package install or native force-library rebuild. The prior successful local
+resolution map and all physics limits remain closed/unchanged.
+
+### FB-01aj accuracy-controlled local interval PASSED — 2026-09-27 02:35Z
+
+Final source review PASSb3c7c1d088b244540dc91d109577b0ffd8f2fabb1c442b868369014895db98df.
+No architectural findings. Compiled only the interval extension into
+/tmp/guala-body-accuracy.f0fjtehc/python; ABI3 SHA
+7a30227654117e48308d6d443f8a4e79d5b18600af0a8149a3f2a94c8dd07638.
+Native force library remains de96a176...3fd48f; predecessor ABI2 remains
+a1374183...9f2caf, unchanged. No package install, live mutation or force rebuild.
+
+Session73710: build child7474 exited0,8.660638s wall,8.650990s aggregateCPU,
+318348KiB peakRSS. Proof child7522 exited0,.938620s wall,.934013s aggregateCPU,
+152636KiB peakRSS. Both terminal censuses have zero survivors. Proof used27
+native calls under480 ceiling, no broad suite or fulltrajectory replay.
+
+Authenticated1700us predecessor now advances100us with8 native evaluations,
+refining the previously failing coarse step. Independent archived25us reference
+agrees to qmax8.67e-19 and vmax8.88e-16. Positive/signed work
+.008549251809799178J,braking0,bearing.00026620631694027937J; rejected coarse
+work is not debited. Exact repeat returns identical MechanicalSuccessor.
+Next100us interval is identical between existing and freshly restored engines.
+Three refusal branches pass: smaller compute allowance after3calls; zero supply
+after1call; changed applied effort with zero supply after1call. All restore
+original predecessor bytes, effort and nominal timestep. Pair resultant
+partial/complete cancellation arithmetic checks pass.
+
+Artifact docs/evidence/FB-01aj-midpoint-accuracy-control-proof.json SHA
+bb7ae1f244540448208dd0ff4dd638651c47deb4d8e1f22ea915773014db2d63.
+Proof source22e393321e3ebbe18fdce48826c3f4151775d2d05f358205c57244df03d92137.
+This is COMPILED/LOCALLY EXERCISED, not fullmotion/contact/gravity/world mounting
+or continuum-error qualification. No learned behavior or production claim.
+
+AWS preflight initially refused without compiling:02:31:29Z task1559 counts0/0/0
+and HTTP503 during G1's active deployment;02:33:26Z counts1/1/0 but healthUNKNOWN,
+observation already available. No process/service interference; read-only recheck
+cleared at02:34:43Z. Actual proof envelope02:34:43.302675Z->02:34:55.570386Z:
+sole healthy1559task5b56802a81ba4978a36aafb995e829a3,
+image3c9fce0ce0eaed2196b883a061b424d27c7f1d1709f433039394fba51d2e4b5d,
+sameidentity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,counts1/1/0,
+ticks2522706->2522737,persisted2522700->2522732,errorsnull,durabilityfalse.
+CPUmean50.983928%,RAM2.294922%;pre-existingclock-stalledALARM,other4OK.
+
+Next one item: qualify this numerical interval over the existing complete
+load/release motion and contact-event evidence. The old fixed-step diagnostic
+observes every native trial; it must NOT accumulate rejected adaptive trials as
+physical impulses/work. Use only accepted fine trajectories in any observer,
+with no change to the force law or ratified tolerance. Complete that bounded
+observer contract before editing or executing. Mount/gravity/live gates remain.

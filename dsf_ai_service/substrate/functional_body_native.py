@@ -171,12 +171,12 @@ class NativeBody:
     """
 
     def __init__(self, xml: str, limits: MechanicalLimits, *, sensory_root: str | None = None):
-        if mj.__version__ != ENGINE_VERSION:
+        if mj.__version__ != ENGINE_VERSION or mj.mj_versionString() != ENGINE_VERSION:
             raise ValueError("unverified body engine version")
         _no_callbacks()
         # Body-only compiled execution; never a fallback solver or state owner.
-        from guala_body_interval import INTERVAL_ABI, advance_interval
-        if INTERVAL_ABI != 2:
+        from guala_body_interval import INTERVAL_ABI, INTERVAL_LAW, advance_interval
+        if INTERVAL_ABI != 3:
             raise ValueError("unverified body interval ABI")
         self._advance_interval = advance_interval
         root = ET.fromstring(xml)
@@ -255,9 +255,33 @@ class NativeBody:
         )
         self._sensory_root = sensory_root
         self._self_sensors, self._self_geoms, self._self_dofs = self._sensory_membership(sensory_root)
+        # Numerical accuracy compares physical channels, never semantic labels.
+        # These immutable native addresses are compiled once with the anatomy.
+        groups = {}
+        for i, kind in enumerate(m.sensor_type):
+            if kind in (mj.mjtSensor.mjSENS_JOINTPOS, mj.mjtSensor.mjSENS_JOINTVEL):
+                joint = int(m.sensor_objid[i])
+                linear = m.jnt_type[joint] == mj.mjtJoint.mjJNT_SLIDE
+                if m.jnt_type[joint] not in (mj.mjtJoint.mjJNT_HINGE, mj.mjtJoint.mjJNT_SLIDE):
+                    raise ValueError("joint feedback requires hinge/slide accuracy units")
+                position = kind == mj.mjtSensor.mjSENS_JOINTPOS
+                key = (1, (.0001 if linear else math.radians(.01)) if position else
+                       (.001 if linear else .01), 0. if position else .001)
+            elif kind in (mj.mjtSensor.mjSENS_ACCELEROMETER, mj.mjtSensor.mjSENS_GYRO):
+                key = (3, .01, .001)
+            else:
+                continue
+            if int(m.sensor_dim[i]) != key[0]:
+                raise ValueError("physical feedback dimension differs")
+            groups.setdefault(key, []).extend(range(int(m.sensor_adr[i]),
+                                                   int(m.sensor_adr[i]+m.sensor_dim[i])))
+        self._accuracy_sensor_groups = tuple(
+            (np.asarray(addresses, dtype=np.intp), *key) for key, addresses in groups.items())
+        for addresses, _, _, _ in self._accuracy_sensor_groups:
+            addresses.flags.writeable = False
         self._data = mj.MjData(m)
         self._size = mj.mj_stateSize(m, STATE_KIND)
-        self._header = sha256((ENGINE_VERSION + repr(limits) + repr(sensory_root) + xml).encode()).digest()
+        self._header = sha256((ENGINE_VERSION + INTERVAL_LAW + repr(limits) + repr(sensory_root) + xml).encode()).digest()
         self.state_bytes = 32 + self._size * 8
         self._state_buffer = np.empty(self._size, dtype=np.float64)
         self._limited = tuple(i for i in range(m.njnt) if m.jnt_limited[i])
@@ -591,24 +615,28 @@ class NativeBody:
                 or np.any(effort < m.actuator_forcerange[:, 0])
                 or np.any(effort > m.actuator_forcerange[:, 1])):
             raise ValueError("effort exceeds physical motor capacity")
-        d.ctrl[:] = effort
-        mj.mj_forward(m, d)
-        initial_energy = float(sum(d.energy))
-        initial_time = float(d.time)
-        if math.ulp(initial_time) > m.opt.timestep:
-            raise ValueError("mechanical time cannot represent this interval")
-        (positive_work, signed_work, travel_peak, braking_work,
-         bearing_heat, self_bearing_heat) = self._advance_interval(
-             self, effort, elapsed_us // lim.step_us, available_work_j)
-        expected = initial_time + elapsed_us / 1_000_000
-        if abs(d.time - expected) > (elapsed_us // lim.step_us + 1) * math.ulp(expected):
-            raise ValueError("native mechanical time diverged")
-        mj.mj_forward(m, d)
-        self._check()
-        observation = self._observation()
-        residual = signed_work - (observation.kinetic_j + observation.potential_j - initial_energy) - bearing_heat
-        if not math.isfinite(residual):
-            raise ValueError("non-finite mechanical energy balance")
-        return MechanicalSuccessor(self._capture(), observation, positive_work,
-                                   signed_work, travel_peak, braking_work, bearing_heat, residual,
-                                   None if self._sensory_root is None else self_bearing_heat)
+        try:
+            d.ctrl[:] = effort
+            mj.mj_forward(m, d)
+            initial_energy = float(sum(d.energy))
+            initial_time = float(d.time)
+            if math.ulp(initial_time) > m.opt.timestep:
+                raise ValueError("mechanical time cannot represent this interval")
+            (positive_work, signed_work, travel_peak, braking_work,
+             bearing_heat, self_bearing_heat) = self._advance_interval(
+                 self, effort, elapsed_us // lim.step_us, available_work_j)
+            expected = initial_time + elapsed_us / 1_000_000
+            if abs(d.time - expected) > (elapsed_us // lim.step_us + 1) * math.ulp(expected):
+                raise ValueError("native mechanical time diverged")
+            mj.mj_forward(m, d)
+            self._check()
+            observation = self._observation()
+            residual = signed_work - (observation.kinetic_j + observation.potential_j - initial_energy) - bearing_heat
+            if not math.isfinite(residual):
+                raise ValueError("non-finite mechanical energy balance")
+            return MechanicalSuccessor(self._capture(), observation, positive_work,
+                                       signed_work, travel_peak, braking_work, bearing_heat, residual,
+                                       None if self._sensory_root is None else self_bearing_heat)
+        except BaseException:
+            self._restore(state)
+            raise
