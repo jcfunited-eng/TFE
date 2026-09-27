@@ -24,6 +24,7 @@
 //!  15. persistence_prediction -- Stage P2 state persistence, bodily-need coupling, forward prediction
 //!  16. prospective_recombination -- Stage P3 prospective recombination, lateral competition, reversible means
 //!  17. mature_qualification -- Stage P4 mature integrated qualification harness (C01–C19)
+//!  18. memory_preservation -- Stage P5 memory preservation & resource boundary hardening
 //!
 //! Design rules:
 //!   - EXACT Python operation order is preserved (e.g. `(omega_0 + kappa*s)
@@ -50,6 +51,7 @@ pub mod frame_observability;
 pub mod persistence_prediction;
 pub mod prospective_recombination;
 pub mod mature_qualification;
+pub mod memory_preservation;
 mod kinematics;
 mod optical_raycast;
 
