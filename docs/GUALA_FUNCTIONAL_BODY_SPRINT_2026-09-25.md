@@ -12743,3 +12743,98 @@ Read-only AWS13:22:47->13:23:40Z: sole1559/same image/identity,
 ticks2616211->2616343,no checkpoint/cleanup/durability errors. Existing clock
 ALARM remains,other4OK; CPU50.930792%/memory3.198242% at13:21Z. No production,
 G1 source, push or Slack changes. Gravity, integration and restart remain open.
+
+### FB-01aj saved-v4 cost attribution contract — 2026-09-27 13:36Z
+
+Previous turn PROGRESS:ec5e374bd preserves the new68.4ms matched prefix and
+measured computation boundary. This continues sustained accuracy/cost; it does
+not reopen the solved-state handoff or change the body law. Requested complete
+body remains unmounted and unqualified. Conflict with claiming delivery: YES.
+No cognition, kernel, forces, tolerances, timestep ceiling or production changes.
+Reduced numerical rigid-body mechanics, not full biological or DSF evaluation.
+Single next item: attribute numerical/representation cost using ten saved steps.
+
+Deterministic selection per recorded v4 lane: first and last accepted piece,
+maximum force-call count, shortest piece, and first observed hinge, solved-state,
+geometric and loaded-contact changes. Deduplication yields five per lane, ten
+total; this selects diagnostics, never organism actions. Initial pieces already
+contain limit transitions and are not mislabeled contact-free. Original input
+energy is reconstructed with the proved native subtraction/reduction order.
+Coarse's one extra completed68.5ms interval is retained explicitly; half ends at
+68.4ms. No history is replayed, synchronized or fabricated.
+
+Passively time the existing snapshot, physical checks, contact impulse/estimator,
+geometry-velocity/contact-force getters and native forward calls. cProfile
+records function-call cost. Timings are instrumented and inclusive (nested
+getters overlap their parent snapshot/impulse), not an uninstrumented benchmark
+or additive partition. Exact saved raw successor, work and native call count
+must all match; check expected wrapper coverage and restore every method/module
+function before leaving a case, including failures. Raw failure state and cost
+operands are retained. No timing value influences motion or admission.
+
+One frozen independent source review, no native build, one offline10primitive/
+4CPU-second proof. Same2core/1GiB-AS/60CPU-process/90wall process envelope,
+read-only AWS pre/post and exact terminal process census. No production write,
+Slack, push or G1 change. No attribution result is a solver-performance repair.
+Use measured dominant work to select the next bounded correction; do not hide
+force cost behind observation removal or reintroduce rejected implicit methods.
+
+Probe /tmp/a1-body-radau3-cost-profile-20260927.py SHA256
+849c42b587ee81ad50ac49fd8d5ddd9599bdc7c324780446e3905187321119ae;
+runner /tmp/a1-body-radau3-cost-profile-run-20260927.py SHA256
+d3e858b52142b4aaf57b8a20d0a53caff286fd566384c168be0ba2646cd44e1d.
+Production remains independently checked by the runner; prior known baseline
+sole1559/sameidentity, existing clock alarm, no custody errors. Body binaries
+remain the source-matched v4 wxenj18y pair. No new coefficient or force law.
+
+### FB-01aj saved-v4 cost result — 2026-09-27 13:45Z
+
+PROGRESS, same sustained accuracy/cost item. The reviewed ten-control diagnostic
+passed every saved raw-successor, work and native-forward-count comparison;
+all measurement wrappers restored. No native source or physical law changed.
+Receipt docs/evidence/FB-01aj-radau3-cost-profile.json:74556bytes, SHA256
+ad02b9997b47d7c2531e3b3a73f134e9a772bf50cc14916c1786943213c963b3.
+Packed measurement verified independently:277713bytes, SHA256
+0a577525047eaa4db78e689e23c8ea0720d086d11a7c7775f56f2febeea3bf0b.
+Ten primitives,223 forwards,0.590598451numerical CPU seconds. Child1.255993wall,
+1.234865aggregate CPU seconds,296744KiB peak RSS. No timeout or error.
+
+Measured waste boundary: interval._snapshot asks mj_objectVelocity separately
+for each of50geometries, repeated five times per primitive. All2500getter calls
+across ten controls carry real evidence, but2500Python/FFI dispatches are not
+distinct physical settlements. One typed array traversal can preserve every
+row without a Python call or NumPy row-view allocation per geometry. Do not
+remove geometry rows, stages, finite checks or contact/sensory measurements.
+The exact upstream map is engine_core_util.c:730-782 (world-frame geom branch)
+and engine_util_spatial.c:477-505 (motion transform, no rotation): static welded
+bodies return six zeros; otherwise angular velocity is cvel[:3], and linear
+velocity is cvel[3:] minus (geom_xpos-subtree_com[root]) cross cvel[:3]. Preserve
+the upstream subtraction/product order and signed-zero behavior. This is an
+observation-only call-boundary correction, not a force or integration change.
+
+Cost disclosure: ten instrumented primitives total0.055271wall seconds.
+Native forwards0.018977s, snapshots0.018030s, nested velocity getters0.005012s,
+impulses0.006032s, checks0.002050s. These inclusive timings overlap and include
+instrumentation overhead. cProfile reports0.019543s in measurement wrappers
+themselves,0.018551s native forwards and0.002909s native velocity getters.
+Do not present wrapper time as production waste, subtract it to manufacture
+a speed claim, or claim a getter replacement solves the substantial force cost.
+Measure uninstrumented paired cost only after exact evidence equivalence.
+
+Single next correction: native typed world-geometry velocity traversal inside
+interval.pyx, preserving the existing snapshot schema, force call count, raw
+state, work and every geometry velocity bit. Prove native-reference agreement
+and snapshot equality on these saved controls, then entire primitive agreement
+including replay/rollback; no sustained-history rerun until the bounded local
+correction is verified. No new dependencies, ABI, stored cache, state law or
+production mount. Frozen source review precedes any build or numerical proof.
+This correction can remove repeated dispatch, not qualify full delivery alone.
+
+Receipt inspection initially treated profiler_functions (an integer count) as
+a list; that read-only formatting command raised TypeError. Corrected reader
+checks types and traverses profiler (the actual row list). No numerical rerun.
+Owned session38776/group50267 exited; independent host process census empty.
+AWS13:38:37->41Z:sole1559/same identity and image,ticks2618515->2618525,
+no checkpoint/cleanup/durability errors. Existing clock ALARM,other4OK;
+CPU51.350934%average/51.780653%max,memory3.173828% at13:36Z. No production,
+G1 source, push or Slack changes. Goal ACTIVE; body compiled-unmounted.
