@@ -8327,6 +8327,31 @@ braking/bearing work, original allowance and failed-trial predecessor persist
 as unpublished evidence. No boundary force/sensor, completed100us successor,
 accuracy or production qualification is inferred.
 
+### FB-01aj earlier-refusal observation contract — 2026-09-27
+
+Continue the same unresolved joint-limit numerical seam from local commit
+014ff0e32. Add only an authenticated reader of the saved43.75us refusal and a
+CLI selector invoking the existing, verified native residual/sensitivity
+observer. Reuse saved_motion_refusal solely to authenticate identical full
+integration bytes and model, not to advance or repeat the16-step prefix.
+Require receipt SHA, decompressed payload SHA/size, failed stage/width,
+recorded exact rollback, identical original precursor, and captured start/dt/end.
+Restore the same state and numerical dt before the SINGLE native failed step.
+Return the original observer's constraints/aref/force/position, normalized
+residual, exact observer reproduction, bounded diagnostic sensitivity and
+streamed baseline. All physics and convergence tolerances remain unchanged.
+Neither an observed row nor sensitivity direction is promoted to runtime.
+
+Only tools/guala_body_midpoint.py changes. New --event-stall branch selects the
+new archive reader; default --stalled-step remains the existing input path.
+Strengthen its primary rollback comparison to canonical bytes for both modes.
+One native step plus existing2+4*nv+16 residual-evaluation ceiling, same
+twoCPU/1GiB/60CPU/90wall wrapper and read-only AWS envelope. Existing failures
+and accepted first-event trial evidence are never overwritten or rerun.
+This diagnostic answers only the actual earlier refusal row/cause and cannot
+claim numerical integration accuracy, full interval, body deployment or cognition.
+
+
 AWS00:26:40.804943Z->00:26:43.972832Z: sole task1556
 5cb1fece1cac4f32b6d2f9b53b61b9ab,image dc9ba00725d886110346c59ccdb36d1856d9cb316ea4f074a5bc88d9c9c794f7,
 identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,counts1/1/0,
@@ -8349,3 +8374,28 @@ No full prefix/history repetition, broader trajectory or speculative limit-law
 change. Preserve existing law/tolerance and authenticate all input evidence.
 Only then derive the complete event ordering or solver correction from the
 observed cause. General250ms/gravity/body mounting/restart/production remain OPEN.
+
+### FB-01aj next observer approved; external health gate refused launch — 2026-09-27 00:32Z
+
+Source reviewer PASS fingerprint5070871582fb3ea937024a1d894376462f26fe07e4eeb320fbf4fce00ca72ad2.
+Attempt session32827 stopped before OWNED_CHILD/native execution: required
+production preflight00:32:14.099350Z reported ECSdesired/running/pending0/0/0,
+no tasks, observerHTTP503. No event-stall evidence artifact was created; do not
+claim this diagnostic ran or failed physically. Previous local28-call onset
+measurement remains intact and is not reopened.
+
+Read-only follow-up: ECS stopped sole1556task5cb1fece1cac4f32b6d2f9b53b61b9ab
+at00:30:43.559Z and drained at00:30:52.869Z. CloudTrailUpdateService at00:30:38Z
+requested desiredCount0 with no task-definition change, no error, Boto3client.
+Purpose/initiator unknown. No G1 stop/cutover notice existed in the latestledger.
+A1 recorded coordination notice in main collaborative_todo.md and asked Joe
+nonblockingly; no restart, update-service, deploy, marker or live-state write.
+Keep goalactive; this is first external prerequisite interruption, not a
+three-turn impasse. No goalcompletion/pause/block declaration.
+
+Resume only after rechecking actual external state and coordination; never
+restart a diagnostic that lacks a handle merely because observation timed out.
+Here wrapperauthoritativelyexited1 before spawning any child. Prepared frozen
+source may be reused; do not redo its implementation, prior impact proof,
+prefix work, or completed onset trial. Preserve pending event-stall observer
+and verify unchanged source/fingerprint before its first actual run.

@@ -377,10 +377,41 @@ def saved_motion_refusal():
     return e, state, case, fail, hashlib.sha256(receipt_bytes).hexdigest()
 
 
-def stalled_step():
+
+def saved_event_refusal():
+    """Restore the newly retained bracket-refinement refusal; no prefix replay."""
+    import pathlib
+    import zlib
+    from guala_body_local_refinement import restore, state_copy
+    path = pathlib.Path("docs/evidence/FB-01aj-midpoint-limit-event.json")
+    receipt_bytes = path.read_bytes()
+    receipt_sha = hashlib.sha256(receipt_bytes).hexdigest()
+    assert receipt_sha == "f97ffdfb1d130387703beb3e92b701c8bd8de7f097bf8557751336f328332923"
+    packed = json.loads(receipt_bytes)["raw_measurement"]
+    raw = zlib.decompress(base64.b64decode(packed["payload_zlib_base64"],validate=True))
+    assert len(raw) == packed["raw_bytes"] and hashlib.sha256(raw).hexdigest() == packed["raw_sha256"]
+    result = json.loads(raw)
+    assert result["schema"] == "guala.functional-body.midpoint-limit-event.v1"
+    failed = result["cases"][0]
+    assert failed["width_us"] == 1 and failed["stage"] == "onset_bracket" and not failed["completed"]
+    attempt = failed["last_attempt"]
+    assert attempt["primary_rollback_byte_exact"] is True
+    assert "midpoint residual did not converge" in attempt["native_refusal"]
+    state_bytes = base64.b64decode(attempt["predecessor_base64"],validate=True)
+    e, state, case, fail, original_receipt_sha = saved_motion_refusal()
+    assert original_receipt_sha == result["prefix"]["input_receipt_sha256"]
+    assert state_bytes == state.astype("<f8").tobytes(), "event trial used a different predecessor"
+    e._model.opt.timestep = attempt["dt"]
+    restore(e,state)
+    assert state_copy(e).astype("<f8").tobytes() == state_bytes
+    assert float(e._data.time) == attempt["start_s"]
+    assert float(e._data.time)+e._model.opt.timestep == attempt["end_s"]
+    return e,state,case,fail,receipt_sha
+
+def stalled_step(event_refusal=False):
     """Inspect ONE retained full-body refusal; no trajectory or runtime edits."""
     from guala_body_local_refinement import state_copy
-    e, state, case, fail, receipt_sha = saved_motion_refusal()
+    e, state, case, fail, receipt_sha = saved_event_refusal() if event_refusal else saved_motion_refusal()
     m, d = e._model, e._data
     q0, v0, t0, a0 = d.qpos.copy(), d.qvel.copy(), float(d.time), d.qacc_warmstart.copy()
     counters = [int(t.number) for t in d.timer]
@@ -388,7 +419,7 @@ def stalled_step():
         mj.mj_step(m, d)
     except mj.FatalError as error:
         assert "midpoint residual did not converge" in str(error)
-        assert np.array_equal(state_copy(e), state)
+        assert state_copy(e).astype("<f8").tobytes() == state.astype("<f8").tobytes()
         refusal = str(error)
     else:
         raise AssertionError("saved failed step no longer refuses")
@@ -436,7 +467,7 @@ def stalled_step():
         state=d.efc_state.copy().tolist(), force=d.efc_force.copy().tolist(),
         aref=d.efc_aref.copy().tolist(), position=d.efc_pos.copy().tolist())
     r_initial = residual(a0)
-    baseline = dict(schema="guala.functional-body.midpoint-single-stall.v1",
+    baseline = dict(schema=("guala.functional-body.midpoint-event-stall.v1" if event_refusal else "guala.functional-body.midpoint-single-stall.v1"),
         input_receipt_sha256=receipt_sha,
         failed_input_sha256=fail["unpublished_scratch_sha256"], model_sha256=case["model_sha256"],
         time=t0, timestep=m.opt.timestep, dofs=m.nv, refusal=refusal,
@@ -677,7 +708,11 @@ def main():
     parser.add_argument("--motion-intervals", action="store_true")
     parser.add_argument("--stalled-step", action="store_true")
     parser.add_argument("--limit-event", action="store_true")
+    parser.add_argument("--event-stall", action="store_true")
     args = parser.parse_args()
+    if args.event_stall:
+        print(json.dumps(encode(stalled_step(event_refusal=True)),sort_keys=True),flush=True)
+        return
     if args.limit_event:
         print(json.dumps(encode(limit_event()), sort_keys=True), flush=True)
         return
