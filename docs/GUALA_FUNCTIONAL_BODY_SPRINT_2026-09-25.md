@@ -13689,3 +13689,153 @@ cumulative accounting from authenticated accepted records, not subtract rounded
 totals or replay earlier motion. No new code for that correction is authored
 or approved in this receipt. Complete500ms witness, cost, gravity/couple impulse,
 body/world lifecycle and production gates remain OPEN; goal ACTIVE.
+
+### FB-01aj local paired-history admission contract — 2026-09-27 19:03Z
+
+Continue from d77987940, not a new body model. Source-only change authorized
+in native/functional_body/radau.pyx: factor one bounded common-interval pair
+admission into RadauProbe; invoke it from existing admit_trajectory. No mounting,
+state-schema, anatomy, optics, force, cognition, timestep clock or tolerance
+change. This is numerical approximation of the same mechanics, not full DSF.
+
+Input is two independent same-time predecessor snapshots with their own
+cumulative work/impulses, shared original supply/history origin, two mesh
+sizes and one uncommitted next observation. Prepare new candidate dictionaries;
+never mutate the supplied predecessors or synchronize them with one another.
+All trial and local-refinement attempts share the caller's numerical budget.
+On an event-width-only mismatch, retry this observation from each OWN saved
+predecessor at dyadically smaller nominal steps. Keep the actual new motion,
+work, impulses and sampled events together; never patch only event labels.
+If state/work/impulse or event sequence differs, or local timing cannot resolve
+within representability/budget, retain fail-closed evidence. Existing outer
+whole-interval refinement remains available for inherited trajectory error.
+
+Mutation order: capture entry raw state/timestep; prepare both local successors
+and cumulative ledgers; compare physical returns/events; return only accepted
+pair with fine engine state. Every exception restores exact entry state and
+timestep. Candidate reports precede fallible work and preserve failed lane,
+operands, trial counts and rollback evidence. No output publication/debit until
+the complete existing outer trajectory succeeds; fine actual work charged once.
+Previously checked event prefixes remain unchanged; comparison is over the
+new common interval because its predecessors were already paired and accepted.
+
+Before build, one frozen source-only independent review. Focused proof uses
+the actual saved event predecessor pair (plus a known inherited-error pair),
+an authenticated fine-state control through the ordinary outer caller, and
+compute/work refusal with exact rollback/input immutability. Include an
+ordinary second common interval to verify own-state continuation and single
+work accounting. No full500ms/prefix replay for this component acceptance.
+Same bounded build/proof process envelope and read-only AWS pre/post checks.
+Counterexample remains preserved. Next sustained continuation must reconstruct
+actual cumulative prefix accounting from authenticated records rather than
+resetting or subtracting rounded totals. Production and performance remain open.
+
+### FB-01aj source/preflight completion — 2026-09-27 (before 19:21Z build)
+
+Previous goal work was progress: d77987940 preserved the rejected timing
+boundary and reproduced its exact saved pieces; the intervening P0 handoff
+was a separate user-requested document correction, not a reopened body law.
+Current radau.pyx draft adds one paired common-interval admission, leaving
+the primitive motion and all physical acceptance bounds unchanged. Self-review
+fixed final-success evidence initialization and made failure-state extraction
+incapable of preventing rollback. No compilation or execution yet.
+
+Bounded causal path: admit_trajectory -> admit_history_pair -> each own raw
+predecessor restore -> existing admit/step -> native forces/sensory snapshot ->
+actual event path and cumulative work/impulse -> trajectory_agreement -> fine
+successor preparation. New local retries cannot mutate either input lane,
+publish, alter source time, charge trial work, or erase inherited errors.
+Outer rollback still owns the original uncommitted predecessor. The change is
+unmounted; it changes no body codec, world adapter, receptor mounting, paired
+production store, observation API or neuronal/cognitive authority.
+
+Focused proof /tmp/a1-body-local-paired-events-20260927.py reuses the reviewed
+build/health runner. It exercises the ordinary outer caller against an exact
+saved fine return; the full saved100us event interval and next own-history
+interval; pair/outer computation refusal; outer work refusal; and known
+inherited state error. Local integrals begin at the declared saved boundary
+with ZERO external work allowance for released motion, not a replacement of
+whole-history accounting. All input snapshots are checked unchanged. The
+known event's first motion/work must reproduce the failed receipt exactly
+before a genuinely finer pair can count as resolution. No prior history replay.
+
+Seven component cases share10s numericalCPU/3000primitive ceiling; builder
+and proof each use2core affinity,1GiB per-processAS,60sCPU/90swall with exact
+process-group census. Reviewed read-only AWS envelope runs before/after;
+children have network denied. Body source fingerprint and separate proof hash
+will be fixed before independent review. Host census showed no competing
+Python/Rust/C build; one external find belongs to G1 and is untouched.
+The mistakenly requested skill reference embodiment-law.md was absent;
+the actual named embodiment-ui-law.md and world catalog were read instead.
+No claim of complete mechanics, realtime cost, migration or live delivery.
+
+### FB-01aj partial component proof and proof-input correction — 2026-09-27
+
+The reviewed numerical source SHA4baebe4f8e3a522736196e5ed035451c13714b045fcb97b156b87eebba8e2bf1
+compiled once to ABI SHA29162c2275b9ce72816c7ac8377367b4d06b6857ae0bf9d6b7a49c0959f1c8f7.
+Receipt FB-01aj-local-paired-events-admission.json SHA
+2ea7d61c7270330eb6792c299b05752c551576d9417d55388934f76bb38d43d2
+is deliberately retained as FAILED overall. Four cases passed: exact ordinary
+fine control/single debit (12 primitives), independent refinement of the actual
+failed event interval (659 primitives, five rounds), own-history next interval
+(18), and pair compute refusal/immutable inputs/exact rollback (1).
+
+The inherited-state negative control then failed after one primitive: its
+test allowance was wrongly zero. An accepted final interval with zero positive
+work does not establish that its unpublished numerical trials need zero work.
+Actual saved predecessor allowances are4660.449822410926 and4660.449822423297J.
+The energy guard correctly refused the zero allowance before the intended
+inherited-state comparison; this is a proof-configuration error, not authority
+to weaken mechanics. The last two outer refusal checks were not reached.
+
+Bounded correction is proof-only in /tmp/a1-body-pair-remaining-checks-20260927.py:
+use the smaller authenticated positive allowance for both locally measured
+inherited-state intervals, with explicit local-zero integration origin. This
+neither adds energy above either saved availability nor reconstructs historical
+cumulative ledgers. Preserve both exact raw predecessors. Run ONLY the inherited
+state refusal and two unexecuted outer refusals on the existing compiled ABI;
+no build, no successful-case or full-prefix replay, no source/tolerance edit.
+One source-only proof review precedes execution; new receipt retains the prior
+failure by hash. Same exact rollback, immutable inputs, operation budget, offline
+child and read-only AWS envelope apply. Goal remains active and body unmounted.
+
+First execution envelope19:21:13--19:21:48UTC: same sole healthy task1560,
+ticks2680523->2680640, no custody errors. Clock-stalled alarm remained ALARM.
+Build27.139203 aggregateCPU/27.16954wall; proof4.429938 numericalCPU,
+691primitives/13454forwards,304512KiB childRSS. Owned95027 and95453 terminal;
+no process-group survivors. Earlier19:25Z preflight heading was a mistaken
+timestamp; corrected to relative pre-build time rather than invented precision.
+
+### FB-01aj paired local admission component closed — 2026-09-27 19:29Z
+
+Proof-only independent review PASS on tree
+d3e10d64c129167984139712819d0199fb64c09ef926898be5726c79bfcff287,
+proof093ed73f79e7f15ad8632605054ca3541ddf1b0c5f0b0498816520df034055dd.
+No source edit or rebuild followed the initial test-allowance error.
+Receipt FB-01aj-local-paired-events-remaining-checks.json SHA
+042f7ce6b304a2a9244dec8396ea8acfc9fb2d79db16e6daec41605f64f96305:
+inherited-state error refused after one paired round (74 primitives); outer
+compute and work refusals each pass in one primitive with exact rollback.
+All three unfinished checks PASS; the four earlier passes remain in the
+original failed-overall receipt. This gives all seven scoped checks, not a
+retroactive relabeling of the failed run and not full mechanics qualification.
+
+The actual event interval needed five attempted paired mesh levels. Final
+independent event brackets span.3428696523836035--.3428703124999896s,
+0.6601163861us, within the unchanged1us bound; both actual motion states and
+work were recomputed together from their own342.8ms predecessors. The ordinary
+next interval preserves both distinct histories and accumulates work once.
+
+Remaining-check numerical1.051933022CPU/76primitives/1646forwards;
+child99252:2.038651aggregateCPU/2.043278wall,182456KiBRSS,exit0,no survivors.
+AWS19:29:13--19:29:18UTC: same sole1560/image/identity, ticks2682131->2682147,
+custodyerrorsnull,clockalarmstillALARM,otherfouralarmsOK,CPU51.21422%,
+memory3.0029296875%. No production writes or process changes.
+
+Next remains FB-01aj sustained independent-history load/release witness through
+500ms: reconstruct the actual342.8ms cumulative predecessor integrals from
+authenticated accepted pieces, then carry forward already measured refined
+342.9ms and343ms states/interval integrals before new motion. Do not subtract
+rounded totals, replay accepted intervals, reset inherited error or fabricate
+missing impulse history. Body/world mounting, gravity/couple evidence, bounded
+runtime and lifecycle/production acceptance remain OPEN. Active goal continues.

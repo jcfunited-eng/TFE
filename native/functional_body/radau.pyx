@@ -542,15 +542,130 @@ class RadauProbe:
             raise
 
 
+    def admit_history_pair(self, e, lanes, stop, history_start, supply,
+                           nominal_dts, max_trials):
+        """Advance two OWN unpublished predecessors; refine timing locally.
+
+        A returned pair has passed the unchanged physical comparison. Every
+        exception restores the entry engine exactly. Supplied lane objects are
+        never mutated. No trial work is debited into an accepted predecessor.
+        """
+        now, original_dt = float(e._data.time), float(e._model.opt.timestep)
+        if (len(lanes) != 2 or len(nominal_dts) != 2
+                or not math.isfinite(history_start) or history_start > now
+                or not math.isfinite(stop) or not 0 < stop-now <= e.limits.step_us/1e6
+                or any(lane['snapshot']['time'] != now for lane in lanes)
+                or any(not math.isfinite(h) or not 0 < h <= e.limits.step_us/1e6
+                       for h in nominal_dts)
+                or not math.isfinite(supply) or supply < 0
+                or type(max_trials) is not int or max_trials <= 0):
+            raise ValueError('invalid independent history pair interval')
+        entry_state = interval._state(e)
+        report = dict(law='radau-iia3-local-paired-events-v1',start_s=now,
+            stop_s=stop,history_start_s=history_start,nominal_dts=tuple(nominal_dts),
+            max_trials=max_trials,trials=0,rounds=[],completed=False,
+            failure=None,rollback_exact=None,active_attempt=None,disagreement=None)
+        self.last_pair_admission = report
+        try:
+            for refinement in range(int(np.finfo(float).nmant)+1):
+                steps = tuple(math.ldexp(h,-refinement) for h in nominal_dts)
+                if any(now+h <= now for h in steps):
+                    break
+                attempt = dict(refinement=refinement,nominal_dts=steps,
+                               lanes=[],agreement=None)
+                report['rounds'].append(attempt)
+                candidates = []
+                for index,(before,h) in enumerate(zip(lanes,steps)):
+                    remaining = supply-before['work'][0]
+                    evidence = dict(lane='coarse' if index == 0 else 'fine',
+                        start_s=now,target_s=stop,phase='lane_restore',
+                        predecessor=packed_numbers(before['snapshot']['state']),
+                        prior_work=before['work'],available_work_j=remaining,
+                        local_report=None)
+                    attempt['lanes'].append(evidence)
+                    report['active_attempt'] = evidence
+                    self.last_admission = None
+                    allowance = max_trials-report['trials']
+                    if allowance <= 0:
+                        raise RuntimeError('trajectory trial allowance exhausted')
+                    if not math.isfinite(remaining) or remaining < 0:
+                        raise ValueError('trajectory work supply exhausted')
+                    interval._restore(e,before['snapshot']['state'],original_dt)
+                    if interval._state(e).tobytes() != before['snapshot']['state'].tobytes():
+                        raise AssertionError('trajectory lane restore differs')
+                    evidence['phase'] = 'local_admission'
+                    try:
+                        snap,work,impulses,local = self.admit(e,stop,remaining,h,allowance)
+                    finally:
+                        local = self.last_admission
+                        evidence['local_report'] = local
+                        if local is not None:
+                            report['trials'] += local['trials']
+                    sequence,brackets = [_record_domain(before['snapshot']['domain'])],[]
+                    for piece in local['accepted']:
+                        events = piece['event_sequence']
+                        if (not events or events[0] != sequence[-1]
+                                or len(events)-1 != len(piece['event_brackets'])):
+                            raise AssertionError('accepted event chronology differs')
+                        sequence.extend(events[1:]);brackets.extend(piece['event_brackets'])
+                    candidate = dict(snapshot=snap,
+                        work=interval._work_add(before['work'],work),
+                        impulses=interval._impulse_add(before['impulses'],impulses),
+                        sequence=tuple(sequence),brackets=brackets)
+                    candidates.append(candidate)
+                    if snap['time'] != stop or candidate['work'][0] > supply:
+                        raise ValueError('trajectory lane custody differs')
+                report['active_attempt']['phase'] = 'history_comparison'
+                agreement = trajectory_agreement(e,*candidates,stop-history_start)
+                attempt['agreement'] = agreement
+                if agreement['passed']:
+                    report.update(completed=True,active_attempt=None)
+                    return candidates,report
+                a,b = candidates
+                report['disagreement'] = dict(time_s=stop,**agreement,
+                    coarse_state=packed_numbers(a['snapshot']['state']),
+                    fine_state=packed_numbers(b['snapshot']['state']),
+                    coarse_work=a['work'],fine_work=b['work'],
+                    coarse_sequence=a['sequence'],fine_sequence=b['sequence'],
+                    coarse_brackets=a['brackets'],fine_brackets=b['brackets'],
+                    coarse_impulses=_record_impulses(a['impulses']),
+                    fine_impulses=_record_impulses(b['impulses']))
+                # Only resolution of a matching event path can retry here.
+                # Inherited state/path error returns to the existing outer
+                # independent-history refinement, not a synchronized state.
+                if not (agreement['state_work_impulse_passed'] and
+                        agreement['same_event_sequence']):
+                    break
+            raise ValueError('paired history interval remains unresolved')
+        except BaseException as error:
+            report.update(completed=False,failure=repr(error))
+            # Preserve the actual failed scratch state before rollback. Native
+            # extraction deliberately precedes finite-state validation so a
+            # refused nonfinite state cannot erase its diagnostic evidence.
+            try:
+                failed_state = np.empty_like(entry_state)
+                mj.mj_getState(e._model,e._data,failed_state,interval.STATE_KIND)
+                report['failure_state'] = packed_numbers(failed_state)
+                report['failure_time_s'] = float(e._data.time)
+            except BaseException as evidence_error:
+                report['failure_state_error'] = repr(evidence_error)
+            interval._restore(e,entry_state,original_dt)
+            report['rollback_exact'] = (interval._state(e).tobytes() == entry_state.tobytes()
+                                       and float(e._model.opt.timestep) == original_dt)
+            if not report['rollback_exact']:
+                raise AssertionError('history pair rollback differs') from error
+            raise
+
     def admit_trajectory(self, e, stop, supply, nominal_dt, sample_dt,
                          max_trials, max_refinements):
         """Two independent meshes over one unpublished physical interval.
 
         Local admission still controls residuals, force/work quadrature and
         sampled events. This outer guard preserves BOTH numerical histories
-        across common observations. Disagreement retries only from the original
-        uncommitted predecessor. No historical synchronization, double debit,
-        changed forces or relaxed tolerances. Sample agreement is not a
+        across common observations. Event resolution retries the current pair;
+        inherited errors retry the original uncommitted predecessor. No history
+        synchronization, double debit, changed forces or relaxed tolerances.
+        Sample agreement is not a
         continuum enclosure or a production cost certificate.
         """
         m, d = e._model, e._data
@@ -567,23 +682,12 @@ class RadauProbe:
                 or not 0 <= max_refinements <= int(np.finfo(float).nmant)):
             raise ValueError('invalid trajectory numerical work allowance')
         initial = interval._snapshot(e)
-        report = dict(law='radau-iia3-independent-history-v1',
+        report = dict(law='radau-iia3-independent-history-v2-local-events',
             start_s=start, stop_s=stop, nominal_dt_s=nominal_dt,
             sample_dt_s=sample_dt, max_trials=max_trials,
             max_refinements=max_refinements, trials=0, rounds=[],
             completed=False, failure=None, rollback_exact=None)
         self.last_trajectory_admission = report
-
-        def path(local, first_domain):
-            sequence, brackets = [_record_domain(first_domain)], []
-            for piece in local['accepted']:
-                events = piece['event_sequence']
-                if (not events or events[0] != sequence[-1]
-                        or len(events)-1 != len(piece['event_brackets'])):
-                    raise AssertionError('accepted event chronology differs')
-                sequence.extend(events[1:])
-                brackets.extend(piece['event_brackets'])
-            return tuple(sequence), brackets
 
         try:
             for refinement in range(max_refinements+1):
@@ -596,7 +700,7 @@ class RadauProbe:
                          for _ in range(2)]
                 entry = dict(refinement=refinement,coarse_dt_s=coarse_dt,
                     fine_dt_s=fine_dt,observations=0,accepted=False,
-                    disagreement=None)
+                    disagreement=None,local_event_refinements=[])
                 report['rounds'].append(entry)
                 now = start
                 while now < stop:
@@ -607,60 +711,36 @@ class RadauProbe:
                         target = math.nextafter(target,now)
                     if not now < target <= stop:
                         raise ValueError('unrepresentable trajectory sample')
-                    for index,(lane,h) in enumerate(zip(lanes,(coarse_dt,fine_dt))):
-                        report['active_attempt'] = dict(
-                            phase='lane_restore',refinement=refinement,
-                            lane='coarse' if index == 0 else 'fine',
-                            start_s=now,target_s=target,
-                            predecessor=packed_numbers(lane['snapshot']['state']),
-                            prior_work=lane['work'],available_work_j=supply-lane['work'][0])
-                        self.last_admission = None
-                        allowance = max_trials-report['trials']
-                        if allowance <= 0:
-                            raise RuntimeError('trajectory trial allowance exhausted')
-                        before = lane['snapshot']
-                        interval._restore(e,before['state'],original_dt)
-                        if interval._state(e).tobytes() != before['state'].tobytes():
-                            raise AssertionError('trajectory lane restore differs')
-                        remaining = supply-lane['work'][0]
-                        if not math.isfinite(remaining) or remaining < 0:
-                            raise ValueError('trajectory work supply exhausted')
-                        # admit always creates its report before attempting motion.
-                        # Count failed as well as successful local trials.
-                        report['active_attempt']['phase'] = 'local_admission'
-                        try:
-                            snap,work,impulses,local = self.admit(
-                                e,target,remaining,h,allowance)
-                        except BaseException:
-                            report['failed_local_admission'] = self.last_admission
+                    allowance = max_trials-report['trials']
+                    if allowance <= 0:
+                        raise RuntimeError('trajectory trial allowance exhausted')
+                    self.last_pair_admission = None
+                    try:
+                        successors,pair = self.admit_history_pair(
+                            e,lanes,target,start,supply,(coarse_dt,fine_dt),allowance)
+                    except ValueError as error:
+                        if str(error) != 'paired history interval remains unresolved':
                             raise
-                        finally:
-                            local_report = self.last_admission
-                            if local_report is not None:
-                                report['trials'] += local_report['trials']
-                        lane['snapshot'] = snap
-                        lane['work'] = interval._work_add(lane['work'],work)
-                        lane['impulses'] = interval._impulse_add(lane['impulses'],impulses)
-                        lane['sequence'],lane['brackets'] = path(local,before['domain'])
-                        if snap['time'] != target or lane['work'][0] > supply:
-                            raise ValueError('trajectory lane custody differs')
-                    report['active_attempt']['phase'] = 'history_comparison'
-                    agreement = trajectory_agreement(e,lanes[0],lanes[1],target-start)
-                    entry['observations'] += 1
-                    if not agreement['passed']:
-                        entry['disagreement'] = dict(time_s=target,**agreement,
-                            coarse_state=packed_numbers(lanes[0]['snapshot']['state']),
-                            fine_state=packed_numbers(lanes[1]['snapshot']['state']),
-                            coarse_work=lanes[0]['work'],fine_work=lanes[1]['work'],
-                            coarse_sequence=lanes[0]['sequence'],fine_sequence=lanes[1]['sequence'],
-                            coarse_brackets=lanes[0]['brackets'],fine_brackets=lanes[1]['brackets'],
-                            coarse_impulses=_record_impulses(lanes[0]['impulses']),
-                            fine_impulses=_record_impulses(lanes[1]['impulses']))
+                        entry['disagreement'] = self.last_pair_admission['disagreement']
                         break
+                    finally:
+                        pair = self.last_pair_admission
+                        if pair is not None:
+                            report['trials'] += pair['trials']
+                            report['active_attempt'] = pair['active_attempt']
+                            if pair['active_attempt'] is not None:
+                                report['active_attempt']['refinement'] = refinement
+                            if len(pair['rounds']) > 1 or not pair['completed']:
+                                entry['local_event_refinements'].append(pair)
+                    lanes = successors
+                    entry['observations'] += 1
                     now = target
                 if now == stop:
                     fine = lanes[1]
-                    report['active_attempt']['phase'] = 'successor_preparation'
+                    report['active_attempt'] = dict(phase='successor_preparation',
+                        refinement=refinement,lane='fine',target_s=stop,
+                        expected_successor=packed_numbers(fine['snapshot']['state']),
+                        work=fine['work'],remaining_supply_j=supply-fine['work'][0])
                     interval._restore(e,fine['snapshot']['state'],original_dt)
                     if interval._state(e).tobytes() != fine['snapshot']['state'].tobytes():
                         raise AssertionError('trajectory successor restore differs')
