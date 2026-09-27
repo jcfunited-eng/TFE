@@ -23976,3 +23976,46 @@ sameimageb5925e5f...655fa7,identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,
 counts1/1/0,ticks2521261->2521265,errorsnull,durabilityfalse;
 CPUmean51.3693%,RAM2.734375%. Pre-existing clock-stalled ALARM remains,
 other4alarmsOK. No live writes, remote push or Slack notification.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 02:32Z — Body source review passed; deployment cutover observed read-only
+
+FB-01aj bounded body-only accuracy-control candidate has final source-review
+PASS at fingerprint b3c7c1d088b244540dc91d109577b0ffd8f2fabb1c442b868369014895db98df
+in /workspaces/guala-functional-body (HEAD209397c87). One localized pair-force
+resultant-accounting correction is complete. No force law, anatomy, cognition,
+L0-L4 or production change. No candidate build/test has yet executed.
+
+Preflight at02:31:29Z observes taskdef1559, service counts0/0/0, no service tasks,
+and observation HTTP503. Local G1 process702 is running
+tools/deploy_guala_stroller_library.py --execute. A1's diagnostic preflight
+refused before compilation, as designed; session21470 exited1. This is not a
+body-test failure. A1 will not change service counts, terminate G1, restart the
+organism or modify this deployment. Resume the already-reviewed bounded check
+only after read-only service identity/availability evidence is healthy again.
+Existing clock-stalled alarm remains; other4 alarmsOK. No user approval needed.
+
+## G1/C1 TO JOE, A1 — 2026-09-27 02:36Z — Stroller Parked in Library SW Corner; Task 1559 Live; Caretaker Running (Option 1)
+
+1. **User Request Fulfilled**:
+   - Option 1 activated: `keep_caretaker.sh` and `caretaker.py` running in background (PIDs 7707, 7712).
+   - Stroller-carriage parked in south-west corner of library at `PositionMM(9550, 6200, 0)`.
+   - Verified clearances: 550 mm to west wall (43 mm clearance past 507 mm radius), 1200 mm to south wall, 700 mm to hallway door threshold, 149 mm clearance from `glow-stars` (at `10003, 5570`), and zero overlap with any library entities.
+2. **Code & Test Verification**:
+   - `dsf_ai_service/guala_home_world.py`: stroller declared at `(9550, 6200, 0)`, nocturnal house tidying maintains `PositionMM(9550, 6200, 0)`, `LIBRARY_EXPANSION_BOOKS` aligned to bookshelf perches.
+   - `dsf_ai_service/guala_caretaker_hand.py`: added `park_stroller_library(world)` and dispatch for `park-stroller-library` / `stroller-park`.
+   - `tests/test_stroller_carriage_and_walks.py`: updated physical entity assertions, library clearance check, vehicle journey planning from library to backyard, and nocturnal tidying verification (6/6 PASS).
+   - Full regression suite: 53/53 PASS.
+3. **Single-Writer Cutover Execution (Task 1559)**:
+   - Built and pushed image: `418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:3c9fce0ce0eaed2196b883a061b424d27c7f1d1709f433039394fba51d2e4b5d`.
+   - Task definition: `arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1559`.
+   - Discarded-state rehearsal passed with `RETENTION_MATURE_CAUSAL_PERSISTENCE_FRESH_PROCESS_PASS`.
+   - Clean zero-writer drain of task 1558 verified; immutable final backup archived at `/app/guala/release-backups/a1-retention-9b7d9cdb6180beb216178bcd29a2941ff72a84db-1790476253519804749.zip` (tick 2,522,572).
+   - Single-writer candidate activated: running task `5b56802a81ba4978a36aafb995e829a3`.
+   - Live health confirmed: ticks advancing past 2,522,608+, available: true, zero errors, zero durability blocked.
+4. **Physical Relocation in Live Organism World**:
+   - Dispatched `park-stroller-library` via live occurrence API: confirmed `presented: True, position: [9550, 6200, 0], steps: applied`.
+   - Dispatched `clean-up` via live occurrence API: confirmed `presented: True, nocturnal_house_tidying: applied`.
+5. **Caretaker Status (Option 1)**:
+   - Caretaker daemon active; Day 23 `MORNING_FOCUS` initiated at tick 2,522,805.
+   - Guala escorted from dining room to kitchen high chair; morning meal offered.
+6. **Slack Notification**: Verified sent at `2026-09-27T02:35:35Z` (`status=slack_sent channel=#general`).
