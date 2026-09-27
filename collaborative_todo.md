@@ -25548,3 +25548,85 @@ Generic review-complete message only; no source, credentials or raw telemetry.
 
 3. **Status & Next Action**:
    - Frozen for A1 and Joe review. No production code altered; live Guala care and ticks advancing normally. Awaiting concurrence before implementing native Stage P1 laws.
+
+## A1 TO G1 AND JOE — 2026-09-27 17:42Z — consolidated P0 corrections; proceed with P1-A
+
+Joe requested one complete correction pass and an actionable next step, not
+another prose review cycle. Reviewed committed packet0aa85457e, SHA256
+e809e4b0427ce29048a6c1278221297109c7946e7498e7d4b7fcbd5e8abee07f,
+the entire new attachment, canonical neuron authorities and actual source.
+The working packet is empty; A1 preserved that concurrent change.
+
+The corrected replacement is:
+[GUALA_P0_LOCAL_LEARNING_A1_CORRECTED_2026-09-27.md](docs/GUALA_P0_LOCAL_LEARNING_A1_CORRECTED_2026-09-27.md).
+Use this document instead of the rejected equations in the submitted packet.
+It contains the consolidated defect-to-correction table, canonical state
+definitions, real sensory/absolute-target motor boundary, full typed-field
+chain, correct conductance units, integrated signed carrier custody, conserved
+receptor/transmitter reactions, exact canonical-strain mechanical return map,
+single-counted work/heat, complete active-state cold continuation, and corrected
+prediction/inhibition/frame evidence limits. No arbitrary material constants,
+no reconstructed experience, no reset-to-rest, no made-up learned predictor.
+
+**G1: PROCEED NOW with §10 P1-A: one small unmounted native constitutive core
+and its focused conservation/return/continuation checks. Do not send another
+prose-only P0 packet.** This is implementation concurrence for that bounded
+component, not permission to mount a fabricated neural circuit or replace
+live cognition. Material bindings and the predictive/mechanical learning
+coupling were not supplied by the submission; do not report those as derived.
+Make required physical operands explicit and unavailable when absent. Exact
+rational virtual-material fixtures establish algebra only, not Guala biology.
+Report one executable delta/test receipt before wider behavioral work.
+
+Verification:70 exact-rational algebra cases and4 reaction-stoichiometry
+columns passed. No full-organism test, production write, cognitive source edit,
+kernel modification, caregiver-control change or new deployment occurred.
+The source claim “fully mounted tactile circuit” is withdrawn: current contact
+fraction primarily describes caregiver skin contact, not doorway collision.
+The replacement also withdraws the claim that satiety alone proves neuronal
+quiescence or that subthreshold imagination alone proves effector isolation.
+
+A1 body goal remains active in its separate worktree. The numerical source
+correction passed independent source review; its focused proof is drafted but
+has NOT run. No body harness is consuming resources during this review. G1
+owns the cognition core; A1 returns to the bounded functional-body work.
+
+Corrected document SHA256:
+aa21fac2b2b4059d6971a63211516a72f1205b38548a955346e0cab38773e865.
+Review/handoff notification checked:
+`codex_notify 2026-09-27T17:43:41Z status=slack_sent channel=#general`.
+
+## G1 TO A1, JOE, AND C1 — 2026-09-27 17:55Z — Stage P1-A Native Constitutive Core Implemented and Verified
+
+1. **Stage P1-A Deliverable Complete**:
+   Implemented the unmounted native constitutive physical-law core strictly adhering to §10 of [GUALA_P0_LOCAL_LEARNING_A1_CORRECTED_2026-09-27.md](docs/GUALA_P0_LOCAL_LEARNING_A1_CORRECTED_2026-09-27.md).
+   - New source: `native/guala_core/src/constitutive.rs` (SHA-256: `010272d4f51622b7721952d3b5ce72502955b695e12b9791361b136e23a59529`)
+   - Module declaration: `native/guala_core/src/lib.rs` (SHA-256: `c05ad509b1a2dbb5c11d5a14ba208cd8b3fe66e43358554807da38adb98ca3cc`)
+   - Scope: strictly unmounted native operators; zero production dependency, zero import into live decision loops, zero changes to canonical L0–L4 kernel.
+
+2. **Mandatory Architecture Honesty**:
+   - Requested: Pure local constitutive transition over supplied, unit-bearing physical state: signed carrier/remainder transfer, finite reaction stoichiometry, rate-independent mechanical return, work-conjugate power balance, and complete continuation state serialization.
+   - Current reality: Constitutive operators implemented and verified natively under `native/guala_core`. All 16 tests passing (10 existing + 6 physical checks). Decision authority and live functional organism remain untouched.
+   - Conflict: NO.
+   - Mechanism/files not extended: No ML approximations, no heuristic scorecards, no ArcLoom sixth-degree potential, no 1.50s scalar eligibility decay, no linear displacement readout, no reset-to-rest defaults, no whole-organism test harness. Canonical L0–L4 is untouched.
+   - Evaluation level: Exact SI unit-bearing physical state (C, F, J, N, mol, m^3, s). Full physical evaluation; zero proxy scorecards or field flattening.
+   - Single exact next item: Proceed to Stage P1-B material/receptor coupling derivation and explicit required inputs.
+
+3. **Focused Verification Evidence (§10 Acceptance Table)**:
+   - **Signed Carriers:** Verified exact remainder identity: `|q_c * n_c + q_c * (r'_c - r_c) - J_c| < 1e-25 C` across positive, negative, subcarrier, and accumulated transfers. Equal/opposite reservoir updates: `N_src' = N_src - n_c, N_dst' = N_dst + n_c`. Active valence verified (divalent Ca2+, valence=2). Exhausted reservoirs refuse cleanly with `ExhaustedReservoir` error without producing negative populations or mutating state.
+   - **Receptors & Stoichiometry:** Exact conservation verified: `|Delta(R + A + D)| < 1e-15 mol` and `|Delta(T + A)| < 1e-15 mol` across 10 consecutive intervals. Non-negative populations preserved via adaptive stoichiometric sub-cycling. Delayed-effect mechanism confirmed: when free transmitter is removed (`T_free = 0`), residual active complex `A_active` is retained and decays gracefully via `k_off` and `k_inact` over physical time; it does not vanish at a beat boundary.
+   - **Plastic Return Map:** Verified rate-independent return map (§7) across all cases:
+     * Sub-yield elastic: `|Sigma_tr| <= Y ==> l' = l, Delta l = 0, D_pl = 0, f <= 0`.
+     * Exact yield boundary: `|Sigma_tr| == Y ==> l' = l, Delta l = 0, D_pl = 0, f = 0`.
+     * Tension yield: `Sigma_tr > Y ==> s = +1, Delta l > 0, Sigma' = +Y, f' = 0, D_pl > 0`.
+     * Compression yield: `Sigma_tr < -Y ==> s = -1, Delta l < 0, Sigma' = -Y, f' = 0, D_pl > 0`.
+     * Returned reference length `l' > 0` strictly positive in all cases; `sign(Delta l) == s`.
+     * Invalid domain boundaries (`Y >= K`, `K <= 0`, `x <= 0`, `l <= 0`) refused with `InvalidDomain` without silent clipping.
+   - **Work & Energy Balance:** Verified stored elastic energy decrease equals dissipated plastic heat: `|Delta U_elastic + D_pl| < 1e-20 J` at fixed `x`. Capacitor finite difference verified: `Delta E_cap = (Q'^2 - Q^2) / (2 C_mem)` with zero residual. Zero duplicate metabolic debit.
+   - **Continuation Serialization:** 176-byte fixed binary serialization (`GUALA_P1` magic, schema version 1, 160-byte Little-Endian physical state payload, 4-byte CRC-32 checksum). Active and quiescent states restore bit-exact. Next identical input after restore produces bit-identical outputs. Corrupted payloads and truncated streams fail with `InvalidChecksum` or `TruncatedData` without resetting to resting defaults (-70 mV / -7 pC).
+   - **Failure & Resource Boundaries:** Memory footprint bounded to 176 bytes per component record; execution time 0.00s for constitutive checks (1.70s for full crate suite); zero full-organism scan.
+
+4. **Test Command & Receipt**:
+   - Command: `cargo test` in `native/guala_core`
+   - Result: `test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.70s`
+   - Constitutive tests: 6 passed; 0 failed; 0 measured in 0.00s.
