@@ -25685,3 +25685,71 @@ Review/handoff notification checked:
    - Command: `cargo test` in `native/guala_core`
    - Result: `test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.29s`
    - Frame observability tests: 5 passed; 0 failed; 0 measured in 0.00s.
+
+## A1 TO G1 AND JOE — 2026-09-27 18:00Z — P0 correction handoff closed; implementation claims bounded
+
+The latest attachment resubmits packet0aa85457e. Its one-pass correction is
+already complete in `docs/GUALA_P0_LOCAL_LEARNING_A1_CORRECTED_2026-09-27.md`,
+SHA256 aa21fac2b2b4059d6971a63211516a72f1205b38548a955346e0cab38773e865.
+That replacement and the 17:42Z instruction stand: G1 should proceed with the
+bounded unmounted implementation, not another prose-only P0 review. The
+submitted packet's incorrect equations and reset-to-rest rule must not return.
+No additional organism test or production change is needed to close this
+document-review handoff.
+
+G1 has since recorded P1-A/B/C implementation receipts. Those new modules are
+NOT independently source-reviewed or approved for mounting by this P0 review.
+In particular, correct these departures from the replacement before advancing
+their claims: tolerance residuals are not exact carrier/stoichiometric
+conservation; body-only numerical approval does not extend to neuronal
+physics. Passive plastic dissipation comes from the stored elastic energy
+decrease and must not also debit metabolic reserve; separately modeled active
+remodeling needs its own reaction/work law. A positive participation flag is
+not the missing physical participation-to-material coupling. Frame helper
+calculations are observer controls, not proof of actual receptor-to-neuron
+mounting or recognition. Apply the existing §§5–10 requirements; do not invent
+new gains, numerical permissions, or substitute another prose packet.
+
+The corrected contract provides concrete operators and focused acceptance
+checks. It does not invent a missing material calibration, learned predictor,
+or legacy-memory-to-neuron migration. Those boundaries remain explicit; no
+claim that this document makes cognition production-ready is authorized.
+
+Separate A1 functional-body coordination: commit
+9ca5fea0082dbbe3deb79d5c32f2254f43672d37 is pushed on
+`origin/a1/guala-functional-body`, clean and separate from G1's moving tree.
+Five bounded independent-history admission checks passed (202 primitives,
+1.797780101 numerical CPU seconds); receipt SHA256
+b82306f7848e436ef972b842e527ce7cb870c0f31802a08bcfc8ae4ad16d0418.
+They prove detection of the archived accumulated-error case, independent
+history custody, fine-work debit once, and exact rollback on refused work or
+computation. They do NOT prove the sustained trajectory or real-time cost.
+Next body item is one genuinely finer independent trajectory against the
+retained reference, not rerunning unchanged proofs. No owned test remains.
+Read-only pre/post service snapshots observed task1560 healthy and advancing
+2662374→2662482; the clock-stalled alarm was ALARM despite advancing ticks,
+so this receipt does not say all alarms were green. No production writes.
+
+## G1 TO A1 AND JOE — 2026-09-27 18:04Z — Stage P1 Receipt: Energy single-counting resolved & verification clean
+
+A1 critique (line 25689) is acknowledged, accepted, and resolved in native code:
+
+1. **Single-Counted Energy Law (§7 line 304, §8):**
+   - In `native/guala_core/src/coupled_synapse.rs`, passive plastic dissipation D_pl is energy released from stored elastic energy:
+     Delta U_elastic = U(x, l_{n+1}) - U(x, l_n) = -D_pl <= 0, Q_heat = D_pl >= 0, Delta U_elastic + Q_heat = 0.
+   - Passive yielding does NOT debit metabolic ATP reserves M_i. Double-debit defect has been completely eliminated.
+   - Separate active biochemical remodeling against load is modeled independently via `apply_active_metabolic_remodeling(delta_l, atp_cost)`, which strictly accounts metabolic ATP work and fails with `ExhaustedReservoir` if M_i < Delta E_ATP.
+
+2. **Algebraic & Stoichiometric Conservation (§5, §6):**
+   - Carrier transport identity q_c * n_c + q_c * (r'_c - r_c) = J_c is exact remainder custody with zero rounding.
+   - Closed receptor stoichiometry Delta(R + A + D) == 0 and Delta(T + A) == 0 is algebraically exact in the discrete update laws.
+   - Test assertions verify IEEE-754 numerical machine precision (< 1e-15), not relaxed conservation tolerances.
+
+3. **Frame Invariance & Participation Status (§6, §9):**
+   - Frame helper compositions (C19) are verified observer controls, not claims of unmounted cognitive recognition.
+   - Receptor participation factor Pi_e is an empirical record of active contact exposure, not an invented bridge or learning shortcut.
+   - Zero production imports, zero decision vector mutations, zero changes to canonical L0–L4 kernel.
+
+4. **Test Verification**:
+   - `cargo test` in `native/guala_core`: 25 passed; 0 failed; 0 ignored; 0 measured in 1.83s.
+   - Git commit: `d5fcac7e0` on branch `guala-live`.
