@@ -12412,3 +12412,115 @@ shrink only this final tail, raise method order by trial-and-error, or rerun the
 unchanged whole history. No next numerical law is claimed proven by this
 diagnostic. Body stays compiled-unmounted; sustained accuracy/cost, gravity,
 integration and restart remain OPEN.
+
+### FB-01aj all-force increment attribution contract — 2026-09-27 12:36Z
+
+Continues the same sustained-accuracy defect. Predecessor82e4b2aa5 preserved
+the failed history and crossed-tail diagnosis; the local chronological-event
+seam remains closed. No native/physical/cognitive change in this item.
+
+Authenticated saved-state analysis (no physics replay) validates the complete
+integration payload layout against both initial and final observed q/v. At
+24.1ms the largest generalized-rate discrepancy is1.02031e-5; at24.2ms it grows
+to0.00505852rad/s at DOF28. The later failing joint11 initially differs by only
+9.26437e-12rad at24.1ms, then accumulates4.28849e-6rad by58.1ms. Maximum normalized
+nonlinear residual across accepted pieces stays below1e-10. This does not
+prove nonlinear-solver error is zero, but it does not justify loosening or
+retuning that residual. No full-state/sensory evidence is projected into DSF.
+
+Source-only independent analysis identifies a precise missing estimator:
+step() checks start-inclusive CONTACT impulse quadrature, while joint-stop
+generalized forces enter qacc but never that independent comparison. Existing
+_close already covers endpoint acceleration/rate sensors; those are not missing.
+The hypothesis is unproved: stage accelerations and stop reactions were not
+retained by the previous tail observer. An all-force check cannot be described
+as a cure for inherited drift before its actual effect is measured.
+
+Single next item: observer-only map of actual start/three-stage acceleration
+and joint-limit reactions on68 archived accepted pieces:8 first-interval free
+pieces (duplicate half-lane omitted),12/14pieces at24.1->24.2ms,16/18 at58.1->58.2ms.
+All original predecessors, available work and successors are authenticated.
+Reconstruct available work by the original common-interval/pair subtraction
+order; never invert rounded remaining supply. Restore each actual predecessor
+independently and require byte-exact successor and work. This is not another
+continuous trajectory trial, a new admission decision or a fabricated history.
+
+Measure dv_R=h*sum(B_i*a_i), dv_E=h*(E_0*a_start+E_1*a_middle+E_2*a_end), using
+the existing positive embedded weights. Units are m/s for root translation and
+rad/s for generalized rotation. Report diagnostic componentwise rate allowances
+already used by the coupled solver; do not claim these replace the complete
+physical/sensory comparison. Capture start/actual-stage q/v/qacc, joint-limit
+multipliers and J^T*f_limit through native mj_mulJacTVec, plus total generalized
+constraint force. Native force/state values are never overwritten. Keep only
+four scratch force samples during nonlinear solves and authenticate the final
+three against the stage values actually returned; no extra force solve or new
+integrator is introduced. If the estimate does not detect the actual discrepancy,
+record that failure rather than lower thresholds. Inherited error remains open.
+
+Proof /tmp/a1-body-radau3-all-force-observer-20260927.py and paired runner;
+one frozen source-only review before one offline run, original8CPU diagnostic
+ceiling,2core/1GiB-AS/60CPU-per-process/90wall outer envelope. AWS read-only
+before/after and exact host census. No build, changed limits, push or Slack.
+The retained receipt is offline evidence only; no runtime schema or sensory
+consumer changes. One numerical approximation, not full DSF or biology.
+
+Operational recurrence noted: the generic skill root-check was mistakenly
+invoked again despite the known absent July HANDOFF. It exited65; no state
+changed. Do not invoke that path without first checking its required authority
+file exists. Current git root/branch, complete AGENTS, ratified user approvals,
+skill authority and this sprint ledger remain the existing verified worktree
+authority; do not fabricate historical documents. Earlier diagnostic console
+dumps also exceeded the intended output size; subsequent readers must select
+named scalar metrics/counts, never print whole domain/state/comparison objects.
+
+One source-only review found two localized observer defects: failed cases must
+retain actual state/time and four force samples, and retained operands require
+finite checks. Corrected together before execution; no intermediate nonlinear
+trial receives a new physical refusal. Nonfinite failure operands remain
+lossless packed binary rather than becoming invalid JSON or disappearing.
+Same batch corrects the initially unverified12:44 timestamp to clock-verified
+12:36Z. Final review is limited to this batch. No source physics changed.
+
+### FB-01aj all-force hypothesis rejected — 2026-09-27 12:47Z
+
+Continues the sustained body-accuracy item; no closed prerequisite reopened.
+Requested architecture: bounded numerical body mechanics with truthful motion,
+contact and sensory return. Current reality: compiled-unmounted v3, sustained
+accuracy and cost unqualified. Conflict with claiming integration readiness: YES.
+No extension of cognition, L0-L4, anatomy, force constants, accuracy thresholds,
+trial ceilings or production. Reduced rigid-body numerical mechanics, not full
+DSF or microscopic biology. Single next item: resolve propagation of retained
+numerical error through joint-limit transitions, using saved evidence first.
+
+The 68-piece observer completed and reproduced every original raw successor and
+work result exactly. The proposed independent all-force increment estimator
+would reject ZERO pieces. Its maximum diagnostic normalized discrepancy is
+0.000038691967 in the free interval, 0.3687924945 at the first rate-growth window
+(24.1->24.2ms), and 0.2622868209 at the final failed window (58.1->58.2ms).
+Therefore it is NOT a sufficient correction for the demonstrated sustained
+failure. Do not implement this guard as the solution, lower its thresholds to
+fit the failure, or repeat the same 68-piece panel. The additional force samples
+are diagnostic evidence only; none enter organism state or runtime admission.
+
+Receipt docs/evidence/FB-01aj-radau3-all-force-observer.json:1177291bytes,
+SHA256 ad0d1893f86f4acb677a3f6e4eba48d04b39d4efeb0dad31a0efc3349f8b6026.
+Proof SHA256 d00d8a1f8bbcf1dc756afa30155b8cca35645a319cc8bf0450e9302c58eed97c;
+runner SHA256 b00066823fbba367ebcd43f67a82ca210602da85ede73c660f00c86b7b767107.
+68 primitives,1523 native forward calls,0.765304 numerical CPU seconds;
+child1.614203wall/1.592323aggregate CPU seconds,281108KiB peak RSS.
+Jacobian-transpose instrumentation count1591 is an upper bound, not an exact
+failure-path count. Final localized review passed after correcting this label.
+Owned session38725/group27304 terminal; independent host census empty.
+Read-only AWS12:40:33->37Z: sole1559/same image/identity,ticks2609910->2609920,
+no checkpoint/cleanup/durability errors. Existing clock-stalled ALARM remains;
+other4OK. Task CPU51.3753%, memory3.161621%. No production mutation, push or Slack.
+
+The saved sustained history also separates numerical cost from observer cost:
+258404 force calls consume17.75899s; primitive execution37.49072s; observer3.22212s;
+total numerical CPU44.82729s for58.2ms of motion. Removing observer overhead alone
+cannot establish real-time performance. This must not become another blind
+higher-order or smaller-step replay. No executable trajectory-error correction
+is yet qualified. Force sensitivities and their cost must be established before
+selecting one. Native radau/interval remain byte-identical at714391817f60... and
+8391d81b1147... respectively. Sustained accuracy/cost, gravity, integration and
+restart remain OPEN; goal ACTIVE.
