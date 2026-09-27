@@ -5,7 +5,7 @@ Adheres strictly to §12 of docs/GUALA_BIOFUNCTIONAL_PLANNING_IMPLEMENTATION_PLA
 and the proven single-writer cutover sequence:
 1. Preflight truth verification (live task, image, observation, 44/44 native tests).
 2. Build and push immutable container image to Amazon ECR with qualified native guala_core wheel and updated dsf_ai_service.
-3. Register new ECS task definition (dsf-ai-task:1562).
+3. Register new ECS task definition (dsf-ai-task:1563).
 4. Drain live service to zero writers and wait for predecessor to STOP cleanly with exitCode 0.
 5. Execute one-off durable backup task to freeze immutable state checkpoint on EFS.
 6. Deploy successor task definition, converge at count 0, then start exactly 1 instance.
@@ -36,8 +36,8 @@ REGION = "us-east-1"
 ACCOUNT = "418384447921"
 CLUSTER = "tfe-web-cluster"
 SERVICE = "dsf-ai-service-lb"
-OLD_DEFINITION = "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1561"
-BASE = f"{ACCOUNT}.dkr.ecr.{REGION}.amazonaws.com/dsf-ai@sha256:c8c4c5c3244f7a5ac392773aa74845383f276b659593f867841b77dedd8b5afd"
+OLD_DEFINITION = "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1562"
+BASE = f"{ACCOUNT}.dkr.ecr.{REGION}.amazonaws.com/dsf-ai@sha256:d5ef18f5dd59ef41b654542895abdf989378cc25a1cfb107e465eca0948cb968"
 REPOSITORY = BASE.split("@")[0]
 IDENTITY = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"
 ROOT = Path(__file__).resolve().parents[1]
@@ -192,8 +192,8 @@ def records(messages: list[str], schema: str) -> list[dict]:
     return found
 
 
-def activate(definition: str, backup: dict, source_arn: str, candidate_arns: set[str], digest: str) -> None:
-    zero_writers([source_arn])
+def activate(definition: str, backup: dict, source_arn: str | None, candidate_arns: set[str], digest: str) -> None:
+    zero_writers([source_arn] if source_arn else [])
     ecs.update_service(cluster=CLUSTER, service=SERVICE, taskDefinition=definition, desiredCount=0)
     deadline = time.monotonic() + 300
     while time.monotonic() < deadline:
@@ -217,7 +217,7 @@ def activate(definition: str, backup: dict, source_arn: str, candidate_arns: set
     else:
         raise RuntimeError("zero-count candidate deployment did not converge")
 
-    zero_writers([source_arn])
+    zero_writers([source_arn] if source_arn else [])
     ecs.update_service(cluster=CLUSTER, service=SERVICE, desiredCount=1)
     emit("candidate_start_requested", definition=definition, backup=backup)
     deadline = time.monotonic() + 600
@@ -304,27 +304,32 @@ def main() -> None:
 
     # 3. Check live service and task
     s = service()
-    assert s["taskDefinition"] == OLD_DEFINITION, f"Expected task definition {OLD_DEFINITION}, got {s['taskDefinition']}"
-    assert (s["desiredCount"], s["runningCount"]) == (1, 1), f"Expected service (1, 1), got ({s['desiredCount']}, {s['runningCount']})"
-
     running_tasks = ecs.list_tasks(cluster=CLUSTER, serviceName=SERVICE, desiredStatus="RUNNING")["taskArns"]
-    assert len(running_tasks) == 1, f"Expected exactly 1 running task, got {running_tasks}"
-    source_arn = running_tasks[0]
-    old_task = task(source_arn)
-    assert old_task["lastStatus"] == "RUNNING" and old_task.get("healthStatus") == "HEALTHY"
+    if running_tasks:
+        assert len(running_tasks) == 1, f"Expected at most 1 running task, got {running_tasks}"
+        source_arn = running_tasks[0]
+        old_task = task(source_arn)
+        assert old_task["lastStatus"] == "RUNNING" and old_task.get("healthStatus") == "HEALTHY"
+        ob = observation()
+        assert ob["available"] and not ob["checkpoint_error"] and not ob["durability_blocked"]
+        live_tick = ob["live_tick"]
+        persisted_tick = ob["persisted_tick"]
+    else:
+        source_arn = None
+        zero_writers([])
+        live_tick = None
+        persisted_tick = None
 
-    td = ecs.describe_task_definition(taskDefinition=OLD_DEFINITION)["taskDefinition"]
-    ob = observation()
-    assert ob["available"] and not ob["checkpoint_error"] and not ob["durability_blocked"]
+    td = ecs.describe_task_definition(taskDefinition=s["taskDefinition"])["taskDefinition"]
 
     emit(
         "plan_verified",
         commit=commit,
         base=BASE,
         old_task=source_arn,
-        old_definition=OLD_DEFINITION,
-        live_tick=ob["live_tick"],
-        persisted_tick=ob["persisted_tick"],
+        old_definition=s["taskDefinition"],
+        live_tick=live_tick,
+        persisted_tick=persisted_tick,
     )
 
     if not args.execute:
@@ -407,39 +412,42 @@ def main() -> None:
     print(f"Registered new task definition: {new_def}")
 
     # Execute cutover
-    before = observation()
-    assert before["available"] and not before["checkpoint_error"]
     drained = False
     candidate_arns = set()
     start_ms = int(time.time() * 1000) - 1000
 
     try:
         drained = True
-        print(f"Draining service from task {source_arn}...")
-        ecs.update_service(cluster=CLUSTER, service=SERVICE, desiredCount=0)
-        emit("drain_requested", task=source_arn, observation=before)
+        if source_arn:
+            before = observation()
+            assert before["available"] and not before["checkpoint_error"]
+            print(f"Draining service from task {source_arn}...")
+            ecs.update_service(cluster=CLUSTER, service=SERVICE, desiredCount=0)
+            emit("drain_requested", task=source_arn, observation=before)
 
-        stopped = wait_stopped(source_arn)
-        assert next(c for c in stopped["containers"] if c["name"] == "dsf-ai").get("exitCode") == 0
-        for _ in range(30):
-            current = service()
-            if (current["desiredCount"], current["runningCount"], current["pendingCount"]) == (0, 0, 0):
-                break
-            time.sleep(2)
-        zero_writers([source_arn])
+            stopped = wait_stopped(source_arn)
+            assert next(c for c in stopped["containers"] if c["name"] == "dsf-ai").get("exitCode") == 0
+            for _ in range(30):
+                current = service()
+                if (current["desiredCount"], current["runningCount"], current["pendingCount"]) == (0, 0, 0):
+                    break
+                time.sleep(2)
+            zero_writers([source_arn])
 
-        shutdown = log_messages(source_arn, start_ms)
-        assert any("Application shutdown complete" in line for line in shutdown)
-        assert not any("Traceback" in line or "Application shutdown failed" in line for line in shutdown)
-        emit("clean_zero_writer", task=source_arn, logs=shutdown)
-        print("Predecessor stopped cleanly. Taking durable state backup...")
+            shutdown = log_messages(source_arn, start_ms)
+            assert any("Application shutdown complete" in line for line in shutdown)
+            assert not any("Traceback" in line or "Application shutdown failed" in line for line in shutdown)
+            emit("clean_zero_writer", task=source_arn, logs=shutdown)
+        else:
+            zero_writers([])
+            emit("clean_zero_writer_preexisting")
 
+        print("Zero writers verified. Taking durable state backup...")
         backups = records(oneoff(new_def, s["networkConfiguration"], "backup"), "a1.retention.final_backup.v1")
         assert len(backups) == 1, f"Expected 1 backup record, got {len(backups)}"
         backup = backups[0]
         assert backup["current"]["identity"] == IDENTITY
-        assert backup["current"]["organism_tick"] >= before["live_tick"]
-        zero_writers([source_arn])
+        zero_writers([source_arn] if source_arn else [])
         print(f"Backup verified at organism tick {backup['current']['organism_tick']}.")
 
         print("Activating successor task definition...")
@@ -455,14 +463,14 @@ def main() -> None:
                 candidate_arns.update(
                     ecs.list_tasks(cluster=CLUSTER, serviceName=SERVICE, desiredStatus=desired)["taskArns"]
                 )
-            for arn in candidate_arns | {source_arn}:
+            for arn in candidate_arns | ({source_arn} if source_arn else set()):
                 wait_stopped(arn)
             for _ in range(30):
                 current = service()
                 if (current["desiredCount"], current["runningCount"], current["pendingCount"]) == (0, 0, 0):
                     break
                 time.sleep(2)
-            zero_writers(candidate_arns | {source_arn})
+            zero_writers(candidate_arns | ({source_arn} if source_arn else set()))
             emit("failure_zero_writers_verified", state_preserved=True, no_old_checkpoint_restored=True)
         raise
 

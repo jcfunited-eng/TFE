@@ -2,7 +2,14 @@ import uuid
 from dataclasses import replace
 
 from dsf_ai_service.guala_home_world import home_world_authority, replenish_home_food, nocturnal_house_tidying
-from dsf_ai_service.substrate.embodiment_world import OralContactCommand
+from dsf_ai_service.substrate.embodiment_world import (
+    OralContactCommand,
+    BodyContactState,
+    PositionMM,
+    PoseMM,
+    _derived_contact_patch_square_mm,
+    _receptor_position,
+)
 
 
 def test_crumb_scale_mastication_down_to_zero():
@@ -15,7 +22,7 @@ def test_crumb_scale_mastication_down_to_zero():
     # Simulate crumb-scale residue (4 micrograms remaining, matching live ECS bug observation)
     crumb_mat = replace(
         bread.material,
-        tastant_mass_micrograms=(0, 4, 0, 0, 0, 0),
+        tastant_mass_micrograms=(0, 4, 0, 0, 0),
         digestible_mass_micrograms=4,
     )
     crumb_bread = replace(bread, position=None, held_by_body_id="guala-body-1", material=crumb_mat)
@@ -50,7 +57,7 @@ def test_replenish_home_food_restores_missing_and_depleted_sustenance():
         bread,
         material=replace(
             bread.material,
-            tastant_mass_micrograms=(0, 0, 0, 0, 0, 0),
+            tastant_mass_micrograms=(0, 0, 0, 0, 0),
             digestible_mass_micrograms=0,
         ),
     )
@@ -82,6 +89,52 @@ def test_replenish_home_food_restores_missing_and_depleted_sustenance():
 
     bread_after = next(o for o in world._state.world.objects if o.object_id == "bread-slice")
     assert sum(bread_after.material.tastant_mass_micrograms) > 1000
+
+
+def test_replenish_home_food_preserves_busy_objects_under_active_contact():
+    """Verify that replenish_home_food does NOT displace or teleport an object that is in active contact,
+    avoiding breaking somatic geometry.
+    """
+    world = home_world_authority(identity=str(uuid.uuid4()))
+    her = next(b for b in world._state.world.bodies if b.body_id == "guala-body-1")
+    rec_pos = _receptor_position(her, her.receptor_geometry.oral_offset_mm)
+    bread = next(o for o in world._state.world.objects if o.object_id == "bread-slice")
+    bread_held = replace(
+        bread,
+        position=None,
+        held_by_body_id="guala-body-1",
+        material=replace(bread.material, tastant_mass_micrograms=(0, 0, 0, 0, 0), digestible_mass_micrograms=0),
+    )
+
+    patch = _derived_contact_patch_square_mm(
+        receptor_position=rec_pos,
+        receptor_radius_mm=her.receptor_geometry.oral_radius_mm,
+        object_position=rec_pos,
+        object_radius_mm=bread.radius_mm,
+    )
+    contact = BodyContactState(kind="oral", object_id="bread-slice", contact_patch_square_mm=patch, duration_microseconds=250_000)
+    her_in_contact = replace(her, held_object_id="bread-slice", active_contact=contact)
+
+    # Remove apple to ensure replenishment runs
+    world._state = replace(
+        world._state,
+        world=replace(
+            world._state.world,
+            bodies=tuple(her_in_contact if b.body_id == "guala-body-1" else b for b in world._state.world.bodies),
+            objects=tuple(bread_held if o.object_id == "bread-slice" else o for o in world._state.world.objects if o.object_id != "apple"),
+        ),
+    )
+
+    # Replenish: apple should be replenished, but bread-slice must be preserved untouched
+    replenished = replenish_home_food(world)
+    assert "apple" in replenished
+    assert "bread-slice" not in replenished, "Busy bread-slice must not be replenished while held in contact"
+
+    # Confirm active contact and held custody is preserved exactly
+    bread_after = next(o for o in world._state.world.objects if o.object_id == "bread-slice")
+    assert bread_after.held_by_body_id == "guala-body-1"
+    her_after = next(b for b in world._state.world.bodies if b.body_id == "guala-body-1")
+    assert her_after.active_contact == contact
 
 
 def test_nocturnal_tidying_restocks_nourishment():

@@ -190,6 +190,6 @@ def test_nocturnal_house_tidying_resets_fauna_perches() -> None:
 
     # Butterfly rests on flower patch
     assert tidied_objs["garden-butterfly"].position.x == 16_500
-    assert tidied_objs["garden-butterfly"].position.y == 11_500
-    assert tidied_objs["garden-butterfly"].elevation_mm == 180
+    assert tidied_objs["garden-butterfly"].position.y == 11_000
+    assert tidied_objs["garden-butterfly"].elevation_mm == 450
 

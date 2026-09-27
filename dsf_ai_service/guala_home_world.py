@@ -1802,6 +1802,11 @@ def switch_tv_channel(authority: Any, channel: int | None = None) -> int:
         try:
             new_surface = broadcast.render_screen_surface()
             new_emission = broadcast.get_emission_ppm()
+            if hasattr(authority, "_screen_broadcasts"):
+                from dsf_ai_service.substrate.embodiment_world import ScreenBroadcast
+                authority._screen_broadcasts = (
+                    ScreenBroadcast("television", (new_emission,), seconds_per_frame=5),
+                )
             if hasattr(authority, "_state") and hasattr(authority._state, "world"):
                 from dataclasses import replace
                 cur_world = authority._state.world
@@ -1848,10 +1853,24 @@ def nocturnal_house_tidying(authority: Any) -> None:
         try:
             new_surface = broadcast.render_screen_surface()
             new_emission = broadcast.get_emission_ppm()
+            if hasattr(authority, "_screen_broadcasts"):
+                from dsf_ai_service.substrate.embodiment_world import ScreenBroadcast
+                authority._screen_broadcasts = (
+                    ScreenBroadcast("television", (new_emission,), seconds_per_frame=5),
+                )
             if hasattr(authority, "_state") and hasattr(authority._state, "world"):
                 from dataclasses import replace
                 from dsf_ai_service.substrate.embodiment_world import PositionMM
                 cur_world = authority._state.world
+                busy_object_ids = set()
+                for b in cur_world.bodies:
+                    if b.held_object_id is not None:
+                        busy_object_ids.add(b.held_object_id)
+                    if b.active_contact is not None:
+                        busy_object_ids.add(b.active_contact.object_id)
+                for obj in cur_world.objects:
+                    if getattr(obj, "held_by_body_id", None) is not None:
+                        busy_object_ids.add(obj.object_id)
                 updated = []
                 for obj in cur_world.objects:
                     if getattr(obj, "held_by_body_id", None) is not None:
@@ -1883,7 +1902,7 @@ def nocturnal_house_tidying(authority: Any) -> None:
                             updated.append(obj)
                     elif (obj.object_id.startswith("apple") or obj.object_id.startswith("bread") or obj.object_id == "bottle-milk") and obj.position is not None:
                         # Clear stray abandoned floor depleted foods/empty containers during nocturnal house tidying
-                        if obj.held_by_body_id is not None:
+                        if obj.object_id in busy_object_ids:
                             updated.append(obj)
                         else:
                             mat = obj.material
@@ -1900,7 +1919,7 @@ def nocturnal_house_tidying(authority: Any) -> None:
                 template_map = {item.object_id: item for item in declared_templates}
                 current_ids = {obj.object_id for obj in updated}
                 for food_id in ("apple", "bread-slice", "bottle-milk"):
-                    if food_id not in current_ids and food_id in template_map:
+                    if food_id not in current_ids and food_id not in busy_object_ids and food_id in template_map:
                         updated.append(template_map[food_id])
                 remaining_ids = {obj.object_id for obj in updated}
                 updated_bodies = tuple(
@@ -2507,7 +2526,7 @@ def renovate_her_room_layout(authority: Any) -> bool:
         updated_bodies = []
         for body in cur_world.bodies:
             if body.body_id == cur_world.self_body_id and body.pose.position != bed_pos:
-                updated_bodies.append(replace(body, pose=PoseMM(bed_pos, body.pose.heading_millidegrees)))
+                updated_bodies.append(replace(body, pose=PoseMM(bed_pos, body.pose.heading_millidegrees), active_contact=None))
             else:
                 updated_bodies.append(body)
         new_world = replace(cur_world, revision=cur_world.revision + 1, bodies=tuple(updated_bodies), objects=tuple(updated))
@@ -2518,7 +2537,7 @@ def renovate_her_room_layout(authority: Any) -> bool:
 def replenish_home_food(authority: Any) -> list[str]:
     """Ensure nourishing food is physically available in the home:
     checks whether apple, bread-slice, or bottle-milk are absent or depleted.
-    If depleted or absent (and not held), replaces them with fresh declared items.
+    If depleted or absent (and not held or in active contact), replaces them with fresh declared items.
     Returns list of replenished object IDs.
     """
     with _world_thermal_transaction(authority):
@@ -2528,10 +2547,24 @@ def replenish_home_food(authority: Any) -> list[str]:
         from dataclasses import replace
         _regions, _portals, declared_templates = _home_rooms_and_things()
         template_map = {item.object_id: item for item in declared_templates}
+
+        busy_object_ids = set()
+        for b in cur_world.bodies:
+            if b.held_object_id is not None:
+                busy_object_ids.add(b.held_object_id)
+            if b.active_contact is not None:
+                busy_object_ids.add(b.active_contact.object_id)
+        for obj in cur_world.objects:
+            if obj.held_by_body_id is not None:
+                busy_object_ids.add(obj.object_id)
+
         updated = []
         replenished = []
         for obj in cur_world.objects:
-            if obj.object_id in ("apple", "bread-slice", "bottle-milk") and obj.held_by_body_id is None:
+            if (
+                obj.object_id in ("apple", "bread-slice", "bottle-milk")
+                and obj.object_id not in busy_object_ids
+            ):
                 mat = obj.material
                 tastant = sum(mat.tastant_mass_micrograms) if (mat and hasattr(mat, "tastant_mass_micrograms")) else 0
                 dig = getattr(mat, "digestible_mass_micrograms", 0) if mat else 0
