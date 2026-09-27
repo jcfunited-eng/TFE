@@ -8399,3 +8399,131 @@ Here wrapperauthoritativelyexited1 before spawning any child. Prepared frozen
 source may be reused; do not redo its implementation, prior impact proof,
 prefix work, or completed onset trial. Preserve pending event-stall observer
 and verify unchanged source/fingerprint before its first actual run.
+
+### FB-01aj resumed earlier-refusal result and domain-partition contract — 2026-09-27 00:38Z
+
+Previous goal turn PROGRESS: source/evidence committed335e86bc2; external
+scale-down was rechecked, not treated as a lost test handle. ECS now has sole
+healthy1557 taskb35c96647179444cabf98b6441c30fed, image
+b5925e5fcaab71bac3fefcbaada587f85f62bad6b0a3153c1b7f74b04e655fa7.
+Reviewer custody check confirmed identical sourceSHA
+e17ae73851dc955d8f81f53bbd3b621996d684cda4d2b1991268f7f5f789d78f and carried
+existing approval to fingerprinta00cda166ac93b491a65b679e088feea93a9b8c57d927c3263bc807b7f5d325a.
+No repeat review of mechanical law. First actual --event-stall execution
+session95077/child39284:0.672914s wall,0.666193s aggregateCPU,143144KiB,
+exit0/no survivors. One native failed step and298 bounded residual evaluations;
+NO prefix or trajectory replay. Evidence FB-01aj-midpoint-event-stall.json SHA
+7c1b7416ae8655322208c6308faa85be3b3e08f84a6ff329ce32115942450920.
+
+Native residual independently reproduced BIT-EXACT. At43.75us it stalls at
+.002030096482185229 normalized residual vs1e-10 tolerance, 29 proposal calls.
+Active joint rows28/39/42/46. Row39 has position-0.0, reference
+5839.405583553522rad/s2 and force.07933450240889728Nm. Joint37 is NOT an
+active row here. Two finite-difference resolutions give similar condition
+3.72196e8 and full direction residual3.96024e-6; NOT convergence or a law fix.
+Archive-only arithmetic using native getState field order and declared one-free/
+all-hinge anatomy confirms q39=1.2760926014309293e-5rad initially, while at the
+previous successful37.5us endpoint q39=-1.2556587571327249e-5rad and joint37
+still+4.3447160902912826e-8rad. First targeting37 missed an earlier boundary.
+No numerical/native execution was needed for this retained-state arithmetic.
+
+AWS00:37:58.659549Z->00:38:01.690132Z counts1/1/0,same original organismidentity,
+ticks2506315->2506325,persisted2506309,errorsnull,durabilityfalse,
+CPU51.207692%,RAM2.492269%; existingclock-stalledALARM unchanged,other4OK.
+No live write. The external health interruption is cleared for this local work.
+
+Single next contract: replace the OBSERVER-SELECTED joint37 diagnostic with a
+bounded joint-domain partition of this SAME100us interval, using identical
+native force, material, anatomy and residual law. No runtime solver change.
+Retire --limit-event and its target-specific function; archived evidence stays.
+
+Construct signed lower/upper gaps directly from all declared limited hinge
+coordinates, native ranges and margins. Boolean gap<=0 denotes mechanical
+constraint-domain membership, never semantic cognition or a selection score.
+Native advancement is still the sole mechanical settlement; observers identify
+only numerical domain changes. Attempt remaining time; unchanged endpoint
+domain may settle, changed domain is bracketed by SAME-prefix native trials.
+A known convergence refusal supplies an unresolved numerical upper bound ONLY
+when no actual crossing-side observation exists. Any refusal inside an already
+measured bracket stops with retained evidence. No failed step counts as a
+negative-gap or force observation. Abort if non-joint constraints enter this
+bounded witness. Do not claim endpoints prove absence of hidden in/out events
+or guarantee the first continuum crossing.
+
+Bracket unchanged/changed domain to1/.5/.25us in three independent declared
+cases. Once bracketed, accept its crossing-side native state/work ONCE and
+continue the unspent original duration from that new full state, allowing
+subsequent joint boundaries to be measured in causal order. Preserve original
+end time exactly, positive/signed/braking/bearing work separately, all rejected
+trial isolation and remaining actual energy. No clamping, force blending,
+tolerance change, prescribed joint list, extra motor authority or synthetic heat.
+Existing107-native-call per-case diagnostic ceiling bounds the entire loop,
+not each event; every accepted segment advances representable physical time.
+Each success has fresh native-instance exact repeat; at most642 native calls
+over6 cases, original twoCPU/1GiB/60CPU/90wall. Failure retains complete current/
+bracket/accepted-candidate states, work, budget and rollback, all unpublished.
+
+Reuse the prior16-step prefix state/work WITHOUT recomputing it: authenticate
+the existing onset receipt and original failed raw state, capture it under the
+SAME current-law model and require exact prefix-successor SHA and bytes.
+Supply must equal recorded original minus prior actual positive work. No new
+energy or header substitution. Same single tools/guala_body_midpoint.py file;
+review frozen source before one local run. Local domain-partition feasibility
+and numerical mesh evidence are NOT full250ms/gravity/body/cognition/production
+qualification. Those original goal requirements remain open.
+
+### FB-01aj joint-domain resolution measured — 2026-09-27
+
+Prior goal work PROGRESS: the reviewed joint-domain partition completed the
+formerly refused100us interval. Frozen fingerprint
+10ee370dd545c3b5fb8b5365b3e014b6f930803fb491354ad02672be3abc2cc8,
+session6585/child44588, exit0,1.648094s wall/1.643382s aggregateCPU,
+147444KiB maxRSS, no timeout or survivors. Evidence
+docs/evidence/FB-01aj-midpoint-joint-events.json SHA
+af2dda02925dd22e16717625326ead2fbd7cae5ce267dfb5c789de8ec415d71d.
+Native calls31/35/39, each fresh-instance repeat byte-exact:210 total, below642.
+Same native library de96a1766223905d26b1df0e68ce7bc97608cf2c6238acef8dcf8b344a3fd48f
+and interval ABI2 a137418386a8288ac9e99324f0f7176674d14c0eb4b66d47ddc4104e589f2caf.
+
+All three1/.5/.25us brackets observe joint lower limits39,37,35,33 in that
+order; each completes at original end .0017000000000000006s. Failed numerical
+trials roll back primary bytes exactly and debit no physical work. No prefix
+replay, joint clamping, coefficient/tolerance/force-law changes or heat fiction.
+At finest resolution positive/signed work .00806805227405821J, braking0,
+bearing/self-bearing .00023748516116534816J; supply4674.878007508127J.
+
+Archive-only arithmetic after authentication, no native run: .5->.25us
+endpoint maximum joint-rate error .0017447807778086522rad/s vs
+.010436573529184272 limit; specific-force worst normalized error
+8.887050044953099e-6m/s2 vs .03112942979598029; gyro8.783323168727612e-6rad/s
+vs .012912278174505746. Joint-angle maximum9.633827226216449e-8rad vs
+.00017453292519943296. Maximum world-frame rotation disagreement
+1.1920928955078133e-7rad; translation6.097298959159481e-10m. This frame-centre
+measurement is NOT full primitive surface error or all link linear rates.
+Positive-work disagreement4.8286114689988224e-12J vs9.06805227405821e-6J;
+bearing disagreement4.2179187958102035e-11J vs1.237485161165348e-6J.
+The1->.5us pair also meets those measured endpoint limits. These are mesh
+disagreements, NOT a continuum enclosure or full-history sensory qualification.
+One-sided limit loads are retained at their actual distinct bracket times;
+zero-before/positive-after is not averaged/time-warped into pointwise equality.
+No surface contacts occur in this interval. Full250ms, gravity, contact history,
+whole-body lifecycle/cost and mounting remain OPEN.
+
+AWS pre/post00:47:06.707394Z->00:47:10.962492Z: sole1557 task
+b35c96647179444cabf98b6441c30fed, imageb5925e5fcaab71bac3fefcbaada587f85f62bad6b0a3153c1b7f74b04e655fa7,
+counts1/1/0, identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,
+ticks2508043->2508056,persisted2508037, checkpoint/cleanupnull,durabilityfalse.
+CPUaverage51.209771%,maximum51.712979%,RAM2.514648%; clock-stalled ALARM
+persists, other4OK. G1 subsequently confirmed its intentional1557 cutover in
+the shared ledger; no unresolved production-stop question remains.
+
+Read-only comparison lookup included a nonexistent substrate/functional_body.py;
+the actual observation authority is functional_body_native.py, already read.
+No file or process was changed by that failed lookup. Do not repeat that path.
+
+Next exact item: extend mechanical load/release feasibility from the saved
+successful1.7ms successor to the original250ms load endpoint and250ms release,
+with original remaining supply, sole native settlement and explicit bounded
+failure evidence. Reuse the completed prefix; do not rerun prior diagnostics.
+This continuation remains offline until full accuracy, restart, integration
+and safety gates pass. The functional-body goal remains ACTIVE/incomplete.

@@ -527,8 +527,9 @@ def stalled_step(event_refusal=False):
 
 
 
-def limit_event_case(body_state, supply, width_us):
-    """One saved interval, one measured joint onset, never a runtime controller."""
+
+def joint_event_case(body_state, supply, width_us):
+    """Partition one saved interval by measured joint-domain changes, offline."""
     from guala_body_local_refinement import restore, state_copy, add_receipts
     e, _, _ = engine_at(100)
     e._restore(body_state)
@@ -536,170 +537,175 @@ def limit_event_case(body_state, supply, width_us):
     initial = state_copy(e)
     effort = d.ctrl.copy()
     start, end = float(d.time), float(d.time)+.0001
-    target = 37  # observer-selected failure row from the authenticated receipt
-    assert m.jnt_type[target] == mj.mjtJoint.mjJNT_HINGE
-    qadr, vadr = m.jnt_qposadr[target], m.jnt_dofadr[target]
-    distances = (d.qpos[qadr]-m.jnt_range[target,0],
-                 m.jnt_range[target,1]-d.qpos[qadr])
-    side = int(np.argmin(distances))
-    sign = 1 if side == 0 else -1
-    boundary = m.jnt_range[target,side]
-    def gap():
-        return float(sign*(d.qpos[qadr]-boundary)-m.jnt_margin[target])
-    def joint_rows():
-        return set(int(i) for i,t in zip(d.efc_id,d.efc_type)
-                   if t == mj.mjtConstraint.mjCNSTR_LIMIT_JOINT)
-    initial_gap, initial_velocity = gap(), sign*float(d.qvel[vadr])
-    assert initial_gap > 0 and initial_velocity < 0
-    initial_rows = joint_rows()
-    assert target not in initial_rows
-    calls, refused = 0, []
-    last_attempt = None
-    bracket = dict(low_s=start, high_s=None, low_gap_rad=initial_gap, high_gap_rad=None)
-    stage = "crossing_search"
-    def trial(before, stop, budget):
-        nonlocal calls, last_attempt
-        restore(e,before)
-        assert state_copy(e).astype("<f8").tobytes() == before.astype("<f8").tobytes()
-        dt = stop-float(d.time)
-        assert np.isfinite(dt) and dt > 0 and float(d.time)+dt == stop
-        calls += 1
-        assert calls <= 107
-        last_attempt = dict(start_s=float(d.time),end_s=stop,dt=dt,
-            predecessor_base64=base64.b64encode(before.astype("<f8").tobytes()).decode())
-        m.opt.timestep = dt
-        try:
-            work = e._advance_interval(e,effort,1,budget)
-        except mj.FatalError as error:
-            exact = state_copy(e).astype("<f8").tobytes() == before.astype("<f8").tobytes()
-            last_attempt["native_refusal"] = str(error)
-            last_attempt["primary_rollback_byte_exact"] = exact
-            assert exact, "native refusal changed primary integration bytes"
-            raise
-        assert np.isfinite(work).all()
-        assert d.time == stop
-        return dict(state=state_copy(e),work=work,gap=gap(),end=stop)
-    def snapshot(state):
-        restore(e,state)
-        assert state_copy(e).astype("<f8").tobytes() == state.astype("<f8").tobytes()
-        e._check()
-        return dict(gap_rad=gap(), joint_ids=sorted(joint_rows()),
-                    constraint_type=d.efc_type.copy().tolist(),
-                    constraint_id=d.efc_id.copy().tolist(),
-                    constraint_force=d.efc_force.copy().tolist(),
-                    observation=asdict(e._observation()))
+    joints = [i for i in range(m.njnt) if m.jnt_limited[i]]
+    assert joints and all(m.jnt_type[i] == mj.mjtJoint.mjJNT_HINGE for i in joints)
+    boundaries = [(i,side) for i in joints for side in (0,1)]
+    def gaps():
+        values=[]
+        for i,side in boundaries:
+            q=d.qpos[m.jnt_qposadr[i]]
+            values.append(float((q-m.jnt_range[i,0] if side==0 else m.jnt_range[i,1]-q)-m.jnt_margin[i]))
+        assert np.isfinite(values).all()
+        return tuple(values)
+    def domain(candidate):
+        return tuple(x <= 0 for x in candidate["gaps"])
     def retained(candidate):
         if candidate is None:
             return None
-        return dict(end_s=candidate["end"],gap_rad=candidate["gap"],
+        return dict(end_s=candidate["end"],gaps_rad=candidate["gaps"],
             work_receipt=candidate["work"],
             state_base64=base64.b64encode(candidate["state"].astype("<f8").tobytes()).decode())
-    lower = dict(state=initial,work=(0.,)*6,gap=initial_gap,end=start)
-    upper = last = low_evidence = high_evidence = remaining = work = None
+    def snapshot(state):
+        restore(e,state)
+        assert state_copy(e).astype("<f8").tobytes() == state.astype("<f8").tobytes()
+        assert all(t == mj.mjtConstraint.mjCNSTR_LIMIT_JOINT for t in d.efc_type), "non-joint constraint outside this witness"
+        return dict(gaps_rad=gaps(),constraint_type=d.efc_type.copy().tolist(),
+            constraint_id=d.efc_id.copy().tolist(),constraint_force=d.efc_force.copy().tolist(),
+            observation=asdict(e._observation()))
+    calls, last_attempt = 0, None
+    refused, segments = [], []
+    stage = "initial"
+    current=dict(state=initial,end=start,gaps=gaps(),work=(0.,)*6)
+    total_work=(0.,)*6
+    remaining=supply
+    lower=upper=low_evidence=high_evidence=accepted=None
+    bracket=None
+    def trial(before,stop,budget):
+        nonlocal calls,last_attempt
+        dt=stop-before["end"]
+        assert np.isfinite(dt) and dt>0 and before["end"]+dt==stop
+        assert calls<107, "bounded joint-event numerical work exhausted"
+        m.opt.timestep=dt
+        restore(e,before["state"])
+        assert state_copy(e).astype("<f8").tobytes()==before["state"].astype("<f8").tobytes()
+        assert float(d.time)==before["end"]
+        assert all(t == mj.mjtConstraint.mjCNSTR_LIMIT_JOINT for t in d.efc_type), "non-joint constraint outside this witness"
+        calls+=1
+        last_attempt=dict(start_s=before["end"],end_s=stop,dt=dt,
+            predecessor_base64=base64.b64encode(before["state"].astype("<f8").tobytes()).decode())
+        try:
+            work=e._advance_interval(e,effort,1,budget)
+        except mj.FatalError as error:
+            exact=state_copy(e).astype("<f8").tobytes()==before["state"].astype("<f8").tobytes()
+            last_attempt.update(native_refusal=str(error),primary_rollback_byte_exact=exact)
+            assert exact, "native refusal changed primary integration bytes"
+            raise
+        assert np.isfinite(work).all() and float(d.time)==stop
+        assert all(t == mj.mjtConstraint.mjCNSTR_LIMIT_JOINT for t in d.efc_type), "non-joint constraint outside this witness"
+        return dict(state=state_copy(e),end=stop,gaps=gaps(),work=work)
     try:
-        lo, hi = start, end
-        for _ in range(53):
-            mid = lo+(hi-lo)/2
-            assert lo < mid < hi, "no representable search time"
+        while current["end"]<end:
+            stage="whole_remainder"
+            lower=dict(current,work=(0.,)*6)
+            upper=low_evidence=high_evidence=accepted=None
+            bracket=None
+            signature=domain(current)
+            candidate=None
             try:
-                candidate = trial(initial,mid,supply)
+                candidate=trial(current,end,remaining)
             except mj.FatalError as error:
                 if "midpoint residual did not converge" not in str(error):
                     raise
-                assert last_attempt["primary_rollback_byte_exact"]
-                refused.append(dict(end_s=mid,error=str(error),primary_rollback_byte_exact=True))
-                hi = mid  # NOT a negative-gap observation
-                continue
-            if candidate["gap"] <= 0:
-                upper = candidate
-                hi = mid
-                break
-            lo, lower = mid, candidate
-            bracket.update(low_s=lo,low_gap_rad=candidate["gap"])
-        assert upper is not None, "no successful crossing-side trial"
-        bracket.update(high_s=hi,high_gap_rad=upper["gap"])
-        stage = "onset_bracket"
-        for _ in range(53):
-            if hi-lo <= width_us/1_000_000:
-                break
-            mid = lo+(hi-lo)/2
-            assert lo < mid < hi, "no representable bracket time"
-            candidate = trial(initial,mid,supply)
-            if candidate["gap"] <= 0:
-                hi, upper = mid, candidate
-                bracket.update(high_s=hi,high_gap_rad=candidate["gap"])
+                refused.append(dict(last_attempt))
+            if candidate is not None and domain(candidate)==signature:
+                accepted=candidate
             else:
-                lo, lower = mid, candidate
-                bracket.update(low_s=lo,low_gap_rad=candidate["gap"])
-        assert hi-lo <= width_us/1_000_000 and bracket["low_gap_rad"] > 0 and upper["gap"] <= 0
-        low_evidence = snapshot(lower["state"])
-        high_evidence = snapshot(upper["state"])
-        unexpected = set(high_evidence["joint_ids"])-initial_rows-{target}
-        assert not unexpected, f"additional onset rows outside this witness: {sorted(unexpected)}"
-        assert target in high_evidence["joint_ids"]
-        stage = "remainder"
-        remaining = supply-upper["work"][0]
-        assert remaining >= 0
-        last = trial(upper["state"],end,remaining)
-        work = add_receipts(upper["work"],last["work"])
-        endpoint = snapshot(last["state"])
-        assert float(d.time) == end and len(last["state"]) == len(initial)
-        assert work[0] <= supply
-        assert np.isfinite(work).all()
-        return dict(completed=True,width_us=width_us,calls=calls,refused_trials=refused,
-            target_joint_id=target,target_joint_name=m.joint(target).name,
-            initial_gap_rad=initial_gap,initial_gap_rate_rad_s=initial_velocity,
-            bracket=bracket,low_side=low_evidence,high_side=high_evidence,
-            endpoint=endpoint,work_receipt=work,remaining_supply_j=supply-work[0],
-            original_start_s=start,original_end_s=end,
-            accepted_durations_s=(hi-start,end-hi),
-            endpoint_state_base64=base64.b64encode(last["state"].astype("<f8").tobytes()).decode())
-    except Exception as error:
-        return dict(completed=False,width_us=width_us,calls=calls,refused_trials=refused,
-            target_joint_id=target,initial_gap_rad=initial_gap,
-            initial_gap_rate_rad_s=initial_velocity,bracket=bracket,stage=stage,
-            last_attempt=last_attempt,failure_type=type(error).__name__,failure=str(error),
-            completed_unpublished=dict(published=False,original_supply_j=supply,
-                lower=retained(lower),upper=retained(upper),
+                lo,hi=current["end"],end
+                upper=candidate
+                stage="first_changed_domain_bracket"
+                for _ in range(53):
+                    bracket=dict(low_s=lo,high_s=upper["end"] if upper else None,
+                        numerical_search_hi_s=hi,low_gaps_rad=lower["gaps"],
+                        high_gaps_rad=upper["gaps"] if upper else None)
+                    if upper is not None and hi-lo<=width_us/1_000_000:
+                        break
+                    mid=lo+(hi-lo)/2
+                    assert lo<mid<hi, "no representable bracket time"
+                    try:
+                        candidate=trial(current,mid,remaining)
+                    except mj.FatalError as error:
+                        if "midpoint residual did not converge" not in str(error):
+                            raise
+                        refused.append(dict(last_attempt))
+                        if upper is not None:
+                            raise  # no negative-gap evidence at this unresolved interior point
+                        hi=mid
+                        continue
+                    if domain(candidate)==signature:
+                        lo,lower=mid,candidate
+                    else:
+                        hi,upper=mid,candidate
+                assert upper is not None and hi-lo<=width_us/1_000_000
+                assert domain(lower)==signature and domain(upper)!=signature
+                bracket=dict(low_s=lo,high_s=hi,width_s=hi-lo,
+                    low_gaps_rad=lower["gaps"],high_gaps_rad=upper["gaps"],
+                    changed_boundaries=[boundaries[i] for i,(a,b) in enumerate(zip(signature,domain(upper))) if a!=b])
+                low_evidence=snapshot(lower["state"])
+                high_evidence=snapshot(upper["state"])
+                accepted=upper
+            stage="accept_unpublished_segment"
+            assert accepted["end"]>current["end"] and accepted["end"]<=end
+            total_work=add_receipts(total_work,accepted["work"])
+            remaining=supply-total_work[0]
+            assert np.isfinite(total_work).all() and remaining>=0
+            segments.append(dict(start_s=current["end"],end_s=accepted["end"],
+                work_receipt=accepted["work"],bracket=bracket,
                 low_side=low_evidence,high_side=high_evidence,
-                remaining_supply_j=remaining,remainder=retained(last),combined_work_receipt=work),
+                endpoint_state_base64=base64.b64encode(accepted["state"].astype("<f8").tobytes()).decode()))
+            current=accepted
+        stage="final_observation"
+        endpoint=snapshot(current["state"])
+        assert float(d.time)==end
+        return dict(completed=True,width_us=width_us,calls=calls,
+            original_start_s=start,original_end_s=end,boundaries=boundaries,
+            segments=segments,refused_trials=refused,endpoint=endpoint,
+            work_receipt=total_work,remaining_supply_j=remaining,
+            endpoint_state_base64=base64.b64encode(current["state"].astype("<f8").tobytes()).decode())
+    except Exception as error:
+        return dict(completed=False,width_us=width_us,calls=calls,stage=stage,
+            boundaries=boundaries,segments=segments,refused_trials=refused,
+            failure_type=type(error).__name__,failure=str(error),last_attempt=last_attempt,
+            completed_unpublished=dict(published=False,current=retained(current),
+                total_work_receipt=total_work,remaining_supply_j=remaining,
+                lower=retained(lower),upper=retained(upper),accepted_candidate=retained(accepted),bracket=bracket,
+                low_side=low_evidence,high_side=high_evidence),
             unpublished_scratch_base64=base64.b64encode(state_copy(e).astype("<f8").tobytes()).decode())
 
 
-def limit_event():
-    """Energy-authenticated onset feasibility; no complete accuracy claim."""
-    e, raw_state, case, fail, receipt_sha = saved_motion_refusal()
-    phase = base64.b64decode(fail["predecessor_base64"],validate=True)
-    assert hashlib.sha256(phase).hexdigest() == fail["predecessor_sha256"]
-    command = fail["command"]
-    # Recover ONLY the16 already-successful steps' actual work and body header.
-    prefix = e.advance(phase,None,1600,command["available_work_j"],
-        effort_updates=tuple(tuple(x) for x in command["effort_updates"]))
-    assert prefix.state[32:] == raw_state.astype("<f8").tobytes()
-    supply = command["available_work_j"]-prefix.positive_motor_work_j
-    assert np.isfinite(supply) and supply >= 0
-    prefix_evidence = dict(input_receipt_sha256=receipt_sha,
-        original_phase_sha256=fail["predecessor_sha256"],prefix_steps=16,
-        saved_inner_state_reproduced_exactly=True,
-        prefix_successor_sha256=hashlib.sha256(prefix.state).hexdigest(),
-        positive_work_j=prefix.positive_motor_work_j,remaining_supply_j=supply)
-    print(json.dumps(encode(dict(event="limit_event_prefix",prefix=prefix_evidence))),flush=True)
+def joint_events():
+    """Reuse authenticated prefix work; resolve all measured joint-domain changes."""
+    import pathlib,zlib
+    e,state,case,fail,input_sha=saved_motion_refusal()
+    receipt_bytes=pathlib.Path("docs/evidence/FB-01aj-midpoint-limit-event.json").read_bytes()
+    receipt_sha=hashlib.sha256(receipt_bytes).hexdigest()
+    assert receipt_sha=="f97ffdfb1d130387703beb3e92b701c8bd8de7f097bf8557751336f328332923"
+    packed=json.loads(receipt_bytes)["raw_measurement"]
+    raw=zlib.decompress(base64.b64decode(packed["payload_zlib_base64"],validate=True))
+    assert len(raw)==packed["raw_bytes"] and hashlib.sha256(raw).hexdigest()==packed["raw_sha256"]
+    prefix=json.loads(raw)["prefix"]
+    assert prefix["input_receipt_sha256"]==input_sha and prefix["saved_inner_state_reproduced_exactly"] is True
+    body_state=e._capture()
+    assert body_state[32:]==state.astype("<f8").tobytes()
+    assert hashlib.sha256(body_state).hexdigest()==prefix["prefix_successor_sha256"]
+    supply=prefix["remaining_supply_j"]
+    assert np.isfinite(supply) and supply>=0
+    assert fail["command"]["available_work_j"]-prefix["positive_work_j"]==supply
     rows=[]
     for width in (1.,.5,.25):
-        row=limit_event_case(prefix.state,supply,width)
+        row=joint_event_case(body_state,supply,width)
         if row["completed"]:
-            repeated=limit_event_case(prefix.state,supply,width)
-            row["fresh_repeat_exact"] = repeated == row
-            row["fresh_repeat"] = None if row["fresh_repeat_exact"] else repeated
+            repeated=joint_event_case(body_state,supply,width)
+            row["fresh_repeat_exact"]=repeated==row
+            row["fresh_repeat"]=None if row["fresh_repeat_exact"] else repeated
         else:
-            row["fresh_repeat_exact"] = None
+            row["fresh_repeat_exact"]=None
         rows.append(row)
-        print(json.dumps(encode(dict(event="limit_event_case",case=row))),flush=True)
-    return dict(schema="guala.functional-body.midpoint-limit-event.v1",
-        prefix=prefix_evidence,cases=rows,native_call_ceiling=658,
+        print(json.dumps(encode(dict(event="joint_event_case",case=row))),flush=True)
+    return dict(schema="guala.functional-body.midpoint-joint-events.v1",
+        prefix_receipt_sha256=receipt_sha,prefix=prefix,cases=rows,native_call_ceiling=642,
         all_completed=all(x["completed"] and x["fresh_repeat_exact"] for x in rows),
         full_body_qualification=False,
-        scope="Saved100us interval only; numerical onset bracket, work and fresh repeat, NOT full accuracy or runtime event policy.")
+        scope="One saved100us interval; observed joint-domain partition, no earliest-continuum-event guarantee, full accuracy or runtime event policy.")
 
 
 def main():
@@ -707,14 +713,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--motion-intervals", action="store_true")
     parser.add_argument("--stalled-step", action="store_true")
-    parser.add_argument("--limit-event", action="store_true")
+    parser.add_argument("--joint-events", action="store_true")
     parser.add_argument("--event-stall", action="store_true")
     args = parser.parse_args()
     if args.event_stall:
         print(json.dumps(encode(stalled_step(event_refusal=True)),sort_keys=True),flush=True)
         return
-    if args.limit_event:
-        print(json.dumps(encode(limit_event()), sort_keys=True), flush=True)
+    if args.joint_events:
+        print(json.dumps(encode(joint_events()), sort_keys=True), flush=True)
         return
     if args.stalled_step:
         print(json.dumps(encode(stalled_step()), sort_keys=True), flush=True)
