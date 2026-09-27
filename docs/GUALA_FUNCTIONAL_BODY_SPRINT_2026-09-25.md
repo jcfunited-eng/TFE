@@ -14035,3 +14035,105 @@ map which stored states/impulses exist (newer343->360.5ms receipt lacks each
 ordinary raw state). Missing evidence must not become invented states or
 silent full-admission claims. Retain own raw state/work/impulses across bounded
 CPU stops, never synchronize histories. Full500ms and downstream gates OPEN.
+
+### FB-01aj new independent12.5us history diagnostic contract — 2026-09-27
+
+One proof-only scratch source /tmp/a1-body-eighth-history-20260927.py reuses
+the reviewed finer-history runner and Lane numerical observer, with current
+unchanged ABI/source hashes. Same authenticated genesis/anatomy/effort,
+zero-gravity bench, same250ms torque release, nominal12.5us vs archived25us.
+The existing outer mesh-refinement law permits independent-history refinement;
+this does not authorize a new force/tolerance/decision law. No build/mount.
+
+Available complete archived endpoints:56.5,132.6,173.5,230.2,294.1,360.5ms,
+and the actual refused25us360.6ms successor (not accepted ground truth).
+Compare complete state, sensory channels, cumulative work and impulses there;
+compare full sampled event path where retained. Explicitly UNAVAILABLE paired
+accuracy between those endpoints and absent event paths. This is an inherited-
+error diagnostic only, NOT a complete replacement for the500ms acceptance.
+New fine motion is admitted locally at<=100us observations and retains all
+accepted pieces/events; only new fine dynamics run, not old reference dynamics.
+
+Lifecycle: verify every file/payload hash; attach restore expectations before
+mutation; retain both actual comparison operands before fallible projections;
+reuse own raw state/work/supply/impulses only after a CPU/trial-only stop with
+exact rollback and completed prior comparisons. Release changes only control
+at exactly250ms, zero elapsed time/work, and restores exact state on error.
+No cross-history state substitution. Missing observations remain missing.
+50numericalCPU/30000primitives per resumable chunk,60CPU/90wall/1GiB per child,
+two-core affinity; bound failures retain evidence, do not imply qualification.
+The matching frozen source review precedes every first numerical execution;
+no repeated broad tests or source rebuild. Pre/postAWS is read-only. Saved
+reference endpoint observations are reconstructed but never reintegrated.
+
+One localized source-review finding before execution: older endpoint impulse
+vectors are plain lists; newer native receipt vectors are packed <f8 records.
+The proof decoder now explicitly accepts each authenticated format, verifies
+shape[3]/24bytes/finite values, and leaves original receipt operands untouched.
+No physical law change, numerical execution, or broadened proof scope.
+
+### FB-01aj inherited-error correction demonstrated at360.6ms — 2026-09-27 20:28Z
+
+Final source-only review PASS: tree0e16f7bab24d268336c60be5f9edf385d3da233a289ccc737b647b9eee92c2aa,
+proofc7d88054e381ce07b84fe9cb29e3d620125ba2b70e515d447a24a449801499a9.
+No mechanical source change or rebuild. Executed one genuinely independent
+12.5us history from the authenticated genesis to360.6ms, preserving its OWN
+raw state/work/supply/impulses through nine CPU-only stops. Every cold restore
+and unpublished-interval rollback matched exactly. Zero old reference dynamics
+or accepted new-prefix dynamics replayed. All seven archived state/sensory/
+work/impulse endpoint comparisons PASS; retained event comparisons at132.6,
+173.5,230.2,294.1ms PASS. At56.5/360.5/360.6ms full reference event paths were
+not supplied to this diagnostic, explicitly unavailable, not fabricated.
+The250ms actual bench-effort release passed exact zero-time/zero-work checks.
+
+Decisive360.6ms result, acceleration in m/s^2:
+- head error0.00165416662 <=0.09989538253;
+- left palm0.01273471337 <=0.70309611914 (ratio0.01811234);
+- right palm0.00071353027 <=0.04229365973.
+Previous50/25us left-palm error0.8638404491 exceeded0.7031088538.
+Finer WHOLE history therefore resolves the measured endpoint discrepancy;
+refining only the last100us did not. Existing local refusal and outer history
+refinement laws remain unchanged. This is measured numerical consistency, not
+continuum enclosure, microscopic anatomy, cognition, or full500ms admission.
+
+All ten receipt filenames share prefix `FB-01aj-finer-independent-history-12us`:
+
+| Suffix | Saved time(ms) | SHA-256 |
+|---|---:|---|
+| .json |28.5|d667ce5b7af1e6292ab59755e70dfe217f75c7015d7d7b7340ba48d052240b7f|
+| -d667ce5b7af1.json |61.9|37e66bbaff6332938e94a1d44f71fab176675b4e1f0618520a0b1ede8aaac228|
+| -37e66bbaff63.json |100.1|6eccb2b42d3bb73b4d09e3abe273e6e6f887e436f0aa59fab9c78b1f2b2905ba|
+| -6eccb2b42d3b.json |140.6|8582e2182c6cb3a74d849ac9d5ffadc4df352cd1e19727f54721946ea003450c|
+| -8582e2182c6c.json |178.9|c1e48d99192beffde3b7a954b8cf0938fd440201751294b89b6eb26776479dd6|
+| -c1e48d99192b.json |215.6|b251b239e0a2d1e2323337edd6849fd2f7afafe712afb7e1a6453ad5ea255f31|
+| -b251b239e0a2.json |255.8|eb87585eecc21ab707cd826069de988bfa135fdd846a39a765be70169307c4ac|
+| -eb87585eecc2.json |292.0|f029532a3cfeac03819d399eb57c16dd4f52b662dfff794398edd6a572be519d|
+| -f029532a3cfe.json |329.1|a632e187d68d29c6234644a65cfdc2963eca2d9b262d553a97290ff53ece7d85|
+| -a632e187d68d.json |360.6|960a5e11c027a8f820802f200c0b035a1f115df4dd6698f4307ac5cd2339e274|
+
+Final diagnostic_completed=True/failure=None. Prior nine diagnostic_completed
+False receipts retain CPU-bound exits, NOT physical failures or completed tests.
+93166primitives/1741591forwards,490.82246247 numericalCPU seconds total;
+508.034893 aggregate childCPU, peak429788KiBRSS. All exact child groups exited
+0 with no survivors (18419,19474,20066,20698,21682,22292,22923,23863,24944,25700).
+Retained evidence153131925bytes, bounded to this one new history; every saved
+piece serves exact restart/trajectory reconstruction, not runtime bookkeeping.
+This ~491CPU-seconds/0.3606physical-second diagnostic is NOT real-time or
+production performance proof. Runtime performance remains an explicit gate.
+
+Read-only envelopes20:10:23--20:27:05UTC retain sole1561/task5b6539...,
+imagec8c4c5c...b5afd, same organismidentity,ticks2689714->2691878, no custody
+errors. Latest CPU50.769181%/memory2.697754% at20:25 matches currenttask tenure.
+Clock-stalled remainsALARM while four other alarms areOK. Public tick cadence
+slowed materially across later windows; the exact evidence was handed to G1
+in shared ledger20:24Z, not mislabeled healthy cognition or blamed on offline
+body work. No production writes, restart, marker changes, or G1 source edits.
+
+Next single item: continue the two actual25us/12.5us states at360.6ms toward
+500ms under unchanged paired state/work/impulse and local event checks. The
+25us operand is the actual failed prior comparison successor, now supported
+by the independently finer state; NEVER substitute the12.5us state for it.
+Preserve the sparse historical comparison limitation. Later qualification
+must account explicitly for missing between-endpoint reference evidence;
+no claim that endpoint agreement proves all intervening states. Full500ms,
+gravity/couple, performance, mount/restart and live acceptance remain OPEN.
