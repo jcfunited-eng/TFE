@@ -8210,3 +8210,142 @@ event contract; no universal collision-policy claim. The previous two-contact
 event witness is reference machinery, not permission to run a broad replay.
 Complete this source-derived event contract before any new solver edit/build.
 General250ms/load/release/gravity/body mounting/production remain OPEN.
+
+### FB-01aj joint-limit onset contract — 2026-09-27 00:10Z
+
+Previous body goal turn PROGRESS: committed696fa5c50 with one saved-step cause;
+user-requested2af57ce60 audit completed separately in shared ledger00:06Z.
+Body tree is clean on a1/guala-functional-body; no body process survives.
+ContinueFB-01aj, not reopening local impact, exact work custody or cognition.
+Requested: bounded articulated motion with truthful sensation. Current reality:
+one100us full-load step refuses at a joint-limit activation discontinuity.
+Conflict:YES with full-body qualification. Exclusions: all physical coefficients,
+anatomy, cognitive/kernel laws, tolerances, actor/world sources and production.
+Reduced numerical mechanical trial only; no microscopic biology/fullDSF claim.
+
+Single next artifact extends existing tools/guala_body_midpoint.py with
+--limit-event. No native rebuild, solver replacement or production timestep
+policy. Extract its existing authenticated failed-input reader once and reuse
+it; closed stalled-step behavior/evidence is not rerun.
+
+Use the same recorded100us input, original command/supply and unchanged native
+midpoint/ABI2 law. Target joint37 comes from the retained failure, not a runtime
+behavior/selection table. Derive its signed lower/upper gap and gap velocity
+from native jnt_range, margin, qpos and qvel. Require an initially positive,
+closing gap. Every trial restores identical complete integration state and
+uses the existing compiled one-step interval function and original safety/work
+checks. Trials may change numerical h only; rejected trials consume no lived
+time, work or heat. Only the known residual-convergence refusal may bound the
+numerical search, and rollback must remain byte-exact; other failures stop.
+
+First find a SUCCESSFUL crossing-side endpoint by bisection between the initial
+time and the known failed end (max53 trials). A failed trial is an unresolved
+numerical upper time bound, NEVER evidence of a negative gap. Positive-gap
+successful trials raise the lower time; only a measured nonpositive gap
+establishes a crossing bracket. Then bisect successful one-step trial endpoints
+until the bracket is<=1us,.5us,.25us in three independent predeclared cases.
+At most53 further trial calls per case; preserve exact low/high signs/times.
+This brackets the numerical trial-flow onset, not a continuous exact impact.
+Reject unexpected additional new joint rows for this single-onset witness.
+
+Accept the crossing-side state/work ONCE and execute the remaining original
+100us duration from it under the SAME native law. Original end time must be
+exactly reached; no coordinate clamping, time warp or synthetic force. Capture
+both bracket-side instantaneous native constraint/sensor evidence, all separate
+positive/signed/braking/bearing work, remaining supply, full endpoint observation
+and integration bytes. No intermediate state is published to body/world custody.
+Fresh native model/data repeats each successful case exactly; failure retains
+stage, last attempted dt, bracket, primary scratch and original input reference.
+Max6*(53+53+1)=642 native steps, twoCPU,1GiB,60CPU/90wall seconds; no whole-body
+history/replay. Stream each case before the next so failure cannot erase evidence.
+Read-only AWS before/after plus owned-process cleanup. Frozen source-only review
+before execution. This is local onset feasibility/cold/work evidence; it cannot
+close whole250ms/gravity/sensory accuracy, real-time cost or production acceptance.
+
+Source preflight correction before implementation: the saved failure contains
+the complete mechanical state at1.6ms but its available_work_j is the whole
+uncompleted250ms call's input, not the remaining allowance at that inner step.
+Recover that missing budget ONCE via the already-successful16*100us prefix
+from the archived phase predecessor and original command. Require byte-exact
+integration payload equality with the saved failure before using the resulting
+positive-work debit; otherwise stop. Reuse that authenticated same-law prefix
+successor in every onset/cold case. Additional bound16 native steps (total658),
+not a full interval rerun. No energy refill or inferred heat. Fresh repeats use
+the resulting current-law body header, not an old-law identity transplant.
+
+### FB-01aj onset diagnostic review correction — 2026-09-27
+
+Previous goal work is PROGRESS: bounded diagnostic source and saved failure
+are present; intervening user audit completed without organism execution.
+Revalidated tree/HEAD696fa5c50 and frozen de01c2a0 before source review.
+Reviewer body_force_review found two LOCALIZED evidence defects, not a new
+settlement law: signed-zero differences escaped array equality; remainder
+failure omitted completed bracket state/work and lacked an explicit native
+rollback record outside the search branch. Execution remained withheld.
+
+One correction batch: compare canonical little-endian float64 bytes for the
+saved input, prefix reproduction, trial restore, snapshots and native refusal;
+retain current completed lower/upper trial states with work, one-sided observed
+forces/sensors when available, remaining supply, completed remainder and combined
+work on any later failure, all explicitly UNPUBLISHED. Native FatalError at any
+trial stage records exact primary rollback before propagation. Known refusal
+still cannot count as a measured negative gap. No new physical coefficient,
+model, tolerance, native solver, control, or extra numerical step is introduced.
+Bound remains658 native calls. Failed attempts remain scratch, not lived work.
+
+Instruction preflight record: attempted an incorrect bundled reference name
+embodiment-law.md; actual SKILL names embodiment-ui-law.md. Read the latter and
+world-environment-catalog.md completely; do not retry the nonexistent path.
+Authority-root helper's historical required documents remain absent in this
+branch as previously recorded; explicit git root/branch/HEAD and this ratified
+sprint remain the active-body source identity. G1's independent witness changes
+are confined to main guala-live and do not enter this body candidate.
+
+### FB-01aj onset diagnostic execution — 2026-09-27 00:26Z
+
+Final source-only review PASS, fingerprint1b462365de8d0367b84741e463635cf852e4a6b1fee0a20c0e4b0b3363229aa7.
+Executed ONCE in session49343, owned child28465; exit0 means diagnostic
+completed, NOT mechanics passed. Child0.737566s wall/0.725154s aggregateCPU,
+143516KiB maxRSS, no timeout, no surviving process. TwoCPU/1GiB bounds held.
+Evidence docs/evidence/FB-01aj-midpoint-limit-event.json SHA
+f97ffdfb1d130387703beb3e92b701c8bd8de7f097bf8557751336f328332923.
+
+The16-step successful prefix reproduces the saved primary integration BYTES
+exactly. Measured debit0.06292443959864111J, remaining supply4674.886075560401J,
+successor SHAe8c6b7455e832fe49bff52f162249e10911142759320b445c8ca4a8a3d72bd97.
+No energy refill. Three declared widths1/.5/.25us each refuse at their fourth
+trial, BEFORE the requested bracket width, so no remainder/cold-repeat claim.
+Total native calls28 (16+3*4), below658 ceiling. All repeated widths retained
+same first failure; do NOT repeat or tune the widths.
+
+Joint37 starts at gap2.5252056417024415e-5rad, closing-.655329610371183rad/s.
+Successful lower endpoint1.637500ms has gap4.3447160902912826e-8rad;
+upper1.650000ms has gap-8.54360627997905e-6rad. Bracket12.5us is too wide.
+Intermediate43.75us trial to1.643750ms refuses same native residual law.
+Primary rollback byte-exact=True. Lower/upper integration bytes, positive/signed/
+braking/bearing work, original allowance and failed-trial predecessor persist
+as unpublished evidence. No boundary force/sensor, completed100us successor,
+accuracy or production qualification is inferred.
+
+AWS00:26:40.804943Z->00:26:43.972832Z: sole task1556
+5cb1fece1cac4f32b6d2f9b53b61b9ab,image dc9ba00725d886110346c59ccdb36d1856d9cb316ea4f074a5bc88d9c9c794f7,
+identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,counts1/1/0,
+ticks2504875->2504885,persisted2504857; errorsnull,durabilityfalse.
+CPU51.236988->51.145842%,RAM2.661133%. Existing clock-stalled ALARM persists;
+other4alarmsOK. No production writes. Pre-census saw unrelated git processes
+and this read-only census, no competing body run; unrelated processes untouched.
+
+A receipt-inspection shell heredoc mistakenly used a mismatched closing marker,
+so Python parsed shell text and refused with SyntaxError before execution.
+Corrected the marker and decoded the existing receipt read-only; no harness
+was rerun. Retain this tooling failure, not a physical failure.
+
+Single next causal question: which native constraint row prevents the earlier
+43.75us trial from converging? The original100us diagnosis identified joint37;
+that does NOT prove joint37 is the first event or the row at this new failure.
+Inspect/replay ONLY the newly saved failed step with the already verified
+native-residual observer, using its captured exact predecessor and dt.
+No full prefix/history repetition, broader trajectory or speculative limit-law
+change. Preserve existing law/tolerance and authenticate all input evidence.
+Only then derive the complete event ordering or solver correction from the
+observed cause. General250ms/gravity/body mounting/restart/production remain OPEN.
