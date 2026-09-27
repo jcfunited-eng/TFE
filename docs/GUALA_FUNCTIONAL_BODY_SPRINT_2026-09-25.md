@@ -11781,3 +11781,95 @@ No complete-history replay is authorized until a causally justified numerical
 change is reviewed. Exact native forces, physical tolerances and rollback remain
 closed. Full sustained accuracy, speed, gravity, mounting and restart remain
 open. Goal ACTIVE; no push, Slack, cognition, food or caretaker edits.
+
+### FB-01aj passive impulse-estimator attribution contract — 2026-09-27 10:29Z
+
+Continues db245dc8f's measured resource refusal, not a new physical law. Body
+delivery remains incomplete; reduced body mechanics only, no DSF/cognitive
+evaluation. The numerical source/binary, forces, anatomy, physical tolerances
+and caller return verdicts are frozen. Next exact item is one saved-state
+diagnostic, with no full-history replay, build, admission-budget increase,
+production mutation, push, Slack, or G1-owned edits.
+
+Inputs: Radau3 failed coarse interval predecessor at21.8ms; both exact
+25.95ms loaded-contact counterexample predecessors from authenticated
+FB-01aj-contact-estimator-proof; and identical genesis as a control. Check raw
+state sizes and artifact digests before execution. Query50/25/12.5us proposals
+for the three loaded cases,50us for genesis. The current solver still refuses
+its original errors. A read-only wrapper records its actual five weighted
+impulse observations and raw stage wrenches, and forwards every original
+return value/exception unchanged. Capture unpublished endpoint/work/observation
+before exact rollback; inspecting that proposal is NOT admitting its successor.
+
+For each proposal, independently integrate the same physical predecessor on
+two fixed dyadic grids, first with pieces<=0.5us and then half that spacing.
+Both grids must use ordinary unchanged primitive verdicts. Verify their
+channelwise state/feedback/work and force/couple impulse agreement before
+interpreting the proposal error. Retain every reference step's work, impulse
+and successor plus failed-step rollback. These fine trajectories are numerical
+references, not proof of continuum exactness or new published/lived experience.
+If either reference refuses or the pair disagrees, stop with an unresolved
+measurement. Never suppress that refusal or overwrite the reference.
+
+Separately evaluate the previously derived positive0,c2,1 quadrature from
+recorded forces only, using exact rational moment identities for binary c2.
+No extra force solve or alternate verdict is applied to the body. Compare
+actual trapezoid estimate, alternative estimate, and proposal-vs-refined physical
+impulse; expose force and intrinsic-couple operands/limits independently.
+Specifically detect any alternative-estimator acceptance when the refined
+impulse comparison fails. A favorable point alone cannot authorize a change.
+
+At most2500primitive attempts/20CPU seconds internally, with the existing
+2core/60CPU-per-process/1GiB-AS/90wall offline envelope and read-only AWS pre/post.
+The proposed matrix needs at most2410primitives including all refinements;
+the call budget is fixed, not raised after failure. Raw force sampling is
+passive diagnostic I/O, not new runtime cost or learning. No new compiled
+artifact. One frozen source-only proof/runner review before execution; preserve
+all outcomes and an independent terminal child-group census in this ledger.
+
+### FB-01aj passive attribution: reference contact boundary — 2026-09-27 10:38Z
+
+One bounded diagnostic executed; measurement recorded, attribution INCOMPLETE.
+No numerical/physical solver edit or build. Original proposal verdicts remained
+active. Source-only review closed one localized reporting defect before the run:
+capture available stage/endpoint evidence in finally, and retain restored
+observation before comparison. Final review PASS with unchanged worktree
+fingerprint8e33c23fb322eee296e8d948e525ab003fd26e8b030d0fe704e3488fa29a1c3e.
+Proof SHA2565c158afeb773f33d82188a6382160db99e8dae4544b263d4fa2eb57325c4d3d8;
+runner SHA256bdb3caecbf1f963fa9a30bfb9e1ac9a0900c5fa8f5bb63812ec70af86a719558.
+
+The50us proposal from21.8ms was refused by the existing trapezoid/Radau gate;
+the alternate0,c2,1 estimate also fails. Maximum impulse-error/allowance ratios
+were985.676 and434.088 respectively. These are estimator disagreements, NOT
+measured errors against an independent trajectory. No alternative acceptance
+or source replacement is justified by them.
+
+The first128-piece reference reached21.806640625ms after17 accepted primitives.
+Its18th primitive,0.390625us, converged its nonlinear residual to2.40817e-12
+but failed the unchanged contact-impulse gate and rolled back byte-exactly.
+Thus no pair of independently refined references completed, no proposal-error
+comparison was possible, and the older counterexamples/genesis matrix was NOT
+reached. This is an unresolved reference-contact transition, not a successful
+estimator attribution or proof of wasted computation. Partial stages, raw
+proposal endpoint, return/rollback state, reference steps, work and impulses
+are retained. No accepted production or lived state was manufactured.
+
+Receipt docs/evidence/FB-01aj-radau3-impulse-attribution.json,131444bytes,SHA256
+3b1f624bd4f8b97346c23870516a345919c777d6840fbb7a6a59d0327c0e826b.
+19primitive attempts,391native forwards,0.34783s numerical wall/0.34651s CPU.
+Full child0.97411s wall/0.96955s aggregate CPU,193024KiB peak RSS. Session56188
+terminal; group79493 terminal with separate host census empty. Read-only AWS
+10:37:31->10:37:34Z retained sole1559/same image/identity,ticks2591812->2591821,
+no checkpoint/cleanup/durability errors. Existing clock-stalled ALARM remains,
+other4OK; CPU51.294percent average,RAM3.11483percent. No live mutation.
+
+Next exact item: resolve this saved reference transition by bounded dyadic
+subdivision with the original refusal/rollback law, then establish agreement
+of two independently refined trajectories before interpreting either estimator.
+Do not rerun the unchanged full-origin trajectory, increase work budgets, weaken
+tolerances, suppress a contact, or replace the estimator on this evidence.
+Previously accepted reference prefixes may be reused only with authenticated
+raw state/work/impulse continuity; a refused step remains unpublished. Native
+force laws and cognitive scope stay closed. Sustained numerical accuracy and
+performance, gravity, body/world mounting and restart integration remain OPEN.
+Goal ACTIVE; no push, Slack, G1-owned edits or production changes.
