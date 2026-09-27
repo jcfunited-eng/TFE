@@ -9583,3 +9583,157 @@ no proof/build/caretaker worker. No live mutation,pushorSlack. Full-body
 accuracy/gravity/integration/restart/performance/deployment remain incomplete.
 Rigorous continuum enclosure is not claimed; the ratified contract accepts
 explicitly labelled numerical estimates, not a claim of every future trajectory.
+
+### FB-01aj retained-error and computational feasibility map — 2026-09-27 04:28Z
+
+The previous conversational status turn was NO PROGRESS. This block continues
+the same whole-motion numerical-accuracy defect; it does not reopen the exact-
+coincident contact comparator. Runtime source remains at 3e08b0c4b. No force,
+material, anatomy, acceptance limit, cognition or production change was made.
+Reduced rigid-body/soft-contact numerical verification only; no DSF evaluation.
+
+Three authenticated local receipts now make the next choice quantitative:
+
+1. `FB-01aj-midpoint-prior-contact-map.json`, SHA-256
+   `15e21854d94f947311a3c48b320251ca44893f4911725da09a9c6c62af35aa56`.
+   Actual archived stage replay reproduces predecessor/successor/work exactly.
+   Both original incoming states through the preceding contact were crossed
+   with 100/50/25 us meshes. All local comparisons pass; retained differences
+   remain. 1422 calls, 3.416 s wall, 170932 KiB peak RSS. This does NOT identify
+   a new force or contact-matching defect. Small locally admitted errors can
+   survive into a later contact; local acceptance does not prove whole-motion
+   accuracy. Session 63393 / child 29093 terminal, no group survivors.
+
+2. `FB-01aj-midpoint-error-allocation-feasibility.json`, SHA-256
+   `f4626dc41923a86c0316a619f058cf0f35338b5e453cc83662b6651eb45ffe0b`.
+   Offline allocation multiplies retained-state absolute/relative allowances
+   by dt/H, with H=0.25 s; additive work/impulse absolute allowances scale once.
+   Instantaneous wrench/acceleration limits stay unchanged. A stable atan2
+   relative-rotation calculation avoids the near-zero acos cancellation floor.
+   Both nominal meshes finish 100 us with identical successors, but each uses
+   256 accepted fine pieces and 638/636 native calls. Identical adaptive paths
+   are NOT independent convergence evidence. Native work alone costs about
+   0.22 s per 100 us simulated; interval overhead costs another 0.48 s. This
+   is not a viable real-time correction. No runtime candidate or schema change
+   is selected from this pass. Total 1274 calls, 2.548 s wall, 159620 KiB RSS.
+   Session 70336 / child 30842 terminal, no group survivors.
+
+3. `FB-01aj-midpoint-truncation-regime.json`, SHA-256
+   `1b0a9fefbaec3dd58fcc32a082de267e0b93ba68b4b3e418e67c333446a54c2f`.
+   Frozen input tree 0f7114e7c60d17dad8f003c2c5e3f58a406e6cc4d6d1998e3d903f39b1adff4e.
+   One exact archived native-stage control, then three saved predecessors
+   (events 78, 80, 84) at twelve dyadic durations, 100 to 0.048828125 us.
+   Every branch restores the same complete predecessor; no cumulative replay.
+   All 36 cases execute, 109 calls under 145, 0.872 s child wall,
+   0.855 s aggregate CPU, 156308 KiB peak RSS. Native step time is 0.029705 s.
+   On unchanged sampled domains, dominant rate discrepancies approach h^3,
+   and dt/H-normalized discrepancies approach h^2. Near event 80, allocated
+   retained-error ratios are 10.714 / 2.709 / 0.681 / 0.171 at 3.125 / 1.5625 /
+   0.78125 / 0.390625 us. This is genuine truncation-error reduction, not a
+   floating-point floor or evidence supporting another contact special case.
+   Session 59522 / child 36240 terminal, no group survivors.
+
+The source-only reviewer proposes a transient dyadic next-trial hint from the
+accepted discrepancy: h_next = h/sqrt(rho) for this observed local order and
+dt/H allocation. It would only propose trials; every existing finite, supply,
+collision, discrepancy and event check still applies. It is not a whole-motion
+bound and cannot eliminate required fine-motion cost. Therefore it is NOT
+being presented as the practical solution or promoted to runtime by itself.
+If a future allocation law uses H, H must be independent of CPU/call allowance;
+increasing a resource ceiling must never silently change physical accuracy.
+
+Higher-order numerical integration is now a bounded feasibility question, not
+an accepted architecture. In particular, blindly extrapolating midpoint states
+is unsafe for stiff decay: with z=h*lambda, R(z)=(1+z/2)/(1-z/2), and
+E(z)=4*R(z/2)^2/3-R(z)/3 tends to 5/3 as z tends to negative infinity. Such a
+method can amplify a decaying mode. It also needs truthful stage work/impulse
+accounting and cannot reuse midpoint-only receipts. Do not implement an XML-only
+RK4 switch (already rejected at 17:19Z), negative-work clipping, a larger native
+call budget, a relaxed tolerance, or a contact-specific matcher as a workaround.
+The single next item is a source-level choice of a bounded, stiff-stable
+numerical correction preserving the existing force law and complete custody;
+then map its smallest saved-state falsifier before implementation. No new
+behavioral, neural, curriculum or anatomical mechanism is in scope.
+
+Operational envelopes were read-only; all three children denied network.
+Latest 04:23:32Z -> 04:23:35Z retains task 1559, sole task
+5b56802a81ba4978a36aafb995e829a3, image 3c9fce0c...2e4b5d,
+identity 1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1, counts 1/1/0,
+ticks 2537602 -> 2537610, null checkpoint/cleanup errors and no durability
+block. CPU 51.36%, RAM 3.064%. Existing clock-stalled ALARM remains; other
+four alarms OK. This is not a complete live-health clearance. Final host
+census has no proof/build/caretaker survivor. No push, Slack or live write.
+All functional-body accuracy/gravity/integration/restart/performance/deployment
+gates remain explicitly incomplete.
+
+### FB-01aj next numerical mechanism selected for bounded qualification — 2026-09-27 04:33Z
+
+The independent source-only reviewer rejects unrestricted midpoint Richardson
+extrapolation. Its initial Gauss-Legendre recommendation was compared explicitly
+with two-stage Radau IIA and revised to Radau: the same two stage count and
+positive work weights, but L-stability and an endpoint equal to the final stage.
+This is a PROPOSAL for the already-authorized body-only numerical domain, not
+a new material law, runtime candidate, measured speedup or passed accuracy gate.
+
+Use the fixed tableau A=((5/12,-1/12),(3/4,1/4)), b=(3/4,1/4), c=(1/3,1).
+For scalar decay y'=lambda*y its amplification is
+R(z)=(1+z/3)/(1-2*z/3+z*z/6), z=h*lambda, tending to zero for stiff decay.
+Its third order sacrifices one smooth-regime order against two-stage Gauss,
+whose stiff amplification tends to one. This choice must still be falsified
+on the retained nonlinear contact states; scalar stability is not body proof.
+
+The bounded physical/numerical contract to implement in an OFFLINE stage probe:
+
+- Inputs: the authenticated complete saved body predecessor, constant admitted
+  efforts, remaining chemical work supply and positive trial duration. Use the
+  same model, constraints, damping, limits and instantaneous force evaluator.
+  No full-history replay, production import, coefficients retuned to h or new
+  motor decisions. Start from the existing saved-state regime/control receipts.
+- Solve both coupled stage equations simultaneously. For ordinary translational
+  and hinge coordinates, q_i=q_0+h*sum_j(A_ij*v_j) and
+  v_i=v_0+h*sum_j(A_ij*a_j). Each a_j comes from the unchanged instantaneous
+  physical dynamics at its own q_j,v_j,t_0+c_j*h. Two independently converged
+  midpoint solves are NOT the Radau equations.
+- A free-root rotation uses one local SO(3) chart R_i=R_0*exp(hat(sigma_i)).
+  Its equation is sigma_i=h*sum_j(A_ij*J_r(sigma_j)^(-1)*omega_j), not an
+  average of quaternion coefficients or angular vectors. Confirm the native
+  free-joint angular-velocity convention before coding this map. For body-
+  frame angular velocity the inverse right Jacobian is
+  I+hat(sigma)/2+[(1-(theta/2)*cot(theta/2))/theta^2]*hat(sigma)^2.
+  Use its analytic zero limit, not a physical deadband; reject chart/finite
+  failures rather than clamping pose. Native tangent utilities alone do not
+  establish higher-order rotation accuracy.
+- Numerical acceptance requires the complete, dimensionally normalized stage
+  residual. Iterations, stage/force evaluations and line search must be finite
+  and counted. The offline probe may use bounded dense numerical Jacobians
+  for qualification, but that cost is diagnostic and is NOT a production
+  performance claim or permission to ship a dense recurring controller.
+- State-dependent work is integrated at the same stages with weights 3/4,1/4:
+  signed motor work h*sum(b_i*tau dot v_i), positive/braking work from positive/
+  negative physical power, bearing loss h*sum(b_i*v_i^T*B*v_i), and contact
+  impulse from each stage's actual oriented world-frame pair resultants.
+  Separate self/world-bearing channels remain separate. Positive weights keep
+  dissipative quadrature nonnegative; numerical energy discrepancy remains a
+  discrepancy, never heat. Do not reuse midpoint-only work/impulse receipts.
+- Only after convergence and all physical/supply checks, the final stage is
+  the endpoint. Recompute its actual feedback. Do not extrapolate contact
+  records, persistent bytes, warm starts, controls or elapsed time. Failed
+  probes restore the full predecessor. Any later runtime law must retain the
+  ordinary whole-interval rollback, explicit header identity, cold continuation,
+  bounded contact subdivision and current world publication boundary.
+
+Exact next executable item: one offline Radau stage primitive and small
+common-predecessor dyadic map with separately measured residual, work, contact,
+state error and CPU/calls. First reproduce the accepted instantaneous physical
+law at the saved predecessor. Then compare same-state meshes; no production
+source edit/build or broad whole-motion run until this primitive is justified.
+The earlier dt/H implementation/schema proposal is NOT being extended merely
+because it was tested. Its impractical required fine-step cost remains recorded.
+
+Reference roles: MuJoCo 3.3.7 computation documents distinguish instantaneous
+forward dynamics from numerical integration; the frozen local source remains
+authoritative: https://mujoco.readthedocs.io/en/3.3.7/computation/index.html .
+Hairer/Wanner's stiff-integrator materials describe the Radau family, not this
+body's qualification: https://www.unige.ch/~hairer/preprints/coimbra.pdf .
+No framework upgrade, new cognitive state, force softening, tolerance relaxation
+or authorization request is needed for this bounded numerical investigation.
