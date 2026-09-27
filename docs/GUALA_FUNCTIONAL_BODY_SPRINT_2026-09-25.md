@@ -11421,3 +11421,120 @@ Future sustained qualification must use one exact initial state/energy per match
 comparison. The pre26ms history has NOT been requalified under the new estimator;
 full new-law history, gravity, performance, world mounting and restart remain open.
 No push, Slack, production, cognition, food or caretaker changes. Goal ACTIVE.
+
+### FB-01aj current-law identical-genesis motion contract — 2026-09-27 09:39Z
+
+Previous turn PROGRESS:605c3758c closed the matched-start final-contact ambiguity.
+Its contract/result are at the earlier matched-contact-tail headings in this
+ledger (10988/11026 at that commit); their position does not reopen the seam.
+Requested architecture: sustained bounded articulated mechanics and truthful
+feedback. Current reality: compiled-unmounted Radau numerical law; full history
+and cost remain unqualified. Conflict:YES with calling the body delivered.
+Do not extend physical forces, anatomy, cognition, kernel, tolerances, or live
+mount/custody. Single next item: matched identical-genesis/current-law trajectory.
+Reduced body mechanics only, not seven-field DSF cognition or microscopic anatomy.
+
+Prior corrected26ms states inherit pre26ms trajectories from the old estimator;
+none of those runs proves a fresh current-law history. Reuse authenticated
+ObservedProbe/Lane/Errors/hinge-localizer source and already-qualified primitives.
+Start both lanes at the SAME exact raw genesis, effort, energy, model and time.
+One uses nominal100us, one50us. Ordinary Radau admission controls accepted pieces;
+no scripted pose or controller changes. Check all existing physical/sensory/work/
+impulse tolerances and event correspondence at common<=100us endpoints.
+Target48ms,250ms powered,500ms after250ms effort release. Stop at first causal
+failure or50CPU seconds/30000 primitive attempts; retain complete accepted prefix
+and last attempt so a resource-limited prefix can continue without genesis replay.
+Event upper-bound failures remain non-compliance, not proof of a force-law defect;
+report lower/upper timing separation for a failed paired event when available.
+
+The two initial raw states, energy, observations and domains are captured before
+comparison. Same current law from genesis is the essential difference, not a
+repeat of the old-history continuation or final-tail attribution. Budget exhaustion
+is an incomplete measurement, never a mechanics pass. All primitive refusals must
+retain exact rollback evidence. Intrinsic-couple impulse remains UNQUALIFIED.
+Partial lane times may differ if the second lane refuses; do not label that pair
+a completed common endpoint. Native/accounting/observer costs stay distinct.
+
+One frozen source review and one no-build offline run under the existing2core/
+60CPU/1GiB-AS/90wall envelope, read-only AWS pre/post and exact owned-group census.
+No full history starts again unless the current-law path or initial conditions
+change for a stated causal reason. No production, push, Slack or G1-source edits.
+
+### FB-01aj current-law first failure and bounded attribution — 2026-09-27 09:44Z
+
+The current-law identical-genesis run fails at32.4ms, not on a resource limit:
+left-foot specific-force disagreement0.0503621031m/s2 exceeds0.0495029697m/s2
+(ratio1.017355). All other measured groups and event correspondence pass. The
+current local-admission law checks each substep, not accumulated trajectory error.
+Do not infer the exact error origin or relax the limit from this alone.
+Receipt f2a5cbd29eaed4ab8a9974f8bddac8ff4a52aaa63ed85f8440a156ef6cb10ca0
+contains the entire accepted prefix and both final100us predecessors.
+
+Next exact measurement: replay only each recorded final100us mesh (4/6 pieces)
+to reproduce its final raw/work/observation; execute the two missing cross-mesh
+tails from those SAME predecessors.20 primitives total,8CPU seconds internally,
+existing external resource and read-only AWS envelope. Observe both saved initial
+states before advancing, preserving full sensory vectors and unchanged comparisons.
+Compare same-initial/different-mesh and different-initial/same-mesh separately.
+These are fixed-piece numerical attribution paths, not new admitted production
+successors or a global-error certificate. No force, feedback, tolerance, contact,
+or cognitive source change. One frozen independent review, one no-build run.
+This answers whether the failed final sample needs a local transition repair or
+accumulated-error control; no complete trajectory or genesis rerun is authorized.
+
+### FB-01aj accumulated trajectory-error boundary measured — 2026-09-27 09:51Z
+
+PROGRESS: the first fresh identical-genesis/current-estimator pair completes324
+common100us samples before a real specific-force failure at32.4ms. Event timing,
+position/orientation, rates, work, contact impulse and tactile channels all pass.
+Foot vectors are (17.0189714,-1.3088121,-35.6738139) versus
+(17.0207052,-1.3142042,-35.6237713)m/s2. Norm difference0.0503621m/s2 exceeds
+0.0495030m/s2; ratio1.017355. This is not the prior inherited-old-law contact
+ambiguity. No whole-motion, gravity, real-time or production readiness is claimed.
+
+Genesis receipt docs/evidence/FB-01aj-current-law-genesis.json SHA256
+f2a5cbd29eaed4ab8a9974f8bddac8ff4a52aaa63ed85f8440a156ef6cb10ca0.
+Freeze2e14cc2460f958778205e3d5a8bdd2ed309ae12460b770dc1ba4817fd6e41359;
+proof3095e501738dcdb7e14270f2e13b4a38e405b1be78c92c9f5d3d482272284596;
+runnerf91c3c936a875b47a14205750d6dcef486b225991a1525105ce768e120eb6273.
+Independent source review PASS without corrections.8074primitives,148344solver/
+151763total forwards;27.6835s numerical wall,10.4338s native,2.2043s observer;
+full child28.7802s wall/28.7433s aggregate CPU,262648KiB peak RSS. This remains
+far from demonstrated real-time cost even after excluding observer work.
+Session85251/group57349 terminal; separate host census empty. Read-only AWS
+09:38:54->09:39:25Z retained sole1559/same digest/identity,ticks2583216->2583291,
+no checkpoint/cleanup/durability error. Existing clock-stalled ALARM persists.
+
+One20-primitive saved-final100us attribution, not a new whole-history run,
+reproduces both original4/6-piece meshes raw/work/observation exactly. Both
+SAME-initial/different-mesh comparisons pass; foot acceleration errors only
+0.0048425/0.0048444m/s2 (ratios0.09773/0.09786). DIFFERENT-initial/SAME-mesh
+comparisons still fail at0.0552061/0.0552043m/s2 (ratios1.11530/1.11517).
+At32.3ms the incoming acceleration discrepancy was0.0133300m/s2 against an
+allowance0.2387529m/s2. It amplifies while the reference acceleration falls;
+the allowed relative component therefore also contracts. The final local
+transition is not the dominant cause. Tighter final pieces alone cannot remove
+the accumulated state discrepancy. Do not change the foot sensor or forces.
+
+Attribution receipt docs/evidence/FB-01aj-acceleration-attribution.json SHA256
+46b8e8d60544b4d7fd85648687efba935de7400c673c675c27360f3f8988731a.
+Freeze216be540bdf9b0b37d66e730c5926ef39f2e149c34526634ee72cd6abefeb4f5;
+proofc517a840b15d8f63efa332ffcdf13b62bbc3adfa02ac0a28a0bcfe387a9177c9;
+runnereb12d8b21e17179414f05bbe0d1382fdf55d6426f4f10051cd2a7b71fac2c016.
+Independent review PASS.20primitives,404solver/422total forwards;0.243s numerical
+wall,0.0271s native; full child1.3217s wall/1.3157s aggregate CPU,279752KiB RSS.
+Session6140/group60689 terminal; host census empty. Read-only AWS09:47:39->43Z
+retained sole1559/same digest/identity,ticks2584502->2584511; no custody errors;
+same existing alarm, other4OK. No rebuild or physical/cognitive source change.
+
+Corrective boundary: RadauProbe.admit/_close verifies fresh local comparisons
+but does not carry a trajectory-wide accuracy guarantee. The next numerical
+contract must address accumulated error over the physical publication interval,
+preserving channelwise state/force/work limits, bounded cost and exact rollback.
+Do not hide drift by resetting comparison histories, artificially synchronizing
+body states, loosening limits, changing forces, or adding a sensor override.
+Use the saved path to derive the smallest justified accumulated-error control
+or more efficient convergent solver; do not repeat these closed attributions.
+Any further full-origin run requires a causally different reviewed numerical
+candidate, not another execution of this unchanged failing law. Full objective
+ACTIVE/incomplete. No push, Slack, production, kernel or G1-owned source edits.
