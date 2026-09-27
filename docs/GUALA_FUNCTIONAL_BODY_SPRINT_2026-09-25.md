@@ -10525,3 +10525,108 @@ new scene-specific tuning or cosmetic throughput claim.
 
 Full goal remains ACTIVE/incomplete: body/world mounting, gravity, runtime
 custody/restart, performance and live production are still not qualified.
+
+
+### FB-01aj saved-segment event localization contract — 2026-09-27
+
+Continue same numerical seam from local commit171425b66; previous turn was
+PROGRESS (complete failing histories and measured force-call cost). No source
+solver, acceptance threshold, physical coefficient or production edit. Requested:
+resolve whether the1.171875us bracket union is coarse observation or actual
+numerical-path separation. Reality: both narrow brackets pass locally but their
+combined bound fails. Conflict: YES with a whole-motion pass. Do not extend
+cognition, DSF, care, food, or new-law custody. This is reduced numerical-body
+trajectory analysis; no joint DSF field or cognition is evaluated or altered.
+
+One offline diagnostic replays exactly the two already accepted crossing
+segments from authenticated raw predecessor bytes and exact supplied work in
+the final admission receipt. No whole-history replay or new body header.
+Require exact original successor, work, stage domains and endpoint clock before
+using actual captured qpos/qvel at collocation nodes. Mapping limited-index56
+to native joint/qpos/dof addresses comes from that loaded body's anatomy, not
+hardcoded offsets. Range_lower+margin remains the actual transition boundary.
+
+For each hinge path Q(theta)=q0+h*((3theta/2-3theta^2/4)*v1+
+(3theta^2/4-theta/2)*v2), use exact rational arithmetic over the recorded finite
+binary64 operands in this OFFLINE observer only. It does not replace body
+numerics or re-enter organism state. Reconstruct the unique quadratic through
+actual q0,q(1/3),q(1) too. If node construction discrepancies are delta1,delta2,
+the two numerical polynomials differ by at most(9/8)|delta1|+|delta2| on[0,1],
+from their Lagrange bases. Report that bound and both constructions; it is
+construction-rounding sensitivity, NOT an ODE truncation-error enclosure.
+
+Require a strictly decreasing crossing, outward endpoint signs even under that
+rounding envelope, and bounded bisection (at most binary64 mantissa bits) using
+exact comparisons. Return rational and outward-rounded physical time bounds;
+compare their union with the unchanged1us limit. No guessed midpoint times.
+If signs/uniqueness/bounds cannot be established, report inconclusive/failure.
+Success establishes timing only for these numerical segments; it cannot turn
+all earlier whole-motion, continuum, gravity, runtime restart or cost gates green.
+
+Two Radau primitive calls only, existing binary, explicit total-forward bound,
+ordinary bounded child resources/read-only AWS pre/post, exact child cleanup.
+Save failed operands and restore input state even on failure. No build, broad
+suite, push, Slack or live action. Computational-parsimony work remains separate:
+localization may avoid unnecessary force reruns, but it does not erase measured
+native-force cost or permit observer removal to be called a real-time solution.
+
+
+### FB-01aj numerical crossing localized without a history rerun — 2026-09-27 07:29Z
+
+PROGRESS: the specific 20.4 ms event-timing uncertainty is resolved for the two
+retained numerical paths. This is NOT whole-motion or continuum qualification.
+One independent frozen source-only review passed for proof SHA256
+3bde699005222bab323f0d8fa3899af8b2bdcee38b204e7101f97da076d1e429
+and runner SHA256
+d587610b9b523085a60a3fd8ff59c57efe6dc44705777eabab08d4c5cbd9519d.
+Tree fingerprint ab3134b3a38175a43c77bad95031b4a07777438b6971e11beccfc951612dde33
+matched before and after execution. Native solver and all physical coefficients,
+accuracy tolerances, authority boundaries and runtime source remain unchanged.
+
+Receipt docs/evidence/FB-01aj-radau-event-localization.json SHA256
+c8c14d5b35c54c9a09ebc1ca6bb1a4cd71a8c3a7eba72c0480f494d5794f7a9a
+preserves exact proof/runner, rational brackets, actual replayed stage operands,
+raw predecessors/successors, hashes and operational envelope. Each of the two
+saved accepted segments reproduced original successor bytes, work, stage and
+endpoint domains and clock exactly; each input/timestep was restored exactly.
+
+The right knee lower-limit numerical activation occurs within these outward
+time brackets in seconds:
+- Coarse history: [0.020375313118024580, 0.020375313118024582].
+- Half-step history: [0.020374518290786726, 0.020374518290786730].
+Their exact-rational combined width is approximately 0.7948272378543825 us,
+below the unchanged 1 us bound. The prior 1.171875 us sampled bracket union was
+insufficient observation, not proof of excessive actual numerical separation.
+Uniform differences between velocity-integrated and rounded-position numerical
+polynomials are bounded by 4.244289898377132e-25 rad and
+3.915746978957111e-25 rad respectively. These bounds are NOT continuum solution
+error or a bound on arbitrary floating-point dense-path evaluation.
+
+Exactly two primitive replays: 38 stage force calls plus 8 setup/restore calls.
+The numerical diagnostic used 0.126151 s wall / 0.127993 s CPU; complete child
+used 0.782770 s wall / 0.779289 s aggregate CPU, 190360 KiB maximum RSS.
+Session 19400 and owned child/group 5568 are terminal; separate exact host census
+confirms no survivor. No build, broad test suite or full trajectory rerun.
+Read-only AWS 07:26:20 -> 07:26:23Z retains sole task1559, same task/image/identity,
+ticks2563983 -> 2563991, checkpoint/cleanup null, durability false. Existing
+clock-stalled ALARM persists while these samples advance; other four alarms OK.
+CPU51.3965 percent average / RAM3.0762 percent. No live change or health repair.
+
+Cheap reanalysis of the existing admitted-motion receipt, with NO simulation,
+locates a material compute cost: the last 29 recorded primitive proposals used
+903 force calls; 161 centered finite-difference Krylov directions account for
+644 of them (two perturbations, two stages each). No line-search halvings occurred
+in that retained batch. The accepted prefixes alone consumed 24198 calls across
+634 coarse pieces and 39688 calls across 1152 half pieces. Median accepted piece
+widths were 50 us and 25 us. These retained observations do not establish a
+universal cost law or predict a speedup from any unimplemented change.
+
+Single next item: source-map a bounded numerical correction to repeated force
+evaluation, using this measured cost rather than rerunning unchanged histories.
+Any correction must solve the same physical equations with the same residual,
+observable and event limits; do not soften joints, remove sensors, bypass force
+checks, invent success, or redesign cognition. Numerical event localization is
+verified here for two hinge segments only; generic use and later accumulated
+motion remain unqualified. Gravity, intrinsic couple impulse, runtime custody/
+restart, world mounting and real-time cost remain open. No push, Slack, production,
+food, caretaker, DSF or cognition change. Full body objective remains ACTIVE.

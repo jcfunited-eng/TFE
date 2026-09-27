@@ -1,0 +1,185 @@
+{
+  "candidate_fingerprint": "ab3134b3a38175a43c77bad95031b4a07777438b6971e11beccfc951612dde33",
+  "child_output_when_no_measurement": null,
+  "child_resources": {
+    "cpu_seconds": 0.6786679999999999,
+    "maxrss_kib": 190360
+  },
+  "continuum_enclosure": false,
+  "diagnostic_completed": true,
+  "execution": {
+    "cpu_seconds": 0.7792889999999999,
+    "exit_code": 0,
+    "label": "radau-event-localization",
+    "owned_pid": 5568,
+    "stderr": "",
+    "stdout_bytes": 13304,
+    "survivors": [],
+    "timed_out": false,
+    "wall_seconds": 0.7827695150008367
+  },
+  "full_body_qualification": false,
+  "health_error": null,
+  "mounted": false,
+  "numerical_segment_timing_within_limit": true,
+  "offline_probe_source": "\"\"\"Two saved numerical hinge segments; no whole-motion or continuum certification.\"\"\"\nimport base64\nfrom fractions import Fraction as F\nimport hashlib\nimport json\nimport math\nimport os\nfrom pathlib import Path\nimport sys\nimport time\nimport traceback\nimport zlib\n\nimport mujoco as mj\nimport numpy as np\nimport guala_body_interval as interval\nimport guala_body_radau as radau\nfrom guala_body_contact_onset import archived_controls\nfrom guala_body_joint_boundary import encode\nfrom guala_body_trajectory_accuracy import Trajectory,primary,plain_domain\n\nSCHEMA='guala.functional-body.radau-event-localization.v1'\nSOURCE_SHA='5dbde1bf559b6218487a42113265e216d9c4629de7837632baa20c61f651c73b'\nsource=Path('docs/evidence/FB-01aj-radau-admitted-motion.json').read_bytes()\nassert hashlib.sha256(source).hexdigest()==SOURCE_SHA\npacked=json.loads(source)['raw_measurement']\ndata=zlib.decompress(base64.b64decode(packed['payload_zlib_base64'],validate=True))\nassert len(data)==packed['raw_bytes'] and hashlib.sha256(data).hexdigest()==packed['raw_sha256']\narchive=json.loads(data)\nassert archive['event_agreement']['status']=='FAIL' and archive['first_failure'] is None\nassert Path(radau.__file__).resolve()==Path(os.environ['GUALA_RADAU_PROOF_ABI']).resolve(strict=True)\nassert radau.RADAU_LAW=='radau-iia2-krylov-candidate-v1'\nassert mj.__version__==mj.mj_versionString()=='3.3.7+guala.midpoint-step.1'\nprobe=radau.RadauProbe(2*(5+radau.MAX_NEWTON*(4*radau.MAX_KRYLOV+2*radau.MAX_LINE)))\naudit=dict(forward_calls=0,outside_ceiling=20,ceiling=probe.ceiling+20)\nnative_forward=mj.mj_forward\nresult=dict(schema=SCHEMA,completed=False,failure=None,cases=[],source_receipt_sha256=SOURCE_SHA,\n    mounted=False,full_body_qualification=False,continuum_enclosure=False,whole_motion_passed=False)\nstarted,cpu_start=time.perf_counter(),time.process_time()\nbits=sys.float_info.mant_dig\n\n\ndef forward(m,d):\n    if audit['forward_calls']>=audit['ceiling']:raise RuntimeError('event-localization force-call budget exhausted')\n    audit['forward_calls']+=1\n    return native_forward(m,d)\n\n\ndef rational(x):\n    return dict(numerator=str(x.numerator),denominator=str(x.denominator))\n\n\ndef evaluate(coeff,x):\n    return coeff[0]+x*(coeff[1]+x*coeff[2])\n\n\ndef root_bracket(coeff,shift=F(0)):\n    # Exact sign comparisons on a monotone quadratic, bounded by binary64 precision.\n    assert coeff[1]<0 and coeff[1]+2*coeff[2]<0,'crossing is not strictly decreasing'\n    lo,hi=F(0),F(1)\n    assert evaluate(coeff,lo)+shift>0 and evaluate(coeff,hi)+shift<0,'outward signs do not bracket crossing'\n    for _ in range(bits):\n        mid=(lo+hi)/2\n        value=evaluate(coeff,mid)+shift\n        if value==0:lo=hi=mid;break\n        if value>0:lo=mid\n        else:hi=mid\n    assert evaluate(coeff,lo)+shift>=0 and evaluate(coeff,hi)+shift<=0\n    return lo,hi\n\n\ndef outward(pair):\n    lo,hi=map(float,pair)\n    if F(lo)>pair[0]:lo=math.nextafter(lo,-math.inf)\n    if F(hi)<pair[1]:hi=math.nextafter(hi,math.inf)\n    assert F(lo)<=pair[0]<=pair[1]<=F(hi)\n    return [lo,hi]\n\n\ndef record_pair(pair):\n    return dict(exact=[rational(x) for x in pair],outward_float=outward(pair))\n\n\nmj.mj_forward=forward\nroots=[]\ntry:\n    controls=archived_controls()\n    key=archive['event_agreement']['key']\n    assert key[0]=='lower'\n    for lane,side in zip(archive['lanes'],('left','right')):\n        bracket=archive['event_agreement'][side]\n        event=next(e for e in lane['events'] if e['start_s']==bracket['start_s'] and e['end_s']==bracket['end_s'])\n        piece=next(p for p in lane['last_attempt']['admission']['accepted']\n                   if p['start_s']==event['start_s'] and p['end_s']==event['end_s'])\n        raw=base64.b64decode(event['predecessor_base64'],validate=True)\n        assert hashlib.sha256(raw).hexdigest()==piece['predecessor_sha256']\n        assert piece['state']['float64_le_base64']==event['successor_base64']\n        row=dict(history=lane['label'],completed=False,predecessor_base64=event['predecessor_base64'],\n            original_start_s=event['start_s'],original_end_s=event['end_s'],available_work_j=piece['available_work_j'])\n        result['cases'].append(row)\n        c=Trajectory(100,controls[100]);original_dt=float(c.m.opt.timestep)\n        state=np.frombuffer(raw,dtype='<f8').copy()\n        interval._restore(c.e,state,original_dt)\n        assert primary(c.e)==raw and c.d.time==event['start_s']\n        joint=int(c.e._limited[int(key[1])]);qadr=int(c.m.jnt_qposadr[joint]);vadr=int(c.m.jnt_dofadr[joint])\n        assert c.m.jnt_type[joint]==mj.mjtJoint.mjJNT_HINGE\n        q0=float(c.d.qpos[qadr]);threshold=float(c.m.jnt_range[joint,0]+c.m.jnt_margin[joint])\n        row.update(native_joint=joint,joint_name=mj.mj_id2name(c.m,mj.mjtObj.mjOBJ_JOINT,joint),\n            qpos_address=qadr,dof_address=vadr,threshold_rad=threshold,q0_rad=q0)\n        try:\n            endpoint,work,impulse,stages=probe.step(c.e,event['end_s']-event['start_s'],piece['available_work_j'])\n            row.update(successor_base64=base64.b64encode(primary(c.e)).decode(),work=work,\n                endpoint_clock_s=float(c.d.time),stage_domains=[plain_domain(s['snapshot']['domain']) for s in stages])\n            assert row['successor_base64']==event['successor_base64'] and list(work)==event['work']\n            assert not impulse and c.d.time==event['end_s']\n            assert json.dumps(row['stage_domains'])==json.dumps(event['stage_domains'])\n            assert json.dumps(plain_domain(endpoint['domain']))==json.dumps(event['after_domain'])\n            row['original_segment_reproduced_exactly']=True\n            q1,q2=(float(s['qpos'][qadr]) for s in stages)\n            v1,v2=(float(s['qvel'][vadr]) for s in stages)\n            h=float(probe.steps[-1]['dt_s'])\n            assert all(math.isfinite(x) for x in (q0,q1,q2,v1,v2,h,threshold)) and h>0\n            # All following rationals are read-only diagnostic operands, not body state.\n            a,b,c0,th,hh=F(v1),F(v2),F(q0),F(threshold),F(h)\n            polynomial=(c0-th,hh*(F(3,2)*a-F(1,2)*b),hh*F(3,4)*(b-a))\n            d1,d2=F(q1)-c0,F(q2)-c0\n            position_polynomial=(c0-th,(9*d1-d2)/2,(3*d2-9*d1)/2)\n            delta1=F(q1)-th-evaluate(polynomial,F(1,3))\n            delta2=F(q2)-th-evaluate(polynomial,F(1))\n            assert tuple(x-y for x,y in zip(position_polynomial,polynomial))==(\n                F(0),F(9,2)*delta1-F(1,2)*delta2,-F(9,2)*delta1+F(3,2)*delta2)\n            envelope=F(9,8)*abs(delta1)+abs(delta2)\n            row.update(h_s=h,stage_qpos_rad=[q1,q2],stage_qvel_rad_s=[v1,v2],\n                polynomial_coefficients=[rational(x) for x in polynomial],\n                position_polynomial_coefficients=[rational(x) for x in position_polynomial],\n                construction_deltas_rad=[rational(delta1),rational(delta2)],\n                construction_envelope_rad=rational(envelope),bisection_limit=bits)\n            theta=root_bracket(polynomial)\n            position_theta=root_bracket(position_polynomial)\n            lower=root_bracket(polynomial,-envelope)[0]\n            upper=root_bracket(polynomial,envelope)[1]\n            assert lower<=position_theta[0]<=position_theta[1]<=upper\n            assert lower<=theta[0]<=theta[1]<=upper\n            t0=F(event['start_s']);time_pair=(t0+hh*lower,t0+hh*upper)\n            assert F(event['start_s'])<=time_pair[0]<=time_pair[1]<=F(event['end_s'])\n            roots.append(time_pair)\n            row.update(completed=True,theta=record_pair(theta),position_theta=record_pair(position_theta),\n                construction_enclosed_time_s=record_pair(time_pair))\n        finally:\n            interval._restore(c.e,state,original_dt)\n            row['predecessor_restored_exactly']=primary(c.e)==raw and c.m.opt.timestep==original_dt\n            assert row['predecessor_restored_exactly']\n    assert len(roots)==2 and len(probe.steps)==2\n    union=(min(x[0] for x in roots),max(x[1] for x in roots))\n    width=union[1]-union[0]\n    allowed=F(interval.EVENT_S)\n    result.update(completed=True,numerical_segment_timing_within_limit=width<=allowed,\n        numerical_union_time_s=record_pair(union),numerical_union_width_s=rational(width),\n        numerical_union_width_s_float=float(width),allowed_s=interval.EVENT_S)\nexcept Exception as error:\n    result['failure']=dict(type=type(error).__name__,error=str(error),traceback=traceback.format_exc(limit=10))\nfinally:\n    mj.mj_forward=native_forward\n    audit['outside_stage_calls']=audit['forward_calls']-probe.calls\n    if audit['outside_stage_calls']>audit['outside_ceiling']:\n        result.update(completed=False,failure=dict(type='BudgetExceeded',error='outside-stage force allowance exceeded'))\n    result.update(calls=probe.calls,call_accounting=audit,stages=probe.steps,native_seconds=probe.native_seconds,\n        cpu_seconds=time.process_time()-cpu_start,wall_seconds=time.perf_counter()-started)\nprint(json.dumps(encode(result)),flush=True)\n",
+  "offline_runner_source": "\"\"\"Two saved segments only; offline child and read-only production envelope.\"\"\"\nfrom pathlib import Path\nimport hashlib\nimport sys\n\nhelper=Path('/tmp/a1-loaded-contact-run-20260927.py').read_bytes()\nassert hashlib.sha256(helper).hexdigest()=='a75f28ae491567cd010e5ff4d50118d1b2cbe41298c9e9867055f3432acabb91'\nprefix,_=helper.decode().split('\\nassert Path.cwd()==ROOT and not TARGET.exists()',1)\nexec(compile(prefix,'<reviewed bounded operational helpers>','exec'))\nFP='ab3134b3a38175a43c77bad95031b4a07777438b6971e11beccfc951612dde33'\nTARGET=ROOT/'docs/evidence/FB-01aj-radau-event-localization.json'\nPROOF=Path('/tmp/a1-body-radau-event-localization-20260927.py')\nABI=Path('/tmp/guala-body-coincident.f_yh3n0n/python/guala_body_interval.cpython-311-x86_64-linux-gnu.so')\nRADAU=Path('/tmp/guala-body-radau-admission.as3w3bwe/python/guala_body_radau.cpython-311-x86_64-linux-gnu.so')\nSOURCE=ROOT/'native/functional_body/radau.pyx'\nexpected={PROOF:'3bde699005222bab323f0d8fa3899af8b2bdcee38b204e7101f97da076d1e429',\n    SOURCE:'6e2857bf7fd1fdeeff3ab3e2289f1f98b6ee8873dea75b535cabb2ad9cd131d8',\n    ABI:'13a29c323d79bf9a617209f9db9605dbc985d61fb4273ead87a9539df53e996b',\n    RADAU:'d5bfcb453693668e9a9829ab1f4d98c579cb034cc3ea237df4476f1031f205cf',LIB:LIB_SHA}\nassert Path.cwd()==ROOT and not TARGET.exists()\nfor path,sha in expected.items():assert path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest()==sha,str(path)\nassert Path('/usr/local/bin/aws').is_file()\nfingerprint()\npre=health();print('PRE_HEALTH',json.dumps(pre),flush=True);require_health(pre)\nenv=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1',MKL_NUM_THREADS='1',\n    LD_LIBRARY_PATH=str(LIB.parent),GUALA_RADAU_PROOF_ABI=str(RADAU),\n    PYTHONPATH=str(RADAU.parent)+':'+str(ABI.parent)+':/tmp/guala-body-optics-native.U8I8en/python:'\n               '/tmp/guala-body-native.pnUH8P/lib/python3.11/site-packages:.:tests:tools')\ncode=\"\"\"import socket\ndef deny(*a,**k):raise RuntimeError('offline child forbids network')\nsocket.socket.connect=deny\nsocket.socket.connect_ex=deny\nsocket.socket.sendto=deny\nimport json,resource,runpy\nimport mujoco as mj,guala_body_interval as interval\nassert mj.__version__==mj.mj_versionString()=='3.3.7+guala.midpoint-step.1'\nassert interval.__file__==\"\"\"+repr(str(ABI))+\"\\n\"+\"\"\"try:\n runpy.run_path(\"\"\"+repr(str(PROOF))+\"\"\",run_name='__main__')\nfinally:\n r=resource.getrusage(resource.RUSAGE_SELF)\n print('CHILD_RESOURCES',json.dumps(dict(cpu_seconds=r.ru_utime+r.ru_stime,maxrss_kib=r.ru_maxrss)))\n\"\"\"\nexecution,out=child(code,env,'radau-event-localization')\npost=health();print('POST_HEALTH',json.dumps(post),flush=True)\nhealth_error=None\ntry:\n    require_health(post)\n    assert pre['observation']['identity']==post['observation']['identity']\n    assert post['observation']['live_tick']>=pre['observation']['live_tick']\nexcept Exception as error:health_error=repr(error)\nfingerprint()\nfor path,sha in expected.items():assert hashlib.sha256(path.read_bytes()).hexdigest()==sha\npacked=result=resources=None\nfor line in out.splitlines():\n    if line.startswith('CHILD_RESOURCES '):resources=json.loads(line.split(' ',1)[1]);continue\n    if not line.startswith('{'):continue\n    value=json.loads(line);raw=zlib.decompress(base64.b64decode(value['payload_zlib_base64'],validate=True))\n    assert len(raw)==value['raw_bytes'] and hashlib.sha256(raw).hexdigest()==value['raw_sha256']\n    decoded=json.loads(raw)\n    assert packed is None and decoded['schema']=='guala.functional-body.radau-event-localization.v1'\n    packed,result=value,decoded\ncompleted=(result is not None and result.get('completed') is True and result.get('failure') is None\n           and execution['exit_code']==0 and not execution['timed_out']\n           and execution['cpu_seconds']<=60 and resources is not None and health_error is None)\ntiming=(completed and result.get('numerical_segment_timing_within_limit') is True)\nreceipt=dict(schema='guala.functional-body.radau-event-localization.v1.receipt',candidate_fingerprint=FP,\n    source_sha256={str(p):s for p,s in expected.items()},production_pre=pre,production_post=post,\n    execution=execution,child_resources=resources,health_error=health_error,raw_measurement=packed,\n    child_output_when_no_measurement=out if packed is None else None,\n    offline_probe_source=PROOF.read_text(),offline_runner_source=Path(__file__).read_text(),\n    mounted=False,full_body_qualification=False,whole_motion_passed=False,continuum_enclosure=False,\n    diagnostic_completed=completed,numerical_segment_timing_within_limit=timing,\n    resource_limits=dict(affinity_cores=2,cpu_seconds_per_process=60,address_space_bytes_per_process=1024**3,\n        wall_seconds_per_group=90,aggregate_memory_enforced=False,peak_rss_scope='single process'))\ncontent=json.dumps(receipt,indent=2,sort_keys=True)+'\\n'\npatch='*** Begin Patch\\n*** Add File: '+str(TARGET)+'\\n'+'\\n'.join('+'+s for s in content.splitlines())+'\\n*** End Patch\\n'\nsubprocess.run(['apply_patch'],input=patch,text=True,check=True)\nsummary=({k:result.get(k) for k in ('completed','failure','calls','call_accounting','cpu_seconds','wall_seconds',\n    'numerical_segment_timing_within_limit','numerical_union_time_s','numerical_union_width_s_float','allowed_s')}\n    if result is not None else dict(no_measurement=True))\nif result is not None:\n    summary['segments']=[{k:c.get(k) for k in ('history','completed','joint_name',\n        'original_segment_reproduced_exactly','predecessor_restored_exactly','construction_enclosed_time_s')}\n        for c in result['cases']]\nprint('RESULT',json.dumps(summary),flush=True)\nsys.exit(0 if completed else 1)\n",
+  "production_post": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 51.396537313858666,
+        "Maximum": 51.81839072704315,
+        "Timestamp": "2026-09-27T07:24:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 3.076171875,
+        "Maximum": 3.076171875,
+        "Timestamp": "2026-09-27T07:24:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2563991,
+      "persisted_tick": 2563980
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1559",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/5b56802a81ba4978a36aafb995e829a3",
+          "digests": [
+            "sha256:3c9fce0ce0eaed2196b883a061b424d27c7f1d1709f433039394fba51d2e4b5d"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-27T07:26:23.918802+00:00"
+  },
+  "production_pre": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 51.396537313858666,
+        "Maximum": 51.81839072704315,
+        "Timestamp": "2026-09-27T07:24:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 3.076171875,
+        "Maximum": 3.076171875,
+        "Timestamp": "2026-09-27T07:24:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2563983,
+      "persisted_tick": 2563948
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1559",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/5b56802a81ba4978a36aafb995e829a3",
+          "digests": [
+            "sha256:3c9fce0ce0eaed2196b883a061b424d27c7f1d1709f433039394fba51d2e4b5d"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-27T07:26:20.853588+00:00"
+  },
+  "raw_measurement": {
+    "payload_zlib_base64": "eNrtfVmz4sjV7X85r6oupYaUMh1xHzSBEJMEYnQ4KoQkQGieQQ7/95sJ1e12dZXt9vU3+AY76tDniFQOO/feqQ4Wa/35w0uSvA+DL/XHH7jwJyB9+vDJpS+e7+dt1kTZ5eMPf/7wwyh5/sphCD59nPOq96rgC21J7hPJTXnb1FEQfvmlJQ/+erFuvEv4c2v0l9cQ5FcB0V/rkPz6xz9/eJ0XJd4pCb/0eRV/udGOJfgZyaIsAFkSOQ5/+jhFdeg3UZ59SaI0aj7+AAXSR54WSdiEwccfmqoN6YWsJr+9GgZh0nj1l8oLnsMEYZanUeY1efXxhw8RI1EC9JXDgiiIkBcEhHkynCwByPGY56SPTx9Zm4bV11t+EnkOyQhgKOGPv3z6tkdOkjgoiBiTaXOcKJKeSTcyRIiHAgQiWQv/bY9QlDDGgiBA7uMvf/pm/mHmJ3lNtqiJ0pDu058/wrvnN99ZDSfxPKSzR3TigiAJAuYgmSsHeIQ4Hn0zsCAACSAByhwZn6ydTJOnkxUQ5CEvf2d1Ai9CDkEoSBCJvCSTf0jgoAR4AGWJh986iziDeFDmRDIThAEk8SNCkfiOB7zMw+dqSZg8w+mc5B5dFfhMehNkKHDEgQiQEdGn71zj//SX33iqC5O8CF97/RvnCMQpvIwxcYhI3IJkHgMBAZn4gEdAEEWygm+mD0nYSTzCEHJkrp8+gvz8xQuCKqzJPkj8p48wC4o8ypovZI/8mO7OLzPFQOJJGJBlk3ZX+pbw+edrxADCEkk4mbwX1WS0BxnOz72qDskcbs8+My8NydVL6yUeW0WXa8PW1yhj4yykjcjCoi788mxLEoH0lJNGZL0J8UTw47n80qoOL2lIxqnCosqD1icx9oys5PFzIv21aeNVza+6/LqIZ5ckA4s8eVBfk5Z+Hp7PkR+RjuvvhCgWRZIYPJagLGCyASJP//ttXJI2IoJAAEDgvheGiFYEMgmZxCGUeZFEnyQiGYscCUgSwyQ+v80xgew64EkIkBCi8UsCiaS9RIP+35PFvIB4jgxBQkXkeQ5wMkfGEl8xXuR19IzR/25PkeImSuRuTAKdzgbJAhQA+rYS/MSTKOFJnAhkRwVeEv71rpBEfCdDGQLay6/X3lzDxvt79YtUL44kKOIEiVQg8dueSeJDQBzMA1KwEK0ev5kjBuQ9jHlI3ALwb9wl8zwgxRAgHknkVOF+UH9IwYR0MwVSpcgyuE+/ufQsPkUVBqFPakFefTmRc0wSyRC7mXQeR2yQ6HjHemZc2WxnCw/GtLOT3ilsJe9Zy7lvRZdJinEeHHyhs5mFZRiM7J16lh9Cq22acnIj5VLh3WCx2tlCPhuv7/Y6WLPH8C6ooxEzG5hagse4t4ukux/ixkenq1+zam8I52bo9AG7Y793pSz2O9gWjpLVt9OGja2HutUl0xuwtZ/fFfnMtTbDcem0gMkEsR70kCEf44vOHLzlfot3a9PuLbXfHpui0djTerotxJPTDWi/WM4WucFX9uOwYXKr5GTE8sfJrm4stxyQ7NRQdrDE2ghJvjFXdmXNIsOEiWom3cBcCnfBTXdaZYv3a99Xcz032C5YTR7G2MtP+MF1u5tbtUsbpMNkntuzymGHUcjEZ1twKuQKp86+jSzOltm5Pj5zh/ua6YNIP9+UMHJxfprBxNSltS2K7H3U7fM6Z+fBsNGzhGtmyIf77jh3bie7MRRfY/29vGabtl1LfZXwNzG9rZr5Pi5Bx1bOWtdu7SJnulWfb2wEyP2SKjUrVpx5du2JZbZY3sUdmywiuevWTa4z+khc1ovhLthifLXHznqGNXZ7epzDzVnyKiZe+jy7KEvLlr0UIbe1bhfWyTizNrCTu+ya31zqSz0b2aCyF9HjpHoHtvCl/i66ZaGjDcfqFqqlmy1ZSzB1k7qcsLqrnB4Jv8tdBk3kjacGM6eTuFk+MgxvVLPpbnIrOLBMdKRkJwMM27yzr5HH3rBxm+ZstjiC3e3KtzIjapfD/brQLp2ciboem5Y0Znc3p4xNjslPTHVMDyvYeNdOOi72RczOp1P2btZVmUdMWLFQMPyLo9muDWfdrVQGuJiwK8kkf/rFwtBGNVOxW57ED2zBeJX4mOyP4ZyaZnoa2XOdWY7VXZ3ze1ue8qfqFPgoZeWRqQaKEc6Bur6XYwtJ2tFm9voedBMHLtlpOAN4exdNoFbZzZsvWDm0+3x1Uo/GJJizrga6o+e7ClDUo+Lv+1g/23h80flyxi599pyKMZcyxaJWYoSypbo8rJ1lFFe9WfmXlVLdLL11za0Rq6PrvUhB6hjOwlktl/f9XbWUYHoDabXYqYaWjQurCOT52jFjtJgul2tlpWjno/Qg6xYHlOEKFroA3H68X7cB96gCj71g7wgf7XYMVBjm0/vN1h7d3Sy4sCT5OGGd8Uyz9ufZpYJ3+5rkq4Mw2GIK92Njs2IBu7+uYpj30RRoR+zKt6tpYxsduIt4EwwpZpdazzl1X7MuTtvGXCasl9u81lpDLcNzT+KDqfhu75Y6K+rdQwLFgGx+tm229aaaXtjVKhblgzNCJzw/YzfpC+Q4lihflN5cdRvW4k67WQiYRa0LRmIwUtTtOlnPh+1RytsJm3q1eTpsVr3LsOkUPI6zk0b8H+anKlw8OIXbkXp+UUcTQ0P6g9sClIeOlvHN6IC0O6fsd7wcu/cZ8U8WT9UzN8mPjqKVfIjOmn5TDudphiqnLnUUV9hBmuSKtjiNB5ErOTFk0do7VaOTpcbKCfl3pXrMV71ymKqCtlIUVskm5CjtL5bhq1s5qVjuaKz7US9L+7QbX12lRnuutta3ka+V2YXb38l+2Bx2lvoFxGT/wUPigkqtnVhVkoXZ80Y0dkaBZowr0FxNZcdtGCWswXyjuY3amjNSPnojas24xKo+UvzlVbpK927qa/nWxtt5P9acuayq5VWfnhGrcphBi7Gj+HqvFQYuJsngzKfLB8bcPT4q+ZEZX6GdMSf2YVxvC/ee9I6WVFtNJQnNKhsYjqTT9TCaq/09vi7GvTbpLejidb3f7jNFyIJg/BDJuaRNcA2VUVTA3jh4m6G+mrypXOQHgxyTDefKYn/I96o2uvbLoFkZsgeEm7K4ePsmOETk/uQWICFdipqzGLnLcT0szZlCdlG8V2t/X2up3Ey1NlxlzsSrxgNiZspecQOHPcaJ7Gz0x8q43SXTdbso2GtCfXASVTEaT5qf/fsO6GNRHrfA3d577azP+2KMJ0dltD8J8dHceUA1h31+RXVKnNU7zETq2l2jqHY/GsrofI2V23lETiFYVI5+FsNtUwaHo+KGTSsIgeQBvUIO0u8WXPZLlnuI8rznGoWLXFEquf5gaEd9zvU5Whv9uJZqpSxtlVW2yuS2tO1sM1frYSYZun6QnUUyW0XaZma6CmpJXI1NK9woaC/UC3ctKY4pzUXb99aiquyQkmtikV4MJTkMnJNNNIX4j502Rzc9qAq84m50Di8R0vpFctu7RqI7xryN+lNSX2/KSueiub0TN0hT7sxmdBeSbT9jj8vZY7fPA6WdTC9n4ToJ51pUcKUjmlvYT7bGpdhqeVYpD9vKkkJehEhrVUNysB2g3j6Cw3XN5fqgvO1tb3vb2972tre97W1ve9vb3va2t73tP8b+z8fffoZVhfSD6N9+ClyC1yfqwmcJAk6SZCgDIEAByeFPAJP3i7z+1cfiwqePF+IjyFMvyuhnm3/849lL6vDT/+bX51r/90/zX3r906c//n+6sv+gHRDID4/IC0d+6D/y886L/8nJvtPif0NafHolxico09z49Et2/Onnc+R5vrzwe/xnTuCByAMkiQIWsfA8gX7Cn4HAQ06EUJIx4nhymQN/vb8LE3o/xS/98SfwGXCcBGUsi0CUeV6Wsfjp56sCQORkkwTAy1iiHbT+twCPYJpqm00WJDq79WP79gR4AGYI7jefAjzSZMgOPQV4IDQ9xY/DXOjs+2MUdTdEAR4X48Ji915NbniHNpNrHqx2trzyjJHKUIAH0+F2cYQU4GHsE+MgdUXSPc7bMFt5FOAh333oPYa7PmAxzo5bz8z9TjoysLicb9WGlfaCK0pL0xvYNli7/ZSFrY3c7jHTeQrw2GdCWfk4vuhINA4gMnc702YXe2iGawrwmBuxnZV7pxuwzkhw2cd8ZUtjSeR4iwI8sjM7HbMrtxywebz38qGRWFsWS6U4XCnA48qEl6WuJ92AUgZG/TrVKhsPZ9tnawrwCObepZg8AR49t1Bse9YubfYhLroaUYAH7LRN7pqiUzEBXvvRY2tx9t3b723wOKprJrtl3E2gAA/WnQaLwKUAD74/IazoOcpZLuEyNr1zzYzZeN1Z7VfDyb6kPnPrHArwcJV+0YkzyN9kH9pHbkMBHtKszgqWGRY5A7JpnbBzCvBolKVoL4uzZ9/sNBrKMQV4NMFku9TaNteZtDDiQ08BHg/V5/GBpwCPhyHNJpZOAR7ZuliYW6+0bHh4nEx2aQ0XdnycemkycnIXB9oWzWoK8GDF02bej9TywJpWAas2KwudXRV3nd+QmdvczZLvDltLE3Z7l+PzbEwBHjLgG2m2oAAPbCzXyoECPMxKkdT8sEx0RtGnCTdyYruL1+IKbgsK8OjSM3NKVhTgIUwnAmoa7dIJeHO71CwFeKw2guOdCgrwWDSj7GHh8NoxqnY/jMcU4MFszrw+LZmwYpLVpBVXD9u1pW06s7mOAjxaB3ZWnRcLQxmH+FJ6OxI/4uZhnFciBXg4cQsqpFOAR9jMBSE5SHsbV7yongcK8MDstFqoSjgH2m4b5PfFdHy0+SjRuYm+spZs17VjZk8BHtrmLIW3SyeH9oM5CelKpQCPFIhwuuhdBWgdiE2+APrZFs/jtc6YFOChV9fqclgWi1qVL3AR8sxm7Swxm+PbkgI8FsH4futvWyNWJA0cYEMBHrY08vq4owCPYZ88vCLYqYb6MMpq4VbztTO98WaKHxTgEUVXqW0HVhzYVeisjNkeuL0ujBa7WKoaj+Ua1IUDsx0DXWd9S80owEN+dGJechTgsTKH3Wokzy6VNNXTfHqYUIDH4X5poUIBHmtTdx6ZGE2BcvD3wrneu9gGsj6FzcmUYlZ2Vctg/YZ1meacgitSxoUtzYKUGd1g17PA34VVbJ5LHSfSVhSYo4Bs9tDzrLVupAu7JjmsFOIInZjRbqEawxPgYRXBJccU4DF/GN38LDLEf0MudljVhh2JP282hhMK8GA4cbFpJ6veRcuLVAhONdPsuzVxsTtQgMckmMXWqqEAj8aDM0ub16EzQba23j4owMNej81mb82If+ZhZm+0vD46aqCmIuIpwIOxT+ry4TSljs6Pm9Q/AR74vlieo5VwCFkp2uIx2FtqrCFWyupjNF/1M241n1RzCvBgmgm/0yjAQx/j4z3C0Fj3Bpx3/n5NAR7cwLeinN5Gvq4ZMrsOwF7uQHuMR1UUXi1l5HmL8XKUO7HWYc92WCMdO5NcthbW6XqzlOkR7E7uIpnP1fqBLgdrFtm9pSfCsTltbrpimmGkjeenqaGEu7TAxWWsOcaQ5u3YGt1VReL240mLPQXpoTiUmnBoBofk+O7qXbdxoGhddKgEDjMy6o5z2dCv995ZblGUoQmKWGU6yaaPRUIBHpduk7jmpZz0djTmzuVoKmQKuwfKPDvmB1/NJzvPNxwV9hP+jHF29HhTqcKxDMRsE841jz9AdbbD197ep95Jb0vzppw7Iz1l6uPga0pyC7WHDDRnzHTZduQt9zOlTothhiuw95VLKW+1ur1mzmi0O7Mlh88Rexai5NouemejH7RTxU4Ff2zD5STwB8bmVEWueryf1u0OaAbKOb821HtvrUAXnG/s4aiM8tv2dPd4D2gLUcSDj5djZ2QZlWYoadoog23VxYUvrrG+FJzUHZv3yplZmTRrH+f8qHjzaAXHqk/ubyVLytzivuwtpeJHt2s/apQMlXghLXcHQ88yo2+Tem30i425lZehDFzFV/tCcoNiNdeYct5NVH/OOlMz4+eyQAEepV4gS1xW4UbZmljvAjBVHMO3cma03Iuqgqv4OvhH6WKop1xbyuJxrTh2E+dyea0OqgI6fHY36TZCejLZVtDdq5vetmzfZLDsHpWr6hYqUML9RhUeRcKK2+u216qo7E76LLeUw5gRmlmhWbGuNOssTMs+6BfaxmEnAA6Z4o8MHvGXYlVrhyEqWWUU2G+Ax9ve9ra3ve1tb3vb2972tre97W1ve9t/pFGAxz/80vXv/sr0b750LUIgQIwlXhZkIOJvv3ovSOR2AIFIWSAk+E9+6Zr/7ZeuBfql6+ZahfU1T4LXJ4LgM/j0QQlDXsQRAAg8J0OeTIXnkCSKgvjpB5e5z4CXEZY5QSZXRQmgJ/8J7RB9FmVeoB6RsCRImLwBv3vxT9QZPyQugYIs8hBiXoL/BcwlHBQQGQBJiCxD4inFBy8KWCZ+EmQJyNJvvuMvIUGSkIyF7xEF/Av9ISiLpJkk/b+xlvwLnCIcBpgHMs8JvIQ5XsB0d0mcQBnifw9ryW9GkBEQJVHguB+yBryIMchAPAbEg2SUT7+9KPxO1hJB4AUgUZoNUeJ5hMnu8BBDTpYgkElWSpwofkuTQLKUpz9k9r+PtOQbVo8naYn8GXE/c5YgTsb8t6QlVy85/9spS76Zyb+FsoTS9oivLuHvoSwRAP8k8hAxIAEk81iQiPd/63YAecq/wyMBkdz5Xo6RgCLBRGYhiJyABXIHJ3I8hxEUOAkhIKBvO/2JQ0gmtZfcB0muUXIMTNqRHfkuRcfvT2KeMqggWgIFyAtQpNwogBPlf5W15N/nLJESE5G6LSMRIshJEkZkLeSA+Q0fE3ElWSCGSCLb/KxG/3Jn/JMshyNnGSJ79DvpS/7BOcjRuiOQtBVIIpNI/P30JYIIBTJpjhQiSEP5B4VIoHPnKUuKCPlXGfrmkvxD+pLJ8nas7MpPdMZQ+C57olvk2DzK1ZO+JDb7obw0lL5kXSH3caiFzsY36273AkW3ZI04xddFObmxMAEHxqT0JT1TFUu3Xy/W7GSEH8Z8hWcDHgfs+HQ6F0mHlbrKvfA6r9ngwVkPN2v0galb9jrI+4vfUfKCsDQofUnprpx5thx7A74m3Dk6sVxrPyYnVFpsLCI245xQEK34orMhXzio4NemzS00fuXcKLplZq7LdnNzuoG1/Lyb7Td8ZctzOPf7mqJbpA5shBxT+pJgpQtIDSTWFrI1d+TxzqvZQtN4d+HG5P5Lpc4YmDCVzeyAII6nFN1yn1Q3Yz495ic2Yj1h4svt0pblu7OLuNnJYatymEbCWXAqlu2vk3pE6UtYw7EEC1L6En0cSvuZEkQubo1twnc6v7bFypzsRwylL0FBcZkVI0pfwgWg8IZG9uwaLIzVHlB0y3kZLvtFKPM3ceY+dCHYlKC7A65pd/kN58z1PJy7+4Hcz/KjMe5WSeXZ+dqRl6fwnu/YqFnxwySk9CX9WuiOE70RbLh6uHvWmhH/3WasuzntoVchg8+XI8ZLLVvaXHQhbi33wi432oiPG0pfYi/m93byRLe4CWqFkTo9sLGWhYxcFYXOqoGhDou5dLOH/QPNNw9KX+JxU3g8edvcRWU9v5+axnQ6PugngR4duZr1TsENXPplorOidPfJ7ueNXVZAt/YwknI2Hk9cvVcpumXWuYezibVL9zhX0TU9WOWYXeyiy+GyougWR57Y2wOlL+EVloulx0yasnvrcZpNKH0Jk0bHcz2n9CV814jLpSTiCYvMm3I4zim6xWNZrcrGJH7YA8MIM4T9nGVw2HQCWfNcjfbT2brLy73NlvESLXcU3ZI55PhezoM50NJuNymvlL6EE9vHAm4ofckCZmv5/qQvEQbGGeedENpwjILdyKLolmD8WIsuoPQll1Ar1pjSl3CHdTeT3Ce6JS3ulzii6BZcgGq2ZQ5rx1os55f+5vcr5TBnrenE3RqxJq2XW15LN4Yz6pWrLxUU3dIZ9roOG4pukZjxjnnMKH1JpMsyO6bolnZ3ECTmxIoDdmy3FYDQu70yu3awupbYY2PZ2fbOejsGSnsds3Ov0x4dDFc3Tz1TdEs/uGttm1F0Sx+4YmRQdIssg3G8k1cdYPnuuB57cTQFujg7V8o0M7HNL1bWpPFY78IWI/sU7A8l6zIuYxe+0Wq5LRZC4tuF2PWsuYjk8JDiUke633v767FCNlOGpqVrCbk/iBb3PplQ+pJNHPtxZSHH0QVBHIWn1XnDHrpbZdU1pS/R664r749u1w1jG4ddQtEtN787So3i9C4aHHciFLKs2Vy5yUweUHSLbzaLxG+MiaEcAns69eZ56Bgs9PHJ0a6cclzdk+NCnY6B2pyv0fIo5kdnuvWNUniow02xbguA5L4odWZTXLWpXroiqb+jptrp3SFk5Zuugn1mqbFe8YK+Wq2dVT+yTpusk9heVjaqhKMqnhi+hpaaubkUFN2SpSuhOVB0yypTTfH2RLcsTHabPHhbs9l2E6XcMl5ZynK2W6H9ldKXLO9iEesgHTsmMNlZMW7upiIteKvfONx8o8kH/yadT57dLydmL4YipS9Z645zneJ+6pOllrl5dcaaM22Dgp8WUxux6L7JDumU0pfovsIdHodkcJY5XGxXGqUvuSmzhmOGC3NCThQr8URNekdZ78vRVRIerJJX19j073tKX5Jj4bal9CVGAfzpoGzNTJE0Ll1g3z/46py/Bk3/SGA/jirIn+Zmaipup2Ukw5lwrlUX67iu1+q1n3VdhsdLSl8iIGWkTCh9iZLVYjEzuwmZv356bIsdpS8ZWo67o6m/r/XEvbn3ebjNnCnYd8frMLvslYk0jODmKjsbRdWblctqZ7eL1/GINzxKX8JuxNm4vdx3QJt1VZAMw+rej+9wujwplL6kZdi7s2VtDyje9hHkJ78cO1O42daMXqeNclOn01hbX66xzsDzVuCOi8rRmL08rVJKX9LafLYfbQcP6LzbLfYphMveqCPWmYP7tlFipRzUPrgfDKU4XlYD9tdGP7kftmm/ovQlgsoEMT5nm7kmnR4jdj1sZMd8OPvhHlN0i2tn1pphrXCjb63InHuapDhqJB6lQ0/pSww+mjdFkl4MbTlPNqMi1xTHXGZlOdpT+hJlVk/FYXeNkHK+rgozApS+pFQ6dr+qVjcFZqBj1yXcIDU/bKNMz5JtP+X2alcPlL6kCxZpsYGzcK5mB3W9bfdX2M/CjZ1twmJfKUU8Sty94IRId5tz7nFd8aYvedvb3va2t73tbW9729ve9ra3ve1tb/vPtN9PXyIinn4OiDkeAoQB/6YvedOXvF/f9CVv+pL3638LfYn4GYqIAwiJQOIxlJ48JZ9+gp8hlkWRIr1EiCRMkYj479KX8BTPhoAoSDwgJ9bXqxwUJUkUZdI1D8Xv05f8Sp9mK0vCS5+md+c/69Ng86JYF0pfghfx7qs+zcC7+ld9mkOyN06LIwV4ZFaAjwGlL5HSg/F46dMETsoeR5S+hM2n9UTrKcCD3dnl/KVPsyvOq7TJOn1ADW6Eh7SP/a7Xpsv+pU/Dwnjj3qg+DaqG9Uh96tPIM23lNU99mmMylV76NKguzreXPg1nW13y0qe5y2r50qfBt2Yqf9Wn6U+D+NKnUYvcfOnTMJO7ZL30aeRUv4CXPs0uzhZf9Wm8BR+89GnuTv34qk9z61ftS58GuXoyjp76NH021v2XPs3S6tZlR/VpGH8XmC99Gjz151AGFOAhcNr+pU+DuJsXvPRpmG75sz4NYmbCS5+GQflgPcDlfLK7aZisX/o0+lr1HlIX8zc5rMDipU9zv1uKERhUn+ZSjdYvfRpc1Xpq55OZZyerXWu+9GmWLS+99GkQvLe7lz4Nd50sv+rTgEU3ZPFJ8ioMe3W3e+rTPLL1aKk3VJ/GjFf9S58GXR9H5aVPg/DY1F76NExwjV76NKxU8uxLnwb2qflVn0aOJ+Cxpfo02ODq/KVPI17T0TifUvqS+qId49FTnyZMt/Ld73OxSzQLuy99mu1e2y1dqk+Dp/cgAk99mjuv6RV46tNkFueNTEgBHtN+vts+9WkeZSarnELpS0iW1GBO6UvQ4PogeOrTPHJfP/ZPfRpVTTR4ovo0asD7s0WXkvjh9uroBnhKXwJu3qXxqD6NtpyO0vyaP/Z2XzXq8aQ+6UsK+fHSp9Gcw84ikT0+2jDRNCabUoDHfgRXmKMAD2VzyXKwtOXQvsvw2GGdAjwMnErH8qlPc+wYZfXUp2GUfcCnT32a0+po8TuqT6OHk+m5eurTmCTqZ11J6UvajZpxt6c+jWhqk/CpT7PsxPySHCjAI7yE3eb01KcBnLE0n/o0xqrNt9FTn0bU9uojpPo0TNzem/qpT6OcGWZm9VSfJtftraRRfRqtXzZ2H521Rwe8XbnUnvo02LY5NaL6NHLlLrfpU58GpYOzRU99mskIlqJI9WnUnGdM7alPwyrSwxXD0TRmSezzE5/q06BbLe42XeflNtBK5ho/9Wk0HGfNfdiUOt6oyfr41KcZ7GizPchUnwZLi6U8ofo0rNZfh9tTn0axay/ZPPVpLlytzVqqT6MoUZmc2XW368DFSNVQe+rTLNpHleer3sUjuJzZB/mkkfoAypP51KeJrt6o7Kk+jZILqzt46tNMcrjP5k99mtUaXCud6tPoI67eCk99mmmSwmX/1KeR2yJLrb4sdbbeyFanU/oSec1YuXt8HELWPBdR/dKngeztkjfr+aqfxGtj3vSUvmR84tiou0wMX5+BXZvfqT7NfM90kXamAI/1qbS3B6pPo3ZsfXdOt07u+HaIKHSXlAno10Y1P+ZOrK/PvJeNQDl2Rrl/PrTu+WYpkxIMoyk8zuc6Srdx4lL6EuPYiJN4uRp0ZR+fwssmnk4NtbN5MR2oPs3CjtRFG4xUVXHOLceplqcgbS5c4FwWKX3JRLllwY7Sl6jKRO8OEDIyMwzGxcfXpndMYGdAUtGaVYbJ1rrx1mE0V9LxRqmWTjnplb3XGUFJ6Uu0RDZvEaUv0SbydEgxi8Vec+/61JtS+pI8bxZjYbYJ5+r01h6RkMJrP7+y8/P+QOlLqjMDxpr1OPh6wHbtJqsQmX+QXE+LktKXGNFpvHrcuL2vXi+jeCOH18yZpBvUmTf2HLHtI1Z2bUDpSy7bug/cXT625UxkdxfFGanKKFnJ8tRpd0Bdn6YRIHF+7/U1ngVOyOZHpXFhirL04QH9EM35tmpI5Z2tuUs5SpO0UZaV3043KaUvyY7aNbvsr5VjTn1xIreUvuSYBupx3hw8oGQhiB9LeF/2quLv3d2h3zZKet1qq5O0Oxgq2hr5vaP6NLoGpElmSxtXsbvGX3tqs5rrjNiEo3FtsM4ssZjUPlOAh+cxh1GzpvQlejG/8Od4qjhmfwiMZk3pS4yZnxzmgXQxNMnxFliAa/K+wnKnqU/pS/bmFDbjB6UvWQ5yb43446YfVz647xyoHxXNnpTmSVnsNwroj6C9cddtPyvP+u7uzieWkmtnkvAyYxnqBTdN793zS0/OHse/AnLYKmB+Pi2kkbSqlX5S3Ocb7/qmL3nb2972tre97W1ve9vb3va2t73tbW/7z7R/ir7kP+xL1/+IvkQSBRFzvEhVCQD3opD4zlX+M4CQ8kpwIuIkjOEv3CXP9uSSKGDEUc4AjGVJ/MHlP714O35LQtJEWdumX1k82ir8+MPrU88Pv2i/1CFpETyZFTheJh6j377/ytbw6ePsRcnzjqxNEvInef1yyoPHl7L1kugc+R79Nv0vHaZ5mz3H/vr3V4qIX40BAC9CEch0JB7LvCgIX3eI9PVXSogmIlt6+dJHzTX6hWTltaC/Nm6z5zf5/zM5SXhOkimHDkYYQAwB9QqGPCCxBX83JwkUOIHjEPUt4mlkfuukPgqa68tLfztzjhI3kE2XSKdktYJEZsRBGQHKNoE4/luKCe5JW0KcgzgkUu9InMwhkhuIUlj8aNyfFyF/xiIiKxRkBEUB8fDFP1L71zD1fqYa+Xxusyebipf8RGPtM0kur/0p7Ehg/JTkpPNoeIbd544js6vztvLDL1Xoh1HRfKmvHvX3Hz5gcApC7nSGEJ8knswWyZ7Ic3TOMCTeD7AvSjwOQrJVsiTwJ8/jgS9xZwlyviycPr5+ZP8ixiCjJuQ3Dn96/fpiJCER/cywLqwuf0254MlUInzGQPqZbAUQr73W+m1GPelNSBmJArL2512CTD/zhwKWJAESD3H8p4+ooTtA1vyajXcmf/+w8Sk853QEGhwiyTAgcDQoIc+Jnz6SKAu/BFEX1a/eAI01etGrvtR50v283m/rSBBVL8qj1/thUUcJzXw6CMkWUrsEGjOkupFFRlkQ3p/OycJ78yXLq/SV/KQdInsgi4jqtXBkyi/YX+SToX7lBvxZpKwelPxEJqWeE54l8aPyMlJcOZqA/9QEuO9MQAZIoEQ8NMgRzwvfnwD3WSIFlsciaQFoxYcvfOFrBvw/mIEk/TIF/rdTIMWaw6Q4IIQgcQH+0QygLIvkpKETIYcF9QHd3dcMBLptURY1lMbll75J2pLSBUmCCZIsk0nE1SPJuy8kNcgWX8ht/O8b7K9tmzwhIZj5IW3MkbgjRRIhSgkD8VM6jk6o9mjUBF/RlqQG+Fcvu/zqQPi5ATmGzh7J2qbyKCCGzP6PwmcSpAI5CUkdFWlBkp8J831mrxee5m8pgf6WZeh/lkbsR+XieeH79eIH3Ez/sF5IQCDPPDxPDlUoCFAkG8f9uGB8v/WvKgbJTEwesUhhJ88psgz/yyoGQKQgQfLAR4qj+PdKBk8cK2FStnnySIfIo8P3Q1j4LOPnWU0WCBAncs8d+nsl4/sz+E7NIE9+MjnOkSiS4xxyP0ohHpPDkKeDk+HJcx6ZAPq7FePXE/g7BYNkNHnyJNWKPNiScgF+kMP8Z8hL5LEQQAGQZwqSzK/N/TsFgzQmZzFJHXIqCuTxT/jnK8aPRvtuxeDJ4zM5qMhyycMFxpwo/jsqhvSZdEiefskTFHlUgQg9M+a7T9Pfqxd/SyH2P/zc3pMq8bfP4hIHAeWvIiVdFkRSy3vyfxrhlzR/kXh5df2Ll/7yfwGkrAY/",
+    "raw_bytes": 38395,
+    "raw_sha256": "c2e76c37b42817f6608d25a1c38245413b2a9fae7e48d089eef06149e02681dc"
+  },
+  "resource_limits": {
+    "address_space_bytes_per_process": 1073741824,
+    "affinity_cores": 2,
+    "aggregate_memory_enforced": false,
+    "cpu_seconds_per_process": 60,
+    "peak_rss_scope": "single process",
+    "wall_seconds_per_group": 90
+  },
+  "schema": "guala.functional-body.radau-event-localization.v1.receipt",
+  "source_sha256": {
+    "/tmp/a1-body-radau-event-localization-20260927.py": "3bde699005222bab323f0d8fa3899af8b2bdcee38b204e7101f97da076d1e429",
+    "/tmp/guala-body-coincident.f_yh3n0n/python/guala_body_interval.cpython-311-x86_64-linux-gnu.so": "13a29c323d79bf9a617209f9db9605dbc985d61fb4273ead87a9539df53e996b",
+    "/tmp/guala-body-midpoint.igj32n8c/build/lib/libmujoco.so.3.3.7": "de96a1766223905d26b1df0e68ce7bc97608cf2c6238acef8dcf8b344a3fd48f",
+    "/tmp/guala-body-radau-admission.as3w3bwe/python/guala_body_radau.cpython-311-x86_64-linux-gnu.so": "d5bfcb453693668e9a9829ab1f4d98c579cb034cc3ea237df4476f1031f205cf",
+    "/workspaces/guala-functional-body/native/functional_body/radau.pyx": "6e2857bf7fd1fdeeff3ab3e2289f1f98b6ee8873dea75b535cabb2ad9cd131d8"
+  },
+  "whole_motion_passed": false
+}
