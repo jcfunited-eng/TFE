@@ -863,7 +863,7 @@ def move_commands_toward(snapshot: Any, target: PositionMM, stop_mm: int) -> tup
     dist_map: dict[PositionMM, float] = {wp: float('inf') for wp in waypoints}
     dist_map[origin] = 0.0
     parent: dict[PositionMM, PositionMM] = {}
-    pq: list[tuple[float, int, PositionMM]] = [(0.0, id(origin), origin)]
+    pq: list[tuple[float, tuple[int, int, int], PositionMM]] = [(0.0, (origin.x, origin.y, origin.z), origin)]
     while pq:
         d, _, u = heapq.heappop(pq)
         if d > dist_map[u]:
@@ -874,7 +874,7 @@ def move_commands_toward(snapshot: Any, target: PositionMM, stop_mm: int) -> tup
             if d + edge_d < dist_map[v]:
                 dist_map[v] = d + edge_d
                 parent[v] = u
-                heapq.heappush(pq, (dist_map[v], id(v), v))
+                heapq.heappush(pq, (dist_map[v], (v.x, v.y, v.z), v))
 
     intermediate_target: PositionMM | None = None
     if goal in parent:
@@ -887,13 +887,13 @@ def move_commands_toward(snapshot: Any, target: PositionMM, stop_mm: int) -> tup
         if len(path) > 1:
             intermediate_target = path[1]
 
-    if intermediate_target is not None:
-        target_heading = _heading_toward(origin, intermediate_target)
-        attempt_headings = [target_heading]
-        for off in (15_000, -15_000, 30_000, -30_000):
-            attempt_headings.append((target_heading + off) % 360_000)
-    else:
-        attempt_headings = [(bearing + off) % 360_000 for off in (0, *SIDESTEP_MILLIDEGREES)]
+    if intermediate_target is None:
+        # No geometric route supports a stride. Do not invent alternating
+        # sidesteps toward an occupied or disconnected goal.
+        return ()
+    stride = min(STEP_MM, _distance_mm(origin, intermediate_target))
+    target_heading = _heading_toward(origin, intermediate_target)
+    attempt_headings = [target_heading]
 
     commands = []
     for heading in attempt_headings:
@@ -909,10 +909,62 @@ def move_commands_toward(snapshot: Any, target: PositionMM, stop_mm: int) -> tup
         if not collides:
             commands.append(MoveCommand(PoseMM(step, bearing), BEAT_MICROSECONDS))
 
-    if not commands:
-        commands.append(MoveCommand(PoseMM(origin, bearing), BEAT_MICROSECONDS))
-
     return tuple(commands)
+
+
+def _door_motor_commands(snapshot: Any, portal: Any, from_region: str) -> tuple[MoveCommand, ...]:
+    """Cross the physically free aperture, not an occupied centre waypoint.
+
+    Subtract the exact integer projections of swept collision discs from the
+    doorway aperture. This is actuator geometry only: it neither chooses a
+    destination room nor supplies a cognitive objective. No retained state.
+    """
+    body = _self_body(snapshot)
+    held = _object(snapshot, body.held_object_id) if body.held_object_id else None
+    radius = max(body.radius_mm, held.radius_mm if held is not None else 0)
+    lower, upper = portal.aperture_min_mm + radius, portal.aperture_max_mm - radius
+    if lower > upper:
+        return ()
+    obstacles = [(o.position, o.radius_mm) for o in snapshot.objects
+                 if o.position is not None and not _is_bed(o)]
+    for other in snapshot.bodies:
+        if other.body_id == body.body_id:
+            continue
+        carried = _object(snapshot, other.held_object_id) if other.held_object_id else None
+        obstacles.append((other.pose.position, max(other.radius_mm, carried.radius_mm if carried else 0)))
+    margin = max(DOOR_MARGIN_MM, radius)
+    segments = [(lower, upper)]
+    for pos, obstacle_radius in obstacles:
+        normal, along = (pos.x, pos.y) if portal.axis == "x" else (pos.y, pos.x)
+        normal_gap = max(0, abs(normal - portal.plane_mm) - margin)
+        square = (radius + obstacle_radius) ** 2 - normal_gap ** 2
+        if square <= 0:
+            continue
+        # World collision is strict (< radius squared); equality is tangent.
+        half = math.isqrt(square - 1)
+        blocked_lo, blocked_hi = along - half, along + half
+        remaining = []
+        for lo, hi in segments:
+            if blocked_hi < lo or blocked_lo > hi:
+                remaining.append((lo, hi))
+            else:
+                if lo < blocked_lo:
+                    remaining.append((lo, blocked_lo - 1))
+                if blocked_hi < hi:
+                    remaining.append((blocked_hi + 1, hi))
+        segments = remaining
+    centre = (portal.aperture_min_mm + portal.aperture_max_mm) // 2
+    along = body.pose.position.y if portal.axis == "x" else body.pose.position.x
+    crossings = sorted((min(max(along, lo), hi) for lo, hi in segments),
+                       key=lambda value: (abs(value - along), value))
+    for crossing in crossings:
+        before, past = _portal_points(portal, from_region, snapshot, crossing - centre, margin)
+        if body.pose.position == before:
+            return (MoveCommand(PoseMM(past, _heading_toward(before, past)), BEAT_MICROSECONDS),)
+        commands = move_commands_toward(snapshot, before, 0)
+        if commands:
+            return commands
+    return ()
 
 
 def door_crossing(snapshot: Any, portal: Any, from_region: str) -> tuple[PositionMM, PositionMM]:
@@ -1199,11 +1251,9 @@ def candidates(
                                 route = _portal_route(snapshot, here.region_id, food_reg.region_id)
                                 if route:
                                     first_portal = route[0]
-                                    before_door, _past = door_crossing(snapshot, first_portal, here.region_id)
-                                    if _distance_mm(position, before_door) <= ARRIVAL_MM + STEP_MM // 2:
-                                        conserved_food.append((dist, obj_id, f"through {first_portal.portal_id} toward {obj_id} (conserved)", door_crossing_commands(snapshot, first_portal, here.region_id)))
-                                    else:
-                                        conserved_food.append((dist, obj_id, f"toward {first_portal.portal_id} toward {obj_id} (conserved)", move_commands_toward(snapshot, before_door, 0)))
+                                    commands = _door_motor_commands(snapshot, first_portal, here.region_id)
+                                    if commands:
+                                        conserved_food.append((dist, obj_id, f"via {first_portal.portal_id} toward {obj_id} (conserved)", commands))
                                     continue
                             conserved_food.append((dist, obj_id, f"{obj_id} (conserved)", move_commands_toward(snapshot, pos, stop)))
             conserved_food.sort(key=lambda x: (x[0], x[1]))
@@ -1224,11 +1274,9 @@ def candidates(
                 route = _portal_route(snapshot, here.region_id, bed_reg.region_id)
                 if route:
                     first_portal = route[0]
-                    before_door, _past = door_crossing(snapshot, first_portal, here.region_id)
-                    if _distance_mm(position, before_door) <= ARRIVAL_MM + STEP_MM // 2:
-                        out.append(("toward_bed", "through " + first_portal.portal_id + " toward bed", door_crossing_commands(snapshot, first_portal, here.region_id), BED_ID, None))
-                    else:
-                        out.append(("toward_bed", "toward " + first_portal.portal_id + " toward bed", move_commands_toward(snapshot, before_door, 0), BED_ID, None))
+                    commands = _door_motor_commands(snapshot, first_portal, here.region_id)
+                    if commands:
+                        out.append(("toward_bed", "via " + first_portal.portal_id + " toward bed", commands, BED_ID, None))
                 else:
                     out.append(("toward_bed", "her bed (conserved)", move_commands_toward(snapshot, bed_pos, 0), BED_ID, None))
             else:
@@ -1265,11 +1313,9 @@ def candidates(
                 p_id, p_tick = last_crossed_portal
                 if portal.portal_id == p_id and (tick - p_tick) < 12:
                     continue
-            before_door, _past = door_crossing(snapshot, portal, here.region_id)
-            if _distance_mm(position, before_door) <= ARRIVAL_MM + STEP_MM // 2:
-                out.append(("toward_door", "through " + portal.portal_id, door_crossing_commands(snapshot, portal, here.region_id), portal.portal_id, None))
-            else:
-                out.append(("toward_door", portal.portal_id, move_commands_toward(snapshot, before_door, 0), portal.portal_id, None))
+            commands = _door_motor_commands(snapshot, portal, here.region_id)
+            if commands:
+                out.append(("toward_door", portal.portal_id, commands, portal.portal_id, None))
 
     # 8. Elementary motions, airway, rest
     if not in_high_chair:
@@ -1283,6 +1329,7 @@ def candidates(
         out.append(("say", say_detail, (), None, drive))
     out.append(("rest", "", (), None, None))
 
+    out = [option for option in out if option[0] not in MOVES or option[2]]
     assert len(out) <= MAX_CANDIDATES
     return out
 
