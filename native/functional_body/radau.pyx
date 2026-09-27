@@ -6,6 +6,7 @@ checks. No organism import, persistent solver state, controller or motor plan.
 The fixed diagnostic trace is returned to its offline caller only.
 """
 import base64
+import hashlib
 import math
 import time
 
@@ -363,4 +364,132 @@ class RadauProbe:
             receipt['raw_rollback_state'] = packed_numbers(restored)
             receipt['rollback_exact'] = bool(np.array_equal(restored,base))
             if not receipt['rollback_exact']: raise AssertionError('diagnostic rollback differs') from error
+            raise
+
+    def admit(self, e, stop, supply, nominal_dt, max_trials):
+        """Offline local-admission transaction; not production custody or global-error proof."""
+        m, d = e._model, e._data
+        start = float(d.time)
+        if not (math.isfinite(stop) and stop > start and math.isfinite(nominal_dt)
+                and 0 < nominal_dt <= e.limits.step_us/1e6):
+            raise ValueError('invalid bounded Radau admission interval')
+        if not math.isfinite(supply) or supply < 0:
+            raise ValueError('invalid work supply')
+        if type(max_trials) is not int or max_trials <= 0:
+            raise ValueError('positive admission trial allowance required')
+        initial, original_dt = interval._state(e), float(m.opt.timestep)
+        total, impulses = (0.,)*6, {}
+        report = dict(start_s=start, stop_s=stop, nominal_dt_s=nominal_dt,
+            max_trials=max_trials, trials=0, reused=0, accepted=[], rejected=[],
+            completed=False, rollback_exact=None, failure=None)
+        self.last_admission = report
+        maximum_depth = int(np.finfo(float).nmant)+1
+        refinable = {
+            'bounded matrix-free Krylov directions exhausted',
+            'coupled Radau residual failed to decrease',
+            'bounded coupled Radau iterations exhausted',
+            'captured coupled stage residual differs',
+        }
+
+        def trial(end, remaining):
+            if report['trials'] >= max_trials:
+                raise RuntimeError('bounded Radau admission trial allowance exhausted')
+            report['trials'] += 1
+            predecessor = interval._state(e)
+            begin = float(d.time)
+            report['attempt'] = dict(start_s=begin, end_s=end, supply_j=remaining,
+                predecessor=packed_numbers(predecessor))
+            value = self.step(e,end-begin,remaining)
+            return dict(begin=begin, end=end, supply=remaining,
+                        predecessor=predecessor, value=value)
+
+        try:
+            before = interval._snapshot(e)
+            while before['time'] < stop:
+                begin = before['time']
+                remaining_time = stop-begin
+                if remaining_time <= nominal_dt:
+                    target = stop
+                elif remaining_time <= 2*nominal_dt:
+                    target = begin+remaining_time/2
+                else:
+                    target = begin+nominal_dt
+                if target-begin > nominal_dt:
+                    target = math.nextafter(target,begin)
+                pending = [(target,0,None)]
+                while pending:
+                    target, depth, reused = pending.pop()
+                    begin, base = before['time'], before['state']
+                    dt = target-begin
+                    midpoint = begin+dt/2
+                    if not (math.isfinite(dt) and begin < midpoint < target):
+                        raise ValueError('no representable Radau admission subdivision')
+                    remaining = supply-total[0]
+                    coarse = left = right = None
+                    numeric_refusal = None
+                    try:
+                        if reused is None:
+                            coarse = trial(target,remaining)
+                            interval._restore(e,base,original_dt)
+                        else:
+                            base_bytes = base.astype('<f8',copy=False).tobytes()
+                            if (reused['begin'] != begin or reused['end'] != target
+                                    or reused['supply'] != remaining
+                                    or reused['predecessor'].astype('<f8',copy=False).tobytes() != base_bytes
+                                    or interval._state(e).astype('<f8',copy=False).tobytes() != base_bytes):
+                                raise AssertionError('Radau reused trial predecessor differs')
+                            coarse = reused
+                            report['reused'] += 1
+                        left = trial(midpoint,remaining)
+                        right = trial(target,remaining-left['value'][1][0])
+                    except ValueError as error:
+                        if str(error) not in refinable:
+                            raise
+                        numeric_refusal = str(error)
+                    accepted = False
+                    if numeric_refusal is None:
+                        c, l, r = coarse['value'],left['value'],right['value']
+                        work = interval._work_add(l[1],r[1])
+                        impulse = interval._impulse_add(l[2],r[2])
+                        domains = [before['domain']]
+                        for value in (c,l,r):
+                            domains.extend(stage['snapshot']['domain'] for stage in value[3])
+                            domains.append(value[0]['domain'])
+                        boundary_change = any(domain != domains[0] for domain in domains[1:])
+                        accepted = ((not boundary_change or max(midpoint-begin,target-midpoint) <= interval.EVENT_S)
+                            and interval._close(e,c[0],r[0],c[1],work,c[2],impulse,dt))
+                        if accepted:
+                            total = interval._work_add(total,work)
+                            impulses = interval._impulse_add(impulses,impulse)
+                            if total[0] > supply:
+                                raise ValueError('mechanical energy supply exhausted; no successor')
+                            for piece in (left,right):
+                                value = piece['value']
+                                report['accepted'].append(dict(start_s=piece['begin'],end_s=piece['end'],
+                                    predecessor_sha256=hashlib.sha256(piece['predecessor'].astype('<f8').tobytes()).hexdigest(),
+                                    state=packed_numbers(value[0]['state']),work=value[1],
+                                    available_work_j=piece['supply']))
+                            before = r[0]
+                            continue
+                    report['rejected'].append(dict(start_s=begin,end_s=target,
+                        numerical_refusal=numeric_refusal,local_accuracy_rejected=numeric_refusal is None))
+                    interval._restore(e,base,original_dt)
+                    if depth >= maximum_depth:
+                        raise ValueError('bounded Radau admission subdivision exhausted')
+                    pending.append((target,depth+1,None))
+                    pending.append((midpoint,depth+1,left))
+            if float(d.time) != stop:
+                raise ValueError('Radau admission endpoint clock differs')
+            m.opt.timestep = original_dt
+            self.forward(e)
+            e._check()
+            report.update(completed=True,work=total,remaining_supply_j=supply-total[0])
+            return interval._snapshot(e),total,impulses,report
+        except BaseException as error:
+            report['failure'] = repr(error)
+            interval._restore(e,initial,original_dt)
+            report['rollback_exact'] = (interval._state(e).astype('<f8',copy=False).tobytes()
+                                        == initial.astype('<f8',copy=False).tobytes())
+            if not report['rollback_exact']:
+                raise AssertionError('Radau admission rollback differs') from error
             raise

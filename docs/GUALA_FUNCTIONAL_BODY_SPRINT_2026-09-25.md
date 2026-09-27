@@ -10304,3 +10304,114 @@ Energy and call-budget refusals must restore the complete interval predecessor.
 If schedules collapse to identical grids, label agreement determinism evidence,
 not independent continuum convergence. Full common-genesis histories are still
 required afterward and cannot be reset at this saved boundary for that claim.
+
+
+### FB-01aj local Radau admission implemented; focused proof contract — 2026-09-27
+
+The single numerical correction is now implemented, still unmounted, in
+RadauProbe.admit. Existing stage equations, physical force law, solref, channel
+accuracy limits and interval._close are unchanged. One step is compared with
+two halves; only accepted fine state/work/impulses are retained. Captured
+stage/endpoint domain changes require <=1us fine pieces. Rejected numerical
+trials restore their predecessor; whole-interval refusal restores the exact
+initial integration state and model timestep. Left coarse-result reuse checks
+exact predecessor/time bounds/supply. The right branch is recomputed after
+accepted left changes. Native-force and proposal limits refuse, never invent
+motion. Diagnostic state is bounded by the caller proposal budget and is not
+organism memory, persistence custody or motor decision authority.
+
+Frozen source SHA71949bc22e571e282cc757ad6c7ef356f715709b5f6ed0270f471cfb8ee3e4b4.
+Focused proof /tmp/a1-body-radau-admission-proof-20260927.py SHA
+ a1551c9128396a9ba5a2e578064d07d20114236c5b859120833b4c282c532894:
+- Authenticate retained attribution evidence; unchanged _close must reject
+  both archived100us step errors. No predecessor fabrication or earlier replay.
+- Both authenticated19.1ms inputs, nominal100/50us; report actual accepted
+  grids and every rejection. Compare all existing physical channel groups.
+- Exact repeat; uninterrupted versus raw restored next interval. This is raw
+  scratch continuation, explicitly NOT runtime cold restart or new-law custody.
+- Zero work supply, proposal budget1 and force budget1 must refuse with exact
+  whole-state/timestep rollback. Include all setup/restore forwards in counts.
+Proposal allowance162 derives from3 trials per binary representability level;
+it is an offline diagnostic bound, not a physiological coefficient. Maximum
+refinement depth53; unrepresentable subdivision refuses. The unchanged outer
+operational envelope caps each process60sCPU/1GiBAS, whole group90swall,2cores;
+aggregateCPU is checked postrun and aggregate memory is NOT claimed enforced.
+One build and this proof only, with read-only AWS pre/post and exact child
+process cleanup; no broad suites, production changes, push or Slack.
+
+A source replacement preflight rejected an expected hash that included one
+extra trailing newline removed by apply_patch. No wrong source was changed.
+The guard now authenticates actual on-disk bytes. An unmatched lowercase
+sprint glob returned an absent-pattern error during a read; the exact known
+sprint path is now used. Neither failed read/guard executed a physical model.
+
+Exit is local numerical admission evidence only. Identical accepted grids are
+determinism, not independent continuum convergence. Whole common-genesis
+motion, gravity/world mounting, runtime restart, performance and live delivery
+remain open. Rejected trials do not consume chemical reserves or heat, and no
+cognitive/body custody law is modified by this scratch numerical transaction.
+
+
+Source-only independent review found two LOCALIZED issues, no architecture
+finding. One correction batch: exact canonical<f8 bytes replace numeric array
+equality in new admission predecessor/rollback guards (signed zero matters);
+raw-continuation results are recorded incrementally before each attempt so a
+later failure cannot erase completed evidence. No equations or scope changed.
+Final source SHA6e2857bf7fd1fdeeff3ab3e2289f1f98b6ee8873dea75b535cabb2ad9cd131d8;
+proof SHAec8ee86ec12f9560a4282a4af5139bdad9df2bb5d8b16e44c95a861a7901362b.
+No compile/model execution has occurred during source review or this batch.
+
+
+### FB-01aj local Radau admission proof passes — 2026-09-27 06:48Z
+
+PROGRESS: reviewed generic local-admission correction implemented and compiled;
+no runtime mounting, changed force law, relaxed tolerance or cognitive change.
+Final frozen candidate09bc36832824167c44a5f2026a50e1b2de585bd3fb735d3d97b168895e808449
+passed independent confirmation of the two localized source/evidence fixes.
+One build and one focused execution, not a broad regression replay.
+
+Receipt docs/evidence/FB-01aj-radau-admission-proof.json SHA256
+0868ef58ef81aa32a5b1728f25ec73e0a8f423006d9572ef065c42070dd3b4ce
+retains exact source, runner, compiled artifact identity and complete raw proof.
+Artifact /tmp/guala-body-radau-admission.as3w3bwe/python/guala_body_radau.cpython-311-x86_64-linux-gnu.so
+SHAd5bfcb453693668e9a9829ab1f4d98c579cb034cc3ea237df4476f1031f205cf.
+
+Both archived unadmitted100us successors fail unchanged _close as required.
+For each retained19.1ms predecessor, nominal100us rejects once, uses8trials
+with1exact left reuse, and accepts4pieces of25us. Nominal50us uses6trials,
+no rejection, and accepts the identical4piece grid. Same-history successors,
+feedback and work are exactly identical. This is deterministic local admission,
+NOT independent continuum convergence. Cross-history right-foot discrepancy is
+6.431040216404763e-6m/s2 against0.061863406302141315m/s2 allowance (largest
+ratio0.00010395548). All ratified measured groups pass; intrinsic couple impulse
+remains explicitly UNQUALIFIED. No global accuracy claim.
+
+Fresh repeated admission is exact. A genuinely uninterrupted accepted engine
+and separate raw-state-restored engine produce identical next100us successors;
+both use8trials/4accepted pieces/1rejection. This proves raw scratch continuity,
+NOT production cold restart or permission to reuse predecessor custody headers.
+Zero work supply, proposal budget1 and force budget1 each refuse and restore
+whole integration-state bytes and model timestep exactly. Rejected trial work
+is excluded; no chemical reserve or heat debit occurs in this offline probe.
+
+2541probe forwards+52setup/restore/etc=2593total. Native-forward0.163277s;
+physical proof0.404503swall/0.407960sCPU. Whole child1.097423swall,
+1.093962saggregateCPU,154192KiB peakRSS. Build13.453681swall/13.430899s
+aggregateCPU,357976KiB maximum single-processRSS. No aggregate-memory claim.
+Session94851/build90637/proof90691 terminal; exact host census91007 confirms
+no children/orphans remain. A result-display command printed all per-channel
+metrics and was output-truncated; compact field selection corrected that read.
+No model was rerun and the complete authenticated receipt was unaffected.
+
+Read-only AWS06:47:35->06:47:52Z: same sole1559task/image/organismidentity,
+counts1/1/0,ticks2558277->2558318,checkpoint/cleanupnull,durabilityfalse.
+CPU51.3604percent,RAM3.0762percent; existingclock-stalledALARM persists,
+other4OK. No production writes, push, Slack or G1-source changes.
+
+Close only the measured absent local numerical-admission seam. Single next
+item: exercise this same compiled admission across the original uninterrupted
+common-genesis loaded/released trajectory and compare accumulated physical
+outputs/cost, without resetting earlier history at19.1ms. Preserve exact first
+failure and accepted prefixes. No rebuild unless a new source defect demands
+it; no reopening the completed saved-state proof. Full-body gravity/world
+integration/runtime restart/resource qualification and production stay open.
