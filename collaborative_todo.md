@@ -25657,3 +25657,31 @@ Review/handoff notification checked:
    - Command: `cargo test` in `native/guala_core`
    - Result: `test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.51s`
    - Coupled synapse tests: 4 passed; 0 failed; 0 measured in 0.00s.
+
+## G1 TO A1, JOE, AND C1 — 2026-09-27 18:15Z — Stage P1-C Multi-Channel Receptor Mounting and C19 Frame Observability Verified
+
+1. **Stage P1-C Deliverable Complete**:
+   Implemented the unmounted multi-channel sensory-efferent frame and observability harness strictly adhering to §4, §9, and §10 of [GUALA_P0_LOCAL_LEARNING_A1_CORRECTED_2026-09-27.md](docs/GUALA_P0_LOCAL_LEARNING_A1_CORRECTED_2026-09-27.md).
+   - New source: `native/guala_core/src/frame_observability.rs` (SHA-256: `ad2303774430b09f0514a4ecda73cc1d57fb415dbf8e04109b4a00b947725e5e`)
+   - Module declaration: `native/guala_core/src/lib.rs` (SHA-256: `f868ef4f58b5d512d849862a25cb2a170ceb4c2d8620cac44555520aa9ce2e93`)
+   - Scope: unmounted frame-invariance and observability verification harness; zero production dependency, zero import into live decision loops, zero changes to canonical L0–L4 kernel.
+
+2. **Mandatory Architecture Honesty**:
+   - Requested: Rigid body kinematic frame composition World (W) -> Body (B) -> Neck (H) -> Eye (E); sensory receptor simulation for retinal bearing angle, apparent angular size, and proprioceptive joint rotation; C19 frame-invariance validation strictly separating observer rotation from target displacement; A1 observability controls proving zero bearing residual does not imply stationary object; honest missing evidence returning `Unavailable` rather than false zero readings.
+   - Current reality: Frame observability harness implemented and verified natively under `native/guala_core`. All 25 tests passing (10 existing signal kernels + 6 constitutive + 4 coupled synapse + 5 frame observability checks). Decision authority and live functional organism remain untouched.
+   - Conflict: NO.
+   - Mechanism/files not extended: No leaking of hidden world coordinates into cognition, no arbitrary similarity tolerance, no equating zero bearing residual to no object motion, no converting missing evidence to zero. Canonical L0–L4 kernel is untouched.
+   - Evaluation level: Exact SI unit-bearing physical state (m, rad). Full physical evaluation; zero scalar proxies.
+   - Single exact next item: Complete Stage P1 milestone summary and handoff for A1 independent review before opening Stage P2.
+
+3. **Frame Invariance & Observability Evidence (§9 & §10 C19 Matrix)**:
+   - **C19 Self-Rotation Invariance:** Observer turns +60,000 mdeg (+60 deg) in place with stationary world target. Retinal shift `Delta beta = -60 deg`; proprioception `Delta theta = +60 deg`. Compensated relational bearing residual `|epsilon_bearing| < 1e-12 rad`. Observer rotation is fully compensated by self-motion without leaking world coordinates.
+   - **C19 Environmental Target Displacement:** Observer stationary; target translates +20 deg along world arc. Proprioception `Delta theta = 0`; retinal shift `Delta beta = +20 deg`. Compensated bearing residual `epsilon_bearing = +20 deg != 0`, proving external motion is unambiguously detected.
+   - **Observability Control 1 (In-Place Target Rotation):** Target rotates 60 deg in place without translating. Compensated bearing residual `epsilon_bearing == 0`, but perceived surface aspect changes by exactly +60 deg (`|Delta aspect - 60 deg| < 1e-12`). Fulfills §9 finding: zero bearing residual != object stationary.
+   - **Observability Control 2 (Radial Translation along Viewing Ray):** Target moves from 4.0 m to 2.0 m directly along viewing ray. Compensated bearing residual `epsilon_bearing == 0`, but subtended apparent angular size doubles (`size ratio ~ 2.0`). Fulfills §9 finding: zero bearing residual != no object motion.
+   - **Observability Control 3 (Missing Evidence / FOV Limit):** Target outside optical cone (bearing 90 deg > half-FOV 50 deg) returns `SensedValue::Unavailable`, strictly fulfilling §4: missing information is never converted to a numeric zero reading.
+
+4. **Test Command & Receipt**:
+   - Command: `cargo test` in `native/guala_core`
+   - Result: `test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.29s`
+   - Frame observability tests: 5 passed; 0 failed; 0 measured in 0.00s.
