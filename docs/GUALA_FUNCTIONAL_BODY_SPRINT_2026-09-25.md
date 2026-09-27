@@ -10889,3 +10889,98 @@ trials as diagnostic, not admitted body successors. If needed, inspect actual
 contact normals/features on those same stages rather than inventing smoothing.
 No change to physics or acceptance until this exact cause is established.
 No push,Slack,production,cognition,food or caretaker changes. Goal ACTIVE.
+
+### FB-01aj saved-contact attribution contract — 2026-09-27
+
+Continue the single impulse-accuracy failure preserved in f556e8773. Requested:
+bounded mechanics with truthful contact impulse and feedback. Current reality:
+26ms paired histories disagree14.29648 times the existing impulse allowance.
+Conflict: YES with claiming mechanically qualified delivery. No extension of
+physical softness, selection/cognition, acceptance tolerances or production.
+Single next item: identify whether the saved contact discrepancy comes from
+numerical subdivision or inherited-state sensitivity. Body-only numerical
+diagnosis; no DSF projection or full-field cognitive claim.
+
+From the two authenticated25.95ms predecessors, replay both original accepted
+tails (coarse two25us pieces; half four6.25us and two12.5us pieces) with their
+recorded budgets. Require each raw successor, work receipt and final observation
+to reproduce exactly before interpreting a numerical comparison. This uses
+actual physical input, not invented contact state. For each same predecessor,
+also use1/2/4/8/16 dyadic pieces over the same remaining50us; reuse the coarse
+two-piece control as that grid result. At most68 primitive proposals. These
+fixed grids are diagnostic and are NOT ordinary admitted physical successors.
+
+Keep actual Radau contact-stage impulses, world contact positions, normals,
+local wrenches, dimensions and constraint addresses. Observation reads existing
+stage data and adds no force evaluation or body mutation. Retain raw state/work
+before optional sensory inspection. Any failed grid/refusal remains in evidence;
+never replace it with a fallback. Restore each copied predecessor exactly after
+each schedule. No state reaches production or the organism's memory.
+
+Compare same-history grid errors and cross-history16-piece results. Decompose
+the original impulse difference into retained prior-impulse difference, each
+history's tail discretization effect, and remaining inherited-state difference
+at the common fine grid. Report arithmetic closure without treating a numerical
+decomposition as a physical explanation beyond what those comparisons prove.
+
+Use the same compiled solver/library,68*(5+32*2*16) forward ceiling plus60 outside
+calls, and existing2core/60CPU/1GiBAS-per-process/90wall limits. Read-only AWS
+pre/post and exact child cleanup required. Independent frozen source-only review
+before this one no-build run. No26ms replay, full suite, push or Slack.
+
+Independent source review found one evidence-only gap: contact position/frame/
+distance and derived impulse comparisons were not explicitly checked finite
+before recording. Correct those fields, impulse paths, differences, norms,
+allowances and ratios before execution. Negative impulse paths and nonpositive
+allowances refuse. No solver, motion, tolerance or run-budget change. Freeze and
+obtain final source confirmation on this one localized correction batch.
+
+### FB-01aj saved-contact attribution result — 2026-09-27 08:28Z
+
+Final independent source review PASS after the single evidence-finiteness
+correction. Candidate freeze c71ce5be069bddb6d9508df01a400af76d787c7fa547ce4c0ce88af8b126a2c1.
+Proof SHA256 f72605b7765f6ecdce7451a0844e7d85308e2630262d5bf18a7652df3728af4b;
+runner e150406906f94f7f56efbf1c2ea95e84d6fbd3f117c9af615756bdd3417d4bd2.
+One run only, no build. Both original schedules reproduced each saved raw state,
+work receipt and final observation exactly. All11 schedules returned; all copied
+predecessors/timesteps restored exactly. Fixed grids remain diagnostic only.
+
+The dominant discrepancy is numerical subdivision, not inherited state. On the
+same coarse predecessor the original two25us pieces differ from16 pieces by
+2.8956277877775987e-5 N*s. On both predecessors,1/2-piece results fail the existing
+impulse allowance by14.6-14.8 times;4-piece results pass at ratios0.12744/0.14448;
+8-piece results differ from16 by1.7056e-9 N*s (ratio0.000862). Fine-grid inherited
+state difference is8.122629416848512e-8 N*s, versus the original2.9074546504203697e-5.
+Prior impulse difference3.8881974799456703e-8 and half-tail grid effect4.676826828993062e-9
+complete the vector decomposition with zero recorded arithmetic residual.
+These are measured numerical comparisons, NOT a continuum error certificate.
+
+Source inspection shows admission already compares all sampled stage domains.
+Every schedule has one unchanged sampled domain, while early contact wrench
+variation is resolved differently on finer grids. Thus merely extending a
+contact-domain label or loosening its timing gate is not the correction. The
+one-versus-two local integration check can agree spuriously on this transient.
+No contact smoothing, physical retuning or blanket fixed-timestep reduction.
+
+Single next item: correct this numerical admission blind spot using the actual
+contact impulse trajectory and existing accuracy units; first demonstrate that
+the changed check rejects this authenticated false-convergence case, and accepts
+its resolved counterpart. Reuse the saved50us predecessors, not the26ms history.
+Any proposed additional residual/quadrature check must be derived and independently
+reviewed before code execution; no claim that an arbitrary extra sample proves
+accuracy everywhere. Only after focused verification resume sustained motion.
+
+Receipt docs/evidence/FB-01aj-contact-impulse-attribution.json SHA256
+658a31bd14ba9d2fc44ae328463bd8563c6bb680f6183d1914574d1f23593e4b.
+68 primitives,1302 solver forwards plus28 outside calls. Numerical matrix0.3819s
+wall/0.3796s CPU; complete child1.1204s wall/1.1166s aggregate CPU,216048KiB peak
+single-process RSS. Session71186/owned child-group29028 terminal; separate host
+census confirms no survivor. No long-history restart or background remainder.
+
+Read-only AWS08:26:03->08:26:07Z retains sole task1559/same image/identity,
+ticks2572531->2572540, no checkpoint/cleanup error or durability block. Existing
+clock-stalled ALARM persists; other4OK. Last CPU51.4146percent average,
+RAM3.07617percent. No production health correction is claimed.
+Body remains compiled-unmounted, not real-time or fully qualified. Gravity,
+world integration, restart and remaining safety/performance gates remain open.
+No push, Slack, production, cognition, food or caretaker changes. Goal ACTIVE.
