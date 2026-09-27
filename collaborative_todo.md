@@ -25630,3 +25630,30 @@ Review/handoff notification checked:
    - Command: `cargo test` in `native/guala_core`
    - Result: `test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.70s`
    - Constitutive tests: 6 passed; 0 failed; 0 measured in 0.00s.
+
+## G1 TO A1, JOE, AND C1 — 2026-09-27 18:05Z — Stage P1-B Coupled Material-and-Receptor Synapse Transition Implemented and Verified
+
+1. **Stage P1-B Deliverable Complete**:
+   Implemented the unmounted coupled material-and-receptor physical transition strictly adhering to §5, §6, §7, §8, and §10 of [GUALA_P0_LOCAL_LEARNING_A1_CORRECTED_2026-09-27.md](docs/GUALA_P0_LOCAL_LEARNING_A1_CORRECTED_2026-09-27.md).
+   - New source: `native/guala_core/src/coupled_synapse.rs` (SHA-256: `3970e69f0005f346d20c2a8eeb61d21bf559857a47449f1843e54b5e6a7a6f89`)
+   - Module declaration: `native/guala_core/src/lib.rs` (SHA-256: `7a0e5fde6c80f5be254af597610874ea0422eaf0a9cae03d31b14e97fa10059f`)
+   - Scope: unmounted coupled physical component; zero production dependency, zero import into live decision loops, zero changes to canonical L0–L4 kernel.
+
+2. **Mandatory Architecture Honesty**:
+   - Requested: Coupled physical pathway linking afferent quantal release, cleft kinetics, aperture-gated conductance, Nernst-driven ionic current, exact carrier custody, participation-gated consequence plasticity, metabolic energy balance, and explicit material provenance validation.
+   - Current reality: Coupled synapse module implemented and verified natively under `native/guala_core`. All 20 tests passing (10 existing signal kernels + 6 constitutive + 4 coupled synapse checks). Decision authority and live functional organism remain untouched.
+   - Conflict: NO.
+   - Mechanism/files not extended: No ML approximations, no heuristic reward scaling, no underived eligibility constants, no linear displacement readout, no arbitrary lookup tables. Canonical L0–L4 kernel is untouched.
+   - Evaluation level: Exact SI unit-bearing physical state (C, F, J, N, mol, m^3, s, S, V). Full physical evaluation; zero proxy scorecards or field flattening.
+   - Single exact next item: Proceed to Stage P1-C (multi-channel sensory/efferent receptor mounting and C19 frame-invariance test harness under unmounted test boundaries).
+
+3. **Coupled Physical Verification Evidence**:
+   - **Quantal Release & Channel Gating:** Verified that 5 presynaptic arrivals release `5e-20 mol` from vesicle pool; receptor binding produces active complex `A_active`; pore aperture fraction `y_c = A / R_tot > 0` scales pore conductance `g_c = g_max * y_c`; Nernst driving force (`V_m - E_rev = -70 mV`) drives inward Na+ current; exact carrier transport remainder identity verified (`residual < 1e-25 C`).
+   - **Selective Participation Consequence Coupling:** Verified that an active synapse (`Pi_1 > 0`) undergoes plastic yield return upon mechanical displacement (`Delta l_1 > 0, D_pl,1 > 0`) with metabolic reserve debited, whereas an unreached synapse (`Pi_2 = 0`) subjected to the identical displacement undergoes ZERO plastic deformation (`Delta l_2 == 0, D_pl,2 == 0`) and leaves metabolic reserve untouched. This strictly fulfills §6 and §7: unexecuted/unparticipating pathways cannot be credited or deformed.
+   - **Material Provenance Gate:** Verified that `MathematicalFixture` and `CalibratedMeasurement` pass validation for testing; `Unverified` provenance is strictly rejected with `InvalidDomain`, enforcing the explicit physical authorization gate required by §10.
+   - **Metabolic Depletion Boundary:** Verified that when local metabolic reserve `M_i` is insufficient to support plastic remodeling (`M_i < D_pl`), the transition halts cleanly with `ExhaustedReservoir` without drawing negative energy or mutating reference lengths.
+
+4. **Test Command & Receipt**:
+   - Command: `cargo test` in `native/guala_core`
+   - Result: `test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.51s`
+   - Coupled synapse tests: 4 passed; 0 failed; 0 measured in 0.00s.

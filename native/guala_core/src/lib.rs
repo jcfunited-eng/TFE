@@ -19,6 +19,7 @@
 //!  10. cast_focal_rays_native -- optical_raycast.rs 19,200 focal raycast kernel
 //!  11. validate_world_kinematics_native -- kinematics.rs 2D disc collision & region containment
 //!  12. constitutive     -- Stage P1-A unmounted native physical-law operators
+//!  13. coupled_synapse  -- Stage P1-B unmounted coupled material-and-receptor transition
 //!
 //! Design rules:
 //!   - EXACT Python operation order is preserved (e.g. `(omega_0 + kappa*s)
@@ -40,6 +41,7 @@ use pyo3::prelude::*;
 mod auditory;
 mod auditory_reachability;
 pub mod constitutive;
+pub mod coupled_synapse;
 mod kinematics;
 mod optical_raycast;
 
