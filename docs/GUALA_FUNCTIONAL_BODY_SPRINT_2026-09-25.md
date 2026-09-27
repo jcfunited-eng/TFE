@@ -9836,3 +9836,232 @@ Predicted Krylov improvement can never admit a successor. Compare against the
 retained dense-Radau result, complete sensory/contact output and work before
 any longer run. Reduced cost is plausible, not measured or accepted. No new
 numerical contract, implementation, source review or run is claimed yet.
+
+### FB-01aj matrix-free offline correction contract — 2026-09-27 05:06Z
+
+Previous turn was PROGRESS (local commit ed237ce5a, short Radau receipt). This
+continues numerical accuracy/cost, not new body functions or a production law.
+Requested: same stage equations/physical successor within ratified numerical
+limits at less compute cost. Current: dense differentiation passes the short
+saved-state comparison but costs 1763 stage forwards per 25 us. Conflict: YES
+with required production performance; no force/geometry defect is inferred.
+Not extended: dense production Jacobian, predecessor-integrator derivatives,
+relaxed tolerances, cognition or live mutation. Single next item: offline
+matrix-free correction against the already-retained dense Radau evidence.
+Reduced numerical body mechanics only; DSF joint fields are not evaluated.
+
+Exact solver substitution: let S be the existing diagonal variable scale and
+F(z)=R(x+Sz), where R is the unchanged dimensionless coupled stage residual at
+the current Newton iterate x. Solve J_z delta_z=-R(x) by finite, non-restarted
+GMRES; return physical delta_x=S delta_z to the unchanged line search. For
+each unit Krylov direction p, centered difference uses
+epsilon=machine_epsilon^(1/3)*max(1,norm(x/S))/norm(p). This is a numerical
+roundoff/truncation balance for differentiation, not a physical coefficient.
+Every plus/minus evaluation restores the identical full predecessor before
+evaluating each physical stage. No retained cross-step derivative or controller.
+
+Use two-pass modified Gram-Schmidt and a bounded projected least-squares solve.
+The diagnostic ceiling is 32 Krylov directions, six existing Newton iterations
+and sixteen existing line-search divisions. These are execution/refusal bounds,
+not physical accuracy limits. Linear prediction may stop at the larger of the
+existing nonlinear tolerance and sqrt(machine_epsilon)*initial residual norm;
+it can only propose a correction. The actual nonlinear residual and physical
+checks alone govern success. Nonfinite operands, unrepresentable perturbations,
+Krylov breakdown without convergence, resource exhaustion or failed decrease
+refuse and preserve the complete predecessor. Partial linear and nonlinear
+failure evidence must be retained in the external receipt.
+
+Authority/mutation/rollback/work quadrature/endpoint/cold header remain exactly
+the offline stage contract above. Nothing is mounted or serialized as a runtime
+law. Storage is O(n*32+32^2) transient solver data; calls at most
+9*(5+6*(4*32+2*16))+1 = 8686 stage forwards for the same nine-step diagnostic
+including its instantaneous-force control. Existing setup/restore/native-step
+entry counts remain separate. No timing estimate qualifies deployment.
+
+Acceptance: reproduce the same archived native stage and instantaneous force,
+then compare 1/2/4-piece successors with the retained dense-Radau states/work/
+impulses/full endpoint observations from receipt 15ed890c...6ad4f. Retain ordinary
+refinement comparisons, exact fresh repeat and zero-supply rollback; report
+costs and first failure. Reference restoration must reproduce its saved
+observation before using it as evidence. A small algebraic linear-solver control
+is supporting numerical evidence only. No broad trajectory, native build,
+production source edit or force-law change is authorized by a local pass.
+
+### FB-01aj matrix-free saved-state result and next regime — 2026-09-27 05:16Z
+
+OFFLINE PASS on the named short comparison. Receipt
+docs/evidence/FB-01aj-radau-krylov-regime.json SHA256
+0cd0811396d725582ab8ea6361eb62ac8d9a4bbd5a93c76bdf5084e0e18c7009.
+Frozen source review required one localized reporting correction: unresolved
+tactile correspondence must not become an aggregate pass just because
+first_failure is null. Final review passed after requiring every qualified
+metric group's status PASS; only intrinsic couple impulse remains explicitly
+UNQUALIFIED. All three dense references restore their complete endpoint
+observations exactly before comparison. All qualified dense-reference and
+1/2/4 refinement comparisons pass. Fresh repeat and zero-supply rollback are
+exact. Same saved force law/rotation/algebra controls pass; no tolerance changed.
+
+Stage forwards fell 12351 -> 361 across the same nine-step protocol, about
+34.2x fewer, NOT a 34x end-to-end or production speedup. Outside-stage forwards
+are separately 30 (including nine new reference-restore calls), plus one
+archived native step. Single 25 us motion uses 49 forwards instead of 1763;
+its stage wall time is 0.009632 s and native time 0.003712 s. This is still not
+real-time performance. Finer 2/4-piece copies use 82/132 forwards. Two Newton
+updates converge per step with 6+4, 5+3, or 4+2 Krylov directions, rather than
+146-coordinate Jacobians. Residuals remain below the unchanged 1e-10 limit.
+All-stage native wall time 0.030102 s; complete child wall 1.002666 s, aggregate
+CPU 0.994137 s, peak RSS 163264 KiB. Full-body qualification remains false.
+
+Session84927/child54970 terminal, exact group/command census no survivors.
+Read-only AWS05:13:26Z->05:13:29Z retains sole1559task/image/identity,counts1/1/0,
+ticks2544809->2544816, errorsnull,durabilityfalse. CPU50.9524%,RAM3.0762%.
+Existingclock-stalledALARM remains;other4OK. No push,Slack or live mutation.
+
+Single next diagnostic, SAME primitive unchanged: map local accuracy, sampled
+contact-domain changes, actual residual and solver work across authenticated
+saved successors of events78/80/84/86 (30.590625,31.01640625,31.46796875,
+47.96484375 ms). At each, independently compare one full step and two half
+steps at100/50/25/12.5/6.25/3.125/1.5625/0.78125 us. Each branch restores the
+same complete source with its actual remaining work supply. No full-history
+replay or parameter/force/tolerance tuning. At most96 steps plus one actual
+archived native control; stage ceiling96*965=92640, separate setup/restore
+allowance accounts two reusable copies, one control instance,64 branch restores,
+one control restore/post-forward and at most64 failed-branch rollback forwards.
+Whole child remains2CPU/1GiB/60CPU-seconds/90wall-seconds, network denied.
+Failures are retained per independent regime point, including the first failed
+step/rollback, not retried or treated as successful physical progression.
+Record complete accepted raw states/work/impulses, and per-channel-group worst
+error with label/status; do not print or duplicate every channel into chat.
+Retain per-stage nonlinear evidence and instantaneous sensor values in the
+receipt as already supplied by the primitive. A local regime pass is not an
+interval controller or production law; whole-motion comparison remains required.
+
+### FB-01aj contact-regime map and exact endpoint refusal — 2026-09-27 05:23Z
+
+Receipt docs/evidence/FB-01aj-radau-contact-map.json SHA256
+1d69fb485b2dce7979fd7856c552020b3a1d035197dbb34c3e47084e31159f1c.
+Source-only frozen review passed. Of32 independent points,30 completed their
+full/half comparison and all30 passed every ratified channel (couple impulse
+still explicitly unqualified). Event80 at100us crosses sampled domains and
+has a joint-rate ratio0.8547 and contact-impulse ratio0.8072: it is close to
+local allowance, not evidence for whole-motion acceptance. Source-model forces
+and all solver limits remain unchanged. Primitive calls3416, extra forwards72,
+native stage wall0.265421s; child2.221862swall/2.215293saggregateCPU/170216KiBRSS.
+Session63693/child57621 terminal with no exact command/group survivor.
+
+Two points were NOT physically evaluated at full100us (events84 and86). The
+driver forms stop=begin+requested_duration and passes stop-begin; binary clock
+rounding makes this difference slightly larger than the strict100us maximum.
+The primitive refuses before its first stage forward. These are diagnostic
+endpoint-construction errors, not nonlinear/contact instability or evidence
+that the two points passed. Their independent half-step branches did execute;
+the full raw inputs and refusals are retained. Empty sampled-stage sets must
+not be interpreted as proven unchanged domains.
+
+Bounded correction: construct a common representable endpoint for each pair.
+If round-to-nearest(begin+h)-begin exceeds h, select the immediately preceding
+representable endpoint toward begin. Require positive advance and actual span
+<=h without epsilon slack, then split that SAME endpoint for the half path.
+This directed rounding does not relax step, force, energy, geometry or error
+ceilings. Record nominal and actual spans. Recheck ONLY events84/86 at100us;
+the30 passing points will not be replayed. Stage/linear primitives remain
+byte-identical. No production-source correction or new numerical law is implied.
+
+Read-only AWS05:20:16Z->05:20:21Z retains sole1559task/image/identity,counts1/1/0,
+ticks2545768->2545778,errorsnull,durabilityfalse. CPU51.3392%,RAM3.0762%.
+Existingclock-stalledALARM remains;other4OK. No push,Slack or live mutation.
+
+### FB-01aj contact regime complete; accumulated-motion accuracy next — 2026-09-27 05:33Z
+
+Previous turn was PROGRESS: the exact running session17299 was polled to
+completion, not restarted. Receipt FB-01aj-radau-endpoint-check.json SHA256
+2808e9a277304fae786e9734f13f78e092c7a86009e2e597f0a03049df0c5721
+corrects only the two unevaluated common endpoints. Both actual spans are
+9.999999999999593e-05 seconds, strictly within100us. Event84 passes. Event86
+fails proprioceptive right digit4 distal rate: error0.011651297214733791rad/s
+versus allowance0.011516276492226715, ratio1.011724338383002. This physical
+comparison failure is retained, not rounded away. Other ratified groups pass.
+Event86 at50us already passed in the prior map (worst rate ratio0.109630);
+no passing point was rerun. Combined map:31/32 sampled points pass, not a
+global or continuum accuracy certificate. Intrinsic couple impulse remains
+explicitly unqualified. No changed force, anatomy, or acceptance tolerance.
+
+Endpoint check:358stageforwards,12outsideforwards,1archivednativecontrol;
+stage native time0.022097s. Complete child0.897782swall,0.891591saggregateCPU,
+169396KiBpeakRSS. Child59800 terminal with no exact-command/group survivor.
+AWS05:26:11Z->05:26:14Z retains sole1559task/image/identity,counts1/1/0,
+ticks2546623->2546630,errorsnull,durabilityfalse. CPU51.1830%,RAM3.0762%.
+Existingclock-stalledALARM remains;other4OK. This is not full health clearance.
+
+Requested architecture: accurate, bounded-cost whole body motion and sensory
+return. Current code reality: offline Radau primitive/local regime map only;
+no candidate runtime law has replaced the midpoint source. Conflict:YES with
+completed delivery/real-time claims; no new cognition or force-law conflict.
+Not extended:dense production differentiation, per-step full error allowances
+misrepresented as global bounds, relaxed tolerances, sensory/cognitive shims.
+Single next item: define and exercise accumulated-motion numerical control,
+retaining this local regime and the authenticated prior trajectory; do not
+reopen settled contact correspondence or replay the32-point matrix. Reduced
+body numerical approximation; joint DSF dynamics are not evaluated or changed.
+Predecessor local matrix-free equivalence/repeat/rollback stays closed by
+receipt0cd08113...7009. Full motion, gravity, mounted integration, restart and
+production performance remain OPEN. No push,Slack,productionwrite.
+
+Read-only path preflight found no tools/guala_body_interval.py or historical
+September05 parsimony-law document in this tree; interval source is
+native/functional_body/interval.pyx (located with rg). Skill historical-route
+drift does not authorize invented files or a second architecture. Body root,
+branch,HEAD and this sprint continue as the explicit continuity authority.
+
+### FB-01aj compiled Radau stage contract — 2026-09-27 05:37Z
+
+Independent design review recommends common-genesis paired whole motion:
+250ms load+250ms release at100/50us nominal ceilings, no cross-copy resets,
+accumulated work/impulse and all sensory/pose comparisons at common100us
+times; chronological observed event brackets<=1us. Stop at first failed or
+unresolved qualified comparison or resource limit. This proves mesh agreement,
+not a continuum enclosure or absence of unsampled hidden crossings.
+
+The15,000 unrefined Radau steps extrapolate to144s at the measured25us Python
+cost, before event refinement. Do NOT launch that over the60CPU/90wall budget
+or increase the budget. The next single implementation is compiled execution
+of the SAME coupled Radau residual and bounded Newton/Krylov algebra. This is
+needed to reach the accumulated-motion proof, not a new physical controller.
+
+Authorized source: native/functional_body/radau.pyx (new compiled candidate
+only) and native/functional_body/build.py (single builder, explicit module
+selection; interval remains the existing default). Owner:A1. No import from
+organism/NativeBody, no startup/schema/package change or live use yet. Existing
+midpoint runtime source remains unchanged pending full numerical qualification.
+Temporary reference/driver stays offline and authenticated by recorded SHA.
+
+Translation boundary: same NativeBody model/data and integration predecessor
+-> restored instantaneous native mj_forward law -> typed stage residual loops
+and roundoff-derived centered Jv -> two-pass GMRES/projected least squares ->
+actual nonlinear residual/backtracking -> exact same stage capture, positive
+Radau work/impulse quadrature, finite/geometry/travel/supply checks -> endpoint.
+Use the Python MuJoCo entry for mj_forward/mj_setState/quaternion integration
+to preserve its native fatal-error translation; typed Cython removes array
+construction and scalar/vector Python algebra, not physical force evaluations.
+Keep projected NumPy least-squares initially to avoid a new linear algebra law.
+Only observed measured cost decides whether this is enough; no native-speed
+claim follows merely from compilation.
+
+No new coefficients, convergence thresholds, relaxation, retained derivatives,
+force caches, controller, body state or cognition. Same6Newton/16backtrack/
+32Krylov execution caps; finite work count handed in by caller. Same1e-10
+native nonlinear tolerance. Transient storageO(n*32+32^2), fixed per-step
+diagnostic trace; no state retained in organism. Full integration predecessor
+and model timestep restored on every failure, including supply/call refusal.
+Successful endpoint retains original controls, force state and warm start as
+before. Test-only evidence never uses the old custody header as a new law ID.
+
+Freeze all source, review source-only, batch localized findings once, then
+compile in isolated output using pinnedCython3.1.2,no-fast-math,fp-contractoff.
+First proof compares unchanged saved Radau states/work/contact impulses/full
+observations, actual residual, exact same-engine repetition and cold source
+restore, zero-supply/call failure rollback. It must reproduce the archived
+force control before new comparisons. No broad test until this passes. Raw
+reference outcomes including event86 failure cannot be silently discarded.
+Resource envelope2CPU/1GiB/60CPU/90wall, read-only AWS before/after and exact
+process census remain mandatory. Any failure remains evidence, not admission.
