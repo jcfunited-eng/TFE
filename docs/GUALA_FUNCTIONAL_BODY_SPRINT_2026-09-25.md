@@ -14366,3 +14366,75 @@ predecessors/successors; no full-history replay is needed for this diagnosis.
 Do not skip this failure to reach365.1ms or declare either history exact truth.
 Full500ms, prior dense coverage, intrinsic couple/gravity, runtime cost,
 body/world integration, restart and live body qualification remain OPEN.
+
+### FB-01aj saved joint-event ordering diagnostic, no physical replay
+
+Joe resumed the goal. Continue the existing numerical qualification item;
+G1 owns the incompatible Python cognitive-selector replacement. Body source
+will not import that selector or manufacture a replacement decision policy.
+
+Bounded input: the authenticated12.5us and6.25us receipts above, specifically
+the actual saved lower-joint36/38 releases near20.063ms. Output: exact-rational
+root brackets for the retained binary position/interpolated-velocity cubics,
+with original sampled brackets and raw-state hashes. Use the already reviewed
+hinge_time law; neither construction is a continuum enclosure. No dynamics
+advance, no force/material/tolerance edit, no original-history replay, no
+state transfer between histories, and no event-merging acceptance change.
+
+Diagnostic source /tmp/a1-body-20us-event-roots-20260927.py reuses the frozen
+no-build AWS/read-only health and offline child envelope. Existing algebraic
+known-root/sign/nonmonotonicity controls run before the saved observations.
+Every saved event must be unique, retain endpoint sign change and overlap its
+sampled bracket. Measure whether both histories establish the same strict
+event order; the result does not replace the rejected whole-history verdict.
+Resource ceiling unchanged10CPU seconds/3000primitives; expect zero mechanics
+primitives. Record raw proof once and report only scalar times/indices.
+
+Read-only inspection mistakes: one projection assumed samples were dictionaries
+although that receipt stores float clocks; corrected by checking element type.
+One rg included an unlisted /tmp filename; it did not exist and no action used
+it. Subsequent commands use only listed paths and explicit scalar projections.
+No mechanical test was restarted due to either inspection error.
+
+### FB-01aj saved-root result: sampled alias, not reversed mechanical order
+
+Frozen tree16a31c0f1afbaaa0cd817d84f25c02fd961f1c335c0fd9e4539df05cb8aea915;
+source-only independent review passed after one localized reporting-name fix.
+Diagnostic SHA9c6e023056db7248f38a12c73aebb2874dd79579fab51518aae62b669af225f0.
+Executed23:32:40--23:32:43UTC; receipt
+docs/evidence/FB-01aj-20us-joint-event-roots.json
+SHAd46260e855c83ab84060b7d171772d28175fba234bbb7658e5dc1a9c8f6b0960.
+
+Both binary numerical constructions resolve joint36 before joint38:
+-12.5us history:36 at20062.833802302906us;38 at20063.449389346377us;
+ minimum separation0.6155870434717459us.
+-6.25us history:36 at20062.833797327618us;38 at20063.44938213477us;
+ minimum separation0.6155848071531127us.
+Exact rational brackets and original stage operands are retained in the receipt.
+They are roots of numerical cubics, not physical continuum certificates.
+The coarse sampling bracket spans both distinct roots, losing the intermediate
+domain. This diagnoses event-record aliasing; it does not waive the previously
+failed same-sequence criterion or qualify the500ms body.
+
+Zero physical intervals, zero primitives, zero force calls,0.331949151seconds
+numericalCPU. Child97340 exited0, no survivors,266836KiB peakRSS,0.872967seconds
+childCPU (wrapper aggregate0.951695). G1's main pytest93902 was terminal before
+execution; no other process was stopped. Production1563 identity/task/image
+unchanged, ticks2710321->2710328, checkpoint/cleanup errorsnull, durabilityfalse.
+Clock-stalled alarm remainsALARM; no live health/autonomy closure claimed.
+
+Complete local preflight also found an earlier merged32/34 release at
+20.061945--20.0625ms in BOTH histories, and seven joints leaving their exact
+initial limit at t=0. Therefore a blanket 'only one joint may change per sample'
+rule would be wrong for genuine simultaneous initial release. Do not add it.
+The full native domain also carries constraint type/id/state rows; merely
+inserting a guessed intermediate Boolean domain would fabricate solver state.
+
+Next bounded correction: resolve distinct joint-limit events through the
+actual numerical path and native constraint evaluation, retaining genuine
+coincident releases, before accepting the sampled event record. Use the saved
+20.0ms interval and exact original controls for the local regression; preserve
+all current state/sensory/work/impulse and same-sequence limits. No full-prefix
+replay, numerical force change, or cognitive selector is authorized by this
+finding. The force/history proof remains incomplete until corrected evidence
+and independent histories pass; body stays unmounted.
