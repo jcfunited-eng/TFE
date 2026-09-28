@@ -15271,3 +15271,149 @@ state/force discrepancy stops and retains its first failure. Existing adaptive
 trial meshes and all global sensory/error gates remain authority. No new
 physics/effector/cognition or threshold change. Goal ACTIVE; body remains
 compiled-unmounted/unqualified, all broader gates retained unchanged.
+
+### FB-01aj corrected-history continuation contract — 2026-09-28
+
+Continue from the finer OWN pair in0c7e62a9e receiptc8497e9ef6ff... at22.3ms.
+Preserve each lane's actual saved remaining supply, cumulative work/impulses,
+state and observation. The native pair helper recomputes remaining supply from
+one common total; the saved histories differ at floating roundoff, so use the
+already reviewed observer-level own-lane admission path rather than normalize
+their energy or change that native API. One anatomy, captured immutable physical
+observations; no second world or cognitive authority. Numerical trial durations
+resume the original authenticated12.5us/6.25us maxima, with unchanged adaptive
+subdivision and independent-history comparison every at-most100us. This changes
+trial granularity only, not the body state, accepted physics or accuracy gates.
+
+Target the previously failing58.2ms point, with35CPU/10000outer trials/100000
+native calls plus reserved cleanup, existing offline envelope and AWS snapshots.
+If resources end first, retain only fully compared OWN endpoints as resumable
+progress and the exact incomplete attempt separately. Resume that record without
+replaying its prefix. A state/sensory/event-order discrepancy is a hard failure;
+only unresolved timing on an otherwise matching physical path may retry the
+same predecessors at finer meshes. No synchronization, precomputed event times,
+force retuning, state projection, changed limits or weakened acceptance.
+
+Retain aggregate typed-error metrics, true physical endpoint/work/impulse/supply
+records, event brackets and joint certificates. Unrefined successful internal
+trial scratch need not be copied again; keep failed/refined attempt evidence.
+Completion of this bounded continuation remains weaker than full500ms/load/
+gravity/cost/integration/restart/live qualification. No native source or build
+change. Freeze observer for independent source-only review before execution.
+
+### FB-01aj observer correction and retained progress — 2026-09-28
+
+First review of cf86bec... found two localized observer defects: retain cumulative
+successor before observation, and permit authenticated empty-chunk resource-only
+resume. Corrected observer b2b9faab7ebb01ca1da4ac9ed7607cd0fee6a8240226c5a31af29a9afecfa7f3
+passed final source-only review on unchanged fingerprint6b279a196ff71cb92cb1cdfac9d8c8d1eab319789fcbba92abd93f2bdb6fb1ac.
+No native edits/build. An attempted same-path delete/add apply_patch was refused
+without edits; replacement observer was written as a separate explicit file.
+One read-only AWS lookup used wrong service dsf-ai-service and returned[];
+correct target dsf-ai-service-lb is now checked against the authenticated runner.
+
+G1 PID64147 was deploying1566; A1 waited for that exact process to terminate and
+service1/1/0 before launch. Receipt FB-01aj-one-sided-history.json SHA
+b3379505d1027fc8b52b46df784532a6c68d9f06b89ea07e7a76dea5d6d23ad9
+records22.3->22.4ms own-history PASS, then an observer container mismatch before
+the next physical admission: json-normalized restored observation compared to
+fresh asdict tuples. Saved native state EXACT equal and saved JSON observations
+EXACT equal. Not a physical accuracy failure, not grounds to change any limit.
+258trials/5892forwards/2.687839884numericalCPU; child66559 exit0/no survivors,
+3.738625wall/3.714743subprocessCPU,163360KiBpeakRSS. Rollback and complete evidence
+pass. Production02:14:10->02:14:17UTC same healthy1566/task e53d1bbc14694ddab790d925a106e88e,
+image9dd83020bb81abe05e0ae38e8d548adc190c197a23da4effaff4e9227c9bcd90,
+same identity, ticks2732461->2732472; custody errorsnull/durabilityfalse.
+Clock-stalledALARM remains; metrics predate this cutover, not1566 steady-state.
+
+Localized correction: normalize each new observation to its retained JSON
+container representation once, with values unchanged. Seed the next bounded
+observer from this authenticated22.4ms accepted pair, with explicit checks that
+the predecessor exception was exclusively container representation. Do not
+replay the successful interval. Future resumes remain resource-only. Native
+forces, state, tolerances, event law, and all acceptance conditions unchanged.
+
+### FB-01aj independent histories to26.6ms; first representability refusal
+
+Observer22315c5620fb... passed source-only localized review, frozen tree735a22b44fa1...
+and continued without replay. Receipt9d45a5f6514a8756962e4f17c6ddb464b7509663fe0ccdf4a0248bd0ff83b005
+(FB-01aj-one-sided-history-observation-corrected.json) adds27 passing endpoints
+through25.1ms, then stops at100000forward budget with complete evidence and
+exact cleanup. 2505outertrials,100001forwards including cleanup,21.501376CPU;
+child68660 terminal/no survivors,168820KiBpeakRSS. Unchanged observer resumed
+at25.1ms under frozen47e400963add...; no new review/build of unchanged source.
+
+Resume receipt33422465bee662f2691cce9286f7762ce862554687845d4075f9470987ed2ca4
+(FB-01aj-one-sided-history-9d45a5f6514a.json) adds15 passing endpoints through
+26.6ms. First new physical numerical refusal inside26.6->26.7ms: repeated
+one-sided joint-event subdivision reaches adjacent binary64 time cells near
+0.02668136893356189s and refuses 'no representable Radau admission subdivision'.
+All comparisons before that remain passed; not yet58.2ms qualification. It is
+not acceptable to bypass the refusal or enlarge a physical threshold.
+1718outertrials/44486forwards/10.639149CPU; child69233 terminal/no survivors,
+179408KiBpeakRSS. Both admission rollback and outer cleanup exact. A short
+external pythonPID69113 appeared in launch census but exited before targeted
+inspection; no signal sent, no isolated-host performance claim.
+
+Single next diagnostic: restore the recorded final attempted native state,
+inspect joint-boundary position/velocity cubics and event locator for its exact
+6.938893903907228e-18s width,2x,16x,1ns,100ns,1us. Same source, anatomy and
+force law,5CPU/10000forwards, no history replay. Retain exact operands, polynomial
+derivative evidence and refusal callsites; this is a regime map, not a repair
+or acceptance relaxation. Native implementation changes await the measured cause.
+
+### FB-01aj representability regime measured; exact next numerical seam
+
+Mapper final source128edbf93ce90642a76066b3c3cc600b5b79cb9dc05b68b184d60e0e0b550b0c
+passed frozen5e487a04fda226576a92cbb2bc4b409c5b1d9f3c9c8769a5edd889fe21bca958
+source-only review after one localized batch: Pythonbool evidence conversion
+and guarded raw scratch/step retention before restore. No native build/change.
+Receipt FB-01aj-representable-event-map.json SHA
+066908192bd48a286bc3cacb8b1334c48e88ac8ba1f999fe0e087ec5f3f3a400:
+all6 diagnostic rows complete,172forwards,0.219986665numericalCPU, exact cleanup
+and complete evidence. Child72038 exit0/no survivors,0.739079wall,
+0.737341subprocessCPU,163908KiBpeakRSS. This is a completed diagnostic,
+NOT a passed trajectory or numerical fix.
+
+Measured cause, not inference from the generic final exception:
+- Native joint1 / lower ordinal0, threshold-0.5rad, initialq
+  -0.49999999999999983rad and velocity about-31.019066458rad/s.
+- At the exact failed6.938893903907228e-18s width, stageq values
+  (-0.4999999999999999,-0.5,-0.5) produce a position interpolant whose
+  derivative Bernstein endpoint is+1.1457197939510712e-16. The integrated
+  velocity polynomial remains decreasing, derivative around-2.15238e-16.
+  The artificial interpolant reversal comes from coordinate quantization;
+  _joint_root_certificate rejects its exact monotonicity assertion.
+- All five wider trials pass that initial certificate but _locate_joint_event
+  rejects its first upper trial at one_sided_joint_event.pxi:73: an earlier
+  quadrature node has already crossed. It never reaches bisection. Thus blind
+  halving drives the state into the quantization problem instead of locating
+  the event. Larger trials alone do not repair this either.
+
+Next remains FB-01aj, not a new cognitive/body scope: correct the numerical
+event-bracketing contract so a rejected crossing trial can establish a bracket
+without being accepted as an incoming-side physical interval; account explicitly
+for represented-coordinate rounding in the numerical path certificate. Required
+proof stays exact saved-state reproduction, one physical force authority,
+unchanged accepted accuracy/energy/impulse/event gates, failure rollback and
+independent own-history continuation. No selected endpoint projection, borrowed
+partner state, precomputed event time, arbitrary epsilon, force-law retuning or
+semantic behavior. The mechanism is not yet authored/qualified; derive the exact
+contract from these retained operands before one candidate edit. Do not repeat
+the completed six-width map or prior proofs unless contradictory evidence arises.
+
+Production02:27:19->02:27:22UTC unchanged1566/task e53d1bbc14694ddab790d925a106e88e,
+image9dd83020bb81abe05e0ae38e8d548adc190c197a23da4effaff4e9227c9bcd90,
+identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1, ticks2733716->2733721;
+checkpoint/cleanupnull,durabilityfalse. Clock-stalledALARM persists, other4OK.
+Matching02:25service samples CPUavg51.2960/max51.7201%,memavg2.6571/max2.7100%;
+not cognitive-health or long-run-growth proof. A1 made zero production writes.
+
+Operational recurrence note: an optional name lookup guessed three absent paths
+(dsf_ai_service/functional_body.py, functional_body_mujoco.py,
+native/functional_body/model.py); rg refused them. Correct discovery is
+rg --files dsf_ai_service native/functional_body before choosing a source path.
+No physics result depends on that failed lookup. Body remains compiled-unmounted
+and unqualified. Independent accuracy now demonstrated through26.6ms only;
+58.2ms,500ms, gravity/load, intrinsic-couple limit, cost, integration/restart/live
+remain open. Goal ACTIVE, no user-approval blocker; G1 owns COG-OSC-02.
