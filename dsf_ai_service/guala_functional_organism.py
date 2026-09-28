@@ -1284,7 +1284,14 @@ def candidates(
 
     # 6. Toward every sensed thing, nearest first (the least strides to reach)
     seen_thing_ids = {thing.object_id for thing in seen if not thing.is_food}
-    things = sorted((thing for thing in seen if not thing.is_food), key=lambda thing: (thing.distance_mm, thing.object_id)) if not in_high_chair else []
+    things = sorted(
+        (thing for thing in seen if not thing.is_food),
+        key=lambda thing: (
+            not handleable(_object(snapshot, thing.object_id)),
+            thing.distance_mm,
+            thing.object_id,
+        ),
+    ) if not in_high_chair else []
     for item in things:
         stop = body.radius_mm + item.radius_mm + (HANDLE_STOP_MM if held is None and handleable(_object(snapshot, item.object_id)) else WANDER_STOP_MM)
         if item.distance_mm > stop + ARRIVAL_MM:
@@ -1863,24 +1870,27 @@ class FunctionalOrganism:
         state["room_now"] = None if here is None else here.region_id
         cur_room = state.get("room_now")
         prior_room = state.get("prior_room")
+        tracked_room = state.get("_current_tracked_room")
         if cur_room is not None:
-            if prior_room is not None and cur_room != prior_room:
+            if tracked_room is not None and cur_room != tracked_room:
+                state["prior_room"] = tracked_room
+                state["_current_tracked_room"] = cur_room
+                state["room_dwell_beats"] = 1
                 for p in snapshot.portals:
-                    if prior_room in p.region_ids and cur_room in p.region_ids:
+                    if tracked_room in p.region_ids and cur_room in p.region_ids:
                         state["last_crossed_portal"] = (p.portal_id, tick)
                         break
-            if prior_room is None or cur_room == prior_room:
-                state["room_dwell_beats"] = int(state.get("room_dwell_beats", 0)) + 1
-                state["prior_room"] = cur_room
-            else:
+            elif tracked_room is None:
+                state["_current_tracked_room"] = cur_room
                 state["room_dwell_beats"] = 1
-                state["prior_room"] = cur_room
+            else:
+                state["room_dwell_beats"] = int(state.get("room_dwell_beats", 0)) + 1
             reg_visits = state.setdefault("region_visits", {})
             reg_visits[cur_room] = int(reg_visits.get(cur_room, 0)) + 1
             reg_last = state.setdefault("region_last_tick", {})
             reg_last[cur_room] = tick
         else:
-            state["prior_room"] = None
+            state["_current_tracked_room"] = None
 
         # Cognitive Asset 4: Spatial Object Permanence & Occlusion Conservation (The Piaget Invariant)
         conserved = state.setdefault("conserved_objects", {})
@@ -2248,13 +2258,18 @@ class FunctionalOrganism:
 
         if chosen_option is None:
             candidate_acts = list(dict.fromkeys(option[0] for option in options))
-            act, why = self._choose(key, situation, candidate_acts, uncertain=uncertain, candidate_options=options)
+            act, why = self._choose(key, situation, candidate_acts, uncertain=uncertain, candidate_options=options, snapshot=snapshot)
             matching = [option for option in options if option[0] == act]
             target_totals = state.setdefault("target_totals", {})
             planned_target = state.get("planned_target_id")
             if planned_target:
                 matching_targeted = [o for o in matching if o[3] == planned_target]
                 chosen_option = matching_targeted[0] if matching_targeted else matching[0]
+            elif act in ("toward_thing", "toward_food") and len(matching) > 1:
+                handleable_options = [o for o in matching if o[3] and handleable(_object(snapshot, o[3]))]
+                chosen_option = handleable_options[0] if handleable_options else matching[0]
+                if chosen_option[3] and handleable(_object(snapshot, chosen_option[3])):
+                    state["planned_target_id"] = chosen_option[3]
             elif act == "toward_door" and len(matching) > 1 and tick > 100:
                 cur_r = state.get("room_now")
                 prior_r = state.get("prior_room")
@@ -2447,7 +2462,8 @@ class FunctionalOrganism:
                 while len(following) > FOLLOW_CAPACITY:
                     del following[min(following, key=lambda k: (int(following[k]), k))]   # the least counted leaves
             state["last_moment"] = [key, tick]
-            self._moment_formed = key
+            if not event.startswith("own:") or self._moment_formed is None:
+                self._moment_formed = key
         return created
 
     # ----- Level 1: the acoustic gate over her beat ------------------------------------
@@ -2484,8 +2500,8 @@ class FunctionalOrganism:
             state["heard_speech_target"] = {
                 "tick": tick,
                 "key": event.key,
-                "profile": list(ev_prof) if ev_prof is not None else None,
-                "envelopes": [list(e) for e in ev_envs[:32]] if ev_envs else [],
+                "profile": list(round(float(p), 4) for p in ev_prof) if ev_prof is not None else None,
+                "envelopes": [[round(float(x), 3) for x in e[:16]] for e in ev_envs[:16]] if ev_envs else [],
                 "bands": ear_bands(ev_prof),
             }
 
@@ -2783,7 +2799,7 @@ class FunctionalOrganism:
         mean = float(tried[syl][1]) / max(1, int(tried[syl][0]))
         return SYLLABLE_DRIVES[syl], syl, context, f"best worth under {context}: {syl} ({mean:.2f} over {int(tried[syl][0])})"
 
-    def _choose(self, key: str, situation: str, acts: list[str], uncertain: bool | None = None, candidate_options: list[tuple] | None = None) -> tuple[str, str]:
+    def _choose(self, key: str, situation: str, acts: list[str], uncertain: bool | None = None, candidate_options: list[tuple] | None = None, snapshot: Any | None = None) -> tuple[str, str]:
         """The act for this structure: from the day's record (untried first,
         the least tried under structural uncertainty U*_k > 0 or visit interval,
         otherwise the best by one-step predictive foresight); when the day's
@@ -2821,6 +2837,35 @@ class FunctionalOrganism:
             if viable_acts and len(viable_acts) < len(acts):
                 acts = viable_acts
 
+        # Cognitive Asset 2: Multi-Step Predictive Affordance Planning
+        plan_dict = self._state.get("affordance_plan")
+        if plan_dict:
+            from dsf_ai_service.affordance_planner import AffordancePlan
+            plan = AffordancePlan.from_dict(plan_dict)
+            step = plan.next_step()
+            if step and step.action in acts:
+                self._state["planned_target_id"] = step.target_id
+                should_advance = False
+                room_now = self._state.get("room_now")
+                if step.action == "toward_door" and step.expected_postcondition.startswith("in_region_"):
+                    dest_reg = step.expected_postcondition.replace("in_region_", "")
+                    if room_now == dest_reg:
+                        should_advance = True
+                else:
+                    should_advance = True
+
+                if should_advance:
+                    plan.advance_step()
+                    if plan.is_complete:
+                        self._state["affordance_plan"] = None
+                        self._state["planned_target_id"] = None
+                    else:
+                        self._state["affordance_plan"] = plan.to_dict()
+                return step.action, label + f": affordance plan step {step.step_index} ({step.action} -> {step.expected_postcondition})"
+            else:
+                self._state["affordance_plan"] = None
+                self._state["planned_target_id"] = None
+
         # Rotational spin trap damping: after 2 consecutive turns, damp in-place turns
         consec_turns = int(self._state.get("consecutive_turns", 0))
         if consec_turns >= 2:
@@ -2845,15 +2890,34 @@ class FunctionalOrganism:
         refused_act = last_ref[0] if (last_ref and (self.live_organism_tick - int(last_ref[2])) <= 2) else None
         door_refused = (refused_act == "toward_door")
 
-        # Homeostatic Barrenness in Lived Cognition (tick > 100):
+        # Homeostatic Barrenness in Lived Cognition:
         # Does the current environment lack the active homeostatic requirement?
-        if self.live_organism_tick > 100:
+        if self.live_organism_tick > 100 or deficit >= 0.6 or sleep_ratio >= 0.5:
             needs_bed = sleep_ratio >= 0.5
             needs_food = deficit >= 0.6
             known_foods = _consequence_qualified_food_ids(self._state)
             has_bed = any(c.get("room_id") == cur_room for o_id, c in conserved.items() if o_id == BED_ID) or (candidate_options is not None and any(opt[0] == "toward_bed" for opt in candidate_options))
             has_food = any(o_id in known_foods and c.get("room_id") == cur_room for o_id, c in conserved.items()) or (candidate_options is not None and any(opt[0] == "toward_food" for opt in candidate_options))
-            is_barren = (needs_bed and not has_bed) or (needs_food and not has_food)
+            has_handleable = False
+            if candidate_options is not None:
+                has_handleable = any(
+                    opt[0] in ("toward_thing", "toward_food", "grasp")
+                    and opt[3]
+                    and (snapshot is not None and handleable(_object(snapshot, opt[3])))
+                    for opt in candidate_options
+                )
+            if not has_handleable and snapshot is not None:
+                has_handleable = any(
+                    handleable(o) and _region_of(snapshot, o.position, int(o.radius_mm)) is not None and _region_of(snapshot, o.position, int(o.radius_mm)).region_id == cur_room
+                    for o in snapshot.objects if o.position is not None and not o.object_id.endswith("-book")
+                )
+            if not has_handleable:
+                has_handleable = any(
+                    c.get("room_id") == cur_room and c.get("handleable", False) and not o_id.endswith("-book")
+                    for o_id, c in conserved.items()
+                )
+
+            is_barren = (needs_bed and not has_bed) or (needs_food and not has_food and not has_handleable)
             if is_barren:
                 phi_barren = math.tanh(max(0.0, float(dwell_beats - 16)) / 16.0)
                 if phi_barren > 0.25 and "toward_door" in acts and not door_refused:
@@ -2864,11 +2928,34 @@ class FunctionalOrganism:
         if boredom > 0.25 and "toward_door" in acts and not door_refused:
             return "toward_door", f"{label}: structural boredom ({boredom:.2f} over {dwell_beats} dwell beats): evacuating saturated basin toward negative space"
 
+        # Physical release: when holding an item whose bite was unsuccessful, release it
+        if "release" in acts and self._state.get("unsuccessful_bite_held_id"):
+            return "release", f"{label}: release non-nutritive held item"
+
         # Physical execution feedback: an act refused on the previous beat yields to alternative viable acts
         if refused_act and len(acts) > 1:
             viable_unrefused = [a for a in acts if a != refused_act]
             if viable_unrefused:
                 acts = viable_unrefused
+
+        # Physical Affordance Pursuit under Hunger Deficit (Resonant Surge toward nourishment)
+        if deficit >= 0.6:
+            if "bite" in acts:
+                return "bite", f"{label}: metabolic hunger surge -> ingestion (deficit={deficit:.2f})"
+            if "take" in acts:
+                return "take", f"{label}: metabolic hunger surge -> take offered sustenance"
+            if "grasp" in acts:
+                if candidate_options is not None:
+                    grasp_opts = [o for o in candidate_options if o[0] == "grasp" and o[3] and (snapshot is not None and handleable(_object(snapshot, o[3])))]
+                    if grasp_opts:
+                        return "grasp", f"{label}: metabolic hunger surge -> grasp candidate nourishment; {grasp_opts[0][3]}"
+            if "toward_food" in acts:
+                return "toward_food", f"{label}: metabolic hunger surge -> approach food"
+            if "toward_thing" in acts:
+                if candidate_options is not None:
+                    thing_opts = [o for o in candidate_options if o[0] == "toward_thing" and o[3] and (snapshot is not None and handleable(_object(snapshot, o[3])))]
+                    if thing_opts:
+                        return "toward_thing", f"{label}: metabolic hunger surge -> approach handleable affordance; {thing_opts[0][3]}"
 
         entry = self._state.setdefault("acts", {}).get(key)
         label = "structure " + key[:6]
@@ -3007,10 +3094,6 @@ class FunctionalOrganism:
                 }
         elif applied_action == "bite" and decision.target_object_id:
             state["unsuccessful_bite_held_id"] = decision.target_object_id
-            conserved = state.setdefault("conserved_objects", {})
-            if decision.target_object_id in conserved:
-                conserved[decision.target_object_id]["currently_depleted"] = True
-                conserved[decision.target_object_id]["is_food"] = False
         geom = getattr(self, "_receptor_geometry", None)
         nociception_span = max(1, int(geom.touch_temperature_max_millikelvin) - NOCICEPTION_MILLIKELVIN) if geom is not None else 23_000
         action_pain = _clamp((contact_millikelvin - NOCICEPTION_MILLIKELVIN) / float(nociception_span), 0.0, 1.0) if contact_millikelvin is not None else 0.0

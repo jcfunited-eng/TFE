@@ -235,14 +235,6 @@ def _restore_production_actor() -> LeanOrganismActor:
         # and home renovation are separate authorized operations, not startup.
         migrate_physical_return=False,
     )
-    from dsf_ai_service.guala_home_world import replenish_home_food
-    replenished = replenish_home_food(world)
-    if replenished:
-        for fid in replenished:
-            if fid in runtime._state.get("conserved_objects", {}):
-                runtime._state["conserved_objects"][fid]["currently_depleted"] = False
-                runtime._state["conserved_objects"][fid]["is_food"] = True
-        current_body = runtime.encoded()
     current_world = bytes(world.encoded_snapshot())
     # One startup-only receipt of the validated bytes actually read. It precedes
     # any migration publication and never participates in cognition or identity.

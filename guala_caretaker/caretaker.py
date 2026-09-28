@@ -906,28 +906,61 @@ def play_block(pcm: bytes, from_object: str) -> dict | None:
         return None
 
 
-def maybe_music(o: dict, st: dict) -> None:
-    """Music on the radio: once in MUSIC_EVERY_TICKS of her beats while she is
-    awake, one public-domain piece (Musopen, from the Internet Archive) sounds
-    from the radio in her world, block by block at her beat; her ears hear it by
-    the room's geometry, so walking toward it or away changes what she hears.
-    The radio is brought into a world that predates it, once."""
+def _finish_music_track(st: dict, tick: int) -> None:
+    import media
+    index = int(st.get("music_index") or 0)
+    archive, _ = media.MUSIC_ITEMS[index % len(media.MUSIC_ITEMS)]
+    tracks = media.tracks(archive)
+    track_index = int(st.get("music_track") or 0)
+    if not tracks or track_index + 1 >= len(tracks):
+        st["music_index"] = index + 1
+        st["music_track"] = 0
+    else:
+        st["music_track"] = track_index + 1
+    st["music_active_archive"] = None
+    st["music_active_track"] = None
+    st["music_active_licence"] = None
+    st["music_block_offset"] = 0
+    st["music_total_blocks"] = 0
+    st["music_next_tick"] = tick + MUSIC_EVERY_TICKS
+    with open(STATE, "w") as f:
+        json.dump(st, f)
+
+
+def maybe_music(o: dict, st: dict) -> dict | None:
+    """Music on the radio: non-blocking single-block streaming at her beat.
+    Reads and transmits exactly one acoustic block per call, advancing offset only
+    on verified settlement, then yielding back to ordinary care evaluation.
+    Resumes an active track without reapplying MUSIC_EVERY_TICKS until complete."""
     import media
     sleep = her_sleep(o)
     if sleep.get("asleep"):
-        return
+        return o
+    if os.path.exists(STOP) or os.path.exists(TEACHING):
+        return o
     tick = int(o.get("live_tick") or 0)
-    if st.get("music_next_tick") is not None and tick < int(st["music_next_tick"]):
-        return
-    st["music_next_tick"] = tick + MUSIC_EVERY_TICKS
+
+    # Check whether an existing musical piece is currently being streamed
+    active_archive = st.get("music_active_archive")
+    active_track = st.get("music_active_track")
+    block_offset = int(st.get("music_block_offset") or 0)
+    total_blocks = int(st.get("music_total_blocks") or 0)
+    is_active = bool(active_archive and active_track and block_offset < total_blocks)
+
+    if not is_active:
+        if st.get("music_next_tick") is not None and tick < int(st["music_next_tick"]):
+            return o
+
+    # Bring radio into world if not yet present
     if not st.get("radio_in_world"):
         res = present_food("radio-delivery")
         made = (((res or {}).get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
         if not made.get("delivered"):
             log(f"radio: the world refused its arrival — {made.get('steps')}")
-            return
+            return o
         st["radio_in_world"] = True
         log(f"radio: brought into her world as {made.get('delivered')}")
+
     emb = (o.get("last_occurrence") or {}).get("embodiment") or {}
     radio = next((ob for ob in (emb.get("objects") or []) if ob.get("object_id") == "radio"), None)
     her_room = emb.get("room_id")
@@ -935,53 +968,77 @@ def maybe_music(o: dict, st: dict) -> None:
         res = present_food("radio-to-her")
         made = (((res or {}).get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
         log(f"radio: carried to her — presented={made.get('presented')} set_down={made.get('set_down')} steps={len(made.get('steps') or [])}")
-    try:
-        index = int(st.get("music_index") or 0)
-        archive, licence = media.MUSIC_ITEMS[index % len(media.MUSIC_ITEMS)]
-        tracks = media.tracks(archive)
-        if not tracks:
-            log(f"radio: {archive} has no sound files; skipping")
-            st["music_index"] = index + 1
-            return
-        track_index = int(st.get("music_track") or 0) % len(tracks)
-        track = tracks[track_index]
-        pcm_path = media.fetch_track(archive, track["name"], licence)
-        blocks = media.blocks(pcm_path)[:MUSIC_MAX_BLOCKS]
-    except Exception as err:  # noqa: BLE001
-        log(f"radio: the library could not give the piece: {err}")
-        return
-    log(f"radio: {archive} — {track['name']} ({len(blocks)} beats of sound) begins at tick {tick}")
-    record_story_moment(st, "auditory")
-    heard = 0
-    for i, pcm in enumerate(blocks):
-        r = None
-        for attempt in range(READ_BLOCK_RETRIES + 1):
-            if os.path.exists(STOP) or os.path.exists(TEACHING):
-                break
-            r = play_block(pcm, "radio")
-            if r is not None:
-                break
-            for _ in range(int(READ_BLOCK_RETRY_S * 10)):
-                if os.path.exists(STOP) or os.path.exists(TEACHING):
-                    break
-                time.sleep(0.1)
-        if r is None:
-            log("radio: her service refused a block repeatedly; the radio goes quiet")
-            break
-        heard += 1
+
+    if not is_active:
+        try:
+            index = int(st.get("music_index") or 0)
+            archive, licence = media.MUSIC_ITEMS[index % len(media.MUSIC_ITEMS)]
+            tracks = media.tracks(archive)
+            if not tracks:
+                log(f"radio: {archive} has no sound files; skipping")
+                st["music_index"] = index + 1
+                return o
+            track_index = int(st.get("music_track") or 0) % len(tracks)
+            track = tracks[track_index]
+            pcm_path = media.fetch_track(archive, track["name"], licence)
+            total = min(media.block_count(pcm_path), MUSIC_MAX_BLOCKS)
+            if total <= 0:
+                log(f"radio: {archive} track {track['name']} has 0 blocks; skipping")
+                if track_index + 1 >= len(tracks):
+                    st["music_index"] = index + 1
+                    st["music_track"] = 0
+                else:
+                    st["music_track"] = track_index + 1
+                return o
+            st["music_active_archive"] = archive
+            st["music_active_track"] = track["name"]
+            st["music_active_licence"] = licence
+            st["music_total_blocks"] = total
+            st["music_block_offset"] = 0
+            block_offset = 0
+            total_blocks = total
+            active_archive = archive
+            active_track = track["name"]
+            log(f"radio: {archive} — {track['name']} ({total} beats of sound) begins at tick {tick}")
+            record_story_moment(st, "auditory")
+        except Exception as err:  # noqa: BLE001
+            log(f"radio: the library could not give the piece: {err}")
+            return o
+    else:
+        try:
+            archive = active_archive
+            track_name = active_track
+            licence = st.get("music_active_licence") or "public domain"
+            pcm_path = media.fetch_track(archive, track_name, licence)
+        except Exception as err:  # noqa: BLE001
+            log(f"radio: could not access active track {active_track}: {err}")
+            st["music_active_archive"] = None
+            st["music_active_track"] = None
+            return o
+
+    # Stream exactly ONE block using media.read_block
+    pcm = media.read_block(pcm_path, block_offset)
+    if pcm is None:
+        log(f"radio: reached end or unreadable block {block_offset} of {total_blocks}")
+        _finish_music_track(st, tick)
+        return o
+
+    r = play_block(pcm, "radio")
+    if r is not None:
         ob = r.get("observation") or {}
         MINE.append(ob.get("live_tick") or 0)
         MINE.append((ob.get("last_occurrence") or {}).get("native_tick"))
-        if (i + 1) % READ_KEEP_EVERY_BLOCKS == 0 and asleep(ob):
-            log("radio: she fell asleep; the radio goes quiet")
-            break
-    if track_index + 1 >= len(tracks):
-        st["music_index"] = index + 1
-        st["music_track"] = 0
+        st["music_block_offset"] = block_offset + 1
+        if st["music_block_offset"] >= total_blocks:
+            log(f"radio: piece {active_track} complete ({total_blocks} beats) at tick {tick}")
+            _finish_music_track(st, tick)
+        else:
+            with open(STATE, "w") as f:
+                json.dump(st, f)
+        return ob or o
     else:
-        st["music_track"] = track_index + 1
-    json.dump(st, open(STATE, "w"))
-    log(f"radio: {heard} of {len(blocks)} beats sounded; next {st.get('music_index', index)}/{st.get('music_track', 0)}")
+        log(f"radio: block {block_offset} refused or failed; retaining offset for next cycle")
+        return o
 
 
 def maybe_lullaby(o: dict, st: dict) -> None:
@@ -1272,21 +1329,20 @@ def maybe_feed(o: dict, st: dict) -> None:
     food = foods[0]
 
     res = present_food(food)
-    st["meal_tick"] = tick
-    st["meal_retry"] = False
 
     if res is None:
-        # Interrupted delivery: release child immediately so she is not stranded in high chair
+        # Transport/uncertain outcome: retain retry eligibility and prior meal_tick
+        st["meal_retry"] = True
+        log(f"meal: food presentation request returned None (uncertain/transport error) for {food}")
         if seated_this_meal or st.get("seated_for_meal"):
             rel_res = present_food("high-chair-release")
             rel_pres = _extract_presentation(rel_res)
-            rel_applied = bool(rel_pres.get("presented", False))
-            if rel_applied:
+            if bool(rel_pres.get("presented", False)):
                 st["seated_for_meal"] = False
-            log(f"meal: food presentation failed (None); released child to avoid stranding — applied={rel_applied}")
+                log("meal: released child after transport error — applied=True")
         with open(STATE, "w") as f:
             json.dump(st, f)
-        return
+        return o
 
     ob = res.get("observation") or {} if isinstance(res, dict) else {}
     MINE.append(ob.get("live_tick") or 0)
@@ -1296,6 +1352,9 @@ def maybe_feed(o: dict, st: dict) -> None:
     presented = bool(pres.get("presented", False))
 
     if presented:
+        # Successful delivery verified by receipt: commit meal timing
+        st["meal_tick"] = tick
+        st["meal_retry"] = False
         st["food_delivered_for_meal"] = True
         mat = "ceramic" if "milk" in food else "wood"
         impact_pcm = material_impact_pcm(mat, intensity=0.7)
@@ -1304,21 +1363,23 @@ def maybe_feed(o: dict, st: dict) -> None:
         record_story_moment(st, "olfactory", "tactile", "visual", "auditory")
         log(f"meal: named={named} presented {food} — presented=True took_away={pres.get('took_away')} steps={len(steps)}")
     else:
-        # Delivery refused or failed: release child immediately to avoid stranding
+        # Delivery refused: retain retry eligibility and prior successful meal_tick
+        st["meal_retry"] = True
         if seated_this_meal or st.get("seated_for_meal"):
             rel_res = present_food("high-chair-release")
             rel_pres = _extract_presentation(rel_res)
-            rel_applied = bool(rel_pres.get("presented", False))
-            if rel_applied:
+            if bool(rel_pres.get("presented", False)):
                 st["seated_for_meal"] = False
-            log(f"meal: food presentation refused; released child to avoid stranding — applied={rel_applied}")
+                log("meal: food presentation refused; released child to avoid stranding — applied=True")
+            else:
+                log("meal: food presentation refused; high-chair release pending or refused")
         log(f"meal: presentation refused for {food} — steps={steps}")
         if food not in MEAL_DELIVERY_CYCLE and food != DELIVERY_ID:
             st["unreachable"] = sorted(skip | {food})
-            st["meal_retry"] = len(foods) > 1
 
     with open(STATE, "w") as f:
         json.dump(st, f)
+    return ob or o
 
 def maybe_tactile_curriculum(o: dict, st: dict) -> None:
     """Tactile object exploration curriculum: alternately explores cups, rings,
@@ -1582,16 +1643,6 @@ def main() -> None:
             o = wait_clear(st=st)
             if o is None:
                 break
-            maybe_feed(o, st)
-            maybe_touch(o, st)
-            maybe_name_attended(o, st)
-            maybe_echo_syllable(o, st)
-            maybe_play(o, st)
-            maybe_tv(o, st)
-            maybe_stroll(o, st)
-            maybe_playpen_challenge(o, st)
-            maybe_ladder_challenge(o, st)
-            maybe_patrol_and_accompany(o, st)
             ok = True
             for i, pcm in enumerate(blocks):
                 res = present_block(retina, pcm, focal_b64)

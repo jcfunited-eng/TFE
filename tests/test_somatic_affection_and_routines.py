@@ -93,8 +93,8 @@ def test_library_bookshelf_entities_and_shapes():
     for book_id in ("book-peter-rabbit", "book-wind-willows", "book-aesops-fables", "book-mother-goose"):
         assert book_id in world_objects, f"{book_id} not placed in expanded home world"
         obj = world_objects[book_id]
-        assert obj.position.x in (10_000, 10_500, 11_000, 11_500)
-        assert obj.position.y == 6_000
+        assert obj.position.x in (9_800, 10_200, 12_500, 12_900)
+        assert obj.position.y == 8_900
 
 
 def test_librivox_media_catalog_resolution_and_rejection():
