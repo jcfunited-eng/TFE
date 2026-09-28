@@ -1,0 +1,168 @@
+{
+  "schema": "guala.functional-body.rejected-own-prefix-candidate.v1",
+  "status": "REJECTED_RESOURCE_QUALIFICATION",
+  "candidate_fingerprint": "f0cb7a8116d493c31bda061b14ba81898a9842205532535367d24d66fbc38880",
+  "proof": "FB-01aj-own-prefix-contact-local-proof.json",
+  "proof_sha256": "b8ab326e481548192edc5340145b5aff9f90ff21305a9eda10e1e7851e751347",
+  "baseline_radau_sha256": "24cdf70ec8b4f637b1357c5528ade1cd6e1c359736407d77ac9f2717aee675c7",
+  "candidate_diff": "diff --git a/native/functional_body/radau.pyx b/native/functional_body/radau.pyx\nindex 82fe8134a..913260ab0 100644\n--- a/native/functional_body/radau.pyx\n+++ b/native/functional_body/radau.pyx\n@@ -14,7 +14,7 @@ import numpy as np\n import guala_body_interval as interval\n from libc.math cimport fabs, isfinite, pow, sqrt, tan\n \n-RADAU_LAW = \"radau-iia3-secant-solved-domain-v8-coupled-reactions\"\n+RADAU_LAW = \"radau-iia3-secant-solved-domain-v10-own-prefix-contact\"\n MAX_LINE = 16\n MAX_SECANT = 32\n STAGE_COUNT = 3\n@@ -201,6 +201,7 @@ cdef class _Stages:\n                     np.maximum(-power,0).sum(),np.dot(self.m.dof_damping,self.d.qvel**2),\n                     np.dot(self.m.dof_damping[self.e._self_dofs],self.d.qvel[self.e._self_dofs]**2)))\n                 stages.append(dict(snapshot=interval._snapshot(self.e),\n+                    integration_interval_s=(self.t0,self.t0+self.dt),node_index=int(i),\n                     qpos=self.d.qpos.copy(),qvel=self.d.qvel.copy(),qacc=self.d.qacc.copy(),\n                     work=interval._finite(work),\n                     impulse=interval._midpoint_impulses(self.m,self.d,self.dt*B[i])))\n@@ -287,25 +288,64 @@ cdef class _Stages:\n         return stages\n \n \n+def _sample_support(sample):\n+    \"\"\"Ordered collocation support; endpoint observations remain exact clocks.\"\"\"\n+    snap = sample['snapshot']\n+    support, node = sample.get('integration_interval_s'), sample.get('node_index')\n+    if support is None:\n+        return float(snap['time']), float(snap['time']), False\n+    lo, hi = support\n+    if (not math.isfinite(lo) or not math.isfinite(hi) or not lo < hi\n+            or type(node) is not int or not 0 <= node < STAGE_COUNT\n+            or snap['time'] != lo+float(C[node])*(hi-lo)):\n+        raise ValueError('invalid collocation time support')\n+    if node == STAGE_COUNT-1:\n+        return hi,hi,False\n+    return lo,hi,True\n+\n+\n+def _aliased_time_bracket(left, right):\n+    \"\"\"Enclose distinct ordered nodes, never contradictory exact endpoints.\"\"\"\n+    a,b = _sample_support(left),_sample_support(right)\n+    if not (a[2] or b[2]):\n+        return None\n+    if (a[2] and b[2] and a[:2] == b[:2]\n+            and left['node_index'] < right['node_index']):\n+        return a[0],a[1]\n+    if a[1] <= b[0]:\n+        return a[0],b[1]\n+    return None\n+\n+\n def sampled_event_path(before, values):\n     \"\"\"Observed numerical-path brackets; not an enclosure of unseen crossings.\"\"\"\n     sequence = [before['domain']]\n     brackets = []\n     resolved = True\n     for piece_index, value in enumerate(values):\n-        samples = [before, *(stage['snapshot'] for stage in value[3]), value[0]]\n+        samples = [dict(snapshot=before), *value[3], dict(snapshot=value[0])]\n         for index in range(1, len(samples)):\n             left, right = samples[index-1], samples[index]\n-            lo, hi = left['time'], right['time']\n+            a,b = left['snapshot'],right['snapshot']\n+            lo, hi = a['time'], b['time']\n             if not (math.isfinite(lo) and math.isfinite(hi)) or hi < lo:\n                 raise ValueError('invalid chronological event sample')\n-            if left['domain'] != right['domain']:\n-                # Contradictory observations at one time are unresolved, not\n-                # zero-width physical transitions.\n-                resolved = resolved and hi > lo\n-                brackets.append(dict(piece_index=piece_index, from_sample=index-1,\n-                    to_sample=index, start_s=lo, end_s=hi))\n-                sequence.append(right['domain'])\n+            if a['domain'] != b['domain']:\n+                event = dict(piece_index=piece_index, from_sample=index-1,\n+                    to_sample=index, start_s=lo, end_s=hi)\n+                if hi == lo:\n+                    support = _aliased_time_bracket(left,right)\n+                    if support is None:\n+                        resolved = False\n+                    else:\n+                        event.update(start_s=support[0],end_s=support[1],\n+                            aliased_stage_time=True,\n+                            left_support=left.get('integration_interval_s'),\n+                            left_node=left.get('node_index'),\n+                            right_support=right.get('integration_interval_s'),\n+                            right_node=right.get('node_index'))\n+                brackets.append(event)\n+                sequence.append(b['domain'])\n         before = value[0]\n     return dict(sequence=tuple(sequence), brackets=brackets, resolved=resolved)\n \n@@ -327,6 +367,7 @@ def sampled_event_comparison(before, coarse, left, right):\n \n \n include \"one_sided_joint_event.pxi\"\n+include \"contact_event_law.pxi\"\n \n \n class RadauProbe:\n@@ -348,7 +389,7 @@ class RadauProbe:\n         interval._finite(e._data.qacc)\n \n     def step(self, e, dt, supply):\n-        return _event_aligned_step(self,e,dt,supply)\n+        return _contact_aligned_step(self,e,dt,supply)\n \n     def _plain_step(self, e, dt, supply, boundary=None):\n         cdef _Stages solver = None\n@@ -480,6 +521,7 @@ class RadauProbe:\n             'contact impulse embedded quadrature unresolved',\n             'multiple joint-limit events unresolved in sampled interval',\n             'one-sided joint event requires subdivision',\n+            'observed contact event requires subdivision',\n         }\n \n         def trial(end, remaining):\n@@ -557,6 +599,8 @@ class RadauProbe:\n                                     predecessor_sha256=hashlib.sha256(piece['predecessor'].astype('<f8').tobytes()).hexdigest(),\n                                     state=packed_numbers(value[0]['state']),work=value[1],\n                                     available_work_j=piece['supply'],\n+                                    contact_boundaries=[stage['contact_boundary'] for stage in value[3]\n+                                                        if 'contact_boundary' in stage],\n                                     joint_boundaries=[stage['joint_boundary'] for stage in value[3]\n                                                       if 'joint_boundary' in stage],\n                                     event_sequence=tuple(_record_domain(domain) for domain in\n",
+  "contact_source": "\"\"\"Observed native-contact event localization for offline mechanical qualification.\n\nNo geometry, force, control, or cognitive law is replaced. Native topology is\nsampled, not a continuous signed guard: hidden crossings remain unqualified.\nDiscarded trial trajectories never become accepted state or physical work.\n\"\"\"\n\n\ndef _contact_refine():\n    raise ValueError('observed contact event requires subdivision')\n\n\ndef _contact_path(before, value):\n    \"\"\"Return at most one observed geometric change; refuse sampled recrossing.\"\"\"\n    sequence = [before['domain'][5]]\n    clock = before['time']\n    for snap in (*(stage['snapshot'] for stage in value[3]), value[0]):\n        if not math.isfinite(snap['time']) or snap['time'] < clock:\n            raise ValueError('invalid chronological contact sample')\n        clock = snap['time']\n        signature = snap['domain'][5]\n        if signature != sequence[-1]:\n            sequence.append(signature)\n            if len(sequence) > 2:\n                _contact_refine()\n    return tuple(sequence)\n\n\ndef _locate_contact_event(probe,e,base,original_dt,before,end,supply,outgoing):\n    \"\"\"Retain only own integrated motion; predicted crossings are not authority.\"\"\"\n    lo,hi = before['time'],end\n    incoming = before['domain'][5]\n    prefix = None\n    trials = 0\n    # Derived binary64 exponent/significand span. Force evaluations separately\n    # consume the probe's existing finite allowance, including rejected trials.\n    for _ in range(int(np.finfo(float).nmant-np.finfo(float).minexp)+2):\n        mid = lo+(hi-lo)/2\n        if not lo < mid < hi:\n            break\n        interval._restore(e,base,original_dt)\n        value = _event_aligned_step(probe,e,mid-before['time'],supply)\n        trials += 1\n        path = _contact_path(before,value)\n        if path == (incoming,):\n            lo,prefix = mid,value\n        elif path == (incoming,outgoing):\n            hi = mid\n        else:\n            _contact_refine()\n    else:\n        _contact_refine()\n    if (math.nextafter(lo,hi) != hi or not lo < hi\n            or hi-lo > interval.EVENT_S):\n        _contact_refine()\n    if prefix is None:\n        interval._restore(e,base,original_dt)\n        predecessor,spent = before,0.\n    else:\n        interval._restore(e,prefix[0]['state'],original_dt)\n        predecessor,spent = prefix[0],prefix[1][0]\n    # A discarded hi trial integrated from base is NOT this prefix's successor.\n    bridge = _event_aligned_step(probe,e,hi-lo,supply-spent)\n    path = _contact_path(predecessor,bridge)\n    if (path not in ((incoming,), (incoming,outgoing))\n            or bridge[0]['time'] != hi):\n        _contact_refine()\n    # Floating configuration rounding can leave this recomputed bridge on the\n    # incoming side. Retain its real motion, not the discarded trial's event.\n    # The outer loop recomputes the remaining interval from this actual state.\n    if path == (incoming,outgoing):\n        bridge[3][-1]['contact_boundary'] = dict(\n            incoming=_record_domain(before['domain'])[5],\n            outgoing=tuple(tuple(int(g) for g in p) for p in outgoing),\n            time_bracket_s=(lo,hi),trials=trials,\n            prefix_state_sha256=hashlib.sha256(predecessor['state'].astype('<f8').tobytes()).hexdigest(),\n            observed_topology_only=True,continuum_enclosure=False)\n    if prefix is None:\n        return bridge\n    return (bridge[0],interval._work_add(prefix[1],bridge[1]),\n            interval._impulse_add(prefix[2],bridge[2]),prefix[3]+bridge[3])\n\n\ndef _contact_aligned_step(probe,e,dt,supply):\n    \"\"\"Transactional wrapper around the unchanged joint-aligned native solve.\"\"\"\n    if not math.isfinite(dt) or not 0 < dt <= e.limits.step_us/1e6:\n        raise ValueError('diagnostic step must not enlarge declared timestep')\n    if not math.isfinite(supply) or supply < 0:\n        raise ValueError('invalid work supply')\n    m,d = e._model,e._data\n    initial,original_dt = interval._state(e),float(m.opt.timestep)\n    end = float(d.time)+dt\n    if not math.isfinite(end) or end <= float(d.time):\n        raise ValueError('unrepresentable interval')\n    work,impulses,stages = (0.,)*6,{},[]\n    try:\n        while float(d.time) < end:\n            base,before = interval._state(e),interval._snapshot(e)\n            remaining = supply-work[0]\n            value = _event_aligned_step(probe,e,end-before['time'],remaining)\n            path = _contact_path(before,value)\n            if len(path) == 1 and not stages:\n                return value  # Exact accepted predecessor path; no extra solve.\n            if len(path) == 2:\n                value = _locate_contact_event(probe,e,base,original_dt,before,\n                                             end,remaining,path[-1])\n            if not before['time'] < value[0]['time'] <= end:\n                raise ValueError('contact event failed to advance physical clock')\n            work = interval._work_add(work,value[1])\n            impulses = interval._impulse_add(impulses,value[2])\n            stages.extend(value[3])\n            if work[0] > supply:\n                raise ValueError('mechanical energy supply exhausted; no successor')\n        return value[0],work,impulses,stages\n    except BaseException as error:\n        interval._restore(e,initial,original_dt)\n        if interval._state(e).astype('<f8').tobytes() != initial.astype('<f8').tobytes():\n            raise AssertionError('contact event transaction rollback differs') from error\n        raise\n",
+  "build": {
+    "artifact": "/tmp/guala-body-own-prefix.AN1yvLp9/python/guala_body_radau.cpython-311-x86_64-linux-gnu.so",
+    "artifact_sha256": "5150af345ea5307c18865e327f4203cff7de63d8294ef16fcd4e1dfdb4a8eb7d",
+    "execution": {
+      "cpu_seconds": 37.39743200000001,
+      "exit_code": 0,
+      "label": "own-prefix-build",
+      "owned_pid": 76544,
+      "stderr": "performance hint: native/functional_body/radau.pyx:192:49: Index should be typed for more efficient access\nperformance hint: native/functional_body/radau.pyx:193:36: Index should be typed for more efficient access\nperformance hint: native/functional_body/radau.pyx:209:36: Index should be typed for more efficient access\nperformance hint: native/functional_body/radau.pyx:472:40: Index should be typed for more efficient access\n",
+      "stdout_bytes": 1178,
+      "survivors": [],
+      "timed_out": false,
+      "wall_seconds": 37.42077122000046
+    },
+    "fingerprint": "f0cb7a8116d493c31bda061b14ba81898a9842205532535367d24d66fbc38880",
+    "mounted": false,
+    "post": {
+      "alarms": [
+        {
+          "name": "guala-clock-stalled",
+          "state": "ALARM"
+        },
+        {
+          "name": "guala-cpu-runaway",
+          "state": "OK"
+        },
+        {
+          "name": "guala-efs-storage-runaway",
+          "state": "OK"
+        },
+        {
+          "name": "guala-interval-refusal-loop",
+          "state": "OK"
+        },
+        {
+          "name": "guala-memory-runaway",
+          "state": "OK"
+        }
+      ],
+      "cpu": [
+        {
+          "Average": 51.0691646138827,
+          "Maximum": 51.55073219537735,
+          "Timestamp": "2026-09-28T06:18:00+00:00",
+          "Unit": "Percent"
+        }
+      ],
+      "memory": [
+        {
+          "Average": 3.0110677083333335,
+          "Maximum": 3.01513671875,
+          "Timestamp": "2026-09-28T06:18:00+00:00",
+          "Unit": "Percent"
+        }
+      ],
+      "observation": {
+        "available": true,
+        "checkpoint_error": null,
+        "cleanup_error": null,
+        "durability_blocked": false,
+        "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+        "live_tick": 2755807,
+        "persisted_tick": 2755794
+      },
+      "service": {
+        "counts": [
+          1,
+          1,
+          0
+        ],
+        "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1568",
+        "tasks": [
+          {
+            "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/f61447ffda4b429e9e983657e0ac5ca4",
+            "digests": [
+              "sha256:04da7c73d1466b10c6aec3025beb6d5ef2c05c67bcde7ca90234e65259fb3328"
+            ],
+            "health": "HEALTHY",
+            "status": "RUNNING"
+          }
+        ]
+      },
+      "utc": "2026-09-28T06:20:40.315612+00:00"
+    },
+    "pre": {
+      "alarms": [
+        {
+          "name": "guala-clock-stalled",
+          "state": "ALARM"
+        },
+        {
+          "name": "guala-cpu-runaway",
+          "state": "OK"
+        },
+        {
+          "name": "guala-efs-storage-runaway",
+          "state": "OK"
+        },
+        {
+          "name": "guala-interval-refusal-loop",
+          "state": "OK"
+        },
+        {
+          "name": "guala-memory-runaway",
+          "state": "OK"
+        }
+      ],
+      "cpu": [
+        {
+          "Average": 51.0691646138827,
+          "Maximum": 51.55073219537735,
+          "Timestamp": "2026-09-28T06:18:00+00:00",
+          "Unit": "Percent"
+        }
+      ],
+      "memory": [
+        {
+          "Average": 3.0110677083333335,
+          "Maximum": 3.01513671875,
+          "Timestamp": "2026-09-28T06:18:00+00:00",
+          "Unit": "Percent"
+        }
+      ],
+      "observation": {
+        "available": true,
+        "checkpoint_error": null,
+        "cleanup_error": null,
+        "durability_blocked": false,
+        "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+        "live_tick": 2755741,
+        "persisted_tick": 2755730
+      },
+      "service": {
+        "counts": [
+          1,
+          1,
+          0
+        ],
+        "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1568",
+        "tasks": [
+          {
+            "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/f61447ffda4b429e9e983657e0ac5ca4",
+            "digests": [
+              "sha256:04da7c73d1466b10c6aec3025beb6d5ef2c05c67bcde7ca90234e65259fb3328"
+            ],
+            "health": "HEALTHY",
+            "status": "RUNNING"
+          }
+        ]
+      },
+      "utc": "2026-09-28T06:20:00.472229+00:00"
+    },
+    "stdout": "Compiling /workspaces/guala-functional-body/native/functional_body/radau.pyx because it changed.\n[1/1] Cythonizing /workspaces/guala-functional-body/native/functional_body/radau.pyx\nrunning build_ext\nbuilding 'guala_body_radau' extension\ncreating /tmp/guala-body-own-prefix.AN1yvLp9/objects/tmp/guala-body-own-prefix.AN1yvLp9/generated/workspaces/guala-functional-body/native/functional_body\ngcc -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -fPIC -I/usr/local/include/python3.11 -c /tmp/guala-body-own-prefix.AN1yvLp9/generated/workspaces/guala-functional-body/native/functional_body/radau.c -o /tmp/guala-body-own-prefix.AN1yvLp9/objects/tmp/guala-body-own-prefix.AN1yvLp9/generated/workspaces/guala-functional-body/native/functional_body/radau.o -O3 -fno-fast-math -ffp-contract=off\ncreating /tmp/guala-body-own-prefix.AN1yvLp9/python\ngcc -shared /tmp/guala-body-own-prefix.AN1yvLp9/objects/tmp/guala-body-own-prefix.AN1yvLp9/generated/workspaces/guala-functional-body/native/functional_body/radau.o -L/usr/local/lib -o /tmp/guala-body-own-prefix.AN1yvLp9/python/guala_body_radau.cpython-311-x86_64-linux-gnu.so\nBUILD_RESOURCES {\"cpu_seconds\": 1.588907, \"maxrss_kib\": 191224}\n"
+  },
+  "reason": "One coarse trial completed after15 localizations,14 incoming-only prefixes; fine-left hit5000forward cap. Both unchanged controls and early budget rollback passed. No complete pair/cold proof, no100us replay. Raw left entry and final scratch restored exactly; observer force cap also refused rollback-forward, so no complete native recomputation on exhausted intermediate rollback is claimed.",
+  "next": "Derive localization precision directly from unchanged interval.EVENT_S, not adjacent binary64 clock requirement; retain full physical and coarse/fine event gates.",
+  "mounted": false,
+  "full_body_qualification": false
+}

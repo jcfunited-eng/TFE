@@ -16375,3 +16375,146 @@ states, and do not rerun the100us matrix or full history. No new integration law
 larger budget, tolerance relaxation or claimed event order until that cause is
 measured. This narrow diagnostic does not restore rejected v9 as executable
 authority. Goal ACTIVE; full-body remains compiled-unmounted/UNQUALIFIED.
+
+### FB-01aj first-refusal observation contract — 2026-09-28
+
+Previous turn PROGRESS44db61f75; current clean tree, baseline source and archived
+v9 diagnostic ABI hashes revalidated. Inspecting the saved failure identifies
+the first generic refusal interval[.4695536346435304,.4695536376952882]s and a
+unique actual accepted predecessorSHA819929d754485fde20ed37b6ab217f2d2dd0af19d6b91885caab125fc8b6e515.
+The prior report does not identify whether its coarse/left/right trial refused.
+Observe only that original three-trial order, stopping at its first refusal;
+no full100us replay, new integrator, native source edit or build. Existing
+generated C proves diagnostic function lookups remain module-global, so
+read-only wrappers can retain localizer inputs, each joint-aligned trial's
+actual state/stages/work/impulses, and contact-path arguments before the
+unchanged native predicate returns or refuses. Preserve the original exception
+traceback and exact rollback. Wrappers return original values unchanged and
+are removed in finally. No phase/time/force/signature injection.
+
+Bound at3outer trials/5000native forwards/5numericalCPU seconds, plus the
+previous reviewed offline process/resource envelope and read-only AWS health.
+First-refusal data—not a passing motion trajectory—is the exit condition.
+Authenticate archived source/ABI, predecessor chain and fixture; retain all
+actual returned operands before fallible analysis. If not reproduced or evidence
+is incomplete, report that failure without alternate unreviewed trials.
+Production-shaped interpretation remains false. Freeze/source review before
+execution; independent review required by the project skill, not cognition work.
+
+### FB-01aj first refusal localized — 2026-09-28 06:06Z
+
+Frozen observer source reviewPASSba81dafe535048a131b422f05d3a6498601febc740d894ac8ad28dadefe3e696;
+observer4e403b2d767a06a2da32d63fd96e81569481488ded90c1a818876994903f002e.
+One localized batch separated observation failures from native returns/errors.
+Exact first coarse trial reproduced the refusal in313forwards/.27198657CPU,
+one outer trial. Child71304 exited0/.920342wall/167484KiBpeak/no survivors;
+independent census confirms absent. Original wrappers restored, native and final
+scratch rollback exact. ReceiptSHA03d629e0f794b3f924cf7da3c77cc6f720cc6485fb8f5b3194b89267e53ef11b.
+
+Decisive predicate is rejected contact_event_law.pxi:66: the recomputed OWN
+bridge remains in the incoming one-point domain, rather than the discarded
+whole-prefix trial's predicted two-point domain. Actual retained prefix ends
+.4695536358498386s; bridge ends.46955363584983867s. The discarded trial23 and
+own bridge27 end at that SAME clock, but differ in14 configuration coordinates
+(maximum1.1102230246251565e-16) and all70 velocities. Prefix custody matches
+actual trial26 byte-for-byte. This is not a missing caller, stale ABI, fake
+contact, alias-evidence defect or unknown failure branch. It falsifies the
+requirement that the recomputed path cross at the discarded path's clock.
+
+### FB-01aj own-prefix continuation numerical contract
+
+Reopen ONLY that disproved numerical requirement; preserve v8 force/joint laws,
+all error limits, full native event comparison and no production/cognition use.
+New source candidate starts from restored v8, not a layered rejected runtime.
+Retain the same native temporal search and recomputed own bridge. If that bridge
+still has the incoming signature, it is genuine integrated incoming motion:
+retain its actual state/work/impulses WITHOUT a contact certificate, then
+recompute the remaining original interval from that actual state. Do not force
+the predicted contact, reuse discarded crossing state, move the body, alter the
+force, manufacture elapsed time, or certify an event that did not occur.
+
+If the bridge actually changes once to the expected outgoing signature, retain
+its observed bracket certificate as before. Other signatures/recrossing remain
+explicit refusals. Every retained prefix/bridge must advance the clock and
+respect the original endpoint, supply and per-step limits. Accumulate only
+actual retained quadrature. The outer transaction restores its entry state on
+any failure; existing finite force/trial allowances bound repeated searches.
+No new threshold, duration, coefficient, semantic decision or state schema.
+
+Files limited to radau.pyx/contact_event_law.pxi plus numerical proof. First
+falsifier is this now-authenticated failing3.05ns interval, not broad history:
+requires actual progress to its exact endpoint, unmodified no-contact controls,
+retained native event chronology, exact accounting/rollback, and bounded cost.
+Only after it passes may the previously authorized100us two-contact interval
+run. Whole-body remains unqualified; no half-second history or production claim.
+
+### FB-01aj own-prefix candidate resource rejection — 2026-09-28 06:21Z
+
+Source-only review PASS after one localized proof-evidence batch: tree
+f0cb7a8116d493c31bda061b14ba81898a9842205532535367d24d66fbc38880;
+proofdc43238e70e94e8da0ea97ded9d9a68cde2c6dd14a600590e2e68cc47578991b.
+Review required preattached restore operands and final measured resource
+checks. Build used pinned Cython3.1.2 without install; child76544 exited0,
+37.420771wall/37.397432CPU/no survivors. ABI5150af345ea5307c18865e327f4203cff7de63d8294ef16fcd4e1dfdb4a8eb7d
+remains unmounted. An initial apply_patch Delete+Add of one path was rejected
+before editing; whole-file Update was then used. Do not repeat that unsupported
+same-patch operation.
+
+Focused original3.05ns interval proof FAILED its5000forward allowance, not an
+accuracy pass. Receiptb8ab326e481548192edc5340145b5aff9f90ff21305a9eda10e1e7851e751347.
+Both unchanged no-contact controls and explicit early force-budget rollback
+passed. The coarse trajectory reached its true endpoint with90native stage
+samples and one actual contact change. It used15localizations:14retained
+incoming-only prefixes before a real contact at
+[.4695536358498419,.46955363584984194]s. Thus the previous no-crossing refusal
+is removed, but repeated full binary searches create excessive work.
+
+Fine-left reached the total5000forward bound during its third localization;
+right/cold-repeat and coarse/fine agreement were NOT reached. Four counted
+outer trials include the two no-contact controls, coarse and failed left.
+Numerical cost2.483849454CPU/5001forwards including final cleanup; child76911
+exit0/3.139973wall/174972KiBpeak/no survivors. Final own scratch restored exactly,
+all observer wrappers restored, and failed left raw entry restored exactly.
+The observer forward guard also refused the native rollback-forward call
+after exhausting its global allowance. Therefore raw-state equality and final
+cleanup are proved, but complete intermediate native recomputation under that
+exhaustion is NOT claimed. This observer boundary must reserve restoration
+work separately before any future bounded probe.
+
+Rejected candidate diff/contact source/build receipt preserved in
+FB-01aj-rejected-own-prefix-candidate.json
+SHAec7bfe5d4d87ddd1aadebb2b6e832cbaaf2b111352b1e0a9f02f78f4b5a3e0fc.
+Executable radau.pyx restored byte-exact to accepted v8
+SHA24cdf70ec8b4f637b1357c5528ade1cd6e1c359736407d77ac9f2717aee675c7;
+candidate-only contact_event_law.pxi removed, recoverable from that artifact.
+No larger allowance,100us matrix,full-history replay or production operation.
+
+Waste finding: repeated binary64-clock localization from each new incoming
+prefix reconstructs an entire root search although the actual changes are
+adjacent-coordinate rounding. Fourteen successful incoming prefixes each
+consume a new search before the first actual event. Its work is real measured
+overhead, not cognitive activity. Increasing the resource allowance is not
+the next action.
+
+Do NOT replace machine-clock precision with EVENT_S alone: the earlier original
+469.5535156249757->469.5537109374757s step is already below1us, yet its differing
+force quadrature created the measured downstream toe-rate discrepancy. That
+prior falsification remains binding. Event timing alone does not bound the
+later force/impulse trajectory. No second numerical candidate is guessed here.
+
+Single exact next item: use saved static contact-map operands and the unchanged
+native box-contact source to identify the signed geometric insertion/removal
+guard for pair36/44. Establish whether its trajectory root can be isolated
+without repeatedly integrating full binary-search prefixes, preserving actual
+own-state contact/force evaluation and existing error limits. Read-only source
+and saved-data derivation first; no native force edit, guessed precision,
+softened boundary or new numerical run until that guard is established.
+This follows the same FB-01aj contact defect, not cognition or a new feature.
+
+Read-only production06:20:53->06:20:59UTC: same sole RUNNING/HEALTHY ECS1568
+taskf61447ffda4b429e9e983657e0ac5ca4, digest04da7c73d1466b10c6aec3025beb6d5ef2c05c67bcde7ca90234e65259fb3328,
+same identity/ticks2755832->2755843, custodyerrorsnull/durabilityfalse.
+Clock-stalledALARM persists, other4alarmsOK. Latest06:19CPUavg51.80248%/
+max52.23657%,memoryavg3.01310%/max3.01514%. No cognitive compliance or cadence
+claim. G1 caretaker45313 remains untouched. Both own children independently
+absent. Goal ACTIVE; full-body remains compiled-unmounted/UNQUALIFIED.
