@@ -17969,3 +17969,180 @@ using100/50us nominal meshes with ordinary local event subdivision, not another
 minor tuple/snapshot optimization or replay of the closed static contact proof.
 The saved3.2-ms pair remains authoritative if a larger-mesh continuation fails;
 no unsuccessful candidate may replace it. Functional-body goal remains ACTIVE.
+
+### FB-01aj declared-maximum own-history continuation contract — 2026-09-28
+
+Previous goal turn PROGRESS at7f99bee41. The local existing-mesh regime is
+closed by1a8ee5f8...adc22, not a claim of event-crossing or full-body completion.
+Continue the same500-ms load/release acceptance using the existing native
+maximum100/50us nominal meshes and unchanged adaptive subdivision/error laws.
+Current code reality: compiled/unmounted mechanics; long motion incomplete,
+so conflictYES with whole-goal completion. No cognition, L0-L4, model, forces,
+contacts, physical/error limits, state schema or production runtime changes.
+Reduced rigid-link/compliant-contact body approximation; no full DSF evaluation.
+
+Proof-only /tmp/a1-body-maxmesh-history-20260928.py reuses the reviewed
+independent-history runner, with an explicit maximum-mesh argument and new
+compiled ABI binding. Resume the qualified3.2-ms pair from
+FB-01aj-contact-engine-history-ea523d179144.json. Each trajectory keeps its
+OWN retained primary state, accounting and event path. First three new
+successors must exactly reproduce the corresponding100/50us row in the
+authenticated regime receipt (state/work/impulses/event sequence/brackets),
+then ordinary physical/sensory/history tests continue up to250ms load release
+and500ms total. The regime reference is observation-only, never an input to
+settlement. No replay from genesis, switch to the other's state, hidden force
+change, artificially synchronized route or production-body injection.
+
+Preserve current pair and literal first failure; keep existing35 numericalCPU,
+100000 total forward and10000-trial bounds, same rollback reserve and exact
+process/AWS envelope. Successful transient trial reports do not accumulate.
+A budget stop is not completion; a physical failure is not a resumable budget
+stop. No repeated blind allowance extension. No native compile required.
+G1 PID27027 organism suite is active and left untouched; shared-resource
+capacity is checked again before execution. Independent frozen review precedes
+this one continuation. Motor/receptor integration and production gates remain
+open; no extra Joe authorization is needed for this diagnostic.
+
+Frozen review77e324db found one LOCALIZED proof-contract defect: optional
+generic parent mode could evade the measured bridge. Corrected in one full-file
+batch: this launch requires the exact named parent path/SHA in parent and child;
+each of the three reference clocks/complete operands is mandatory in order;
+bridge progress advances only after the returned pair passes sensory checks
+and becomes the retained pair. Completion requires all3. Origin/reference
+hashes and committed bridge progress remain in any resource-stop receipt for
+a future explicitly bound continuation; this script intentionally rejects any
+alternate/no-parent invocation. Native source, laws, bounds and error limits
+unchanged. Final frozen review before the sole run.
+
+### FB-01aj maximum-mesh continuation result and saved-transition contract — 2026-09-28
+
+Frozen source-only final review PASS at
+7c49055a457c19285ef08048affeafb66cb3da3bda36d23aee2a428eaf7cf9f6;
+script3f7865cc0a54ef8f2b0e9ae322316df70030ecbe0e7a3db3e472e93ee5ea17a4.
+One execution. Receipt FB-01aj-contact-engine-history-7c49055a457c.json,
+SHA c68f142eac360bd2994c9b65d1b1b44e51b8310540a29665f8d3f0197a1674cb.
+
+Own histories advanced3.2->20.0ms:168 new common observations,200 cumulative,
+19 matched events, all3 initial reference successors exact. No retained
+physical/sensory mismatch. Numerical19.749881435CPU seconds,2039 outer trials,
+100000 forwards. Resource stop occurred inside20.0->20.1ms, not completion.
+Both qualified predecessors retained, exact rollback, evidence complete and
+within measured limits.500ms/load release, full-body qualification, practical
+runtime and production integration remain OPEN.
+
+Child31728 exit0,20.304095321wall/20.288212treeCPU,153028KiBpeakRSS; zero
+survivors, repeated process-group census empty. Live AWS17:43:29.119683->
+17:43:51.574505UTC: same sole1568 task f61447ffda4b429e9e983657e0ac5ca4,
+image04da7c73d1466b10c6aec3025beb6d5ef2c05c67bcde7ca90234e65259fb3328,
+identity unchanged; ticks2839521->2839570, persisted2839506->2839538,
+checkpoint/cleanup null, durabilityfalse. Existing clock-stalledALARM persists;
+other4OK. CPU about51.2%avg/52.1%max,memory3.0884%. Zero production writes.
+
+Next exact item is ONE saved20.0->20.1ms pair, not another full-history budget
+extension. Coarse lane already completed104trials/48accepted pieces; fine lane
+stopped65trials/28pieces during closely spaced joint releases. Resource refusal
+alone does not prove a mechanical error, infinite loop or need to change forces.
+Earlier20.063ms multi-joint alias/refinement and one-sided entry-force findings
+were read. Their old20.1ms states are NOT reused: they predate the current
+full-geometry law/qualified history. No event merge, tolerance change, root
+law replacement, pose projection or state synchronization is authorized.
+
+Proof-only /tmp/a1-body-joint-transition-cost-20260928.py restores the exact new
+receipt's TWO own20ms states. Reproduce first coarse lane accepted pieces,
+complete physical accounting, states and event records exactly against the
+saved successful partial attempt; then require the full pair's existing
+sensory/state/work/impulse/order/timing checks at20.1ms. Record complete interval
+evidence and measured cost.20numericalCPU/60000forwards/3000trials, stricter than
+the prior run; unchanged offline2core/1GiB/60CPU/90wall wrapper and AWSpre/post.
+Initial scratch rollback, process census and frozen source-only review remain
+mandatory. No native build or source change.
+
+Inspection-only KeyError from using zlib_base64 instead of the receipt's actual
+payload_zlib_base64 was corrected after inspecting its keys. No dynamics ran;
+raw length and SHA verified on corrected extraction. This is not a physical
+failure and caused no repeated trial.
+
+G1's newer pytest31540 is active in the main worktree and untouched. Body source
+remains separate. Required native motor/receptor/state interface still has no
+recorded ACK; no cognition integration or physical-neuron equivalence inferred.
+Goal ACTIVE; no additional Joe approval needed for this bounded mechanics proof.
+
+### FB-01aj saved20.0->20.1ms joint-transition PASS — 2026-09-28 17:54 UTC
+
+Independent source-only review PASS at19dd52d4134a8b75bc1bf8f96913e5233b0c949077f6e544f57915a1d20b0eec,
+driver18b6c70c0d7c1bee469f10fd7bae0bf44db52319ebba975e3d06fbc6201bef1b.
+Ran once. Receipt FB-01aj-contact-engine-history-19dd52d4134a.json,
+SHA e12363bd983c058e55d86ae54705cfbcb181c39f7edbe125ebee2ea1b84efa15.
+Complete, coarse historical physical result exact, existing pair and sensory
+limits pass, no first failure, initial scratch rollback exact. Both retained
+own20.1ms states are qualified;201 cumulative observations,28 matched events.
+No native source/force/tolerance changed. The previously interrupted interval
+was expensive, not a demonstrated divergence or need for an invented fix.
+
+Measured206outertrials,23289forwards,5.558359856numericalCPU. Each lane retained
+48accepted pieces and5joint boundary certificates (ordinals32/34/36/38/56),
+with185/184 accepted-root bracket trials respectively; unchanged exact-event
+ordering and1us comparison law. These accepted-root counts do not include
+discarded trial work and do not alone explain all compute. Practical body
+runtime remains unqualified; this is a numerical witness, not production speed.
+
+Child36038 exit0,6.098664942wall/6.091523treeCPU,153284KiBpeakRSS, no survivors;
+repeat PGID census empty. Read-onlyAWS17:53:38.402839->17:53:46.779890UTC:
+same sole1568 task/image/identity, ticks2840830->2840849,persisted2840818;
+checkpoint/cleanup null,durabilityfalse; existingclockALARM persists,other4OK.
+CPU51.26-51.29%avg,RAM3.0884%. Zero live writes. G1 source/workers untouched.
+
+Next is the SAME500ms load/release qualification from these exact two20.1ms
+states, not repeated local event analysis or another full prefix. Proof-only
+/tmp/a1-body-postjoint-history-20260928.py binds this completed LOCAL receipt,
+its exact target/lineage/coarse-equivalence flags, and carries own work/impulse/
+sensory/event accounting forward. Uses existing100/50us maximum with ordinary
+adaptive subdivisions and unchanged250ms release/500ms endpoint. Existing
+35CPU/100000forwards/10000trials remain; no budget increase. Refusal retains
+last qualified pair and actual failure. No native build, schema, forces,
+cognition, DSF, world or production change. One frozen source review and one
+bounded continuation, no replay of20ms prefix. New G1 pytest36388 left alone.
+Body goalACTIVE, mounting/integration/practicalperformance remainOPEN.
+
+### FB-01aj post-joint continuation result; numerical cost is the active boundary
+
+Frozen review PASS67f72af65df81309971a3a2c8827dff506e3dfb921d9dc5720293a04ff15f023,
+driver0ed42c5f471c15c1df507b856f43166f5a664bf239b54d43f90dd08c669b6cfd.
+One bounded run, no prefix replay. Receipt
+docs/evidence/FB-01aj-contact-engine-history-67f72af65df8.json,
+SHA335ccdd5f7dbfdfda474780719ec7fac12c15d242b5aa897d80a180bad287825.
+
+20.1->22.2ms own histories accepted:21 new common observations,222 cumulative,
+46 matched events. Then100000-forward cap stopped22.2->22.3ms during coarse
+one-sided joint event location.23.039276208numericalCPU/864outertrials.
+No retained physical/sensory discrepancy; pair qualified, evidence complete,
+rollback exact, within measured limits. This is NOT500ms completion.
+The failed interval retained12coarsepieces/28trials/7rejections before budget;
+2contact-impulse quadrature,4one-sided subdivision and1event refinement.
+Saved state/time remains22.2ms; no failed scratch is promoted.
+
+Child37610 exit0,23.636679272wall/23.597149treeCPU,153860KiBpeakRSS; no survivors,
+repeat process-group census empty. AWS17:56:44.832615->17:57:10.874646UTC:
+same1568/task/image/identity; ticks2841234->2841291,persisted2841202->2841266,
+custody errorsnull,durabilityfalse; existingclockALARM and4OK; CPU51.3257avg/
+52.0918max%,RAM3.0884%. Zero live writes. G1 pytest36388/source left untouched.
+
+Waste/next-item decision: do NOT perform another blind budget continuation or
+replay the prefix. The one-sided root search currently performs35-40 complete
+restored collocation trials per accepted joint boundary (saved20.1ms proof),
+before counting rejected attempts; that local100us interval cost5.56CPU seconds.
+This establishes expensive numerical root-search work, not that every call is
+unnecessary or that bisection is physically wrong. The next bounded numerical
+slice is the event-time SEARCH, not force physics: assess safeguarded residual
+interpolation with guaranteed bracket contraction while retaining actual solved
+residual signs, incoming force-domain checks, monotonicity, adjacent binary64
+endpoint termination, physical residual/error limits, accounting and rollback.
+No nearest-root guess, loosened accuracy, projected pose or cognitive selector.
+
+Prior attempt search found no previous safeguarded event-time interpolation
+candidate; earlier secant/scaled-rotation work concerns the inner coupled solve,
+not this outer temporal bracket. Contract/source-only review must precede any
+new executable candidate. First falsifier is the SAVED current-law20.0->20.1ms
+pair and exact accepted baseline evidence, not another full500ms trial. No
+authority gap or Joe question is introduced. Body remains unmounted and goal
+ACTIVE. G1 motor/receptor/current-state handoff remains separately open.
