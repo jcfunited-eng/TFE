@@ -14731,3 +14731,97 @@ checked by the existing wrapper. Original365.1ms sensory discrepancy has not
 yet been reached. Full500ms coverage, missing old dense prefix comparisons,
 intrinsic-couple/gravity, production-speed qualification, body/world mounting,
 restart and live delivery remain OPEN. Goal ACTIVE; compiled-unmounted.
+
+### FB-01aj continuation reaches58.1ms; first sensory discrepancy — 2026-09-28
+
+Same reviewed driver and compiled source, no preceding trajectory replay:
+36fca2fb4010 receipt SHA1708e3cbff96791d866ea0760f9a67f703c0a08e15cc0fb7d025a9b0e59f0a00
+adds112 observations to41.9ms;1708e3cbff96 receipt SHA
+7b40191ecc2fd312b84c503972465e82453af1db935a6ba7a648f506622a0473
+adds127 to54.6ms. Both50CPU-only stops preserve exact native rollback.
+Receipt7b40191ecc2f SHA
+b7c304af26aaa24751b9f310f35ba6a7558a0ffedbdd0ab35a99f83cb338b4e3
+adds35 to58.1ms then refuses58.2ms: left-palm specific-force error
+0.05532710122280695 exceeds0.030318734712558394m/s^2; left digit4 distal
+joint-rate ratio1.2534744489 also fails. All other measured channels pass.
+Same event order/timing passes; lower-limit index11 enters at paired brackets
+near58.158ms, separated390.625ns. No contact at the refused endpoint. Do not
+infer that sub1us event agreement guarantees sensory accuracy.
+
+Children22307/23106/23809 exited0, no survivors; peakRSS175180/153296/152328KiB.
+CPU50.602160/50.576303/15.510351s respectively. Sole live1563/image/identity
+unchanged, ticks2718212->2718656, checkpoint/cleanupnull/durabilityfalse;
+clock-stalled remainsALARM. No production, caretaker or cognition mutation.
+
+Next bounded diagnostic: authenticate the refused58.1->58.2ms own predecessors,
+reproduce BOTH recorded successors exactly, map nominal1/2/4/8 meshes, then
+cross-check both finest meshes from each SAME predecessor. This separates local
+integration error from inherited-state sensitivity without assuming the older
+365.1ms diagnosis applies. Retain all actual raw/observation/work/impulse/event
+operands and failures; no trajectory continuation, native build, new physics,
+threshold change or production mounting. Existing wrapper/50CPU envelope;
+diagnostic15CPU/5000primitives; one frozen source-only review before execution.
+Only /tmp/a1-body-58ms-error-map-20260928.py and its receipt/this ledger are new.
+Native Radau admission, force engine, persistence and motor consumers unchanged.
+Diagnostic scratch never publishes organism state. Full qualification stays OPEN.
+
+Lookup errors this block: guessed docs/functional_body_precursor_source_map.md
+and tools/qualify_functional_body.py do not exist. Neither was executed; exact
+paths subsequently resolved with rg --files. No further guessed lookup paths.
+An inspection printed full admission scratch once; subsequent summaries select
+only scalar metrics and rollback booleans, never raw packed state payloads.
+
+Frozen source review4e2f646d... found two LOCALIZED diagnostic defects, no
+architectural finding: preattach failure operands before fallible restore and
+observation, and prevent state-capture errors masking the primary exception;
+enforce final recorded15CPU/5000primitive limits instead of relying solely on
+the inherited wrapper's broader50CPU/30000 gate. Corrected together before any
+execution. Child completion now requires complete evidence and final counters
+within its own declared bound, so the inherited wrapper cannot report success
+outside that bound. Wrapper/source/ABI stay unchanged. Final source review next.
+
+### FB-01aj58.2ms inherited-error attribution closed — 2026-09-28 00:42Z
+
+Final localized review PASS at c42322eafa7124940c6a126a68a38f66221dbb4cd2bc79142b5917227d15f92d,
+proof SHA644567569f6574258a9bfb1399657a5d3ab0f0d58c091a8eb6524892674efa00.
+Receipt FB-01aj-58ms-error-map.json SHA
+3f0062fd1475f117c42ec8e0a11815eea2d655f4d3bab9a83d766b5720ba814c:
+all6 comparison cases completed; both original raw successors, cumulative work,
+impulses, remaining supply, event paths and complete observations reproduce
+exactly. Entry58.1ms comparison passes. At nominal1/2/4/8 own-state meshes,
+palm error remains0.05532710107--0.05532710122m/s^2 (ratio1.82484862), and
+digit4 distal-rate ratio remains1.25347444. Event order/timing passes throughout.
+From each SAME predecessor, the two finest meshes agree: palm differences
+3.90248e-9 and3.82772e-9m/s^2; all measured channel comparisons pass.
+Therefore local refinement of this final100us is not the repair. Difference
+is inherited; do not rerun this cleared matrix, synchronize states, loosen a
+threshold, or call the whole motion qualified. The actual crossing is the
+left PALM ROLL (wrist) lower limit, not a finger limit; the finger-rate channel
+is downstream. Earlier commentary calling it a finger boundary was incorrect.
+
+2358primitives/40548probe forwards,12.515088072numericalCPU seconds;
+13.354415childCPU,218940KiBpeakRSS,13.501044wall. Child28869exit0, no survivors.
+Read-onlyAWS00:42:00->00:42:17UTC: sole1563/sameimage/identity;
+ticks2720133->2720171, custody errorsnull/durabilityfalse. Clock-stalledALARM
+persists, other4alarmsOK. G1 regression25570 completed before this diagnostic;
+no other agent process was stopped. All source/ABI hashes unchanged.
+
+Read-only traversal of574 authenticated common endpoints0.8->58.1ms executed
+ZERO physics. Integration qpos/qvel offsets8/576bytes and lengths71/70 were
+verified against complete captured observation arrays. Exact sensed-angle
+equality identifies left-palm roll atqpos18 and digit4 distal flexion atqpos30.
+Wrist rate-error increments peak at29.8/29.9ms:3.2754441161e-5 and
+4.3061337099e-5rad/s. At22.3ms the earlier increment is-2.2251059733e-6;
+the preceding22.2ms rate difference is approximately5.21e-10rad/s. These locate
+the next bounded causal investigation, not proof that one contact explains all
+later error. By58.1ms wrist-angle difference is5.750268009e-7rad.
+
+NEXT FB-01aj item: use the retained22.2->22.3 and29.7->29.9ms own-state/contact
+records to distinguish introduced local integration error from amplified prior
+error. Reuse the exact compiled law and saved endpoints; no genesis/full500ms
+replay or another58.2ms matrix. Prior old-law26.7/59.6ms attribution is context,
+not interchangeable evidence for these new guarded histories. Any numerical
+correction must be general physical error control, never a time-indexed fix,
+force retuning, cognitive action rule or acceptance relaxation. Full accuracy,
+production cost, gravity/couple, body/world integration/restart/live remain OPEN.
+Body compiled-unmounted; goal ACTIVE. This block changes evidence, not mechanics.
