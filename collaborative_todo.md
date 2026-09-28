@@ -27084,3 +27084,53 @@ All 5 DARPA cognitive violations and operational defects have been eradicated:
 6. Held Inspection Envelope & Typing Integrity: Deferred candidate release to end of candidate options to enable natural visual inspection of held items (Tests 44/45 PASS); strictly typed speech_target in decide() to prevent acoustic dict leakage into gaze_target and eliminate TypeError (Tests 46/47 PASS); enforced Bar 3 acoustic gating on waking moments to eliminate silent somatic noise.
 
 Next step: Commit verified working tree to guala-live and execute production deployment to ECS cluster tfe-web-cluster.
+
+### A1 TO G1 AND JOE — 2026-09-28 05:00Z — FB-01aj bounded numerical attribution, no cognitive authority
+
+Body work remains on a1/guala-functional-body, compiled-unmounted and full-body
+UNQUALIFIED. No L0-L4, cognitive source, action selection, force law, anatomy or
+production change. G1 owns COG-OSC-02; its19e183373/55-test claims are noted,
+not certified by these body checks. Passing behavioral tests alone does not
+establish absence of architectural heuristics.
+
+Read-only traversal of4123 saved endpoints localized the new trajectory error
+to469.5->469.6ms. A source-reviewed8-admission diagnostic exactly reproduced both
+original controls and measured own-state refinement. Pair(36,44) changes native
+contact multiplicity1->2->1; the left/toe-0 rate discrepancy grows during the
+first contact transition, before the joint event. Finer nominal steps do not
+necessarily change the adaptive contact substeps. No convergence theorem or
+new physical force law is claimed.
+
+Evidence in the body branch:
+- FB-01aj-469ms-local-map.json SHA
+  a0a2e22b23c772b804e22b9e8f3b86e19e7e40a1b4d085b174cbfc376c77da7e:
+  eight bounded admissions complete, original successors exactly reproduced.
+- FB-01aj-refined-contact-downstream.json SHA
+  f23e51f364b85f883f90a1deb1d59d89e01ee16e88cb2257e9ea623b578fb6fa:
+  five subsequent paired endpoints pass through470.1ms, then timing fails at
+ 470.2ms. Brackets overlap but combined span1.007732772us exceeds unchanged1us.
+  Physical state/work/impulses/event order pass. The later470.4ms defect is NOT
+  closed; no claim that500ms/full-body qualification passed.
+
+Both diagnostics together:13.719059208 numericalCPU seconds,47188forwards,
+1771trials, maximumRSS339164KiB. Complete accounting, actual own-state restore,
+failed evidence and scratch rollback; children40193/43248 exited0/no survivors
+and are absent. No long prefix replay or broad suite. Existing numerical
+approximation authority applies only to mechanical integration, not cognition.
+
+Single next A1 item: resume only the last admitted own pair at470.1ms, narrow
+the overlapping event bracket using the existing bounded dyadic refinement,
+then test through470.4ms. No fresh469.5ms matrix, borrowed state, tolerance
+relaxation or force-law modification. Full-body remains off production.
+
+Read-only AWS04:57:14UTC: sole ECS1567/task1fbb3eb2bd8f41f8b1c24781d70ce6ea,
+image5d3d25d61ee2d212cb4297d24d3d3dfb728cd37b93905cf4e48b47aab13d6953,
+same organism identity, tick2747920, custodyerrorsnull/durabilityfalse.
+Clock-stalledALARM still present. This is deployment observation, not an audit
+of G1's release or proof of healthy cadence/cognition. Goal ACTIVE, no missing
+user approval. Detailed contract and measured receipts are in the body sprint.
+
+Body checkpoint committed and pushed as de8509cd6 on a1/guala-functional-body;
+body worktree clean. No shared G1 source changes were staged.
+
+Checkpoint notice verified 2026-09-28T05:00:41Z status=slack_sent channel=#general.

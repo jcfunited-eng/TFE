@@ -161,9 +161,6 @@ def _gaze_frame(sensory: Any, gaze: tuple[float, float]) -> list[float]:
     older law: a bounded step from the crop's origin toward the structure she
     saw, then a small pull back toward the frame's centre."""
 
-    # The crop's share of the frame is its per-site pitch times its site count over the
-    # declared field: an 80 x 60 crop at 94 mdeg of a 640 x 480 frame is an eighth; the
-    # whole frame at her grain (375 mdeg x 160 sites) is the field itself.
     dims = sensory.focal_crop_dimensions or (80, 60)
     crop_fraction = (
         (sensory.focal_pitch_millidegrees[0] * dims[0] / CAMERA_FIELD_MILLIDEGREES[0],
@@ -225,11 +222,14 @@ def _thing_sound_gain(snapshot: Any, object_id: str) -> tuple[Fraction, int | No
 
 
 def _caregiver_withdrawal(organism: FunctionalOrganism, world: Any) -> dict[str, object] | None:
-    """The caregiver's law after a meal: when she is not feeding, or what is
-    held out has nothing left to bite, the caregiver carries it home to the
-    hallway, out of every doorway, and tidies eaten cores out of doorway
-    approaches. One bounded stretch per beat; after a stretch that did not
-    finish, it waits a few beats before the next. Never moves her."""
+    """The caregiver's law after a meal or toy offer: when she is not feeding,
+    or what is held out has nothing left to bite or timed out, the caregiver
+    carries it home to the hallway, out of every doorway, and tidies eaten cores
+    out of doorway approaches. When hands are empty and Guala is awake, the
+    caregiver remains in place for accompaniment, domestic presence, or patrol.
+    Only when Guala is asleep (night consolidation) does an empty-handed caregiver
+    step back to the hallway. One bounded stretch per beat; after a stretch that did
+    not finish, it waits a few beats before the next. Never moves her."""
 
     tick = organism.live_organism_tick
     if tick < int(organism._state.get("caregiver_retry_tick", 0)):
@@ -262,6 +262,11 @@ def _caregiver_withdrawal(organism: FunctionalOrganism, world: Any) -> dict[str,
             return None  # her mouth or hand is still on it; her next own act clears the contact, then the caregiver steps back
     else:
         organism._state["offer_since_tick"] = None
+        # During daytime wakefulness, an empty-handed caregiver stays in place
+        # (patrolling, accompanying, or observing). Only during sleep does the
+        # empty-handed caregiver withdraw to the hallway.
+        if not organism.asleep:
+            return None
     record = withdraw(world)
     if record is not None and not (record["home"] or record["fetched"]):
         organism._state["caregiver_retry_tick"] = tick + CAREGIVER_RETRY_BEATS
@@ -324,7 +329,8 @@ class FunctionalPhysicalLoop:
         presentation = None
         withdrawal = None
         try:
-            if sensory is not None and sensory.present_food is not None:
+            presentation_offered = sensory is not None and sensory.present_food is not None
+            if presentation_offered:
                 # The caregiver's act is not her beat: whatever goes wrong in it is a
                 # refused presentation on the record, never the end of her.
                 try:
@@ -334,13 +340,14 @@ class FunctionalPhysicalLoop:
                                     "schema": "guala.caregiver_presentation.v1",
                                     "steps": [{"operation": "presentation", "reason": f"failed: {type(error).__name__}: {error}"[:200], "to": None}]}
                 returning = world.pending_physical_return
-            # The caregiver does not walk home on the beat it touched her; whether it
-            # stays (holding on, beat after beat) or leaves is the caretaker's to give.
+            # The caregiver does not walk home on the beat it touched her, nor on the
+            # beat a presentation was offered; whether it stays (holding on, beat after beat)
+            # or leaves is the caretaker's to give.
             if (presentation or {}).get("reading"):
                 # Read to: the caregiver keeps the book beside her while the reading lasts.
                 organism._state["reading_until_tick"] = start_tick + READING_PATIENCE_BEATS
             withdrawal = None
-            if not (presentation or {}).get("touched"):
+            if not (presentation or {}).get("touched") and not presentation_offered:
                 try:
                     withdrawal = _caregiver_withdrawal(organism, world)
                 except Exception as error:  # noqa: BLE001
