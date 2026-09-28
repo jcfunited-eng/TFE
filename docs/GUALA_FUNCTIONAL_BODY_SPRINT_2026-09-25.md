@@ -14930,3 +14930,127 @@ Inspection errors disclosed: one summary accidentally printed the full metrics
 dictionary (truncated); subsequent output selects scalar channels only. One
 read-only summary used nonexistent proprio_rate_rad_s; corrected from source
 to proprioceptive_rate_rad_s without reexecuting dynamics. No evidence changed.
+
+### FB-01aj native one-sided force map contract — 2026-09-28
+
+Continue2398cef15's identified local error; do not repeat the closed matrices.
+No production or integrator-law edit. One source-bound offline diagnostic
+/tmp/a1-body-native-boundary-map-20260928.py authenticates receipt7b83775a6d88...
+and the complete finest accepted22.2->22.3ms state chain. Exact raw endpoint
+and full observation must reproduce before interpreting any new force sample.
+Restore each actual before/after state surrounding a recorded event and retain
+native force/domain controls. For each actually changed joint boundary only,
+hold all other state fixed and evaluate q=limit+signedmargin and its two adjacent
+binary64 values. These are explicitly CONTROLLED STATIC NATIVE LAW samples,
+not physically integrated successors, retained experience or continuum bounds.
+Record native joint addresses/names, force/acceleration vectors, native rows,
+actual parent references and changed coordinate. No invented intermediate domain.
+Contact-only events receive unchanged-state controls, not a fabricated joint root.
+
+One anatomy instance, zero time integration or work transfer; all mj_forward
+calls counted, including construction/restoration.15CPU/128forward bound;
+one final reserved force evaluation restores exact initial scratch. Preserve
+first failure separately from extraction/cleanup errors. Existing60CPU/90wall/
+1GiB/two-core offline wrapper, read-onlyAWS pre/post and terminal census reused.
+Candidate source-only review before execution. No cap increase, competing heavy
+G1 workload, model build, force modification, event tolerance change or new
+cognitive decision mechanism. Body remains compiled-unmounted/unqualified.
+This map resolves the one-sided native-law question before event-aligned code.
+
+Frozen review bfaddee35b6c... / scriptbe12ab309270... found3localized evidence
+defects before execution: tuple/list domain comparison, raw warmstart efc_state
+instead of the canonical final-island accessor, and incomplete finiteness checks
+on retained native constraint arrays. Corrected together: canonicalize expected
+domains; reuse interval._constraint_states; finite-check all recorded force/row
+arrays. No architectural finding or dynamics execution. Final source review next.
+
+### FB-01aj native joint-force boundary measured — 2026-09-28 01:16Z
+
+Final source-only review PASS at fingerprint
+d2085bfe93269b37926b6e3fbde867e766ac59011d9106b75fa9e5b8d97ec3c3;
+diagnostic SHA4a845c1ae43d6b6119380811d3b7a4d379cefa89ee12bff5a0dbe47ef7a0c1d2.
+Ran once. Receipt docs/evidence/FB-01aj-native-boundary-map.json SHA
+d1ad7f4298afe8370304ddb52a670c1983eda16aa0b056b89fd58b6bcb3d3072.
+Complete:36native forwards,0.515966390numericalCPU; exact saved endpoint/full
+observation reproduction and exact final initial-scratch restoration. Four
+actual event pieces retained. Controlled static samples are NOT lived motion.
+
+Distinguished two physical cases without using a semantic selector:
+- Ordinal36, right digit2 distal lower-limit RELEASE, q=0: at both saved
+  neighboring states, all qacc and generalized constraint force values are
+  identical across q=-smallest-subnormal,0,+smallest-subnormal. Limit row force
+  is0. A row disappearing does not automatically mean a force discontinuity.
+- Ordinal14, left digit0 distal lower-limit ENTRY, q=0: same incoming state
+  has qdot=-45.0357888106rad/s. Native limit row at q<=0 carries
+  0.00222352841629Nm; at the next representable q>0 it is absent. The joint's
+  acceleration changes from450741.160957 to383759.121654rad/s^2, difference
+  66982.039303rad/s^2. The successor-side control independently shows the
+  same discontinuity class:450359.100644 versus383647.328278rad/s^2, with
+  0.00221455679012Nm limit torque. This agrees with the source's closed-limit
+  damping term at nonzero incoming velocity. No torque/stiffness retuning.
+
+Contact-only events were observed, not assigned invented joint roots: the first
+removes geometric pair22/6 while the loaded pair10/34 remains; the third adds
+a second native contact for34/10. These remain separate native geometry laws.
+The joint-entry jump is established, but not certified as the sole contributor
+to the whole22.2->22.3ms or58.2ms discrepancy. Do not reinterpret a mixed-unit
+generalized-vector norm as a physical acceptance metric; use individual DOF
+units and the existing separately typed sensory comparisons.
+
+The next numerical correction must isolate actual joint entry in chronological
+integration and use the correct one-sided force on each segment. Right-Radau's
+nonzero terminal weight makes ordinary endpoint bisection insufficient if that
+endpoint already evaluates the post-entry damping force. Root location comes
+from joint geometry and actual solved dynamics, not an event label, time lookup,
+state synchronization, forced movement, or changed torque law. Every numerical
+root approximation and any projected boundary state must have explicit residual
+and state-error treatment; no undeclared pose clipping. Initial/coincident
+release, ambiguity/grazing, rollback, supply/work/impulses, and resource refusal
+remain part of the existing contract. Implement only after that local numerical
+contract is complete; reuse this saved interval as the first falsifier. No more
+static boundary map or29.8/58.2ms attribution replay is needed.
+
+Child40882 terminal/no survivors:1.344904wall,1.337536subprocessCPU,
+1.229973self-reported childCPU,253636KiBpeakRSS. No integration or work transfer.
+Read-only production baseline CHANGED externally before this run:1564,
+taskaa20c7ced32343d98c13a74b90b1bde0, image9ba2adf8e9ff478dbd91fa7fb999c67295a115adc10109b4f8086c05de4cd38a.
+Same release/identity across01:11:51->01:11:55UTC, ticks2723800->2723813;
+checkpoint/cleanup errorsnull, durabilityfalse, clock-stalledALARM stillpresent.
+No body source deployed; no claim to have audited1564 cognition. G1 coordination
+will report the observed baseline. Body remains compiled-unmounted/unqualified;
+full accuracy/performance/integration/restart/live gates OPEN; goal ACTIVE.
+
+### FB-01aj next numerical operator boundary — 2026-09-28 01:18Z
+
+Source-only mathematical review recommends scalar event-time bracketing around
+the existing one-sided Radau solve, not immediately enlarging its coupled Newton
+system with an unknown duration. No execution repeated. Measured jump multiplied
+by a bracket width is NOT a rigorous impulse bound: no supremum over the interval
+has been proved, and the changed constraint influences other coupled forces.
+Do not introduce that shortcut or an empirical event precision constant.
+
+For the implementation contract, retain the complete unpublished predecessor
+and its physical joint boundary. Each restored trial uses the same collocation
+law; terminal force scratch evaluates the incoming native branch while actual
+terminal position remains the solved collocation result. The adjacent binary64
+coordinate is an approximation to a one-sided limit, not exact force evaluation
+at the boundary. Prove branch selection and no unrelated constraint switching;
+retain actual force-input coordinates separately from terminal state. Bracket
+the terminal position residual against the joint boundary in physical time;
+require earlier stages on the incoming branch. Unexpected additional events,
+nonmonotonic/grazing ambiguity or unrepresentable progress refine/refuse.
+
+Do not project accepted coordinates onto the boundary after solving: that would
+break the collocation equation. Commit only a bracket-admissible solved state,
+with explicit time/position residual evidence and unchanged physical comparison.
+The incoming quadrature retains its actual work/impulses; ordinary native endpoint
+forces then supply observation and the following segment. Distinguish certified
+one-sided event evidence from contradictory same-time ordinary snapshots.
+Rejected trials debit computation only. Failure restores the whole unpublished
+interval, timestep, work, impulses and supply. Initial boundary departure,
+simultaneous events and zero-duration recurrence need explicit handling, never
+manufactured domain order. Source/ABI will change only after this transaction
+and all numeric acceptance details are executable, frozen and independently
+reviewed. First falsifier: retained incoming-stop interval plus zero-force
+outgoing control, own-history and same-predecessor comparisons, actual accounting
+and exhaustion rollback. No new static map or global replay is required first.
