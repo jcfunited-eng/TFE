@@ -15417,3 +15417,197 @@ No physics result depends on that failed lookup. Body remains compiled-unmounted
 and unqualified. Independent accuracy now demonstrated through26.6ms only;
 58.2ms,500ms, gravity/load, intrinsic-couple limit, cost, integration/restart/live
 remain open. Goal ACTIVE, no user-approval blocker; G1 owns COG-OSC-02.
+
+### FB-01aj incoming-domain bracket contract — 2026-09-28
+
+Continue9af686ae6; prior turn PROGRESS. Authoritative next input is each OWN
+qualified26.6ms state in receipt33422465bee6..., not the unpublished near-ULP
+scratch inside its rolled-back admission. The completed six-width map remains
+closed. It demonstrates two distinct refusals: a premature upper-trial domain
+check and a position-interpolation quantization limit. Correct the former now;
+do not force the latter to pass or claim all binary64 edge states are qualified.
+
+Authorized native files: one_sided_joint_event.pxi (_root_trial,
+_locate_joint_event) and radau.pyx (law identity; initialize terminal_q to remove
+the previously recorded compiler ambiguity). Unchanged: forces, anatomical
+limits, joint_event_law.pxi exact certificates, integration tableau, accepted
+state/sensory/work/impulse tolerances, admission, body interface and cognition.
+
+The existing root trial may cross the SELECTED joint boundary before its final
+quadrature node. Return it as an inadmissible crossing bracket only when every
+other physical domain component equals the incoming domain and both existing
+position/velocity cubic monotonicity certificates still pass. It cannot supply
+accepted work, impulse, body state or an event certificate. A crossed upper
+trial's time/residual may constrain subsequent bisection; a pre-event lower
+trial must remain fully in the incoming force domain. Preserve the existing
+ordered residual check, representable-time termination and angular/time limits.
+
+Acceptance still requires the selected upper trial's earlier quadrature nodes
+and terminal force snapshot ALL belong to the incoming domain. Only its REAL
+ordinary endpoint may cross the selected native joint boundary; all other
+domains must match. Zero-residual early termination is legal only for such an
+admissible upper trial. An adjacent-clock bracket lacking an admissible upper
+remains a refusal. No change to force scratch, position, velocity, endpoint,
+energy debit or native observation. Rejected trials start from the identical
+complete predecessor and discard all their trial work. Existing nested rollback
+restores the same physical state on every failure and no solver state persists.
+The bisection and call budgets stay bounded; one Boolean describes numerical
+candidate admissibility, not organism choice or physical state.
+
+Decisive local exit: from the frozen26.6ms own pair, execute the previously
+failing26.6->26.7ms full interval, retaining independent supply/work/history.
+Compare unchanged native physical/event and typed sensory gates; confirm real
+joint crossing is reached, inadmissible brackets are not admitted, exact work
+accounting, observation re-restore, and failure rollback. Then continue toward
+58.2ms using saved successors, never overwrite either lane or replay the origin.
+The original deep quantization scratch stays recorded as a refusal; broader
+edge-state qualification is not closed by this local correction. No production
+mount/deploy claim. Freeze one candidate and review source before one build.
+
+### FB-01aj v7 focused proof refuses; preserve the failure, 2026-09-28
+
+Frozen candidatec7e118a48b5e... passed source-only review after one observer-only
+correction(retain actual refusal observation). Final proof64347b491686...;
+runner39a088296b1b... unchanged. One build31.212436CPU/484148KiBpeak;
+ABI01662d8b3c02... at /tmp/guala-body-bracket.f7fdlbg6. Children80261/80457
+terminal/no survivors. Compiler terminal_q warning is absent; four pre-existing
+Cython index-performance hints remain disclosed in the receipt.
+
+FB-01aj-incoming-bracket-proof.json SHA
+3ce617b48e9df1ba3d251283a44272cdc0f1cf1d141f39524c297f5671b40333
+records FAILURE: no representable Radau admission subdivision, first lane only,
+127trials/2424forwards/1.019916numericalCPU, exact admission and outer rollback.
+No work/sensory success claim; independent qualified history remains26.6ms.
+The same deepest predecessor recurs: this bracketing correction alone is not
+sufficient. Do not rebuild or repeat this failed full100us proof unchanged.
+
+Next diagnostic reuses the earliest saved one-sided-event refusal, starting
+0.026681249999999847s with its exact predecessor from accepted piece17 and
+unchanged following supply. Call the native plain-step/event-locator directly
+once to retain the first refusal callsite, before near-ULP subdivision. Existing
+ABI only,5CPU/10000forwards, exact scratch restore, no old six-width-map replay.
+Read-only production02:47:22->02:47:57UTC stayed1566, same task/image/identity,
+ticks2735637->2735693,custody errorsnull/durabilityfalse; clock-stalledALARM
+persists. No A1 production writes or cognition edits.
+
+First-refusal receipt7f0eb4c65f6e13a8ae3ecc6360f2feb7e9bc585fb510a8a21df3797b6c25dd48
+(FB-01aj-first-bracket-refusal.json) completed in32forwards/0.111968CPU,
+exact rollback; child82502terminal/no survivors,144628KiBpeak. It identifies
+_changed_joint_event:62(multiple distinct joint roots), an expected coarse
+refinement, not yet the fatal single-event cause. No root-locator trial was
+reached. Thus this narrower diagnostic does not qualify the proposed correction.
+Do not misreport successful diagnostic execution as successful body motion.
+
+The next bounded observer maps the SAME precursor across binary width halves
+until no boundary is crossed. It records actual native collocation stages,
+domains, root operands and exact-cubic derivative values through a transparent
+_plain_step observer subclass(return value and exception unchanged). No native
+edit/build, old prefix replay or old near-ULP six-width map. The5CPU/10000forward
+envelope and exact cleanup remain. This distinguishes legitimate multi-event
+refinement from the first failing single-boundary locator in one causal map.
+
+### FB-01aj coupled reaction closure — measured architecture correction
+
+Map46fa1061fa00d19808fec72a492339a95cf7dbc8fbf0b8fdc37c4299ab4ca67d
+(FB-01aj-bracket-refinement-map.json) completed sevenwidths/221forwards,
+0.179967numericalCPU; child84557terminal/no survivors,144756KiBpeak. Observer
+f41296eb9955... passed final review after isolating diagnostic packing failures
+from the unchanged native return. Existing G1pytest83331 on20CPU host remained
+active; this subsecond diagnostic is not an isolated-host throughput claim.
+
+Exact cause: .78125/.390625/.1953125us trials contain only lower joint1 crossing,
+but _root_trial:77 rejects their first upper BEFORE bisection. Before crossing,
+native joint-limit rows33,35,57 have states(1,1,1). Activating row1 produces
+rows1,33,35,57 with states(1,1,1,0): joint57's reaction becomes satisfied/zero.
+No other geometric flag changes; the terminal incoming-side force snapshot
+still has the original complete domain. The exact actual-position and integrated
+velocity cubic derivatives are negative. At.09765625us no boundary is reached.
+
+This is missing coupled-force closure in v7's contract, not another tolerable
+root error. MuJoCo source engine_core_constraint.c:2303-2316 defines these states
+from the coupled constraint acceleration residual; a reaction state is not an
+independent geometric boundary. interval._constraint_states retrieves the final
+native island solution. Silently removing this physical reaction from observation
+would also be wrong. Reject v7 as an incomplete numerical transaction contract;
+its exact native diff is retained in FB-01aj-rejected-incoming-brackets.patch.
+Executable native files are restored to9af686ae6 before the replacement below.
+
+Replacement contract(v8), same two native files, no force/anatomy/cognitive change:
+- Separate geometric constraint activation from the solved reaction-domain vector
+  ONLY for selected joint-event bracketing. The configuration signature keeps
+  every other lower/upper geometric flag, native constraint type/id in order, and
+  geometric contact pairs, stripping only the selected joint row/flag. Reactions
+  and loaded-contact sets are outputs of the same coupled native force solve,
+  never authored states; retain the full original snapshots and event sequence.
+- A search-only upper may contain changed coupled reactions but no unselected
+  geometric activation. Every accepted earlier stage and its terminal one-sided
+  FORCE snapshot must still equal the complete incoming domain exactly. Thus no
+  unrelated earlier force switch can enter accepted quadrature.
+- The real terminal snapshot may contain the native solved reaction changes
+  caused by crossing the selected joint at that same solved state. Its geometry
+  must match the incoming force snapshot after stripping only that joint, and
+  selected geometry must truly cross. Position/root monotonicity, representable
+  event time, residual, state/work/impulse/sensory gates remain unchanged. No
+  projected successor, synthetic reaction, relaxed accuracy or extra energy.
+- Bracket and force scratch are discarded; only actual terminal state advances.
+  Existing refusal/rollback/cold observation paths and bounded bisection remain.
+  No solver/controller state is persisted; no change to the body motor interface.
+Decisive exit stays the same26.6->26.7ms two OWN predecessors, now also showing
+the actual coupled reaction-domain change rather than ignoring it. Only after
+that proof passes may saved-history continuation resume. No production mount.
+
+### FB-01aj v8 coupled-event exit passed — 2026-09-28 03:06UTC
+
+Candidate55738e488b86148848a89f9f17a085528bf4cc132b7f45faad17cd9038ee3ec2
+passed independent source-only review after one localized proof correction:
+native constraint type must be JOINT_LIMIT as well as id57/state1->0. Final
+proof1d962895077bbcdb47187f9c67e022e55bcb7b2189b032981447bfb6fe55ff36;
+runnerbc050f2c9c2e41f3b478c5620cde47b08fa212825e87c172325c5563f6b54159.
+Native radau24cdf70ec8b4f637b1357c5528ade1cd6e1c359736407d77ac9f2717aee675c7;
+eventinclude0598f39aaab4fd036683787ac76bd043d81e886f04014b86f3644fd32558902c.
+
+One isolated build/proof, receipt FB-01aj-coupled-reaction-proof.json SHA
+69661bf60265e73bb3500d2476bf2142d08e360f1f4e89db8813a0de1deab3d2:
+- Both OWN26.6->26.7ms histories pass unchanged state/work/impulse/event and
+  all defined typed sensory gates. No borrowed partner state or common-energy
+  normalization. Final supplies4660.620045331423/4660.620045331555J retained.
+- Each observes joint1 arrival and joint57 departure as distinct events, plus
+  the coupled joint57 reaction1->0 at joint1 arrival. The latter is native
+  force closure, not an invented independent geometric transition.
+- Joint1 event times.026681368933561895/.026681368933743514s; joint57 event
+  brackets[.026682900017013712,.026682900017013716] and
+  [.02668290001719511,.026682900017195112]s. Each lane discarded2/3 crossed
+  search trials at those events. None supplied accepted work/state.
+- Exact pair-first work accounting, complete native observation re-restore,
+  zero-work refusal and force-budget refusal all pass with exact rollback.
+  Complete evidence;121trials/8382forwards/2.099737numericalCPU.
+- Build88070/proof88281 terminal/no survivors. Build31.557782CPU/483796KiBpeak;
+  proof2.790606subprocessCPU/166864KiBpeak. Four existing Cython performance
+  hints remain disclosed; terminal_q warning absent. A briefly observed
+  G1pytest87885 was already absent on follow-up; no isolated-host speed claim.
+New ABI02ec28a494bb9a0a5eb79a4bf0ef70118e2a4353566dfd4ee32acbd4bec754da:
+/tmp/guala-body-reactions.k3q49che/python/guala_body_radau.cpython-311-x86_64-linux-gnu.so.
+
+Read-only03:04:35->03:05:11UTC production stayed sole healthy ECS1566,
+task e53d1bbc14694ddab790d925a106e88e, image9dd83020bb81abe05e0ae38e8d548adc190c197a23da4effaff4e9227c9bcd90,
+identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1, ticks2737286->2737345,
+custody errorsnull/durabilityfalse. Clock-stalledALARM still present(other4OK).
+No A1 production writes; these observations do not certify cognition/cadence.
+
+Next FB-01aj action: continue from the TWO saved v8 successors at26.7ms toward
+the previously recorded58.2ms boundary using the existing own-history observer,
+new ABI/source hashes and this successful receipt as seed. No rebuild, replay
+from genesis, repetition of the closed maps/proof, force-law edits, threshold
+relaxation or cognitive decision layer. Preserve actual independent supplies,
+work, impulses and full observations and retain only the last qualified pair
+on a resource stop. A source-only review is needed for the changed seed reader,
+not another audit of this closed local event operator.
+
+Evidence level remains locally exercised, compiled-unmounted and full-body
+UNQUALIFIED. Full500ms/load/gravity, intrinsic contact-couple error ceiling,
+cost, current-body integration/persistence/production gates remain open.
+Goal ACTIVE; previous turn outcome PROGRESS, no user approval is missing.
+Operational recurrence: require-guala-root.sh fails on the absent historical
+HANDOFF_2026-07-31_GUALA_PRODUCTION.md in this registered worktree. Do not retry
+that path assumption; use the current sprint authority and git worktree/HEAD
+identity without inventing or importing unrelated historical files.

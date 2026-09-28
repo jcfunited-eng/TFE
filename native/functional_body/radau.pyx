@@ -14,7 +14,7 @@ import numpy as np
 import guala_body_interval as interval
 from libc.math cimport fabs, isfinite, pow, sqrt, tan
 
-RADAU_LAW = "radau-iia3-secant-solved-domain-v6-one-sided-events"
+RADAU_LAW = "radau-iia3-secant-solved-domain-v8-coupled-reactions"
 MAX_LINE = 16
 MAX_SECANT = 32
 STAGE_COUNT = 3
@@ -144,7 +144,7 @@ cdef class _Stages:
     cdef object evaluate(self, double[::1] values, double[::1] out, bint capture):
         cdef Py_ssize_t i, j, k, s, a, n = self.n
         cdef double sx, sy, sz, wx, wy, wz, cx, cy, cz, theta, square, coefficient
-        cdef double total, stage_time, terminal_q
+        cdef double total, stage_time, terminal_q = 0.
         self.last_value, self.last_residual = values, None
         for j in range(self.size):
             if not isfinite(values[j]):

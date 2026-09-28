@@ -1,0 +1,186 @@
+{
+  "candidate_fingerprint": "fb4f24deebaa90d8a66277b7e79bafe61575e0d96127bd0fedba220a034ea590",
+  "child_output_when_no_measurement": null,
+  "child_resources": {
+    "cpu_seconds": 0.5448949999999999,
+    "maxrss_kib": 144628
+  },
+  "diagnostic_completed": true,
+  "diagnostic_source": "\"\"\"Inspect the first saved v7 event refusal; no trajectory replay or edits.\"\"\"\nfrom pathlib import Path\nimport hashlib\nimport sys\n\nBASE=Path('/tmp/a1-body-guarded-prefix-continuation-20260928.py')\nb=BASE.read_bytes()\nif hashlib.sha256(b).hexdigest()!='a8bdf4ccc35c2c31d74e9a3364e8cd609a243595ec3af12c2a9bac1223e408af':\n    raise RuntimeError('execution envelope changed')\nexec(compile(b.decode().split(\"\\nif __name__=='__main__':\",1)[0],'<reviewed envelope>','exec'),globals())\nHERE=Path(__file__).resolve()\nRADAU=Path('/tmp/guala-body-bracket.f7fdlbg6/python/guala_body_radau.cpython-311-x86_64-linux-gnu.so')\nRADAU_SHA='01662d8b3c02be10f822bd90b8fe87af04a7ffb5782951365829724be9dbcc41'\nSOURCE_SHA='df1f1127fee126a62e421bdedade047b753c2798a72181e0b8fb185d5d1b091f'\nPARENTS={'FB-01aj-incoming-bracket-proof.json':'3ce617b48e9df1ba3d251283a44272cdc0f1cf1d141f39524c297f5671b40333'}\nSCHEMA_OUT='guala.functional-body.first-bracket-refusal.v1'\nTARGET_NAME='FB-01aj-first-bracket-refusal.json'\nRESUME=None\n\n\ndef diagnostic():\n    source=dict(PARENTS)\n    b=ACCEPTED.read_bytes();require(hashlib.sha256(b).hexdigest()==ACCEPTED_SHA,'observer changed')\n    exec(compile(b.decode().split('\\nresult=dict(schema=SCHEMA,completed=False',1)[0],\n                 '<accepted observation definitions>','exec'),globals())\n    result=dict(schema=SCHEMA_OUT,completed=False,failure=None,first_failure=None,samples=[],lane=None,\n        mounted=False,full_body_qualification=False,continuum_enclosure=False,evidence_complete=True,\n        scope='first saved v7 joint-event refusal before near-ULP subdivision; diagnostic only',\n        limits=dict(cpu_seconds=5,forwards=10000))\n    probe=radau.RadauProbe(10000);c=None;entry=None;dt0=None;calls=0;cleaning=False;native=mj.mj_forward\n\n    def forward(m,d):\n        nonlocal calls\n        require(calls<(10002 if cleaning else 10000),'bounded first-refusal forward allowance')\n        if not cleaning:require(time.process_time()-started<5,'bounded first-refusal CPU allowance')\n        calls+=1;native(m,d)\n        require(not d.warning.number.any(),'native warning');interval._finite(d.qacc)\n\n    try:\n        name,sha=next(iter(source.items()));raw=Path('docs/evidence',name).read_bytes()\n        require(hashlib.sha256(raw).hexdigest()==sha,'parent differs');receipt=json.loads(raw)\n        require(receipt['measurement_recorded'] and receipt['health_error'] is None and\n            receipt['operational_error'] is None and receipt['execution']['exit_code']==0 and\n            not receipt['execution']['survivors'],'parent custody failed')\n        packed=receipt['raw_measurement'];raw=zlib.decompress(base64.b64decode(packed['payload_zlib_base64'],validate=True))\n        require(len(raw)==packed['raw_bytes'] and hashlib.sha256(raw).hexdigest()==packed['raw_sha256'],'payload differs')\n        parent=json.loads(raw);require(parent['failure']['error']=='no representable Radau admission subdivision'\n            and parent['rollback_exact'] and parent['evidence_complete'],'wrong refusal')\n        admission=parent['lanes'][0]['admission'];require(admission['rollback_exact'],'admission did not restore')\n        refused=next(r for r in admission['rejected'] if r['numerical_refusal']=='one-sided joint event requires subdivision')\n        matches=[i for i,p in enumerate(admission['accepted']) if p['end_s']==refused['start_s']]\n        require(len(matches)==1,'exact predecessor not unique')\n        index=matches[0];saved=admission['accepted'][index];following=admission['accepted'][index+1]\n        require(saved['state']['finite'] and following['start_s']==refused['start_s'],'wrong physical predecessor')\n        initial=base64.b64decode(saved['state']['float64_le_base64'],validate=True)\n        require(hashlib.sha256(initial).hexdigest()==following['predecessor_sha256'],'predecessor identity differs')\n        supply=following['available_work_j'];start=refused['start_s'];width=refused['end_s']-start\n        require(Path(radau.__file__).resolve()==RADAU.resolve(strict=True) and\n                radau.RADAU_LAW=='radau-iia3-secant-solved-domain-v7-incoming-brackets','wrong native ABI')\n        result.update(start_s=start,refused=refused,source_piece_index=index,supply_j=supply,\n                      original_state_sha256=hashlib.sha256(initial).hexdigest(),lane=dict(time_s=start))\n        mj.mj_forward=forward;c=Trajectory(100,archived_controls()[100]);entry=primary(c.e);dt0=float(c.m.opt.timestep)\n        interval._restore(c.e,np.frombuffer(initial,dtype='<f8').copy(),H)\n        require(primary(c.e)==initial and float(c.d.time)==start,'seed restore differs')\n        before=interval._snapshot(c.e);q0=c.d.qpos.copy()\n        value=probe._plain_step(c.e,width,supply)\n        result['plain']=dict(end_s=value[0]['time'],work=value[1],residual=probe.steps[-1]['final_residual'],\n                             successor_state=radau.packed_numbers(value[0]['state']))\n        try:\n            boundary=radau._changed_joint_event(c.e,q0,before,value);result['boundary']=boundary\n            require(boundary is not None,'first event not reproduced')\n            located=radau._locate_joint_event(probe,c.e,before['state'],H,before,q0,boundary,value[0]['time'],supply)\n            result['located']=[s['joint_boundary'] for s in located[3] if 'joint_boundary' in s]\n        except ValueError as error:\n            result['event_failure']=dict(error=str(error),traceback=traceback.format_exc(limit=8))\n        result['completed']=True\n    except Exception as error:result['failure']=dict(type=type(error).__name__,error=str(error),traceback=traceback.format_exc(limit=8))\n    finally:\n        result['last_step']=probe.steps[-1] if probe.steps else None\n        result['rollback_exact']=False\n        if c is not None and entry is not None:\n            try:result['actual']=failed_state(c)\n            except Exception as error:result['actual_error']=repr(error);result['evidence_complete']=False\n            try:\n                cleaning=True;interval._restore(c.e,np.frombuffer(entry,dtype='<f8').copy(),dt0)\n                result['rollback_exact']=primary(c.e)==entry and float(c.m.opt.timestep)==dt0\n            except Exception as error:result['rollback_error']=repr(error)\n        mj.mj_forward=native\n        result.update(attempts=len(probe.steps),calls=calls,cpu_seconds=time.process_time()-started)\n        if not result['evidence_complete'] or not result['rollback_exact'] or result['cpu_seconds']>=5:result['completed']=False\n    print(json.dumps(encode(result)),flush=True)\n\n\nif __name__=='__main__':\n    if sys.argv[1:]==['--child']:diagnostic()\n    else:run()\n",
+  "execution": {
+    "cpu_seconds": 0.6143250000000001,
+    "exit_code": 0,
+    "label": "one-finer-independent-history",
+    "owned_pid": 82502,
+    "stderr": "",
+    "stdout_bytes": 4592,
+    "survivors": [],
+    "timed_out": false,
+    "wall_seconds": 0.6168187340081204
+  },
+  "full_body_qualification": false,
+  "health_error": null,
+  "measurement_recorded": true,
+  "mounted": false,
+  "operational_error": null,
+  "production_post": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 50.65283612410227,
+        "Maximum": 51.07652398943902,
+        "Timestamp": "2026-09-28T02:50:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 2.6468912760416665,
+        "Maximum": 2.67333984375,
+        "Timestamp": "2026-09-28T02:50:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2736095,
+      "persisted_tick": 2736082
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1566",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/e53d1bbc14694ddab790d925a106e88e",
+          "digests": [
+            "sha256:9dd83020bb81abe05e0ae38e8d548adc190c197a23da4effaff4e9227c9bcd90"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-28T02:52:09.751488+00:00"
+  },
+  "production_pre": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 50.65283612410227,
+        "Maximum": 51.07652398943902,
+        "Timestamp": "2026-09-28T02:50:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 2.6468912760416665,
+        "Maximum": 2.67333984375,
+        "Timestamp": "2026-09-28T02:50:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2736091,
+      "persisted_tick": 2736082
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1566",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/e53d1bbc14694ddab790d925a106e88e",
+          "digests": [
+            "sha256:9dd83020bb81abe05e0ae38e8d548adc190c197a23da4effaff4e9227c9bcd90"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-28T02:52:06.734484+00:00"
+  },
+  "progress": [],
+  "raw_measurement": {
+    "payload_zlib_base64": "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",
+    "raw_bytes": 17002,
+    "raw_sha256": "d29b298a42d5b17276231ccf3d7a1d178a8412f12e461ce7dae6a53f08f44730"
+  },
+  "resource_limits": {
+    "address_space_bytes_per_process": 1073741824,
+    "affinity_cores": 2,
+    "aggregate_memory_enforced": false,
+    "cpu_seconds_per_process": 60,
+    "wall_seconds_per_group": 90
+  },
+  "schema": "guala.functional-body.first-bracket-refusal.v1.receipt",
+  "source_sha256": {
+    "/tmp/a1-body-first-bracket-refusal-20260928.py": "8cb01340a3f3c136ac34885e0409855daff46bf07e7114905e80411f19e6aecb",
+    "/tmp/a1-body-joint-event-guard-proof-20260928.py": "f0736f307b5d07a0418c2f7109721f1c8f83ed121c83e227ed930c3b0678fb46",
+    "/tmp/guala-body-bracket.f7fdlbg6/python/guala_body_radau.cpython-311-x86_64-linux-gnu.so": "01662d8b3c02be10f822bd90b8fe87af04a7ffb5782951365829724be9dbcc41",
+    "/tmp/guala-body-midpoint.igj32n8c/build/lib/libmujoco.so.3.3.7": "de96a1766223905d26b1df0e68ce7bc97608cf2c6238acef8dcf8b344a3fd48f",
+    "/tmp/guala-body-velocity.uw41fxqs/python/guala_body_interval.cpython-311-x86_64-linux-gnu.so": "04c168a94573c7b3282b9f1ea00e5821a00b8126357b8e6eb7f0d38b4b67a4f9",
+    "/workspaces/guala-functional-body/docs/evidence/FB-01aj-incoming-bracket-proof.json": "3ce617b48e9df1ba3d251283a44272cdc0f1cf1d141f39524c297f5671b40333",
+    "/workspaces/guala-functional-body/native/functional_body/interval.pyx": "5d978491164774fc14b803232f00cdc0f9f98f94c7eeb8b9c9b5accf036f03e6",
+    "/workspaces/guala-functional-body/native/functional_body/radau.pyx": "df1f1127fee126a62e421bdedade047b753c2798a72181e0b8fb185d5d1b091f"
+  }
+}

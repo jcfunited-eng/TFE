@@ -9,15 +9,18 @@ def _event_refine():
     raise ValueError('one-sided joint event requires subdivision')
 
 
-def _boundary_domain(domain, boundary):
-    """Remove precisely the selected native limit row and its geometric flag."""
+def _boundary_geometry(domain, boundary):
+    """Compare configuration activation, not coupled force-solver reactions.
+
+    Full reaction domains remain in snapshots and event sequences. This reduced
+    signature is used only at a numerically located single joint boundary.
+    """
     flags = [list(domain[0]),list(domain[1])]
     flags[boundary['kind']][boundary['ordinal']] = False
-    rows = tuple((int(t),int(i),int(s)) for t,i,s in
-                 zip(domain[2],domain[3],domain[4])
+    rows = tuple((int(t),int(i)) for t,i in zip(domain[2],domain[3])
                  if not (int(t) == int(mj.mjtConstraint.mjCNSTR_LIMIT_JOINT)
                          and int(i) == boundary['joint']))
-    return tuple(flags[0]),tuple(flags[1]),rows,domain[5],domain[6]
+    return tuple(flags[0]),tuple(flags[1]),rows,domain[5]
 
 
 def _event_operands(e, kind, ordinal):
@@ -67,18 +70,21 @@ def _root_trial(probe,e,base,original_dt,before,q0,boundary,end,supply):
     interval._restore(e,base,original_dt)
     value = probe._plain_step(e,end-before['time'],supply,boundary)
     stages = value[3]
-    # No mixed-force earlier quadrature nodes, hidden other events, or
-    # reliance on unconverged root/intermediate dynamics.
-    if any(s['snapshot']['domain'] != before['domain'] for s in stages[:2]):
+    # Crossing trials may bracket the selected activation and its coupled
+    # reaction changes. They are never accepted incoming-side quadrature.
+    reference = _boundary_geometry(before['domain'],boundary)
+    domains = tuple(s['snapshot']['domain'] for s in stages)
+    force_domain = stages[-1]['force_snapshot']['domain']
+    if any(_boundary_geometry(d,boundary) != reference for d in (*domains,force_domain)):
         _event_refine()
-    if stages[-1]['force_snapshot']['domain'] != before['domain']:
-        _event_refine()
+    incoming_only = (all(d == before['domain'] for d in domains[:2])
+                     and force_domain == before['domain'])
     qa,va = boundary['qadr'],boundary['vadr']
     operands = (float(q0[qa]),*(float(s['qpos'][qa]) for s in stages),
                 *(float(s['qvel'][va]) for s in stages),boundary['threshold'],
                 end-before['time'])
     # Both actual-position interpolation and integrated stage-velocity
-    # polynomials must describe monotone arrival, even on pre-root trials.
+    # polynomials must describe monotone arrival, even on bracket-only trials.
     for polynomial in _joint_cubics(operands,boundary['kind'],
                                     not boundary['incoming_active']):
         derivative = _joint_bernstein(tuple(_Q(j)*polynomial[j]
@@ -88,54 +94,60 @@ def _root_trial(probe,e,base,original_dt,before,q0,boundary,end,supply):
     residual = boundary['sign']*(float(stages[-1]['qpos'][qa])-boundary['threshold'])
     if not math.isfinite(residual):
         raise ValueError('nonfinite joint event residual')
-    return value,residual
+    return value,residual,incoming_only
 
 
 def _locate_joint_event(probe,e,base,original_dt,before,q0,boundary,end,supply):
     start = before['time']
     lo,hi = start,end
     rlo = boundary['sign']*(float(q0[boundary['qadr']])-boundary['threshold'])
-    upper,rhi = _root_trial(probe,e,base,original_dt,before,q0,boundary,hi,supply)
+    upper,rhi,admissible = _root_trial(probe,e,base,original_dt,before,q0,boundary,hi,supply)
     # Closed native limits: entering includes equality; leaving excludes it.
     def crossed(r):
         return r < 0 if boundary['incoming_active'] else r <= 0
     if not rlo > 0 or not crossed(rhi):
         _event_refine()
     trials = 1
+    crossing_brackets = int(not admissible)
     # Binary64's full exponent/significand span bounds arithmetic bisection,
     # including a zero initial clock. The independent force-call cap also holds.
     for _ in range(int(np.finfo(float).nmant-np.finfo(float).minexp)+2):
-        if rhi == 0 and not boundary['incoming_active']:
+        if rhi == 0 and not boundary['incoming_active'] and admissible:
             lo,rlo = hi,rhi
             break
         mid = lo+(hi-lo)/2
         if not lo < mid < hi:
             break
-        value,r = _root_trial(probe,e,base,original_dt,before,q0,boundary,mid,supply)
+        value,r,incoming_only = _root_trial(probe,e,base,original_dt,before,q0,boundary,mid,supply)
         trials += 1
+        crossing_brackets += int(not incoming_only)
         if not rhi <= r <= rlo:
             _event_refine()  # No assumed monotonicity in a noisy solved bracket.
         if crossed(r):
-            hi,rhi,upper = mid,r,value
+            hi,rhi,upper,admissible = mid,r,value,incoming_only
         else:
+            if not incoming_only:
+                _event_refine()
             lo,rlo = mid,r
     else:
         _event_refine()
-    if ((lo != hi and math.nextafter(lo,hi) != hi)
+    if (not admissible or (lo != hi and math.nextafter(lo,hi) != hi)
             or hi-lo > interval.EVENT_S
             or max(abs(rlo),abs(rhi)) > interval.ANGLE_RAD):
         _event_refine()
     force_domain = upper[3][-1]['force_snapshot']['domain']
     native_domain = upper[0]['domain']
     if (native_domain[boundary['kind']][boundary['ordinal']] == boundary['incoming_active']
-            or _boundary_domain(force_domain,boundary) != _boundary_domain(native_domain,boundary)):
+            or _boundary_geometry(force_domain,boundary) != _boundary_geometry(native_domain,boundary)):
         _event_refine()
     upper[3][-1]['joint_boundary'] = dict(boundary,
         time_bracket_s=(lo,hi),signed_position_bracket_rad=(rlo,rhi),trials=trials,
+        discarded_crossing_bracket_trials=crossing_brackets,
         final_collocation_residual=upper[3][-1]['collocation_residual'],
         force_input_is_one_sided_approximation=True)
     # Last bracket trial need not be the accepted upper. Restore its REAL state,
-    # never the adjacent-coordinate force scratch.
+    # never the force scratch or an inadmissible bracket. Its simultaneous
+    # reaction-domain changes are the coupled native solution, not edited flags.
     interval._restore(e,upper[0]['state'],original_dt)
     return upper
 
