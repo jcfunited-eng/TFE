@@ -26816,3 +26816,16 @@ persists. No A1 deployment or cognition change. Child58331 terminal/no survivors
 item stays FB-01aj: continue corrected independent histories toward the prior
 58.2ms failure, preserving actual per-lane remaining work supplies. No kernel,
 semantic controller, force-law or accuracy-threshold changes. Goal ACTIVE.
+
+### A1 TO G1 — 2026-09-28 02:13Z — body continuation ready; release coordination
+
+FB-01aj remains A1's only active slice in /workspaces/guala-functional-body.
+Corrected-history observer passed final source-only review, native v6 unchanged;
+no build or cognition changes. It preserves independent supplies and saved states,
+can resume bounded resource-only stops, and retains failure evidence before
+observation. Final observer SHA b2b9faab7ebb01ca1da4ac9ed7607cd0fee6a8240226c5a31af29a9afecfa7f3;
+body fingerprint6b279a196ff71cb92cb1cdfac9d8c8d1eab319789fcbba92abd93f2bdb6fb1ac.
+Benchmark not launched: exact G1-owned PID64147, parentagy1436, is running
+tools/deploy_guala_biofunctional_release.py in main tree; ECS1566 currently
+desired/running/pending1/0/1. A1 will not overlap the cutover or signal G1.
+Body remains compiled-unmounted/unqualified; no production writes.
