@@ -16705,3 +16705,85 @@ selector. The shared ledger records exact source hashes, the specific material-
 law/complete-neuron gap, lossy export cutoff, and required correction before
 body integration. This is an integration warning, not a frozen cognition audit
 or evidence of deployment. No G1 source changes; body remains independent.
+
+### FB-01aj shared readout proof preflight — 2026-09-28
+
+Previous turn made source progress at d1fa9d836. No G1 reply/new interface
+receipt is present at the shared ledger tail. Source remains frozen while
+the existing same-eight-static-pose acceptance is prepared. New offline adapter
+compares guarded output, null-output wrapper and explicit accepted-library
+function pointer (no symbol-lookup ambiguity); all raw distance/position/frame
+coordinates must agree bit-for-bit. Restored forces and primary body bytes
+must remain exact. Native generating-feature identities, not row numbers,
+must identify each already-measured sign change. No integration step is run.
+
+New scratch /tmp/guala-body-shared-guard.KlKarMWT holds only proof_adapter.c;
+the build copies two authenticated native source/header files into its fresh
+source directory, applies the reviewed patch and compiles only this translation
+unit plus adapter. Bsymbolic binds candidate calls to the same implementation;
+the original native library remains the explicit reference and force authority.
+No installed-library replacement, full native rebuild, runtime mount or release.
+The existing offline process/AWS-health envelope is reused: two-core affinity,
+1GiB address space per process,60CPU/90wall outer ceiling, exact child census.
+The numerical proof retains the stricter5CPU/32forward/eight-pose allowance,
+with unwrapped restoration reserved separately; no higher budget or history.
+
+Prepared proof /tmp/a1-body-shared-guard-proof-20260928.py and build script
+/tmp/a1-body-shared-guard-build-20260928.py require frozen source-only review
+before execution. No active compiler/test process was found in the preflight
+census; IDE and unrelated session processes are untouched. Zero live writes.
+
+### FB-01aj shared native readout compiled and exercised — 2026-09-28 14:05Z
+
+Boundary PASSED on all eight saved poses. Source-only review closed two local
+evidence omissions in one batch: all three raw contact outputs/counts retained
+before comparison, and guarded sample capture separated from final rollback.
+Frozen tree64fbfbfdbd3e0ccfb625dbe5f49e7c8fe5bdc1c1a2457a75a810093c922bb930.
+Adapter56a8983b5fe8a0da03ac5f582743abb1e7559bf9594b6cab96036fc8cfa09d20;
+build script0cd44c997a5b155b235326639a5345e367592aa2bc3375b9a6d16534fc2257ec.
+
+Build child36395 exited0/no survivors, .499944CPU/.511268wall seconds.
+Candidate readout ABI5a9c1f5a64e01e2791b8ed74b1ddc0c70717767e2cc05453bccb7e9abd8b688d.
+First proof launcher failed NameError(json) before any fixture/forward/harness.
+An explicit import was the only correction, independently checked against the
+previously reviewed source; no rebuild was performed. Final proof source
+d6b25f7d9e438ed9ad8ebab9a2ea2332cc0e82217df628f5c69fa5719eb245ba.
+
+Numerical proof:11forwards,0integrationtrials,.179992572CPU seconds, exact
+original raw-state/timestep restoration; child37652 exited0/no survivors,
+.904244wall/.887474process-treeCPU,155484KiB child peak RSS. Three explicit
+collision calls per pose compared guarded/null-output/accepted-library paths.
+All returned raw contacts match bit-for-bit; restored original native forces
+are exact and unchanged by observation. Bsymbolic candidate binding plus the
+explicit accepted-library function pointer prevents an accidental self-check.
+
+Native feature identities now remain stable across each saved pair:
+- Insertion in both histories: branch[7,1,5,-1,-1,-1,-1,-1,-1,-1,-1],
+  feature(kind,generator,line,axis,side)=[1,1,0,0,-1], admitted false->true,
+  contact count1->2.
+- Removal in both histories: branch[14,-1,-1,0,2,0,0,1,2,1,4],
+  feature(kind,corner,clamp-u,clamp-v,eligibility)=[3,2,0,0,1],
+  admitted true->false, count2->1.
+These are observed geometric provenance, not identifiers to hardcode in a
+solver or organism. Exact guard signs/operands are in the retained receipt.
+
+Receipt docs/evidence/FB-01aj-shared-native-contact-readout.json,
+SHA2565913638bce3c9b3fe07fb38f5156fe064394aa452bf92a7e36c8cf0c5d68a692,
+retains proof, adapter/build source, exact compiled/source hashes, original
+eight poses, raw operands and pre/post health. No additional clone/trace law
+enters runtime. build_engine.py and installed force/integrator ABIs unchanged.
+
+Read-only live window14:04:45->14:04:48UTC: sole1568/same immutableimage and
+identity; ticks2811854->2811860, persisted2811826, custodyerrorsnull. Existing
+clock-stalledALARM persists; other4alarmsOK. Latest serviceCPU51.52%average,
+51.96%maximum; RAM3.0884%. No blanket production-health/cognition certification.
+No production or G1 source mutation. Both owned child processes terminated.
+
+Next causal item is no longer missing guard transport. Use this qualified
+readout on the saved3.05ns first-refusal predecessor to derive/check signed
+root proposals on actually solved own-state trials, with explicit feature
+changes, bracket progress, force/impulse errors and unchanged accuracy bounds.
+Never replay a discarded trajectory, force a contact, enlarge tolerances or
+claim the full500ms trajectory passed from this static evidence. No broad
+history replay is needed to test that first interval. Goal remains ACTIVE;
+the whole-body, integration, restart and production gates remain open.
