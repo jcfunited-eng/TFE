@@ -16955,3 +16955,129 @@ separate and no interface agreement is invented. Diagnostic result inspection
 first printed overly verbose domain arrays; corrected to contact counts only.
 Future receipt inspection must select bounded scalar summaries, not complete
 domain/state arrays or encoded payload text.
+
+### FB-01aj saved-pose kinematic reference contract — 2026-09-28
+
+Previous turn PROGRESS: rotation defect corrected, residual contact failure
+retained at5497fc4d9. Continue the same mechanical accuracy item; no whole-body
+qualification, cognition, force or tolerance change. The prior exact predicate
+check is closed for its four native geometry inputs. It does not certify the
+upstream qpos->body transforms->geom transforms that generated those inputs.
+
+Next diagnostic is restricted to the four states already recorded by the
+scaled-rotation receipt (one predecessor and three actual stage states).
+No integration, arbitrary pose interpolation or new trajectory. Reuse accepted
+native anatomy/readout; extract only the two contacted feet's ancestor chains,
+joint constants and geometric offsets. Independent arithmetic replay of
+mj_kinematics/mj_local2Global must first match native Cartesian inputs exactly
+in binary64. Then evaluate the SAME equations and original binary64 qpos/model
+inputs at40 and80 decimal digits. Preserve original branch conditions; disclose
+any changed branch. High precision is a diagnostic, not native replacement,
+exact continuum proof, adjusted physical state or runtime decision authority.
+Its result will distinguish transform arithmetic error from the already-tested
+final line/face arithmetic and changes present in the stored coordinates.
+
+One scratch proof and immutable result only, existing read-only AWS envelope,
+network-denied owned child,5numericalCPU/8forwards/zero integration trials.
+Record expected inputs before restoration, actual states before validation,
+full relevant model operands once, both precision results, and exact original
+state/timestep cleanup. Stop on binary64 replay mismatch or unsupported native
+branch rather than interpret an incomplete reference. Independent frozen
+source review precedes the one run. No build or production mutation is needed.
+
+Operational lookup correction: an rg command used an absent tools/functional_body*
+glob; the command failed read-only. Use the confirmed tools/guala_body_*.py
+filenames from rg --files, and the resolved native engine_core_util.c path for
+mj_local2Global. No body execution or state change followed either absent hit.
+
+### FB-01aj transform arithmetic localized — 2026-09-28 15:09Z
+
+Source review PASS after one localized evidence-order batch (native geometry
+and each precision record now precede fallible reference calls). Frozen tree
+e8836321faa1fe9ebdbced53b7b99836a5fe8abe7537140f4314644bdec59e7a,
+scriptSHAae9a96aaf353be398f90a47556e628cb8b968d8556be1f22bc2c59240f451fe4.
+Receipt FB-01aj-kinematic-reference.json,
+SHA18361902ad5b7ba1cb4b64a6d9541782e159ed20e14588b884a36b81b8fcb878.
+All four binary64 kinematic replays match native geom inputs bit-for-bit;
+shared readout verifies native branch and predicate depth. Same seven ancestor
+bodies and identical stored qpos/model inputs at40 and80decimal digits give
+no extra contact in ANY of the four poses. Native admissionF,T,T,F becomes
+F,F,F,F at both reference precisions, with the same normalization branches.
+Reference80 depths are4.0424313e-17,4.5439949e-17,1.9400499e-17,3.6005660e-18m;
+native depths4.4758105e-17,-4.0786642e-17,-2.4705399e-17,1.6620319e-16m.
+Largest reference/native geometry-position difference2.5095e-16m. This locates
+the disagreement in transform arithmetic upstream of the collision predicate.
+It is finite higher-precision evidence, not a rigorous continuum enclosure.
+
+Seven forwards,zero integration,.115990numericalCPU seconds, exact rollback;
+child64168 exited0/no survivors,.691635wall/.683640treeCPU,143872KiB peakRSS.
+No build, body law edit or live mutation. Read-only live15:09:16->15:09:20UTC
+remains sole1568/sameimage/identity, ticks2819977->2819983, custodyerrorsnull;
+clock-stalledALARM persists. CPU51.6479%avg/52.4290%max,RAM3.0884%.
+
+Single next, cheapest correction discriminator: use ONLY these retained
+anatomy/qpos operands to recompute the same foot geometry relative to their
+common free-root frame, rather than separately through the world frame.
+This is a coordinate-reference diagnostic, not a body teleport or accepted
+successor. First reproduce each saved world-frame float/40/80 result exactly.
+Then compare local-frame float/40/80 signs and normalization branches. Include
+the actual root quaternion norm: native normalization deliberately skips a
+small norm discrepancy, so do not assume exact frame invariance prematurely.
+No forward calls, integration, force replacement or new engine needed; bounded
+four rows/5CPU with the existing offline AWS/census envelope. A result supports
+a candidate coordinate formulation only; it never waives the motion, impulse,
+energy, sensory or cold gates. Frozen source review precedes execution.
+
+One orchestration edit attempt had invalid JavaScript syntax and never executed;
+the subsequent complete scratch-file replacement succeeded before review.
+No body test or build was restarted because of that tool-input error.
+
+### FB-01aj coordinate reference exposes normalization deadband — 2026-09-28 15:14Z
+
+Local-frame diagnostic source review PASS after one localized saved-geometry
+equality addition. Frozen fingerprint
+c7ccb97d306cfc534d71a1f095c32aa7c64defc7dd50da23a5732c5ba3be3043,
+scriptSHA98cd3f22f0f1f1e8cff9a8416f4ae34dd67f246fc94d4c021638589e5ff9b715.
+Receipt FB-01aj-local-frame-reference.json,
+SHA4919fd0f1574565840ac3b1d104367d1cd410101784d07e6b74334ce8750007a.
+All saved world-frame float/40/80 depth, geometry and branch controls reproduced.
+No native engine was created: zero forwards/integration, .027997CPU seconds.
+Child66593 exited0/no survivors,.297738wall/.291988treeCPU,51828KiBpeakRSS.
+
+Common ancestor is body4, the free root at qpos address0. Local-frame
+admission isT,T,T,T in binary64,40digits AND80digits. World-frame admission
+remainsF,T,T,F in binary64 andF,F,F,F at40/80digits. Thus local coordinates
+remove this observed flicker but do NOT preserve the current mathematical
+world-frame result. Do not install them as if exact covariance were proved.
+Root quaternion norms at80digits are1+7.02894521e-16,1+7.11444510e-16,
+1+7.33045754e-16,1+7.50233652e-16. Native mju_normalize4 intentionally skips
+renormalization when abs(norm-1)<=1e-15. The same skip is preserved by both
+higher-precision references, so merely increasing arithmetic precision does
+not remove that representation defect.
+
+Relevant exact algebra: the native homogeneous quaternion-to-matrix formula
+assumes unit norm. For arbitrary quaternion q it produces norm(q)^2 times the
+unit rotation, hence R*transpose(R)=norm(q)^4*I, not I. Retaining a nonunit
+quaternion while treating that matrix as a rigid frame introduces scale into
+the contact geometry. The observed world/local sign disagreement forbids a
+convenience coordinate-only patch. It does not prove that this deadband is the
+only remaining numerical error, or that one renormalization edit qualifies
+the complete motion. Native cross-product vector rotation also assumes unit
+norm and belongs in the same bounded geometry path; do not fix only one of
+these two representations and leave them inconsistent.
+
+Next single item is a scale-invariant quaternion-to-geometry contract, using
+the existing retained quaternion and physical rotation algebra. Trace both
+native rotation functions and their kinematic consumers; derive/check on the
+retained operands before choosing a production numerical implementation.
+No force smoothing, margin, contact-count waiver, retuned timestep or relaxed
+sensory/impulse gate. No additional full history run or high-precision runtime
+engine is justified by this result. Preserve the current source until that
+bounded replacement has a complete causal/numerical contract.
+
+Read-only live15:14:44->15:14:47UTC: same sole1568/image/identity,
+ticks2820668->2820674,persisted2820658,custodyerrorsnull. CPU51.2571%avg/
+51.9811%max,RAM3.0884%; clock-stalledALARM remains, other4OK. These static
+references neither exercise G1 cognition nor establish live-body health.
+This turn is PROGRESS through causal numerical localization, not body delivery.
+Overall goal ACTIVE; body remains compiled-unmounted and UNQUALIFIED.
