@@ -1,0 +1,172 @@
+{
+  "args": [
+    "/usr/bin/gcc",
+    "-shared",
+    "-fPIC",
+    "-O3",
+    "-fno-fast-math",
+    "-ffp-contract=off",
+    "-I/tmp/guala-body-midpoint.igj32n8c/source/include",
+    "-I/tmp/guala-body-midpoint.igj32n8c/source/src",
+    "/tmp/guala-body-contact-guard.rShhmIDr/contact_guard.c",
+    "-L/tmp/guala-body-midpoint.igj32n8c/build/lib",
+    "-Wl,-rpath,/tmp/guala-body-midpoint.igj32n8c/build/lib",
+    "-l:libmujoco.so.3.3.7",
+    "-lm",
+    "-o",
+    "/tmp/guala-body-contact-guard.rShhmIDr/contact_guard.so"
+  ],
+  "execution": {
+    "cpu_seconds": 0.5498680000000002,
+    "exit_code": 0,
+    "label": "static-guard-observer-build",
+    "owned_pid": 21410,
+    "stderr": "",
+    "stdout_bytes": 0,
+    "survivors": [],
+    "timed_out": false,
+    "wall_seconds": 0.5692106930073351
+  },
+  "mounted": false,
+  "native_library_sha256": "de96a1766223905d26b1df0e68ce7bc97608cf2c6238acef8dcf8b344a3fd48f",
+  "observer_sha256": "5bfbe267f4ef2add76fbab7cd8b1a6f380a5a5093a96daa4c4c3a852ab141520",
+  "post": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 51.286759247382484,
+        "Maximum": 52.07359367609023,
+        "Timestamp": "2026-09-28T13:25:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 3.08837890625,
+        "Maximum": 3.08837890625,
+        "Timestamp": "2026-09-28T13:25:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2807126,
+      "persisted_tick": 2807122
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1568",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/f61447ffda4b429e9e983657e0ac5ca4",
+          "digests": [
+            "sha256:04da7c73d1466b10c6aec3025beb6d5ef2c05c67bcde7ca90234e65259fb3328"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-28T13:27:14.480637+00:00"
+  },
+  "pre": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 51.286759247382484,
+        "Maximum": 52.07359367609023,
+        "Timestamp": "2026-09-28T13:25:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 3.08837890625,
+        "Maximum": 3.08837890625,
+        "Timestamp": "2026-09-28T13:25:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2807121,
+      "persisted_tick": 2807090
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1568",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/f61447ffda4b429e9e983657e0ac5ca4",
+          "digests": [
+            "sha256:04da7c73d1466b10c6aec3025beb6d5ef2c05c67bcde7ca90234e65259fb3328"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-28T13:27:11.454170+00:00"
+  },
+  "schema": "guala.functional-body.geometric-guard-build.v1",
+  "source_sha256": "54b1a6862f0d9614802dd1e9b7fe9b535a88b6547344cdabc24760b94914eda7",
+  "stdout": ""
+}

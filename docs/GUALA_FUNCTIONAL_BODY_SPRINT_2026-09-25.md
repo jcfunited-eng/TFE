@@ -16518,3 +16518,109 @@ Clock-stalledALARM persists, other4alarmsOK. Latest06:19CPUavg51.80248%/
 max52.23657%,memoryavg3.01310%/max3.01514%. No cognitive compliance or cadence
 claim. G1 caretaker45313 remains untouched. Both own children independently
 absent. Goal ACTIVE; full-body remains compiled-unmounted/UNQUALIFIED.
+
+### FB-01aj native geometric-guard observation contract — 2026-09-28
+
+Previous turn PROGRESSd6402b4f6; current clean tree/v8 source and native box
+source hashes revalidated. Continue same contact qualification, not cognition.
+Saved static map proves both contact insertion/removal occur at distances
+near zero, with finite acceleration jumps. It does not name which native
+branch produced or filtered the point. Full mjc_BoxBox plus caller inspection
+finds SAT-axis selection, face/edge clipping, depth/margin admission and final
+driver outside/duplicate filtering. Do not assume the face-depth predicate.
+
+One offline observer will extract the exact authenticated native mjc_BoxBox
+source into scratch, rename only its diagnostic symbol, and add write-only
+branch/operand traces. Accepted library and native force law remain unchanged.
+For each of the8saved final-left/final-right poses across both transitions and
+both histories, compare diagnostic raw contacts bit-for-bit against the actual
+exported mjc_BoxBox, then compare raw position/distance against restored native
+contacts. A mismatch blocks interpretation; no diagnostic result governs motion.
+Record selected SAT code and actual signed depth operands before native filters.
+No trajectory integration, interpolated new pose, persistent solver state or
+new physical thresholds. Native mjMAXCONPAIR bounds trace rows (face<=50;
+edge depth predicates<=24); overrun refuses evidence, never truncates physics.
+
+Only scratch C observer/proof and this evidence ledger change. Reuse existing
+authenticated static receipt, native ABI, approved fixture and offline runner.
+Source-only independent review before tiny observer compilation. One build,
+one8-pose run, <=32native forwards including separately reserved final restore,
+5numericalCPU seconds, zero integration trials; ordinary two-core/1GiB/60CPU/
+90wall process envelope. Read-only AWS health pre/post, exact child census and
+raw-state restoration. Final restore uses the unwrapped native forward, so
+observation exhaustion cannot mask restoration. No full100us/history replay.
+
+Missing public callback to internal predicates justifies diagnostic-only
+source instrumentation, not a duplicate production collision authority.
+Preserve source license and exact compile arithmetic (-O3,no-fast-math,
+fp-contractoff). The caller's post-filtering is a separate observed boundary;
+if raw and native contact counts differ, report that explicitly before any
+guard attribution. Result must identify the actual branch or remain unresolved.
+
+### FB-01aj geometric-guard attribution closed — 2026-09-28 13:28Z
+
+Joe resumed the bounded body goal and explicitly required coordination with
+G1's core replacement. Shared ledger records G1 ownership of cognition and
+A1 ownership of isolated body physics. G1 was asked to record native motor
+output/sensory input symbols, units, frames, timing and cold-state boundaries
+before body integration. This is not a demand to pause either workstream.
+No legacy selector is authorized as the body's cognitive authority.
+
+Historical require-guala-root check again reports missing July31 handoff in
+this explicit body worktree. Current branch, active sprint, existing approved
+body contract and bundled authority were resolved directly; no file or
+production authority was invented. User-supplied replacement AGENTS governs.
+
+Final frozen source review PASS after one localized evidence batch:
+treebd88609246afd2169bf77abe431ea6e891db0410e4f2c76dfaaaab2bb11fdd5c;
+proof8be1922af5fddd17b501a2c0e726091548305ebaff284a20e1aa5e60e6783c76;
+unchanged C54b1a6862f0d9614802dd1e9b7fe9b535a88b6547344cdabc24760b94914eda7.
+The batch retains actual constraint forces before comparison and preserves
+nonfinite trace operands in exact binary64 with explicit incomplete evidence.
+No collision arithmetic, force law, integration law or limit changed.
+
+Tiny observer build child21410 completed in.549868CPU/.569211wall seconds,
+exit0/no survivors. ABI5bfbe267f4ef2add76fbab7cd8b1a6f380a5a5093a96daa4c4c3a852ab141520.
+Build command, native/source hashes and pre/post AWS observations retained in
+FB-01aj-native-geometric-guard-build.json. No native library rebuild/install.
+
+Eight saved poses PASS:11native forwards,0integration trials,.171954178
+numericalCPU seconds; child21642 exit0/.989354wall/.975961process-treeCPU,
+155940KiB child peak RSS, no survivors. Exact raw contacts equal both the
+unchanged exported native collision function and restored served contacts at
+all eight poses. Finite evidence complete; exact final scratch rollback.
+Receiptc2a07d37d3f43742a9604ac7a1d232872c90bc80dcdfa73d166364aec75ae74c
+in FB-01aj-native-geometric-contact-guard.json retains observer source/operands.
+
+Actual native admission mechanisms, pair36/44, margin0:
+- Insertion: SAT code7, face-depth filter, candidate0. Signed pz changes
+  +1.207764835575633e-17 to -8.473122303124681e-17m in lane0;
+  +2.6711550587772087e-17 to -8.431075187474357e-17m in lane1.
+  Native test is pz>margin -> reject; returned contact distance is pz/2.
+- Removal: SAT code14, edge-corner filter, candidate2. Signed tmp1.z changes
+  -1.3314002678121994e-16 to +8.608565249534905e-17m in lane0;
+  -9.280770596475918e-17 to +1.3444106938820255e-16m in lane1.
+  At margin0 the outgoing positive-side squared separation exceeds margin^2.
+- SAT code stays unchanged within each saved left/right pair. Native driver
+  duplicate/outside filtering does not cause these observed count changes.
+
+These are static pose comparisons at fixed clocks/velocities, NOT trajectory
+roots or proof of continuous-time accuracy. The diagnostic clone never enters
+motion authority. The earlier finite native force/acceleration jumps remain;
+sign attribution does not make a binary64 event-time solver qualified.
+
+Single next body item: use these actual signed admission functions and the
+measured force jumps to derive a bounded own-trajectory contact-event rule that
+also satisfies existing impulse/state-error limits. Do not repeat the rejected
+full prefix searches, merely relax event precision, or smooth/force contacts.
+Preserve v8 baseline until the exact numerical contract is complete. Next
+execution remains restricted to the saved first failing contact interval;
+no full history, source-to-cognition bridge, or production mount is authorized
+by this result. FB-01aj full-body qualification remains OPEN.
+
+Production pre/post13:27:34->13:27:38UTC: sole ECS1568 taskf61447ffda4b429e9e983657e0ac5ca4,
+image04da7c73d1466b10c6aec3025beb6d5ef2c05c67bcde7ca90234e65259fb3328,
+same identity/ticks2807169->2807176, custody errorsnull/durabilityfalse.
+Clock-stalledALARM persists, other4alarmsOK; no blanket health/cognition claim.
+G1-owned pytest20747 was observed before the tiny build, left untouched; no
+A1 source/process changes to G1. Both owned children independently absent.
