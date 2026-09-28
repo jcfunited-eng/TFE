@@ -15810,3 +15810,73 @@ physical discrepancy. The500ms endpoint, old dense-prefix coverage, gravity/
 load breadth, intrinsic contact-couple ceiling, serving cost, integration,
 durability/restart and live gates remain open. Body stays compiled-unmounted
 and full-body UNQUALIFIED. Goal ACTIVE; no user input is required.
+
+### FB-01aj retained progress and localized timing failure — 2026-09-28 04:23Z
+
+Outcome: PROGRESS to 470.3 ms, then LOCALIZED paired-event timing failure.
+Requested architecture remains bounded mechanical qualification, not cognitive
+authority. Current body stays compiled-unmounted and full-body UNQUALIFIED.
+The 500 ms acceptance target is not met. No kernel, cognition, force law,
+numerical source, acceptance limit, or production code was changed this turn.
+This is reduced-order mechanical/sensory verification, not full DSF evaluation.
+G1 retains COG-OSC-02; no heuristic cognitive controller is introduced here.
+
+The unchanged reviewed observer b8cc885622b59801574402692fcd2d9e754bc5540a06dd6de32ffad373721a70
+continued the two OWN histories from committed receipt edbabfb09d79... at
+257.6 ms. Thirty-three advancing receipts add 2,127 passed sampled pairs through
+470.29999999997574 ms. The next receipt makes zero progress. Its saved states,
+supplies, full observations and original 250 ms release record remain intact.
+The authenticated 34-receipt chain was checked without rerunning physics:
+every predecessor hash, restored own state, release record, passed endpoint,
+payload hash, scratch rollback, process exit and cleanup agrees.
+
+Last advancing receipt:
+FB-01aj-coupled-reaction-full-history-4726d76791a8.json
+SHA 0c94026890fc305237af4f67fc2d1555a43965f5ab61a411a2e5bfedce0f8e7e.
+Stopped attempt:
+FB-01aj-coupled-reaction-full-history-0c94026890fc.json
+SHA 53ced428bfd9122712efab491da2a42713a9599be026329f6174accf97b386b4.
+The stopped attempt preserves both restored entry lanes, has no new endpoints,
+and reports exact scratch rollback. Do not treat its budget flag or null
+sensory first_failure field as proof that the requested interval passed.
+
+Exact discrepancy, read from existing failed_attempt (no new physical run):
+470.3 -> 470.4 ms has six completed paired refinement rounds. State/work/impulse
+checks and event identity/order pass, but paired_event_brackets_within_limit
+is false in every round. The native event changes reaction state and loaded
+contact membership for geometry pair (36, 44); geometric membership is unchanged.
+At refinement 5, lane 0 brackets the event at
+[0.4703680947165648, 0.4703681640624683] s; lane 1 at
+[0.47037066845200626, 0.470370703124958] s. Their union is
+2.6084083931676716 microseconds wide, exceeding the existing 1 microsecond
+EVENT_S limit. Further local refinement was interrupted by the preset forward
+budget. Automatic repetition stopped on the first zero-progress receipt.
+
+Local refinement has not removed the between-history onset discrepancy. Its
+underlying numerical cause is NOT yet proven. Increasing the work allowance,
+loosening EVENT_S, borrowing a lane's state, synchronizing supplies, shifting
+the event, or inventing a contact flag is not a solution. The single next item
+is to inspect the saved own predecessor states and native reaction/event law
+to distinguish inherited trajectory error from local event classification
+error before specifying a bounded correction. Do not blindly resume this
+receipt or replay the qualified prefix. Existing admit_trajectory documents
+upstream refinement, but does not authorize replacing these independent states
+with one selected current state.
+
+Measured new diagnostic cost: 782.745429858 numerical CPU seconds, 3,400,034
+native forward calls (including cleanup), 177,109 trial attempts; peak child
+RSS 343,376 KiB. The 34 receipts total 92,015,088 bytes. All children exited 0
+with no survivors and were absent in the final census. This instrumented cost
+is not serving performance; co-resident G1 diagnostics were not altered.
+The orchestration initially stopped once on the wrapper's expected incomplete
+exit status; it continued from the saved receipt, without repeating that run.
+A premature commentary attribution to a contact transition at 329.4 ms was
+retracted: its event sequence was unchanged. The later 470.4 ms discrepancy
+above is evidenced, not inferred from cost alone.
+
+Read-only production envelope 03:56:32 -> 04:19:32 UTC: same sole ECS 1566,
+task e53d1bbc14694ddab790d925a106e88e, image 9dd83020bb81abe05e0ae38e8d548adc190c197a23da4effaff4e9227c9bcd90,
+same identity; ticks 2742256 -> 2744461, custody errors null/durability false.
+Clock-stalled ALARM persists and is not cleared by body evidence. Full 500 ms,
+old dense-prefix coverage, gravity/load breadth, intrinsic contact-couple error,
+serving cost, integration/restart and live gates remain open. Goal ACTIVE.
