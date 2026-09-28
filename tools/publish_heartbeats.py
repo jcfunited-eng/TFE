@@ -40,7 +40,36 @@ def _file_text(path: str) -> str | None:
         return None
 
 
+NIGHTLY_EXPECT_MINUTES = 26 * 60
+NIGHTLY_GRACE_HOURS = 6      # close 20:00 UTC -> pass 21:10 -> door done by ~02:00
+SESSION_CLOSE_UTC_HOUR = 20  # fixed UTC, assumes EDT, as the loops do
+
+
+def nightly_expect_minutes(now: datetime) -> tuple[int, str]:
+    """How old a NIGHTLY pulse may be before it is stale.
+
+    The nightly jobs run once after each trading session, so their pulse
+    cannot advance over a weekend. A flat 26 hours turned all three red
+    every Saturday through Monday evening (Joseph 2026-09-28: "why does that
+    say that in red and do I care") — a weekly false alarm teaches the eye
+    to ignore the real one. The pulse is due after the most recent weekday
+    close that is at least NIGHTLY_GRACE_HOURS old; the allowance is the
+    time since that close, never less than the old 26 hours, so weekday
+    behaviour is unchanged. Exchange holidays are not known here: a holiday
+    reads stale that evening, once, instead of every weekend.
+    Returns (expect_minutes, required_after_iso)."""
+    from datetime import timedelta
+    day = now.replace(hour=SESSION_CLOSE_UTC_HOUR, minute=0, second=0, microsecond=0)
+    for _ in range(10):
+        if day.weekday() < 5 and day + timedelta(hours=NIGHTLY_GRACE_HOURS) <= now:
+            break
+        day -= timedelta(days=1)
+    since_close = int((now - day).total_seconds() // 60) + 1
+    return max(NIGHTLY_EXPECT_MINUTES, since_close), day.isoformat()
+
+
 def main() -> None:
+    nightly_expect, nightly_due_after = nightly_expect_minutes(datetime.now(timezone.utc))
     pulses: dict[str, dict] = {}
     pulses["trading_loop"] = {
         "last": _file_text(os.path.join(OBS, ".hb_ch6_loop")),
@@ -60,7 +89,7 @@ def main() -> None:
         pass
     pulses["nightly_picking"] = {
         "last": door_last,
-        "expect_minutes": 26 * 60,
+        "expect_minutes": nightly_expect, "due_after": nightly_due_after,
         "label": "nightly picking"}
     try:
         import pandas as pd
@@ -69,14 +98,14 @@ def main() -> None:
                      ["Date"].max())[:10]
         pulses["data_store"] = {
             "last": _iso_mtime(store), "latest_close": latest,
-            "expect_minutes": 26 * 60, "label": "market data"}
+            "expect_minutes": nightly_expect, "due_after": nightly_due_after, "label": "market data"}
     except Exception:  # noqa: BLE001
         pulses["data_store"] = {"last": None, "latest_close": None,
-                                "expect_minutes": 26 * 60,
+                                "expect_minutes": nightly_expect, "due_after": nightly_due_after,
                                 "label": "market data"}
     pulses["ch3_shadow"] = {
         "last": _iso_mtime(os.path.join(OBS, "ch3_shadow_log.json")),
-        "expect_minutes": 26 * 60,
+        "expect_minutes": nightly_expect, "due_after": nightly_due_after,
         "label": "CH3 shadow"}
 
     sheet = {"schema": "tfe.heartbeats.v1",
