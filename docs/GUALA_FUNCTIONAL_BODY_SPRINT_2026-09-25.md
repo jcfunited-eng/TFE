@@ -16624,3 +16624,84 @@ same identity/ticks2807169->2807176, custody errorsnull/durabilityfalse.
 Clock-stalledALARM persists, other4alarmsOK; no blanket health/cognition claim.
 G1-owned pytest20747 was observed before the tiny build, left untouched; no
 A1 source/process changes to G1. Both owned children independently absent.
+
+### FB-01aj native guard readout candidate — 2026-09-28
+
+Continues the existing contact accuracy item, not cognition or a new body law.
+Independent source review of the numerical contract found that mj_geomDistance
+cannot expose admission of a second manifold point while another remains in
+contact. The signed predicates must come from the existing box collision
+implementation. This is the precise missing interface; no extra tolerance,
+force smoothing, borrowed trajectory, or collision clone is authorized.
+
+Candidate source: native/functional_body/contact_guards.patch. It is NOT yet
+included by build_engine.py, compiled, installed, or reachable in production.
+The patch adds an optional readout to the single existing mjc_BoxBox body;
+ordinary mjc_BoxBox calls that same implementation with a null output pointer.
+There is no independent geometric authority or persistent diagnostic state.
+Inputs remain the native model, computed geometry pose, ordered box pair and
+actual margin. Contacts are still written by the unchanged native predicates.
+The optional caller-owned output records branch, generating feature, signed
+depth and (for corner/vertex) squared separation before depth rejection.
+Caller must reject overflow/nonfinite evidence and missing/changing features;
+the output array index is never feature identity or a matching threshold.
+No readout consumer or replacement integration rule is implemented in this
+candidate. In particular signed proposals alone do not solve quantization or
+prove the repeated own-prefix search is bounded tightly enough.
+
+Bounded causal impact: collision_primitive.h adds the output type/export;
+engine_collision_box.c shares the one physical implementation and fills only
+caller-owned scratch. The model, mjData, forces, integration state, body return,
+serialization, cold restore, DSF and motor/cognitive authority are unchanged.
+Trace capacity is native mjMAXCONPAIR, not a cognitive quota; maximum generated
+face candidates are 16 edge intersections + 4 face corners + 4 vertices, and
+the edge path likewise has at most 24 guarded candidates. Overflow remains
+explicit rather than truncating physical collision output. No network, dynamic
+allocation, callback, lifecycle owner, retained history or broad scene scan.
+
+Exit for this source boundary: independent frozen source review, then compare
+the same eight saved left/right poses against the accepted native raw contacts
+bit-for-bit, with exact original-state/force preservation. Verify stable native
+generating-feature identities and the already measured depth-sign changes.
+No full trajectory replay and no larger numerical budget. Source review is
+required before any compile; previous diagnostic clone is not a serving path.
+Even a passing readout proof leaves the 500ms body trajectory and deployment
+unqualified. The next numerical rule still needs actual own-state integration,
+opposite-sign root brackets, force/impulse bounds and existing accuracy gates.
+
+Operational mistakes disclosed: initial apply_patch envelope and subsequent
+same-path delete/add request were rejected without changing files. Hand-written
+unified patch context/count errors then failed read-only git apply --check;
+corrected the patch format/context, removed unnecessary null-path operand work,
+and final check passes against the authenticated native source. A ledger append
+also refused a mistyped context line without changing the file. No compiler,
+test, subprocess harness, production write or heavy history replay was launched.
+
+Shared-source coordination: main HEAD remains fdbb833f5; no newer G1 interface
+receipt is present in the ledger. Do not infer G1 is stopped or integrated.
+Reconcile G1's actual native motor/sensory/state changes before mounting the
+body. Current body work does not wait on them and does not edit G1 source.
+
+Source review found one localized readout defect: the native edge-corner loop
+reuses c1, initially its determinant, for each reached corner's squared
+separation. Later corner generation therefore depends on which earlier corners
+reached that assignment, even if they were then depth-rejected. Added that
+exact assignment-prefix mask to the corner feature identity. Native arithmetic
+is unchanged; this unusual upstream c1 reuse is recorded for the existing
+geometry-qualification gate, not silently certified physically correct by a
+readout-equivalence test. Review also notes bounded null-path branches/call
+overhead and an 800-byte feature scratch declaration; no zero-cost claim.
+
+Final independent source review PASS at frozen fingerprint
+0fd714fd949337e0569a010f0b80b80678ef215f0a0d8e35b8d3e6cf9ba5be01,
+verified before/after review. The localized identity omission is closed.
+This is a SOURCE-ONLY checkpoint, not the eight-pose compiled proof; no build
+or numerical test was run this step. Keep build_engine.py and installed ABI
+unchanged until the bounded readout proof passes. No new approval needed.
+
+G1 coordination inspection additionally found an uncommitted dense1024x1024
+association lattice and Python recall-to-syllable branch retaining the legacy
+selector. The shared ledger records exact source hashes, the specific material-
+law/complete-neuron gap, lossy export cutoff, and required correction before
+body integration. This is an integration warning, not a frozen cognition audit
+or evidence of deployment. No G1 source changes; body remains independent.

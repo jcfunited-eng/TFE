@@ -1,0 +1,193 @@
+--- a/src/engine/engine_collision_primitive.h
++++ b/src/engine/engine_collision_primitive.h
+@@ -84,6 +84,39 @@
+ MJAPI int mjc_BoxBox          (const mjModel* m, const mjData* d,
+                                mjContact* con, int g1, int g2, mjtNum margin);
+ 
++// Optional read-only box predicates, produced by the same collision function.
++// No callback, retained state, force alteration, or geometry matching policy.
++// Identity = ordered geom pair + branch[] + kind + feature[].
++// Compare identities, not row offsets; missing/changing features are unavailable.
++// kind: 1 face depth; 2 edge-line depth; 3 edge-corner; 4 edge-vertex.
++// feature: face {generator,a,b,c}; line {line,axis,sign,0};
++//          corner {corner,clamp-u,clamp-v,(prior-corner-mask<<1)|has-lines};
++//          vertex {vertex,clamp-x,clamp-y,eligibility-regime}.
++// Face generators: 1 line/plane intersection, 2 reference corner, 3 incident
++// vertex. Indices are native generating features, not output contact indices.
++// depth is the native signed length BEFORE rejection (metres).
++// Kinds 1/2 reject when depth>margin. Kinds 3/4 reject only when depth>0
++// AND separation_squared>margin_squared (square metres).
++// branch: SAT code, face corner, face axis mask, edge cle1,cle2,in,
++//         edge ax1,ax2,pax1,pax2,clface; unused entries are -1.
++typedef struct mjBoxGuard_ {
++  int kind;
++  int feature[4];
++  mjtNum depth;
++  mjtNum separation_squared;
++} mjBoxGuard;
++typedef struct mjBoxGuards_ {
++  int branch[11];
++  int count;
++  int overflow;
++  mjtNum margin;
++  mjtNum margin_squared;
++  mjBoxGuard guard[mjMAXCONPAIR];
++} mjBoxGuards;
++MJAPI int mjc_BoxBoxGuards(const mjModel* m, const mjData* d,
++                          mjContact* con, int g1, int g2, mjtNum margin,
++                          mjBoxGuards* guards);
++
+ #ifdef __cplusplus
+ }
+ #endif
+--- a/src/engine/engine_collision_box.c
++++ b/src/engine/engine_collision_box.c
+@@ -602,4 +602,38 @@
+-int mjc_BoxBox(const mjModel* M, const mjData* D, mjContact* con, int g1, int g2, mjtNum margin)
++// Record actual native candidate predicates; never affect admission.
++static void boxGuard(mjBoxGuards* guards, int kind, int a, int b, int c, int d,
++                     mjtNum depth, mjtNum separation_squared) {
++  if (!guards) return;
++  if (guards->count == mjMAXCONPAIR) {
++    guards->overflow = 1;
++    return;
++  }
++  mjBoxGuard* row = guards->guard + guards->count++;
++  row->kind = kind;
++  row->feature[0] = a;
++  row->feature[1] = b;
++  row->feature[2] = c;
++  row->feature[3] = d;
++  row->depth = depth;
++  row->separation_squared = separation_squared;
++}
++
++// One implementation serves normal collisions and optional observation.
++int mjc_BoxBox(const mjModel* M, const mjData* D, mjContact* con,
++               int g1, int g2, mjtNum margin) {
++  return mjc_BoxBoxGuards(M, D, con, g1, g2, margin, NULL);
++}
++
++int mjc_BoxBoxGuards(const mjModel* M, const mjData* D, mjContact* con,
++                     int g1, int g2, mjtNum margin, mjBoxGuards* guards)
+ {
++  int face_feature[mjMAXCONPAIR][4];
++  unsigned corner_history = 0; // native c1-assignment provenance; trace only
++  if (guards) {
++    for (int b = 0; b < 11; b++) guards->branch[b] = -1;
++    guards->count = 0;
++    guards->overflow = 0;
++    guards->margin = margin;
++    guards->margin_squared = margin * margin;
++  }
+   const mjtNum* pos1 = D->geom_xpos + 3 * g1;
+   const mjtNum* mat1 = D->geom_xmat + 9 * g1;
+@@ -735,5 +773,6 @@
+   if (code == -1)
+     return 0;  // shouldn't happen
+ 
++  if (guards) guards->branch[0] = code;
+   if (code >= 12)
+     goto edgeedge;
+@@ -831,5 +870,13 @@
+   for (clcorner = 0, i = 0; i < 3; i++)
+     if (r[6 + i] < 0)
+       clcorner += 1 << i;
+ 
++  if (guards) {
++    guards->branch[1] = clcorner;
++    guards->branch[2] = 0;
++    for (i = 0; i < 3; i++) {
++      if (mju_abs(r[6 + i]) < 0.5) guards->branch[2] |= 1 << i;
++    }
++  }
++
+   mju_addToScl3(lp, rt + 0, s[0] * ((clcorner & 1) ? 1 : -1));
+@@ -882,4 +929,10 @@
+           if (mju_abs(c2) > ss[1 - q])
+             continue;
+ 
++          if (guards) {
++            face_feature[n][0] = 1;
++            face_feature[n][1] = i;
++            face_feature[n][2] = q;
++            face_feature[n][3] = j;
++          }
+           mju_copy3(points[n], lines[i]);
+@@ -914,4 +967,10 @@
+       if (u <= 0 || v <= 0 || u >= 1 || v >= 1)
+         continue;
+ 
++      if (guards) {
++        face_feature[n][0] = 2;
++        face_feature[n][1] = i;
++        face_feature[n][2] = 0;
++        face_feature[n][3] = 0;
++      }
+       points[n][0] = llx;
+@@ -934,4 +993,10 @@
+       if (tmp1[1] <= -ly || tmp1[1] >= ly)
+         continue;
+ 
++    if (guards) {
++      face_feature[n][0] = 3;
++      face_feature[n][1] = i;
++      face_feature[n][2] = 0;
++      face_feature[n][3] = 0;
++    }
+     mju_copy3(points[n++], tmp1);
+@@ -941,4 +1006,8 @@
+   for (i = 0; i < m; i++)
+   {
++    if (guards) {
++      boxGuard(guards, 1, face_feature[i][0], face_feature[i][1],
++               face_feature[i][2], face_feature[i][3], points[i][2], 0);
++    }
+     if (points[i][2] > margin)
+       continue;
+@@ -1022,4 +1092,15 @@
+   else
+     clface = pax2 + 3;
+ 
++  if (guards) {
++    guards->branch[3] = cle1;
++    guards->branch[4] = cle2;
++    guards->branch[5] = in;
++    guards->branch[6] = ax1;
++    guards->branch[7] = ax2;
++    guards->branch[8] = pax1;
++    guards->branch[9] = pax2;
++    guards->branch[10] = clface;
++  }
++
+ 
+@@ -1190,4 +1271,8 @@
+             if (mju_abs(c2) > s[1 - q])
+               continue;
+ 
++            if (guards) {
++              boxGuard(guards, 2, i, q, j, 0,
++                       (linesu[i][2] + linesu[i][5]*c1)*innorm, 0);
++            }
+             if ((linesu[i][2] + linesu[i][5]*c1)*innorm > margin)
+@@ -1253,2 +1339,9 @@
+       c1 = mju_dot3(tmp2, tmp2);
++      if (guards) {
++        boxGuard(guards, 3, i, u == 0 ? -1 : (u == 1 ? 1 : 0),
++                 v == 0 ? -1 : (v == 1 ? 1 : 0),
++                 (corner_history << 1) | (nl != 0), tmp1[2], c1);
++        // Native c1 was overwritten above, including on subsequent rejection.
++        corner_history |= 1u << i;
++      }
+       if (tmp1[2] > 0)
+@@ -1293,3 +1380,10 @@
+       c1 += pu[i][2] * innorm * pu[i][2] * innorm;
+ 
++      if (guards) {
++        boxGuard(guards, 4, i,
++                 x < -lx ? -1 : (x > lx ? 1 : 0),
++                 y < -ly ? -1 : (y > ly ? 1 : 0),
++                 nl ? 2 : (nf ? 1 : 0), pu[i][2], c1);
++      }
++
+       if (pu[i][2] > 0)
