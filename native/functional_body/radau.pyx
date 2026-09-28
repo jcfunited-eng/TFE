@@ -14,7 +14,7 @@ import numpy as np
 import guala_body_interval as interval
 from libc.math cimport fabs, isfinite, pow, sqrt, tan
 
-RADAU_LAW = "radau-iia3-secant-solved-domain-v5-joint-events"
+RADAU_LAW = "radau-iia3-secant-solved-domain-v6-one-sided-events"
 MAX_LINE = 16
 MAX_SECANT = 32
 STAGE_COUNT = 3
@@ -88,6 +88,7 @@ cdef double norm_inf(double[::1] a) except *:
 
 cdef class _Stages:
     cdef object e, m, d, owner, base, q_array, sigma_array
+    cdef object boundary
     cdef object x_array, r_array, last_value, last_residual
     cdef double dt, t0, tolerance
     cdef Py_ssize_t n, size, kmax, rank
@@ -98,8 +99,9 @@ cdef class _Stages:
     cdef double[::1] trial, trial_residual
     cdef double[:,::1] acc, tangent, inverse_left, inverse_right
 
-    def __init__(self, e, base, double dt, owner):
+    def __init__(self, e, base, double dt, owner, boundary=None):
         self.e, self.m, self.d, self.owner, self.base = e, e._model, e._data, owner, base
+        self.boundary = boundary
         self.dt, self.t0 = dt, float(self.d.time)
         self.tolerance = float(self.m.opt.tolerance)
         if not isfinite(self.tolerance) or self.tolerance <= 0:
@@ -142,7 +144,7 @@ cdef class _Stages:
     cdef object evaluate(self, double[::1] values, double[::1] out, bint capture):
         cdef Py_ssize_t i, j, k, s, a, n = self.n
         cdef double sx, sy, sz, wx, wy, wz, cx, cy, cz, theta, square, coefficient
-        cdef double total, stage_time
+        cdef double total, stage_time, terminal_q
         self.last_value, self.last_residual = values, None
         for j in range(self.size):
             if not isfinite(values[j]):
@@ -184,6 +186,11 @@ cdef class _Stages:
                 self.v[j] = values[i*n+j]
             stage_time = self.t0+self.nodes[i]*self.dt
             self.d.time = stage_time
+            # Force scratch only: preserve the solved collocation coordinate.
+            # The event-time transaction below is the sole caller of this mode.
+            if i == 2 and self.boundary is not None:
+                terminal_q = self.q[self.boundary['qadr']]
+                self.q[self.boundary['qadr']] = self.boundary['incoming_q']
             self.owner.forward(self.e)
             for j in range(n):
                 self.acc[i,j] = self.acceleration[j]
@@ -197,6 +204,11 @@ cdef class _Stages:
                     qpos=self.d.qpos.copy(),qvel=self.d.qvel.copy(),qacc=self.d.qacc.copy(),
                     work=interval._finite(work),
                     impulse=interval._midpoint_impulses(self.m,self.d,self.dt*B[i])))
+            if i == 2 and self.boundary is not None:
+                self.q[self.boundary['qadr']] = terminal_q
+                if capture:
+                    stages[-1]['qpos'][self.boundary['qadr']] = terminal_q
+                    stages[-1]['one_sided_force_coordinate'] = self.boundary['incoming_q']
         for i in range(3):
             for j in range(n):
                 total = 0.
@@ -314,6 +326,9 @@ def sampled_event_comparison(before, coarse, left, right):
         fine_brackets=fine_events['brackets'])
 
 
+include "one_sided_joint_event.pxi"
+
+
 class RadauProbe:
     """Offline call-bounded probe; never imported into organism/runtime custody."""
     def __init__(self, ceiling):
@@ -333,6 +348,9 @@ class RadauProbe:
         interval._finite(e._data.qacc)
 
     def step(self, e, dt, supply):
+        return _event_aligned_step(self,e,dt,supply)
+
+    def _plain_step(self, e, dt, supply, boundary=None):
         cdef _Stages solver = None
         m,d = e._model,e._data
         if not math.isfinite(dt) or not 0 < dt <= e.limits.step_us/1e6:
@@ -356,7 +374,7 @@ class RadauProbe:
             # Compare the actual Radau impulse with a positive start-inclusive
             # quadratic estimate. Neither estimator replaces force or dynamics.
             initial_impulse = interval._midpoint_impulses(m,d,dt*E[0])
-            solver = _Stages(e,base,dt,self)
+            solver = _Stages(e,base,dt,self,boundary)
             stages = solver.solve(receipt)
             terminal_impulse = interval._midpoint_impulses(m,d,dt*E[2])
             work = interval._finite(dt*sum((B[i]*stages[i]['work'] for i in range(3)),start=np.zeros(6)))
@@ -367,6 +385,13 @@ class RadauProbe:
             e._check()
             if float(d.time) != end: raise ValueError('Radau endpoint clock differs')
             endpoint = interval._snapshot(e)
+            if boundary is not None:
+                # Native endpoint observation is NOT the one-sided force
+                # approximation. Retain each separately and never persist the
+                # force-evaluation coordinate as physical body state.
+                stages[-1]['force_snapshot'] = stages[-1]['snapshot']
+                stages[-1]['snapshot'] = endpoint
+                stages[-1]['collocation_residual'] = receipt['final_residual']
             travel = []
             for stage in stages:
                 snap = stage['snapshot']
@@ -454,6 +479,7 @@ class RadauProbe:
             'captured coupled stage residual differs',
             'contact impulse embedded quadrature unresolved',
             'multiple joint-limit events unresolved in sampled interval',
+            'one-sided joint event requires subdivision',
         }
 
         def trial(end, remaining):
@@ -531,6 +557,8 @@ class RadauProbe:
                                     predecessor_sha256=hashlib.sha256(piece['predecessor'].astype('<f8').tobytes()).hexdigest(),
                                     state=packed_numbers(value[0]['state']),work=value[1],
                                     available_work_j=piece['supply'],
+                                    joint_boundaries=[stage['joint_boundary'] for stage in value[3]
+                                                      if 'joint_boundary' in stage],
                                     event_sequence=tuple(_record_domain(domain) for domain in
                                         sampled_event_path(
                                             before if piece_index == 0 else left['value'][0],

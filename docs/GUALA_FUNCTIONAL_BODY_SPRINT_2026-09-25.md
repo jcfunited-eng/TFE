@@ -15054,3 +15054,136 @@ and all numeric acceptance details are executable, frozen and independently
 reviewed. First falsifier: retained incoming-stop interval plus zero-force
 outgoing control, own-history and same-predecessor comparisons, actual accounting
 and exhaustion rollback. No new static map or global replay is required first.
+
+### FB-01aj executable one-sided event contract — 2026-09-28
+
+Continue FB-01aj, predecessor a72bae465. Owner A1; authorized source is
+native/functional_body/radau.pyx plus a numerical-only include. No native force,
+anatomy, cognition, persistence schema, startup or production caller changes.
+The candidate remains offline/unmounted. Existing accepted wrappers and saved
+22.2ms own predecessors are the first falsifier; no new origin replay.
+
+Input is the complete unpublished native state, remaining mechanical supply,
+and bounded interval. A usual Radau trial identifies changed joint boundaries.
+An initial boundary departure is admissible only with the existing two-cubic
+departure certificate. Multiple noninitial boundaries require ordinary local
+subdivision, not imposed ordering. For one boundary, restored one-sided trials
+bracket terminal signed joint position in physical time. Only the final force
+evaluation uses the adjacent representable incoming-side coordinate; actual
+collocation positions are never projected. Earlier stages must stay in the
+incoming native domain. The numerical joint-position polynomials must be
+monotone, and trial residuals must remain inside the current root bracket.
+
+Bracketing ends at an exact root belonging to the outgoing native domain or
+adjacent representable absolute times, not a new epsilon. Retain both time and
+position residual brackets; require the existing EVENT_S and ANGLE_RAD limits.
+At the accepted boundary compare ordinary endpoint and one-sided force domains
+with only that joint row/flag removed; any other constraint switch refuses for
+subdivision. Keep true endpoint state and actual force-input snapshot separate.
+Event comparison uses ordinary state observations, not the deliberately
+one-sided force scratch, so a numerical one-sided limit is never mislabeled as
+a contradictory physical state at the same time. No rigorous global error bound
+is inferred from the adjacent clocks or a measured force jump.
+
+Commit only accepted segment work/impulses, then continue from its ordinary
+native endpoint. Trial energy never debits the body. Every refusal restores the
+entire entry state and timestep; all work/impulses/supply remain local until a
+whole interval succeeds. Native force-call and existing admission-trial limits
+bound all root trials; finite-clock progress is mandatory. No solver state is
+serialized. Cold restart retains the existing physical state only. No mounting
+or package claim follows from this operator proof.
+
+Acceptance: saved incoming stop and outgoing zero-force control; chronological
+stage/branch and root-residual evidence; unchanged physical work/impulse and
+own-history/same-predecessor comparisons; exact rollback on call/supply refusal.
+Existing global state/sensory limits and later 58.2ms trajectory qualification
+remain open. Freeze and source-only independent review precede compilation.
+
+Command preflight corrections this turn: tests/test_body_radau* and
+native/functional_body/build_interval.py do not exist. No tests/build ran from
+those lookups. Located real files with rg --files; do not retry invented names.
+
+Frozen source review642de09f1c06... found one localized evidence omission and
+no architectural defect: admit dropped returned joint_boundary certificates.
+Corrected that single handoff in the batch. Each accepted-piece report now
+retains boundary identity, time/position brackets, coupled residual and the
+one-sided force-coordinate distinction. Internal root trials are bounded by
+force calls, not merely the outer admission-trial counter.
+
+First executable proof is deliberately smaller than a100us replay: restore
+the authenticated outgoing and incoming event pieces already captured by
+FB-01aj-native-boundary-map.json. Reproduce their accepted predecessor-law
+successors through unchanged _plain_step, then compare two admitted meshes
+from each exact same predecessor. Verify the event certificate is actually
+retained, work sums and supply debit, native state re-restore/observation,
+and complete rollback after force allowance or zero-work refusal. This is
+local numerical evidence, not global-history/body qualification.25CPU/50000
+native-forwards plus2reserved cleanup calls; existing offline two-core/1GiB/
+60CPU/90wall wrapper and read-only AWS pre/post. One build, one proof only.
+Source-only final review covers the localized handoff and proof/runner before
+execution; source/ABI hashes and all failing evidence will be retained.
+
+### FB-01aj one-sided native event proof PASS — 2026-09-28 01:42Z
+
+Source and final localized proof review PASS at worktree fingerprint
+47b8925072d01e7b4fc68dfe420a82cda08d3c5aa5804bdcaf81522e6f4d53a6.
+Proof SHAda7340f0cd47ed76d039d9c55d632f3b03ff326e6985c0562f323ac0b9f9cfa0;
+runner249a66df571ce9e0e59850d5a5aec86fe72915ac0aa214ea5a7c8150a1381ace.
+Proof review corrected exact work summation to native pair-first grouping,
+retained actual baseline/restore/refusal operands before assertions, and made
+failure extraction independent of cleanup. One additional localized ordering
+remnant was caught before execution: original refusal must be retained before
+any fallible state extraction. No native design or physical limit changed.
+
+Ran one build and one proof. Receipt
+docs/evidence/FB-01aj-one-sided-proof.json SHA
+215d6fa98cba9183801e50fe6178aef32389e58e8f7e7ecf1bd97b500e571164.
+New numerical law radau-iia3-secant-solved-domain-v6-one-sided-events:
+radau.pyx SHA35f299fc94fa5402bc62269737b70544614d868a88ded6c89b89b184b824f7f2;
+one_sided_joint_event.pxi SHA58ec62a2121d1f01b446f3563a198514b671d6d9d0641162cb7c82465906bb6c.
+ABI /tmp/guala-body-one-sided.v91yo3wd/python/guala_body_radau.cpython-311-x86_64-linux-gnu.so
+SHA3af856bd945cbc0174871ff8ad41ab3d9e76f86d0c4cd27f14970059624beed7.
+Existing interval ABI, joint-event algebra and native force library unchanged.
+
+Both authenticated saved event pieces reproduce the predecessor-law endpoint
+and work exactly through _plain_step. Both event-aligned mesh pairs pass the
+unchanged state/work/impulse and event-order/timing comparison. Each retained
+boundary certificate is exercised, not merely emitted by a helper. Pair-first
+work totals and actual supply debit agree exactly; native state and observation
+re-restore agree. Force-allowance refusal and zero-work refusal each restore the
+complete entry state/timestep exactly for BOTH controls. Final initial scratch
+restoration exact. No fabricated intermediate pose, force or action.
+
+Outgoing nativejoint37/ordinal36: both meshes locate release in adjacent
+times[0.022241031954833932,0.022241031954833936]s; signed joint residuals
+[6.519078068319579e-19,-3.1983997789469994e-18]rad; normalized collocation
+residual1.250822295624182e-12. Nativejoint15/ordinal14 entry: both locate
+[0.022281832735371317,0.02228183273537132]s, signed residual approximately
+[7.10e-17,-8.51e-17]rad; collocation residuals8.890545531320326e-14 and
+5.453307635692731e-12. These are numerical root certificates, not continuum
+error enclosures. No changed EVENT_S, ANGLE_RAD or sensory accuracy ceiling.
+
+Proof:128outer step trials,8935total native forwards,4.40141864numericalCPU;
+child52626 exit0/no survivors,5.250484wall,5.245243subprocessCPU,
+253804KiBpeakRSS. Build52324 exit0/no survivors,43.926415wall,
+43.901035subprocessCPU,478996KiBpeakRSS. Compiler emitted dynamic-index
+performance hints and a may-be-uninitialized terminal_q warning. Source assigns
+and consumes terminal_q under the identical i==2/boundary-present condition;
+no observed uninitialized execution. Record it openly; remove that compiler
+ambiguity at the next necessary source build, not with another immediate
+43CPU rebuild. Source is offline/unmounted; this is not production readiness.
+
+Read-only01:39:21->01:40:13UTC: unchanged1564/taskaa20c7ced32343d98c13a74b90b1bde0,
+same immutable image and identity, ticks2728151->2728286, counts1/1/0,
+checkpoint/cleanupnull,durabilityfalse. Clock-stalledALARM persists; other4
+alarmsOK. This check does not certify cognition or clock cadence. G1 process
+52874 appeared under agy after A1's proof ended; not interrupted. No A1 child
+survivors or production writes.
+
+Local operator proof is CLOSED at this evidence level. FB-01aj remains ACTIVE:
+next apply this same built ABI to the retained22.2->22.3ms own predecessors and
+same-input controls, with unchanged accuracy/resource gates. Do not rerun this
+two-event proof or static boundary map absent contradictory evidence. The
+58.2ms inherited-error trajectory, full500ms accuracy, gravitational/load
+qualification, intrinsic couple bound, cost, integration, restart and live
+delivery remain OPEN. No body mount or claimed completed functional body.
