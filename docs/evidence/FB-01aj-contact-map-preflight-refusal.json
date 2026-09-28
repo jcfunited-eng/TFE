@@ -1,0 +1,78 @@
+{
+  "schema": "guala.functional-body.diagnostic-preflight-refusal.v1",
+  "diagnostic": "/tmp/a1-body-native-contact-map-20260928.py",
+  "diagnostic_sha256": "827532ca7192324dcc188e9fe6d000eb4be25f4f04dab322040978f766daff8c",
+  "candidate_fingerprint": "93fb8edf207d3a99559d684fbcb08d8a4b4652192fa8f2a99be1087a099b5e49",
+  "source_review": "localized evidence-retention correction passed independent frozen review",
+  "execution": {
+    "wrapper_session": 57814,
+    "wrapper_exit_code": 1,
+    "child_created": false,
+    "force_calls": 0,
+    "numerical_trials": 0,
+    "measurement_recorded": false
+  },
+  "pre_health": {
+    "utc": "2026-09-28T05:21:51.610617+00:00",
+    "service": {
+      "counts": [
+        0,
+        0,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1567",
+      "tasks": []
+    },
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Timestamp": "2026-09-28T05:20:00+00:00",
+        "Average": 51.03569823503494,
+        "Maximum": 51.32815167307854,
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Timestamp": "2026-09-28T05:20:00+00:00",
+        "Average": 3.021240234375,
+        "Maximum": 3.08837890625,
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2750607,
+      "persisted_tick": 2750604,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false
+    }
+  },
+  "cause": "require_health requires exactly one healthy running production task; empty ECS service rejected before child creation",
+  "production_writes": 0,
+  "diagnostic_completed": false,
+  "full_body_qualification": false
+}

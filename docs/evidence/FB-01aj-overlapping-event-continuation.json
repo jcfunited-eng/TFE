@@ -1,0 +1,186 @@
+{
+  "candidate_fingerprint": "58909681936e46e9c861a20c82db340f8160e5492ecf1791fd651037c03b5a16",
+  "child_output_when_no_measurement": null,
+  "child_resources": {
+    "cpu_seconds": 0.5744349999999999,
+    "maxrss_kib": 158888
+  },
+  "diagnostic_completed": false,
+  "diagnostic_source": "\"\"\"Refine one overlapping event bracket from authenticated own body histories.\"\"\"\nfrom pathlib import Path\nimport hashlib\nimport sys\n\nBASE=Path('/tmp/a1-body-coupled-full-history-20260928.py')\nb=BASE.read_bytes()\nif hashlib.sha256(b).hexdigest()!='b8cc885622b59801574402692fcd2d9e754bc5540a06dd6de32ffad373721a70':\n    raise RuntimeError('reviewed execution definitions changed')\nexec(compile(b.decode().split(\"\\nif __name__=='__main__':\",1)[0],'<reviewed envelope>','exec'),globals())\nHERE=Path(__file__).resolve()\nPARENTS={'FB-01aj-refined-contact-downstream.json':\n         'f23e51f364b85f883f90a1deb1d59d89e01ee16e88cb2257e9ea623b578fb6fa'}\nSCHEMA_OUT='guala.functional-body.overlapping-event-continuation.v1'\nTARGET_NAME='FB-01aj-overlapping-event-continuation.json'\n\n\ndef diagnostic():\n    global CPU_LIMIT,MAX_TRIALS\n    sources=dict(PARENTS)\n    b=ACCEPTED.read_bytes()\n    require(hashlib.sha256(b).hexdigest()==ACCEPTED_SHA,'observer definitions changed')\n    exec(compile(b.decode().split('\\nresult=dict(schema=SCHEMA,completed=False',1)[0],\n                 '<accepted observation definitions>','exec'),globals())\n    from types import SimpleNamespace\n    CPU_LIMIT,MAX_TRIALS=35.,10000\n    result=dict(schema=SCHEMA_OUT,completed=False,failure=None,first_failure=None,\n        samples=[],lane=None,endpoints=[],attempt=None,lanes=[],restore_controls=[],\n        mounted=False,full_body_qualification=False,continuum_enclosure=False,\n        evidence_complete=True,rollback_exact=False,\n        limits=dict(cpu_seconds=CPU_LIMIT,trials=MAX_TRIALS,forwards=100000),\n        source_receipts=sources,\n        scope='own admitted470.1ms pair; refine overlapping brackets only; stop at470.4ms')\n    native=mj.mj_forward;forwards=0;cleaning=False;c=None;entry=None;entry_dt=None\n    probe=Probe(100000)\n\n    def canonical(value):return json.loads(json.dumps(value))\n\n    def forward(m,d):\n        nonlocal forwards\n        require(forwards<(100002 if cleaning else 100000),'overlap continuation forward budget exhausted')\n        if not cleaning:require(time.process_time()-started<CPU_LIMIT,'overlap continuation CPU budget exhausted')\n        forwards+=1;native(m,d)\n        require(not d.warning.number.any(),'native warning');interval._finite(d.qacc)\n\n    def capture(record,key):\n        try:record[key]=failed_state(c)\n        except Exception as error:\n            record[key+'_error']=repr(error);result['evidence_complete']=False\n\n    def unpack(rows):\n        def vector(v):\n            raw=base64.b64decode(v['float64_le_base64'],validate=True)\n            require(v['shape']==[3] and v['finite'] and len(raw)==24,'invalid impulse')\n            return interval._finite(np.frombuffer(raw,dtype='<f8').copy())\n        return {tuple(v['pair']):(vector(v['force']),vector(v['couple']),\n                v['force_path'],v['couple_path']) for v in rows}\n\n    def read(name,sha):\n        raw=Path('docs/evidence',name).read_bytes()\n        require(hashlib.sha256(raw).hexdigest()==sha,'parent changed')\n        e=json.loads(raw)\n        require(e['measurement_recorded'] and e['health_error'] is None and\n                e['operational_error'] is None and e['execution']['exit_code']==0 and\n                not e['execution']['survivors'],'parent custody incomplete')\n        p=e['raw_measurement'];raw=zlib.decompress(base64.b64decode(p['payload_zlib_base64'],validate=True))\n        require(len(raw)==p['raw_bytes'] and hashlib.sha256(raw).hexdigest()==p['raw_sha256'],'payload differs')\n        return json.loads(raw)\n\n    def restored(saved,row):\n        try:\n            restore(c,saved['state_base64'],saved['time_s'])\n            c.work=tuple(saved['work']);c.impulses=unpack(saved['impulses']);c.supply=saved['remaining_supply_j']\n            require(np.array_equal(c.d.ctrl,released_ctrl),'released command differs')\n            require(plain_domain(interval._snapshot(c.e)['domain'])==plain_domain(saved['sequence'][-1]),\n                    'restored domain differs')\n            row['observation']=asdict(c.e._observation())\n            require(canonical(row['observation'])==saved['observation'],'restored observation differs')\n            row['completed']=True\n        finally:capture(row,'actual')\n\n    def advance(saved,stop,h,rows):\n        row=dict(label=saved['label'],predecessor=saved,restore={},nominal_dt_s=h,completed=False)\n        rows.append(row);probe.steps.clear();probe.last_admission=None\n        try:\n            restored(saved,row['restore'])\n            snap,work,impulses,report=probe.admit(c.e,stop,c.supply,h,MAX_TRIALS-attempts)\n            row.update(state=radau.packed_numbers(snap['state']),interval_work=work,\n                       interval_impulses=radau._record_impulses(impulses))\n            sequence=[plain_domain(saved['sequence'][-1])];brackets=[];roots=[];accounted=(0.,)*6\n            pieces=report['accepted'];require(pieces and len(pieces)%2==0,'accepted pair incomplete')\n            for piece in pieces:\n                path=[plain_domain(d) for d in piece['event_sequence']]\n                require(path[0]==sequence[-1] and len(path)==len(piece['event_brackets'])+1,'event path differs')\n                sequence.extend(path[1:]);brackets.extend(piece['event_brackets']);roots.extend(piece['joint_boundaries'])\n            for i in range(0,len(pieces),2):\n                accounted=interval._work_add(accounted,interval._work_add(pieces[i]['work'],pieces[i+1]['work']))\n            require(accounted==work and report['remaining_supply_j']==saved['remaining_supply_j']-work[0],\n                    'pair work/supply differs')\n            c.work=interval._work_add(c.work,work);c.impulses=interval._impulse_add(c.impulses,impulses)\n            c.supply=report['remaining_supply_j']\n            successor=dict(label=saved['label'],time_s=stop,state_base64=row['state']['float64_le_base64'],\n                work=c.work,impulses=radau._record_impulses(c.impulses),remaining_supply_j=c.supply,\n                nominal_dt_s=saved['nominal_dt_s'],sequence=sequence,brackets=brackets,joint_boundaries=roots)\n            row['successor']=successor\n            successor['observation']=canonical(asdict(c.e._observation()))\n            observation=c.snapshot();require(primary(c.e)==snap['state'].tobytes(),'observation changed body')\n            operand=dict(snapshot=snap,work=c.work,impulses=c.impulses,sequence=tuple(sequence),brackets=brackets)\n            proxy=SimpleNamespace(m=c.m,e=c.e,geom=c.geom,geom_labels=c.geom_labels,\n                                  sensor_groups=c.sensor_groups,work=c.work,impulses=c.impulses)\n            row['completed']=True\n            return successor,proxy,operand,observation\n        finally:\n            row['admission']=probe.last_admission\n            row['last_step']=probe.steps[-1] if probe.steps else None\n            capture(row,'actual_return')\n\n    def overlap(a,b):\n        require(len(a)==len(b) and a,'paired event brackets absent')\n        require(all(math.isfinite(t) for event in (*a,*b)\n                    for t in (event['start_s'],event['end_s'])),'nonfinite event bracket')\n        require(all(event['start_s']<event['end_s'] for event in (*a,*b)),'invalid event bracket')\n        return all(max(x['start_s'],y['start_s'])<=min(x['end_s'],y['end_s']) for x,y in zip(a,b))\n\n    try:\n        require(Path(radau.__file__).resolve()==RADAU.resolve(strict=True) and\n                radau.RADAU_LAW=='radau-iia3-secant-solved-domain-v8-coupled-reactions','wrong native law')\n        require(hashlib.sha256(Path('native/functional_body/one_sided_joint_event.pxi').read_bytes()).hexdigest()==\n                '0598f39aaab4fd036683787ac76bd043d81e886f04014b86f3644fd32558902c','event include changed')\n        previous=read(*next(iter(sources.items())))\n        require(previous['schema']=='guala.functional-body.refined-contact-downstream.v1'\n                and not previous['completed'] and previous['evidence_complete'] and previous['rollback_exact']\n                and previous['first_failure'] is None,'parent failure evidence differs')\n        lanes=previous['lanes'];last=previous['endpoints'][-1];baseline=previous['attempt']\n        require(len(lanes)==2 and lanes[0]['label']!=lanes[1]['label'] and\n                all(l['time_s']==.47009999999997576 for l in lanes) and\n                last['completed'] and last['verdict']['passed'] and\n                [row['successor'] for row in last['lanes']]==lanes,'last admitted pair differs')\n        require(baseline['start_s']==lanes[0]['time_s'] and baseline['stop_s']==.47019999999997575\n                and baseline['first_failure'] is None and not baseline['completed']\n                and [row['predecessor'] for row in baseline['lanes']]==lanes\n                and all(row['completed'] and row['restore']['completed'] and\n                        row['admission']['nominal_dt_s']==lanes[i]['nominal_dt_s']\n                        for i,row in enumerate(baseline['lanes'])),'failed baseline custody differs')\n        verdict=baseline['verdict']\n        require(not verdict['passed'] and verdict['same_event_sequence'] and\n                verdict['state_work_impulse_passed'] and not verdict['paired_event_brackets_within_limit']\n                and overlap(*(row['successor']['brackets'] for row in baseline['lanes'])),\n                'parent failure is not the overlapping timing case')\n        release=previous['release_record'];target=previous['target_time_s']\n        require(target==.4703999999999757 and release['completed'] and release['time_s']==.25\n                and release['verdict']['passed'] and\n                all(row['completed'] and row['effort_after_nm']==0. for row in release['lanes']),\n                'target or released effort differs')\n        result.update(start_s=lanes[0]['time_s'],target_time_s=target,release_record=release,lanes=lanes)\n        mj.mj_forward=forward\n        c=Trajectory(100,archived_controls()[100]);entry,entry_dt=primary(c.e),float(c.m.opt.timestep)\n        released_ctrl=c.d.ctrl.copy();released_ctrl[c.motor]=0.\n        for saved in lanes:\n            row=dict(expected=saved,completed=False);result['restore_controls'].append(row);restored(saved,row)\n        first=True\n        while lanes[0]['time_s']<target:\n            now=lanes[0]['time_s'];gap=target-now\n            stop=baseline['stop_s'] if first else target if gap<=H else now+gap/2 if gap<=2*H else now+H\n            if stop-now>H:stop=float(np.nextafter(stop,now))\n            require(now<stop<=target,'invalid continuation interval')\n            attempt=dict(start_s=now,stop_s=stop,rounds=[],completed=False);result['attempt']=attempt\n            if first:\n                require(stop==baseline['stop_s'],'retained baseline endpoint differs')\n                attempt['rounds'].append(dict(refinement=0,reused_parent_attempt=True,\n                    source_receipt=next(iter(sources)),verdict=baseline['verdict']))\n            accepted=False\n            for refinement in range(1 if first else 0,int(np.finfo(float).nmant)+1):\n                row=dict(refinement=refinement,lanes=[],completed=False);attempt['rounds'].append(row)\n                values=[]\n                for saved in lanes:\n                    h=float(np.ldexp(saved['nominal_dt_s'],-refinement))\n                    require(saved['time_s']+h>saved['time_s'],'unrepresentable nominal refinement')\n                    values.append(advance(saved,stop,h,row['lanes']))\n                verdict=radau.trajectory_agreement(c.e,values[0][2],values[1][2],stop)\n                errors=Errors();errors.compare(values[0][1],values[1][1],values[0][3],values[1][3],stop*1e6)\n                row.update(verdict=verdict,metrics=errors.result(),first_failure=errors.first_failure,completed=True)\n                if errors.first_failure is not None:result['first_failure']=errors.first_failure\n                require(verdict['state_work_impulse_passed'] and verdict['same_event_sequence']\n                        and errors.first_failure is None and not errors.unresolved_touch['samples'],\n                        'independent physical or event-order discrepancy')\n                if verdict['passed']:\n                    lanes=[v[0] for v in values];attempt['completed']=True\n                    result['endpoints'].append(dict(time_s=stop,lanes=lanes,refinements=refinement,\n                                                     verdict=verdict,attempt=attempt))\n                    result['samples'].append(stop);result['lanes']=lanes;result['attempt']=None\n                    accepted=True;break\n                row['brackets_overlap']=overlap(*(v[0]['brackets'] for v in values))\n                require(row['brackets_overlap'],'disjoint paired timing requires earlier-history attribution')\n            require(accepted,'paired event refinement exhausted')\n            first=False\n        result['completed']=True\n    except Exception as error:\n        result['failure']=dict(type=type(error).__name__,error=str(error),traceback=traceback.format_exc(limit=8))\n    finally:\n        if c is not None:\n            capture(result,'actual_failed_or_terminal_scratch')\n            if entry is not None:\n                try:\n                    cleaning=True;interval._restore(c.e,np.frombuffer(entry,dtype='<f8').copy(),entry_dt)\n                    result['rollback_exact']=primary(c.e)==entry and float(c.m.opt.timestep)==entry_dt\n                except Exception as error:result['rollback_error']=repr(error)\n        mj.mj_forward=native\n        result.update(attempts=attempts,calls=forwards,cpu_seconds=time.process_time()-started)\n        if not result['evidence_complete'] or not result['rollback_exact'] or result['cpu_seconds']>=CPU_LIMIT:\n            result['completed']=False\n            if result['failure'] is None:result['failure']=dict(type='RuntimeError',error='final evidence/rollback/budget incomplete')\n    print(json.dumps(encode(result)),flush=True)\n\n\nif __name__=='__main__':\n    if sys.argv[1:]==['--child']:diagnostic()\n    else:run()\n",
+  "execution": {
+    "cpu_seconds": 0.6470239999999998,
+    "exit_code": 0,
+    "label": "one-finer-independent-history",
+    "owned_pid": 47412,
+    "stderr": "",
+    "stdout_bytes": 1071,
+    "survivors": [],
+    "timed_out": false,
+    "wall_seconds": 0.6489523449999979
+  },
+  "full_body_qualification": false,
+  "health_error": null,
+  "measurement_recorded": true,
+  "mounted": false,
+  "operational_error": null,
+  "production_post": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 50.98002446691195,
+        "Maximum": 51.24135735630989,
+        "Timestamp": "2026-09-28T05:04:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 2.9825846354166665,
+        "Maximum": 3.02734375,
+        "Timestamp": "2026-09-28T05:04:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2748995,
+      "persisted_tick": 2748972
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1567",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/1fbb3eb2bd8f41f8b1c24781d70ce6ea",
+          "digests": [
+            "sha256:5d3d25d61ee2d212cb4297d24d3d3dfb728cd37b93905cf4e48b47aab13d6953"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-28T05:06:28.698548+00:00"
+  },
+  "production_pre": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 50.98002446691195,
+        "Maximum": 51.24135735630989,
+        "Timestamp": "2026-09-28T05:04:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 2.9825846354166665,
+        "Maximum": 3.02734375,
+        "Timestamp": "2026-09-28T05:04:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2748990,
+      "persisted_tick": 2748972
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1567",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/1fbb3eb2bd8f41f8b1c24781d70ce6ea",
+          "digests": [
+            "sha256:5d3d25d61ee2d212cb4297d24d3d3dfb728cd37b93905cf4e48b47aab13d6953"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-28T05:06:25.642945+00:00"
+  },
+  "progress": [],
+  "raw_measurement": {
+    "payload_zlib_base64": "eNq1VE1v2zAM/SuCLnYK27WdOHHSYYcB63Gn3ZIuoG06VStLriSnC4r+91HOR7vDBgzodAikmHx6j+TTCwfnsOsdX6lByuh8tHyVRrwGKU873fUSHTZ81YK06P9RTqhh6LaoaqntYPDtWz9sLVJE47OTdJEt54tiWkYcVdNroTz++o6Oe9FQOm7P+HzlzEAILQg5Ir5wNEYbvuIKOmRBB+4+YMIypR1rsBWKOEXcGaixgvqRAr+f9yzstHXMYI3KMS+GSbBustooxm6FRLbh167rryGLK90cYr1HI6HvhdrFuKek+KQSnNAqztN8ni7zMukPGx4xSXezbFZGTCjWCNgpuk3UHpwxUA07wYVXodHP68AOdY3WahPcrYOKSD6is8Eda7VhFOBRKrDoYdeBBIX0cTKJjnh+/fiI9ZHa83TUfko9EjX4NAiDIVU79M1KhKUmCYehm4xSR3CfFl5BdFVN3vT9k8b/oOPTDhX+7M3nD1FyVrNR32hyv/opXrE/D/FG+TE+9DTz/JLAX8kKwli3vRjiaNOWfrde7/ZpAClaUY/yLg7043OOHUfp6DcpOuG99/K7RadFQh4nSc9g/DlL/fKuEiDPZ6LS6UG9fwMMWqeNd69yRsvTJbST3n5b/Am1uwRb8BY/xdj6HjsgqTuiD0k7qNrzBzk2Mfl7E5N9xj2EHoulnxWDhnQRs9kiTbLOsh6EuaEG+sqyd2DsbDumlTzcMKLfM3A+bdZZD6oHQ8+RfzJEf6zU7Zc4zeAhPqI1IxPSFTd0sXUGoUserC89b/MpFlk7nc+qsmjLctouU8garLKmWDblEtMMMZtjWdZVnhcLXCLM82lVLMq2mrfAX19/AZM535Q=",
+    "raw_bytes": 1424,
+    "raw_sha256": "11fc16a4b42840bd4940a931814584efe1dd48f39d2bad0452511fbcd969afa0"
+  },
+  "resource_limits": {
+    "address_space_bytes_per_process": 1073741824,
+    "affinity_cores": 2,
+    "aggregate_memory_enforced": false,
+    "cpu_seconds_per_process": 60,
+    "wall_seconds_per_group": 90
+  },
+  "schema": "guala.functional-body.overlapping-event-continuation.v1.receipt",
+  "source_sha256": {
+    "/tmp/a1-body-joint-event-guard-proof-20260928.py": "f0736f307b5d07a0418c2f7109721f1c8f83ed121c83e227ed930c3b0678fb46",
+    "/tmp/a1-body-overlapping-event-continuation-20260928.py": "efac0b07a9dd3923644eb2d768dead6edbc79095577c3dc94f8a17197ec842fb",
+    "/tmp/guala-body-midpoint.igj32n8c/build/lib/libmujoco.so.3.3.7": "de96a1766223905d26b1df0e68ce7bc97608cf2c6238acef8dcf8b344a3fd48f",
+    "/tmp/guala-body-reactions.k3q49che/python/guala_body_radau.cpython-311-x86_64-linux-gnu.so": "02ec28a494bb9a0a5eb79a4bf0ef70118e2a4353566dfd4ee32acbd4bec754da",
+    "/tmp/guala-body-velocity.uw41fxqs/python/guala_body_interval.cpython-311-x86_64-linux-gnu.so": "04c168a94573c7b3282b9f1ea00e5821a00b8126357b8e6eb7f0d38b4b67a4f9",
+    "/workspaces/guala-functional-body/docs/evidence/FB-01aj-refined-contact-downstream.json": "f23e51f364b85f883f90a1deb1d59d89e01ee16e88cb2257e9ea623b578fb6fa",
+    "/workspaces/guala-functional-body/native/functional_body/interval.pyx": "5d978491164774fc14b803232f00cdc0f9f98f94c7eeb8b9c9b5accf036f03e6",
+    "/workspaces/guala-functional-body/native/functional_body/radau.pyx": "24cdf70ec8b4f637b1357c5528ade1cd6e1c359736407d77ac9f2717aee675c7"
+  }
+}

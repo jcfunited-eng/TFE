@@ -16043,3 +16043,141 @@ used as a dependency. Numerical approximation is confined to body mechanics;
 no synthetic cognition, action priority, scalar decision score or food lookup
 was introduced. Goal ACTIVE; this turn PROGRESS through retained causal
 attribution and a smaller, honestly failed downstream check.
+
+### FB-01aj overlapping-bracket continuation contract — 2026-09-28
+
+Previous turn PROGRESS, commitde8509cd6; this continues the same single item.
+Clean registered body worktree and accepted native/source/receipt hashes were
+revalidated. Governing historical route drift remains unchanged; do not rerun
+the known-failing obsolete July-root helper or reopen closed kernel/force work.
+The exact input is the last admitted own pair at470.1ms in
+FB-01aj-refined-contact-downstream.json (SHAf23e51f364b85f883f90a1deb1d59d89e01ee16e88cb2257e9ea623b578fb6fa).
+Both raw states, full observations, cumulative work/impulses, actual supplies
+and released commands must restore exactly. Its failed successors are evidence
+only, never continuation seeds.
+
+Authorized change: one offline scratch continuation and its immutable receipt;
+no native source, force, tolerance, body anatomy, cognition or production edit.
+Reuse the authenticated failed470.1->470.2ms round0 as evidence rather than
+executing it again. Its complete own predecessors must equal the admitted
+input pair, with identical target and original nominal meshes. Starting at
+division2, apply the existing dyadic nominal-mesh refinement from those same
+own predecessors. Retain every actual attempted successor and comparison.
+Physical/state/work/impulse, sensory, event-identity/order failure stops at
+once. A failed timing comparison may refine only while corresponding brackets
+overlap; disjoint failed brackets stop rather than spending the full budget
+on inherited trajectory error. This is numerical evidence selection, not
+cognitive or force authority. No bracket is merged into an invented time.
+
+After a complete pair passes, continue the unchanged sampled0.1ms contract
+only to the authenticated470.4ms target. Do not restart the469.5ms map, long
+prefix or broad tests. Work is bounded by35 numericalCPU/100000forwards/
+10000trials and binary64 representability; ordinary offline60CPU/90wall/1GiB/
+two-core envelope and exact process census remain. Same immutable anatomy is
+reused; each history retains independent raw state/accounting. Failure leaves
+last admitted lanes intact and captures actual failed scratch before exact
+restoration. Full-body and continuum qualification remain explicitlyfalse.
+
+One frozen source-only independent review precedes execution. AWS probes are
+read-only, immediately pre/post; no live writes or interpretation as serving
+performance. G1 pytest44907 and python45313 were observed on the shared host,
+not stopped; any continued co-residency is excluded from isolated-speed claims.
+The body remains compiled-unmounted. The sole next exit condition is a truthful
+paired trajectory through470.4ms, or one precise earlier failed physical gate.
+
+Pre-integration diagnostic failure: the source-only-approved first attempt
+omitted the standard-library math import used by its finite-bracket check.
+It stopped with NameError before body construction or numerical settlement:
+0trials/0forwards,0.071967538CPU; child47412 exited0/no survivors, wrapperexit1.
+The failure receipt FB-01aj-overlapping-event-continuation.json is retained.
+Correction is limited to explicit importmath and a fresh output name so that
+the failed receipt cannot be overwritten. This is an observer coding defect,
+not body physics failure. No force, gate, history or production state changed.
+The frozen source review did not catch it; do not describe that review as
+proof of execution. Recheck the exact corrected import and receipt target only.
+
+### FB-01aj overlapping continuation result and contact-boundary contract
+
+Corrected observer SHA b17b063c9f60363e447335352d4fd0e95c539945e6d700860e850f5bc7cd5cd5
+passed frozen localized review at 7f7da066946aa7b99ceabb29c6b8394cb6eba2cc8c35efe0d1113ec2f5e18378.
+Receipt FB-01aj-overlapping-event-continuation-import-fixed.json SHA
+b731be2c13e1aaa95ee8ba552ddf3cfd089de548fc80cb35223e096a0610cd67:
+470.2ms passed after one refinement; 470.3ms passed unrefined. Then470.4ms
+failed the unchanged timing test with DISJOINT brackets. Lane0 interval
+[.47036742976720325,.47036819523274787], lane1
+[.47036975773274786,.4703703124999756]s: separation1.5625us,
+union2.8827327723us, above1us. State/work/impulses/event identity/order and
+sensory checks pass; timing does not.326trials/5940forwards/1.71591218CPU,
+child48524/no survivors/164384KiB peak; exact rollback and complete evidence.
+No continued refinement of this inherited discrepancy was run. The zero-work
+missing-import failure remains in its original separate receipt.
+
+Read-only saved evidence identifies the later event as reaction/load onset
+on an existing36/44 foot contact, not geometric creation. It does NOT establish
+which earlier physical transition explains its remaining timing displacement.
+The469.5->469.6ms map kept the first contact-switch step exactly
+.4695535156249757->.4695537109374757 in both original lanes, despite nominal
+refinement. Within that same step the sampled force-domain transition occurs
+at different Radau stages. The largest toe-rate discrepancy begins there.
+These facts justify native contact-boundary characterization, not a guessed
+force-jump law or weakening EVENT_S. Geom36/44 identify left/right foot surfaces;
+world_frames indices are body-frame indices, not interchangeable geom indices.
+
+Next exact check: one source-reviewed scratch static native-force map over the
+two geometric multiplicity transitions1->2 and2->1 in both saved ORIGINAL
+lanes of FB-01aj-469ms-local-map.json (SHAa0a2e22b23c772b804e22b9e8f3b86e19e7e40a1b4d085b174cbfc376c77da7e).
+Authenticate the accepted raw-state chains and exact endpoint observations.
+Read actual native forces/accelerations at each retained side. Then, strictly
+as a controlled diagnostic, hold the before velocity, control, time and all
+other integration state fixed while moving configuration between its actual
+two endpoint poses using native differentiatePos/integratePos. Endpoint pose
+controls use the original bytes. Bisect only the changed native geometric
+contact signature, preserving every sample; reject third/ambiguous signatures.
+Stop after at most binary64 mantissa+1 subdivisions or indistinguishable pose.
+No interpolant is a lived motion, an event-time estimate, or an accepted state.
+Record contact geometry/wrenches, solved rows, qacc and generalized reactions;
+no changed force, solver, tolerance, model, physical supply or cognitive law.
+
+Bound:15numericalCPU,320forwards including reserved final restoration, zero
+integration trials. Reuse the existing isolated60CPU/90wall/1GiB/two-core
+runner, pre/post read-onlyAWS and exact process census. New scratch and receipt
+only; production and G1 remain untouched. This is reduced-order body boundary
+verification. Body remains compiled-unmounted/full-bodyUNQUALIFIED. Source-only
+independent review is required before running; no new whole-prefix tests/build.
+
+Operational mistake disclosed: attempted repo-relative scripts/fingerprint-guala-candidate.py,
+which is absent. No freeze or body execution occurred. The reviewed runner
+already specifies /root/.codex/skills/guala-project-truth/scripts/fingerprint-guala-candidate.py;
+use that actual file with test -f preflight. Do not repeat the missing-repo path.
+
+Frozen source-only review29415f7fa2cc/script661362604784 found one localized
+evidence gap, no architectural finding: successor-restore, event-endpoint and
+static-sample records were attached after fallible checks. Batched correction
+preattaches each record, retains the actual operands before assertions and
+guards exact failed-state capture without masking the original failure.
+No sample was executed before this correction; no force law changed.
+
+### FB-01aj contact diagnostic held by production preflight — 2026-09-28 05:22Z
+
+Final localized source review PASS: tree93fb8edf207d3a99559d684fbcb08d8a4b4652192fa8f2a99be1087a099b5e49,
+scratch827532ca7192324dcc188e9fe6d000eb4be25f4f04dab322040978f766daff8c.
+The diagnostic did NOT execute. Wrapper session57814 exited1 at require_health
+before child construction:05:21:51UTC ECS desired/running/pending=[0,0,0],
+no tasks, definition1567. Observation still returned availabletrue at2750607,
+persisted2750604; that stale projection does not prove a live writer. Clock
+stalledALARM remains. A separate read-only service event confirms draining/
+target deregistration at05:21:50UTC. No A1 scale, restart, deploy or live mutation.
+Main/G1 HEADfdbb833f5; no cutover explanation yet at the shared ledger tail.
+Coordination notice appended there. Preflight receipt preserved separately as
+FB-01aj-contact-map-preflight-refusal.json;0children/0forwards/0trials, no claim
+that the contact map ran or passed. Prior47412/48524 children absent; G1caretaker
+45313 remains untouched. Do not infer cause of the service transition.
+
+Single next action remains the SAME reviewed scratch map, once the independent
+preflight again observes one healthy task. Reuse the source SHA and frozen
+review; update only the tree fingerprint for this evidence checkpoint. Do not
+rebuild, repeat the earlier overlap continuation, run an alternative unguarded
+child, weaken health/accuracy gates or interfere with G1's production custody.
+No missing user approval. Goal ACTIVE; body is still compiled-unmounted and
+full-bodyUNQUALIFIED. Current turn preserves progress and a precise operational
+stop before a new numerical run; this is not full goal completion.
