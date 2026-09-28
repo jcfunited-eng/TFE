@@ -15611,3 +15611,97 @@ Operational recurrence: require-guala-root.sh fails on the absent historical
 HANDOFF_2026-07-31_GUALA_PRODUCTION.md in this registered worktree. Do not retry
 that path assumption; use the current sprint authority and git worktree/HEAD
 identity without inventing or importing unrelated historical files.
+
+### FB-01aj v8 independent continuation contract — 2026-09-28
+
+Previous goal turn PROGRESS(commit72d24f244). Continue the same active item;
+the local joint-event operator and its proof69661bf60265... remain closed.
+Native source and ABI are unchanged. New observer
+/tmp/a1-body-coupled-history-20260928.py SHA
+dc7496ac80fd80421738572618a4a62492e25514a955f6a0fb6325deed64ef6a
+adapts the already-reviewed v3 own-history observer only at seed custody and
+compiled-law binding. Initial input is both passed v8 successors at26.7ms,
+not the older failed v6 state or a normalized shared energy supply. It requires
+the authenticated positive interval, paired comparison, observation re-restore
+and refusal controls before advancing. Resource-only resume still requires
+the last qualified pair or exact entry restoration when no new pair completed.
+
+Unchanged physical acceptance, own-state accumulation, event chronology,
+pair-first work accounting, numerical sampling, stage/refusal laws and no
+genesis replay. Target58.2ms, per-run35CPU/100000nativeforwards/10000trials;
+offline child with read-only AWS health envelope, bounded process group and
+exact scratch restore. Budget stop is incomplete qualification, never a pass;
+save the last complete pair for the next bounded continuation. First physical
+failure ends the continuation without borrowing partner state or overwriting
+the prior qualified endpoint. No new native build or production/cognition edit.
+
+### FB-01aj independent histories through 58.2ms — 2026-09-28 03:20Z
+
+Outcome PROGRESS: the v8 numerical continuation passes the old58.2ms failure
+boundary. This closes only this archived zero-gravity reference prefix, not
+FB-01aj or full-body qualification. Native source/ABI and all acceptance limits
+are unchanged from72d24f244. Frozen observer review passed before execution;
+the already-reviewed resource-only resume branch was reused without rebuild.
+
+Six consecutive own-history segments (no genesis/prefix replay):
+
+| Receipt suffix | Start -> qualified stop(ms) | Samples | Numerical CPU(s) | Native calls | Owned PID |
+| --- | --- | --- | --- | --- | --- |
+| history.json | 26.7 -> 30.5 | 38 | 20.158716 | 100001 | 91082 |
+| history-3b649c762249.json | 30.5 -> 35.7 | 52 | 20.684885 | 100001 | 93116 |
+| history-c8e3818b6ada.json | 35.7 -> 42.3 | 66 | 22.316882 | 100001 | 93583 |
+| history-7dcb6077131a.json | 42.3 -> 48.8 | 65 | 22.441497 | 100001 | 94292 |
+| history-93b32fdd3bf2.json | 48.8 -> 55.9 | 71 | 22.618184 | 100001 | 94721 |
+| history-60a7b9890fac.json | 55.9 -> 58.2 | 24 | 8.355259 | 35180 | 95175 |
+
+All names have prefix docs/evidence/FB-01aj-coupled-reaction-. SHA-256 chain:
+3b649c76224941d16e53b7995ff3c4b31bc1c1ab3b3b7dbb6f992291b979711a;
+c8e3818b6ada818d13f9ae8c6d1ebbcdaeead1d55caaee9494f0160d89cde463;
+7dcb6077131a9b4a7e14dccc6852a0c0d3c02cbbc7652612c28f4965187970d9;
+93b32fdd3bf2b8773ecc475c07590dc423644300a6aca3fea289a85096021785;
+60a7b9890face91f9bc11ec873f3a068808d7ffddab634ca2c812add6b15d6d6;
+b9b9683f23a8190f2cd3bea12ab325de6a7249f75898fabd2364d120f71ea7a9.
+
+First five stops were declared forward-budget exhaustion, NOT physical
+failures. Each retained exactly the last passed independent pair and rolled
+scratch back exactly. The100001 total includes the permitted cleanup forward;
+it does not grant another physical trial. Final segment completed with no
+failure. All316 new paired endpoints passed unchanged state/work/force-impulse,
+event-sequence/timing and defined sensory gates; no paired timing refinement
+was needed. Full observation restores and exact own work/supply accumulation
+remained checked. Final supplies4660.449412746294/4660.449412821202J are distinct
+and preserved. At58.2ms left-palm specific-force error2.572602e-5m/s^2 versus
+the unchanged absolute+relative ceiling0.031861815m/s^2. No state normalization,
+sensory substitution, force retuning or behavioral policy was introduced.
+
+Cost is NOT qualified for live use:116.575422 numericalCPU,535185 native calls,
+24916 trial attempts for31.5ms of two independently refined, instrumented
+histories. Peak child RSS209600KiB; six durable receipts10668130bytes total.
+These are bounded test-evidence costs, not measured serving performance or a
+claim of real-time body execution. No retained cognitive state was added.
+All six children exited0 with no survivors and were absent in the final census.
+G1 probe92628 finished before the second segment; A1 never signaled it.
+
+Read-only health spans03:11:18->03:19:33UTC: sole task1566/task
+e53d1bbc14694ddab790d925a106e88e, image
+9dd83020bb81abe05e0ae38e8d548adc190c197a23da4effaff4e9227c9bcd90,
+same identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,ticks2737929->2738719,
+custody errorsnull/durabilityfalse. Clock-stalledALARM persists(other4OK).
+CPU samples about50.7%, memory about2.6%; neither proves adequate cognition
+or cadence. No production writes or G1 cognition/source edits.
+
+Next exact FB-01aj item: extend the same reviewed independent-history observer
+from the TWO authenticated58.2ms successors toward the original500ms endpoint,
+changing only target/seed custody; keep v8 force/event laws and accuracy gates.
+Read-only frozen source review applies to that observer change, not a new
+native build or reopened review of the closed local operator. Resource-only
+stops may resume the last qualified pair; any physical failure retains its
+first cause/operands and stops. Full gravity/load, intrinsic contact-couple
+impulse ceiling, cost, integration/persistence and live gates remain OPEN.
+Body remains compiled-unmounted/full-body UNQUALIFIED; goal remains ACTIVE.
+
+Operational correction: commit was attempted while the owned git-add session
+51710 was still running, so Git refused its existing index.lock. A1 awaited
+that exact session(exit0), verified the lock absent, and only then retried.
+No lock deletion, reset or data loss. For yielded Git commands, await the
+recorded session's terminal result before issuing another index mutation.
