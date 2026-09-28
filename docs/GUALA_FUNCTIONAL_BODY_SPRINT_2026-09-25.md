@@ -16787,3 +16787,57 @@ Never replay a discarded trajectory, force a contact, enlarge tolerances or
 claim the full500ms trajectory passed from this static evidence. No broad
 history replay is needed to test that first interval. Goal remains ACTIVE;
 the whole-body, integration, restart and production gates remain open.
+
+### FB-01aj signed own-motion diagnostic — 2026-09-28 14:26Z
+
+Previous turn: PROGRESS (shared native contact readout qualified). This turn:
+PROGRESS in first-failure localization, NOT a qualified motion implementation.
+No main-tree/G1 source changes, build, runtime mount or production mutation.
+
+Frozen body tree e28dfbb5f5abe003c868c1b8f757d5f40d2a03e722f17b0ccc67c95f264fdc43
+at67e4c2ec6. New offline diagnostic source SHA256
+25bd81f1ca35251bf25c67e3891d492668cdd359864ae99e91c7ed392e91e076 is embedded in
+docs/evidence/FB-01aj-signed-own-motion.json. Independent source review closed
+three localized issues in one batch before execution: sampled chronological
+contact checks, retaining actual trial results before validation, and reserved
+rollback that preserves the original error. Final review PASS; no architecture
+or force-law change. Prior accepted v8 integrator/readout ABIs were reused.
+
+One execution used the exact saved3.05ns predecessor, not its prior history.
+Both unchanged no-contact controls reproduced state/work exactly. Signed
+native face-depth proposals plus representable-clock midpoint safeguarding
+found the first actual integrated root in11 proposals:
+[0.4695536358498123,0.46955363584981236] seconds, width5.551115123125783e-17.
+The generating feature was observed as(1,1,0,0,-1), not hardcoded. Accepted
+that actual incoming prefix, discarded the old outgoing trial, and recomputed
+the remainder from the new predecessor and actual remaining work supply.
+
+The first new secant trial ended at0.469553635849819. Its three actual stage
+samples at0.46955363584981336,0.46955363584981663,0.469553635849819 contained
+respectively2,1,1 contacts for pair(36,44); the incoming state had1. Thus the
+simple one-crossing assumption failed inside this6.7fs trial. It was refused
+as `sampled contact recrossing`, not hidden by an endpoint-only certificate.
+Coarse/fine comparison and cold repeat were NOT reached. This evidence alone
+does not distinguish geometric roundoff, coupled-stage error, or a genuine
+short contact recurrence; none is asserted as the cause yet.
+
+16 integration trials,212 forwards,.260006075 numerical CPU seconds. Owned
+child46381 exited0 (measurement captured), no survivors, .913947wall/.898509
+process-tree CPU seconds; child peak177056KiB. Runner returned1 because the
+candidate failed, correctly. Exact original state/timestep rollback and both
+operational limits held. No increase to the5CPU/5000forward/256trial allowance.
+Receipt SHA256b690be5c2597bf377596e9434b0b574b90691bd81f18fc933f12a5ee9d396165.
+
+Read-only live envelope14:25:55->14:25:58UTC: sole ECS1568, unchanged immutable
+image04da7c73d1466b10c6aec3025beb6d5ef2c05c67bcde7ca90234e65259fb3328,
+identity unchanged; ticks2814516->2814523, persisted2814482->2814514, custody
+errorsnull. Clock-stalledALARM persists; other4alarmsOK. Latest CPU51.2194%
+average/51.8718%maximum, RAM3.0884%. No blanket runtime/cognition health claim.
+
+Next exact item: explain the saved interior contact reversal from its retained
+stage states and native predicate arithmetic before choosing a new contact
+integration contract. Do not repeat this trial unchanged, escalate its budget,
+force a contact, presume monotonicity, or replay the full500ms history. The
+body remains reduced mechanical approximation, unmounted and UNQUALIFIED.
+G1 coordination remains through the shared ledger; its current cognitive
+replacement/interface reservation is independent and still unresolved there.
