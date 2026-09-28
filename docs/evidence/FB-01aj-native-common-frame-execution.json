@@ -1,0 +1,191 @@
+{
+  "candidate_fingerprint": "b5bdb063c8c7863c899d38b2f78c2042f17cfa50809e61189edc0eb0510f5a4a",
+  "child_output_when_no_measurement": null,
+  "child_resources": {
+    "cpu_seconds": 0.49577099999999996,
+    "maxrss_kib": 143952
+  },
+  "diagnostic_completed": false,
+  "diagnostic_source": "\"\"\"Native reached-ancestry contact coordinates on four authenticated saved poses.\"\"\"\nfrom pathlib import Path\nimport hashlib\nimport sys\nP=Path('/tmp/a1-body-projective-rotation-20260928.py')\nb=P.read_bytes()\nif hashlib.sha256(b).hexdigest()!='21927f716974828074849e0517631a8fccfca74bcb508b3f68db45395c48e1f5':\n    raise RuntimeError('reviewed projective reference changed')\nexec(compile(b.decode().split(\"\\nif __name__=='__main__':\",1)[0],'<reviewed geometry definitions>','exec'),globals())\nHERE=Path(__file__).resolve()\nCFBUILD=Path('/tmp/guala-body-common-frame.i2o5cxoi')\nPARENTS={\n 'FB-01aj-kinematic-reference.json':'18361902ad5b7ba1cb4b64a6d9541782e159ed20e14588b884a36b81b8fcb878',\n 'FB-01aj-projective-rotation-reference.json':'117ef970e25990955d9371abea2d65c4463ee54f5d8ebe047b15fdf0cf6acb4e',\n 'FB-01aj-native-common-frame.json':'fe2e2570f3e096a5d5b89731e522cf15fb3a3da8f1465865afd9f3ab2ba51cc7'}\nCFHASH={\n 'src/engine/engine_collision_box.c':'536802eaac0a74264fbd10eb220a8250981e802247dd331b9727dd6d7353890f',\n 'src/engine/engine_collision_driver.c':'54427b0f8f2843a62cdc72b5bb16398e3d0714e015c9bbcbdc6af308589e117d',\n 'src/engine/engine_collision_primitive.h':'e1982c786afafd69767474cfa0d1c70e0b1c747b78cfee8263797cde8559837e',\n 'src/engine/engine_core_smooth.c':'200d21016a028aa4b30be290c6dfdea13a366d0846d96c5e8440e24888bde461',\n 'src/engine/engine_core_smooth.h':'efb00c541a1778edfe6a8e3caabe86bf370e63ec11238c68a109ad0ce3be8511',\n 'src/engine/engine_core_util.c':'b315b96b94c9a64f67290a4a64bba3fe5f4683f80820e19e2f5a3ad1a8f6451a',\n 'src/engine/engine_core_util.h':'ea0f3fde9fe59b2cc5e02be8cebe333f13706d5c8d3c0803b4b7f8b574fbdf25',\n 'proof_adapter.c':'12aaca43b113ce35937aa1130c82a27b3bfe6baabe4b49f2db5f4f80763f921e',\n 'exports.map':'226dec713bfd3c7fd0205167acf300f418ab7d63a3664bc29119260b74b08594'}\nSCHEMA_OUT='guala.functional-body.native-common-frame.v1'\nTARGET_NAME='FB-01aj-native-common-frame-execution.json'\n\n\ndef check_sources():\n    check_kinematic_sources()\n    for p,s in (\n      ('/tmp/guala-body-common-frame.i2o5cxoi/contact.so','ad2d9ca5ce3f166c7107b7ff20e33eaad0e6aab98baec4847a24c5557a078e8a'),\n      ('/tmp/guala-body-midpoint.igj32n8c/build/_deps/ccd-src/src/ccd/vec3.h','89c4b4e52ec27f24108a6ff18a65879bd6ad31475ebbaf712488220ee5369934'),\n      ('/tmp/guala-body-midpoint.igj32n8c/build/_deps/ccd-build/src/ccd/config.h','b4371123612698384c1d138f32ce4cb86dd8ab68482a92fcfb560825effae308'),\n      ('/tmp/guala-body-midpoint.igj32n8c/build/CMakeFiles/mujoco.dir/flags.make','44a188d16d7ae1337ab86ec0fa8c8b50188e55e396e9cf0003f50558ca869402')):\n        require(hashlib.sha256(Path(p).read_bytes()).hexdigest()==s,'build dependency changed: '+p)\n    for p,s in CFHASH.items():\n        require(hashlib.sha256((CFBUILD/p).read_bytes()).hexdigest()==s,'source changed: '+p)\n    for p,s in (\n      ('native/functional_body/common_frame.patch','c849741afcedc424b22bb2ac816ae253023933d5983f2d7ba1bd736ec7eb0bea'),\n      ('native/functional_body/rotation_geometry.patch','1e861d76670004d7f4deb471dd753a466f7ca82165108e35ae67a830291aa98c'),\n      ('/tmp/guala-body-projective-geometry.XA8uqHVT/engine_util_spatial.c','28fa727f1f2afc3a7434839dbdcb62aff5dd089634d49b7067d712074e3ce0f0')):\n        require(hashlib.sha256(Path(p).read_bytes()).hexdigest()==s,'prerequisite changed: '+p)\n\n\ndef diagnostic():\n    parents=dict(PARENTS)\n    source=ACCEPTED.read_bytes()\n    require(hashlib.sha256(source).hexdigest()==ACCEPTED_SHA,'observation definitions changed')\n    exec(compile(source.decode().split('\\nresult=dict(schema=SCHEMA,completed=False',1)[0],'<observation definitions>','exec'),globals())\n    import ctypes\n    import subprocess\n    result=dict(schema=SCHEMA_OUT,completed=False,failure=None,first_failure=None,\n        attempts=0,calls=0,kinematics_calls=0,poses=[],controls=[],\n        evidence_complete=True,rollback_exact=False,mounted=False,full_body_qualification=False,\n        scope='native kinematics and contact fragment; no integrated motion, force, cold or production proof')\n    native=mj.mj_forward;calls=0;cleaning=False;c=None;entry=None;entry_dt=None\n    began=time.process_time()\n\n    def forward(m,d):\n        nonlocal calls\n        require(calls<8 and (cleaning or time.process_time()-began<5.),'bounded forward allowance exhausted')\n        calls+=1;native(m,d)\n        require(not d.warning.number.any(),'native warning')\n        interval._finite(d.qacc)\n\n    def capture(row):\n        if c is not None:\n            try:row['actual_state']=failed_state(c)\n            except Exception as error:\n                row['state_capture_error']=repr(error);result['evidence_complete']=False\n\n    def payload(name):\n        raw=Path('docs/evidence',name).read_bytes()\n        require(hashlib.sha256(raw).hexdigest()==parents[name],'parent changed')\n        e=json.loads(raw)\n        require(e['measurement_recorded'] and e['diagnostic_completed'] and\n            e['execution']['exit_code']==0 and not e['execution']['survivors'],'parent incomplete')\n        p=e['raw_measurement'];raw=zlib.decompress(base64.b64decode(p['payload_zlib_base64'],validate=True))\n        require(len(raw)==p['raw_bytes'] and hashlib.sha256(raw).hexdigest()==p['raw_sha256'],'parent payload changed')\n        return json.loads(raw)\n\n    try:\n        check_sources()\n        target=CFBUILD/'contact.so'\n        require(target.is_file(),'authenticated compiled fragment required')\n        upstream=Path('/tmp/guala-body-midpoint.igj32n8c/source')\n        original=Path('/tmp/guala-body-midpoint.igj32n8c/build/lib/libmujoco.so.3.3.7')\n        common=['/usr/bin/cc','-std=c11','-D_GNU_SOURCE','-O2','-fPIC','-fvisibility=hidden',\n                '-ffunction-sections','-fdata-sections','-fno-fast-math','-ffp-contract=off',\n                '-Werror=implicit-function-declaration','-I'+str(CFBUILD/'src'),\n                '-I'+str(upstream/'include'),'-I'+str(upstream/'src')]\n        # Preserve and reuse the successful compiled fragment. The prior run\n        # stopped at a missing libCCD include before any numerical execution.\n        result['build']=dict(completed=True,reused=True,source_sha256=CFHASH,\n            library_sha256=hashlib.sha256(target.read_bytes()).hexdigest(),\n            provenance_receipt='FB-01aj-native-common-frame.json',\n            provenance_sha256=parents['FB-01aj-native-common-frame.json'])\n        dependencies=upstream.parent/'build/_deps'\n        command=common+['-DCCD_STATIC_DEFINE','-I'+str(dependencies/'ccd-src/src'),\n            '-I'+str(dependencies/'ccd-build/src'),'-fsyntax-only',\n            str(CFBUILD/'src/engine/engine_collision_driver.c')]\n        result['driver_compile']=dict(command=command,completed=False)\n        run=subprocess.run(command,capture_output=True,text=True,timeout=40)\n        result['driver_compile'].update(returncode=run.returncode,stdout=run.stdout,stderr=run.stderr)\n        require(run.returncode==0,'driver consumer compile failed')\n        result['driver_compile']['completed']=True\n        lib=ctypes.CDLL(str(target))\n        class Guard(ctypes.Structure):\n            _fields_=[('kind',ctypes.c_int),('feature',ctypes.c_int*4),('depth',ctypes.c_double),('separation_squared',ctypes.c_double)]\n        class Guards(ctypes.Structure):\n            _fields_=[('branch',ctypes.c_int*11),('count',ctypes.c_int),('overflow',ctypes.c_int),\n                ('margin',ctypes.c_double),('margin_squared',ctypes.c_double),('guard',Guard*50)]\n        class Proof(ctypes.Structure):\n            _fields_=[('guards',Guards),('ancestor',ctypes.c_int),('count',ctypes.c_int),\n                ('local_count',ctypes.c_int),('error',ctypes.c_int),\n                ('stack_before',ctypes.c_size_t),('stack_after',ctypes.c_size_t),\n                ('base_before',ctypes.c_size_t),('base_after',ctypes.c_size_t),\n                ('pos',ctypes.c_double*6),('mat',ctypes.c_double*18),\n                ('local',(ctypes.c_double*10)*50),('world',(ctypes.c_double*10)*50)]\n        lib.a1_pair_size.restype=ctypes.c_size_t\n        require(lib.a1_pair_size()==ctypes.sizeof(Proof),'native readout ABI differs')\n        lib.a1_kinematics.argtypes=[ctypes.c_void_p,ctypes.c_void_p];lib.a1_kinematics.restype=ctypes.c_int\n        for name in ('a1_pair','a1_geometry'):\n            f=getattr(lib,name);f.argtypes=[ctypes.c_void_p,ctypes.c_void_p,ctypes.c_int,ctypes.c_int,ctypes.POINTER(Proof)];f.restype=None\n\n        def observe(output,row):\n            row['native_bytes_hex']=bytes(output).hex()\n            row.update(ancestor=output.ancestor,count=output.count,local_count=output.local_count,error=output.error,\n                stack=[output.stack_before,output.stack_after,output.base_before,output.base_after],\n                pos=list(output.pos),mat=list(output.mat),branch=list(output.guards.branch),\n                overflow=output.guards.overflow,guard_count=output.guards.count)\n            if 0<=output.count<=50:row['world_contacts']=[list(x) for x in output.world[:output.count]]\n            if 0<=output.local_count<=50:row['local_contacts']=[list(x) for x in output.local[:output.local_count]]\n            if 0<=output.guards.count<=50:\n                row['guards']=[dict(identity=[x.kind,*x.feature],depth=x.depth) for x in output.guards.guard[:output.guards.count]]\n\n        def invoke(name,pair,row):\n            out=Proof();row.update(operation=name,pair=list(pair),before_state=failed_state(c))\n            try:getattr(lib,name)(c.m._address,c.d._address,*pair,ctypes.byref(out))\n            finally:\n                observe(out,row);capture(row)\n            return out\n\n        def parsed(v):return [parsed(x) for x in v] if isinstance(v,list) else float(v)\n        def bits(v):return np.asarray(v,dtype='<f8').tobytes()\n        def flat(v):\n            return [y for x in v for y in flat(x)] if isinstance(v,list) else [v]\n        def geometry_differences(actual,references):\n            # Measurements against retained references, not a new tolerance.\n            observations=[]\n            from decimal import localcontext\n            with localcontext() as context:\n                context.prec=90\n                for precision in (40,80):\n                    ref=next(x for x in references if x['precision']==precision)\n                    fields={}\n                    for key,values in actual.items():\n                        differences=[abs(Decimal.from_float(float(a))-Decimal(str(b)))\n                                     for a,b in zip(flat(values),flat(ref['geometry'][key]))]\n                        require(len(flat(values))==len(flat(ref['geometry'][key])),\n                                'reference geometry shape differs')\n                        fields[key]=dict(max_abs_error=str(max(differences)),\n                                         component_abs_errors=[str(x) for x in differences])\n                    observations.append(dict(precision=precision,reference_geometry=ref['geometry'],\n                                             errors=fields))\n            return observations\n        def geom():\n            d=c.d\n            return dict(pos1=d.geom_xpos[pair[0]].tolist(),pos2=d.geom_xpos[pair[1]].tolist(),\n                mat1=d.geom_xmat[pair[0]].reshape(3,3).tolist(),mat2=d.geom_xmat[pair[1]].reshape(3,3).tolist())\n\n        data=payload('FB-01aj-kinematic-reference.json')\n        reference=payload('FB-01aj-projective-rotation-reference.json')\n        require(len(data['poses'])==len(reference['poses'])==4,'four saved poses required')\n        pair=tuple(data['anatomy']['pair'])\n        # Both archived interior stages generated two contacts. The corrected\n        # local selected feature remains admitted at all four saved poses.\n        # Require that two-contact manifold here; never impose it at runtime.\n        witnesses=[x for x in data['poses'] if x['label'] in ('stage-0','stage-1')]\n        require(len(witnesses)==2 and all(x['contact_count']==x['expected_count']==2\n                                        for x in witnesses),'cardinality witness changed')\n        expected_count=2\n        result['cardinality_expectation']=dict(expected_filtered_count=expected_count,\n            provenance_receipt='FB-01aj-kinematic-reference.json',\n            provenance_sha256=parents['FB-01aj-kinematic-reference.json'],\n            archived_counts=[dict(label=x['label'],count=x['contact_count'],\n                                  expected_count=x['expected_count']) for x in data['poses']],\n            basis='Two-contact interior witnesses; corrected selected feature admitted at all four poses. Diagnostic only.')\n        result['construction']=dict(created=False)\n        mj.mj_forward=forward\n        try:\n            c=Trajectory(100,archived_controls()[100]);result['construction']['created']=True\n        finally:capture(result['construction'])\n        entry,entry_dt=primary(c.e),float(c.m.opt.timestep)\n\n        for saved,expected in zip(data['poses'],reference['poses']):\n            row=dict(label=saved['label'],expected_raw_base64=saved['expected_raw_base64'],\n                     time_s=saved['time_s'],completed=False);result['poses'].append(row)\n            try:\n                restore(c,saved['expected_raw_base64'],saved['time_s'])\n                before=primary(c.e)\n                row['kinematics_before']=failed_state(c)\n                try:row['kinematics_code']=lib.a1_kinematics(c.m._address,c.d._address)\n                finally:\n                    result['kinematics_calls']+=1;row['world_geometry']=geom();capture(row)\n                require(row['kinematics_code']==0 and primary(c.e)==before,'kinematics changed physical state or failed')\n                expected_world=next(x for x in expected['world'] if x['precision']==0)\n                row['world_reference_differences']=geometry_differences(row['world_geometry'],expected['world'])\n                row['world_geometry_bitwise_equal']=all(bits(row['world_geometry'][k])==\n                    bits(parsed(expected_world['geometry'][k])) for k in row['world_geometry'])\n                require(row['world_geometry_bitwise_equal'],'world kinematic refactor differs')\n                out=invoke('a1_pair',pair,row)\n                require(not out.error and not out.guards.overflow and 0<=out.guards.count<=50\n                    and out.stack_before==out.stack_after and out.base_before==out.base_after\n                    and primary(c.e)==before,'pair error, stack leak or physical state mutation')\n                expected_local=next(x for x in expected['local'] if x['precision']==0)\n                want=expected_local['geometry']\n                local_geometry=dict(pos1=list(out.pos[:3]),pos2=list(out.pos[3:]),\n                    mat1=np.asarray(out.mat[:9]).reshape(3,3).tolist(),\n                    mat2=np.asarray(out.mat[9:]).reshape(3,3).tolist())\n                row['local_reference_differences']=geometry_differences(local_geometry,expected['local'])\n                row['local_geometry_bitwise_equal']=(\n                    bits(out.pos)==bits(parsed(want['pos1'])+parsed(want['pos2'])) and\n                    bits(out.mat)==bits(parsed(want['mat1'])+parsed(want['mat2'])))\n                require(row['local_geometry_bitwise_equal'],'native local geometry differs')\n                chosen=[x for x in row['guards'] if x['identity']==data['feature']]\n                require(out.ancestor==4 and row['branch']==data['branch'] and len(chosen)==1,'generating frame/feature differs')\n                row['selected_depth']=chosen[0]['depth']\n                require(row['selected_depth']==float(expected_local['depth']) and row['selected_depth']<=0,\n                    'saved selected contact not preserved')\n                row['expected_filtered_count']=expected_count\n                require(out.count==out.local_count==expected_count,'filtered contact cardinality differs')\n                R=c.d.xmat[out.ancestor].reshape(3,3).tolist();origin=c.d.xpos[out.ancestor].tolist()\n                row['frame_to_world']=dict(rotation=R,origin=origin)\n                errors=[];transform_bits=[]\n                for local,world in zip(row['local_contacts'],row['world_contacts']):\n                    def rot(v):return [sum(a*b for a,b in zip(r,v)) for r in R]\n                    predicted=[local[0],*[a+b for a,b in zip(rot(local[1:4]),origin)],*rot(local[4:7]),*rot(local[7:10])]\n                    errors.append(max(abs(a-b) for a,b in zip(predicted,world)))\n                    transform_bits.append(bits(predicted)==bits(world))\n                row['world_transform_max_error']=max(errors)\n                row['world_transform_bitwise_equal']=transform_bits\n                require(all(transform_bits),'world contact transform differs')\n                row['completed']=True\n            finally:capture(row)\n\n        # No geometry/collision result from these controls is physical motion.\n        for label,p in (('invalid-low',(-1,pair[1])),('invalid-high',(c.m.ngeom,pair[1])),\n                        ('same-body',(pair[0],pair[0]))):\n            row=dict(label=label,completed=False);result['controls'].append(row)\n            out=invoke('a1_geometry',p,row)\n            require(out.stack_before==out.stack_after and out.base_before==out.base_after,'control stack changed')\n            require(row['before_state']==row['actual_state'],'control physical state changed')\n            if label.startswith('invalid'):\n                require(out.error==1 and not any(out.pos) and not any(out.mat),'invalid geom failed to refuse before output')\n            else:require(out.error==0 and out.ancestor==int(c.m.geom_bodyid[pair[0]]),'same-body frame differs')\n            row['completed']=True\n        root=lambda body: root(int(c.m.body_parentid[body])) if c.m.body_parentid[body] else body\n        other=next(g for g in range(c.m.ngeom) if root(int(c.m.geom_bodyid[g]))!=root(int(c.m.geom_bodyid[pair[0]])))\n        row=dict(label='world-common-ancestor',completed=False);result['controls'].append(row)\n        out=invoke('a1_geometry',(pair[0],other),row)\n        require(not out.error and out.ancestor==0 and out.stack_before==out.stack_after and out.base_before==out.base_after,\n                'world control ancestry differs')\n        row['world_geometry_bitwise_equal']=(\n            bits(out.pos)==bits([c.d.geom_xpos[pair[0]],c.d.geom_xpos[other]]) and\n            bits(out.mat)==bits([c.d.geom_xmat[pair[0]],c.d.geom_xmat[other]]))\n        require(row['before_state']==row['actual_state'] and row['world_geometry_bitwise_equal'],\n                'world control changed')\n        row['completed']=True\n        result['completed']=True\n    except Exception as error:\n        result['failure']=dict(type=type(error).__name__,error=str(error),traceback=traceback.format_exc(limit=8))\n    finally:\n        if c is not None:\n            capture(result)\n            if entry is not None:\n                try:\n                    cleaning=True;mj.mj_resetData(c.m,c.d)\n                    interval._restore(c.e,np.frombuffer(entry,dtype='<f8').copy(),entry_dt)\n                    result['rollback_exact']=primary(c.e)==entry and float(c.m.opt.timestep)==entry_dt\n                except Exception as error:\n                    result['rollback_error']=repr(error);result['evidence_complete']=False\n        mj.mj_forward=native\n        try:\n            check_sources()\n            if result.get('build',{}).get('completed'):\n                result['library_sha256_after']=hashlib.sha256(target.read_bytes()).hexdigest()\n                require(result['library_sha256_after']==result['build']['library_sha256'],'loaded fragment changed')\n        except Exception as error:\n            result['source_post_error']=repr(error);result['evidence_complete']=False\n        result.update(calls=calls,cpu_seconds=time.process_time()-began)\n        if not result['evidence_complete'] or not result['rollback_exact'] or result['cpu_seconds']>=5.:\n            result['completed']=False\n    print(json.dumps(encode(result)),flush=True)\n\n\nif __name__=='__main__':\n    if sys.argv[1:]==['--child']:diagnostic()\n    else:\n        check_sources()\n        try:run_static_fixture()\n        finally:check_sources()\n",
+  "execution": {
+    "cpu_seconds": 0.6289560000000001,
+    "exit_code": 0,
+    "label": "static-native-contact-map",
+    "owned_pid": 88019,
+    "stderr": "",
+    "stdout_bytes": 2096,
+    "survivors": [],
+    "timed_out": false,
+    "wall_seconds": 0.6324848429940175
+  },
+  "full_body_qualification": false,
+  "health_error": null,
+  "health_issues": [],
+  "measurement_recorded": true,
+  "mounted": false,
+  "operational_error": null,
+  "production_post": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 51.26419164737066,
+        "Maximum": 51.285195887088776,
+        "Timestamp": "2026-09-28T16:05:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 3.1005859375,
+        "Maximum": 3.1005859375,
+        "Timestamp": "2026-09-28T16:05:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2827210,
+      "persisted_tick": 2827186
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1568",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/f61447ffda4b429e9e983657e0ac5ca4",
+          "digests": [
+            "sha256:04da7c73d1466b10c6aec3025beb6d5ef2c05c67bcde7ca90234e65259fb3328"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-28T16:06:46.061523+00:00"
+  },
+  "production_pre": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 51.26419164737066,
+        "Maximum": 51.285195887088776,
+        "Timestamp": "2026-09-28T16:05:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 3.1005859375,
+        "Maximum": 3.1005859375,
+        "Timestamp": "2026-09-28T16:05:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2827203,
+      "persisted_tick": 2827186
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1568",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/f61447ffda4b429e9e983657e0ac5ca4",
+          "digests": [
+            "sha256:04da7c73d1466b10c6aec3025beb6d5ef2c05c67bcde7ca90234e65259fb3328"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-28T16:06:42.845225+00:00"
+  },
+  "production_shaped_interpretation": false,
+  "production_writes": 0,
+  "raw_measurement": {
+    "payload_zlib_base64": "eNqtVltv3rgR/SuCnhLgu/AiXuTCD62dFAEWm6LJYh82u8KQHNrMSqKqi2sjyH/vSJ+dONukToHVg0RR5Jy5nDnUhxLmGbthnsoztivdktpQnn0ofe6GFmekl3lccFe2yY0w3jXTNQily7MSggi1B+VRRq61N5wZZ2IUDKVEgMBQA7jaOkBf2cqAqLxSygAzFi2Uu3IY8w320HtsRvSYhpnsvvzbnnF4v+9hTje4J0e63O/jCB0e3k+5/3LfJ3ciChTKsCiR1RpUUM7WRnJUQvjIVXQSZAAbeaWV1QpiqKMEJxwo7r0hsyMu0+eAp7yMjwA+lHg75HGeDh0MhCeEDkhBSxeD9CYGJpji2oCPkrFYcQvOBE2gWlfOi5rzWmjmTOWYVXV1CiPHBgIMM44HT0a5APBQSce5pLyqWhoAGjNvBQjjCAy1o6xi5ao6iuBUrKJlRstYC45kdBr9Efur1OP9o/G5bdOUct+4fLvBKKktE1Qjz8BUQlfRBc7QCcHACsVqy5EWiMqEICV3tRE00sFIJW3N4hMwYaTCnQJSVUVus2ijsJUELXzwRjjlHNeytigDM7xCxpWvnfMueA2UP6tsjZyb8ATSMKYurTQ5XBMY8toKbyyZoOrq2mhTmcpHYIF7w5A5elREUusjohVamtr4gFap2krzreyNRIIu5/l6i0gwFgRnXAMTFqBykjkUNfM6xIDAt4IHZisdau0V2qpiKCprrQtYaf4kyBZJdIx5VXHghpolUNWBkuXXylvtoqRotETPuZDWawuc1dRwRBn6rvj/AFnm1G5xOMmVq7WrK18DMUAbCgIqGjoHMiIRS1tJ3LLU0LxGERVICJw6SFeKwxMQWxRA3UhJqcla7YSnbDBBDnp0JBGkGhSGDspbaiBmmXQV6Yd1yqx8jEKVHz/uSg9te9KmR5IUoZ1wnennMa+ff/mV3oalmZDmwrr+wJjkzOrK1PcX17vyRM1mNZVavBe6Dnqy+Ut5XKbx6FJ/9J6i209zOPdbLveXzd9//Kl58/qnf168WN9fi/Ue//HqYnveEBtdatN8d36dQsB+m41L72di6Z6cWp/TNhtghi9n+ryPMM37Dubr08Zhv0UGfj7Pce22/c84jnk8T5SB5NO8/2SbNKiFEdbxuu7Vce6G49UCLexdDndfymcSWfnbnI5Uua+u7lIYcurnQ7p6L0Vv/fGkgsfU+3YJ+P9tuke5vLi4bN68/evbVxfN5YuXr3588Z1mtsPo2AQcJipJ2K98+37P/7j79H6/P053/Qy3+9y3d/T+3Vl7WvN+3f332TnivIy9z5TAlchELConNUi5jfOyHnslcR1vEpHHY/Ng4cFAhNQu48bXjQi0/vtcXnlENDpM+axY+oCRvA7FdNe53J4V3ful+fdIx9muXNmGDvzvZPrtw7h41uVpLtazuZ+LtROLlpj6/OxdXxQvqYGKdyc/gJ+c+MqZvcdb9MvGVcHoAKyFPQx378pd0ZIvBQnXrkh9ERJc9QSW/Gq7oI/u3M93A06Hi8sffng2zeOzGcYrnJ8/P61Yr9++cT32b23qNpPzR7J5HO7m69zLA+fHk/lj06Q+zU3z2Ctp9ObVw7cT4oRtPDTXpBZk+bxoQpsH7J+dpnuKdVd0VONH/j26fvu2r6/fvFiLelb8mTV9t+rBGiEV9B5gpVhM4zQ3n/jUL21Lk3RvVsTmXwSeYvInQXnQ2d8JgdQp+an5LMdf/hA2EOkn5s/5Lezy0j+W+SFPeK/xpPbtyswGbykFn1ZM/pocJPQteYcHdYR2y+Pha7+SN9sh6fOWoNOC4nOcBRW5uE90QRuuOuqAvxR9JlbMeEWCSynv8gqyK2ImtdvR8jYUeSzoty4sG36x/eGVH/8D+HO5aQ==",
+    "raw_bytes": 2917,
+    "raw_sha256": "8fbe18be2967ec625411ce5b86fded9260060541115cc9dde093451d2402dbd9"
+  },
+  "resource_limits": {
+    "address_space_bytes_per_process": 1073741824,
+    "affinity_cores": 2,
+    "aggregate_memory_enforced": false,
+    "cpu_seconds_per_process": 60,
+    "wall_seconds_per_group": 90
+  },
+  "schema": "guala.functional-body.native-common-frame.v1.receipt",
+  "scope": "STATIC ARCHIVED ANATOMY FIXTURE ONLY; no live body or production-shaped interpretation",
+  "source_sha256": {
+    "/tmp/a1-body-joint-event-guard-proof-20260928.py": "f0736f307b5d07a0418c2f7109721f1c8f83ed121c83e227ed930c3b0678fb46",
+    "/tmp/a1-body-native-common-frame-execution-20260928.py": "d88d7cbf724e875cb8d4b0aa681ed45921b5d81c649c85923c3d548482006c72",
+    "/tmp/guala-body-midpoint.igj32n8c/build/lib/libmujoco.so.3.3.7": "de96a1766223905d26b1df0e68ce7bc97608cf2c6238acef8dcf8b344a3fd48f",
+    "/tmp/guala-body-scaled-rotation.y8Il0MXr/python/guala_body_radau.cpython-311-x86_64-linux-gnu.so": "82aa1e0e9be3641ed5e1eb457e6097f9a40521f672c38c5eb54ab8df87bd55ad",
+    "/tmp/guala-body-velocity.uw41fxqs/python/guala_body_interval.cpython-311-x86_64-linux-gnu.so": "04c168a94573c7b3282b9f1ea00e5821a00b8126357b8e6eb7f0d38b4b67a4f9",
+    "/workspaces/guala-functional-body/docs/evidence/FB-01aj-kinematic-reference.json": "18361902ad5b7ba1cb4b64a6d9541782e159ed20e14588b884a36b81b8fcb878",
+    "/workspaces/guala-functional-body/docs/evidence/FB-01aj-native-common-frame.json": "fe2e2570f3e096a5d5b89731e522cf15fb3a3da8f1465865afd9f3ab2ba51cc7",
+    "/workspaces/guala-functional-body/docs/evidence/FB-01aj-projective-rotation-reference.json": "117ef970e25990955d9371abea2d65c4463ee54f5d8ebe047b15fdf0cf6acb4e",
+    "/workspaces/guala-functional-body/native/functional_body/interval.pyx": "5d978491164774fc14b803232f00cdc0f9f98f94c7eeb8b9c9b5accf036f03e6",
+    "/workspaces/guala-functional-body/native/functional_body/radau.pyx": "a9a871bd7af5d26c7f5e9fa8290b100d35e6307e3007946f1c32c492b03458e2"
+  }
+}

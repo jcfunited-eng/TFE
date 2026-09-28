@@ -1,0 +1,636 @@
+--- a/src/engine/engine_core_smooth.c
++++ b/src/engine/engine_core_smooth.c
+@@ -33,122 +33,143 @@
+ 
+ //--------------------------- position -------------------------------------------------------------
+ 
+-// forward kinematics
+-void mj_kinematics(const mjModel* m, mjData* d) {
+-  int nbody = m->nbody, nsite = m->nsite, ngeom = m->ngeom;
+-
+-  // set world position and orientation
+-  mju_zero3(d->xpos);
+-  mju_unit4(d->xquat);
+-  mju_zero3(d->xipos);
+-  mju_zero(d->xmat, 9);
+-  mju_zero(d->ximat, 9);
+-  d->xmat[0] = d->xmat[4] = d->xmat[8] = 1;
+-  d->ximat[0] = d->ximat[4] = d->ximat[8] = 1;
+-
+-  // compute global cartesian positions and orientations of all bodies
+-  for (int i=1; i < nbody; i++) {
+-    mjtNum xpos[3], xquat[4];
+-    int jntadr = m->body_jntadr[i];
+-    int jntnum = m->body_jntnum[i];
+-
+-    // free joint
+-    if (jntnum == 1 && m->jnt_type[jntadr] == mjJNT_FREE) {
+-      // get qpos address
+-      int qadr = m->jnt_qposadr[jntadr];
+-
+-      // copy pos and quat from qpos
+-      mju_copy3(xpos, d->qpos+qadr);
+-      mju_copy4(xquat, d->qpos+qadr+3);
+-      mju_normalize4(xquat);
++// The one body-joint transform law serves world and reached pair frames.
++// axes==NULL requests geometry only; it never changes the physical state.
++static void bodyKinematics(const mjModel* m, const mjData* d, int i,
++                           const mjtNum parent_pos[3], const mjtNum parent_quat[4],
++                           const mjtNum parent_mat[9], mjtNum xpos[3],
++                           mjtNum xquat[4], mjData* axes) {
++  int jntadr = m->body_jntadr[i];
++  int jntnum = m->body_jntnum[i];
++
++  // free joint
++  if (jntnum == 1 && m->jnt_type[jntadr] == mjJNT_FREE) {
++    // get qpos address
++    int qadr = m->jnt_qposadr[jntadr];
++
++    // copy pos and quat from qpos
++    mju_copy3(xpos, d->qpos+qadr);
++    mju_copy4(xquat, d->qpos+qadr+3);
++    mju_normalize4(xquat);
+ 
+-      // assign xanchor and xaxis
+-      mju_copy3(d->xanchor+3*jntadr, xpos);
+-      mju_copy3(d->xaxis+3*jntadr, m->jnt_axis+3*jntadr);
++    // assign xanchor and xaxis
++    if (axes) {
++      mju_copy3(axes->xanchor+3*jntadr, xpos);
++      mju_copy3(axes->xaxis+3*jntadr, m->jnt_axis+3*jntadr);
+     }
++  }
+ 
+-    // regular or no joint
+-    else {
+-      int pid = m->body_parentid[i];
+-
+-      // get body pos and quat: from model or mocap
+-      mjtNum *bodypos, *bodyquat, quat[4];
+-      if (m->body_mocapid[i] >= 0) {
+-        bodypos = d->mocap_pos + 3*m->body_mocapid[i];
+-        mju_copy4(quat, d->mocap_quat + 4*m->body_mocapid[i]);
+-        mju_normalize4(quat);
+-        bodyquat = quat;
+-      } else {
+-        bodypos = m->body_pos+3*i;
+-        bodyquat = m->body_quat+4*i;
+-      }
++  // regular or no joint
++  else {
++    int pid = m->body_parentid[i];
++
++    // get body pos and quat: from model or mocap
++    mjtNum *bodypos, *bodyquat, quat[4];
++    if (m->body_mocapid[i] >= 0) {
++      bodypos = d->mocap_pos + 3*m->body_mocapid[i];
++      mju_copy4(quat, d->mocap_quat + 4*m->body_mocapid[i]);
++      mju_normalize4(quat);
++      bodyquat = quat;
++    } else {
++      bodypos = m->body_pos+3*i;
++      bodyquat = m->body_quat+4*i;
++    }
+ 
+-      // apply fixed translation and rotation relative to parent
+-      if (pid) {
+-        mju_mulMatVec3(xpos, d->xmat+9*pid, bodypos);
+-        mju_addTo3(xpos, d->xpos+3*pid);
+-        mju_mulQuat(xquat, d->xquat+4*pid, bodyquat);
+-      } else {
+-        // parent is the world
+-        mju_copy3(xpos, bodypos);
+-        mju_copy4(xquat, bodyquat);
+-      }
++    // apply fixed translation and rotation relative to parent
++    if (pid) {
++      mju_mulMatVec3(xpos, parent_mat, bodypos);
++      mju_addTo3(xpos, parent_pos);
++      mju_mulQuat(xquat, parent_quat, bodyquat);
++    } else {
++      // parent is the world
++      mju_copy3(xpos, bodypos);
++      mju_copy4(xquat, bodyquat);
++    }
+ 
+-      // accumulate joints, compute xpos and xquat for this body
+-      mjtNum xanchor[3], xaxis[3];
+-      for (int j=0; j < jntnum; j++) {
+-        // get joint id, qpos address, joint type
+-        int jid = jntadr + j;
+-        int qadr = m->jnt_qposadr[jid];
+-        mjtJoint jtype = m->jnt_type[jid];
++    // accumulate joints, compute xpos and xquat for this body
++    mjtNum xanchor[3], xaxis[3];
++    for (int j=0; j < jntnum; j++) {
++      // get joint id, qpos address, joint type
++      int jid = jntadr + j;
++      int qadr = m->jnt_qposadr[jid];
++      mjtJoint jtype = m->jnt_type[jid];
+ 
+-        // compute axis in global frame; ball jnt_axis is (0,0,1), set by compiler
++      // compute axis in global frame; ball jnt_axis is (0,0,1), set by compiler
++      if (axes || jtype == mjJNT_SLIDE) {
+         mju_rotVecQuat(xaxis, m->jnt_axis+3*jid, xquat);
++      }
+ 
+-        // compute anchor in global frame
++      // compute anchor in global frame
++      if (axes || jtype != mjJNT_SLIDE) {
+         mju_rotVecQuat(xanchor, m->jnt_pos+3*jid, xquat);
+         mju_addTo3(xanchor, xpos);
++      }
+ 
+-        // apply joint transformation
+-        switch (jtype) {
+-        case mjJNT_SLIDE:
+-          mju_addToScl3(xpos, xaxis, d->qpos[qadr] - m->qpos0[qadr]);
+-          break;
+-
+-        case mjJNT_BALL:
+-        case mjJNT_HINGE:
+-          {
+-            // compute local quaternion rotation
+-            mjtNum qloc[4];
+-            if (jtype == mjJNT_BALL) {
+-              mju_copy4(qloc, d->qpos+qadr);
+-              mju_normalize4(qloc);
+-            } else {
+-              mju_axisAngle2Quat(qloc, m->jnt_axis+3*jid, d->qpos[qadr] - m->qpos0[qadr]);
+-            }
+-
+-            // apply rotation
+-            mju_mulQuat(xquat, xquat, qloc);
+-
+-            // correct for off-center rotation
+-            mjtNum vec[3];
+-            mju_rotVecQuat(vec, m->jnt_pos+3*jid, xquat);
+-            mju_sub3(xpos, xanchor, vec);
++      // apply joint transformation
++      switch (jtype) {
++      case mjJNT_SLIDE:
++        mju_addToScl3(xpos, xaxis, d->qpos[qadr] - m->qpos0[qadr]);
++        break;
++
++      case mjJNT_BALL:
++      case mjJNT_HINGE:
++        {
++          // compute local quaternion rotation
++          mjtNum qloc[4];
++          if (jtype == mjJNT_BALL) {
++            mju_copy4(qloc, d->qpos+qadr);
++            mju_normalize4(qloc);
++          } else {
++            mju_axisAngle2Quat(qloc, m->jnt_axis+3*jid, d->qpos[qadr] - m->qpos0[qadr]);
+           }
+-          break;
+ 
+-        default:
+-          mjERROR("unknown joint type %d", jtype);    // SHOULD NOT OCCUR
++          // apply rotation
++          mju_mulQuat(xquat, xquat, qloc);
++
++          // correct for off-center rotation
++          mjtNum vec[3];
++          mju_rotVecQuat(vec, m->jnt_pos+3*jid, xquat);
++          mju_sub3(xpos, xanchor, vec);
+         }
++        break;
++
++      default:
++        mjERROR("unknown joint type %d", jtype);    // SHOULD NOT OCCUR
++      }
+ 
+-        // assign xanchor and xaxis
+-        mju_copy3(d->xanchor+3*jid, xanchor);
+-        mju_copy3(d->xaxis+3*jid, xaxis);
++      // assign xanchor and xaxis
++      if (axes) {
++        mju_copy3(axes->xanchor+3*jid, xanchor);
++        mju_copy3(axes->xaxis+3*jid, xaxis);
+       }
+     }
++  }
++
++
++  mju_normalize4(xquat);
++}
++
++// forward kinematics
++void mj_kinematics(const mjModel* m, mjData* d) {
++  int nbody = m->nbody, nsite = m->nsite, ngeom = m->ngeom;
++
++  // set world position and orientation
++  mju_zero3(d->xpos);
++  mju_unit4(d->xquat);
++  mju_zero3(d->xipos);
++  mju_zero(d->xmat, 9);
++  mju_zero(d->ximat, 9);
++  d->xmat[0] = d->xmat[4] = d->xmat[8] = 1;
++  d->ximat[0] = d->ximat[4] = d->ximat[8] = 1;
++
++  // compute global cartesian positions and orientations of all bodies
++  for (int i=1; i < nbody; i++) {
++    mjtNum xpos[3], xquat[4];
++    int pid = m->body_parentid[i];
++    bodyKinematics(m, d, i, d->xpos+3*pid, d->xquat+4*pid, d->xmat+9*pid,
++                   xpos, xquat, d);
+ 
+     // assign xquat and xpos, construct xmat
+-    mju_normalize4(xquat);
+     mju_copy4(d->xquat+4*i, xquat);
+     mju_copy3(d->xpos+3*i, xpos);
+     mju_quat2Mat(d->xmat+9*i, xquat);
+@@ -176,6 +197,71 @@
+   }
+ }
+ 
++// Two geom poses in their lowest common body frame. World frame uses cached
++// geometry exactly. Only the reached ancestry is recalculated in other frames.
++int mj_geomPairFrame(const mjModel* m, const mjData* d, int g1, int g2,
++                     mjtNum pos[6], mjtNum mat[18]) {
++  if (g1 < 0 || g1 >= m->ngeom || g2 < 0 || g2 >= m->ngeom) {
++    mjERROR("invalid geometry index for pair frame");
++  }
++  int bodies[2] = {m->geom_bodyid[g1], m->geom_bodyid[g2]};
++  int a = bodies[0], b = bodies[1];
++  // Compiled anatomy orders every parent before its descendants.
++  while (a != b) {
++    if (a > b) a = m->body_parentid[a];
++    else b = m->body_parentid[b];
++  }
++  int ancestor = a;
++  if (!ancestor) {
++    mju_copy3(pos, d->geom_xpos+3*g1);
++    mju_copy3(pos+3, d->geom_xpos+3*g2);
++    mju_copy(mat, d->geom_xmat+9*g1, 9);
++    mju_copy(mat+9, d->geom_xmat+9*g2, 9);
++    return 0;
++  }
++
++  int lengths[2] = {0, 0};
++  for (int side = 0; side < 2; side++) {
++    for (int i = bodies[side]; i != ancestor; i = m->body_parentid[i]) {
++      lengths[side]++;
++    }
++  }
++  mjData* scratch = (mjData*)d;  // native transient stack, not retained state
++  mj_markStack(scratch);
++  int count = lengths[0] + lengths[1];
++  int* chain = count ? mj_stackAllocInt(scratch, count) : NULL;
++  int geoms[2] = {g1, g2};
++  int offset = 0;
++  for (int side = 0; side < 2; side++) {
++    int cursor = offset;
++    for (int i = bodies[side]; i != ancestor; i = m->body_parentid[i]) {
++      chain[cursor++] = i;
++    }
++    mjtNum bp[3] = {0}, bq[4] = {1, 0, 0, 0};
++    mjtNum bm[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
++    while (cursor > offset) {
++      mjtNum nextpos[3], nextquat[4];
++      bodyKinematics(m, d, chain[--cursor], bp, bq, bm, nextpos, nextquat, NULL);
++      mju_copy3(bp, nextpos);
++      mju_copy4(bq, nextquat);
++      mju_quat2Mat(bm, bq);
++    }
++    int g = geoms[side], body = bodies[side];
++    mjtNum ip[3], im[9];
++    mjtSameFrame sf = m->geom_sameframe[g];
++    if (sf == mjSAMEFRAME_INERTIA || sf == mjSAMEFRAME_INERTIAROT) {
++      mj_local2Frame(ip, im, m->body_ipos+3*body, m->body_iquat+4*body,
++                     mjSAMEFRAME_NONE, bp, bq, bm, NULL, NULL);
++    }
++    mj_local2Frame(pos+3*side, mat+9*side, m->geom_pos+3*g, m->geom_quat+4*g,
++                   sf, bp, bq, bm, ip, im);
++    offset += lengths[side];
++  }
++  mj_freeStack(scratch);
++  return ancestor;
++}
++
++
+ 
+ // map inertias and motion dofs to global frame centered at subtree-CoM
+ void mj_comPos(const mjModel* m, mjData* d) {
+--- a/src/engine/engine_core_smooth.h
++++ b/src/engine/engine_core_smooth.h
+@@ -27,6 +27,10 @@
+ // forward kinematics
+ MJAPI void mj_kinematics(const mjModel* m, mjData* d);
+ 
++// Reached pair geometry in the lowest common body frame; returns that body.
++MJAPI int mj_geomPairFrame(const mjModel* m, const mjData* d, int g1, int g2,
++                           mjtNum pos[6], mjtNum mat[18]);
++
+ // map inertias and motion dofs to global frame centered at CoM
+ MJAPI void mj_comPos(const mjModel* m, mjData* d);
+ 
+--- a/src/engine/engine_core_util.c
++++ b/src/engine/engine_core_util.c
+@@ -850,9 +850,11 @@
+ 
+ 
+ // map from body local to global Cartesian coordinates
+-void mj_local2Global(mjData* d, mjtNum xpos[3], mjtNum xmat[9],
+-                     const mjtNum pos[3], const mjtNum quat[4],
+-                     int body, mjtByte sameframe) {
++void mj_local2Frame(mjtNum xpos[3], mjtNum xmat[9],
++                    const mjtNum pos[3], const mjtNum quat[4], mjtByte sameframe,
++                    const mjtNum bodypos[3], const mjtNum bodyquat[4],
++                    const mjtNum bodymat[9], const mjtNum inertialpos[3],
++                    const mjtNum inertialmat[9]) {
+   mjtSameFrame sf = sameframe;
+ 
+   // position
+@@ -861,14 +863,14 @@
+     case mjSAMEFRAME_NONE:
+     case mjSAMEFRAME_BODYROT:
+     case mjSAMEFRAME_INERTIAROT:
+-      mju_mulMatVec3(xpos, d->xmat+9*body, pos);
+-      mju_addTo3(xpos, d->xpos+3*body);
++      mju_mulMatVec3(xpos, bodymat, pos);
++      mju_addTo3(xpos, bodypos);
+       break;
+     case mjSAMEFRAME_BODY:
+-      mju_copy3(xpos, d->xpos+3*body);
++      mju_copy3(xpos, bodypos);
+       break;
+     case mjSAMEFRAME_INERTIA:
+-      mju_copy3(xpos, d->xipos+3*body);
++      mju_copy3(xpos, inertialpos);
+       break;
+     }
+   }
+@@ -878,21 +880,29 @@
+     mjtNum tmp[4];
+     switch (sf) {
+     case mjSAMEFRAME_NONE:
+-      mju_mulQuat(tmp, d->xquat+4*body, quat);
++      mju_mulQuat(tmp, bodyquat, quat);
+       mju_quat2Mat(xmat, tmp);
+       break;
+     case mjSAMEFRAME_BODY:
+     case mjSAMEFRAME_BODYROT:
+-      mju_copy(xmat, d->xmat+9*body, 9);
++      mju_copy(xmat, bodymat, 9);
+       break;
+     case mjSAMEFRAME_INERTIA:
+     case mjSAMEFRAME_INERTIAROT:
+-      mju_copy(xmat, d->ximat+9*body, 9);
++      mju_copy(xmat, inertialmat, 9);
+       break;
+     }
+   }
+ }
+ 
++void mj_local2Global(mjData* d, mjtNum xpos[3], mjtNum xmat[9],
++                     const mjtNum pos[3], const mjtNum quat[4],
++                     int body, mjtByte sameframe) {
++  mj_local2Frame(xpos, xmat, pos, quat, sameframe,
++                 d->xpos+3*body, d->xquat+4*body, d->xmat+9*body,
++                 d->xipos+3*body, d->ximat+9*body);
++}
++
+ 
+ // extract 6D force:torque for one contact, in contact frame
+ void mj_contactForce(const mjModel* m, const mjData* d, int id, mjtNum result[6]) {
+@@ -933,4 +943,3 @@
+   // increase counter
+   d->warning[warning].number++;
+ }
+-
+--- a/src/engine/engine_core_util.h
++++ b/src/engine/engine_core_util.h
+@@ -117,6 +117,14 @@
+ 
+ //-------------------------- miscellaneous ---------------------------------------------------------
+ 
++// The shared rigid-frame mapping law; inertial inputs are used only by
++// INERTIA/INERTIAROT same-frame cases.
++MJAPI void mj_local2Frame(mjtNum xpos[3], mjtNum xmat[9],
++                          const mjtNum pos[3], const mjtNum quat[4], mjtByte sameframe,
++                          const mjtNum bodypos[3], const mjtNum bodyquat[4],
++                          const mjtNum bodymat[9], const mjtNum inertialpos[3],
++                          const mjtNum inertialmat[9]);
++
+ // map from body local to global Cartesian coordinates
+ MJAPI void mj_local2Global(mjData* d, mjtNum xpos[3], mjtNum xmat[9],
+                            const mjtNum pos[3], const mjtNum quat[4],
+--- a/src/engine/engine_collision_driver.c
++++ b/src/engine/engine_collision_driver.c
+@@ -1491,77 +1491,6 @@
+     mjERROR("too many contacts returned by collision function");
+   }
+ 
+-  // remove bad and repeated contacts in box-box
+-  if (collisionFunc == mjc_BoxBox) {
+-    // use dim field to mark: -1: bad, 0: good
+-    for (int i=0; i < num; i++) {
+-      con[i].dim = 0;
+-    }
+-
+-    // get box info
+-    const mjtNum* pos1 =  d->geom_xpos + 3 * g1;
+-    const mjtNum* mat1 =  d->geom_xmat + 9 * g1;
+-    const mjtNum* size1 = m->geom_size + 3 * g1;
+-    const mjtNum* pos2 =  d->geom_xpos + 3 * g2;
+-    const mjtNum* mat2 =  d->geom_xmat + 9 * g2;
+-    const mjtNum* size2 = m->geom_size + 3 * g2;
+-
+-    // find bad: contacts outside one of the boxes
+-    for (int i=0; i < num; i++) {
+-      // box sizes with margin
+-      mjtNum sz1[3] = {size1[0] + margin, size1[1] + margin, size1[2] + margin};
+-      mjtNum sz2[3] = {size2[0] + margin, size2[1] + margin, size2[2] + margin};
+-
+-      // relative distance from surface (1%) outside of which box-box contacts are removed
+-      static mjtNum kRemoveRatio = 1.01;
+-
+-      // is the contact outside: 1, inside: -1, within the removal width: 0
+-      int out1 = mju_outsideBox(con[i].pos, pos1, mat1, sz1, kRemoveRatio);
+-      int out2 = mju_outsideBox(con[i].pos, pos2, mat2, sz2, kRemoveRatio);
+-
+-      // mark as bad if outside one box and not inside the other box
+-      if ((out1 == 1 && out2 != -1) || (out2 == 1 && out1 != -1)) {
+-        con[i].dim = -1;
+-      }
+-    }
+-
+-    // find duplicates
+-    for (int i=0; i < num-1; i++) {
+-      if (con[i].dim == -1) {
+-        continue;  // already marked bad: skip
+-      }
+-      for (int j=i+1; j < num; j++) {
+-        if (con[j].dim == -1) {
+-          continue;  // already marked bad: skip
+-        }
+-        if (con[i].pos[0] == con[j].pos[0] &&
+-            con[i].pos[1] == con[j].pos[1] &&
+-            con[i].pos[2] == con[j].pos[2]) {
+-          con[i].dim = -1;
+-          break;
+-        }
+-      }
+-    }
+-
+-    // consolidate good
+-    int i = 0;
+-    for (int j=0; j < num; j++) {
+-      // good: maybe copy
+-      if (con[j].dim == 0) {
+-        // different: copy
+-        if (i < j) {
+-          con[i] = con[j];
+-        }
+-
+-        // advance either way
+-        i++;
+-      }
+-    }
+-
+-    // adjust size
+-    num = i;
+-  }
+-
+   // set condim, gap, solref, solimp, friction: dynamic
+   if (ipair < 0) {
+     mj_contactParam(m, &condim, &gap, solref, solimp, friction, g1, g2, -1, -1);
+--- a/src/engine/engine_collision_box.c
++++ b/src/engine/engine_collision_box.c
+@@ -16,6 +16,8 @@
+ 
+ #include "engine/engine_collision_primitive.h"
+ #include "engine/engine_util_blas.h"
++#include "engine/engine_core_smooth.h"
++#include "engine/engine_util_misc.h"
+ 
+ // hard-clamp vector to range [-limit(i), +limit(i)]
+ static void mju_clampVec(mjtNum* vec, const mjtNum* limit, int n)
+@@ -618,15 +620,106 @@
+   row->separation_squared = separation_squared;
+ }
+ 
+-// One implementation serves normal collisions and optional observation.
+-int mjc_BoxBox(const mjModel* M, const mjData* D, mjContact* con,
++static int boxBoxRawGuards(mjContact* con, mjtNum margin,
++                            const mjtNum* pos1, const mjtNum* mat1, const mjtNum* size1,
++                            const mjtNum* pos2, const mjtNum* mat2, const mjtNum* size2,
++                            mjBoxGuards* guards);
++
++// Same native contact validation, performed in the generating frame.
++static int boxContacts(mjContact* con, int num, mjtNum margin,
++                       const mjtNum* pos1, const mjtNum* mat1, const mjtNum* size1,
++                       const mjtNum* pos2, const mjtNum* mat2, const mjtNum* size2) {
++  // use dim field to mark: -1: bad, 0: good
++  for (int i=0; i < num; i++) {
++    con[i].dim = 0;
++  }
++
++  // find bad: contacts outside one of the boxes
++  for (int i=0; i < num; i++) {
++    // box sizes with margin
++    mjtNum sz1[3] = {size1[0] + margin, size1[1] + margin, size1[2] + margin};
++    mjtNum sz2[3] = {size2[0] + margin, size2[1] + margin, size2[2] + margin};
++
++    // relative distance from surface (1%) outside of which box-box contacts are removed
++    static mjtNum kRemoveRatio = 1.01;
++
++    // is the contact outside: 1, inside: -1, within the removal width: 0
++    int out1 = mju_outsideBox(con[i].pos, pos1, mat1, sz1, kRemoveRatio);
++    int out2 = mju_outsideBox(con[i].pos, pos2, mat2, sz2, kRemoveRatio);
++
++    // mark as bad if outside one box and not inside the other box
++    if ((out1 == 1 && out2 != -1) || (out2 == 1 && out1 != -1)) {
++      con[i].dim = -1;
++    }
++  }
++
++  // find duplicates
++  for (int i=0; i < num-1; i++) {
++    if (con[i].dim == -1) {
++      continue;  // already marked bad: skip
++    }
++    for (int j=i+1; j < num; j++) {
++      if (con[j].dim == -1) {
++        continue;  // already marked bad: skip
++      }
++      if (con[i].pos[0] == con[j].pos[0] &&
++          con[i].pos[1] == con[j].pos[1] &&
++          con[i].pos[2] == con[j].pos[2]) {
++        con[i].dim = -1;
++        break;
++      }
++    }
++  }
++
++  // consolidate good
++  int i = 0;
++  for (int j=0; j < num; j++) {
++    // good: maybe copy
++    if (con[j].dim == 0) {
++      // different: copy
++      if (i < j) {
++        con[i] = con[j];
++      }
++
++      // advance either way
++      i++;
++    }
++  }
++
++  return i;
++}
++
++// One raw collision law serves normal generation and optional observation.
++int mjc_BoxBox(const mjModel* m, const mjData* d, mjContact* con,
+                int g1, int g2, mjtNum margin) {
+-  return mjc_BoxBoxGuards(M, D, con, g1, g2, margin, NULL);
++  return mjc_BoxBoxGuards(m, d, con, g1, g2, margin, NULL);
+ }
+ 
+-int mjc_BoxBoxGuards(const mjModel* M, const mjData* D, mjContact* con,
+-                     int g1, int g2, mjtNum margin, mjBoxGuards* guards)
+-{
++int mjc_BoxBoxGuards(const mjModel* m, const mjData* d, mjContact* con,
++                     int g1, int g2, mjtNum margin, mjBoxGuards* guards) {
++  mjtNum pos[6], mat[18];
++  int ancestor = mj_geomPairFrame(m, d, g1, g2, pos, mat);
++  const mjtNum* size1 = m->geom_size+3*g1;
++  const mjtNum* size2 = m->geom_size+3*g2;
++  int num = boxBoxRawGuards(con, margin, pos, mat, size1, pos+3, mat+9, size2, guards);
++  num = boxContacts(con, num, margin, pos, mat, size1, pos+3, mat+9, size2);
++  if (ancestor) {
++    const mjtNum* origin = d->xpos+3*ancestor;
++    const mjtNum* rotation = d->xmat+9*ancestor;
++    for (int i = 0; i < num; i++) {
++      mju_mulMatVec3(con[i].pos, rotation, con[i].pos);
++      mju_addTo3(con[i].pos, origin);
++      mju_mulMatVec3(con[i].frame, rotation, con[i].frame);
++      mju_mulMatVec3(con[i].frame+3, rotation, con[i].frame+3);
++    }
++  }
++  return num;
++}
++
++static int boxBoxRawGuards(mjContact* con, mjtNum margin,
++                            const mjtNum* pos1, const mjtNum* mat1, const mjtNum* size1,
++                            const mjtNum* pos2, const mjtNum* mat2, const mjtNum* size2,
++                            mjBoxGuards* guards) {
+   int face_feature[mjMAXCONPAIR][4];
+   unsigned corner_history = 0; // native c1-assignment provenance; trace only
+   if (guards) {
+@@ -636,12 +729,6 @@
+     guards->margin = margin;
+     guards->margin_squared = margin * margin;
+   }
+-  const mjtNum* pos1 = D->geom_xpos + 3 * g1;
+-  const mjtNum* mat1 = D->geom_xmat + 9 * g1;
+-  const mjtNum* size1 = M->geom_size + 3 * g1;
+-  const mjtNum* pos2 = D->geom_xpos + 3 * g2;
+-  const mjtNum* mat2 = D->geom_xmat + 9 * g2;
+-  const mjtNum* size2 = M->geom_size + 3 * g2;
+ 
+   mjtNum pos12[3], pos21[3], rot[9], rott[9], rotabs[9], rottabs[9], tmp1[3], tmp2[3], plen1[3],
+          plen2[3];

@@ -17206,3 +17206,205 @@ identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,ticks2823442->2823448,
 persisted2823442,custodyerrorsnull. CPU51.12995%avg/52.05542%max,
 RAM3.09041%avg; clock-stalledALARM remains, other4OK. Not cognition acceptance.
 No live writes, no G1 source edits. Overall goal ACTIVE/unmounted/unqualified.
+
+### FB-01aj common-frame native contact contract — 2026-09-28
+
+Continuing the exact saved foot contact failure after9674300a9. Rotation
+utility proof is closed; full world-coordinate narrow phase is not. This
+candidate must preserve raw qpos, time, effort, memory, and stored state while
+removing large common-root translation/rotation from contact arithmetic.
+
+Native boundary (one law, not a Python replacement):
+- Extract the existing single-body mj_kinematics calculation into one shared
+  helper in engine_core_smooth.c. Ordinary world kinematics calls it unchanged;
+  pair-local evaluation calls it only on the two reached ancestor chains.
+- Extract existing mj_local2Global arithmetic into mj_local2Frame in
+  engine_core_util.c; the original public wrapper and local pair geometry both
+  use it. Include BODY/INERTIA and rotation-only optimizations.
+- mj_geomPairFrame finds the lowest common body ancestor. Frame0 uses existing
+  world geometry exactly. Nonzero ancestor uses exact-sized native stack
+  chain scratch, walks parent-first, and returns two geometries in that frame.
+  No qpos edit, whole-model copy, recursion, persistent array or second clock.
+- In engine_collision_box.c, existing optional-guard BoxBox algebra is one raw
+  function taking these two geometries. Move the existing box contact
+  validity/duplicate filter from engine_collision_driver.c into the wrapper
+  BEFORE transforming points/normals back to world. Keep its existing1% rule,
+  force law, margins and ordering unchanged; do not create new thresholds.
+  Transform only the initialized normal/tangent vectors. The driver still
+  assigns constraints and body IDs through its existing path.
+- Broad/mid-phase bounds, material/constraint solver, inertia, controls and
+  sensors remain unchanged. This is a correction to box narrow-phase
+  coordinates, not a universal exact-arithmetic engine claim. The full-motion
+  proof must show the saved pair still reaches this producer through the
+  unchanged broad phase; a local helper cannot substitute for that gate.
+
+Files: new native/functional_body/common_frame.patch against authenticated
+core_smooth.c/.h,core_util.c/.h,guard-instrumented collision_box.c and
+collision_driver.c. Existing rotation_geometry.patch and contact_guards.patch
+are prerequisites. No mjData/mjModel serialization/layout change. No G1 files.
+The complete new engine law will need version/header change when packaged,
+not an old-ABI mount. Native stack mark/free brackets transient chain storage;
+outputs are temporary collision scratch until ordinary native contact
+publication. Error propagation remains native; NativeBody restores predecessor.
+
+Cheap first acceptance: compile only these native geometry/collision sources
+in a fresh isolated library (official -D_GNU_SOURCE, no fast-math/no FMA),
+authenticate source/library before/after, replay all four retained qpos poses
+and compare pair-local geometry against independent40/80digit references.
+Capture full native inputs/outputs before every assertion. Check world
+kinematic refactor against the saved projective binary64 reference, contact
+guard/normal/point transformation and invalid geom IDs. No integrated motion
+or force claims. Include world-common-root control so unaffected pairs retain
+their existing path. Then versioned full engine and saved motion acceptance;
+do not repeat a whole history merely to discover a local mismatch.
+Source-only independent frozen review precedes compile. AWS pre/post and
+exact child census required. Bounded ancestry scratch/work, no retained growth.
+
+One read-only discovery command guessed a nonexistent engine_collision_box.h;
+resolved header is engine_collision_primitive.h from rg --files. Subsequent
+commands use that confirmed path. No build/test or state mutation followed
+the absent auxiliary search path.
+
+### FB-01aj common-frame source review — one localized batch
+
+Independent source-only review verified frozen fingerprint
+3a4134136af15592bb1c5527a2583b1e5dcfa2ef012ebb067d0ce97494859fd8
+and found no architectural defect in the bounded shared-transform/filter path.
+Four localized diagnostic corrections applied together, no native-law edits:
+canonical little-endian byte comparisons (including signed zero); retained
+40/80-digit geometry differences without a new tolerance; explicit native
+diagnostic contact-count bounds before filtering/copying; and expected filtered
+cardinality two at each saved pose. The cardinality expectation is diagnostic,
+derived from both authenticated interior two-contact witnesses and retained
+selected-feature admission; never a runtime contact quota or force override.
+World transform comparisons also use byte equality. Full engine broad-phase,
+native failure recovery and integrated motion remain outside this fragment.
+
+Corrected diagnostic SHA
+1b68cf952a0b8b03651c9926e4c245b75493f24dd218e3f808fab3851ac3f683;
+adapter SHA12aaca43b113ce35937aa1130c82a27b3bfe6baabe4b49f2db5f4f80763f921e.
+Native common_frame.patch remains
+c849741afcedc424b22bb2ac816ae253023933d5983f2d7ba1bd736ec7eb0bea.
+No build/test run yet. Final source-only review of this one batch precedes
+the single bounded static proof; no full-history replay.
+
+Operational recurrence disclosed: on context continuation the obsolete root
+bootstrap was invoked again and refused the missing July31 handoff (exit65).
+This was already known, not a new authority gap. Verified git top-level,
+branch a1/guala-functional-body and HEAD9674300a9 instead. Future command
+preflight checks the historical handoff prerequisite before that bootstrap;
+when absent, uses the registered git/sprint identity, never retries or imports
+unrelated authority. G1 remains fdbb833f with no new integration acknowledgement
+in the inspected shared-ledger tail. No shared cognition edits or live writes.
+
+### FB-01aj compile-only interruption — retained ABI, no numerical run
+
+Final source review PASS at2a361a6bbaa87a9b6694d28fc3b327bbeea3a1cddc5722b0b5ae7d19f61fe7ac.
+Native fragment compiled cleanly as contact.so,
+SHAad2d9ca5ce3f166c7107b7ff20e33eaad0e6aab98baec4847a24c5557a078e8a.
+Driver syntax-only check then failed because the diagnostic omitted upstream
+libCCD include paths (ccd/vec3.h). No body constructed, no forward or numerical
+test executed. Failure receipt FB-01aj-native-common-frame.json,
+SHAfe2e2570f3e096a5d5b89731e522cf15fb3a3da8f1465865afd9f3ab2ba51cc7.
+Child86541 exited with no survivors;1.991890wall/1.949535treeCPU seconds,
+144212KiB child RSS. Unchanged native source has not been rejected by this
+build-configuration failure. Do not rebuild the successful fragment.
+
+Corrective runner reuses exactly that authenticated ABI and adds upstream
+CCD_STATIC_DEFINE plus ccd-src/src and ccd-build/src, derived from the existing
+CMakeFiles/mujoco.dir/flags.make. Hash-check the actual header/config/flags and
+ABI before/after, preserve the original failed receipt/proof, then execute the
+same four-pose proof unchanged. No new numerical law or acceptance threshold.
+Initial inspection guessed two absent build metadata locations (engine flags
+subdirectory and build.ninja); rg --files resolved the actual Unix Makefiles
+metadata. No compile followed those guesses. Future checks use resolved paths.
+
+Live read-only16:03:43->16:03:48UTC: sole1568/sameimage/identity,
+ticks2826829->2826838,persisted2826834,custodyerrorsnull. Clock-stalledALARM
+persists; other4 alarmsOK. CPU51.29706%avg/52.00973%max,RAM3.100586%.
+No production mutation or cognitive-health claim. Goal ACTIVE.
+
+### FB-01aj fragment linkage isolation defect — before body execution
+
+Corrected driver syntax check passed. Loading preserved contact.so then failed
+on unexported mju_wrap: the fragment still retained unrelated native smooth/
+utility public symbols because it was linked against the installed native DSO.
+nm showed those dormant tendon/force functions despite the four-symbol export
+map. No numerical body execution occurred (zero forwards/attempts); this is
+a diagnostic-linkage error, not evidence of a force/contact result. Preserved
+receipt FB-01aj-native-common-frame-execution.json,
+SHA08c375fcea9cd948f5b91737b64d22553a177f21071b8f84955f554280bff4d9.
+Child88019 exited with no survivors, .632485wall/.628956treeCPU seconds.
+Shared G1 suite was active separately; no production-performance inference.
+
+Bounded linker correction: use upstream MJ_STATIC declaration mode with hidden
+visibility for candidate objects, explicitly export only the four diagnostic
+entry points, retain section garbage collection, and require -z defs so any
+unresolved symbol fails at link rather than load. No additional native source,
+substitute symbol or force function is introduced. Preserve both failed
+artifacts; use new contact_static.so instead of overwriting them. All native
+law files, numerical proof/assertions and 40/80-digit references unchanged.
+Adapter changes only entry visibility; source-only delta review before build.
+The actual full engine still requires its ordinary versioned build/mount gate.
+
+Read-only16:06:42->16:06:46UTC: sole1568/sameimage/identity,
+ticks2827203->2827210,custodyerrorsnull; existing clock-stalledALARM persists.
+No G1 source modifications or live writes. No extra Joe approval requested.
+
+Before the static-link build, owner inspection caught a diagnostic error-boundary
+omission: mj_geomPairFrame uses mjERROR -> mju_error_raw, whereas the original
+adapter intercepted only mju_error. Both diagnostic error entries now terminate
+at the same existing setjmp boundary. This prevents an invalid-index control
+escaping the diagnostic before evidence capture. Native production error laws
+remain unchanged. No execution occurred with that incomplete static adapter;
+its earlier review is superseded by a hash-specific check of this correction.
+
+### FB-01aj native common-frame fragment PASS — 2026-09-28 16:11Z
+
+Final source-only delta review passed fingerprint
+0a9a8325857082246e727d8415c0318be1f0f7324e8860eb356d70ec9930cd73,
+proof86ea3688f25db76f8fdba288194d7f4ce6303c27777550dacedd195b427f0dd6,
+adapter1972e502b15090eb6f161ba070abb592290b5f98e50724c690b10e3206b442a5.
+One bounded static compile/execution then passed. ABI contact_static.so
+SHAee66666583d03c214fbc2d0feee8c4f23b1e089671748e46af89cd125108f809
+unchanged at final check. Driver syntax-only compile clean. Hidden native
+definitions removed unrelated dynamic references (mju_wrap and sparse tendon
+helpers absent); no extra dependency source or substitute symbol was added.
+
+Receipt docs/evidence/FB-01aj-native-common-frame-static-link.json,
+SHA1f65453cc108535347a5d020fd1d6d47e534c641d7956679c4aeb0fe2b5e635b.
+All four exact saved configurations yielded two filtered contacts in local
+AND world output. Chosen depths (metres): -6.008050065731351e-17,
+-5.298536293394661e-17,-6.605877601568401e-17,-9.487269065777846e-17.
+World and local geometry match their authenticated binary64 references
+byte-for-byte. All eight contact transforms match byte-for-byte. Retained
+40/80-digit differences were measured without introducing a tolerance; local
+position max error7.54656023e-17m, local matrix max error1.84724939e-16.
+Native physical state is unchanged by the geometry calls; stack/base return
+to zero throughout. Invalid-low/high indices refuse before geometry output;
+same-body and world-common-ancestor controls pass. Full rollback exact.
+
+Work: seven ordinary baseline forwards, four candidate kinematics calls,
+zero integrated trials. Numerical CPU .112899s. Child89987 exited0/no survivors,
+2.232395wall/2.188390treeCPU seconds,144312KiB child maxRSS (not aggregate
+compiler peak). Shared G1 test PID87335 remained separate; this is correctness
+evidence, not isolated production throughput qualification. Both prior failed
+build receipts and sources remain retained; no failure is rewritten as success.
+
+Read-only production16:11:43->16:11:48UTC: sole task1568,
+taskf61447ffda4b429e9e983657e0ac5ca4,
+image04da7c73d1466b10c6aec3025beb6d5ef2c05c67bcde7ca90234e65259fb3328,
+sameidentity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,
+ticks2827832->2827842,persisted2827826,custodyerrorsnull.
+Clock-stalledALARM persists; fourotheralarmsOK; CPU51.28890%avg/52.06593%max,
+RAM3.051758%. No live mutation, body mount or cognitive-compliance claim.
+
+Continuing FB-01aj, not reopening its static prerequisite: next integrate the
+reviewed rotation_geometry/contact_guards/common_frame patch chain into a
+versioned isolated full engine, with matching body codec law identity. Then
+exercise the exact saved first-failure motion through its ordinary native
+collision/constraint path before any broader trajectory. No numerical limits,
+forces or contact admission rules are relaxed. This fragment cannot certify
+broad-phase reachability, full motion/error recovery, gravity/load/impulses,
+runtime performance, G1 interface compatibility, cold restart or deployment.
+Whole functional-body goal remains ACTIVE and unqualified for production.
