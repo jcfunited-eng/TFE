@@ -1,7 +1,19 @@
-## G1 & Chief Architect — Autonomous Affordance Pursuit & Production Delivery: COG-OSC-02 Dining Room Starvation Oscillation Resolution (2026-09-28)
+## G1 & Chief Architect — Autonomous Affordance Pursuit & Production Delivery: COG-OSC-02 Bathroom Towel Trap & Starvation Oscillation Resolution (2026-09-28)
 
 ### Cognitive Architecture & Autonomous Problem-Solving Verified
-- **Problem Statement (COG-OSC-02)**: Guala was stranded with 0 μg metabolic reserve, oscillating in an endless limit cycle between Daddy's room and the dining room without obtaining nutrition.
+- **Problem Statement (COG-OSC-02)**: Guala was stranded with 0 μg metabolic reserve in task 1564, trapped in an endless limit cycle in wcs-room cycling grasp -> bite -> release on bath-towel without obtaining nutrition or evacuating to dining.
+- **Root Cause Analysis (Explode & Implode)**:
+  - **Implode Analysis (Inputs to Decision)**: When Guala executed bite on bath-towel with zero nutritional intake, commit() only set a transient memory variable state['unsuccessful_bite_held_id']. On the very next tick, executing release wiped this variable to None without recording non_nutritive in conserved_objects. On subsequent ticks, _choose() and candidates() saw bath-towel as a fresh handleable candidate affordance under hunger (D >= 0.6) and grasped it again. Furthermore, the presence of handleable objects in wcs-room caused is_barren to evaluate False, permanently blocking door evacuation.
+  - **Explode Analysis (Outputs of Decision)**: Dropping bath-towel near door-2 aperture (y=2076 mm) clipped the swept collision boundary for the boundary crossing point y=2523 mm, causing _door_motor_commands to return empty and preventing door traversal even after towel release.
+- **Architectural Corrections Executed**:
+  1. **Persistent Consequence Retention**: Zero-intake bites on untested objects permanently record non_nutritive = True, is_food = False, and tested_non_food = True into conserved_objects, preserving historical food classifications for genuine food sources.
+  2. **Reflexive Non-Nutritive Release**: In decide(), when feeding is active and the organism holds a confirmed non-nutritive object, it immediately issues release.
+  3. **Affordance Gating under Hunger**: In candidates() and _choose(), confirmed non-nutritive items are strictly pruned from grasp and toward_thing candidate affordances under hunger deficit (D >= 0.6).
+  4. **Grounded Room Barrenness & Door Evacuation**: A room is evaluated as barren when it physically lacks known food and unrefuted candidate nourishment. When barren under hunger, the metabolic potential gradient directly aligns with toward_door.
+  5. **Doorway Aperture Clearance Sampling**: _door_motor_commands samples candidate aperture crossing points (boundary, midpoint, and quarter points) across clear passage segments, preventing single-boundary grazing collisions.
+  6. **Door Novelty Prioritization**: When multiple doors are available, toward_door prioritizes unvisited and non-prior rooms, while enforcing a 4-beat directional hysteresis window to prevent door ping-pong oscillations.
+- **Simulation Proof**:
+  - Starting in wcs-room holding bath-towel at 0 μg reserve: Beat 1 bites towel (intake 0, marked non_nutritive), Beat 2 releases towel, Beat 42-44 tastes and releases bath-lamp (marked non_nutritive), evaluates wcs-room as barren, traverses door-2 into daddys-room, traverses door-1 into dining, navigates obstacle clearance around dining table, grasps bottle-milk at beat 77, and ingests 20,000 μg reserve at beat 78 with 100% autonomous fidelity.
 - **Root Cause Analysis (Explode & Implode)**:
   - **Implode Analysis (Inputs to Decision)**: `_choose()` evaluated candidate actions using an artificial round-robin lifetime counter (`min(acts, key=lambda a: (int(totals.get(a, 0)), acts.index(a)))`). Because `touch` had fewer lifetime calls (7) than `step` (14), Guala executed 7 consecutive `touch dining-chair` actions upon approaching the dining table. The counter then forced `toward_door` at beat 127 to equalize lifetime counts, turning her gaze away from the table.
   - **Explode Analysis (Outputs of Decision)**: Turning away removed `bottle-milk` from her directional visual field. Because `bottle-milk` had never been previously consumed in her lived history, `_consequence_qualified_food_ids` did not list it. The dwell timer evaluated `phi_barren = math.tanh(max(0.0, float(dwell - 16)) / 16.0) = 0.55 > 0.25`, forcibly evacuating her through door-1 back to Daddy's room.
@@ -26685,3 +26697,85 @@ All4 owned children terminal/no survivors; latest diagnostic13.354415CPU,
 218940KiBpeakRSS. G1 regression25570 finished before that run; untouched.
 Read-only live1563/image/identity unchanged through tick2720171, errorsnull,
 durabilityfalse; clock-stalledALARM persists. No caretaker control altered.
+
+### A1 TO G1 AND JOE — 2026-09-28 01:05Z — body local-error origin; cognition separate
+
+Body checkpoint2398cef15 on a1/guala-functional-body retains the reviewed
+earlier-contact map and its unhidden35CPU refusal.15/24 admissions completed;
+unfinished native admission rolled back exactly. All22.2->22.3ms controls
+completed and original successors reproduce exactly. Same-input refinement
+isolates new local numerical error there;29.7->29.8ms chiefly amplifies inherited
+error. No full-body qualification or production claim. Receipt
+FB-01aj-earlier-guarded-map.json SHA
+7b83775a6d881052d8ff491a69f451e40195a3ad48fc714aa37be047bac0161e.
+
+Source-only independent review supports testing event-aligned integration;
+actual native boundary and one-sided force behavior must be established first.
+Do not simply rename domain changes as force jumps or bisect onto an incorrect
+terminal force branch. Next A1 item stays inside body numerical FB-01aj; no
+cognitive controller, string decision lookup, scalar utility or kernel change.
+G1 still owns COG-OSC-02. Body compiled-unmounted/unqualified, goal ACTIVE.
+
+G1 diagnostic32960 completed before A1 execution; untouched. A1 child34153
+terminal/no survivors,324712KiBpeakRSS. Read-only00:56:13->00:56:53UTC:
+sole1563/sameimage/identity, ticks2722085->2722175, custody errorsnull,
+durabilityfalse; clock-stalledALARM persists. No caretaker or production writes.
+
+### A1 TO G1 AND JOE — 2026-09-28 01:20Z — native body boundary distinguished
+
+Body checkpointa72bae465 records a reviewed static native-force diagnostic;
+no force law, integrator, cognition or production modification.36forward calls,
+0.515967numericalCPU, exact saved observation and scratch restoration. Incoming
+left digit0 distal joint stop has a finite native torque/acceleration jump at
+zero penetration; the tested outgoing stop has no force jump. This establishes
+the one-sided numerical boundary, not a finished correction or body qualification.
+Receipt FB-01aj-native-boundary-map.json SHA
+d1ad7f4298afe8370304ddb52a670c1983eda16aa0b056b89fd58b6bcb3d3072.
+Next A1 work: local event-time bracketing with incoming one-sided quadrature,
+unchanged force law and exact rollback/accounting. No coordinate projection,
+measured-jump-as-unproved-bound, behavioral override or timestamp-specific rule.
+
+Read-only production now observes1564 (changed externally before the run),
+image9ba2adf8e9ff478dbd91fa7fb999c67295a115adc10109b4f8086c05de4cd38a;
+stable across01:11:51->01:11:55UTC, same identity, ticks2723800->2723813,
+custody errorsnull/durabilityfalse. Clock-stalledALARM persists. This is NOT an
+audit of1564 cognition. Child40882 terminal/no survivors,253636KiBpeakRSS;
+no competing G1 process was interrupted. G1 continues owning COG-OSC-02;
+body goal ACTIVE, compiled-unmounted/unqualified, remaining gates unchanged.
+
+### A1 TO G1 — 2026-09-28 01:36Z — body numerical candidate frozen
+
+A1 continues FB-01aj in /workspaces/guala-functional-body, not COG-OSC-02.
+New offline native one-sided joint-event integrator is SOURCE ONLY pending
+final frozen review and the two saved-event falsifiers. No cognitive selector,
+semantic lookup, scalar utility, force law, L0–L4, anatomy or production change.
+No global-motion/body qualification claim. First review found only a lost
+event-certificate handoff; corrected in accepted numerical receipts. Frozen
+candidate47b8925072d01e7b4fc68dfe420a82cda08d3c5aa5804bdcaf81522e6f4d53a6.
+One isolated build and25CPU saved-event proof are next after review; no old
+full-history replay. G1 cognition work remains separate and untouched.
+
+### A1 TO G1 AND JOE — 2026-09-28 01:42Z — body event correction locally proved
+
+Body commit ea6c0553f on a1/guala-functional-body contains numerical joint-event
+settlement and its reviewed saved-state proof. No cognition, semantic selection,
+kernel, force law or production changes. Both outgoing and incoming joint-stop
+controls passed unchanged two-mesh state/work/impulse/event comparison, exact
+accounting, native state/observation re-restore, and force/supply refusal rollback.
+8935native forwards,4.401419numericalCPU. Receipt
+FB-01aj-one-sided-proof.json SHA
+215d6fa98cba9183801e50fe6178aef32389e58e8f7e7ecf1bd97b500e571164.
+Body remains compiled-unmounted/unqualified. This closes only the local event
+operator proof; next use the built ABI on saved22.2->22.3ms history, without
+repeating prior maps. Full accuracy/performance/integration/restart/live gates
+remain open. G1 owns COG-OSC-02; no source collision or cognitive authority added.
+
+Build52324 and proof52626 both terminal/no survivors; respective peaks478996
+and253804KiB. Compiler warnings preserved in receipt/ledger, not hidden.
+Read-only production unchanged1564 across01:39:21->01:40:13UTC,
+ticks2728151->2728286, same image/identity, custody errorsnull/durabilityfalse.
+Clock-stalledALARM still present. These observations do not qualify cognition.
+No A1 production writes. Goal ACTIVE; no user input required.
+
+Checkpoint push confirmed on origin/a1/guala-functional-body; generic Slack
+notice verified2026-09-28T01:42:44Z status=slack_sent channel=#general.
