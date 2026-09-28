@@ -14438,3 +14438,151 @@ all current state/sensory/work/impulse and same-sequence limits. No full-prefix
 replay, numerical force change, or cognitive selector is authorized by this
 finding. The force/history proof remains incomplete until corrected evidence
 and independent histories pass; body stays unmounted.
+
+### FB-01aj joint-event resolution candidate contract
+
+Continue, not reopen, the saved event-alias finding. Requested mechanics remain
+the same approved numerical rigid body. Current source candidate is unmounted,
+not qualified and not a full biological/DSF model. No architectural cognitive
+conflict is introduced; no cognition or L0-L4 file is authorized for this item.
+
+The native Radau probe now rejects a sampled bin containing several joint
+boundary changes unless exact binary polynomial evidence certifies their
+coincidence. Anatomical joint range/margin, original q and solved stage q/v
+produce two cubics. Bernstein bounds and rational root signs resolve them.
+Exact departure from the predecessor boundary is permitted only with a
+whole-open-interval sign certificate in BOTH cubics. Proportional cubics can
+certify genuinely shared noninitial roots. Overlapping brackets alone cannot.
+
+Physical transaction path: RadauProbe.step -> existing coupled force solution
+-> joint_sample_resolution -> unchanged step rollback on unresolved chronology
+-> existing admit dyadic subdivision -> actual native intermediate domains
+-> unchanged sampled_event_comparison/trajectory_agreement. No invented
+constraint rows, copied fine states, shifted tolerances, or merged-event waiver.
+The new guard adds only refusal/refinement; its Fraction values are numerical
+proof arithmetic, not cognitive scores. Runtime anatomy, forces, motor work,
+codec, body identity and production mounting are unchanged. Diagnostic evidence
+is bounded scratch; no new retained organism state or fallback authority.
+
+Authorized source: native/functional_body/radau.pyx and included
+joint_event_law.pxi. One single-inclusion mathematical law, no duplicate body.
+Version v5-joint-events cannot be mistaken for the predecessor compiled law.
+No old shared-state/genesis replay is permitted to replace independent histories.
+
+Exit proof /tmp/a1-body-joint-event-guard-proof-20260928.py:
+saved merged32/34 and36/38 releases refused; simultaneous initial release
+certified with bit-exact original successor/work; exact20.0ms own predecessor
+and supply reconstructed from authenticated archived pairs for coarse and
+retained endpoint for fine; each integrates only100us; state, sensory, work,
+impulse, exact event sequence and1us brackets must agree. Deliberate one-trial
+exhaustion must restore complete raw state and timestep. Cold/whole-history/
+world integration are NOT claimed by this local proof.
+
+Source-only independent review precedes one isolated native build and proof.
+Runner /tmp/a1-body-joint-event-guard-run-20260928.py reuses the verified
+read-only AWS and offline child envelope. Numerical15CPU seconds/3000trials,
+two-core affinity,1GiB per-process address space,60CPU/90wall per process-group
+execution. Group survivors are checked; no unrelated process may be stopped.
+Current-only baseline task1563 is rechecked before/after. Known alarm state is
+reported literally, not treated as autonomy approval. One JS patch-construction
+syntax error occurred before radau source was written; no compile/test ran.
+
+### FB-01aj guard built; ordered native domains recovered; timing-only retry
+
+Source review found no native architectural defect. Localized proof capture
+ordering was corrected; direct mj_getState preserves refused bytes without
+finite-validation erasing them. Frozen f2e1af7a..., final proofSHAf0736f30...,
+runnerSHAc492bfaa... passed review before execution.
+
+One build23:51:20--23:51:50UTC produced
+/tmp/guala-body-joint-events.jtgcz_9h/python/guala_body_radau.cpython-311-x86_64-linux-gnu.so
+SHA9dc81f8590e29b28a5fab005bb65efe45b8c377e5adadf12d0852281bdd6ecaf.
+BuildPID5584 exited0/no survivors,25.404396aggregateCPU seconds,
+397032KiB compiler peakRSS. ProofPID5682 exited0/no survivors; proof reports
+failure, not success. NumericalCPU1.591856812s,185primitives/3316forwards,
+266492KiB peakRSS. Receipt docs/evidence/FB-01aj-joint-event-guard-proof.json,
+SHA800dc71642715db0f16c7095074796cb7705547970e1edbd20b5efa117f24b46.
+
+Genuine initial release exactly reproduces predecessor native state AND work.
+Merged32/34 and36/38 samples are refused and actual substeps recover9 matching
+native domain changes on both own histories. State/sensory/work/impulse pass;
+no failing channel. Remaining refusal is last joint56 exit: union of its
+sampled timing brackets1.0077327723088947us exceeds1us. The earlier root-order
+gap is corrected; full local acceptance is still NOT claimed.
+
+Production1563 task/image/identity unchanged, ticks2713021->2713091, errorsnull,
+durabilityfalse, prior clock alarm stillALARM. No heavy processes survived.
+
+Next execute ONLY the unclosed timing comparison at half each saved nominal
+step, with each actual20.0ms predecessor and exact independently retained work
+remainder. This is the existing dyadic local event-refinement operation, not a
+new force law. The generic shared-supply paired helper is not substituted for
+the two archived incrementally debited supplies. No normalization or energy
+injection is permitted. Do not rebuild or rerun the closed initial control.
+Finish the budget-rollback assertion which the previous failure left unrun.
+Proof /tmp/a1-body-joint-event-paired-refinement-20260928.py uses the reviewed
+no-build health envelope,10CPU seconds/3000primitives, same candidate ABI,
+and direct failure-state capture. Whole-history qualification remains open.
+
+### FB-01aj retained second timing refusal; bounded automatic refinement
+
+Receipt FB-01aj-joint-event-paired-refinement.json SHA
+92dd4fb942209512f673ad40f83b7551fd89a6d1109fb1b7ce55a2a15babe715
+preserves a second timing-only refusal. Joint56 bracket now passes; event3
+combined bracket is still1.0077327723088947us. All9 events agree, and all
+exercised physical/sensory/work/impulse comparisons pass. No intrinsic contact
+couple exists in this interval, so that channel is UNQUALIFIED, not passed.
+230 primitives,3955 forwards,1.407907185 numericalCPU seconds. Child8148
+exit0/no survivors,2.219867 aggregateCPU. Live1563 identity/image unchanged,
+ticks2713844->2713858; errorsnull and prior clock-stalled alarm stillALARM.
+
+The assumption that ONE halving necessarily closes paired sampled brackets
+was false. Do not repeat single-step manual retries. Reuse the existing bounded
+dyadic pairing law in an offline continuation over this SAME100us interval:
+start after the completed levels, halve both own nominal meshes until all
+unchanged limits pass, or10CPU seconds/3000primitives/representable clock end
+the run. Preserve each rejected pair. Never retry a state/event-order failure.
+The separately accumulated supply remainders remain exact and independent.
+No force law, tolerance, compiled binary, prefix history, initial control or
+production change. Finish the pending exact budget-refusal rollback check.
+Runner /tmp/a1-body-joint-event-bounded-refinement-20260928.py reuses the same
+reviewed no-build AWS envelope. One frozen source-only check before execution.
+
+### FB-01aj local joint-event seam passed — 2026-09-28 00:03Z
+
+Independent source-only reviewer passed frozen abcef994492ac6f7b611a811debfc870d3ad7db2d793558805ee5ca5088a907a
+and driver d51af6f65fc92027101ac473030848f72bd24a46ddca263dc764cde2852de159.
+Receipt docs/evidence/FB-01aj-joint-event-bounded-refinement.json SHA
+1c8544ddb5e485e3c8c076e93e16d42f39e03cf63c3387b1839b813a8fc44b08.
+The first automatic level (3.125us and1.5625us nominal meshes) passes unchanged
+state/work/impulse, all exercised sensory channels, all9event order, and
+paired sampled brackets. Largest paired bracket0.8865991584644517us <1us.
+Exact raw-state AND timestep rollback on a one-trial allowance refusal passes.
+Initial simultaneous-release exact successor/work proof is reused from the
+first receipt, not rerun. Intrinsic contact couple remains UNQUALIFIED here
+because this interval has none. Binary cubic evidence is not continuum proof.
+
+343 primitives/5595forwards,1.975716546numericalCPU seconds; child10687exit0,
+no survivors,153808KiB peakRSS,2.673943childCPU/2.787684wrapper aggregateCPU.
+No rebuild or full-history replay. Both preceding timing failures retained.
+G1 pytest9073 was active in the separate main tree (~one core,187--204MiB);
+container exposed20CPUs with no cgroupCPU/RAM ceiling, body child retained its
+2core/1GiB ceiling. This was not a production speed benchmark; no process was
+stopped. Live1563 task/image/identity unchanged, ticks2714780->2714794,
+checkpoint/cleanup errorsnull, durabilityfalse; clock-stalledALARM stillopen.
+
+Source native/functional_body/radau.pyx SHA
+345ab6a8dd781675ece8ff37e086ccea58af38d3d12f8d60c14b88fe83405445;
+joint_event_law.pxi SHA
+7f101c04b78363fb446591743f65c995226e5f99b0d3064f606e797734af8f88.
+No cognitive selector, semantic action, DSF-field reduction, body force law,
+new retained organism state, production mount or live write was introduced.
+
+This local seam is CLOSED. FB-01aj overall remains OPEN. Before continuing
+independent histories, establish compatibility of the saved prefix with the
+new guard from retained changed-event operands; do not assume every older
+merged record was resolved merely because both old histories agreed. Reuse
+only a proved unchanged prefix and resume at its first affected saved interval,
+not genesis. The known365.1ms palm specific-force discrepancy, full500ms dense
+coverage, intrinsic contact/gravity, production cost, integration, restart
+and live qualification remain open. Goal stays ACTIVE; body compiled-unmounted.

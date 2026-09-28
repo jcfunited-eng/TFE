@@ -14,7 +14,7 @@ import numpy as np
 import guala_body_interval as interval
 from libc.math cimport fabs, isfinite, pow, sqrt, tan
 
-RADAU_LAW = "radau-iia3-secant-solved-domain-v4"
+RADAU_LAW = "radau-iia3-secant-solved-domain-v5-joint-events"
 MAX_LINE = 16
 MAX_SECANT = 32
 STAGE_COUNT = 3
@@ -36,6 +36,8 @@ _middle_scale = float(E[1]/B[1])
 for _coefficient in (A, B, C, E):
     _coefficient.flags.writeable = False
 cdef double MACHINE_EPS = 2.220446049250313e-16
+
+include "joint_event_law.pxi"
 
 def packed_numbers(value):
     if value is None:
@@ -389,6 +391,26 @@ class RadauProbe:
             receipt['contact_impulse_estimator_passed'] = interval._impulses_close(embedded,impulse,dt)
             if not receipt['contact_impulse_estimator_passed']:
                 raise ValueError('contact impulse embedded quadrature unresolved')
+            # The same sampled bin may hide several distinct joint releases.
+            # Refine the actual dynamics instead of fabricating an intermediate
+            # solver domain from Boolean flags or accepting the merged record.
+            domains = tuple(s['snapshot']['domain'] for s in stages)
+            operands = {}
+            for kind in (0,1):
+                for ordinal, active in enumerate(before['domain'][kind]):
+                    if all(active == domain[kind][ordinal] for domain in domains):
+                        continue
+                    joint = int(e._limited[ordinal])
+                    qa,va = int(m.jnt_qposadr[joint]),int(m.jnt_dofadr[joint])
+                    operands[(kind,ordinal)] = (
+                        float(solver.q0[qa]), *(float(s['qpos'][qa]) for s in stages),
+                        *(float(s['qvel'][va]) for s in stages),
+                        float(m.jnt_range[joint,kind]+(1 if kind == 0 else -1)*m.jnt_margin[joint]),dt)
+            resolution = joint_sample_resolution(before['domain'],domains,operands)
+            if resolution['groups']:
+                receipt['joint_event_resolution'] = resolution
+            if not resolution['resolved']:
+                raise ValueError('multiple joint-limit events unresolved in sampled interval')
             receipt.update(converged=True,calls=self.calls-receipt['calls_start'],
                 sampled_domain_unchanged=all(before['domain']==s['snapshot']['domain'] for s in stages)
                     and before['domain']==endpoint['domain'],
@@ -431,6 +453,7 @@ class RadauProbe:
             'bounded inverse-secant iterations exhausted',
             'captured coupled stage residual differs',
             'contact impulse embedded quadrature unresolved',
+            'multiple joint-limit events unresolved in sampled interval',
         }
 
         def trial(end, remaining):
