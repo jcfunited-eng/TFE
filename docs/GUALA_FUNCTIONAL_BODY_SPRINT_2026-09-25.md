@@ -14825,3 +14825,108 @@ correction must be general physical error control, never a time-indexed fix,
 force retuning, cognitive action rule or acceptance relaxation. Full accuracy,
 production cost, gravity/couple, body/world integration/restart/live remain OPEN.
 Body compiled-unmounted; goal ACTIVE. This block changes evidence, not mechanics.
+
+### FB-01aj guarded earlier-interval attribution contract — 2026-09-28
+
+Previous turn PROGRESS:3765a7574 independently isolated58.2ms inherited error.
+Continue FB-01aj; final58.1->58.2ms attribution is CLOSED, not repeated here.
+Actual current sources and clean branch verified. Body remains unmounted;
+canonical kernel/cognition, force library and numerical acceptance unchanged.
+
+Authenticate receipts1a7a3000db35 (SHAc5ecbcf43aeb...) andc5ecbcf43aeb
+(SHA36fca2fb4010...), including payloads and the direct parent link. Inspect
+three retained intervals:22.2->22.3,29.7->29.8,29.8->29.9ms. Each has complete
+own raw predecessor/successor, cumulative work/impulse, remaining supply and
+actual event path.22.3ms accepted refinement=2; others=0. Reproduce actual
+accepted meshes, NOT nominal meshes before a discarded timing refinement.
+
+One offline /tmp/a1-body-earlier-guarded-map-20260928.py reuses the reviewed
+wrapper/observation/force bindings. Each interval: actual accepted h/h2 and
+their further1/2/4/8 meshes, both independent predecessors retained. All24
+native admissions preserve complete returned operands before observation.
+Compare own-history pairs and, by reusing the already-computed results,
+successive meshes from each identical predecessor. No redundant same-input
+integration, prefix replay, state synchronization, mechanism or new threshold.
+Original-resolution successors must match archive state/work/impulse/supply/
+event bytes/values exactly before refined results are interpreted.
+
+Only diagnostic, this ledger and resulting receipt change. Source-only frozen
+review before execution.35numericalCPU/10000primitives within existing
+60CPU/90wall/1GiB/two-core offline process envelope; final measured counters
+and complete evidence gate diagnostic completion. Preserve first exception
+separately from extraction errors; native admission rollback remains unchanged.
+Read-only AWS pre/post and terminal child census required. No production writes
+or organism-state publication. This is reduced numerical articulated mechanics,
+not microscopic anatomy, full DSF, successful cognition or body qualification.
+
+### FB-01aj earlier local-error origin identified — 2026-09-28 00:57Z
+
+Source-only review PASS for fingerprint
+580d4f714e6932706f12a264723d0d7e480be985f1bb093a80f4808fb1913b73 and diagnostic
+SHA5fdf043a8a005242be2696ac0dcec9480b13651b05708b4b8d2014e6df32a2c5.
+G1 process32960 was authoritatively terminal before execution; no G1 process
+was interrupted. Executed the reviewed map ONCE. Receipt
+docs/evidence/FB-01aj-earlier-guarded-map.json SHA
+7b83775a6d881052d8ff491a69f451e40195a3ad48fc714aa37be047bac0161e.
+The whole map did NOT complete:35CPU cap stopped admission16/24, at5533
+primitives/96736 forwards/35.013977982 measured numericalCPU. Fifteen admissions
+complete; all original-resolution successors reached reproduce exactly.
+The unfinished admission restores its own predecessor exactly; evidence complete.
+Retain failure, do not raise its cap or replay completed work. No29.9ms result.
+
+All four22.2->22.3ms mesh levels completed. Own wrist-rate differences for
+divisors1/2/4/8 are -2.224584932e-6,+2.492327027e-6,-4.266300664e-7,
+-1.741288571e-7rad/s. Same-predecessor mesh differences nearly reproduce these
+values: new local integration error, not merely inherited input disagreement.
+Left digit0 distal-rate differences are .00585183175,.00868298210,.00147078919,
+.000600820127rad/s; palm specific-force differences .000473013921,.000711971814,
+.000120544293,.0000492485819m/s^2. Convergence is not monotone at the first
+refinement; every exercised endpoint comparison nevertheless passes its existing
+local limits. Four actual native-domain changes occur within this interval.
+None is certified as the sole cause. Event timing agreement alone is insufficient.
+
+29.7->29.8ms levels1/2/4 completed. Own wrist-rate difference stays
+2.908731196e-5 to2.908737495e-5rad/s; same-input differences are6.17e-11rad/s
+or smaller. Palm own-history difference stays .00168842m/s^2; same-input
+differences are7.41e-10m/s^2 or smaller. This is principally amplification of
+already differing predecessors. Do not repeat this matrix or58.2ms attribution.
+
+Child34153 exited0 with retained diagnostic failure, no survivors;
+36.797524wall seconds,36.758377 subprocessCPU,36.604738 self-reported childCPU,
+324712KiBpeakRSS. Wrapper correctly exits1. Read-onlyAWS00:56:13->00:56:53UTC:
+same1563/task/image/identity, ticks2722085->2722175, custody errorsnull,
+durabilityfalse. Clock-stalledALARM persists; other4alarmsOK. TaskHEALTHY is
+not cognitive/clock acceptance. No deployment, caretaker or production write.
+
+Independent source-only findings review supports an event-aligned integration
+candidate, NOT a demonstrated cure. Current Radau admission accepts stages
+spanning native transitions; its terminal stage has nonzero quadrature weight.
+Simply bisecting onto the post-transition side can still integrate the wrong
+one-sided force at the preceding segment's end. A discrete domain label is not
+a continuous event function and does not by itself prove a force discontinuity.
+
+Native source inspection only, no force evaluations/builds: pinned upstream
+f1d45bd5422c74beddfb0d1deb590a02583d21de, actual engine_core_constraint.c SHA
+12fca84a4ed798e67bc68956c07de4bb79281d67e7ad642757c01eba22743037.
+Lines728/1737 instantiate closed joint limits at dist<=margin. Lines2226-2227
+give aref=-B*velocity-K*I*(position-margin), so entry can introduce a damping
+term even at zero penetration. This alone does not prove a nonzero solved
+force jump for the retained event. Lines2304-2315 change unilateral state at
+jar=0, where force is continuous; do not treat every solver-label transition
+as a force jump. Contact-pair geometry requires its own actual boundary.
+
+NEXT same FB-01aj item: establish the actual native boundary/one-sided force
+behavior of the saved22.2->22.3ms transitions, then implement bounded
+event-aligned numerical integration only where justified. Preserve unchanged
+forces, tolerances, actual predecessor, chronological work/impulse/supply custody
+and exact exhaustion rollback. No fabricated intermediate domains, accepted
+rejected scratch, timestamp-specific patch or global finer-history replay.
+Refuse ambiguous simultaneous/grazing/unresolved events. The next falsifier is
+this saved interval with own-history and same-predecessor controls, not another
+whole-body suite. Global accuracy/performance/integration/restart/live remain
+OPEN. Body remains compiled-unmounted/unqualified; goal ACTIVE; G1 owns cognition.
+
+Inspection errors disclosed: one summary accidentally printed the full metrics
+dictionary (truncated); subsequent output selects scalar channels only. One
+read-only summary used nonexistent proprio_rate_rad_s; corrected from source
+to proprioceptive_rate_rad_s without reexecuting dynamics. No evidence changed.
