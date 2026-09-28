@@ -1,0 +1,139 @@
+diff --git a/src/engine/engine_util_spatial.c b/src/engine/engine_util_spatial.c
+--- a/src/engine/engine_util_spatial.c
++++ b/src/engine/engine_util_spatial.c
+@@ -23,34 +23,12 @@
+ 
+ //------------------------------ quaternion operations ---------------------------------------------
+ 
+-// rotate vector by quaternion
+-void mju_rotVecQuat(mjtNum res[3], const mjtNum vec[3], const mjtNum quat[4]) {
+-  // zero vec: zero res
+-  if (vec[0] == 0 && vec[1] == 0 && vec[2] == 0) {
+-    mju_zero3(res);
+-  }
+-
+-  // null quat: copy vec
+-  else if (quat[0] == 1 && quat[1] == 0 && quat[2] == 0 && quat[3] == 0) {
+-    mju_copy3(res, vec);
+-  }
+-
+-  // regular processing
+-  else {
+-    // tmp = q_w * v + cross(q_xyz, v)
+-    mjtNum tmp[3] = {
+-      quat[0]*vec[0] + quat[2]*vec[2] - quat[3]*vec[1],
+-      quat[0]*vec[1] + quat[3]*vec[0] - quat[1]*vec[2],
+-      quat[0]*vec[2] + quat[1]*vec[1] - quat[2]*vec[0]
+-    };
+-
+-    // res = v + 2 * cross(q_xyz, t)
+-    res[0] = vec[0] + 2 * (quat[2]*tmp[2] - quat[3]*tmp[1]);
+-    res[1] = vec[1] + 2 * (quat[3]*tmp[0] - quat[1]*tmp[2]);
+-    res[2] = vec[2] + 2 * (quat[1]*tmp[1] - quat[2]*tmp[0]);
+-  }
+-}
+-
++// Rotate using the same projective geometry law as body/geom matrices.
++void mju_rotVecQuat(mjtNum res[3], const mjtNum vec[3], const mjtNum quat[4]) {
++  mjtNum matrix[9];
++  mju_quat2Mat(matrix, quat);
++  mju_mulMatVec3(res, matrix, vec);
++}
+ 
+ // negate quaternion
+ void mju_negQuat(mjtNum res[4], const mjtNum quat[4]) {
+@@ -140,47 +118,53 @@
+ }
+ 
+ 
+-// convert quaternion to 3D rotation matrix
+-void mju_quat2Mat(mjtNum res[9], const mjtNum quat[4]) {
+-  // null quat: identity
+-  if (quat[0] == 1 && quat[1] == 0 && quat[2] == 0 && quat[3] == 0) {
+-    res[0] = 1;
+-    res[1] = 0;
+-    res[2] = 0;
+-    res[3] = 0;
+-    res[4] = 1;
+-    res[5] = 0;
+-    res[6] = 0;
+-    res[7] = 0;
+-    res[8] = 1;
+-  }
+-
+-  // regular processing
+-  else {
+-    const mjtNum q00 = quat[0]*quat[0];
+-    const mjtNum q01 = quat[0]*quat[1];
+-    const mjtNum q02 = quat[0]*quat[2];
+-    const mjtNum q03 = quat[0]*quat[3];
+-    const mjtNum q11 = quat[1]*quat[1];
+-    const mjtNum q12 = quat[1]*quat[2];
+-    const mjtNum q13 = quat[1]*quat[3];
+-    const mjtNum q22 = quat[2]*quat[2];
+-    const mjtNum q23 = quat[2]*quat[3];
+-    const mjtNum q33 = quat[3]*quat[3];
+-
+-    res[0] = q00 + q11 - q22 - q33;
+-    res[4] = q00 - q11 + q22 - q33;
+-    res[8] = q00 - q11 - q22 + q33;
+-
+-    res[1] = 2*(q12 - q03);
+-    res[2] = 2*(q13 + q02);
+-    res[3] = 2*(q12 + q03);
+-    res[5] = 2*(q23 - q01);
+-    res[6] = 2*(q13 - q02);
+-    res[7] = 2*(q23 + q01);
+-  }
+-}
+-
++// Quaternion scale is representation, not physical stretch: R(q) = H(q)/(q.q).
++void mju_quat2Mat(mjtNum res[9], const mjtNum quat[4]) {
++  mjtNum largest = 0;
++  for (int i = 0; i < 4; i++) {
++    if (!isfinite(quat[i])) {
++      mju_error("non-finite quaternion cannot define rigid geometry");
++    }
++    mjtNum magnitude = fabs(quat[i]);
++    if (magnitude > largest) {
++      largest = magnitude;
++    }
++  }
++  if (largest == 0) {
++    mju_error("zero quaternion cannot define rigid geometry");
++  }
++
++  // Exact identity orientation, including nonunit and negative scalar lifts.
++  if (quat[1] == 0 && quat[2] == 0 && quat[3] == 0) {
++    res[0] = res[4] = res[8] = 1;
++    res[1] = res[2] = res[3] = res[5] = res[6] = res[7] = 0;
++    return;
++  }
++
++  // Scale by a binary exponent, avoiding norm overflow/underflow.
++  // At least one component is in [.5, 1), so sum of squares is in [.25, 4).
++  int exponent;
++  frexp(largest, &exponent);
++  mjtNum q[4];
++  for (int i = 0; i < 4; i++) {
++    q[i] = ldexp(quat[i], -exponent);
++  }
++  const mjtNum q00 = q[0]*q[0], q01 = q[0]*q[1];
++  const mjtNum q02 = q[0]*q[2], q03 = q[0]*q[3];
++  const mjtNum q11 = q[1]*q[1], q12 = q[1]*q[2], q13 = q[1]*q[3];
++  const mjtNum q22 = q[2]*q[2], q23 = q[2]*q[3], q33 = q[3]*q[3];
++  const mjtNum square = q00 + q11 + q22 + q33;
++
++  res[0] = (q00 + q11 - q22 - q33)/square;
++  res[4] = (q00 - q11 + q22 - q33)/square;
++  res[8] = (q00 - q11 - q22 + q33)/square;
++  res[1] = 2*(q12 - q03)/square;
++  res[2] = 2*(q13 + q02)/square;
++  res[3] = 2*(q12 + q03)/square;
++  res[5] = 2*(q23 - q01)/square;
++  res[6] = 2*(q13 - q02)/square;
++  res[7] = 2*(q23 + q01)/square;
++}
+ 
+ // convert 3D rotation matrix to quaternion
+ void mju_mat2Quat(mjtNum quat[4], const mjtNum mat[9]) {

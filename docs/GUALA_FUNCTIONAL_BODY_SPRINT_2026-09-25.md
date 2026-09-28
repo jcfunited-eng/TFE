@@ -17081,3 +17081,128 @@ ticks2820668->2820674,persisted2820658,custodyerrorsnull. CPU51.2571%avg/
 references neither exercise G1 cognition nor establish live-body health.
 This turn is PROGRESS through causal numerical localization, not body delivery.
 Overall goal ACTIVE; body remains compiled-unmounted and UNQUALIFIED.
+
+### FB-01aj scale-invariant geometry contract — 2026-09-28
+
+Continuing FB-01aj. Tiny-axis correction/predicate checks remain closed
+prerequisites. Baseline body5bae6e116/live1568; no G1 interface acknowledgement.
+Reduced numerical mechanics, not DSF or cognitive evaluation.
+
+Cause: near-unit norm error is retained by mju_normalize4; mju_quat2Mat scales
+geometry by norm(q)^2 while mju_rotVecQuat uses a different nonunit extension.
+Correction: both geometry operations use R(q)=H(q)/(q dot q). Power-of-two
+rescaling puts max component in[.5,1), denominator in[.25,4). Exact algebra
+preserves orientation under nonzero scaling; floating roundoff remains.
+
+Scope: new native/functional_body/rotation_geometry.patch replaces both whole
+functions in authenticated engine_util_spatial.c. No force, margin, timestep,
+error-limit, qpos, normalization, effort, DSF or cognitive change. Matrix law
+validates finite/nonzero quaternion before output writes (native mju_error).
+Vector law calls it and alias-safe mju_mulMatVec3. O(1) fixed stack scratch;
+no retained state, heap allocation, history scan or Python hot path. Additional
+arithmetic is a disclosed cost, not a claimed performance improvement.
+
+Causal map: retained qpos/model q -> mj_kinematics joint axis/anchor/off-center
+pose/xmat -> mj_local2Global geom/site/inertial pose -> collision, inertia,
+actuator frames and sensors. Pose, light and mesh-vector consumers use the same
+law. NativeBody._observation uses actual xmat/xpos for local tactile wrench/
+position and optical/WorldFrame return; no hidden knowledge. advance restores
+predecessor on BaseException. NativeBody._capture/_restore state bytes remain
+sole custody. Full native installation MUST update ENGINE_VERSION/native
+version string and derived state header before new-law capture/restore. No
+production body uses this unmounted precursor; no cross-law restore authorized.
+A utility-only proof cannot certify these downstream paths.
+
+Earlier exact-predicate check passed, rejecting a predicate-sign patch.
+World/local high-precision disagreement rejected a coordinate-only workaround.
+This candidate corrects the nonunit representation law instead of relocating
+its arithmetic or relaxing contact admission.
+
+Smallest proof before full-engine cost: compile the authenticated spatial
+utility/diagnostic error trampoline in a fresh isolated library; never alter
+the accepted force library. Check exact-rational projective formula, q/-q and
+power-scale invariance across normal/subnormal/large finite inputs, axes,
+saved root q, vector/matrix consistency, in-place aliasing and invalid-input
+refusal without output mutation. Absolute matrix component bound64*epsilon is
+conservative for <=10 product/sum operations per numerator/denominator and
+division with scaled sum>=.25; it is utility arithmetic acceptance, NOT a
+relaxed body tolerance. Keep measured errors, not merely a pass flag.
+Reproduce saved predecessor geometry, then record corrected four-pose
+world/local depths at binary64/40/80digits. Changed contact branches refuse
+interpretation; no desired signs are forced.
+
+If this passes, next is versioned isolated full engine and exact saved
+first-failure motion followed by existing trajectory/work/impulse/sensory/cold
+gates. Fragment proof alone cannot qualify/deploy. One frozen source review
+before compile/run; one bounded offline two-core group,90wall/60CPU and1GiBAS
+per process (not aggregate). Reference<=5CPU, zero engine forwards/integration.
+Read-only AWS pre/post and exact owned-process census. No heavy broad rerun.
+An initial ledger patch used the wrong literal context and made no change;
+this append uses the verified final line.
+
+Source-only review atff7bbf99ab2d479aa4967f48cae77d1a588bf748018f8df89ca99764a7916f3d
+found two localized proof-custody omissions, no architecture defect: native
+call input/output/return evidence had to precede assertions, and compiled
+library hash needed final verification. Both corrected as one batch. Active
+native call retains exact byte inputs/outputs (including alias and invalid
+cases) even on assertion failure; finalization rechecks compiled SHA.
+Preparation errors preserved: git apply initially checked the application
+root rather than upstream, then zero-context hunks were refused. Standard
+context now checks cleanly at the verified upstream path. A delete/add for the
+same file in one apply_patch was rejected without change; complete update-file
+replacement succeeded. None of these started a build or numerical test.
+
+### FB-01aj projective rotation utility proven — 2026-09-28 15:36Z
+
+Final source review PASS at5850d6bd65d52b414d25594095b27fa31e6b66119d73973643310bd260e13e66;
+proofSHA21927f716974828074849e0517631a8fccfca74bcb508b3f68db45395c48e1f5.
+Retained patchSHA1e861d76670004d7f4deb471dd753a466f7ca82165108e35ae67a830291aa98c;
+prepared sourceSHA28fa727f1f2afc3a7434839dbdcb62aff5dd089634d49b7067d712074e3ce0f0.
+Utility-only ABI/tmp/guala-body-projective-geometry.XA8uqHVT/rotation.so,
+SHA101ede24b4af621c409590e12144736aa68f6a55b65f99270252c40419277432,
+unchanged at final check. Existing native force library remains unchanged.
+
+One compile/proof passed16 valid rotation/alias cases and4 invalid-input
+atomic refusals. Max exact-rational matrix component error1.1102230246251565e-16,
+max R*R^T-I error2.220446049250313e-16. Source/reference matrices share one
+law; binary power-scale cases and q/-q passed. All prior saved world reference
+controls reproduced. ReceiptFB-01aj-projective-rotation-reference.json,
+SHA117ef970e25990955d9371abea2d65c4463ee54f5d8ebe047b15fdf0cf6acb4e.
+
+Important remaining result, not hidden by utility PASS: corrected high-precision
+world AND common-root feature admission areT,T,T,T at40 and80digits. Their
+80digit depths agree to finite reference roundoff (~1.3e-79m); previous
+nonunit geometric contradiction is removed. Binary64 common-root alsoTTTT,
+but binary64 world geometryTTFF. Thus the law correction is necessary but
+world-frame cancellation STILL discards the selected feature in two poses.
+This is static selected-feature evidence, NOT native contact-force or motion
+qualification, and not a rigorous continuum enclosure.
+
+Do not spend a full build/replay on this known remaining failure. The exact
+next local item is the native common-ancestor contact-coordinate path: reuse
+the native kinematic law over the reached ancestry, evaluate contact in that
+rigid frame, and return point/frame/wrench to world coordinates without moving
+qpos, duplicating a solver or changing forces. First trace the existing native
+frame/collision consumers and determine the minimal shared implementation;
+do not add a second Python kinematics authority. Unlike the earlier rejected
+coordinate-only suggestion, projective geometry now supplies the mathematical
+rigid-frame equivalence. Full engine version/cold-header and motion qualification
+remain required after the complete numerical path is ready. No tolerance,
+contact-count waiver, timestep change or high-precision runtime is authorized
+by this utility result.
+
+Resources: child76008 exited0, no survivors; .401681wall/.395294treeCPU seconds,
+52592KiB child maxRSS (not aggregate compiler peak), .033981numerical-reference
+CPU; zero native engine creation, forwards or integration. Compile emitted an
+unchanged mju_euler2Quat strnlen prototype warning because the fragment omitted
+upstream -D_GNU_SOURCE. That function was not exercised. Official CMake flags
+include -D_GNU_SOURCE and -Werror; preserve those on the eventual full build.
+This receipt is NOT a warning-free production build claim; no rerun just to
+erase the diagnostic warning.
+
+Read-only production15:36:42->15:36:45UTC: sole1568/taskf61447ffda4b429e9e983657e0ac5ca4,
+image04da7c73d1466b10c6aec3025beb6d5ef2c05c67bcde7ca90234e65259fb3328,
+identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,ticks2823442->2823448,
+persisted2823442,custodyerrorsnull. CPU51.12995%avg/52.05542%max,
+RAM3.09041%avg; clock-stalledALARM remains, other4OK. Not cognition acceptance.
+No live writes, no G1 source edits. Overall goal ACTIVE/unmounted/unqualified.
