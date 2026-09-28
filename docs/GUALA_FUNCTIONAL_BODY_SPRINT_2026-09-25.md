@@ -17674,3 +17674,181 @@ path was inspected, not rerun. Current root/branch/HEAD and this sprint were
 verified directly. A source lookup for functional_body.py found no such file;
 the actual interface is functional_body_native.py. No fabricated path content
 or new architecture is inferred. Goal ACTIVE; whole-body delivery UNQUALIFIED.
+
+### FB-01aj next exact action: saved-interval cost attribution — 2026-09-28
+
+Authorized diagnostic /tmp/a1-body-cost-attribution-20260928.py loads the
+qualified pair at 3.2 ms from the preserved resource-stop receipt. It runs
+only the next at-most-100-us interval, twice from the same two independent
+predecessors: unchanged execution and observational timing wrappers. No new
+genesis/history replay, rebuild, step-size/force/tolerance edit or public body
+integration. This continues the cost boundary identified at 088897eb5.
+
+The native admit_history_pair -> admit -> step -> three-stage force path is
+unchanged. Profile actual forwards, physical checks, snapshots, finite-state
+checks, impulse arithmetic and comparisons, plus solved nonlinear iteration
+counts. Report inclusive and exclusive timing separately to avoid double
+counting nested work. Compare every returned state/field/domain/work/impulse,
+event and admission record exactly against the unprofiled run, including float
+bits; timing is outside physical state. Preserve first refusal and exact scratch
+rollback. No claimed speedup or omission of any causal calculation yet.
+
+Limits: two intervals, at most 300 native trials per interval, 12,000 total
+forwards including eight reserved for unwind, 10 numerical CPU seconds within
+the existing two-core/60-CPU-second/1-GiB-per-process/90-wall-second envelope.
+No aggregate-memory guarantee. One output receipt through the accepted runner,
+read-only AWS pre/post, source/library hashes, no orphan group. Profiling
+wrappers restore on all exits; a measured overrun cannot be a completed proof.
+Independent frozen source-only review precedes execution. G1 source and active
+workers remain untouched; no concurrent heavy test was present at this census.
+The body/substrate motor and receptor acknowledgement is still not inferred.
+
+Frozen cost-probe review 20b74d83 found three LOCALIZED evidence issues; no
+native-law architecture finding. Corrected together in one full-file proof
+replacement: phase/lane and native report/counts precede guarded actual-state
+capture; complete differing returned operands survive comparison failure;
+300-per-run means outer admission trials, with underlying plain solves reported
+separately. Partial timings and the original exception survive cleanup, and
+incomplete extraction cannot become a pass. Successful equal returns retain
+one complete output instead of two duplicates. Final frozen review next;
+no numerical source, acceptance limit, physical input or test target changed.
+
+### FB-01aj cost attribution PASS; exact fixed-basis correction — 2026-09-28
+
+Final frozen source review a3ad9eb0 passed, proof f41b072f8c250c203b0fd4ba4d01304f92d9bfbc00886fd0dcee40f133c08f35.
+One saved-interval diagnostic completed: receipt
+docs/evidence/FB-01aj-contact-engine-history-a3ad9eb0f71d.json,
+SHA 9159c041d6647bf4ea63b06892b110b8a279a88db1625250c72c9a8e13e81f9c.
+3.2 -> 3.3 ms pair, unprofiled and timing-wrapped returns exactly equal:
+SHA 2f395bf88156701645e651ad106a462d55c5f5e83affcc6ef245b150a299a56f,
+508,131 exact-return bytes. Each run: 78 admission trials/plain solves,
+323 nonlinear iterations, no line divisions, 1,545 total forwards including
+1,517 solver forwards. Unprofiled interval CPU .295978683 s; profiled .311977828 s.
+Both restored the authenticated own predecessor states; final rollback exact.
+
+Observed counts: 472 snapshots, 789 state copies, 6,147 finite checks and
+78 joint_sample_resolution calls. Timing wrappers reported approximately
+64 ms native forward, 44 ms exclusive snapshot and 44 ms joint resolution.
+These fine-grained CPU readings are visibly quantized, several zero; do not
+claim precise individual durations or that zero means no work. Profile overhead
+and uninstrumented numerical work remain outside those component sums. Total
+numerical CPU .719948422 s, 3,097 forwards. Child 15976 exit 0, no survivors,
+1.292030 s wall / 1.289024 tree CPU, maximum child RSS 151,472 KiB. This is a
+cost attribution, not a real-time or complete 500-ms qualification.
+
+AWS 17:08:02.997152 -> 17:08:06.539792 UTC: same sole task 1568/image/identity,
+ticks 2834955 -> 2834962, persisted 2834930, custody errors null/unblocked.
+Existing clock-stalled ALARM remains; other four alarms OK. CPU 51.29525829
+average / 52.03758276 maximum percent; RAM 3.08837890625 percent. No live writes.
+
+Confirmed repeated work: joint_event_law.pxi _joint_cubics reconstructs the
+same three quadratic velocity and four cubic position Lagrange bases on every
+root certificate. All seven depend only on immutable binary64 Radau C nodes,
+not body state or contact. Replacement derives exact Fraction coefficients
+once at native-module initialization and stores seven immutable tuples;
+step-specific positions, velocities, threshold, duration and polynomial/root
+arithmetic remain unchanged. This removes repeated construction; it is not a
+cache of physical states, a new force law, approximate polynomial, selected
+event table or contact bypass. Integer/rational arithmetic order after basis
+selection is unchanged. No clock, stage, accuracy, model, state schema, solver
+law identifier, ABI or public runtime authority changes.
+
+Bounded impact: _joint_root_certificate/_root_trial -> _joint_cubics -> fixed
+node bases; native step events/admission and all returned states/work/impulses
+must be exact. The prior geometry-velocity dispatch correction remains closed;
+this is different repeated algebra. No duplicate snapshots or physical checks
+are removed in this change. Single source owner/file:
+native/functional_body/joint_event_law.pxi, full-file replacement.
+
+Acceptance: one isolated Radau-only build (engine/interval binaries reused),
+compare constant bases and generated polynomials exactly to the predecessor
+law, then replay only the saved 3.2 -> 3.3 ms pair and compare its entire return
+against the authenticated unprofiled receipt. Runtime basis reconstruction
+must raise in the diagnostic to prove it is absent; root signs, shared roots,
+failure/refusal, own-state restore and exact rollback stay authoritative.
+No full history replay. Fresh process/module initialization and actual native
+binary hashes must be verified. Preserve failed operands and first refusal;
+same bounded operational/AWS envelope and frozen review before compile/proof.
+Measure cost honestly; removing this repeated algebra is not a promise that
+the remaining native force-solving cost meets production requirements.
+
+Pre-freeze correction to the preceding proposed optimization: inspection of
+the captured complete return shows zero event transitions, zero rejected
+pieces and unchanged event sequences across all 78 trials. Rebuilding the
+polynomial bases therefore does NOT explain the measured joint-resolution
+cost in this interval. The just-authored constant-basis edit was removed
+before review/build/execution; do not claim it repaired this measured cost.
+
+The reached repeated work is joint_sample_resolution enumerating every
+unchanged lower/upper constraint-flag tuple on every stage pair. Correct the
+actual hot path only: compare the complete same-kind Boolean tuples first;
+enumerate individual joints only if that exact tuple differs. Equal tuples
+cannot contain a changed flag, so this preserves the exact changed-joint
+list/order, root operands and all certificates/refusals. It is not an epsilon,
+threshold, cached contact signature or skipped physical transition. All root
+math, state, laws and output remain unchanged. One-line native-source delta,
+implemented via full-file replacement; no constant-basis tables remain.
+
+Revised named proof: original-versus-candidate joint-domain boundary cases,
+including unchanged tuples, distinct/shared roots and both Boolean forms;
+instrument tuple iteration to prove unchanged per-joint enumeration is absent.
+That is a helper-level falsifier, not a physical-motion claim. The decisive
+ordinary saved pair still compares the entire candidate return to the already
+recorded predecessor, with actual native build identity, cold predecessor
+restore, unchanged physical checks and exact rollback. Same one isolated build
+and bounded saved interval, no broad replay. This supersedes the preceding
+constant-basis proposal rather than silently keeping a second optimization.
+
+### FB-01aj unchanged-joint frontier closed; performance still open — 2026-09-28 17:23 UTC
+
+Independent frozen review PASS: bc75a75b90f8ecca9852a874c9729baf596b65eb8b5a5788a45ad44cc53ddb0c.
+The reviewer withdrew a suggested duplicate survivor guard after confirming
+the inherited child runner already refuses survivors before return. No source
+or proof correction was required after this review. One Radau-only build and
+one saved-interval proof ran; no full-history replay or production mutation.
+
+Receipt docs/evidence/FB-01aj-unchanged-joint-frontier.json, SHA
+4379e379b1897a6bfdcc9cb6ee517be6f702cf829a73e8a2c9a245b0cde783b0.
+Candidate native SHA 1bcae83fa3f4602c4a5dc60866c7ecd879e1ec1dc3e4c8d6913f0e347e03db48,
+at /tmp/guala-body-joint-frontier.6sd25y8i/python/guala_body_radau.cpython-311-x86_64-linux-gnu.so.
+515 original/candidate boundary cases agree, including Python/NumPy Booleans
+and shared/distinct root evidence. Instrumented unchanged tuples have 12
+reference iterations and zero candidate iterations. Complete saved ordinary
+return remains byte-exact with predecessor SHA
+2f395bf88156701645e651ad106a462d55c5f5e83affcc6ef245b150a299a56f.
+Physical limits, state/work/impulse/domain receipts and exact rollback pass.
+
+Build PID21459: exit0, 29.897s wall / 29.861s tree CPU, peak reported RSS
+485,856KiB. Proof PID21644: exit0, 2.290s wall / 1.963s tree CPU, reported
+RSS151,152KiB. Both process-group survivor censuses empty, repeated census
+empty. Affinity2, per-process CPU60s/address-space1GiB and group wall90s;
+aggregate memory was not enforced. Numerical proof used1.702s CPU.
+
+Performance honesty: old/new unprofiled100-us interval .295978683/.291955361
+CPU seconds. A single approximately4-ms difference is not a defensible
+speedup claim. The actual redundant per-joint enumeration is removed, but
+78 solves,323 nonlinear iterations,1,545 forwards and472 snapshots remain.
+Component timer quantization remains visible; a zero measured component time
+does not mean no execution. Practical throughput and the complete500-ms
+trajectory remain UNPROVEN. Do not repeat the whole trajectory merely because
+this helper-level waste removal passed.
+
+Waste register: joint_event_law.pxi:joint_sample_resolution ran element scans
+on unchanged complete Boolean tuples,78 calls in the saved interval. Complete
+tuple equality makes that scan causally redundant. Exact guard removes it;
+515 cases plus complete successor identity and counted-iteration falsifier
+guard against resurrection. No force, error threshold, model, clock, ABI,
+header/state schema, sensory channel or cognitive authority changed.
+
+AWS17:21:11.271559->17:21:46.029454 UTC: same sole task1568/image/identity,
+ticks2836649->2836723, persisted2836626->2836690; custody errors null/unblocked.
+Clock-stalled ALARM still exists, other4 alarms OK. CPU51.30% average/52.05%
+maximum, memory3.0884%. This is not an all-green live-health claim. No writes.
+
+G1 coordination: current main-source motor/receptor handoff remains unreceived;
+no joint-effort implementation may be inferred from vocal readouts or planned
+column modules. Body effort/BodyFeedback boundaries are unchanged. G1 source
+and workers remain untouched. Next bounded body item is the remaining actual
+solve/capture cost in this authenticated interval, not another joint-root
+review, a loosened mechanical tolerance, or mounting unqualified mechanics.
+The functional-body goal remains ACTIVE; this is only a local exactness seam.

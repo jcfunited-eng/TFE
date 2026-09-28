@@ -111,6 +111,7 @@ def joint_sample_resolution(before, stage_domains, operands):
     result = dict(resolved=True,groups=[])
     for index,(left,right) in enumerate(zip(samples,samples[1:])):
         changed = [(kind,i) for kind in (0,1)
+                   if left[kind] != right[kind]
                    for i,(a,b) in enumerate(zip(left[kind],right[kind])) if a != b]
         if len(changed) < 2: continue
         row = dict(from_sample=index,to_sample=index+1,joints=changed,
