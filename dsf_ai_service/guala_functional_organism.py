@@ -1167,9 +1167,10 @@ def _consequence_grounded_food_ids(state: dict[str, Any]) -> set[str]:
 def _consequence_qualified_food_ids(state: dict[str, Any]) -> set[str]:
     """Recover food object IDs supported by actual retained feeding consequences or verified physical intake."""
     consequence_foods = _consequence_grounded_food_ids(state)
+    tested_non_nutritive = set(state.get("tested_non_nutritive") or ())
     known_foods = set()
     for obj_id, c_data in state.get("conserved_objects", {}).items():
-        if c_data.get("non_nutritive") is True:
+        if obj_id in tested_non_nutritive or c_data.get("non_nutritive") is True:
             continue
         has_nourished = (
             int(c_data.get("fed_count", 0)) > 0
@@ -1196,6 +1197,7 @@ def candidates(
     last_crossed_portal: tuple[str, int] | None = None,
     sound_heard: bool = False,
     consequence_food_ids: set[str] | None = None,
+    tested_non_nutritive_ids: set[str] | None = None,
 ) -> list[tuple[str, str, tuple[Any, ...], str | None, tuple[int, int, int] | None]]:
     """What her body can do this beat, across every sensed target: each entry is
     (act, detail, world commands tried in order, target, voice drive).
@@ -1220,7 +1222,10 @@ def candidates(
 
     # 2. Grasp (one reachable object per world grasp law) and touch reachable things
     if held is None and len(reachable) == 1 and handleable(reachable[0]):
-        is_known_non_food = bool(conserved_objects and conserved_objects.get(reachable[0].object_id, {}).get("non_nutritive"))
+        is_known_non_food = bool(
+            (conserved_objects and conserved_objects.get(reachable[0].object_id, {}).get("non_nutritive"))
+            or (tested_non_nutritive_ids and reachable[0].object_id in tested_non_nutritive_ids)
+        )
         if not (feeding and is_known_non_food):
             out.append(("grasp", reachable[0].object_id, (GraspContactCommand(BEAT_MICROSECONDS),), reachable[0].object_id, None))
     if held is None:
@@ -1421,7 +1426,7 @@ class FunctionalOrganism:
             "ear_event": None, "events": {}, "sound_event": None, "ear_quiet": _empty_ear_quiet(),
             "gaze": None, "gaze_target": None, "sight_figure": None, "figures": {}, "eyes": [0, 0], "gaze_radius": 0.0,
             "moments": {}, "last_moment": None,
-            "voice_event": None, "own_events": {}, "own_event": None, "meanings": {}, "last_said": None, "affordance_plan": None, "planned_target_id": None, "conserved_objects": {}, "expectation_discrepancy": None, "joint_attention_target": None, "pending_chain": [], "last_demand_chain": None,
+            "voice_event": None, "own_events": {}, "own_event": None, "meanings": {}, "last_said": None, "affordance_plan": None, "planned_target_id": None, "conserved_objects": {}, "tested_non_nutritive": [], "expectation_discrepancy": None, "joint_attention_target": None, "pending_chain": [], "last_demand_chain": None,
             "room_dwell_beats": 0, "prior_room": None, "region_visits": {}, "region_last_tick": {},
         })
 
@@ -1450,7 +1455,7 @@ class FunctionalOrganism:
             state["speech"], state["syllable_totals"], state["prior_syllable"] = {}, {}, None
             state["voice_version"] = VOICE_VERSION
             changed = True
-        for key, empty in (("voice_event", None), ("own_events", {}), ("own_event", None), ("meanings", {}), ("last_said", None), ("affordance_plan", None), ("planned_target_id", None), ("syllable_profiles", {}), ("conserved_objects", {}), ("expectation_discrepancy", None), ("joint_attention_target", None), ("pending_chain", []), ("last_demand_chain", None), ("room_dwell_beats", 0), ("prior_room", None), ("region_visits", {}), ("region_last_tick", {})):
+        for key, empty in (("voice_event", None), ("own_events", {}), ("own_event", None), ("meanings", {}), ("last_said", None), ("affordance_plan", None), ("planned_target_id", None), ("syllable_profiles", {}), ("conserved_objects", {}), ("tested_non_nutritive", []), ("expectation_discrepancy", None), ("joint_attention_target", None), ("pending_chain", []), ("last_demand_chain", None), ("room_dwell_beats", 0), ("prior_room", None), ("region_visits", {}), ("region_last_tick", {})):
             if key not in state:
                 state[key] = {} if isinstance(empty, dict) else empty
                 changed = True
@@ -1908,6 +1913,7 @@ class FunctionalOrganism:
         current_room = state.get("room_now")
 
         # 1. Update from instantaneous retinal sight
+        tested_non_nutritive = set(state.get("tested_non_nutritive") or ())
         for thing in seen:
             if thing.position is not None:
                 is_fixture = thing.object_id in PERMANENCE_FIXTURES
@@ -1921,11 +1927,13 @@ class FunctionalOrganism:
                     "last_seen_tick": tick,
                     "confidence": 1.0,
                 })
-                if entry.get("non_nutritive") is not True:
+                if thing.object_id in tested_non_nutritive or entry.get("non_nutritive") is True:
+                    entry["non_nutritive"] = True
+                    entry["is_food"] = False
+                    entry["tested_non_food"] = True
+                else:
                     has_nourished = int(entry.get("fed_count", 0)) > 0 or int(entry.get("historical_intake_micrograms", 0)) > 0 or (thing.object_id in consequence_foods)
                     entry["is_food"] = bool(has_nourished and not entry.get("currently_depleted", False))
-                else:
-                    entry["is_food"] = False
                 fig = state.get("sight_figure")
                 if fig and fig != "none" and (state.get("gaze_target") == thing.object_id or (body.held_object_id == thing.object_id) or (seen and seen[0].object_id == thing.object_id)):
                     entry["figure_key"] = fig
@@ -1940,7 +1948,7 @@ class FunctionalOrganism:
         # 3. Expectation Discrepancy & Verification (Invariant Violation Detection)
         seen_ids = {th.object_id for th in seen}
         for obj_id, c_entry in list(conserved.items()):
-            if c_entry.get("is_fixture"):
+            if c_entry.get("is_fixture") or obj_id == body.held_object_id:
                 continue
             c_pos = PositionMM(*c_entry["position"])
             dist_to_conserved = _distance_mm(body.pose.position, c_pos)
@@ -2245,7 +2253,7 @@ class FunctionalOrganism:
         p_chain = list(state.get("pending_chain") or [])
         state["body_pos"] = (int(body.pose.position.x), int(body.pose.position.y), int(body.pose.position.z))
         state["body_heading"] = int(body.pose.heading_millidegrees)
-        options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason, feeding=feeding, sleepy=sleepy, conserved_objects=conserved, pending_chain=p_chain, last_crossed_portal=state.get("last_crossed_portal"), sound_heard=sound_heard, consequence_food_ids=consequence_foods)
+        options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason, feeding=feeding, sleepy=sleepy, conserved_objects=conserved, pending_chain=p_chain, last_crossed_portal=state.get("last_crossed_portal"), sound_heard=sound_heard, consequence_food_ids=consequence_foods, tested_non_nutritive_ids=tested_non_nutritive)
 
         # Cognitive Asset 1: Learned Closed-Loop Continuation Selector
         # When an internal demand is active, searches the empirical transition graph for supported continuation
@@ -2929,7 +2937,8 @@ class FunctionalOrganism:
         refused_act = last_ref[0] if (last_ref and (self.live_organism_tick - int(last_ref[2])) <= 2) else None
         door_refused = (refused_act == "toward_door")
 
-        known_non_foods = {o_id for o_id, c in conserved.items() if c.get("non_nutritive") is True}
+        tested_non_nutritive = set(self._state.get("tested_non_nutritive") or ())
+        known_non_foods = {o_id for o_id, c in conserved.items() if c.get("non_nutritive") is True} | tested_non_nutritive
 
         # Homeostatic Barrenness in Lived Cognition:
         # Does the current environment lack the active homeostatic requirement?
@@ -2977,7 +2986,11 @@ class FunctionalOrganism:
             return "toward_door", f"{label}: structural boredom ({boredom:.2f} over {dwell_beats} dwell beats): evacuating saturated basin toward negative space"
 
         # Physical release: when holding an item whose bite was unsuccessful, release it
-        if "release" in acts and (self._state.get("unsuccessful_bite_held_id") or any(c.get("non_nutritive") for o_id, c in conserved.items() if o_id == self._state.get("gaze_target"))):
+        if "release" in acts and (
+            self._state.get("unsuccessful_bite_held_id")
+            or any(c.get("non_nutritive") for o_id, c in conserved.items() if o_id == self._state.get("gaze_target"))
+            or (self._state.get("gaze_target") in tested_non_nutritive)
+        ):
             return "release", f"{label}: release non-nutritive held item"
 
         # Physical execution feedback: an act refused on the previous beat yields to alternative viable acts
@@ -3135,6 +3148,9 @@ class FunctionalOrganism:
             state["taste_residue"] = min(1.0, float(state.get("taste_residue", 0.0)) + intake / 100_000.0)
             if decision.target_object_id:
                 state["unsuccessful_bite_held_id"] = None
+                tested_set = set(state.get("tested_non_nutritive") or ())
+                tested_set.discard(decision.target_object_id)
+                state["tested_non_nutritive"] = sorted(tested_set)
                 conserved = state.setdefault("conserved_objects", {})
                 entry = conserved.setdefault(decision.target_object_id, {
                     "object_id": decision.target_object_id,
@@ -3180,6 +3196,9 @@ class FunctionalOrganism:
             })
             has_nourished = int(entry.get("fed_count", 0)) > 0 or int(entry.get("historical_intake_micrograms", 0)) > 0
             if not has_nourished:
+                tested_set = set(state.get("tested_non_nutritive") or ())
+                tested_set.add(decision.target_object_id)
+                state["tested_non_nutritive"] = sorted(tested_set)
                 entry["non_nutritive"] = True
                 entry["is_food"] = False
                 entry["tested_non_food"] = True

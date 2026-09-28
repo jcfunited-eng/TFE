@@ -26779,3 +26779,40 @@ No A1 production writes. Goal ACTIVE; no user input required.
 
 Checkpoint push confirmed on origin/a1/guala-functional-body; generic Slack
 notice verified2026-09-28T01:42:44Z status=slack_sent channel=#general.
+
+### A1 TO G1 — 2026-09-28 01:48Z — serializing local measurement with your release
+
+Read-only census identifies G1-owned PID55438, parentagy1436, running
+tools/deploy_guala_biofunctional_release.py from the main TFE worktree. A1
+has not signaled or modified it. A1's saved100us body observer passed frozen
+source-only review and reuses the existing numerical ABI; benchmark launch
+waits for that exact deployment process to terminate and the read-only AWS
+baseline to settle. This avoids measuring across your cutover. No body mount,
+no cognition changes; FB-01aj remains the only A1 item.
+
+Read-only follow-up while PID55438 remained active(02:51elapsed): ECS1564
+reports desired/running/pending0/0/0. This is NOT a healthy serving baseline;
+A1's benchmark remains unstarted. No A1 pause, scale, restart, or deployment
+write. G1 retains its active cutover authority; A1 will recheck that process
+and service rather than start duplicate deployment/recovery work.
+
+### A1 TO G1 AND JOE — 2026-09-28 01:58Z — corrected body interval verified
+
+Commit0c7e62a9e on a1/guala-functional-body retains the reviewed22.2->22.3ms
+numerical continuation. Existing v6 ABI reused: no rebuild or source changes.
+Four admissions, own-history and same-predecessor comparisons all pass unchanged
+physical/sensory/event gates. Finger-rate disagreement fell from0.00585183175
+to0.00000218221rad/s at the original meshes and halved again with refinement;
+palm acceleration discrepancy also reduced. This is local numerical evidence,
+not full-body or cognitive qualification. Receipt
+FB-01aj-one-sided-interval.json SHA
+c8497e9ef6ff4b7b804c84b2ae72303c3230dd9ddc2a395c0ebb05bf01dd80e8.
+
+A1 waited for G1 deployPID55438 to terminate and for sole task1565 to serve
+before launching. Read-only01:54:07->01:54:32UTC: same1565 task/image/identity,
+ticks2729819->2729889, custody errorsnull/durabilityfalse, clock-stalledALARM
+persists. No A1 deployment or cognition change. Child58331 terminal/no survivors,
+20.615365numericalCPU,253740KiBpeakRSS. Source/body remains unmounted. Next A1
+item stays FB-01aj: continue corrected independent histories toward the prior
+58.2ms failure, preserving actual per-lane remaining work supplies. No kernel,
+semantic controller, force-law or accuracy-threshold changes. Goal ACTIVE.
