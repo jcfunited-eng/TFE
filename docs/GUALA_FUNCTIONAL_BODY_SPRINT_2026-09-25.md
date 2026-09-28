@@ -15880,3 +15880,166 @@ same identity; ticks 2742256 -> 2744461, custody errors null/durability false.
 Clock-stalled ALARM persists and is not cleared by body evidence. Full 500 ms,
 old dense-prefix coverage, gravity/load breadth, intrinsic contact-couple error,
 serving cost, integration/restart and live gates remain open. Goal ACTIVE.
+
+### FB-01aj retained timing attribution and preceding-window contract — 2026-09-28
+
+Previous turn PROGRESS (bcb926a36); continuing the same mechanical qualification.
+Current branch, native sources and failing receipt hashes were revalidated.
+Requested architecture: bounded articulated mechanics and truthful return.
+Current reality: compiled-unmounted, 500 ms qualification NOT passed. Conflict
+with a delivery claim: YES. Do not extend cognition, L0-L4, forces, anatomy,
+acceptance thresholds or production. Next exact item is the saved 469.5->469.6 ms
+interval, not another 470.4 ms run or full-history replay. Reduced mechanical
+verification; no joint seven-field DSF evaluation or biological microanatomy.
+
+Read-only extraction of the stopped receipt supplies five same-grid comparisons
+without any new numerical settlement. Both own predecessors reproduce exactly
+across their recorded rounds. Matched meshes 6.25, 3.125, 1.5625, 0.78125 and
+0.390625 microseconds keep disjoint event brackets separated by respectively
+2.359534455, 2.359534455, 1.961017228, 2.343750000 and 2.469716596 microseconds.
+Each exceeds EVENT_S. Within either SAME predecessor the final two refinements
+have combined brackets below EVENT_S. Therefore the measured inter-history
+difference is inherited before 470.3 ms, not explained by different final mesh
+sizes. This is finite numerical attribution, not a continuum error enclosure
+or proof of which earlier transition introduced the error.
+
+Read-only traversal of 4,123 retained endpoints (58.3->470.3 ms; ZERO force
+calls) localizes the largest new qvel-difference increment to 469.5->469.6 ms.
+At qvel index54 it changes from 2.471639559686878e-8 to
+2.887763108477548e-4 rad/s, an increment of 2.887515944521579e-4.
+This interval contains two native geometric-contact changes and one joint
+limit change, in the same order in both histories. Their sampled event timing
+passes; the claim that timing agreement alone bounds later motion remains
+unproved. Do not assign the entire error to one event without the next check.
+
+Bounded no-build diagnostic contract:
+- Authenticate receipt FB-01aj-coupled-reaction-full-history-4726d76791a8.json
+  SHA 0c94026890fc305237af4f67fc2d1555a43965f5ab61a411a2e5bfedce0f8e7e;
+  use its endpoint35 (0.4694999999999758 s) and endpoint36
+  (0.4695999999999758 s), both admitted, refinement0.
+- Restore each OWN raw state, actual supply, cumulative work/impulses, native
+  domain and full observation; verify the already released zero motor input.
+  One immutable anatomy may be reused with separately captured operands.
+- Run original mesh and divisions2/4/8 for both predecessors (eight bounded
+  admissions). Original outputs must reproduce raw state, work, impulses,
+  supply, event path, joint boundaries and full observation exactly before
+  interpreting refined results. Account accepted work in actual pair order.
+- Compare own-history results and successive meshes from each SAME input by
+  reusing those computed results, not extra integrations. Preserve failures
+  and actual before/after fields; diagnostic completion is not body acceptance.
+- Same native v8/force/interval ABI; 35 numerical CPU seconds, 100,000 native
+  forwards and 10,000 trials, unchanged offline child 60CPU/90wall/1GiB/two-core
+  envelope. Complete scratch rollback and census; read-only AWS pre/post.
+- Only the scratch diagnostic, this ledger and its evidence may change.
+  One frozen source-only review before execution. No broad suite, build,
+  control policy, motor script, threshold increase or prefix replay.
+
+Historical route drift remains as previously recorded: obsolete July/August
+authority files and require-guala-root prerequisites are absent in this active
+worktree. The current registered body branch, user-ratified scope and this
+sprint remain authoritative; missing historical files are not guessed or
+recreated. The disjoint G1 pytest30304 was observed, not interrupted; any
+co-residency must be disclosed and cannot support an isolated speed claim.
+
+#### Saved-window result and bounded downstream falsification — 2026-09-28 04:53Z
+
+The independent source-only review found one localized evidence-ordering
+issue: attach the cumulative successor before obtaining its observation.
+That correction passed review; proof SHA
+fc10634aa85b90080c7b1ee70c3501eb5e5fce9c330a604aa3f6cf2938eed642,
+tree fingerprint 608f75d144dd677c8f52d8bfa4d4a5930425f6d28a5ae4d28447b72ecd242c4a.
+One diagnostic completed, no build or force-law edits. Evidence:
+FB-01aj-469ms-local-map.json SHA
+a0a2e22b23c772b804e22b9e8f3b86e19e7e40a1b4d085b174cbfc376c77da7e.
+Both original controls reproduced the archived complete successors exactly.
+All eight admissions, original restoration, accounting and final scratch
+rollback passed. Cost: 9.651271506 numerical CPU seconds, 33,862 forwards,
+1,243 trials; child40193 exited0/no survivors; peak219,920KiB.
+
+The maximum original qvel difference belongs to left/toe-0/flexion, resolved
+by exact equality with the stored named proprioceptive channel. Its magnitude
+at469.6ms for divisions1/2/4/8 is respectively 2.887763108e-4,
+2.887763030e-4, 2.869810611e-5, 7.287321705e-5 rad/s. The sequence is NOT a
+monotone convergence proof. All existing local comparisons pass; intrinsic
+couple-impulse qualification remains absent. Lane0 retains the same adaptive
+contact substeps, so nominal refinement is not necessarily event refinement.
+Saved first-contact transition shows pair(36,44) multiplicity1->2, then2->1;
+this is two native contact points on an already contacting pair, not a new
+object encounter. Immediately before the first transition the two rate values
+are0.12058005999398144/0.12058008432984814; immediately after the SAME time
+interval they are0.12046618875236818/0.12055709192312625. Most of this new
+disagreement appears during that contact transition, before the joint event.
+This identifies a numerical contact-integration sensitivity, not a proved
+continuum error bound or authorization to change the physical force law.
+
+Next exact falsification: restore each own successor of the finest predeclared
+division8 (not division4 selected for a smaller observed discrepancy), then
+continue ONLY469.6->470.4ms with the existing native admission and sampled
+0.1ms observation contract. Two actual histories, separate supplies/work/
+impulses, released zero effort; no borrowed states or regenerated prefix.
+Use their original12.5/6.25us nominal admission meshes downstream. Stop at
+the first failed paired physical/event/timing/observation check; no automatic
+retries or local mesh matrix. This tests whether correcting the earlier
+numerical history is sufficient for the previously failed later event.
+Same35CPU/100000forward/10000trial offline envelope; same read-onlyAWS health,
+exact process/rollback custody and frozen source-only review. It is a bounded
+counterfactual qualification, not a new runtime controller or acceptance
+threshold. A pass would still leave500ms and full-body gates open.
+
+Read-only04:49:13->04:49:26 UTC: G1 has moved production to sole1567,
+task1fbb3eb2bd8f41f8b1c24781d70ce6ea, image
+5d3d25d61ee2d212cb4297d24d3d3dfb728cd37b93905cf4e48b47aab13d6953;
+same identity, ticks2747100->2747122, custody errorsnull/durabilityfalse.
+Clock-stalledALARM remains. G1's55-test/cognition claims are not certified
+by this body diagnostic. A1 has made no production change.
+
+#### Downstream result: first overlapping timing bracket remains open — 04:57Z
+
+Source-only review PASSED proof84e0d36d15c10e8f4ba793c03ddb17f653c78e8b216270bba437c122fca61325
+at fingerprintd31daf18db3759004998075cd0f12f44252dc1218cdcf128dd1197edcac57cda.
+Receipt FB-01aj-refined-contact-downstream.json SHA
+f23e51f364b85f883f90a1deb1d59d89e01ee16e88cb2257e9ea623b578fb6fa
+records a truthful incomplete check, NOT a full downstream pass. Both refined
+own histories restored exactly. Five subsequent paired endpoints passed through
+0.47009999999997576s. The next interval ended0.47019999999997575s with
+state/work/impulses and event identity/order passed, sensoryfirst_failure=null,
+but the paired timing gate FAILED. Per contract it stopped immediately, with
+no retries and complete failed successor evidence; scratch rollback was exact.
+
+Lane0 bracket [0.47014086726720333,0.47014163273274795]; lane1 bracket
+[0.47014062499997566,0.47014110953443106]. These OVERLAP, but their union is
+1.0077327722846086us, above unchangedEVENT_S=1us. Unlike the old disjoint
+470.4ms failure this does not yet establish separated physical event times;
+it is unresolved finite sampling. Do not round1.0077us down to1us or claim
+the later470.4ms defect fixed: that endpoint was not reached by this check.
+
+Cost4.067787702 numericalCPU/13326forwards/528trials; child43248 exited0,
+no survivors, peak339164KiB. Wrapper exit1 correctly reflects the failed gate.
+The two new diagnostics together cost13.719059208 numericalCPU seconds,
+47188forwards/1771trials. No build, source-law change, heavy suite, whole-prefix
+replay, production write or G1 process intervention. Children40193/43248 were
+absent in the final census. Initial analysis output accidentally expanded the
+whole metric dictionary; a filtered read recovered the compact summary without
+rerunning numerical work.
+
+Next exact item remains numerical trajectory qualification: use ONLY the last
+admitted own pair in this receipt (lanes at0.47009999999997576, identical to
+endpoints[-1].lanes[i].successor). Never resume the failed successors. Apply the
+already existing dyadic paired-timing refinement to470.2ms, then continue at
+most to the authenticated original failed target0.4703999999999757s. Preserve
+native force law, state/work/impulse gates, distinct actual supplies, full
+observation and released control. Failed physical/event-order evidence stops;
+do not blindly spend a full budget refining inherited disjoint-event histories.
+A bounded source-reviewed continuation must retain each attempted bracket and
+stop on a clearly disjoint timing finding or resource ceiling. No fresh local
+469.5ms matrix or expensive beginning-of-history replay is justified by this
+overlapping bracket. No human decision is presently missing.
+
+Read-only04:57:07->04:57:14UTC: same sole1567/task/image/identity as above,
+ticks2747909->2747920, custodyerrorsnull/durabilityfalse; clock-stalledALARM
+persists. Body remains compiled-unmounted and full-bodyUNQUALIFIED. G1's
+new cognition commit19e183373 and its55-test claim were noted, not audited or
+used as a dependency. Numerical approximation is confined to body mechanics;
+no synthetic cognition, action priority, scalar decision score or food lookup
+was introduced. Goal ACTIVE; this turn PROGRESS through retained causal
+attribution and a smaller, honestly failed downstream check.
