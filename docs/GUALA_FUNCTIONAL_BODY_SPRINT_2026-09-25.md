@@ -15187,3 +15187,87 @@ two-event proof or static boundary map absent contradictory evidence. The
 58.2ms inherited-error trajectory, full500ms accuracy, gravitational/load
 qualification, intrinsic couple bound, cost, integration, restart and live
 delivery remain OPEN. No body mount or claimed completed functional body.
+
+### FB-01aj saved100us continuation contract — 2026-09-28
+
+Previous turn PROGRESS: ea6c0553f source plus local event proof. Continue, not
+reopen, FB-01aj. Reuse built v6 ABI3af856bd945...; no compile or source edit.
+Restore the two actual22.2ms own predecessors from the authenticated earlier
+map7b83775a6d88...; verify their saved endpoint/observation controls by restore,
+not dynamics replay. Run only22.2->22.3ms at the previously accepted meshes
+3.125us/1.5625us and one independent halving1.5625us/0.78125us. Four admissions,
+one anatomy instance, no genesis/29.8ms/58.2ms replay. Independent lane inputs
+remain distinct; a same-input mesh comparison must not overwrite either lane.
+
+Retain true state, observation, cumulative work/impulse/supply, chronological
+native domains and accepted joint-boundary certificates. Compare each own pair
+and each same-predecessor refinement with unchanged trajectory/typed sensory
+limits; keep intrinsic-couple qualification explicitly unavailable. Capture
+first failure before fallible extraction and restore initial scratch regardless
+of evidence-extraction failure. Final rollback and resource/evidence completeness
+are required.35CPU/10000outer trials/100000native forwards with reserved cleanup,
+within existing offline60CPU/90wall/1GiB/two-core envelope; read-onlyAWS pre/post
+and terminal census. Source-only review of the new observer before execution.
+No correction is called full-body accurate or ready to mount on these results.
+
+### FB-01aj saved100us continuation PASS — 2026-09-28 01:56Z
+
+Source-only observer review PASS, fingerprint
+fd37837189c6ccf817c2a69dc6e2d07de75205dd06c636d28b6050af6461004c,
+script /tmp/a1-body-one-sided-interval-20260928.py SHA
+274aa2745bbb033dbb717c5d90740253d27ddc1ead535beda11b09f7f40962f9.
+No findings, no operator/source/ABI changes, no rebuild. One execution.
+Receipt docs/evidence/FB-01aj-one-sided-interval.json SHA
+c8497e9ef6ff4b7b804c84b2ae72303c3230dd9ddc2a395c0ebb05bf01dd80e8
+(2038152bytes, raw evidence stored once by content reference).
+
+All four admissions completed: own pairs at3.125us/1.5625us and
+1.5625us/0.78125us. Each own pair and both same-predecessor refinement
+comparisons pass unchanged state/work/impulse/event and typed sensory gates.
+Both real joint boundaries were reached in every admission. Exact pair-first
+accounting and final initial-scratch rollback pass. Saved predecessor-law
+endpoint observations reproduce exactly by restore; no old motion replay.
+No state synchronization or newly supplied action/force.
+
+Measured correction effect on the originally identified interval:
+- Left digit0 distal rate disagreement: oldv5 at originalmeshes
+  0.005851831748806546rad/s; correctedv6 0.000002182210693035813rad/s,
+  then0.0000010931739993225165rad/s after independent halving.
+- Left palm specific-force disagreement: old0.00047301392085775945m/s²;
+  corrected0.000011059500239091161m/s²,
+  then0.000005532299505672298m/s².
+- Left palm roll rate disagreement: old0.0000022245849322644062rad/s;
+  corrected0.0000008206836668023243rad/s,
+  then0.00000041051012544812693rad/s.
+The original local values were already below pointwise gates; the defect was
+their later amplification. Improvement is real, but NOT proof that58.2ms or
+the full500ms history now passes. Residual error remains. Intrinsic-couple
+impulse still UNQUALIFIED because its separate physical ceiling is not ratified.
+
+Resources:1200outer trials,40560native forwards,20.615364604numericalCPU.
+Child58331 exit0/no survivors:21.602667wall,21.590916subprocessCPU,
+253740KiBpeakRSS. Native anatomy instantiated once; retained observation
+proxies borrow immutable anatomy only. No runtime or production writes.
+
+Coordination wait was verified, not inferred: G1 PID55438 parentagy1436 ran
+tools/deploy_guala_biofunctional_release.py in the main tree. A1 waited while
+ECS progressed1564/0-0-0 ->1565/0-0-0 ->1565/1-0-1 ->1565/1-1-0;
+the exact G1 process disappeared before this benchmark launch. A1 neither
+signaled it nor took over cutover. Read-only01:54:07->01:54:32UTC then proves
+one unchanged running healthy1565 task8b3fbd1a41074bcea4036e10c6bc8376,
+image23faea715b161b2aa3795f5514941356f1057f4ee719515120d44fd5ae8bf2b3,
+same organismidentity, ticks2729819->2729889, checkpoint/cleanupnull and
+durabilityfalse. Clock-stalledALARM persists; other4alarmsOK. CPU/memory
+samples still overlap the external cutover window, so no steady1565 resource
+or cognitive-health claim. G1 release was not audited by this numerical task.
+
+Closed: corrected22.2->22.3ms local continuation, at the stated evidence level.
+Next: continue from retained corrected22.3ms OWN pair toward prior58.2ms failure;
+never overwrite a lane from its partner or replay the qualified origin. Preserve
+each actual remaining supply and cumulative work (they have distinct floating
+roundoff histories; do not silently recompute one common starting budget).
+Future local timing refinement may retry only the same own predecessors; a
+state/force discrepancy stops and retains its first failure. Existing adaptive
+trial meshes and all global sensory/error gates remain authority. No new
+physics/effector/cognition or threshold change. Goal ACTIVE; body remains
+compiled-unmounted/unqualified, all broader gates retained unchanged.
