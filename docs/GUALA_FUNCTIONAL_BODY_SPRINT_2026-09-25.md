@@ -14586,3 +14586,148 @@ only a proved unchanged prefix and resume at its first affected saved interval,
 not genesis. The known365.1ms palm specific-force discrepancy, full500ms dense
 coverage, intrinsic contact/gravity, production cost, integration, restart
 and live qualification remain open. Goal stays ACTIVE; body compiled-unmounted.
+
+### FB-01aj guarded independent-history continuation contract
+
+Previous goal turn is PROGRESS: b518357c8 source and local event proof pushed.
+Continue FB-01aj, with the local event seam closed. No L0-L4/cognitive source,
+body force law, numerical tolerance or production authority changes here.
+
+Retained event inventory: coarse12.5us has75 changed-domain rows, fine6.25us
+initial receipt27; the only multiple joint changes before20ms are the initial
+shared release. First later multijoint sampled change is32/34 at20.0609375ms.
+Execute the current compiled guard over all retained pre20ms changed rows,
+verify their sampled chronology and absence of contact before inferring zero
+contact impulse, reconstruct coarse accumulated work/supply from its exact
+accepted pair order, and authenticate both own20ms raw predecessors against
+the corrected local receipt. Reuse that passed20.1ms successor and its physical
+work/impulse, rather than rerunning the interval. Shared prefix plus corrected
+suffix must pass unchanged event/state/sensory/work/impulse comparison.
+
+Then resume both independent histories from20.1ms toward500ms. Each100us common
+observation uses actual native admission; matching-path timing disagreements
+receive bounded dyadic local refinement; state or event-order disagreement
+stops and preserves the first failure. Separate raw states and incrementally
+debited supplies are never synchronized or normalized. Retain every accepted
+common endpoint/work/impulse/event path and all refined-pair evidence; discard
+only scratch of unrefined, accepted local trials after their common successor
+is captured. The original effort release at250ms remains an external mechanical
+test input, not a scripted organism action, and publishes the pair only after
+both independently executed command checks succeed.
+
+Driver /tmp/a1-body-guarded-history-20260928.py reuses the existing no-build
+history wrapper,50numericalCPU/30000primitives,2coreaffinity/1GiB child address
+space,60CPU/90wall envelope and read-only AWS before/after. Resource stops
+retain the last accepted pair and actual refused scratch; continuation reads
+only that pair, never a partial trial. Current native binary9dc81f85... reused.
+Full old dense-prefix coverage, intrinsic contact-couple/gravity qualification
+and production integration remain unproved even if this continuation succeeds.
+One frozen source-only review precedes execution. Source remains unmounted.
+
+Inspection correction: two guessed /tmp independent-history names did not exist;
+no execution used them. Subsequent lookup uses source paths authenticated inside
+the receipts and rg --files, not guessed filenames. Pre-freeze review of the
+driver caught imported definitions overwriting the parent map; an explicit
+local copy preserves the3 intended receipts before imports.
+
+Frozen source-only review found one LOCALIZED translation mismatch: JSON
+archives carry nested lists while native plain_domain returns nested tuples.
+Canonicalize both sides at restore, pair comparison and corrected-path joins;
+retain exact values and all7domain components. No architecture finding,
+physics execution, build or test preceded this correction. One final review
+of the corrected frozen driver follows; body source/binary remain unchanged.
+
+### FB-01aj archived prefix comparison exposes earlier timing-only gaps
+
+Frozen1f1cde2a... drivera3105a3e... passed the localized final review. Run
+00:15:04--00:15:08UTC captured receipt FB-01aj-guarded-independent-history.json
+SHAde432af48e7196bf8d54fa0f8e2f13c95579272483c506f537eb0f0c53d51b7a.
+Both19-row pre20ms event sets pass the new guard. Reconstructed physical states,
+cumulative work and sensory return agree at20.1ms; all28events are in the same
+order. However3 old paired brackets exceed1us: events5/8 around0.719/0.744ms,
+and event18 around19.507ms. Width1.00773277231us, not accepted as rounding noise.
+The19.507ms event is a native constraint-state change, not a joint-angle limit;
+do not substitute a joint cubic root for that solver boundary.
+
+Zero new physical primitives/force calls,0.555940933numericalCPU seconds.
+Child15862exit0/no survivors,275844KiBpeakRSS. Live1563 unchanged,
+ticks2716387->2716396, errorsnull, durabilityfalse, prior clockalarmALARM.
+This disproves the assumption that guard compatibility alone qualifies the old
+prefix's paired timing. The corrected20.1ms states remain valid LOCAL witnesses
+but cannot seed whole-history qualification until the earlier gaps are resolved.
+
+Next driver /tmp/a1-body-guarded-prefix-continuation-20260928.py derives the
+earliest failed bracket from the saved receipt and selects the latest retained
+common predecessor before it (~0.7ms). Reconstruct only that prefix and compare
+it under all unchanged limits before advancing. The existing reviewed paired
+continuation then resolves all later boundaries through actual native steps,
+including constraint-state changes; no event-threshold relaxation or inferred
+solver state. Old20.1ms states are explicitly NOT reused because earlier
+refinement changes downstream trajectories. No genesis replay, rebuild,
+body-law change, new budget or production write. Resume and failure-capture
+contract remains unchanged; source-only review covers only this input change.
+
+### FB-01aj guarded prefix accepted and advanced to12.4ms
+
+Final input-change review passed9702c0c4... / drivera8bdf4cc... before execution.
+Receipt FB-01aj-guarded-independent-history-prefix-continuation.json SHA
+1a7a3000db3569df0c0e23455f9ea07157d4bb5738f7ae383ea589c81210a00c.
+Authenticated restart0.0006999999999999998s passes full paired comparison;
+117new common observations pass through0.012399999999999942s. One interval
+required automatic paired timing refinement. No physical/sensory/event-order
+failure. Intrinsic couple still UNQUALIFIED because no such contact yet.
+50CPU budget stops the next interval with native rollback_exact=True and both
+last accepted states/supplies intact.9535primitives/184183forwards,
+50.003445298numericalCPU,275616KiBpeakRSS; child17625exit0/no survivors.
+Live1563 unchanged, ticks2716882->2717003, errorsnull/durabilityfalse;
+prior clockalarm stillALARM. No code rebuild or production writes.
+
+Continue this SAME reviewed driver via its reviewed --resume branch with the
+exact new receipt/hash. Re-freeze for added evidence/ledger only; proof source
+and all native source/binary hashes remain unchanged. The old fingerprint check
+correctly detected newly added receipt bytes, not a changed physical candidate.
+Do not restart from0.7ms or rerun initial controls. Existing50CPU ceiling and
+own-state/resource-stop protocol are unchanged.
+
+### FB-01aj same-driver continuations through30.7ms — 2026-09-28 00:24Z
+
+No source, ABI, force, tolerance or budget changes. Reviewed resume branch
+advanced the saved12.4ms pair; it did NOT replay the accepted prefix.
+
+- Receipt FB-01aj-guarded-independent-history-1a7a3000db35.json SHA
+  c5ecbcf43aeb3009a26107f2cbb43a792686905edf30eedb569f4ea05246e9f4:
+ 98accepted observations through22.2ms,2paired timing refinements;
+ 9457primitives/184924forwards,50.007964626numericalCPU seconds;
+ child18596exit0/no survivors,188764KiBpeakRSS.
+- Receipt FB-01aj-guarded-independent-history-c5ecbcf43aeb.json SHA
+ 36fca2fb4010136d5721976bf9f41ada169c9e95bb32ece644eb5269a99d2332:
+ 85accepted observations through30.69999999999983ms,3paired timing refinements;
+ 8024primitives/181105forwards,50.010742569numericalCPU seconds;
+ child19554exit0/no survivors,192028KiBpeakRSS.
+
+Both stopped for the declared50CPU budget with exact native interval rollback,
+not a physical/sensory/event-order failure.300new common observations total
+from the proved0.7ms prefix. Retained contact force/couple, contact impulse,
+proprioception/inertial and all other exercised comparisons PASS. Intrinsic
+contact-couple IMPULSE remains UNQUALIFIED, not inferred from local couple
+observations. Former20.063ms event-alias and28.5ms mismatch boundary are passed
+on the new independently evolved paths. Source raw-state/energy custody stays
+separate; no state synchronization, body-force edits or cognitive rules.
+
+Pre/post live1563 task/image/identity unchanged across both runs;
+ticks2717188->2717317 and2717398->2717522; checkpoint/cleanupnull,
+durabilityfalse, clock-stalledALARM remainsopen. Final process census has no
+body proof survivors; G1pytest19901 (main tree, conversational/high-chair/
+caretaker/home-world tests) is a separate active process, left untouched.
+
+The NEXT execution is the same driver
+/tmp/a1-body-guarded-prefix-continuation-20260928.py
+SHAa8bdf4ccc35c2c31d74e9a3364e8cd609a243595ec3af12c2a9bac1223e408af
+with --resume FB-01aj-guarded-independent-history-c5ecbcf43aeb.json
+36fca2fb4010136d5721976bf9f41ada169c9e95bb32ece644eb5269a99d2332.
+Re-freeze evidence-only additions; do not rebuild/review unchanged mechanics,
+restart from0.7/20ms, or run broad suites. All executable source/ABI hashes are
+checked by the existing wrapper. Original365.1ms sensory discrepancy has not
+yet been reached. Full500ms coverage, missing old dense prefix comparisons,
+intrinsic-couple/gravity, production-speed qualification, body/world mounting,
+restart and live delivery remain OPEN. Goal ACTIVE; compiled-unmounted.
