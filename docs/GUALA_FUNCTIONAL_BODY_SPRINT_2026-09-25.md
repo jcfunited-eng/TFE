@@ -15705,3 +15705,108 @@ Operational correction: commit was attempted while the owned git-add session
 that exact session(exit0), verified the lock absent, and only then retried.
 No lock deletion, reset or data loss. For yielded Git commands, await the
 recorded session's terminal result before issuing another index mutation.
+
+### FB-01aj 500ms continuation contract — 2026-09-28
+
+Previous turn PROGRESS(commit7a1ba6f30). Active item remains FB-01aj; the
+archived zero-gravity58.2ms prefix is closed by receiptb9b9683f23a8..., not
+reopened or replayed. Next observer /tmp/a1-body-coupled-full-history-20260928.py
+SHAa52a078b5b9279f94c4108c086df3737b0abe3325ba4bc19bbce69215d7937a9
+differs from reviewed dc7496ac80fd... only in its declared500ms target, receipt
+schema/names, and authenticated seed reader. The reader requires the completed
+58.2ms predecessor, exact last paired endpoint, full restore controls, complete
+evidence and exact rollback; each lane retains its own full state/observation,
+work, impulses and actual supply. It never normalizes one lane to the other.
+
+Native v8 source/ABI, physical laws, event chronology, all acceptance limits,
+100us sampling, independent refinements and budget bounds are unchanged.
+Per run35CPU/100000forwards/10000trials under the same offline child wrapper,
+read-only AWS pre/post health and exact process cleanup. Resource-only resume
+uses the last passed pair; physical failure stops at its first cause with
+all operands. No cognition/kernel/G1 source or production edits. Body remains
+compiled-unmounted/full-body UNQUALIFIED; this does not assert500ms accuracy,
+load/gravity validity, intrinsic-couple error closure or serving performance.
+Source-only review covers this bounded observer delta before execution; no
+new build or review of already-closed native force/event mechanisms is needed.
+
+Frozen source review found one LOCALIZED protocol gap before execution:
+candidate a52a078b... extended a pre250ms-only observer without the original
+external effort release at250ms. It was NOT executed or accepted as500ms
+evidence. Corrected in one batch, using the already-established load/release
+protocol rather than inventing a constant-load replacement. Current observer
+SHAb8cc885622b59801574402692fcd2d9e754bc5540a06dd6de32ffad373721a70.
+
+The common sample lands exactly at250ms. The test removes only its declared
+motor input in each own restored state, evaluates native forces and full
+observations at zero elapsed time, proves no work/supply/impulse change, and
+publishes the released pair only after both full comparisons pass. Incoming
+and released native domains remain separately recorded; no invented event
+identity bridges the changed external command. Subsequent sampling goes to
+500ms. Failed release scratch never replaces retained histories. Resource-only
+resume validates the completed release receipt when present and checks actual
+restored control vectors against the appropriate archived load/zero-input
+phase. A stop at250ms before release resumes that pending external input; a
+stop after release does not apply it twice. This metadata belongs only to the
+diagnostic, never cognition or body policy. All prior native/accuracy/budget
+bounds and own-state restore controls stay unchanged. Final frozen review of
+this localized correction precedes the same bounded no-build execution.
+
+### FB-01aj loaded boundary and released-state continuation — 2026-09-28
+
+Outcome PROGRESS. Final frozen reviewe16732015c7bf40968116a7c2dd30dca58b7fd8cd19eec31cfc5c3b027952662
+passed the localized protocol correction. Observerb8cc885622b59801574402692fcd2d9e754bc5540a06dd6de32ffad373721a70
+was executed without a native rebuild or accuracy/law change. The rejected
+pre-release-only drafta52a078b... was never executed. It would have changed the
+test input and is not equivalent to this original250ms-load/250ms-release proof.
+
+The authenticated27-receipt chain begins
+FB-01aj-coupled-reaction-full-history.json(SHA2e5611b1b8b50442dab4dc9165adddf779ae65c669e0127bccc463c699f9c1fc)
+at58.2ms and ends
+FB-01aj-coupled-reaction-full-history-a1eb13924084.json
+(SHAedbabfb09d79ff9c9353ccbc4e139372b8577f1ffffe34123a2a3d9c21fd5149)
+at257.59999999999916ms. Every receipt authenticates its immediate predecessor.
+Independent states, supplies and cumulative work/impulses remain separate;
+there was no genesis/prefix replay, state synchronization or normalization.
+All1995 new sampled pairs and the zero-time release pair pass the unchanged
+defined state/work/force-impulse/event/sensory checks. First_failure staysnull;
+all stops were the preset forward budget, with exact scratch rollback. This
+is sampled numerical agreement, NOT a global continuum enclosure.
+
+Decisive release receipt:
+FB-01aj-coupled-reaction-full-history-fff682f9da62.json
+SHAa1eb139240846db2aa4f213624fe3151e318f965eaa7be9cd9d2dcc089f71114.
+Both own histories land exactly at.25s; the external bench motor input changes
+-28.627763055836986Nm->0. Native force closure and full observations pass,
+time/work/supply/impulses do not advance, and only then is the released pair
+published. The next child independently restores both released250.5ms states,
+verifies full observation and actual zero-control phase, does not reapply the
+release, and advances to257.6ms. Final distinct supplies are
+4660.449412719162/4660.44941279407J. Release is an external mechanical test
+input, not an authored body decision or motor behavior policy.
+
+Measured test costs:640.630494numericalCPU,2700027native forwards(including
+one cleanup call per capped run),149309trial attempts; peak childRSS235812KiB.
+The27 compressed evidence receipts total66747009bytes. This heavily
+instrumented pair/refinement/restore proof is NOT a live-clock speed pass.
+All27 owned children exited0, had no group survivors, and were absent when
+the complete chain was checked. G1 master-suitePID3490 ran during part of this
+accuracy diagnostic and later finished; no G1 process was signaled. Shared-host
+timing is disclosed and must not be relabeled isolated production performance.
+
+Read-only health envelope03:30:39->03:50:12UTC retains sole ECS1566/task
+e53d1bbc14694ddab790d925a106e88e, image9dd83020bb81abe05e0ae38e8d548adc190c197a23da4effaff4e9227c9bcd90,
+same identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1, ticks2739783->2741649,
+custody errorsnull/durabilityfalse. Clock-stalledALARM persists; no cadence or
+cognition acceptance is implied. No production or G1 source edits occurred.
+
+Next exact item remains FB-01aj: resume this same reviewed observer from
+receipt edbabfb09d79... toward500ms using its unchanged --resume branch.
+No new architecture review, build, effort-release replay or prefix replay is
+needed for this resource-only continuation. Freeze the current tree and pass
+its fingerprint plus the observer SHA, then --resume with the exact last
+receipt name/SHA above. Read and check its complete evidence/rollback/last
+paired endpoint first, retain actual own supplies, and stop on the first
+physical discrepancy. The500ms endpoint, old dense-prefix coverage, gravity/
+load breadth, intrinsic contact-couple ceiling, serving cost, integration,
+durability/restart and live gates remain open. Body stays compiled-unmounted
+and full-body UNQUALIFIED. Goal ACTIVE; no user input is required.
