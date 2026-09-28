@@ -12,9 +12,9 @@ import time
 import mujoco as mj
 import numpy as np
 import guala_body_interval as interval
-from libc.math cimport fabs, isfinite, pow, sqrt, tan
+from libc.math cimport fabs, frexp, isfinite, ldexp, pow, sqrt, tan
 
-RADAU_LAW = "radau-iia3-secant-solved-domain-v8-coupled-reactions"
+RADAU_LAW = "radau-iia3-secant-solved-domain-v11-scaled-rotation"
 MAX_LINE = 16
 MAX_SECANT = 32
 STAGE_COUNT = 3
@@ -84,6 +84,36 @@ cdef double norm_inf(double[::1] a) except *:
             peak = fabs(a[i])
     return peak
 
+
+
+def _integrate_local_rotation(quaternion, rotation_scratch):
+    """Apply a local rotation vector without the native small-vector axis reset.
+
+    The three-component rotation_scratch is caller-owned temporary storage:
+    power-of-two rescaling overwrites it, never the retained chart variables.
+    Its scaled maximum lies in [0.5, 1), keeping native normalization away
+    from mjMINVAL and avoiding squared-norm underflow. Multiplication by the
+    reciprocal power of two restores the angle; no physical threshold changes.
+    """
+    cdef double[::1] v = rotation_scratch
+    cdef double peak = 0., scale = 1.
+    cdef int exponent = 0
+    cdef Py_ssize_t j
+    if v.shape[0] != 3:
+        raise ValueError("rotation scratch must have three components")
+    for j in range(3):
+        if not isfinite(v[j]):
+            raise ValueError("nonfinite local rotation")
+        if fabs(v[j]) > peak:
+            peak = fabs(v[j])
+    if math.hypot(v[0], v[1], v[2]) >= math.pi:
+        raise ValueError("local rotation chart exceeded")
+    if peak > 0.:
+        frexp(peak, &exponent)
+        scale = ldexp(1., exponent)
+        for j in range(3):
+            v[j] = ldexp(v[j], -exponent)
+    mj.mju_quatIntegrate(quaternion, rotation_scratch, scale)
 
 
 cdef class _Stages:
@@ -181,7 +211,7 @@ cdef class _Stages:
                 for k in range(3):
                     total += self.tableau[i,k]*values[k*n+j]
                 self.q[j+1] += self.dt*total
-            mj.mju_quatIntegrate(self.q_array[3:7], self.sigma_array, 1.)
+            _integrate_local_rotation(self.q_array[3:7], self.sigma_array)
             for j in range(n):
                 self.v[j] = values[i*n+j]
             stage_time = self.t0+self.nodes[i]*self.dt

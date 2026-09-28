@@ -16841,3 +16841,117 @@ force a contact, presume monotonicity, or replay the full500ms history. The
 body remains reduced mechanical approximation, unmounted and UNQUALIFIED.
 G1 coordination remains through the shared ledger; its current cognitive
 replacement/interface reservation is independent and still unresolved there.
+
+### FB-01aj upstream rotation defect and bounded correction contract — 2026-09-28
+
+Four-pose static check completed: exact Fraction evaluation of the existing
+line/face predicate from identical binary64 geometry has the same admission
+sign as native in all four poses (false,true,false,false). Float replay exactly
+matches native depths; arithmetic error is below9.1e-18m. Therefore changing
+this native depth sign is not justified by the saved recurrence. This does not
+certify upstream geometry or the physical continuum. Receipt
+FB-01aj-contact-sign-reference.json SHA65d1a47cde0b2b8fdab88fbe5f39d2468eaa523ab446a376f948a7576d9160af;
+7forwards,0integrationtrials,.127994CPU seconds, exact rollback. Owned child51011
+exited0/no survivors. Live custody unchanged; clock-stalledALARM remains.
+
+Source inspection found a concrete upstream numerical API misuse. Radau feeds
+the angular increment sigma to mju_quatIntegrate with scale1. That native API
+calls mju_normalize3: norm<1e-15 replaces the axis with positive x but still
+returns the nonzero norm. Thus a small negative-x/y/z increment can rotate
+about positive x. This is not a biological/control rule or geometric law.
+The captured6.7fs trial makes this seam relevant, but source inspection alone
+does not prove it is the sole cause of that trajectory's remaining error.
+
+Bounded implementation owner A1, file native/functional_body/radau.pyx only.
+Input: actual finite local rotation vector and current quaternion; chartnorm<pi
+unchanged. Output: same quaternion exponential with the vector's own direction.
+Use frexp of the largest absolute component to derive a power-of-two scale;
+ldexp the three temporary components so their maximum is in[0.5,1), call the
+same native quaternion operation with reciprocal angle scale. No authored
+small-angle threshold, axis, saturation, force, timestep or tolerance is added.
+The zero vector remains zero. No new retained state/allocation: existing
+sigma_array is temporary scratch, rebuilt from retained collocation variables
+at every stage. Existing native quaternion normalization and multiplication
+remain authoritative; constraint solver, work/supply, impulses and state
+rollback/cold restoration are unchanged. New law label v11-scaled-rotation.
+Scratch length and all finite/chart checks precede quaternion mutation;
+ordinary Radau transaction still restores the exact predecessor on failure.
+Three-component work is bounded independently of anatomy/history. There is no
+new cognition/DSF/operator mapping, world authority or runtime mount.
+
+Candidate source SHAa9a871bd7af5d26c7f5e9fa8290b100d35e6307e3007946f1c32c492b03458e2.
+Proof /tmp/a1-body-scaled-rotation-proof-20260928.py,
+SHAf46784ba37a452c72be786489b36ff698a5f3aac3e2ba56c2a323cb50b57bb05,
+is source-only pending review. It first reproduces wrong-axis native behavior
+with zero and signed coordinate-axis increments, checks corrected angle/axis,
+checks two ordinary rotation controls and two saved no-contact motion controls,
+then uses only the saved6.7fs failure predecessor for coarse/fine and cold
+repeat. Existing state/work/impulse/event criteria remain unchanged; stop at
+the first failure within5CPU/1000forwards/12trial calls. One isolated Cython
+build, no full native rebuild, installation or preceding motion replay.
+
+Operational correction: a broad text search across encoded evidence produced
+an oversized output and completed; a guessed build filename also did not exist.
+Neither changed state or left a process. Do not repeat either pattern: use
+the named receipt's decoded fields and `rg --files` for path discovery; never
+search arbitrary byte patterns across encoded payloads. Actual builder is
+native/functional_body/build.py, not a guessed build_radau.py.
+
+Final localized review corrections before compile: proof restore and cold
+construction expectations are now attached before execution, with guarded
+actual-state capture on failure. The prior allocation wording is corrected:
+there is no new retained state or numerical array; the Python-callable helper,
+memoryview and math.hypot introduce bounded temporary/call overhead. No
+zero-allocation or zero-cost claim is made. Executable rotation scaling/source
+is unchanged by this batch. Final frozen review is required before the single
+build/proof execution.
+
+### FB-01aj scaled-rotation execution — 2026-09-28 14:55Z
+
+Final independent source review PASS on frozen fingerprint
+34e0cdfbb5ee03c71e15aafdacdde4ae977bec358500b15769340aa42a9d856b and diagnostic
+SHA679e78c81323d2a5bdae8e5e9b1519ce44368d0d47d81f47a03c23419f500e9a.
+One isolated Cython build produced ABI
+82aa1e0e9be3641ed5e1eb457e6097f9a40521f672c38c5eb54ab8df87bd55ad at
+/tmp/guala-body-scaled-rotation.y8Il0MXr/python/guala_body_radau.cpython-311-x86_64-linux-gnu.so.
+No full force-library rebuild, installation, runtime mount or live write.
+
+The native API wrong-axis defect was reproduced in five signed-axis cases;
+all seven zero/tiny-axis checks passed the correction exactly. Both ordinary
+rotation controls remained bit-identical, and both saved no-contact motion
+controls retained exact state/work. These close the isolated axis-direction
+defect, NOT whole-body contact-motion qualification.
+
+The same saved6.7fs own-predecessor trial still failed with
+`saved sampled contact recrossing persists`. Incoming contact count1 became
+2,2,1 at the three actual stages (previously2,1,1); endpoint count1. The
+rotation correction therefore changes this trajectory, but does not eliminate
+the remaining contact reversal. Fine comparison and cold repeat were not
+reached. No acceptance relaxation, root/collision forcing or repeated run was
+performed. The complete actual states/stages and first failure are retained.
+The next causal question is in the already-saved stage geometry/transforms,
+not another native predicate sign patch or longer full-history replay.
+
+Receipt docs/evidence/FB-01aj-scaled-rotation-proof.json,
+SHA2dd0360f313d7d6314d31e5110ee6408ecaff1245d35aa84d023e800457539cb,
+records measurement=true, diagnostic_completed=false, exact rollback,
+evidence_complete=true. Three motion trials,51forwards,.203980747 numericalCPU
+seconds. Build58135 exited0/no survivors:34.8200wall/34.7312treeCPU seconds.
+Proof58369 exited0/no survivors:.8558wall/.8515treeCPU seconds,173716KiB peak
+childRSS. Runner exit1 truthfully signals failed qualification. Do not rebuild
+this ABI to reread or analyze its failure.
+
+Read-only production14:54:41->14:55:20UTC: sole ECS1568, same image/identity,
+ticks2818133->2818213, persisted2818098->2818194, custodyerrorsnull. Existing
+clock-stalledALARM persists; other4alarmsOK. CPUavg51.2712%,max52.0074%;
+RAM3.0884%. This is continuity evidence, not cognitive compliance or overall
+health approval. Initial process census showed low-CPU G1 searches, no heavy
+build overlap; exact owned groups had no survivors on completion.
+
+Current status: source/compiled-unmounted correction; isolated algebraic proof
+passed, full contact-motion acceptance failed. Body goal remains ACTIVE and
+UNQUALIFIED. Shared ledger updated for G1; its cognitive replacement remains
+separate and no interface agreement is invented. Diagnostic result inspection
+first printed overly verbose domain arrays; corrected to contact counts only.
+Future receipt inspection must select bounded scalar summaries, not complete
+domain/state arrays or encoded payload text.

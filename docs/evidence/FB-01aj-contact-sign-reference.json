@@ -1,0 +1,189 @@
+{
+  "candidate_fingerprint": "378d77bf253d19c86f6c675c451684818d613eddbb346763cb8d0d0b3f85ce26",
+  "child_output_when_no_measurement": null,
+  "child_resources": {
+    "cpu_seconds": 0.708379,
+    "maxrss_kib": 145164
+  },
+  "diagnostic_completed": true,
+  "diagnostic_source": "\"\"\"Exact arithmetic reference for the saved interior box-contact reversal.\n\nStatic diagnostic only. Fractions evaluate one existing line/face predicate\nfrom identical binary64 geometry inputs; they are not integrated body state.\n\"\"\"\nfrom pathlib import Path\nimport hashlib\nimport json\nimport sys\n\nBASE = Path('/tmp/a1-body-static-contact-map-20260928.py')\nb = BASE.read_bytes()\nif hashlib.sha256(b).hexdigest() != 'fbee143355535061202840bb29a231d7419e42e6933cd27168b8f80e78a13617':\n    raise RuntimeError('operational definitions changed')\nexec(compile(b.decode().split(\"\\nif __name__=='__main__':\", 1)[0], '<static envelope>', 'exec'), globals())\nHERE = Path(__file__).resolve()\nSCHEMA_OUT = 'guala.functional-body.contact-sign-reference.v1'\nTARGET_NAME = 'FB-01aj-contact-sign-reference.json'\nPARENTS = {'FB-01aj-signed-own-motion.json': 'b690be5c2597bf377596e9434b0b574b90691bd81f18fc933f12a5ee9d396165'}\nBUILD = Path('/tmp/guala-body-shared-guard.KlKarMWT')\nREADOUT_SHA = '5a9c1f5a64e01e2791b8ed74b1ddc0c70717767e2cc05453bccb7e9abd8b688d'\nCOLLISION = BUILD/'source/src/engine/engine_collision_box.c'\nCOLLISION_SHA = '18a42e86da2d6208f3ab3d0b1f4c6c4ef18b9b9078f0776abf00a8c4ca9bae0f'\n\n\ndef check_reference():\n    require(hashlib.sha256((BUILD/'readout.so').read_bytes()).hexdigest() == READOUT_SHA, 'readout changed')\n    require(hashlib.sha256(COLLISION.read_bytes()).hexdigest() == COLLISION_SHA, 'native predicate source changed')\n\n\ndef face_line_reference(inputs, branch, identity, exact):\n    \"\"\"Replay the existing face line intersection, not SAT/feature selection.\n\nNative feature identity is supplied by the measured shared implementation.\nThe independent reference checks its corner/axis/line eligibility unchanged.\n\"\"\"\n    from fractions import Fraction\n    convert = Fraction.from_float if exact else float\n    p1, p2, z1, z2 = [[convert(float(x)) for x in inputs[k]] for k in ('pos1', 'pos2', 'size1', 'size2')]\n    a, b = [[[convert(float(x)) for x in row] for row in inputs[k]] for k in ('mat1', 'mat2')]\n    require(0 <= branch[0] < 12 and identity[0:2] == (1, 1), 'reference covers native face line feature only')\n    q1, q2 = branch[0] % 6, branch[0] // 6\n    # Signed coordinate permutations from the native face chart, not semantics.\n    axes = ((2, 1, 0), (0, 2, 1), (0, 1, 2), (2, 1, 0), (0, 2, 1), (0, 1, 2))[q1]\n    signs = ((-1, 1, 1), (1, -1, 1), (1, 1, 1), (1, 1, -1), (1, 1, -1), (-1, 1, -1))[q1]\n    def dot3(x, y):\n        return x[0]*y[0]+x[1]*y[1]+x[2]*y[2]\n    rot = [[dot3([a[k][i] for k in range(3)], [b[k][j] for k in range(3)]) for j in range(3)] for i in range(3)]\n    basis = b if q2 else a\n    diff = [p1[i]-p2[i] if q2 else p2[i]-p1[i] for i in range(3)]\n    relative = [dot3([basis[k][i] for k in range(3)], diff) for i in range(3)]\n    # q2 uses rotmore * transpose(rot); q1 only rotates rows of rot.\n    source = list(map(list, zip(*rot))) if q2 else rot\n    r = [[source[axes[i]][j]*signs[i] for j in range(3)] for i in range(3)]\n    p = [relative[axes[i]]*signs[i] for i in range(3)]\n    size = z2 if q2 else z1\n    ss = [abs(size[axes[i]]*signs[i]) for i in range(3)]\n    s = z1 if q2 else z2\n    p[2] -= ss[2]\n    corner = sum(1 << i for i in range(3) if r[2][i] < 0)\n    chosen = [i for i in range(3) if abs(r[2][i]) < convert(.5)]\n    require(corner == branch[1] and sum(1 << i for i in chosen) == branch[2] and len(chosen) == 2,\n            'exact/reference face-generating branch changed')\n    lp = p.copy()\n    for i in range(3):\n        factor = s[i]*(1 if corner & (1 << i) else -1)\n        for j in range(3):\n            lp[j] += r[j][i]*factor\n    vec = [[r[j][i]*(s[i]*(-2 if corner & (1 << i) else 2)) for j in range(3)] for i in chosen]\n    lines = [(lp, vec[0]), (lp, vec[1]),\n        ([lp[j]+vec[0][j] for j in range(3)], vec[1]),\n        ([lp[j]+vec[1][j] for j in range(3)], vec[0])]\n    _, _, line, axis, side = identity\n    require(0 <= line < len(lines) and axis in (0, 1) and side in (-1, 1), 'invalid native line identity')\n    origin, direction = lines[line]\n    require(direction[axis] != 0, 'zero line denominator')\n    parameter = (ss[axis]*side-origin[axis])*(1/direction[axis])\n    other = origin[1-axis]+direction[1-axis]*parameter\n    require(0 <= parameter <= 1 and abs(other) <= ss[1-axis], 'line clipping eligibility changed')\n    depth = origin[2]+direction[2]*parameter\n    output = dict(depth=float(depth), parameter=float(parameter), other_coordinate=float(other),\n        corner=corner, axes=chosen, origin=[float(x) for x in origin], direction=[float(x) for x in direction])\n    if exact:\n        values = [depth, parameter, other, *lp, *p, *ss, *s, *relative, *origin, *direction,\n                  *(x for row in r+rot for x in row)]\n        output.update(numerator=str(depth.numerator), denominator=str(depth.denominator),\n            sign=(depth > 0)-(depth < 0), max_component_bits=max(max(x.numerator.bit_length(), x.denominator.bit_length()) for x in values))\n    return output\n\n\ndef diagnostic():\n    import ctypes\n    from fractions import Fraction\n    sources = dict(PARENTS)\n    data = ACCEPTED.read_bytes()\n    require(hashlib.sha256(data).hexdigest() == ACCEPTED_SHA, 'observation definitions changed')\n    exec(compile(data.decode().split('\\nresult=dict(schema=SCHEMA,completed=False', 1)[0], '<observation definitions>', 'exec'), globals())\n    result = dict(schema=SCHEMA_OUT, completed=False, failure=None, first_failure=None,\n        attempts=0, calls=0, poses=[], evidence_complete=True, rollback_exact=False,\n        mounted=False, full_body_qualification=False,\n        limits=dict(cpu_seconds=5., forwards=8, poses=4, integration_trials=0),\n        scope='exact predicate arithmetic on four saved poses, not exact kinematics or a new force law')\n    native = mj.mj_forward\n    calls = 0\n    c = None\n    entry = entry_dt = None\n\n    def forward(m, d):\n        nonlocal calls\n        require(calls < 7 and time.process_time()-started < 5., 'static reference budget exhausted')\n        calls += 1\n        native(m, d)\n        require(not d.warning.number.any(), 'native warning')\n        interval._finite(d.qacc)\n\n    def capture(row):\n        if c is None:\n            return\n        try:\n            row['actual'] = failed_state(c)\n        except Exception as error:\n            row['capture_error'] = repr(error)\n            result['evidence_complete'] = False\n\n    class Guard(ctypes.Structure):\n        _fields_ = [('kind', ctypes.c_int), ('feature', ctypes.c_int*4), ('depth', ctypes.c_double), ('separation_squared', ctypes.c_double)]\n    class Guards(ctypes.Structure):\n        _fields_ = [('branch', ctypes.c_int*11), ('count', ctypes.c_int), ('overflow', ctypes.c_int),\n                    ('margin', ctypes.c_double), ('margin_squared', ctypes.c_double), ('guard', Guard*50)]\n    class Proof(ctypes.Structure):\n        _fields_ = [('guards', Guards), ('counts', ctypes.c_int*3), ('same_null', ctypes.c_int),\n                    ('same_baseline', ctypes.c_int), ('contacts', ((ctypes.c_double*13)*50)*3)]\n\n    try:\n        check_reference()\n        name, sha = next(iter(sources.items()))\n        raw = Path('docs/evidence', name).read_bytes()\n        require(hashlib.sha256(raw).hexdigest() == sha, 'parent changed')\n        parent = json.loads(raw)\n        require(parent['measurement_recorded'] and not parent['diagnostic_completed'] and\n                parent['execution']['exit_code'] == 0 and not parent['execution']['survivors'], 'wrong failure receipt')\n        p = parent['raw_measurement']\n        raw = zlib.decompress(base64.b64decode(p['payload_zlib_base64'], validate=True))\n        require(len(raw) == p['raw_bytes'] and hashlib.sha256(raw).hexdigest() == p['raw_sha256'], 'payload changed')\n        parent = json.loads(raw)\n        require(parent['rollback_exact'] and parent['failure']['error'] == 'sampled contact recrossing', 'wrong failed boundary')\n        trial = parent['motion_trials'][-1]\n        root = parent['roots'][-1]\n        pair = tuple(root['initial_guards'][0]['pair'])\n        identity = tuple(int(s) for s in root['identity'].split(','))\n        branch = root['initial_guards'][0]['branch']\n        samples = [('predecessor', trial['predecessor'], root['begin_s'], root['initial_guards'][0]['counts'][0])]\n        for i, s in enumerate(trial['value']['stages']):\n            count = sum(tuple(p) == pair for p in s['domain'][5])\n            samples.append(('stage-'+str(i), s['state'], s['time_s'], count))\n        require(len(samples) == 4, 'wrong sample count')\n        lib = ctypes.CDLL(str(BUILD/'readout.so'))\n        lib.a1_readout_size.restype = ctypes.c_size_t\n        require(lib.a1_readout_size() == ctypes.sizeof(Proof), 'readout ABI differs')\n        original = ctypes.CDLL('/tmp/guala-body-midpoint.igj32n8c/build/lib/libmujoco.so.3.3.7')\n        baseline = ctypes.cast(original.mjc_BoxBox, ctypes.c_void_p)\n        f = lib.a1_readout\n        f.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_double, ctypes.c_void_p, ctypes.POINTER(Proof)]\n        f.restype = ctypes.c_int\n        require(mj.mj_versionString() == '3.3.7+guala.midpoint-step.1', 'native force law differs')\n        mj.mj_forward = forward\n        c = Trajectory(100, archived_controls()[100])\n        entry, entry_dt = primary(c.e), float(c.m.opt.timestep)\n        require(all(c.m.geom_type[g] == mj.mjtGeom.mjGEOM_BOX for g in pair), 'wrong geometry')\n        for label, state, clock, expected_count in samples:\n            row = dict(label=label, expected_state=state, time_s=clock, expected_count=expected_count, completed=False)\n            result['poses'].append(row)\n            try:\n                restore(c, state['float64_le_base64'], clock)\n                require(state['finite'], 'saved state nonfinite')\n                margin = root['initial_guards'][0]['margin']\n                require(margin == 0., 'this diagnostic reference uses zero native margin')\n                output = Proof()\n                code = f(c.m._address, c.d._address, *pair, margin, baseline, ctypes.byref(output))\n                g = output.guards\n                row.update(native_bytes=base64.b64encode(bytes(output)).decode(), branch=list(g.branch),\n                    count=g.count, counts=list(output.counts), overflow=g.overflow,\n                    same_null=output.same_null, same_baseline=output.same_baseline)\n                require(code == 0 and not g.overflow and 0 <= g.count <= 50 and list(g.branch) == branch\n                        and output.same_null == output.same_baseline == 1 and all(n == expected_count for n in output.counts),\n                        'saved native branch/contact output differs')\n                guards = [x for x in g.guard[:g.count] if (x.kind, *x.feature) == identity]\n                require(len(guards) == 1, 'native feature missing or ambiguous')\n                depth = float(guards[0].depth)\n                inputs = dict(pos1=c.d.geom_xpos[pair[0]].tolist(), pos2=c.d.geom_xpos[pair[1]].tolist(),\n                    mat1=c.d.geom_xmat[pair[0]].reshape(3, 3).tolist(), mat2=c.d.geom_xmat[pair[1]].reshape(3, 3).tolist(),\n                    size1=c.m.geom_size[pair[0]].tolist(), size2=c.m.geom_size[pair[1]].tolist())\n                row.update(native_depth=depth, native_kept=depth <= margin, inputs=inputs)\n                row['float_reference'] = face_line_reference(inputs, branch, identity, False)\n                require(row['float_reference']['depth'] == depth, 'arithmetic replay differs from native depth')\n                exact = face_line_reference(inputs, branch, identity, True)\n                row['exact_reference'] = exact\n                exact_depth = Fraction(int(exact['numerator']), int(exact['denominator']))\n                error = Fraction.from_float(depth)-exact_depth\n                row.update(arithmetic_error_m=float(error), sign_disagrees=(depth <= margin) != (exact_depth <= 0),\n                    exact_kept=exact_depth <= 0, completed=True)\n            finally:\n                capture(row)\n        result['native_admission'] = [p['native_kept'] for p in result['poses']]\n        result['exact_admission_from_same_geometry'] = [p['exact_kept'] for p in result['poses']]\n        result['arithmetic_sign_disagreements'] = sum(p['sign_disagrees'] for p in result['poses'])\n        result['completed'] = True\n    except Exception as error:\n        result['failure'] = dict(type=type(error).__name__, error=str(error), traceback=traceback.format_exc(limit=9))\n    finally:\n        capture(result)\n        mj.mj_forward = native\n        if c is not None and entry is not None:\n            try:\n                calls += 1\n                interval._restore(c.e, np.frombuffer(entry, dtype='<f8').copy(), entry_dt)\n                result['rollback_exact'] = primary(c.e) == entry and float(c.m.opt.timestep) == entry_dt\n            except Exception as error:\n                result['rollback_error'] = repr(error)\n                result['evidence_complete'] = False\n        result.update(calls=calls, cpu_seconds=time.process_time()-started)\n        if not (result['rollback_exact'] and result['evidence_complete'] and calls <= 8 and result['cpu_seconds'] < 5.):\n            result['completed'] = False\n    print(json.dumps(encode(result)), flush=True)\n\n\nif __name__ == '__main__':\n    if sys.argv[1:] == ['--child']:\n        diagnostic()\n    else:\n        check_reference()\n        try:\n            run_static_fixture()\n        finally:\n            check_reference()\n",
+  "execution": {
+    "cpu_seconds": 0.8083949999999992,
+    "exit_code": 0,
+    "label": "static-native-contact-map",
+    "owned_pid": 51011,
+    "stderr": "",
+    "stdout_bytes": 13603,
+    "survivors": [],
+    "timed_out": false,
+    "wall_seconds": 0.8216342929954408
+  },
+  "full_body_qualification": false,
+  "health_error": null,
+  "health_issues": [],
+  "measurement_recorded": true,
+  "mounted": false,
+  "operational_error": null,
+  "production_post": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 51.242008636395134,
+        "Maximum": 51.27193230390549,
+        "Timestamp": "2026-09-28T14:35:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 3.08837890625,
+        "Maximum": 3.08837890625,
+        "Timestamp": "2026-09-28T14:35:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2815951,
+      "persisted_tick": 2815922
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1568",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/f61447ffda4b429e9e983657e0ac5ca4",
+          "digests": [
+            "sha256:04da7c73d1466b10c6aec3025beb6d5ef2c05c67bcde7ca90234e65259fb3328"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-28T14:37:21.233023+00:00"
+  },
+  "production_pre": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 51.242008636395134,
+        "Maximum": 51.27193230390549,
+        "Timestamp": "2026-09-28T14:35:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 3.08837890625,
+        "Maximum": 3.08837890625,
+        "Timestamp": "2026-09-28T14:35:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2815943,
+      "persisted_tick": 2815922
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1568",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/f61447ffda4b429e9e983657e0ac5ca4",
+          "digests": [
+            "sha256:04da7c73d1466b10c6aec3025beb6d5ef2c05c67bcde7ca90234e65259fb3328"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-28T14:37:17.761843+00:00"
+  },
+  "production_shaped_interpretation": false,
+  "production_writes": 0,
+  "raw_measurement": {
+    "payload_zlib_base64": "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",
+    "raw_bytes": 164534,
+    "raw_sha256": "e0e7df4c0376ab91c8bfdbb0df6751818df7c21a7fd83639987e7ef8b57d658a"
+  },
+  "resource_limits": {
+    "address_space_bytes_per_process": 1073741824,
+    "affinity_cores": 2,
+    "aggregate_memory_enforced": false,
+    "cpu_seconds_per_process": 60,
+    "wall_seconds_per_group": 90
+  },
+  "schema": "guala.functional-body.contact-sign-reference.v1.receipt",
+  "scope": "STATIC ARCHIVED ANATOMY FIXTURE ONLY; no live body or production-shaped interpretation",
+  "source_sha256": {
+    "/tmp/a1-body-contact-sign-reference-20260928.py": "47a8bbcc76a2998275663ef91d4fefb6ee137554b51c6d1a5792a40460ea6cd4",
+    "/tmp/a1-body-joint-event-guard-proof-20260928.py": "f0736f307b5d07a0418c2f7109721f1c8f83ed121c83e227ed930c3b0678fb46",
+    "/tmp/guala-body-midpoint.igj32n8c/build/lib/libmujoco.so.3.3.7": "de96a1766223905d26b1df0e68ce7bc97608cf2c6238acef8dcf8b344a3fd48f",
+    "/tmp/guala-body-reactions.k3q49che/python/guala_body_radau.cpython-311-x86_64-linux-gnu.so": "02ec28a494bb9a0a5eb79a4bf0ef70118e2a4353566dfd4ee32acbd4bec754da",
+    "/tmp/guala-body-velocity.uw41fxqs/python/guala_body_interval.cpython-311-x86_64-linux-gnu.so": "04c168a94573c7b3282b9f1ea00e5821a00b8126357b8e6eb7f0d38b4b67a4f9",
+    "/workspaces/guala-functional-body/docs/evidence/FB-01aj-signed-own-motion.json": "b690be5c2597bf377596e9434b0b574b90691bd81f18fc933f12a5ee9d396165",
+    "/workspaces/guala-functional-body/native/functional_body/interval.pyx": "5d978491164774fc14b803232f00cdc0f9f98f94c7eeb8b9c9b5accf036f03e6",
+    "/workspaces/guala-functional-body/native/functional_body/radau.pyx": "24cdf70ec8b4f637b1357c5528ade1cd6e1c359736407d77ac9f2717aee675c7"
+  }
+}
