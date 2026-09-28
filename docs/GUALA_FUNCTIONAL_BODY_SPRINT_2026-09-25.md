@@ -16181,3 +16181,197 @@ child, weaken health/accuracy gates or interfere with G1's production custody.
 No missing user approval. Goal ACTIVE; body is still compiled-unmounted and
 full-bodyUNQUALIFIED. Current turn preserves progress and a precise operational
 stop before a new numerical run; this is not full goal completion.
+
+### FB-01aj static-fixture envelope correction — 2026-09-28
+
+Previous goal turn PROGRESS,0877720b4. Current source/parent hashes and clean
+body branch revalidated. ECS still[0,0,0]/1567; no A1 mutation. Reopening ONLY
+the diagnostic envelope's production-availability prerequisite, not mechanical
+physics or any accuracy gate: /tmp/a1-body-finer-history-20260927.py:291 invokes
+require_health(pre) before launching an offline archived-anatomy fixture. The
+child denies network and constructs Trajectory(100,archived_controls()[100]);
+it reads no live body, holds no production mount, and can alter no live state.
+Live service availability cannot change this static native-force calculation.
+The inherited prerequisite is an unnecessary coupling, not a conservation law.
+The user's parallel body/G1 work and skill's required read-only health envelope
+are preserved by recording availability honestly, not by requiring availability.
+
+Replace only the scratch observer's run wrapper with a static-fixture-specific
+wrapper reusing the reviewed bounded child/health/fingerprint helpers. Keep
+pre/post AWS snapshots, source/ABI/parent authentication, socket denial,2cores,
+1GiB addressspace,60CPU/90wall ceiling, exact child census, failed operands and
+rollback. Require the actual diagnostic's stricter15CPU/320forwards/0integrated
+trials limits. Record health failures explicitly and separately from fixture
+measurement completion; production-shaped interpretation remains FALSE even
+when the static fixture succeeds. No change to the already reviewed diagnostic
+function, supplied states, controls, event classification, native force or
+geometry law. No live-copy, mount, release or deployment is authorized.
+
+This supersedes only the previous instruction to wait for one healthy task
+before this STATIC map. It does not authorize bypassing production rehearsal,
+single-writer custody, resource safety, or any physical accuracy gate. Freeze
+and independently review the exact wrapper delta before executing. No new
+body source/build, duplicated runtime authority or broad numerical replay.
+Single exit: retained actual native contact-force map or precise local failure.
+
+### FB-01aj native contact-force discontinuity measured — 2026-09-28 05:30Z
+
+Offline-envelope source reviewPASS at6648469306a7672d3a597ab4df2ea626412655a121e3bcd48ff73f3c60659131;
+observer fbee143355535061202840bb29a231d7419e42e6933cd27168b8f80e78a13617.
+Map ran once:193forwards/0integrationtrials/0.292006546CPU, exact restored
+controls and final rollback, all four controlled contact boundaries completed.
+Receipt FB-01aj-native-contact-boundary-map.json SHA
+b0a13ba41d8361a7152088d14eaac9059f994af3783d4b46204feea1b8de6645.
+Child57303 exited0/no survivors and absent at independent census;0.965303188wall,
+172440KiBpeak. No live production writes, trajectory replay, build or force edit.
+
+At lane0 first1->2 contact switch, fixed qvel54=.12058005999398144rad/s and
+max configuration-coordinate difference2.7755575615628914e-17 yield
+qacc54=-16.772405626700245 versus-925.3641065717158rad/s^2 (jump-908.591700945).
+The newborn contact is at distance-4.236561151562341e-17m with normal7.67794055N;
+the formerly sole contact carried.052572742N. Lane1 independently shows the
+same discontinuity class, qacc54 jump-908.590519739. At2->1 the fixed-state
+jumps are-848.191714634 and-855.632390731rad/s^2. qfrc_constraint[54] itself
+does not jump: this toe acceleration is coupled through the articulated mass
+system, not direct authored toe forcing. Generalized components carry their
+own units; do not reduce this mixed vector to a scalar physical norm.
+
+These are STATIC NATIVE FORCE samples at controlled neighboring poses, not
+integrated trajectories or a continuum event-time enclosure. They prove a
+finite native force/acceleration discontinuity near the saved contact changes,
+not that this is the sole cause of470.4ms timing error. Native box collision
+source2c063b1db7ec047c8b27f2f0a75aa2545d7465783d4aebe0a38e6287831145cf
+filters candidate contact points against margin; the force solve remains
+unchanged. No smoothed force, fabricated contact, or contact-count waiver.
+
+Production05:29:43->05:29:45UTC changed externally to definition1568,
+desired/running/pending=[1,0,0], no listed tasks, observation503; clock-stalled
+ALARM persists. Health is explicitly NOT qualified. The result is only a
+network-denied static anatomical fixture; no production-shaped inference.
+
+### FB-01aj observed-contact event integration candidate contract
+
+The measured jump reopens only integration across GEOMETRIC contact topology
+changes. Closed joint-boundary force handling and native force/geometry laws
+remain unchanged. Proposed files: native/functional_body/radau.pyx plus one
+contact_event_law.pxi, and focused numerical proof. This is an unmounted
+numerical candidate, not a controller, cognitive mechanism or new physical law.
+
+Wrap the existing joint-aligned step. If its chronological native geometric
+contact signature never changes, preserve its exact output. For an observed
+single signature change, restore the SAME initial raw state for each dyadic
+time-search trial. Accept an incoming prefix only when all its sampled contact
+signatures remain incoming; reject sampled recrossing/third signatures. Search
+to adjacent representable clocks under binary64 exponent/mantissa and the
+existing force-call allowance. No supplied contact time or target pose.
+
+Retain that actually integrated incoming prefix and recompute the crossing
+interval from its OWN actual state and remaining supply. A crossing trial
+computed from the original predecessor is never reused as its successor.
+Require the recomputed crossing to produce the expected single signature
+change; refusal, no crossing, or ambiguity explicitly fails/subdivides the
+whole unpublished step. Charge only accepted prefix/bridge work and impulses;
+preserve chronological stages, exact supply and whole-call rollback. No position
+projection, inward-force substitution, frozen contact flags or force retuning.
+
+At adjacent clocks, intermediate Radau stage times can round to one timestamp.
+Retain each stage's integration interval and ordered node index. Only when those
+supports prove distinct chronological nodes may an aliased-time transition use
+the enclosing positive-width integration interval as uncertainty. Same exact
+endpoint observed twice with contradictory domains remains unresolved. Never
+erase, reorder or call an aliased crossing instantaneous; existing1us bracket,
+state/work/impulse/sensory gates remain unchanged. This corrects timestamp
+representation, not the physical force. All contact-boundary certificates must
+cross the existing accepted-piece evidence interface without being dropped.
+
+Known limit: sampled topology is not a signed continuous guard or proof against
+hidden between-sample crossings. Claim only observed native-topology localization,
+not the first continuum event or complete trajectory qualification. First
+falsifier is the saved pair of multiplicity switches and their100us interval,
+with exact accounting, repeat/cold state restore, refusal rollback and aliased-
+clock evidence. No long-history replay until that passes. Independently review
+the complete frozen candidate before compilation; measure actual cost, do not
+promise an improvement. If this candidate fails architecturally, retain evidence
+and return to the accepted source baseline rather than layering fixes.
+
+### FB-01aj contact-event candidate rejected, baseline restored — 2026-09-28 05:55Z
+
+Continues FB-01aj only. G1 owns COG-OSC-02. No cognitive selector, semantic
+lookup, L0-L4, anatomy, native force or production edit. User's architecture
+warning is acknowledged literally: deterministic Python and passing tests are
+not proof of DSF cognition. This mechanical work certifies none of G1's claims.
+
+Source-only review of frozen tree
+dbe93dd3688c032665a91b5a8b44a453f1be9f6cdf8f92f26f1ce3e03c0e75ff found no native
+architectural defect. One localized diagnostic batch canonicalized native
+domain scalars, attached returned/restored operands before fallible checks, and
+restored the temporary forward observer. Final source reviewPASS; proofSHA
+081b0f6627833177511ff1254fc08da65eb9f3c035e843ce529b31e5fbb1cb27.
+
+Operational mistake disclosed: first build used default Python and repeated
+the previously recorded missing-Cython dependency error (see earlier9059
+entry). It stopped before compilation/physics in0.028s; child64784 exited1
+with no survivors. Corrected command now preflights pinned Cython3.1.2 in
+/tmp/guala-body-interval.Hdyavt/build-deps in the SAME command and supplies that
+path explicitly. No reinstall. Scoped build succeeded in35.635187wall/
+35.591312subprocessCPU seconds; child65108 exited0/no survivors. Four existing
+Cython index-performance hints retained, not hidden. Build source/ABI/evidence
+are preserved in the rejected-candidate artifact.
+
+The single bounded469.5->469.6ms proof FAILED at its first contact change:
+receipt FB-01aj-observed-contact-event-proof.json SHA
+a280062e0c6d9dc1a4c35feaa8fd1f4f2a705a7a0f6920b8b4dab3c5b0285d15.
+1182outer step calls,25345native forwards,11.859261244 numericalCPU seconds;
+child65511 exited0 after reporting failure, wrapper correctly exited1.
+Wall12.611198s, peak187044KiB; no survivors and all64784/65108/65511 independently
+absent. Both exact no-contact successor controls passed. Alias algebra passed.
+Admission rollback and final scratch rollback are exact. Second lane, cold
+repeat and explicit budget-refusal tests were NOT reached; do not call them
+passed. No long-history replay or broad suite occurred.
+
+First lane accepted582 incoming pieces and rejected303 intervals:290 generic
+contact-localizer refusals,8 nonlinear residual refusals,4 embedded-impulse
+refusals,1 terminal coarse/fine event mismatch. Last accepted clock
+.46955363584986665s; next target.4695536358498667s. Coarse sees no event while
+fine sees one resolved aliased event over those adjacent clocks. The existing
+event-sequence gate correctly rejects it; no further subdivision is
+representable. No accepted contact-boundary certificate exists before failure.
+
+Artifact-only inspection: final six pieces each advance5.551115123125783e-17s;
+27/71 configuration values change,0/70 velocities change. Toe54 angle increments
+6.938893903907228e-18rad versus linear v*dt6.693426009551505e-18rad at
+q≈.01811596808737686,v=.12057804352979258. This is mixed spatial/time floating
+quantization, not proof all pose coordinates froze or proof of a particular
+contact-localizer rejection branch.
+
+Falsified assumption: adjacent CLOCK values do not guarantee contact-path
+agreement across one-step and two-step floating-coordinate trajectories.
+Timestamp support correction worked, but cannot reconcile physically different
+numerical paths. This rejects this candidate, not every event-alignment method.
+The generic localizer error does NOT identify which predicate fired in the
+earlier290 refusals; successful internal prefix/bridge operands were not
+retained. Do not assert that bridge recrossing or no-crossing is the proved cause.
+
+Rejected source and both build receipts preserved in
+FB-01aj-rejected-contact-event-candidate.json. Removed the new importable
+contact_event_law.pxi and restored radau.pyx byte-exact to accepted v8 SHA
+24cdf70ec8b4f637b1357c5528ade1cd6e1c359736407d77ac9f2717aee675c7. This is removal
+of A1's rejected candidate only; it remains recoverable from evidence. Compiled
+rejected ABIc15b7dada8c59f4f76a87870d597db3ffdf47ec7385c12fad0fe14303d6304b8
+is an offline diagnostic artifact, never mount/release authority.
+
+Read-only production05:50:56->05:51:11UTC: one RUNNING/HEALTHY ECS1568 task
+f61447ffda4b429e9e983657e0ac5ca4, image04da7c73d1466b10c6aec3025beb6d5ef2c05c67bcde7ca90234e65259fb3328,
+same organism identity, ticks2752785->2752813, custodyerrorsnull, durabilityfalse.
+Clock-stalledALARM persists; other four alarmsOK. Latest CPU51.1329%avg/
+51.5484%max and memory2.96224%avg/2.99072%max are service metrics at05:49UTC,
+not proof of body performance or G1 cognitive architecture. No A1 live writes.
+
+Single exact next action: localize the FIRST generic contact-event refusal
+using its actual failed operands and explicit predicate. Existing saved evidence
+does not identify it. If a new measurement is required, instrument the archived
+rejected diagnostic only, stop at that first refusal, retain prefix/trial/bridge
+states, and do not rerun the100us matrix or full history. No new integration law,
+larger budget, tolerance relaxation or claimed event order until that cause is
+measured. This narrow diagnostic does not restore rejected v9 as executable
+authority. Goal ACTIVE; full-body remains compiled-unmounted/UNQUALIFIED.
