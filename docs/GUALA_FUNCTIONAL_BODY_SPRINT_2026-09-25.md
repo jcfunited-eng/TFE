@@ -17852,3 +17852,120 @@ and workers remain untouched. Next bounded body item is the remaining actual
 solve/capture cost in this authenticated interval, not another joint-root
 review, a loosened mechanical tolerance, or mounting unqualified mechanics.
 The functional-body goal remains ACTIVE; this is only a local exactness seam.
+
+### FB-01aj bounded existing-mesh regime — 2026-09-28
+
+Previous turn PROGRESS at fd0e556a1; the unchanged-tuple exactness seam remains
+closed. Current named acceptance remains the independent500-ms load/release
+trajectory, not a helper or speed statistic. No deployed source is changed.
+
+The measured cost is dominated by diagnostic execution of TWO own histories,
+each itself performing coarse/fine local admission, on12.5/6.25-us meshes.
+Source: RadauProbe.admit_history_pair -> admit -> step -> _plain_step ->
+_Stages.solve. This does not establish that every tiny nominal step is needed:
+the existing declared maximum is100us, and native subdivision already rejects
+unresolved contact/joint events, work, impulse, state and force quadrature.
+Before further minor source optimizations, map that existing numerical regime.
+This is a diagnostic parameter investigation, NOT a new force law, relaxation
+of accuracy, production timestep change or evidence of equivalent exact bits
+between different meshes. User-approved body-only numerical approximation
+remains the authority; no cognition or DSF approximation is introduced.
+
+One proof /tmp/a1-body-mesh-regime-20260928.py reuses the authenticated saved
+3.2-ms own-state pair and already compiled native artifacts. Four dyadic mesh
+pairs from the current12.5/6.25us to the declared100/50us ceiling, three100-us
+observations each. Every row restarts ONLY from the same saved own predecessors;
+within its row each trajectory keeps its own states/work/impulses. No resetting
+coarse to fine or using one mesh's later state to seed a different mesh.
+The first baseline return must reproduce the complete accepted return SHA
+2f395bf88156701645e651ad106a462d55c5f5e83affcc6ef245b150a299a56f.
+Each subsequent row must pass unchanged native pair tests and full observed
+mechanical/sensory limits against that baseline at every common endpoint.
+Preserve first failure, actual native report/operands and exact cleanup.
+No larger-step case follows a physical failure. No test-only mesh selection
+enters the runtime. Even all twelve observations passing would qualify only
+this300-us local regime, not the500-ms trajectory or live cadence.
+
+Bound:10 numerical CPU seconds,30000 forwards with10 reserved for unwind,
+300 admission trials per observation (the exact baseline receipt allowance).
+Existing reviewed outer runner adds
+two-core/per-process60CPU/1GiB-AS/group90wall envelope, exact child census and
+read-only AWS pre/post; its broader printed35CPU/100000 limits do not override
+the stricter diagnostic limits. No new native build, library install, world
+edit, restart, G1 source change or production write. Frozen independent review
+before execution. This tests whether fewer accepted solves are sufficient;
+it does not delete any snapshot or assert distinct physical states redundant.
+
+Pre-freeze tooling correction: apply_patch refuses simultaneous Delete/Add of
+one path. That command changed nothing. Full-file replacement uses one Update
+containing the complete prior/new content instead; never repeat the rejected
+two-operation form. Baseline max_trials stays300 so exact-return verification
+does not differ merely through the diagnostic receipt's own allowance field.
+
+Frozen review4fd29370 found two LOCALIZED proof-reporting issues, no
+architecture finding. Corrected together by full-file replacement: each row's
+Errors objects reset before any restore; both actual returned endpoint states,
+work/impulses and event sequences/brackets are retained before assertions or
+sensory observation. A failed first observation therefore cannot erase its
+second physical operand or successful reference event evidence. Successful
+bulky trial reports still discard; bounded endpoint evidence remains. Native
+source, force, thresholds, declared mesh range and operational bounds unchanged.
+Final frozen source review is next; nothing has executed yet.
+
+### FB-01aj existing-mesh local regime PASS — 2026-09-28 17:35 UTC
+
+Final source-only review PASS, frozen b9905c4850f8f0d76eb946bdb8c7c0d5784e1e8b4213ca3b89a429950292be0a,
+script6fd5023be52b9c09c670d89cf3b2cf9ff94aeb308152db2bbe8abe486e44b67e.
+One diagnostic ran, no compile or native edit. Receipt
+docs/evidence/FB-01aj-contact-engine-history-b9905c4850f8.json,
+SHA1a8ee5f8b4475b66128880976b3e7694807929733f067687f5ea38f09f2adc22.
+Completed all four mesh rows and12 observations; original full return exactly
+reproduced, rollback exact, complete evidence and measured resource bounds pass.
+No contact-domain event occurred in this local300-us span; this run therefore
+does NOT qualify larger steps across a new contact/joint transition.
+
+| Nominal meshes (us) | Solves across3 intervals | Native forwards including observation | Measured row CPU seconds |
+| --- | ---: | ---: | ---: |
+| 12.5 / 6.25 | 234 | 4593 | 0.919982192 |
+| 25 / 12.5 | 126 | 2676 | 0.671953513 |
+| 50 / 25 | 72 | 1743 | 0.311966041 |
+| 100 / 50 | 36 | 1023 | 0.167989394 |
+
+The maximum reported cross-reference channel error ratio was0.000209130979
+(about0.021% of its unchanged allowed error). Native work/impulse, full state,
+event chronology, contact and sensory comparisons all passed; intrinsic-couple
+impulse's separate historical unqualified ceiling remains explicitly unqualified.
+The exact same physics is NOT claimed between meshes: these are bounded
+numerical disagreements, not equal-state optimization. Both own histories
+persist independently within each row. Three endpoints reach3.5ms only; no
+250ms release,500ms trajectory, gravity/world integration or live-speed claim.
+
+Meaningful result: tiny12.5/6.25-us nominal meshes were unnecessary on this
+measured smooth segment.100/50us stays inside the previously declared100-us
+maximum and retains the existing local subdivision/rejection laws. This avoids
+6.5 times as many solves and about4.49 times as many forwards on this sample.
+Timing ratios are diagnostic/shared-host observations, not production estimates.
+The next existing500-ms gate may now use the declared maximum with adaptive
+admission, continuing authenticated own states and preserving all event/error
+limits. It may NOT enlarge the model maximum, bypass events, weaken tactile
+matching or call this local success whole-trajectory convergence.
+
+Shared-host preflight: G1 PID27027, /workspaces/Tao_Financial_Engine, running
+pytest tests/test_guala_functional_organism.py. Untouched.20 available CPUs,
+cgroupv2 cpu.max='max100000', memory.max='max', load1.32 and about25GB available.
+This short diagnostic was not a concurrent heavy build/replay or an isolated
+machine benchmark. Child27461 exit0,2.742071wall/2.731533treeCPU,151200KiB peak
+RSS, zero survivors (repeat census empty). Numerical2.175059CPU/10046forwards,
+inside10CPU/30000forward cap. No process, source or resource setting of G1 changed.
+
+Read-only AWS17:34:54.264974->17:34:59.263106UTC: same sole1568 task/image and
+organism identity, ticks2838416->2838426, persisted2838386->2838418; checkpoint
+and cleanup errors null, durability unblocked. Existing clock-stalledALARM
+persists, four other alarmsOK. CPU51.3019%avg/52.0588%max,memory3.0884%. Zero live
+writes. This preserved envelope does not certify G1's cognitive replacement.
+
+Next exact item: bounded continuation of the existing load/release trajectory
+using100/50us nominal meshes with ordinary local event subdivision, not another
+minor tuple/snapshot optimization or replay of the closed static contact proof.
+The saved3.2-ms pair remains authoritative if a larger-mesh continuation fails;
+no unsuccessful candidate may replace it. Functional-body goal remains ACTIVE.
