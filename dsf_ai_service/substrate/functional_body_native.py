@@ -1,7 +1,8 @@
 """Body-only numerical mechanics. No behavior controller or cognitive authority.
 
 MuJoCo 3.3.7 with closed hinge/slide limits and the versioned coupled Newton
-midpoint bearing/constraint step is the sole motion/contact solver. Its soft law and finite sampling are approved body-only
+midpoint bearing/constraint step and projective/common-frame contact geometry
+are the sole motion/contact solver. Its soft law and finite sampling are approved body-only
 approximations, not exact skin thermodynamics. Caller integration bytes own state.
 Only direct, unit-gear, effort-limited hinge/slide motors are admitted.
 """
@@ -16,7 +17,7 @@ import mujoco as mj
 import numpy as np
 
 
-ENGINE_VERSION = "3.3.7+guala.midpoint-step.1"
+ENGINE_VERSION = "3.3.7+guala.contact-geometry.1"
 STATE_KIND = mj.mjtState.mjSTATE_INTEGRATION
 _CALLBACK_GETTERS = (
     mj.get_mjcb_control, mj.get_mjcb_passive, mj.get_mjcb_contactfilter,

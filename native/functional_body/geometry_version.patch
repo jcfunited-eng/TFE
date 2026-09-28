@@ -1,0 +1,11 @@
+--- a/src/engine/engine_support.c
++++ b/src/engine/engine_support.c
+@@ -42,7 +42,7 @@
+ //-------------------------- Constants -------------------------------------------------------------
+ 
+  #define mjVERSION 337
+-#define mjVERSIONSTRING "3.3.7+guala.midpoint-step.1"
++#define mjVERSIONSTRING "3.3.7+guala.contact-geometry.1"
+ 
+ // names of disable flags
+ const char* mjDISABLESTRING[mjNDISABLE] = {

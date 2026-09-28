@@ -17408,3 +17408,142 @@ forces or contact admission rules are relaxed. This fragment cannot certify
 broad-phase reachability, full motion/error recovery, gravity/load/impulses,
 runtime performance, G1 interface compatibility, cold restart or deployment.
 Whole functional-body goal remains ACTIVE and unqualified for production.
+
+### FB-01aj full native geometry-law packaging contract — 2026-09-28
+
+Previous turn PROGRESS at62e502c19; static common-frame proof1f65453c remains
+closed. Continue the saved contact-motion acceptance, not cognition or a new
+body. Requested: ordinary native collision/constraints and sensory return use
+the proved shared geometry. Current: fragment only, full engine still old law;
+conflict YES. No new force/tolerance/pose/controller/semantic mechanism. Reduced
+numerical rigid-body mechanics, not joint DSF or microscopic tissue physics.
+
+Authorized packaging delta: native/functional_body/build_engine.py includes
+closed_limits, coupled_step, contact_guards, rotation_geometry, common_frame
+and one geometry_version patch in that order. Authenticate all thirteen exact
+upstream preimages atf1d45bd before mutation; source and output fresh/disjoint,
+no global install or old-library overwrite. Version becomes
+3.3.7+guala.contact-geometry.1 in engine_support.c and NativeBody.ENGINE_VERSION.
+The existing header includes ENGINE_VERSION, so old-law state refuses before
+reset/mutation; no header rewriting/migration of a lived body. Native layouts,
+STATE_INTEGRATION, effort interface and BodyFeedback stay unchanged.
+
+The first full-engine proof will import saved raw mechanical initial values
+only as an explicit offline changed-law comparison, not as a cold restore of
+old-law state. New-law capture -> new instance restore -> next interval must
+then match, with old-header rejection separate. Source -> ordinary world
+kinematics -> bounding phase -> common-frame BoxBox/filter -> world contact ->
+native constraint reaction -> Radau stage/interval error gate -> body sensory
+observation and state capture remains the single causal path. Existing stack
+cleanup/error reset, energy/impulse/couple limits and full solver law remain.
+No additional geometry cache/state or Python force callback is introduced.
+
+Builder optional dependency source root permits offline pinned local sources,
+not system guessing. Seven exact upstream dependency commits are validated
+before configure, using fresh shared git clones so CMake's declared
+TriangleMeshDistance header edit cannot alter the accepted predecessor build.
+This existing upstream const-reference warning fix is observed/declared, not
+an unknown dirty dependency. Fresh source/build/dependencies live under
+/tmp/guala-body-contact-engine.nOulRNkx. CMake3.31.6, two compiler jobs,
+no fast-math or contraction. Compiler identity, actual native version, source,
+patch and library hashes retained. Partial build never installs or publishes.
+
+Before build: independent frozen source-only review of packaging/version and
+resource wrapper; geometry algorithms already passed and are not redesigned.
+One bounded full native build, exact process group/CPU/RAM/time receipts and
+read-only AWS pre/post. Inspect live shared workloads before launch. Then the
+small saved first-failure motion, before any broad500ms trajectory replay.
+G1 shared source/ledger and production remain outside mutation scope.
+
+### FB-01aj full native engine built; saved-motion gate — 2026-09-28
+
+Frozen packaging fe30cf6578fb3359e44b1d8f59bc647954c2ef8b6c3d99a8815c8b1da7bb9362
+passed independent source-only review, no localized/architectural findings.
+One build passed in55.716061s,104.79881 total childCPU seconds, no survivor.
+The two-core/per-process CPU bounds held; aggregate memory was not enforced.
+G1 pytest96101 was present at launch and not interrupted; do not claim there
+was no shared concurrent workload. Build output records existing upstream CMake
+deprecation notices; no compiler failure. Exact artifact:
+/tmp/guala-body-contact-engine.nOulRNkx/build/lib/libmujoco.so.3.3.7,
+SHA3f96205669b269bbc9d0d3c222079faf194932cf91321add4822a10ed4321baa,
+nativeversion3.3.7+guala.contact-geometry.1. Thirteen source hashes match the
+reviewed patch chain. Receipt FB-01aj-full-contact-engine-build.json,
+SHA086482f370b56b81d8fc1b1eba74750ef99ee3f3051f90c74388b38915aaf4aa.
+Compiled-unmounted only. No production writes or installation.
+
+Live read-only16:27:28->16:28:26UTC: same task1568/image/identity,
+ticks2829818->2829940,custodyerrorsnull; existing clock-stalledALARM persists.
+Body compilation is not evidence of production cognition or clock repair.
+
+Single next gate remains the exact historical first-failure6.7fs interval.
+Proof /tmp/a1-body-contact-engine-motion-20260928.py imports the authenticated
+saved raw mechanical payload only as a disclosed offline changed-law initial
+condition. It requires the ordinary full collision/constraint path to preserve
+two pair36/44 contacts at initial, three stages and endpoint, and coarse/fine
+physical/event agreement under unchanged acceptance limits. No fixture pose,
+force, timestep, threshold, constraint or body law is adjusted.
+
+New-law native capture is then restored in a separate Python process; compare
+every state/work/impulse/stage value of its next interval exactly. Separately
+the real predecessor-law header must refuse before state mutation. Saved raw
+payload import is NOT a claim of old-law cold migration. NativeBody's public
+runtime interval is still the prior compiled interval module; the Radau probe
+is an unmounted mechanical candidate, not an integrated body runtime.
+Both child paths authenticate native ABI/version/proc mappings, source and
+parent receipts; failed samples and full scratch rollback are recorded. At
+most8 trials,1000 forwards,5 numericalCPU seconds per child inside the existing
+two-core/60CPUperprocess/1GiBASperprocess/90wallgroup boundary. No aggregate RAM
+guarantee. AWS reads pre/post; exact child census. Source-only frozen review
+precedes execution. Full500ms/gravity/load/sensory/resource/world/integration
+and production gates remain open; no broad replay in this gate.
+
+Frozen motion proof d7769318 source review found two LOCALIZED proof defects,
+zero native architecture findings: helper import overwrote the requested
+fingerprint with a historical default; stage packing/final extraction could
+lose original returned operands or mask a failure. Corrected together in one
+full-file proof replacement: restore requested fingerprint after import,
+retain returned raw state/time/work plus native residual/rollback receipts,
+guard final extraction and mark incomplete evidence rather than mask failure.
+No body source/library/physics changed. Final frozen review before one run.
+
+### FB-01aj full-engine saved-motion and cold-process proof PASS — 2026-09-28
+
+Final independent source-only review PASS at
+69bdbcbc21a02c7062b68966a48631ba24e803f042a156285e90b681d6ad9eb1;
+proofSHA848008bcf61eeddeae5d03083eaf13076a8066ea4b758e27c255f629fd3baf76.
+Executed once under the compiled new native geometry law; no rebuild/replay.
+Receipt docs/evidence/FB-01aj-contact-engine-saved-motion.json,
+SHA20f175fbac7d0f6da77fb13bff667e9fc91c619dcf8488c06349e09a6fd710a8.
+
+Historical initial values at0.4695536358498123s advanced to
+0.469553635849819s. Pair36/44 retained2 contacts at start, three collocation
+stages and endpoint: [2,2,2,2,2]. The preceding1->2->2->1 numerical defect
+does not recur at this exact saved boundary through ordinary broadphase,
+common-frame geometry, native constraints and the Radau probe. Coarse/fine
+physical, work/impulse and event comparisons passed unchanged. No event bracket
+was invented: both sampled paths contained no contact-domain transition.
+Old-law header rejected before physical-state mutation. New-law capture restored
+byte-exactly in a SEPARATE process; its next interval state, stage operands,
+work and impulses match exactly. Both scratch rollbacks exact. This proves the
+bounded mechanical probe, not integrated runtime/Radau persistence authority.
+
+Saved-motion PID2309 exit0,0.728915s wall,0.725828treeCPU,152484KiB maxRSS,
+3 trials,33 native forwards,0.143994 numericalCPU. Cold PID2313 exit0,
+0.718951s wall,0.713797treeCPU,152200KiB maxRSS,1 trial,12forwards,
+0.103995numericalCPU. No survivor, warning, timeout or extraction failure.
+Full build earlier maxRSS394568KiB (maximum child, NOT aggregate RAM).
+Read-only AWS16:35:25->16:35:29UTC: sole1568 sameimage/identity,
+ticks2830816->2830824,persisted2830802,custodyerrorsnull. Existing clock-stalled
+ALARM remains; other4OK;CPU51.510419avg/51.960906max%,RAM3.059896avg/3.076172max%.
+No live state/daemon/control/source changed and no cognition claim.
+
+Turn classification PROGRESS. This closes only the saved contact-geometry
+failure and versioned artifact packaging. Retain all predecessor failures.
+Next continue FB-01aj: one bounded new-law mechanical trajectory under the
+existing load/release, gravity, work/impulse, sensory and physical-error gates,
+before runtime integration/performance/world-atomic restart and live delivery.
+Do not rediscover or rerun the closed static geometry proof, alter physical
+limits to obtain a pass, or infer full trajectory validity from this local
+old-law initial-condition comparison. G1's changing effector/receptor/cold
+state seam remains unacknowledged and must be reconciled before mounting;
+independent body work is not waiting on Joe. Whole goal remains ACTIVE.
