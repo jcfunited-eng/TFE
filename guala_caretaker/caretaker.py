@@ -72,6 +72,7 @@ MINE = collections.deque(maxlen=256)  # her ticks this caretaker produced; any o
 # when nothing is at her mouth that a bite can still take from, and not more
 # often than MEAL_TICKS of her clock — politeness, not a hunger rule.
 MEAL_TICKS = 400
+MEAL_RETRY_TICKS = 80  # bounded physical retry backoff (20 seconds of simulation ticks)
 HUNGRY_DEFICIT = 0.40  # her feeding law starts below 60 percent of capacity
 DELIVERY_ID = "apple-delivery"  # asks the caregiver to bring a fresh apple from outside
 REACH_MM = 800  # her declared reach (guala_home_world)
@@ -1284,8 +1285,11 @@ def maybe_feed(o: dict, st: dict) -> None:
             return
 
     # 4. Child is NOT in high chair: check interval and hunger eligibility
-    if tick < (st.get("meal_tick") or 0) + MEAL_TICKS and not st.get("meal_retry"):
-        return
+    if tick < (st.get("meal_tick") or 0) + MEAL_TICKS:
+        retry_active = bool(st.get("meal_retry"))
+        retry_tick = int(st.get("meal_retry_tick") or 0)
+        if not retry_active or tick < retry_tick + MEAL_RETRY_TICKS:
+            return
 
     if not hungry:
         if st.get("not_hungry_logged") != tick // 2000:
@@ -1331,8 +1335,16 @@ def maybe_feed(o: dict, st: dict) -> None:
     res = present_food(food)
 
     if res is None:
-        # Transport/uncertain outcome: retain retry eligibility and prior meal_tick
-        st["meal_retry"] = True
+        # Transport/uncertain outcome: bounded physical retry backoff
+        retry_count = int(st.get("meal_retry_count") or 0) + 1
+        if retry_count >= 3:
+            st["meal_retry"] = False
+            st["meal_retry_count"] = 0
+            log(f"meal: 3 consecutive transport errors; clearing retry until next meal window")
+        else:
+            st["meal_retry"] = True
+            st["meal_retry_count"] = retry_count
+            st["meal_retry_tick"] = tick
         log(f"meal: food presentation request returned None (uncertain/transport error) for {food}")
         if seated_this_meal or st.get("seated_for_meal"):
             rel_res = present_food("high-chair-release")
@@ -1355,6 +1367,8 @@ def maybe_feed(o: dict, st: dict) -> None:
         # Successful delivery verified by receipt: commit meal timing
         st["meal_tick"] = tick
         st["meal_retry"] = False
+        st["meal_retry_count"] = 0
+        st["meal_retry_tick"] = 0
         st["food_delivered_for_meal"] = True
         mat = "ceramic" if "milk" in food else "wood"
         impact_pcm = material_impact_pcm(mat, intensity=0.7)
@@ -1363,8 +1377,17 @@ def maybe_feed(o: dict, st: dict) -> None:
         record_story_moment(st, "olfactory", "tactile", "visual", "auditory")
         log(f"meal: named={named} presented {food} — presented=True took_away={pres.get('took_away')} steps={len(steps)}")
     else:
-        # Delivery refused: retain retry eligibility and prior successful meal_tick
-        st["meal_retry"] = True
+        # Delivery refused: bounded physical retry backoff
+        retry_count = int(st.get("meal_retry_count") or 0) + 1
+        if retry_count >= 3:
+            st["meal_retry"] = False
+            st["meal_retry_count"] = 0
+            log(f"meal: 3 consecutive presentation attempts refused; clearing retry until next meal window")
+            present_food("clean-up")
+        else:
+            st["meal_retry"] = True
+            st["meal_retry_count"] = retry_count
+            st["meal_retry_tick"] = tick
         if seated_this_meal or st.get("seated_for_meal"):
             rel_res = present_food("high-chair-release")
             rel_pres = _extract_presentation(rel_res)

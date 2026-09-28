@@ -982,10 +982,6 @@ def make_bed(world: Any) -> dict[str, object]:
     try:
         snapshot = home.snapshot()
         her, _person = home.bodies(snapshot)
-        if _distance_mm(her.pose.position, bed.position) > bed.radius_mm:
-            bed_pose = PoseMM(PositionMM(bed.position.x, bed.position.y, 0), her.pose.heading_millidegrees)
-            world.admit_authored_body_transport(her.body_id, bed_pose)
-            record["steps"].append({"operation": "tuck_in_bed", "reason": "applied", "to": [bed.position.x, bed.position.y]})
         home.walk_to_region("hallway")
         home.move(CAREGIVER_HOME_MM, _heading_toward(CAREGIVER_HOME_MM, her.pose.position))
     except _Bounded:

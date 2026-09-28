@@ -1218,12 +1218,21 @@ def candidates(
 
     # 1. Take from hand
     if held is None and offered is not None and handleable_held(offered):
-        out.append(("take", offered.object_id + " from a hand", (TakeContactHeldObjectCommand(BEAT_MICROSECONDS),), offered.object_id, None))
+        is_depleted = bool(conserved_objects and conserved_objects.get(offered.object_id, {}).get("currently_depleted"))
+        is_non_nutritive = bool(
+            (conserved_objects and conserved_objects.get(offered.object_id, {}).get("non_nutritive"))
+            or (tested_non_nutritive_ids and offered.object_id in tested_non_nutritive_ids)
+        )
+        if not (feeding and (is_depleted or is_non_nutritive)):
+            out.append(("take", offered.object_id + " from a hand", (TakeContactHeldObjectCommand(BEAT_MICROSECONDS),), offered.object_id, None))
 
     # 2. Grasp (one reachable object per world grasp law) and touch reachable things
     if held is None and len(reachable) == 1 and handleable(reachable[0]):
         is_known_non_food = bool(
-            (conserved_objects and conserved_objects.get(reachable[0].object_id, {}).get("non_nutritive"))
+            (conserved_objects and (
+                conserved_objects.get(reachable[0].object_id, {}).get("non_nutritive")
+                or conserved_objects.get(reachable[0].object_id, {}).get("currently_depleted")
+            ))
             or (tested_non_nutritive_ids and reachable[0].object_id in tested_non_nutritive_ids)
         )
         if not (feeding and is_known_non_food):
@@ -1233,9 +1242,7 @@ def candidates(
             if item.material is not None:
                 out.append(("touch", item.object_id, (TouchContactCommand(item.object_id, BEAT_MICROSECONDS),), item.object_id, None))
 
-    # 3. Release held item
-    if held is not None and drop_spot_clear(snapshot, body, held):
-        out.append(("release", held.object_id, (ReleaseHeldObjectCommand(BEAT_MICROSECONDS),), held.object_id, None))
+    # 3. (Release held item deferred to end of candidates)
 
     seen_food_ids = {thing.object_id for thing in seen if thing.is_food}
 
@@ -1351,6 +1358,9 @@ def candidates(
         drive = say_drive if say_drive is not None else DEFAULT_DRIVE
         out.append(("say", say_detail, (), None, drive))
     out.append(("rest", "", (), None, None))
+    # Release held item (deferred after elementary motions/rest to allow exploratory holding/inspection)
+    if held is not None and drop_spot_clear(snapshot, body, held):
+        out.append(("release", held.object_id, (ReleaseHeldObjectCommand(BEAT_MICROSECONDS),), held.object_id, None))
 
     out = [option for option in out if option[0] not in MOVES or option[2]]
     assert len(out) <= MAX_CANDIDATES
@@ -2105,40 +2115,43 @@ class FunctionalOrganism:
                 intake_ug = int(pending_trans.get("intake", 0))
                 sal = float(pending_trans.get("salience", 0.0))
                 outcome = pending_trans.get("outcome_key")
-                moments = state.setdefault("moments", {})
-                trial_key = f"motor:{pending_trans['start_tick']}"
-                trial = {
-                    "key": trial_key,
-                    "start_tick": pending_trans["start_tick"], "end_tick": tick,
-                    "pre": pending_trans["pre_key"], "post": current_sensory_key,
-                    "action": action, "target": pending_trans["target_id"],
-                    "observed_subject": pending_trans["observed_subject"],
-                    "refusal": pending_trans.get("refusal"),
-                    "intake": intake_ug,
-                    "previous": None,
-                }
-                previous = pending_trans.get("previous")
-                predecessor_entry = moments.get(previous) or state.get("meanings", {}).get(previous) or {}
-                predecessor = predecessor_entry.get("motor_transition")
-                if consecutive_motor_trials(predecessor, trial):
-                    trial["previous"] = previous
-                if trial_key not in moments:
-                    admitted_moment_keys.add(trial_key)
-                moments[trial_key] = {
-                    "count": 1, "tick": tick, "salience": sal,
-                    "held": "none",
-                    "figure": "none",
-                    "room": state.get("room_now") or "unknown",
-                    "source": "motor",
-                    "context": [0, 0, 0],
-                    "next": {},
-                    "acts": {},
-                    "fed": intake_ug,
-                    "motor_transition": trial,
-                }
-                if outcome in moments:
-                    moments[outcome]["episode_tail"] = trial_key
-                state["last_motor_trial"] = trial_key
+                if sal > 0.0 or intake_ug > 0 or (outcome is not None and outcome in state.get("moments", {})):
+                    moments = state.setdefault("moments", {})
+                    trial_key = f"motor:{pending_trans['start_tick']}"
+                    trial = {
+                        "key": trial_key,
+                        "start_tick": pending_trans["start_tick"], "end_tick": tick,
+                        "pre": pending_trans["pre_key"], "post": current_sensory_key,
+                        "action": action, "target": pending_trans["target_id"],
+                        "observed_subject": pending_trans["observed_subject"],
+                        "refusal": pending_trans.get("refusal"),
+                        "intake": intake_ug,
+                        "previous": None,
+                    }
+                    previous = pending_trans.get("previous")
+                    predecessor_entry = moments.get(previous) or state.get("meanings", {}).get(previous) or {}
+                    predecessor = predecessor_entry.get("motor_transition")
+                    if consecutive_motor_trials(predecessor, trial):
+                        trial["previous"] = previous
+                    if trial_key not in moments:
+                        admitted_moment_keys.add(trial_key)
+                    moments[trial_key] = {
+                        "count": 1, "tick": tick, "salience": sal,
+                        "held": "none",
+                        "figure": "none",
+                        "room": state.get("room_now") or "unknown",
+                        "source": "motor",
+                        "context": [0, 0, 0],
+                        "next": {},
+                        "acts": {},
+                        "fed": intake_ug,
+                        "motor_transition": trial,
+                    }
+                    if outcome in moments:
+                        moments[outcome]["episode_tail"] = trial_key
+                    state["last_motor_trial"] = trial_key
+                else:
+                    state["last_motor_trial"] = None
             else:
                 # Passive time is not a rehearsed act and cannot bridge an
                 # unobserved interval into an experience sequence.
@@ -2204,11 +2217,7 @@ class FunctionalOrganism:
                         continue   # suppressed: known non-nutritive or unsuccessful bite
                     return decision("bite", "held item at her mouth while feeding (the jaw's reflex)", (OralContactCommand(item.object_id, BEAT_MICROSECONDS),), item.object_id)
 
-            if held is not None:
-                c_held = conserved.get(held.object_id, {})
-                if c_held.get("non_nutritive") is True or held.object_id == state.get("unsuccessful_bite_held_id"):
-                    if drop_spot_clear(snapshot, body, held):
-                        return decision("release", f"release non-nutritive held item; {held.object_id}", (ReleaseHeldObjectCommand(BEAT_MICROSECONDS),), held.object_id)
+
 
         pressure = int(state.get("sleep_pressure", 0))
         if state.get("asleep"):
@@ -2355,9 +2364,9 @@ class FunctionalOrganism:
             drive = say_drive
             state["pending_act"]["syllable"], state["pending_act"]["context"] = say_name, say_context   # valued by what follows, under its context
             state["pending_act"]["drive"] = list(say_drive)
-            target = state.get("heard_speech_target")
-            if target and target.get("envelopes"):
-                target["consumed"] = True
+            speech_target = state.get("heard_speech_target")
+            if speech_target and speech_target.get("envelopes"):
+                speech_target["consumed"] = True
         elif sound_heard and drive is None and commands and getattr(sensed, "sound_source_id", None) == "person-body-1":
             # Multimodal acoustic acknowledgement during active motor stride when directly hailed by person-body-1
             drive = say_drive
@@ -2976,20 +2985,27 @@ class FunctionalOrganism:
 
             is_barren = (needs_bed and not has_bed) or (needs_food and not has_candidate_nourishment)
             if is_barren:
-                phi_barren = math.tanh(max(0.0, float(dwell_beats - 16)) / 16.0)
+                phi_barren = 1.0 - math.exp(-float(dwell_beats) / 20.0)
                 if (needs_food or phi_barren > 0.25) and "toward_door" in acts and not door_refused:
                     return "toward_door", f"{label}: barren basin exhaustion ({phi_barren:.2f} over {dwell_beats} dwell beats in {cur_room}): evacuating toward negative space"
 
         surplus = max(0.0, min(1.0, (1.0 - deficit) * (1.0 - sleep_ratio)))
-        boredom = surplus * math.tanh(max(0.0, float(dwell_beats - 32)) / 24.0)
+        boredom = surplus * (1.0 - math.exp(-float(dwell_beats) / 30.0))
         if boredom > 0.25 and "toward_door" in acts and not door_refused:
             return "toward_door", f"{label}: structural boredom ({boredom:.2f} over {dwell_beats} dwell beats): evacuating saturated basin toward negative space"
 
-        # Physical release: when holding an item whose bite was unsuccessful, release it
+        # Physical release: when holding an item whose bite was unsuccessful, or is depleted/non-nutritive, release it
+        held_target = self._state.get("unsuccessful_bite_held_id") or self._state.get("gaze_target")
+        held_target_str = held_target if isinstance(held_target, str) else None
+        held_is_depleted = any(
+            c.get("non_nutritive") or c.get("currently_depleted")
+            for o_id, c in conserved.items()
+            if o_id == held_target_str
+        )
         if "release" in acts and (
             self._state.get("unsuccessful_bite_held_id")
-            or any(c.get("non_nutritive") for o_id, c in conserved.items() if o_id == self._state.get("gaze_target"))
-            or (self._state.get("gaze_target") in tested_non_nutritive)
+            or held_is_depleted
+            or (held_target_str in tested_non_nutritive)
         ):
             return "release", f"{label}: release non-nutritive held item"
 
@@ -3001,12 +3017,13 @@ class FunctionalOrganism:
 
         # Physical Affordance Pursuit under Hunger Deficit (Resonant Surge toward nourishment)
         if deficit >= 0.6:
-            if known_non_foods and candidate_options is not None:
+            depleted_or_non_foods = known_non_foods | {o_id for o_id, c in conserved.items() if c.get("currently_depleted") is True}
+            if depleted_or_non_foods and candidate_options is not None:
                 non_food_pruned = []
                 for a in acts:
-                    if a == "grasp" and not any(o[0] == "grasp" and o[3] and o[3] not in known_non_foods for o in candidate_options):
+                    if a == "grasp" and not any(o[0] == "grasp" and o[3] and o[3] not in depleted_or_non_foods for o in candidate_options):
                         continue
-                    if a == "toward_thing" and not any(o[0] == "toward_thing" and o[3] and o[3] not in known_non_foods for o in candidate_options):
+                    if a == "toward_thing" and not any(o[0] == "toward_thing" and o[3] and o[3] not in depleted_or_non_foods for o in candidate_options):
                         continue
                     non_food_pruned.append(a)
                 if non_food_pruned:
@@ -3043,28 +3060,7 @@ class FunctionalOrganism:
         entry = self._state.setdefault("acts", {}).get(key)
         label = "structure " + key[:6]
 
-        # Epistemic Curiosity & Somatic Affordance Evaluation
-        learned = self._state.setdefault("learned", {}).get(situation)
-        learned_acts = learned["acts"] if (learned is not None and "acts" in learned) else {}
-        today_acts = entry["acts"] if (entry is not None and "acts" in entry) else {}
-        totals = self._state.get("act_totals", {})
-
-        def affordance_potential(act: str) -> tuple[float, float, int]:
-            if act in today_acts:
-                tries, net_r = int(today_acts[act][0]), float(today_acts[act][1])
-                mean_r = net_r / tries if tries > 0 else 0.0
-            elif act in learned_acts:
-                tries, net_r = int(learned_acts[act][0]), float(learned_acts[act][1])
-                mean_r = net_r / tries if tries > 0 else 0.0
-            else:
-                tries = 0
-                mean_r = 0.0
-            n_obs = tries + int(totals.get(act, 0))
-            delta_u = 1.0 / math.sqrt(1.0 + float(n_obs))
-            curiosity_bonus = 0.50 * surplus * delta_u
-            v_structural = mean_r + curiosity_bonus
-            return (round(v_structural, 4), round(mean_r, 4), n_obs)
-
+        # Consequence-Driven Physical Action Selection
         if entry is None:
             learned = self._state.setdefault("learned", {}).get(situation)
             known = [act for act in acts if learned is not None and act in learned["acts"]]
@@ -3074,17 +3070,14 @@ class FunctionalOrganism:
                 act = max(viable_known, key=lambda a: (float(tried[a][1]) / int(tried[a][0]), -acts.index(a)))
                 mean = float(tried[act][1]) / int(tried[act][0])
                 return act, label + ", new today; from her sleep, situation " + situation + ": " + act + f" ({mean:+.2f} over {int(tried[act][0])})"
-            # Nothing known here or in her sleep: the act she has tried least in
-            # her whole life (her own counts, never a written order).
-            totals = self._state.get("act_totals", {})
-            act = min(acts, key=lambda a: (int(totals.get(a, 0)), acts.index(a)))
-            return act, label + ": first try of " + act + f" (tried {int(totals.get(act, 0))} times in her life)"
+            # Nothing known here or in her sleep: follow natural kinematic affordance hierarchy (never artificial quotas)
+            act = acts[0]
+            return act, label + ": first try of " + act
         tried = entry["acts"]
         untried = [act for act in acts if act not in tried]
         if untried:
-            untried_sorted = sorted(untried, key=lambda a: (int(totals.get(a, 0)), acts.index(a)))
-            best_untried = untried_sorted[0]
-            return best_untried, label + ": first try of " + best_untried + f" (tried {int(totals.get(best_untried, 0))} times in her life)"
+            best_untried = untried[0]
+            return best_untried, label + ": first try of " + best_untried
 
         visits = sum(int(tried[act][0]) for act in acts)
         if uncertain is True:
@@ -3094,13 +3087,11 @@ class FunctionalOrganism:
             act = min(acts, key=lambda a: (int(tried[a][0]), acts.index(a)))
             return act, label + ": least tried, " + act
 
-        # One-step predictive foresight through recorded successors augmented with epistemic curiosity
+        # Deterministic predictive foresight through recorded successors and consequence valence
+        # (Zero ML UCB bonus, zero heuristic smoothing)
         def _score(a: str) -> float:
             tries = int(tried[a][0])
             mean_immediate = float(tried[a][1]) / tries if tries > 0 else 0.0
-            n_tot = tries + int(totals.get(a, 0))
-            delta_u = 1.0 / math.sqrt(1.0 + float(n_tot))
-            curiosity = 0.50 * surplus * delta_u
             successors = entry.get("successors", {}).get(a, {})
             v_next = 0.0
             if successors:
@@ -3110,7 +3101,7 @@ class FunctionalOrganism:
                     next_means = [float(t[1]) / int(t[0]) for t in next_entry["acts"].values() if int(t[0]) > 0]
                     if next_means:
                         v_next = max(next_means)
-            return mean_immediate + curiosity + 0.5 * v_next
+            return mean_immediate + 0.5 * v_next
 
         act = max(acts, key=lambda a: (_score(a), -acts.index(a)))
         mean = float(tried[act][1]) / int(tried[act][0])
@@ -3195,7 +3186,10 @@ class FunctionalOrganism:
                 "confidence": 1.0,
             })
             has_nourished = int(entry.get("fed_count", 0)) > 0 or int(entry.get("historical_intake_micrograms", 0)) > 0
-            if not has_nourished:
+            if has_nourished:
+                entry["currently_depleted"] = True
+                entry["is_food"] = False
+            else:
                 tested_set = set(state.get("tested_non_nutritive") or ())
                 tested_set.add(decision.target_object_id)
                 state["tested_non_nutritive"] = sorted(tested_set)
