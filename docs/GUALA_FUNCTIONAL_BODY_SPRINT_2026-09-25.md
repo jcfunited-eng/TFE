@@ -17547,3 +17547,130 @@ limits to obtain a pass, or infer full trajectory validity from this local
 old-law initial-condition comparison. G1's changing effector/receptor/cold
 state seam remains unacknowledged and must be reconciled before mounting;
 independent body work is not waiting on Joe. Whole goal remains ACTIVE.
+
+### FB-01aj new geometry-law independent trajectory contract — 2026-09-28
+
+Previous turn PROGRESS atbc62aff3d: compiled contact law and exact saved-motion
+plus separate-process restart passed. Continue this same mechanics gate. No
+current failure reopens the static/saved contact prerequisites. Live baseline
+last measured1568 at2830824; next proof obtains fresh AWS pre/post evidence.
+
+Requested output: two own-history mechanical trajectories from shared genesis
+under corrected geometry, fixed archived effort through250ms, then zero effort
+through500ms, unchanged work/impulse, local tactile/proprioceptive/inertial,
+surface/orientation/velocity and event-order/timing limits. This is the existing
+zero-gravity load/release bench; gravity/world mounting remain subsequent gates.
+Current full engine exists but no new-law whole trajectory is proven: conflict
+YES with completion, not with the now-closed saved contact test.
+
+No source physics edit. The bounded proof uses current compiled
+RadauProbe.admit_history_pair and its unchanged native admission law, rather
+than copying it into a Python solver. Two states preserve their own prior work,
+impulses and trajectory; neither is reset to the other's predecessor. Shared
+100us observation endpoints and12.5/6.25us nominal meshes are the previously
+declared bench settings. Endpoint rounding uses existing directed timing rule.
+No physics timestep/force/tolerance tuning or semantic action is introduced.
+
+At each accepted pair: restore each physical successor independently; measure
+all existing Errors channels and actual BodyFeedback; preserve matched event
+sequence inductively across the common intervals; retain one current pair.
+The250ms release is a declared external bench input, applied to each own state
+without elapsed time or work/mass changes. A failed successor never overwrites
+the retained pair. Preserve first failing native residual, original operands,
+physical observations and exact scratch rollback. On budget exhaustion retain
+the qualified pair, not restart from genesis or label full500ms complete.
+
+35 numericalCPU seconds,100000forward calls,10000trial attempts within the
+existing2-core/60CPUperprocess/1GiBASperprocess/90wallgroup envelope. Successful
+transient trial receipts are discarded once their current-pair consequence is
+accounted; only bounded channel maxima, counts, phase checkpoint and current
+pair persist in diagnostic evidence. No history array in runtime or cognition.
+No production/body mount. Read-only AWS pre/post, exact child census, immutable
+native/source hashes and frozen independent source review before execution.
+G1 motor/sensory seam unchanged; shared cognitive files remain excluded.
+
+Trajectory proof-only review7737a098 found3 LOCALIZED issues, no native-law
+architecture finding: resource-only stops were not resumable; budget rejection
+could re-fire during rollback and final measured bounds were not decisive;
+paired sensory/release operands could be lost before comparison. Corrected
+in one full-file proof batch. New physical trials reserve5 rollback forwards
+inside100000 total; diagnostic restore wrapper preserves active exception
+unwinding (no repeated CPU refusal during rollback). Literal exception chains
+remain recorded; only pure ResourceStop plus exact final rollback, complete
+evidence and qualified own states may resume. Physical errors never become
+resource stops. Final CPU/forward/trial measurements gate completion even if
+the last observation crosses an allowance. Each observer/release/restore row
+is attached before fallible work and retains its measured inputs/failure state.
+No engine rebuild or production source change. Final frozen review next.
+
+### FB-01aj own-history resource stop; coordination checkpoint — 2026-09-28 16:57 UTC
+
+Continue FB-01aj, not a new cognitive/body architecture sprint. Independent
+review PASS at ea523d179144cdf1b1b90f32c8616dc598d29dd84ca3171b9da859bd3a89bb13,
+proof SHA b9832f7de7d54d9fa91cbf65a7b6396f8304a62c7070ca1e6d45e5732ecce924.
+The preceding full-engine saved-contact and separate-process next-interval
+proof at bc62aff3d remains closed; this run presents no contradictory physical
+evidence. No new source law, tolerance, force or native build was introduced.
+
+Executed one bounded independent-history diagnostic, receipt
+docs/evidence/FB-01aj-contact-engine-history-ea523d179144.json,
+SHA 9ab134f99d542d5d91b9ca6036b485fd16a418062698bf90227bc77f281ffe28.
+It stopped for its forward allowance, NOT physical acceptance failure:
+32 observations, 2,612 trials, 100,000 forwards, 21.478164199 numerical CPU
+seconds, both independent clocks 0.003199999999999996 seconds. Both retained
+states remain qualified for this prefix; rollback is exact, evidence complete,
+measured limits satisfied, first physical/channel failure null. The 500-ms
+load/release target is NOT complete. No release, gravity, full-body performance,
+world integration or live-cognition claim follows from this prefix.
+
+Child 8512 exited 0 with no survivors: 22.011306266 wall seconds,
+22.005097 tree CPU seconds, 152,032 KiB maximum child RSS. The outer command
+returned 1 to retain the literal ResourceStop; it did not relabel the partial
+trajectory a pass. Original diagnostic source and failed-attempt operands are
+embedded in the receipt. Do not resume repeatedly merely to exhaust another
+identical allowance; retain this current pair and first cost measurement.
+
+Waste/cost register for this exact gate: the proof's two own histories use
+12.5/6.25-us nominal meshes, each with coarse/fine local admission and repeated
+three-stage native residual evaluations, plus common 100-us observations.
+Measured cost is approximately 81.6 trials per accepted observation and 38.3
+forwards per trial (includes the unfinished final observation). Source trace:
+radau.pyx admit_history_pair -> admit -> step -> _plain_step ->
+_Stages.solve/evaluate -> full native forward. These are diagnostic and
+candidate numerical costs, NOT a measurement of Guala's live clock. Distinct
+trial states cannot be declared redundant without proof. No deletion,
+performance equivalence, coarser mesh, accuracy relaxation or runtime speedup
+is claimed. Next bounded action: attribute cost on this exact path before
+choosing a correction; do not rerun the full history or repeat closed geometry
+tests. Any correction must preserve the existing force/contact law, physical
+error limits, both independent histories, work/impulse and sensory evidence,
+and exact rollback/cold state.
+
+Read-only AWS envelope 16:49:18.787681–16:49:43.027251 UTC: sole task 1568,
+task f61447ffda4b429e9e983657e0ac5ca4, unchanged image
+04da7c73d1466b10c6aec3025beb6d5ef2c05c67bcde7ca90234e65259fb3328,
+same identity, ticks 2832564 -> 2832616, persisted 2832594, checkpoint/cleanup
+errors null, durability unblocked. Existing clock-stalled ALARM persists;
+other four alarms OK. CPU 51.41631596 average / 51.99890316 maximum percent;
+RAM 3.08024089 average / 3.08837891 maximum percent. This is that measured
+window, not a fresh live-health claim at checkpoint time. Zero live writes.
+
+G1 coordination: main now at 2cce049fe with uncommitted cognitive replacement;
+body remains isolated on a1/guala-functional-body. Latest inspected
+ternary_multimodal_substrate returns vocal indices/recalled state, not joint
+efforts. No exact physical motor/receptor/current-state acknowledgement was
+found in the shared ledger; prior requested interface mapping remains open.
+No G1 files, workers or shared source were edited/staged. Active G1 pytest
+9540 was observed and left untouched; no new competing heavy proof launched.
+BodyFeedback remains anatomical joint/contact/inertial evidence; WorldFrame
+and hidden world geometry are not organism sensory knowledge. No conversion
+from vocal indices, semantic action labels or legacy selectors to invented
+joint forces is authorized. Isolated mechanics can continue without Joe's
+input while the precise integration handoff is reconciled.
+
+Recovery preflight note: the historical require-guala-root script still
+requires absent July/August authority paths on this branch. Its known failing
+path was inspected, not rerun. Current root/branch/HEAD and this sprint were
+verified directly. A source lookup for functional_body.py found no such file;
+the actual interface is functional_body_native.py. No fabricated path content
+or new architecture is inferred. Goal ACTIVE; whole-body delivery UNQUALIFIED.
