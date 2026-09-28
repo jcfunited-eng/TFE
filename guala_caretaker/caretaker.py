@@ -67,13 +67,13 @@ TEACHING = os.path.join(HERE, "TEACHING")  # explicit teaching-session control: 
 PERSON_HOLD_TICKS = 32  # safety-net hold after an unannounced feed or a refusal; politeness, not a recovery law
 MINE = collections.deque(maxlen=256)  # her ticks this caretaker produced; any other fed tick = a person is with her
 # MEALS (2026-09-14): the caretaker presents food — the person body in her
-# world fetches a fresh apple and holds it out within her reach. Whether she
+# world fetches fresh food and holds it out within her reach. Whether she
 # bites is her own reflex; the caretaker never moves her. A meal is offered
-# when nothing is at her mouth that a bite can still take from, and not more
+# when nothing is at her mouth/reach that a bite can still take from, and not more
 # often than MEAL_TICKS of her clock — politeness, not a hunger rule.
 MEAL_TICKS = 400
 MEAL_RETRY_TICKS = 80  # bounded physical retry backoff (20 seconds of simulation ticks)
-HUNGRY_DEFICIT = 0.40  # her feeding law starts below 60 percent of capacity
+HUNGRY_DEFICIT = 0.40  # her feeding law starts below 60 percent of capacity (deficit > 0.40)
 DELIVERY_ID = "apple-delivery"  # asks the caregiver to bring a fresh apple from outside
 REACH_MM = 800  # her declared reach (guala_home_world)
 FOOD_PREFIXES = ("apple", "bread", "milk", "bottle-milk", "cheese", "berries", "carrot")
@@ -293,9 +293,9 @@ def _extract_presentation(res: dict | None) -> dict:
     """Extract caregiver presentation payload from API occurrence response or direct presentation dict."""
     if not res or not isinstance(res, dict):
         return {}
-    obs = res.get("observation")
-    if isinstance(obs, dict):
-        lo = obs.get("last_occurrence")
+    obs_val = res.get("observation")
+    if isinstance(obs_val, dict):
+        lo = obs_val.get("last_occurrence")
         if isinstance(lo, dict):
             pres = lo.get("caregiver_presentation")
             if isinstance(pres, dict):
@@ -306,9 +306,11 @@ def _extract_presentation(res: dict | None) -> dict:
 
 
 def food_state(o: dict, skip: set[str]) -> tuple[bool, list[str]]:
-    """(something edible is already at her mouth, the apples on the floor
-    fullest first) from her published world: the apple in her own hand or in
-    the caregiver's hand counts as at her mouth while it still has matter.
+    """(something edible is already at her mouth/reach, the food on the floor/tray fullest first)
+    from her published world:
+    1. Food held in her own hand or in the caregiver's hand within reach.
+    2. Food resting on the high-chair tray, dining table, or floor within reach_mm of her body.
+    Food must have tastant mass remaining (> CORE_MICROGRAMS).
     Apples the caregiver could not reach last time come last."""
     emb = ((o.get("last_occurrence") or {}).get("embodiment") or {})
     bodies = emb.get("bodies") or []
@@ -317,7 +319,7 @@ def food_state(o: dict, skip: set[str]) -> tuple[bool, list[str]]:
     self_id = emb.get("self_body_id")
     her = next((b for b in bodies if b.get("body_id") == self_id), None)
 
-    def within_reach(b: dict) -> bool:
+    def within_reach_body(b: dict) -> bool:
         if her is None:
             return False
         her_pos = ((her.get("pose") or {}).get("position") or {})
@@ -326,16 +328,35 @@ def food_state(o: dict, skip: set[str]) -> tuple[bool, list[str]]:
             return False
         return ((her_pos["x_mm"] - b_pos["x_mm"]) ** 2 + (her_pos["y_mm"] - b_pos["y_mm"]) ** 2) <= REACH_MM ** 2
 
+    def within_reach_obj(ob: dict) -> bool:
+        if her is None:
+            return False
+        her_pos = ((her.get("pose") or {}).get("position") or {})
+        o_pos = ob.get("position") or {}
+        if not isinstance(o_pos, dict) or "x_mm" not in her_pos or "y_mm" not in her_pos or "x_mm" not in o_pos or "y_mm" not in o_pos:
+            return False
+        return ((her_pos["x_mm"] - o_pos["x_mm"]) ** 2 + (her_pos["y_mm"] - o_pos["y_mm"]) ** 2) <= REACH_MM ** 2
+
     at_mouth = False
     carried = []
     for b in bodies:
         held = b.get("held_object_id")
         if not held or (remaining.get(held) or 0) <= CORE_MICROGRAMS:
             continue
-        if b.get("body_id") == self_id or within_reach(b):
+        if b.get("body_id") == self_id or within_reach_body(b):
             at_mouth = True
         else:
             carried.append(held)
+
+    # Check unheld edible objects resting within reach (e.g. on tray or table)
+    for ob in objects:
+        oid = str(ob.get("object_id", ""))
+        if any(oid.startswith(p) for p in FOOD_PREFIXES):
+            rem = ob.get("tastant_remaining_micrograms") or 0
+            if rem > CORE_MICROGRAMS and ob.get("held_by_body_id") is None:
+                if within_reach_obj(ob):
+                    at_mouth = True
+
     floor = [
         ob for ob in objects
         if any(str(ob.get("object_id", "")).startswith(p) for p in FOOD_PREFIXES)
@@ -433,9 +454,6 @@ def her_sleep(o: dict) -> dict:
     return ((o.get("last_occurrence") or {}).get("her_sleep")) or {}
 
 
-
-
-
 def guala_room(o: dict) -> str | None:
     """Which room Guala is currently located in, from embodiment pose."""
     emb = (o.get("last_occurrence") or {}).get("embodiment") or {}
@@ -453,6 +471,8 @@ def maybe_bedtime(o: dict, st: dict) -> None:
     beats until both are on it (she carries them about by day); the hand skips
     what is already on the bed. Once the bed is made, gentle tuck-in contact
     (forehead kiss, crown pat, and shoulder hold) is delivered. Presenting only."""
+    if is_seated_in_high_chair(o) or st.get("seated_for_meal"):
+        return
     sleep = her_sleep(o)
     pressure = sleep.get("pressure") or [0, 0]
     nights = int(sleep.get("nights") or 0)
@@ -626,7 +646,7 @@ def maybe_touch(o: dict, st: dict) -> None:
     warmth and provides somatosensory grounding and homeostatic regulation.
     Geometry only; no reward grading."""
     sleep = her_sleep(o)
-    if sleep.get("asleep"):
+    if sleep.get("asleep") or is_seated_in_high_chair(o) or st.get("seated_for_meal"):
         return
     tick = int(o.get("live_tick") or 0)
     if st.get("touch_next_tick") is not None and tick < int(st["touch_next_tick"]):
@@ -650,7 +670,7 @@ def maybe_tv(o: dict, st: dict) -> None:
     alignment with the screen before remote operation, requiring valid delivery receipts
     for both remote fetch and channel cycle before claiming demonstration (REG-A1-03)."""
     sleep = her_sleep(o)
-    if sleep.get("asleep"):
+    if sleep.get("asleep") or is_seated_in_high_chair(o) or st.get("seated_for_meal"):
         return
     epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
     if epoch != "AFTERNOON_CHALLENGE":
@@ -706,7 +726,7 @@ def maybe_stroll(o: dict, st: dict) -> None:
     beside her, holds her hand for an excursion along the walkway, plays outdoor
     nature birdsong audio blocks, and animates visual fauna flutter."""
     sleep = her_sleep(o)
-    if sleep.get("asleep"):
+    if sleep.get("asleep") or is_seated_in_high_chair(o) or st.get("seated_for_meal"):
         return
     epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
     if epoch != "MIDDAY_STROLL":
@@ -750,7 +770,7 @@ def maybe_read(o: dict, st: dict) -> None:
     Provides periodic lap-contact stabilization throughout reading engagement."""
     import media
     sleep = her_sleep(o)
-    if sleep.get("asleep"):
+    if sleep.get("asleep") or is_seated_in_high_chair(o) or st.get("seated_for_meal"):
         return
     epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
     if epoch != "EVENING_CULTURE":
@@ -1069,6 +1089,8 @@ def maybe_play(o: dict, st: dict) -> None:
     toy that lies on the floor and holds it out to her; she takes it, carries
     it, sets it down; next time the caregiver fetches it again. Presents only;
     never moves her."""
+    if is_seated_in_high_chair(o) or st.get("seated_for_meal"):
+        return
     tick = o.get("live_tick") or 0
     if tick < (st.get("play_tick") or 0) + PLAY_TICKS:
         return
@@ -1108,7 +1130,7 @@ def maybe_playpen_challenge(o: dict, st: dict) -> None:
     """During MORNING_FOCUS: Caregiver places Guala inside playpen at (2050, 6700)
     creating physical boundary impedance that drives vocal signaling, followed by release
     and a caregiver affection hug presentation (touch-hug)."""
-    if asleep(o):
+    if asleep(o) or is_seated_in_high_chair(o) or st.get("seated_for_meal"):
         return
     epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
     if epoch != "MORNING_FOCUS":
@@ -1147,7 +1169,7 @@ def maybe_playpen_challenge(o: dict, st: dict) -> None:
 def maybe_ladder_challenge(o: dict, st: dict) -> None:
     """During AFTERNOON_CHALLENGE: Caregiver approaches the garden-ladder and garden-apple
     beneath the apple tree at (14000, 11800), demonstrating vertical tool affordance."""
-    if asleep(o):
+    if asleep(o) or is_seated_in_high_chair(o) or st.get("seated_for_meal"):
         return
     epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
     if epoch != "AFTERNOON_CHALLENGE":
@@ -1235,6 +1257,12 @@ def maybe_feed(o: dict, st: dict) -> None:
     skip = set(st.get("unreachable") or [])
     at_mouth, foods = food_state(o, skip)
 
+    # Periodically clear unreachable if all food options are blocked
+    if skip and not [f for f in foods if f not in skip]:
+        st["unreachable"] = []
+        skip = set()
+        at_mouth, foods = food_state(o, skip)
+
     # 3. Reconcile high-chair release lifecycle:
     # If child is genuinely seated in high chair, check whether meal is observed complete or interrupted
     if child_in_chair:
@@ -1266,28 +1294,34 @@ def maybe_feed(o: dict, st: dict) -> None:
                 elif release_reason == "interrupted_delivery":
                     log("meal: interrupted delivery (food left reach while hungry); Guala released from high-chair to floor at (2700, 1500) — applied=True")
                     st["meal_retry"] = True
+                    st["meal_retry_tick"] = tick
                 else:
                     log(f"meal: meal interval elapsed ({release_reason}); Guala released from high-chair to floor at (2700, 1500) — applied=True")
             else:
                 log(f"meal: high-chair release ({release_reason}) refused or pending at tick {tick}")
                 if release_reason == "interrupted_delivery":
                     st["meal_retry"] = True
+                    st["meal_retry_tick"] = tick
             with open(STATE, "w") as f:
                 json.dump(st, f)
             if rel_applied or not hungry:
                 return
 
         if at_mouth:
-            # Child is currently seated and actively eating from food at her mouth
+            # Child is currently seated and actively eating from food at her reach/mouth
             st["meal_retry"] = False
             with open(STATE, "w") as f:
                 json.dump(st, f)
             return
 
     # 4. Child is NOT in high chair: check interval and hunger eligibility
+    # Hunger takes biological precedence over non-essential activities.
     if tick < (st.get("meal_tick") or 0) + MEAL_TICKS:
         retry_active = bool(st.get("meal_retry"))
         retry_tick = int(st.get("meal_retry_tick") or 0)
+        if not retry_active and hungry:
+            retry_active = True
+            retry_tick = int(st.get("meal_tick") or 0)
         if not retry_active or tick < retry_tick + MEAL_RETRY_TICKS:
             return
 
@@ -1303,12 +1337,12 @@ def maybe_feed(o: dict, st: dict) -> None:
 
     # 5. Verified hunger deficit and meal interval: seat Guala in high chair
     seated_this_meal = False
-    if not child_in_chair and epoch in ("DAWN_AWAKENING", "MORNING_FOCUS") and not is_asleep:
+    if not child_in_chair and not is_asleep:
         cur_r = guala_room(o)
         if cur_r and cur_r != "kitchen":
             esc_res = present_food("escort-kitchen")
             esc_pres = _extract_presentation(esc_res)
-            log(f"meal: escorting Guala from {cur_r} to kitchen for morning high-chair meal — applied={bool(esc_pres.get('presented', False))}")
+            log(f"meal: escorting Guala from {cur_r} to kitchen for high-chair meal — applied={bool(esc_pres.get('presented', False))}")
         chair_res = present_food("high-chair-meal")
         chair_pres = _extract_presentation(chair_res)
         chair_applied = bool(chair_pres.get("presented", False))
@@ -1404,11 +1438,12 @@ def maybe_feed(o: dict, st: dict) -> None:
         json.dump(st, f)
     return ob or o
 
+
 def maybe_tactile_curriculum(o: dict, st: dict) -> None:
     """Tactile object exploration curriculum: alternately explores cups, rings,
     blocks, and toys with material impact dynamics and acoustic naming.
     Derives applied claims and modality counts strictly from accepted receipts (REG-A1-03)."""
-    if asleep(o):
+    if asleep(o) or is_seated_in_high_chair(o) or st.get("seated_for_meal"):
         return
     epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
     if epoch not in ("MORNING_FOCUS", "AFTERNOON_CHALLENGE"):
@@ -1450,6 +1485,7 @@ def maybe_tactile_curriculum(o: dict, st: dict) -> None:
     with open(STATE, "w") as f:
         json.dump(st, f)
 
+
 def maybe_patrol_and_accompany(o: dict, st: dict) -> None:
     """Domestic Presence & Circulation:
     Prevents the caretaker from standing like a stationary statue in the hallway.
@@ -1457,7 +1493,7 @@ def maybe_patrol_and_accompany(o: dict, st: dict) -> None:
     1. If Guala is in a room and not interacting, walks to accompany Guala in her current room.
     2. Periodically patrols domestic rooms (kitchen, tv-room, library, her-room) to maintain
        a lived-in domestic presence throughout the house."""
-    if asleep(o):
+    if asleep(o) or is_seated_in_high_chair(o) or st.get("seated_for_meal"):
         return
     cur_tick = int(o.get("live_tick") or 0)
     last_patrol = int(st.get("last_patrol_tick") or 0)
@@ -1578,23 +1614,25 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                 her_b = next((b for b in (emb.get("bodies") or []) if b.get("body_id") == emb.get("self_body_id")), None)
                 her_pos = ((her_b.get("pose") or {}).get("position") or {}) if her_b else {}
                 her_room = room_of_point(o, her_pos) if her_pos.get("x_mm") is not None else None
+                child_in_chair = is_seated_in_high_chair(o)
 
+                # Prioritize BEDTIME and MEALTIME above routine daytime exploratory rituals
                 if asleep(o) or (her_b and (her_b.get("pose") or {}).get("posture") == "lying") or ((her_sleep(o).get("sleep_pressure") or 0) > 0.85):
                     ritual = "BEDTIME"
+                elif hungry or child_in_chair or st.get("seated_for_meal"):
+                    ritual = "MEALTIME"
                 elif cur_epoch == "DAWN_AWAKENING":
                     ritual = "MEALTIME"
                 elif cur_epoch == "MORNING_FOCUS":
                     ritual = "PLAYPEN_NOVELTY"
                 elif cur_epoch == "MIDDAY_STROLL":
                     ritual = "YARD_EXPLORATION"
-                elif cur_epoch == "AFTERNOON_EXPLORATION":
+                elif cur_epoch == "AFTERNOON_CHALLENGE":
                     ritual = "TV_AND_MEDIA"
-                elif cur_epoch == "EVENING_WINDDOWN":
+                elif cur_epoch == "EVENING_CULTURE":
                     ritual = "STORY_AND_SONG"
                 elif cur_epoch == "NIGHT_CONSOLIDATION":
                     ritual = "BEDTIME"
-                elif hungry:
-                    ritual = "MEALTIME"
                 elif her_room == "backyard":
                     ritual = "YARD_EXPLORATION"
                 elif st.get("read_next_tick") is not None and (o.get("live_tick") or 0) < int(st.get("read_next_tick")) and int(st.get("read_chapter") or 0) > 0:
@@ -1607,21 +1645,27 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                     st["active_ritual"] = ritual
                     json.dump(st, open(STATE, "w"))
 
+                # Active mealtime and high-chair seating have strict mutual exclusivity over distracting challenges
                 maybe_feed(o, st)
-                maybe_bedtime(o, st)
-                maybe_housekeeping(o, st)
-                maybe_touch(o, st)
-                maybe_name_attended(o, st)
-                maybe_echo_syllable(o, st)
-                maybe_play(o, st)
-                maybe_tactile_curriculum(o, st)
-                maybe_tv(o, st)
-                maybe_stroll(o, st)
-                maybe_playpen_challenge(o, st)
-                maybe_ladder_challenge(o, st)
-                maybe_read(o, st)
-                maybe_music(o, st)
-                maybe_patrol_and_accompany(o, st)
+                is_meal = bool(child_in_chair or st.get("seated_for_meal") or hungry)
+                if not is_meal:
+                    maybe_bedtime(o, st)
+                    maybe_housekeeping(o, st)
+                    maybe_touch(o, st)
+                    maybe_name_attended(o, st)
+                    maybe_echo_syllable(o, st)
+                    maybe_play(o, st)
+                    maybe_tactile_curriculum(o, st)
+                    maybe_tv(o, st)
+                    maybe_stroll(o, st)
+                    maybe_playpen_challenge(o, st)
+                    maybe_ladder_challenge(o, st)
+                    maybe_read(o, st)
+                    maybe_music(o, st)
+                    maybe_patrol_and_accompany(o, st)
+                else:
+                    maybe_name_attended(o, st)
+                    maybe_echo_syllable(o, st)
 
                 if not ready_for_lesson(o, st):
                     ritual = st.get('active_ritual', 'UNKNOWN')
