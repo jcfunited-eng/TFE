@@ -5,6 +5,15 @@ set -u
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
 
 run_close_pass() {
+  # 2026-09-29: reconcile BEFORE refreshing. Any roster split re-bases a
+  # symbol's whole history at the provider, and the refresh (rightly)
+  # refuses to append onto the old basis — which froze the store twice in a
+  # week (WHLR 9:1 on 09-22, MTNB 15:1 on 09-28) and took the whole nightly
+  # chain down with it. The reconcile replaces only the re-based symbols'
+  # histories, under the refresh's own lock, and prints "clean" when there
+  # is nothing to do. If it cannot verify a symbol it fails, and so does
+  # the pass — nothing is published on a guess.
+  python tools/ch4_store_reconcile_overlap.py || return
   python tools/ch4_store_refresh.py || return
   python tools/ch3_supply_tail.py || return
   python tools/population_reading_backfill.py \

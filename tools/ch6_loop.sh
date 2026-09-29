@@ -43,7 +43,13 @@ while true; do
       python tools/ch6_fast_harvest.py close_entry >> artifacts/vtvr_observer/ch6_runner.log 2>&1
       python tools/ch6_page.py artifacts/vtvr_observer/ch6_page.html
     fi
-    if [ "$h" = "19" ] && [ "$m" -ge 55 ] && [ "$last_sweep" != "$d" ]; then
+    # Sweep window widened 2026-09-29: it was 19:55-19:59 only, and a loop
+    # cycle is five minutes of sleep plus its work — on 09-29 the cycle that
+    # ran the at-close entry ended after 20:00 and the day's sweep never
+    # happened. 19:55-20:14 now; once per day (last_sweep). After 20:00 the
+    # marks are the closing prints, which is what the sweep banks at.
+    if { { [ "$h" = "19" ] && [ "$m" -ge 55 ]; } || { [ "$h" = "20" ] && [ "$m" -lt 15 ]; }; } \
+        && [ "$last_sweep" != "$d" ]; then
       python tools/ch6_fast_harvest.py sweep
       python tools/ch6_page.py artifacts/vtvr_observer/ch6_page.html
       last_sweep="$d"
