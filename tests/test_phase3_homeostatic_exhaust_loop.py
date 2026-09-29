@@ -126,7 +126,8 @@ def test_plastic_conduction_shapes_exhaust_syllable():
     loop = FunctionalPhysicalLoop()
 
     # Pre-condition: Carve a plastic conductance channel for 'deh3'
-    # deh3: Onset 'd'=3, Vowel 'eh'=1, Pitch 3=3750 dHz (PITCHES_DECIHERTZ[3] = 3900)
+    # deh3: Onset 'd'=3, Vowel 'eh'=1, Pitch 3=3900 dHz (PITCHES_DECIHERTZ[3] = 3900)
+    # Drive encoding is (pitch, vowel_idx, onset_idx)
     cue = [0] * TOTAL_NODES
     cue[SOMATIC_START:SOMATIC_START + 16] = [1] * 16
     eff = org._ternary_substrate.encode_dsf_and_efferents(
@@ -149,7 +150,7 @@ def test_plastic_conduction_shapes_exhaust_syllable():
 
     assert res.observation["her_act"] == "say"
     # Verify the resonant articulators match the learned plastic channel ('deh3')
-    assert tuple(res.observation.get("said_drive", ())) == (PITCHES_DECIHERTZ[3], 3, 1), f"Expected 'deh3' drive, got: {res.observation.get('said_drive')}"
+    assert tuple(res.observation.get("said_drive", ())) == (PITCHES_DECIHERTZ[3], 1, 3), f"Expected 'deh3' drive, got: {res.observation.get('said_drive')}"
 
 
 def test_live_playpen_confinement_exhaust_breaks_deadlock():
