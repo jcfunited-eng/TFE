@@ -28,6 +28,7 @@ import math
 import struct
 from typing import Any, Sequence
 
+import numpy as np
 import pandas as pd
 from uf_core.layer0 import compute_sev_series
 from uf_core.layer1 import build_gate_l1_state, segment_gates
@@ -36,6 +37,14 @@ from uf_core.layer3 import compute_resonance
 from uf_core.layer4 import compute_directional_signal, compute_dsf
 
 from dsf_ai_service.substrate.guala_sensorimotor_mesh import GualaSensorimotorMesh
+from dsf_ai_service.substrate.ternary_multimodal_substrate import (
+    TernaryMultiModalSubstrate,
+    VISUAL_START, VISUAL_END,
+    AUDITORY_START, AUDITORY_END,
+    SOMATIC_START, SOMATIC_END,
+    EFFERENT_START, EFFERENT_END,
+    TOTAL_NODES,
+)
 from dsf_ai_service.guala_acoustic_gate import (   # her ear's declared numbers live with the gate, once
     EAR_BAND_CHANNELS, EAR_BANDS, FRAMES_PER_HOP, GRAIN, HEARD_ENERGY_FLOOR, KERNEL_MINIMUM, PAUSE_FRAMES, SILENT_FRAME, STREAM_FLOOR, gate_step,
 )
@@ -43,7 +52,7 @@ from dsf_ai_service.guala_eye_figure import FOCAL_COLUMNS, FOCAL_ROWS, Figure, f
 from dsf_ai_service.substrate.exact_lattice_rotation import rotate_lattice_offset
 from dsf_ai_service.guala_caretaker_hand import (
     _approach_point, _distance_mm, _heading_toward, _portal_points, _portal_route, _region_of,
-    offered_within_reach,
+    nothing_left_to_bite, offered_within_reach,
 )
 from dsf_ai_service.episodic_binding_engine import (
     compute_somatic_salience,
@@ -1190,7 +1199,7 @@ def candidates(
     tick: int,
     say_drive: tuple[int, int, int] | None = None,
     say_detail: str = "a syllable of her own",
-    feeding: bool = True,
+    feeding: bool = False,
     sleepy: bool = True,
     conserved_objects: dict[str, Any] | None = None,
     pending_chain: list[str] | None = None,
@@ -1228,15 +1237,17 @@ def candidates(
 
     # 2. Grasp (one reachable object per world grasp law) and touch reachable things
     if held is None and len(reachable) == 1 and handleable(reachable[0]):
+        item = reachable[0]
+        c_entry = conserved_objects.get(item.object_id, {}) if conserved_objects else {}
         is_known_non_food = bool(
-            (conserved_objects and (
-                conserved_objects.get(reachable[0].object_id, {}).get("non_nutritive")
-                or conserved_objects.get(reachable[0].object_id, {}).get("currently_depleted")
-            ))
-            or (tested_non_nutritive_ids and reachable[0].object_id in tested_non_nutritive_ids)
+            item.material is None
+            or (item.material is not None and sum(item.material.tastant_mass_micrograms) < 2_000)
+            or c_entry.get("non_nutritive")
+            or c_entry.get("currently_depleted")
+            or (tested_non_nutritive_ids and item.object_id in tested_non_nutritive_ids)
         )
         if not (feeding and is_known_non_food):
-            out.append(("grasp", reachable[0].object_id, (GraspContactCommand(BEAT_MICROSECONDS),), reachable[0].object_id, None))
+            out.append(("grasp", item.object_id, (GraspContactCommand(BEAT_MICROSECONDS),), item.object_id, None))
     if held is None:
         for item in reachable:
             if item.material is not None:
@@ -1354,9 +1365,8 @@ def candidates(
         out.append(("step", "one stride ahead", (MoveCommand(PoseMM(ahead, heading), BEAT_MICROSECONDS),), None, None))
         for name, sign in (("turn_left", 1), ("turn_right", -1)):
             out.append((name, "", (MoveCommand(PoseMM(position, (heading + sign * TURN_MILLIDEGREES) % 360_000), BEAT_MICROSECONDS),), None, None))
-    if not sound_heard:
-        drive = say_drive if say_drive is not None else DEFAULT_DRIVE
-        out.append(("say", say_detail, (), None, drive))
+    drive = say_drive if say_drive is not None else DEFAULT_DRIVE
+    out.append(("say", say_detail, (), None, drive))
     out.append(("rest", "", (), None, None))
     # Release held item (deferred after elementary motions/rest to allow exploratory holding/inspection)
     if held is not None and drop_spot_clear(snapshot, body, held):
@@ -1415,6 +1425,22 @@ class FunctionalOrganism:
         if cached is not None:
             self._state["sensorimotor_mesh"] = cached.to_dict()
 
+    @property
+    def _ternary_substrate(self) -> TernaryMultiModalSubstrate:
+        sub_dict = self._state.get("ternary_substrate")
+        cached = getattr(self, "_cached_ternary_substrate", None)
+        if cached is None:
+            if sub_dict is not None:
+                self._cached_ternary_substrate = TernaryMultiModalSubstrate.from_dict(sub_dict)
+            else:
+                self._cached_ternary_substrate = TernaryMultiModalSubstrate()
+        return self._cached_ternary_substrate
+
+    def _sync_ternary_substrate(self) -> None:
+        cached = getattr(self, "_cached_ternary_substrate", None)
+        if cached is not None:
+            self._state["ternary_substrate"] = cached.to_dict()
+
     # ----- genesis, restore, encode -------------------------------------------------
 
     @classmethod
@@ -1435,7 +1461,7 @@ class FunctionalOrganism:
             "speech": {}, "syllable_totals": {}, "prior_syllable": None, "syllable_profiles": {},
             "ear_event": None, "events": {}, "sound_event": None, "ear_quiet": _empty_ear_quiet(),
             "gaze": None, "gaze_target": None, "sight_figure": None, "figures": {}, "eyes": [0, 0], "gaze_radius": 0.0,
-            "moments": {}, "last_moment": None,
+            "moments": {}, "last_moment": None, "ternary_substrate": None,
             "voice_event": None, "own_events": {}, "own_event": None, "meanings": {}, "last_said": None, "affordance_plan": None, "planned_target_id": None, "conserved_objects": {}, "tested_non_nutritive": [], "expectation_discrepancy": None, "joint_attention_target": None, "pending_chain": [], "last_demand_chain": None,
             "room_dwell_beats": 0, "prior_room": None, "region_visits": {}, "region_last_tick": {},
         })
@@ -1546,6 +1572,9 @@ class FunctionalOrganism:
             changed = True
         if "moments" not in state:
             state["moments"] = {}
+            changed = True
+        if "ternary_substrate" not in state:
+            state["ternary_substrate"] = None
             changed = True
         if "last_moment" not in state:
             state["last_moment"] = None
@@ -1721,6 +1750,7 @@ class FunctionalOrganism:
         counts["own_events"] = len(self._state.get("own_events") or {})
         counts["meanings"] = len(self._state.get("meanings") or {})
         counts["conserved_objects"] = len(self._state.get("conserved_objects") or {})
+        counts["active_synapses"] = self._ternary_substrate.matrix_statistics()[2]
         return counts
 
     @property
@@ -1859,6 +1889,7 @@ class FunctionalOrganism:
 
         tokens = []
         gates_total = 0
+        dsf_states = {}
         for name in STREAMS:
             window = self._state["streams"][name]
             if len(window) < KERNEL_MINIMUM:
@@ -1868,9 +1899,24 @@ class FunctionalOrganism:
             gates = tuple(segment_gates(sev))
             build_gate_l1_state(sev, gates)
             l2 = tuple(interpret_gates(sev, gates))
-            l4 = tuple(compute_dsf(compute_directional_signal(list(compute_resonance(l2)))))
+            res = list(compute_resonance(l2))
+            l4 = tuple(compute_dsf(compute_directional_signal(res)))
             gates_total += len(gates)
             last = l4[-1]
+            p_k = float(last.P_k)
+            b_k = float(last.B_k)
+            s_uf = (b_k - p_k) if b_k > 0 else -p_k
+            dsf_states[name] = {
+                "D_k": float(last.D_k),
+                "M_k": float(last.M_k),
+                "R_rev_k": float(last.R_rev_k),
+                "U_star_k": float(last.U_star_k),
+                "C_k": float(last.C_k),
+                "P_k": p_k,
+                "B_k": b_k,
+                "S_UF": float(s_uf),
+                "regime": l2[-1].regime,
+            }
             token = (
                 l2[-1].regime[0]
                 + _sign(last.D_k)
@@ -1882,6 +1928,7 @@ class FunctionalOrganism:
                 + _sign(last.B_k)
             )
             tokens.append(token)
+        self._last_dsf_states = dsf_states
         return " ".join(tokens), gates_total
 
     def decide(self, sensed: Sensed) -> Decision:
@@ -2101,6 +2148,11 @@ class FunctionalOrganism:
         self._hear_own(sensed.own_frames, tick)
         self._sensorimotor_mesh.step_polarization(sensed.heard_frames)
         self._sync_sensorimotor_mesh()
+        self._last_focal_luminance = sensed.focal_luminance_u8
+        self._last_heard_envelopes = getattr(sensed, "heard_envelopes", ())
+        self._last_skin_contact = sensed.skin_contact
+        self._last_touch_temp = sensed.touch_surface_millikelvin
+        self._last_heard_profile = sensed.heard_profile
         admitted_moment_keys = self._form_moments(body, measures, tick)
 
         # Pre-choice sensory observation captured before any action evaluation
@@ -2135,6 +2187,7 @@ class FunctionalOrganism:
                         trial["previous"] = previous
                     if trial_key not in moments:
                         admitted_moment_keys.add(trial_key)
+                    trial_krim = getattr(self, "_last_sparse_krimelack", None)
                     moments[trial_key] = {
                         "count": 1, "tick": tick, "salience": sal,
                         "held": "none",
@@ -2146,6 +2199,7 @@ class FunctionalOrganism:
                         "acts": {},
                         "fed": intake_ug,
                         "motor_transition": trial,
+                        "krimelack": trial_krim,
                     }
                     if outcome in moments:
                         moments[outcome]["episode_tail"] = trial_key
@@ -2202,7 +2256,7 @@ class FunctionalOrganism:
             }
             return Decision(act, reason, commands, target, drive, signature, novel, gate_count, seen)
 
-        if feeding:
+        if feeding and not state.get("asleep"):
             active_oral_target = held.object_id if held is not None else (offered.object_id if offered is not None else None)
             unsuccessful_target = state.get("unsuccessful_bite_held_id")
             if unsuccessful_target is not None and (active_oral_target is None or active_oral_target != unsuccessful_target):
@@ -2210,12 +2264,41 @@ class FunctionalOrganism:
 
             for item in (held, offered):
                 if item is not None:
+                    if item.material is None or body.receptor_geometry is None:
+                        continue   # cannot bite without material or oral receptors
                     if item.material is not None and int(item.material.surface_temperature_millikelvin) >= NOCICEPTION_MILLIKELVIN:
                         continue   # too hot to bite: the jaw waits for it to cool (the mouth's reflex)
                     c_item = conserved.get(item.object_id, {})
                     if c_item.get("non_nutritive") is True or item.object_id == state.get("unsuccessful_bite_held_id"):
                         continue   # suppressed: known non-nutritive or unsuccessful bite
                     return decision("bite", "held item at her mouth while feeding (the jaw's reflex)", (OralContactCommand(item.object_id, BEAT_MICROSECONDS),), item.object_id)
+
+            # Barrier Inhibition: When holding an item whose bite failed or is non-nutritive/barrier, release it immediately
+            if held is not None:
+                c_held = conserved.get(held.object_id, {})
+                if (
+                    held.material is None
+                    or body.receptor_geometry is None
+                    or c_held.get("non_nutritive") is True
+                    or held.object_id == state.get("unsuccessful_bite_held_id")
+                    or held.object_id in tested_non_nutritive
+                    or held.object_id == "playpen"
+                ):
+                    tested_set = set(state.get("tested_non_nutritive") or ())
+                    tested_set.add(held.object_id)
+                    state["tested_non_nutritive"] = sorted(tested_set)
+                    c_entry = conserved.setdefault(held.object_id, {
+                        "object_id": held.object_id,
+                        "position": tuple(state.get("body_pos") or (0, 0, 0)),
+                        "radius_mm": int(held.radius_mm),
+                        "room_id": state.get("room_now"),
+                        "last_seen_tick": tick,
+                        "confidence": 1.0,
+                    })
+                    c_entry["non_nutritive"] = True
+                    c_entry["is_food"] = False
+                    return decision("release", f"structure {key[:6]}: barrier inhibition: release non-nutritive/blocked held target {held.object_id}", (ReleaseHeldObjectCommand(BEAT_MICROSECONDS),), held.object_id)
+        
 
 
 
@@ -2469,6 +2552,45 @@ class FunctionalOrganism:
         moments = state.setdefault("moments", {})
         room_now = state.get("room_now") or "unknown"
 
+        # Continuous Multi-Modal Substrate Presentation & Krimelack Encoding
+        focal_u8 = getattr(self, "_last_focal_luminance", ())
+        vis_trits = self._ternary_substrate.encode_visual_field(np.asarray(focal_u8, dtype=np.float64)) if focal_u8 else [0] * 256
+        target = state.get("heard_speech_target")
+        envs = (target.get("envelopes") or ()) if target else getattr(self, "_last_heard_envelopes", ())
+        aud_trits = self._ternary_substrate.encode_cochlear_field_2d(envs) if envs else [0] * 256
+        c_load = float(getattr(self, "_last_skin_contact", measures.get("skin_contact", 0.0)))
+        t_surf = getattr(self, "_last_touch_temp", None)
+        t_delta = (float(t_surf - 310_000) / 10_000.0) if t_surf is not None else float(measures.get("touch_warmth", 0.0) - 0.5)
+        som_trits = self._ternary_substrate.encode_somatic_field(c_load, t_delta)
+        eff_trits = [0] * 256
+        if said:
+            o_idx, v_idx, p_idx = None, None, None
+            for oi, o_name in enumerate(ONSETS):
+                if said.startswith(o_name):
+                    o_idx = oi
+                    rem = said[len(o_name):]
+                    for vi, v_tup in enumerate(VOWELS):
+                        if rem.startswith(v_tup[0]):
+                            v_idx = vi
+                            break
+                    break
+            dsf_info = self._last_dsf_states.get("hunger") if hasattr(self, "_last_dsf_states") else None
+            dsf_vec = (
+                dsf_info["D_k"], dsf_info["M_k"], dsf_info["R_rev_k"],
+                dsf_info["U_star_k"], dsf_info["C_k"], dsf_info["P_k"],
+                dsf_info["B_k"], dsf_info["S_UF"]
+            ) if dsf_info is not None else None
+            eff_trits = self._ternary_substrate.encode_dsf_and_efferents(
+                dsf_vector=dsf_vec, onset_idx=o_idx, vowel_idx=v_idx, pitch_idx=p_idx
+            )
+        mm_vec = self._ternary_substrate.assemble_multimodal_vector(vis_trits, aud_trits, som_trits, eff_trits)
+        sparse_k = [[idx, val] for idx, val in enumerate(mm_vec) if val != 0]
+        has_event = bool(said or target or salience > 0.0 or getattr(self, "_pain", 0.0) > 0.0 or state.get("taste_residue", 0.0) > 0.0 or c_load > 0.1)
+        if sparse_k and has_event:
+            self._ternary_substrate.present_experience(mm_vec)
+            self._sync_ternary_substrate()
+            self._last_sparse_krimelack = sparse_k
+
         if not closed:
             last_moment_id = state.get("last_moment", [None])[0] if state.get("last_moment") else None
             last_entry = moments.get(last_moment_id) if last_moment_id else None
@@ -2501,6 +2623,7 @@ class FunctionalOrganism:
                     "fed": 0,
                     "source": "own" if event.startswith("own:") else ("visual" if event.startswith("visual:") else "heard"),
                     "salience": round(salience, 4),
+                    "krimelack": sparse_k if sparse_k else None,
                 }
             else:
                 entry["count"] = int(entry["count"]) + 1
@@ -2509,6 +2632,8 @@ class FunctionalOrganism:
                 entry["figure"] = figure
                 entry["room"] = room_now
                 entry["salience"] = max(float(entry.get("salience", 0.0)), round(salience, 4))
+                if sparse_k:
+                    entry["krimelack"] = sparse_k
                 if "acts" not in entry:
                     entry["acts"] = {}
             last = state.get("last_moment")
@@ -2520,6 +2645,7 @@ class FunctionalOrganism:
             state["last_moment"] = [key, tick]
             if not event.startswith("own:") or self._moment_formed is None:
                 self._moment_formed = key
+
         return created
 
     # ----- Level 1: the acoustic gate over her beat ------------------------------------
@@ -2639,6 +2765,15 @@ class FunctionalOrganism:
                 yielded = self._sensorimotor_mesh.plastic_settle(tuple(p_drive), self_frames_list)
                 self._sync_sensorimotor_mesh()
 
+                # Ground vocal-auditory reafference in native 1,024-node ternary matrix
+                aud_trits = self._ternary_substrate.encode_cochlear_field_2d(self_envs)
+                o_idx = p_drive[1] if len(p_drive) > 1 else None
+                v_idx = p_drive[2] if len(p_drive) > 2 else None
+                eff_trits = self._ternary_substrate.encode_dsf_and_efferents(onset_idx=o_idx, vowel_idx=v_idx)
+                reaff_vec = self._ternary_substrate.assemble_multimodal_vector([0] * 256, aud_trits, [0] * 256, eff_trits)
+                self._ternary_substrate.present_experience(reaff_vec)
+                self._sync_ternary_substrate()
+
             # The syllable she said is valued by the same measured worth, under its context.
             entry = self._state.setdefault("speech", {}).setdefault(str(pending["context"]), {"syllables": {}, "tick": tick})
             tried = entry["syllables"].setdefault(str(pending["syllable"]), [0, 0.0])
@@ -2665,6 +2800,33 @@ class FunctionalOrganism:
 
         state = self._state
         self._dream_moment(tick)
+
+        # Phase 4: Offline Dream Replay & Synaptic Consolidation
+        moments = state.get("moments") or {}
+        meanings = state.get("meanings") or {}
+        candidate_krimelacks = []
+        for src in (moments.values(), meanings.values()):
+            for m in src:
+                if isinstance(m, dict) and "krimelack" in m:
+                    salience = float(m.get("salience", 0.0))
+                    fed = int(m.get("fed", 0))
+                    count = int(m.get("count", 1))
+                    score = salience + (2.0 if fed > 0 else 0.0) + (0.1 * count)
+                    candidate_krimelacks.append((score, m["krimelack"]))
+
+        if candidate_krimelacks:
+            candidate_krimelacks.sort(key=lambda x: x[0], reverse=True)
+            for _, sparse_k in candidate_krimelacks[:3]:
+                pat = [0] * 1024
+                for idx, val in sparse_k:
+                    if 0 <= idx < 1024:
+                        pat[idx] = val
+                self._ternary_substrate.replay_krimelack(pat, factor=1.2)
+
+        # Apply global synaptic downscaling and noise pruning (Synaptic Homeostasis)
+        decayed, pruned = self._ternary_substrate.sleep_decay_and_prune(decay_factor=0.03, min_conductance=0.015)
+        self._sync_ternary_substrate()
+
         record = state.setdefault("acts", {})
         if not record:
             return None
@@ -2743,11 +2905,15 @@ class FunctionalOrganism:
                 "consequences": {a: dict(c) for a, c in entry.get("consequences", {}).items()},
                 "episode_tail": entry.get("episode_tail"),
             }
+            if "krimelack" in entry:
+                meanings[key]["krimelack"] = entry["krimelack"]
         else:
             kept["count"] = int(kept["count"]) + int(entry["count"])
             kept["tick"] = tick
             kept["fed"] = int(kept.get("fed", 0)) + int(entry.get("fed", 0))
             kept["salience"] = max(float(kept.get("salience", 0.0)), round(salience, 4))
+            if "krimelack" in entry:
+                kept["krimelack"] = entry["krimelack"]
             if entry.get("figure") and entry.get("figure") != "none":
                 kept["figure"] = entry["figure"]
             if entry.get("room") and entry.get("room") != "unknown":
@@ -2815,6 +2981,74 @@ class FunctionalOrganism:
             if mesh_drive is not None and mesh_name is not None:
                 ctx = f"{situation}:{prior_syllable if prior_syllable else 'start'}"
                 return mesh_drive, mesh_name, ctx, f"sensorimotor conduction: {mesh_name} (max_V={mesh_info['max_onset_v']:.2f})"
+
+        # Resonate against active incoming speech during early development:
+        heard_prof = getattr(self, "_last_heard_profile", None)
+        if self.live_organism_tick <= 60 and heard_prof and sum(heard_prof) > 0.05:
+            syl_profs = self._state.setdefault("syllable_profiles", {})
+            scored = []
+            for s in SYLLABLES:
+                s_prof = syl_profs.get(s) or _syllable_reafference(s)
+                if s_prof is not None:
+                    rho = spectral_cosine_similarity(s_prof, heard_prof)
+                    if rho >= 0.70:
+                        scored.append((rho, s))
+            if scored:
+                scored.sort(key=lambda item: (item[0], -SYLLABLES.index(item[1])), reverse=True)
+                best_rho, syl = scored[0]
+                drive = SYLLABLE_DRIVES.get(syl, DEFAULT_DRIVE)
+                ctx = f"{situation}:{prior_syllable if prior_syllable else 'start'}"
+                return drive, syl, ctx, f"auditory-vocal resonance against active afferent: {syl} (rho={best_rho:.2f})"
+
+        # Native Ternary Matrix Resonant Conduction Path:
+        target = self._state.get("heard_speech_target")
+        if target and target.get("envelopes") and not target.get("consumed"):
+            aud_trits = self._ternary_substrate.encode_cochlear_field_2d(target["envelopes"])
+            cue_1024 = [0] * 1024
+            cue_1024[AUDITORY_START:AUDITORY_END] = aud_trits
+            decoded, _ = self._ternary_substrate.project_and_readout(cue_1024)
+            if decoded["onset_idx"] is not None and decoded["vowel_idx"] is not None:
+                o_idx = decoded["onset_idx"]
+                v_idx = decoded["vowel_idx"]
+                p_idx = decoded["pitch_idx"] if decoded["pitch_idx"] is not None else 0
+                if o_idx < len(ONSETS) and v_idx < len(VOWELS) and p_idx < len(PITCHES_DECIHERTZ):
+                    syl_name = f"{ONSETS[o_idx]}{VOWELS[v_idx][0]}{p_idx}"
+                    drive = (PITCHES_DECIHERTZ[p_idx], o_idx, v_idx)
+                    ctx = f"{situation}:{prior_syllable if prior_syllable else 'start'}"
+                    return drive, syl_name, ctx, f"native ternary lattice resonance: {syl_name}"
+
+        # Phase 3 Homeostatic Exhaust Resonant Pathway:
+        hunger_dsf = self._last_dsf_states.get("hunger") if hasattr(self, "_last_dsf_states") else None
+        deficit = float(self.deficit)
+        p_k = hunger_dsf["P_k"] if hunger_dsf else (deficit if deficit >= float(HUNGRY_BELOW) else 0.0)
+        b_k = hunger_dsf["B_k"] if hunger_dsf else 0.5
+        s_uf = hunger_dsf["S_UF"] if hunger_dsf else (b_k - p_k)
+        if (hunger_dsf and (p_k > b_k or s_uf <= 0)) or (deficit >= float(HUNGRY_BELOW) and (p_k > b_k or s_uf <= 0)):
+            cue_1024 = [0] * TOTAL_NODES
+            cue_1024[SOMATIC_START:SOMATIC_START + 16] = [1] * 16
+            d_k = hunger_dsf["D_k"] if hunger_dsf else deficit
+            m_k = hunger_dsf["M_k"] if hunger_dsf else 0.0
+            r_rev = hunger_dsf["R_rev_k"] if hunger_dsf else 1.0
+            u_star = hunger_dsf["U_star_k"] if hunger_dsf else 0.5
+            c_k = hunger_dsf["C_k"] if hunger_dsf else 0.0
+            dsf_slice = self._ternary_substrate.encode_dsf_and_efferents(
+                dsf_vector=(d_k, m_k, r_rev, u_star, c_k, p_k, b_k, s_uf)
+            )
+            cue_1024[EFFERENT_START:EFFERENT_END] = dsf_slice
+            decoded, _ = self._ternary_substrate.project_and_readout(cue_1024)
+            if decoded["onset_idx"] is not None and decoded["vowel_idx"] is not None:
+                o_idx = decoded["onset_idx"]
+                v_idx = decoded["vowel_idx"]
+                p_idx = decoded["pitch_idx"] if decoded["pitch_idx"] is not None else 3
+            else:
+                o_idx = 0  # 'm'
+                v_idx = 0  # 'ah'
+                p_idx = 3  # 3750 dHz (infant distress cry)
+            if o_idx < len(ONSETS) and v_idx < len(VOWELS) and p_idx < len(PITCHES_DECIHERTZ):
+                syl_name = f"{ONSETS[o_idx]}{VOWELS[v_idx][0]}{p_idx}"
+                drive = (PITCHES_DECIHERTZ[p_idx], o_idx, v_idx)
+                ctx = f"{situation}:{prior_syllable if prior_syllable else 'start'}"
+                return drive, syl_name, ctx, f"homeostatic exhaust resonance: {syl_name} (P_k={p_k:.2f}>B_k={b_k:.2f})"
 
         # Resonant Auditory-Vocal Imitation: if a speech target was recently heard
         if target and (self.live_organism_tick - int(target.get("tick", 0)) <= 6) and target.get("profile"):
@@ -2929,6 +3163,17 @@ class FunctionalOrganism:
             if non_turns:
                 acts = non_turns
 
+        # Early infant acoustic imitation: infant vocal entrainment under active microphone speech
+        heard_prof = getattr(self, "_last_heard_profile", None)
+        if self.live_organism_tick <= 60 and heard_prof and sum(heard_prof) > 0.05 and "say" in acts:
+            syl_profs = self._state.setdefault("syllable_profiles", {})
+            matches_speech = any(
+                spectral_cosine_similarity(syl_profs.get(s) or _syllable_reafference(s), heard_prof) >= 0.80
+                for s in SYLLABLES
+            )
+            if matches_speech:
+                return "say", f"{label}: acoustic afferent entrainment: vocal resonance with incoming speech"
+
         # Cognitive Asset 7: Stage 4 Conversational Turn-Taking Flow
         # Calibrated 250ms quiet gap following speaker cessation releases vocal turn response
         target = self._state.get("heard_speech_target")
@@ -2963,25 +3208,10 @@ class FunctionalOrganism:
                     opt[0] in ("toward_thing", "toward_food", "grasp")
                     and opt[3]
                     and opt[3] not in known_non_foods
-                    and (snapshot is not None and handleable(_object(snapshot, opt[3])))
+                    and (snapshot is not None and handleable(_object(snapshot, opt[3])) and _object(snapshot, opt[3]).material is not None and sum(_object(snapshot, opt[3]).material.tastant_mass_micrograms) >= 2_000)
                     for opt in candidate_options
                 )
-            if not has_candidate_nourishment and snapshot is not None:
-                has_candidate_nourishment = any(
-                    o.object_id not in known_non_foods
-                    and handleable(o)
-                    and _region_of(snapshot, o.position, int(o.radius_mm)) is not None
-                    and _region_of(snapshot, o.position, int(o.radius_mm)).region_id == cur_room
-                    for o in snapshot.objects if o.position is not None and not o.object_id.endswith("-book")
-                )
-            if not has_candidate_nourishment:
-                has_candidate_nourishment = any(
-                    o_id not in known_non_foods
-                    and c.get("room_id") == cur_room
-                    and c.get("handleable", False)
-                    and not o_id.endswith("-book")
-                    for o_id, c in conserved.items()
-                )
+
 
             is_barren = (needs_bed and not has_bed) or (needs_food and not has_candidate_nourishment)
             if is_barren:
@@ -2995,19 +3225,22 @@ class FunctionalOrganism:
             return "toward_door", f"{label}: structural boredom ({boredom:.2f} over {dwell_beats} dwell beats): evacuating saturated basin toward negative space"
 
         # Physical release: when holding an item whose bite was unsuccessful, or is depleted/non-nutritive, release it
-        held_target = self._state.get("unsuccessful_bite_held_id") or self._state.get("gaze_target")
-        held_target_str = held_target if isinstance(held_target, str) else None
-        held_is_depleted = any(
-            c.get("non_nutritive") or c.get("currently_depleted")
-            for o_id, c in conserved.items()
-            if o_id == held_target_str
-        )
-        if "release" in acts and (
-            self._state.get("unsuccessful_bite_held_id")
-            or held_is_depleted
-            or (held_target_str in tested_non_nutritive)
-        ):
-            return "release", f"{label}: release non-nutritive held item"
+        holding_item = (candidate_options is not None and any(o[0] == "release" for o in candidate_options)) or (self._state.get("held_object_id") is not None)
+        if "release" in acts and holding_item:
+            held_target = self._state.get("unsuccessful_bite_held_id") or self._state.get("held_object_id") or self._state.get("gaze_target")
+            held_target_str = held_target if isinstance(held_target, str) else None
+            held_is_depleted = any(
+                c.get("non_nutritive") or c.get("currently_depleted")
+                for o_id, c in conserved.items()
+                if o_id == held_target_str
+            )
+            if (
+                self._state.get("unsuccessful_bite_held_id")
+                or held_is_depleted
+                or (held_target_str in tested_non_nutritive)
+                or not (self._state.get("feeding") or deficit >= 0.60)
+            ):
+                return "release", f"{label}: release held item (sated or non-nutritive)"
 
         # Physical execution feedback: an act refused on the previous beat yields to alternative viable acts
         if refused_act and len(acts) > 1:
@@ -3037,7 +3270,7 @@ class FunctionalOrganism:
                         if o[0] == "grasp"
                         and o[3]
                         and o[3] not in known_non_foods
-                        and (snapshot is not None and handleable(_object(snapshot, o[3])))
+                        and (snapshot is not None and handleable(_object(snapshot, o[3])) and _object(snapshot, o[3]).material is not None and sum(_object(snapshot, o[3]).material.tastant_mass_micrograms) >= 2_000)
                     ]
                     if grasp_opts:
                         return "grasp", f"{label}: metabolic hunger surge -> grasp candidate nourishment; {grasp_opts[0][3]}"
@@ -3056,6 +3289,31 @@ class FunctionalOrganism:
                         return "toward_thing", f"{label}: metabolic hunger surge -> approach handleable affordance; {thing_opts[0][3]}"
             if is_barren and "toward_door" in acts and not door_refused:
                 return "toward_door", f"{label}: metabolic hunger surge -> evacuate barren basin ({cur_room}) toward nourishment"
+
+            # Phase 3 Homeostatic Exhaust Cycle (Section 4 of WHOLE_BRAIN_SPECIFICATION.md):
+            # When motor affordances cannot relieve metabolic deficit (confined in playpen, barred doors, or food out of reach):
+            # Frustrated kinetic energy is inhibited along the motor manifold and forced through the lowest-resistance
+            # plastic channels of the substrate to actuate the vocal valve ('say').
+            hunger_dsf = self._last_dsf_states.get("hunger") if hasattr(self, "_last_dsf_states") else None
+            p_k = hunger_dsf["P_k"] if hunger_dsf else 0.8
+            b_k = hunger_dsf["B_k"] if hunger_dsf else 0.5
+            s_uf = hunger_dsf["S_UF"] if hunger_dsf else (b_k - p_k)
+            strained = (p_k > b_k or s_uf <= 0)
+            since_last_exhaust = self.live_organism_tick - int(self._state.get("homeostatic_exhaust_tick", -999))
+            motor_affordances_available = (
+                any(a in acts for a in ("toward_door", "toward_food", "toward_thing", "take", "grasp", "bite"))
+                and not door_refused
+            )
+
+            # Vocal exhaust discharges only when strained AND motor pathways are blocked/unavailable (frustrated energy),
+            # with a physiological refractory recovery period (B_k recovery) of >= 15 beats.
+            if strained and not motor_affordances_available and "say" in acts and since_last_exhaust >= 15:
+                self._state["homeostatic_exhaust_tick"] = self.live_organism_tick
+                self._state["unsuccessful_bite_held_id"] = None
+                if hunger_dsf:
+                    hunger_dsf["P_k"] = round(b_k * 0.5, 4)
+                    hunger_dsf["S_UF"] = round(b_k - hunger_dsf["P_k"], 4)
+                return "say", f"{label}: homeostatic exhaust cycle: P_k ({p_k:.3f}) > B_k ({b_k:.3f}) [S_UF={s_uf:.3f} <= 0] -> vocal valve exhaust"
 
         entry = self._state.setdefault("acts", {}).get(key)
         label = "structure " + key[:6]
@@ -3124,6 +3382,12 @@ class FunctionalOrganism:
             if decision.target_object_id and decision.target_object_id in state.get("conserved_objects", {}):
                 state["conserved_objects"][decision.target_object_id]["position"] = tuple(state.get("body_pos") or (0, 0, 0))
                 state["conserved_objects"][decision.target_object_id]["room_id"] = state.get("room_now")
+                if "barrier inhibition" in decision.reason or "non-nutritive" in decision.reason:
+                    state["conserved_objects"][decision.target_object_id]["non_nutritive"] = True
+                    state["conserved_objects"][decision.target_object_id]["is_food"] = False
+                    tested_set = set(state.get("tested_non_nutritive") or ())
+                    tested_set.add(decision.target_object_id)
+                    state["tested_non_nutritive"] = sorted(tested_set)
         reached = applied_action in ("reach_hand", "touch", "grasp") and refusal is None
         state["pending_contact"] = round(float(contact_fraction), 6) if reached else 0.0
         state["pending_contact_millikelvin"] = int(contact_millikelvin) if (reached and contact_millikelvin is not None) else None
@@ -3174,7 +3438,7 @@ class FunctionalOrganism:
                     "relief": "feeding",
                     "target_id": decision.target_object_id,
                 }
-        elif applied_action == "bite" and decision.target_object_id:
+        elif (applied_action == "bite" or (decision.act == "bite" and refusal is not None)) and decision.target_object_id:
             state["unsuccessful_bite_held_id"] = decision.target_object_id
             conserved = state.setdefault("conserved_objects", {})
             entry = conserved.setdefault(decision.target_object_id, {
@@ -3186,10 +3450,7 @@ class FunctionalOrganism:
                 "confidence": 1.0,
             })
             has_nourished = int(entry.get("fed_count", 0)) > 0 or int(entry.get("historical_intake_micrograms", 0)) > 0
-            if has_nourished:
-                entry["currently_depleted"] = True
-                entry["is_food"] = False
-            else:
+            if not has_nourished:
                 tested_set = set(state.get("tested_non_nutritive") or ())
                 tested_set.add(decision.target_object_id)
                 state["tested_non_nutritive"] = sorted(tested_set)

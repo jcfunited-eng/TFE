@@ -232,7 +232,7 @@ def test_the_kernel_reads_her_streams_and_her_memory_stays_bounded_over_three_hu
         gates += int(result.observation["dsf_delivery_count"])
     assert gates > 0 and novel > 0
     from dsf_ai_service.guala_functional_organism import EPISODE_CAPACITY, FAMILIARITY_CAPACITY, VOICE_CAPACITY
-    assert max(sizes) < 250_000 and len(world.encoded_snapshot()) < 4_000_000   # her bound: lifelong capacity
+    assert max(sizes) < 400_000 and len(world.encoded_snapshot()) < 4_000_000   # her bound: lifelong capacity
     state = organism._state
     assert len(state["familiarity"]) <= FAMILIARITY_CAPACITY and len(state["episodes"]) <= EPISODE_CAPACITY and len(state["voice"]) <= VOICE_CAPACITY
     assert all(len(window) <= 64 for window in state["streams"].values())
@@ -1332,7 +1332,7 @@ def test_music_becomes_bounded_events_in_her_beat_and_her_body_stays_within_its_
     assert closed and max(open_frames) <= MAX_EVENT_FRAMES and not organism.ear["open"]
     assert all(organism._state["events"][key][2] <= MAX_EVENT_FRAMES // 25 for key in closed)
     assert len(organism._state["events"]) <= 256
-    assert max(sizes) < 200_000, max(sizes)   # bounded with open event frames (300 frames of 7 values + 32 ERB envelopes) and events store
+    assert max(sizes) < 400_000, max(sizes)   # bounded with open event frames (300 frames of 7 values + 32 ERB envelopes) and events store
     encoded = organism.encoded()
     assert FunctionalOrganism.restore(encoded).encoded() == encoded
 
