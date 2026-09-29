@@ -179,3 +179,100 @@ def test_starving_organism_achieves_closed_loop_sated_convergence():
         f"Final reserve: {organism._state.get('reserve_micrograms', 0)} ug, "
         f"Final room: {organism._state.get('room_now')}"
     )
+
+def test_tainted_conserved_blanket_purged_on_restore_and_achieves_sated_from_backyard():
+    """Verify that an organism restoring historical durable state where blanket was
+    falsely conserved as food while in the backyard:
+    1. Immediately purges blanket from food upon restore/migration.
+    2. Never targets blanket as toward_food.
+    3. Evacuates backyard toward connecting doors.
+    4. Achieves closed-loop sated convergence (> 0% sated) within 100 beats.
+    """
+    from dsf_ai_service.guala_functional_organism import is_genuine_food_object
+    from dsf_ai_service.substrate.embodiment_world import PoseMM
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+
+    # Inject historical database corruption into conserved_objects
+    organism._state["conserved_objects"]["blanket"] = {
+        "object_id": "blanket",
+        "position": (900, 8500, 0),
+        "radius_mm": 300,
+        "fed_count": 1,
+        "historical_intake_micrograms": 20000,
+        "is_food": True,
+        "room_id": "her-room",
+    }
+    organism._state["reserve_micrograms"] = 0
+    organism._state["feeding"] = True
+    organism._state["room_now"] = "backyard"
+
+    # Simulate restore/migration
+    organism.migrate()
+
+    # Invariant: blanket must be stripped of food status
+    blanket_entry = organism._state["conserved_objects"]["blanket"]
+    assert not blanket_entry.get("is_food"), "Blanket was not stripped of is_food!"
+    assert blanket_entry.get("non_nutritive"), "Blanket was not marked non_nutritive!"
+    assert not is_genuine_food_object("blanket"), "Blanket classified as genuine food!"
+
+    # Transport Guala to backyard
+    world.admit_authored_body_transport("guala-body-1", PoseMM(PositionMM(5355, 11880, 0), 184382))
+
+    loop = FunctionalPhysicalLoop()
+    achieved_sated = False
+    blanket_targeted = False
+
+    for beat in range(100):
+        res = loop.settle(organism, world, UNATTENDED)
+        obs = res.observation
+        act = obs.get("her_act")
+        reason = str(obs.get("act_reason", ""))
+
+        if "toward_food" in act and "blanket" in reason:
+            blanket_targeted = True
+
+        res_ug = organism._state.get("reserve_micrograms", 0)
+        intake = obs.get("real_nutrition_intake_zeptojoules", 0)
+        if intake > 0 and res_ug > 0:
+            achieved_sated = True
+            break
+
+    assert not blanket_targeted, "Guala targeted blanket as food during backyard run!"
+    assert achieved_sated, (
+        f"Guala failed to achieve closed-loop sated convergence from backyard! "
+        f"Final reserve: {organism._state.get('reserve_micrograms', 0)} ug, "
+        f"Final room: {organism._state.get('room_now')}"
+    )
+
+
+def test_vocal_exhaust_does_not_halt_motor_locomotion():
+    """Verify that acoustic vocal emission operates as an independent efferent channel
+    and does not freeze or halt motor locomotion during active spatial navigation.
+    """
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+
+    # Force hunger strain so vocal exhaust is primed
+    organism._state["reserve_micrograms"] = 0
+    organism._state["feeding"] = True
+    organism._state["room_now"] = "her-room"
+    organism._last_dsf_states = {"hunger": {"P_k": 0.9, "B_k": 0.4, "S_UF": -0.5}}
+
+    loop = FunctionalPhysicalLoop()
+    vocalized_while_moving = False
+
+    for beat in range(35):
+        res = loop.settle(organism, world, UNATTENDED)
+        obs = res.observation
+        motion = obs.get("actual_root_motion")
+        said = obs.get("said")
+        has_motion = Array_has_motion = any(v != 0 for v in motion) if isinstance(motion, (list, tuple)) else False
+
+        if said is not None and has_motion:
+            vocalized_while_moving = True
+            break
+
+    assert vocalized_while_moving, "Guala never emitted acoustic vocal drive while simultaneously moving!"
+

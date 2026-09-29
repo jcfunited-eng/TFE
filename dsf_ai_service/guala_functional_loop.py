@@ -21,7 +21,7 @@ except ImportError:
     _gc = None
 
 from dsf_ai_service.guala_acoustic_gate import envelopes_of_cochleae, frames_of_cochleae
-from dsf_ai_service.guala_caretaker_hand import nothing_left_to_bite, present_food, withdraw
+from dsf_ai_service.guala_caretaker_hand import nothing_left_to_bite, present_food, withdraw, stray_core
 from dsf_ai_service.guala_cochlea import one_binaural_hearing_hop, one_self_hearing_hop
 from dsf_ai_service.guala_vision_fovea import compute_saccadic_gaze
 from dsf_ai_service.guala_functional_organism import (
@@ -263,9 +263,10 @@ def _caregiver_withdrawal(organism: FunctionalOrganism, world: Any) -> dict[str,
     else:
         organism._state["offer_since_tick"] = None
         # During daytime wakefulness, an empty-handed caregiver stays in place
-        # (patrolling, accompanying, or observing). Only during sleep does the
-        # empty-handed caregiver withdraw to the hallway.
-        if not organism.asleep:
+        # (patrolling, accompanying, or observing), unless there is a stray core to tidy.
+        # Only during sleep does the empty-handed caregiver withdraw to the hallway without a task.
+        stray = stray_core(snapshot, her, near=person.pose.position)
+        if not organism.asleep and stray is None:
             return None
     record = withdraw(world)
     if record is not None and not (record["home"] or record["fetched"]):

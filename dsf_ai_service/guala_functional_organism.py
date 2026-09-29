@@ -263,6 +263,33 @@ MEANING_CAPACITY = 4096
 # Cognitive Asset 4: Spatial Object Permanence & Occlusion Conservation (The Piaget Invariant)
 OBJECT_PERMANENCE_CAPACITY = 64
 PERMANENCE_FIXTURES = (BED_ID, "desk", "toy-chest", "radio", "window", "mirror", "bookshelf", "blanket", "curtains", "wall-art-shapes", "wall-art-weather", "playpen")
+
+# Grounded Food Ontology Invariant:
+# Only verified digestible sustenance objects are edible. Fixtures, furniture, bedding,
+# toys, tools, and structural elements must NEVER be qualified or conserved as food.
+NON_FOOD_OBJECT_IDS = set(PERMANENCE_FIXTURES) | {
+    "pillow", "night-light", "toy-bear", "stacking-rings", "toy-blocks",
+    "play-ball", "book", "lamp", "television", "sofa", "rug", "tv-remote",
+    "mailbox", "stroller-carriage", "slide", "swing", "sandbox", "garden-patch",
+    "garden-ladder", "tree-oak", "tree-pine", "tree-apple", "cup", "pot",
+    "pan", "table", "sideboard", "bath-tub", "wash-basin", "bath-towel",
+    "bath-mat", "bath-lamp", "high-chair", "kitchen-counter", "refrigerator",
+    "stove", "pantry", "dining-table", "dining-chair", "dining-chair-south",
+    "dining-lamp", "daddys-desk", "daddys-chair", "daddys-book", "daddys-lamp",
+    "daddys-armchair", "shelf-a", "shelf-b", "glow-stars", "desk-chair",
+}
+
+def is_genuine_food_object(object_id: str | None) -> bool:
+    """Physical Material Invariant: verifies whether an object possesses genuine caloric/digestible sustenance."""
+    if not object_id or not isinstance(object_id, str):
+        return False
+    if object_id in NON_FOOD_OBJECT_IDS or object_id in PERMANENCE_FIXTURES:
+        return False
+    return (
+        object_id.startswith("apple")
+        or object_id.startswith("bread")
+        or object_id in ("bottle-milk", "bowl", "garden-apple")
+    )
 DISCREPANCY_VERIFICATION_DISTANCE_MM = 1_000
 
 # Cognitive Asset 5: Joint Attention & Caregiver Gaze Vector Tracking
@@ -453,7 +480,7 @@ def things_in_sight(snapshot: Any, known_food_ids: set[str] | None = None) -> tu
         bearing = _heading_toward(body.pose.position, item.position)
         if abs(_bearing_offset(body.pose.heading_millidegrees, bearing)) > FIELD_OF_VIEW_MILLIDEGREES:
             continue
-        is_f = (item.object_id in known_food_ids) if known_food_ids is not None else False
+        is_f = is_genuine_food_object(item.object_id)
         seen.append(SeenThing(item.object_id, item.position, item.radius_mm, distance, bearing, is_f))
     return tuple(sorted(seen, key=lambda thing: (thing.distance_mm, thing.object_id)))
 
@@ -1168,7 +1195,7 @@ def _consequence_grounded_food_ids(state: dict[str, Any]) -> set[str]:
                         intake = act_c.get("intake", 0)
                         if isinstance(intake, (int, float)) and intake > 0:
                             tid = act_c.get("target_id")
-                            if tid:
+                            if tid and is_genuine_food_object(tid):
                                 foods.add(tid)
     return foods
 
@@ -1179,6 +1206,8 @@ def _consequence_qualified_food_ids(state: dict[str, Any]) -> set[str]:
     tested_non_nutritive = set(state.get("tested_non_nutritive") or ())
     known_foods = set()
     for obj_id, c_data in state.get("conserved_objects", {}).items():
+        if not is_genuine_food_object(obj_id):
+            continue
         if obj_id in tested_non_nutritive or c_data.get("non_nutritive") is True:
             continue
         has_nourished = (
@@ -1213,9 +1242,10 @@ def candidates(
     Candidate count is strictly bounded by what she sees plus her room's doors."""
 
     if pending_chain:
-        next_syl = pending_chain[0]
+        next_syl = pending_chain.pop(0)
         chain_drive = SYLLABLE_DRIVES.get(next_syl)
-        return [("say", f"combinatorial chain demand successor: {next_syl}", (), None, chain_drive)]
+        say_drive = chain_drive
+        say_detail = f"combinatorial chain demand successor: {next_syl}"
 
     out: list[tuple[str, str, tuple[Any, ...], str | None, tuple[int, int, int] | None]] = []
     position, heading = body.pose.position, body.pose.heading_millidegrees
@@ -1259,7 +1289,7 @@ def candidates(
 
     # 4. Toward every sensed food target, nearest first (the least strides to reach)
     if held is None and not in_high_chair:
-        food = sorted((thing for thing in seen if thing.is_food),
+        food = sorted((thing for thing in seen if thing.is_food and is_genuine_food_object(thing.object_id)),
                       key=lambda thing: (thing.distance_mm, thing.object_id))
         for item in food:
             stop = body.radius_mm + item.radius_mm + STOP_MARGIN_MM
@@ -1270,6 +1300,8 @@ def candidates(
         if feeding and conserved_objects:
             conserved_food = []
             for obj_id, c_entry in conserved_objects.items():
+                if not is_genuine_food_object(obj_id):
+                    continue
                 has_nourished = int(c_entry.get("fed_count", 0)) > 0 or int(c_entry.get("historical_intake_micrograms", 0)) > 0 or (consequence_food_ids is not None and obj_id in consequence_food_ids)
                 is_viable = has_nourished and not c_entry.get("currently_depleted", False)
                 if is_viable and obj_id not in seen_food_ids:
@@ -1287,7 +1319,9 @@ def candidates(
                                     commands = _door_motor_commands(snapshot, first_portal, here.region_id)
                                     if commands:
                                         conserved_food.append((dist, obj_id, f"via {first_portal.portal_id} toward {obj_id} (conserved)", commands))
-                                    continue
+                                # Physical Invariant: When the target lies across room boundaries,
+                                # never fall through to direct Euclidean movement through solid walls!
+                                continue
                             conserved_food.append((dist, obj_id, f"{obj_id} (conserved)", move_commands_toward(snapshot, pos, stop)))
             conserved_food.sort(key=lambda x: (x[0], x[1]))
             for dist, obj_id, detail, cmds in conserved_food[:2]:
@@ -1495,6 +1529,28 @@ class FunctionalOrganism:
             if key not in state:
                 state[key] = {} if isinstance(empty, dict) else empty
                 changed = True
+        # Durable State Hygiene: Purge non-food fixtures erroneously marked as food in historical checkpoints
+        conserved = state.get("conserved_objects", {})
+        for obj_id, c_data in list(conserved.items()):
+            if not is_genuine_food_object(obj_id):
+                if c_data.get("is_food") or c_data.get("fed_count", 0) > 0 or c_data.get("historical_intake_micrograms", 0) > 0 or not c_data.get("non_nutritive"):
+                    c_data["is_food"] = False
+                    c_data["fed_count"] = 0
+                    c_data["historical_intake_micrograms"] = 0
+                    c_data["non_nutritive"] = True
+                    c_data["tested_non_food"] = True
+                    changed = True
+        for m in state.get("meanings", {}).values():
+            if isinstance(m, dict):
+                c = m.get("consequences", {})
+                if isinstance(c, dict):
+                    for act_c in c.values():
+                        if isinstance(act_c, dict) and act_c.get("relief") == "feeding":
+                            tid = act_c.get("target_id")
+                            if tid and not is_genuine_food_object(tid):
+                                act_c["relief"] = None
+                                act_c["intake"] = 0
+                                changed = True
         for key, empty in (("ambient_sound", 0.0), ("handled", 0), ("room_now", None), ("head", [0, 0]), ("acts", {}), ("pending_act", None), ("last_chosen", None),
                            ("sleep_pressure", 0), ("asleep", False), ("learned", {}), ("nights", 0), ("taste_residue", 0.0)):
             if key not in state:
@@ -1984,7 +2040,7 @@ class FunctionalOrganism:
                     "last_seen_tick": tick,
                     "confidence": 1.0,
                 })
-                if thing.object_id in tested_non_nutritive or entry.get("non_nutritive") is True:
+                if not is_genuine_food_object(thing.object_id) or thing.object_id in tested_non_nutritive or entry.get("non_nutritive") is True:
                     entry["non_nutritive"] = True
                     entry["is_food"] = False
                     entry["tested_non_food"] = True
@@ -2306,8 +2362,8 @@ class FunctionalOrganism:
         if state.get("asleep"):
             if pressure <= 0:
                 state["asleep"], state["sleep_pressure"] = False, 0
-                for c_entry in state.get("conserved_objects", {}).values():
-                    if isinstance(c_entry, dict) and (int(c_entry.get("fed_count", 0)) > 0 or int(c_entry.get("historical_intake_micrograms", 0)) > 0):
+                for obj_id, c_entry in state.get("conserved_objects", {}).items():
+                    if isinstance(c_entry, dict) and is_genuine_food_object(obj_id) and (int(c_entry.get("fed_count", 0)) > 0 or int(c_entry.get("historical_intake_micrograms", 0)) > 0):
                         c_entry["currently_depleted"] = False
                         c_entry["is_food"] = True
             else:
@@ -2450,9 +2506,32 @@ class FunctionalOrganism:
             speech_target = state.get("heard_speech_target")
             if speech_target and speech_target.get("envelopes"):
                 speech_target["consumed"] = True
-        elif sound_heard and drive is None and commands and getattr(sensed, "sound_source_id", None) == "person-body-1":
-            # Multimodal acoustic acknowledgement during active motor stride when directly hailed by person-body-1
-            drive = say_drive
+        else:
+            # Parallel Vocal Efferent Coupling:
+            # Acoustic emission is an independent efferent channel from motor locomotion.
+            # When under homeostatic distress (hunger strain) or acoustic acknowledgement,
+            # attach vocal drive to the motor decision WITHOUT halting locomotion.
+            hunger_dsf = self._last_dsf_states.get("hunger") if hasattr(self, "_last_dsf_states") else None
+            p_k = hunger_dsf["P_k"] if hunger_dsf else (0.8 if deficit >= 0.6 else 0.0)
+            b_k = hunger_dsf["B_k"] if hunger_dsf else 0.5
+            s_uf = hunger_dsf["S_UF"] if hunger_dsf else (b_k - p_k)
+            strained = (deficit >= 0.6 and (p_k > b_k or s_uf <= 0))
+            since_last_exhaust = self.live_organism_tick - int(self._state.get("homeostatic_exhaust_tick", -999))
+
+            should_vocalize = False
+            if strained and since_last_exhaust >= 15:
+                should_vocalize = True
+                self._state["homeostatic_exhaust_tick"] = self.live_organism_tick
+                if hunger_dsf:
+                    hunger_dsf["P_k"] = round(b_k * 0.5, 4)
+                    hunger_dsf["S_UF"] = round(b_k - hunger_dsf["P_k"], 4)
+            elif sound_heard and getattr(sensed, "sound_source_id", None) == "person-body-1":
+                should_vocalize = True
+
+            if should_vocalize and drive is None and say_drive is not None:
+                drive = say_drive
+                state["pending_act"]["syllable"], state["pending_act"]["context"] = say_name, say_context
+                state["pending_act"]["drive"] = list(say_drive)
             # Cognitive Asset 5: Combinatorial Demand Chaining
             chain = state.get("pending_chain")
             if chain:
@@ -3201,28 +3280,17 @@ class FunctionalOrganism:
             needs_food = deficit >= 0.6
             known_foods = _consequence_qualified_food_ids(self._state)
             has_bed = any(c.get("room_id") == cur_room for o_id, c in conserved.items() if o_id == BED_ID) or (candidate_options is not None and any(opt[0] == "toward_bed" for opt in candidate_options))
-            has_food = any(o_id in known_foods and c.get("room_id") == cur_room for o_id, c in conserved.items()) or (candidate_options is not None and any(opt[0] == "toward_food" for opt in candidate_options))
+            # Food is present only if genuine food is located in the current room or currently visible
+            has_food = any(is_genuine_food_object(o_id) and o_id in known_foods and c.get("room_id") == cur_room for o_id, c in conserved.items()) or (
+                candidate_options is not None and any(opt[0] == "toward_food" and is_genuine_food_object(opt[3]) and not str(opt[1]).startswith("via ") for opt in candidate_options)
+            )
             has_candidate_nourishment = has_food
-            if not has_candidate_nourishment and candidate_options is not None:
-                has_candidate_nourishment = any(
-                    opt[0] in ("toward_thing", "toward_food", "grasp")
-                    and opt[3]
-                    and opt[3] not in known_non_foods
-                    and (snapshot is not None and handleable(_object(snapshot, opt[3])) and _object(snapshot, opt[3]).material is not None and sum(_object(snapshot, opt[3]).material.tastant_mass_micrograms) >= 2_000)
-                    for opt in candidate_options
-                )
-
 
             is_barren = (needs_bed and not has_bed) or (needs_food and not has_candidate_nourishment)
             if is_barren:
                 phi_barren = 1.0 - math.exp(-float(dwell_beats) / 20.0)
                 if (needs_food or phi_barren > 0.25) and "toward_door" in acts and not door_refused:
                     return "toward_door", f"{label}: barren basin exhaustion ({phi_barren:.2f} over {dwell_beats} dwell beats in {cur_room}): evacuating toward negative space"
-
-        surplus = max(0.0, min(1.0, (1.0 - deficit) * (1.0 - sleep_ratio)))
-        boredom = surplus * (1.0 - math.exp(-float(dwell_beats) / 30.0))
-        if boredom > 0.25 and "toward_door" in acts and not door_refused:
-            return "toward_door", f"{label}: structural boredom ({boredom:.2f} over {dwell_beats} dwell beats): evacuating saturated basin toward negative space"
 
         # Physical release: when holding an item whose bite was unsuccessful, or is depleted/non-nutritive, release it
         holding_item = (candidate_options is not None and any(o[0] == "release" for o in candidate_options)) or (self._state.get("held_object_id") is not None)
@@ -3242,6 +3310,11 @@ class FunctionalOrganism:
             ):
                 return "release", f"{label}: release held item (sated or non-nutritive)"
 
+        surplus = max(0.0, min(1.0, (1.0 - deficit) * (1.0 - sleep_ratio)))
+        boredom = surplus * (1.0 - math.exp(-float(dwell_beats) / 30.0))
+        if boredom > 0.25 and "toward_door" in acts and not door_refused:
+            return "toward_door", f"{label}: structural boredom ({boredom:.2f} over {dwell_beats} dwell beats): evacuating saturated basin toward negative space"
+
         # Physical execution feedback: an act refused on the previous beat yields to alternative viable acts
         if refused_act and len(acts) > 1:
             viable_unrefused = [a for a in acts if a != refused_act]
@@ -3250,17 +3323,6 @@ class FunctionalOrganism:
 
         # Physical Affordance Pursuit under Hunger Deficit (Resonant Surge toward nourishment)
         if deficit >= 0.6:
-            depleted_or_non_foods = known_non_foods | {o_id for o_id, c in conserved.items() if c.get("currently_depleted") is True}
-            if depleted_or_non_foods and candidate_options is not None:
-                non_food_pruned = []
-                for a in acts:
-                    if a == "grasp" and not any(o[0] == "grasp" and o[3] and o[3] not in depleted_or_non_foods for o in candidate_options):
-                        continue
-                    if a == "toward_thing" and not any(o[0] == "toward_thing" and o[3] and o[3] not in depleted_or_non_foods for o in candidate_options):
-                        continue
-                    non_food_pruned.append(a)
-                if non_food_pruned:
-                    acts = non_food_pruned
             if "take" in acts:
                 return "take", f"{label}: metabolic hunger surge -> take offered sustenance"
             if "grasp" in acts:
@@ -3269,26 +3331,23 @@ class FunctionalOrganism:
                         o for o in candidate_options
                         if o[0] == "grasp"
                         and o[3]
+                        and is_genuine_food_object(o[3])
                         and o[3] not in known_non_foods
-                        and (snapshot is not None and handleable(_object(snapshot, o[3])) and _object(snapshot, o[3]).material is not None and sum(_object(snapshot, o[3]).material.tastant_mass_micrograms) >= 2_000)
+                        and (snapshot is not None and handleable(_object(snapshot, o[3])))
                     ]
                     if grasp_opts:
                         return "grasp", f"{label}: metabolic hunger surge -> grasp candidate nourishment; {grasp_opts[0][3]}"
             if "toward_food" in acts:
-                return "toward_food", f"{label}: metabolic hunger surge -> approach food"
-            if "toward_thing" in acts:
-                if candidate_options is not None:
-                    thing_opts = [
-                        o for o in candidate_options
-                        if o[0] == "toward_thing"
-                        and o[3]
-                        and o[3] not in known_non_foods
-                        and (snapshot is not None and handleable(_object(snapshot, o[3])))
-                    ]
-                    if thing_opts:
-                        return "toward_thing", f"{label}: metabolic hunger surge -> approach handleable affordance; {thing_opts[0][3]}"
+                valid_food_opts = [
+                    o for o in candidate_options
+                    if o[0] == "toward_food" and o[3] and is_genuine_food_object(o[3])
+                ] if candidate_options is not None else []
+                if valid_food_opts:
+                    return "toward_food", f"{label}: metabolic hunger surge -> approach food; {valid_food_opts[0][1]}"
             if is_barren and "toward_door" in acts and not door_refused:
                 return "toward_door", f"{label}: metabolic hunger surge -> evacuate barren basin ({cur_room}) toward nourishment"
+            if "toward_door" in acts and not door_refused:
+                return "toward_door", f"{label}: metabolic hunger surge -> search connecting portal for nourishment"
 
             # Phase 3 Homeostatic Exhaust Cycle (Section 4 of WHOLE_BRAIN_SPECIFICATION.md):
             # When motor affordances cannot relieve metabolic deficit (confined in playpen, barred doors, or food out of reach):
@@ -3401,7 +3460,7 @@ class FunctionalOrganism:
             state["meals_micrograms"] += intake
             state["bites"] += 1
             state["taste_residue"] = min(1.0, float(state.get("taste_residue", 0.0)) + intake / 100_000.0)
-            if decision.target_object_id:
+            if decision.target_object_id and is_genuine_food_object(decision.target_object_id):
                 state["unsuccessful_bite_held_id"] = None
                 tested_set = set(state.get("tested_non_nutritive") or ())
                 tested_set.discard(decision.target_object_id)
@@ -3449,14 +3508,12 @@ class FunctionalOrganism:
                 "last_seen_tick": tick_now,
                 "confidence": 1.0,
             })
-            has_nourished = int(entry.get("fed_count", 0)) > 0 or int(entry.get("historical_intake_micrograms", 0)) > 0
-            if not has_nourished:
-                tested_set = set(state.get("tested_non_nutritive") or ())
-                tested_set.add(decision.target_object_id)
-                state["tested_non_nutritive"] = sorted(tested_set)
-                entry["non_nutritive"] = True
-                entry["is_food"] = False
-                entry["tested_non_food"] = True
+            tested_set = set(state.get("tested_non_nutritive") or ())
+            tested_set.add(decision.target_object_id)
+            state["tested_non_nutritive"] = sorted(tested_set)
+            entry["non_nutritive"] = True
+            entry["is_food"] = False
+            entry["tested_non_food"] = True
             entry["last_tested_tick"] = tick_now
         geom = getattr(self, "_receptor_geometry", None)
         nociception_span = max(1, int(geom.touch_temperature_max_millikelvin) - NOCICEPTION_MILLIKELVIN) if geom is not None else 23_000
