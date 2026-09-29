@@ -251,4 +251,7 @@ class ModularColumnSubstrate:
             plastic_rate=float(data.get("plastic_rate", 0.03)),
             activation_threshold=float(data.get("activation_threshold", 0.25)),
         )
+        if "sparse_hex" in data and data["sparse_hex"]:
+            raw = bytes.fromhex(data["sparse_hex"])
+            sub.substrate.import_sparse(raw)
         return sub

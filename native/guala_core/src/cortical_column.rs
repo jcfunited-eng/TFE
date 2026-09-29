@@ -674,25 +674,53 @@ impl PyModularSubstrate4D {
         self.inner.dream_consolidation(decay, prune_thresh)
     }
 
-    /// Export sparse binary representation for zero-overhead checkpoint persistence
+    /// Export sparse binary representation for zero-overhead checkpoint persistence.
+    /// Filters conductances by |g| >= 0.005 and bounds to top 1,024 synapses.
     pub fn export_sparse(&self) -> Vec<u8> {
-        let mut out = Vec::new();
-        // Export inter-column fasciculi (L2/3)
+        let mut candidates: Vec<(u32, f32)> = Vec::new();
         for (idx, &g) in self.inner.w_inter_23.iter().enumerate() {
-            if g.abs() > 0.001 {
-                out.extend_from_slice(&(idx as u32).to_le_bytes());
-                out.extend_from_slice(&g.to_le_bytes());
+            if g.abs() >= 0.005 {
+                candidates.push((idx as u32, g));
             }
         }
-        // Export inter-column fasciculi (L5)
         for (idx, &g) in self.inner.w_inter_5.iter().enumerate() {
-            if g.abs() > 0.001 {
+            if g.abs() >= 0.005 {
                 let offset_idx = (INTER_COL_23_SIZE + idx) as u32;
-                out.extend_from_slice(&offset_idx.to_le_bytes());
-                out.extend_from_slice(&g.to_le_bytes());
+                candidates.push((offset_idx, g));
             }
+        }
+        candidates.sort_by(|a, b| b.1.abs().partial_cmp(&a.1.abs()).unwrap_or(std::cmp::Ordering::Equal));
+        let bounded = if candidates.len() > 1024 { &candidates[..1024] } else { &candidates[..] };
+
+        let mut out = Vec::with_capacity(bounded.len() * 8);
+        for &(idx, g) in bounded {
+            out.extend_from_slice(&idx.to_le_bytes());
+            out.extend_from_slice(&g.to_le_bytes());
         }
         out
+    }
+
+    /// Import sparse binary representation into inter-column fasciculi
+    pub fn import_sparse(&mut self, data: &[u8]) -> PyResult<()> {
+        let n_entries = data.len() / 8;
+        for i in 0..n_entries {
+            let offset = i * 8;
+            if offset + 8 <= data.len() {
+                let idx = u32::from_le_bytes([data[offset], data[offset + 1], data[offset + 2], data[offset + 3]]) as usize;
+                let g = f32::from_le_bytes([data[offset + 4], data[offset + 5], data[offset + 6], data[offset + 7]]);
+                if idx < INTER_COL_23_SIZE {
+                    if idx < self.inner.w_inter_23.len() {
+                        self.inner.w_inter_23[idx] = g;
+                    }
+                } else {
+                    let off_5 = idx - INTER_COL_23_SIZE;
+                    if off_5 < self.inner.w_inter_5.len() {
+                        self.inner.w_inter_5[off_5] = g;
+                    }
+                }
+            }
+        }
+        Ok(())
     }
 }
 

@@ -37,6 +37,7 @@ from uf_core.layer3 import compute_resonance
 from uf_core.layer4 import compute_directional_signal, compute_dsf
 
 from dsf_ai_service.substrate.guala_sensorimotor_mesh import GualaSensorimotorMesh
+from dsf_ai_service.substrate.modular_column_substrate import ModularColumnSubstrate
 from dsf_ai_service.substrate.ternary_multimodal_substrate import (
     TernaryMultiModalSubstrate,
     VISUAL_START, VISUAL_END,
@@ -1484,6 +1485,22 @@ class FunctionalOrganism:
         if cached is not None:
             self._state["ternary_substrate"] = cached.to_dict()
 
+    @property
+    def _modular_substrate(self) -> ModularColumnSubstrate:
+        sub_dict = self._state.get("modular_substrate")
+        cached = getattr(self, "_cached_modular_substrate", None)
+        if cached is None:
+            if sub_dict is not None:
+                self._cached_modular_substrate = ModularColumnSubstrate.from_dict(sub_dict)
+            else:
+                self._cached_modular_substrate = ModularColumnSubstrate()
+        return self._cached_modular_substrate
+
+    def _sync_modular_substrate(self) -> None:
+        cached = getattr(self, "_cached_modular_substrate", None)
+        if cached is not None:
+            self._state["modular_substrate"] = cached.to_dict()
+
     # ----- genesis, restore, encode -------------------------------------------------
 
     @classmethod
@@ -1495,7 +1512,7 @@ class FunctionalOrganism:
             "reserve_micrograms": CAPACITY_MICROGRAMS * 55 // 100, "feeding": False,
             "streams": {name: [] for name in STREAMS},
             "familiarity": {}, "episodes": [], "heard": [], "voice": [],
-            "refusals": {}, "last_act": "rest", "last_spoke_tick": -BABBLE_EVERY_BEATS,
+            "refusals": {}, "last_act": "rest", "last_spoke_tick": 0,
             "pending_voice": None, "pending_drive": None, "meals_micrograms": 0, "bites": 0, "strides": 0, "syllables": 0,
             "voice_version": VOICE_VERSION, "ambient_sound": 0.0, "handled": 0, "room_now": None,
             "head": [0, 0], "acts": {}, "pending_act": None, "last_chosen": None,
@@ -1504,7 +1521,7 @@ class FunctionalOrganism:
             "speech": {}, "syllable_totals": {}, "prior_syllable": None, "syllable_profiles": {},
             "ear_event": None, "events": {}, "sound_event": None, "ear_quiet": _empty_ear_quiet(),
             "gaze": None, "gaze_target": None, "sight_figure": None, "figures": {}, "eyes": [0, 0], "gaze_radius": 0.0,
-            "moments": {}, "last_moment": None, "ternary_substrate": None,
+            "moments": {}, "last_moment": None, "ternary_substrate": None, "modular_substrate": None,
             "voice_event": None, "own_events": {}, "own_event": None, "meanings": {}, "last_said": None, "affordance_plan": None, "planned_target_id": None, "conserved_objects": {}, "tested_non_nutritive": [], "expectation_discrepancy": None, "joint_attention_target": None, "pending_chain": [], "last_demand_chain": None,
             "room_dwell_beats": 0, "prior_room": None, "region_visits": {}, "region_last_tick": {},
         })
@@ -1565,11 +1582,12 @@ class FunctionalOrganism:
 
         if "bottle-milk" in conserved:
             c_milk = conserved["bottle-milk"]
-            if not c_milk.get("is_food") or c_milk.get("currently_depleted") or c_milk.get("non_nutritive"):
-                c_milk["is_food"] = True
-                c_milk["non_nutritive"] = False
-                c_milk["currently_depleted"] = False
-                changed = True
+            if c_milk.get("fed_count", 0) == 0:
+                if not c_milk.get("is_food") or c_milk.get("currently_depleted") or c_milk.get("non_nutritive"):
+                    c_milk["is_food"] = True
+                    c_milk["non_nutritive"] = False
+                    c_milk["currently_depleted"] = False
+                    changed = True
         for m in state.get("meanings", {}).values():
             if isinstance(m, dict):
                 c = m.get("consequences", {})
@@ -1661,6 +1679,9 @@ class FunctionalOrganism:
             changed = True
         if "ternary_substrate" not in state:
             state["ternary_substrate"] = None
+            changed = True
+        if "modular_substrate" not in state:
+            state["modular_substrate"] = None
             changed = True
         if "last_moment" not in state:
             state["last_moment"] = None
@@ -1837,7 +1858,18 @@ class FunctionalOrganism:
         counts["meanings"] = len(self._state.get("meanings") or {})
         counts["conserved_objects"] = len(self._state.get("conserved_objects") or {})
         counts["active_synapses"] = self._ternary_substrate.matrix_statistics()[2]
+        counts["modular_active_synapses"] = self._modular_substrate.active_synapses()
         return counts
+
+    @property
+    def spatial_tracking(self) -> tuple[float, int, float, bool]:
+        """Spatial permanence coordinates from Column 1: (r_mm, theta_mdeg, persistence_trace, is_occluded)."""
+        return self._modular_substrate.get_spatial_tracking()
+
+    @property
+    def barrier_refusal_active(self) -> bool:
+        """Physical barrier refusal flag from Column 3."""
+        return self._modular_substrate.is_barrier_refusal_active()
 
     @property
     def conserved_objects(self) -> dict[str, Any]:
@@ -2174,7 +2206,9 @@ class FunctionalOrganism:
             eye_pitch = int(_clamp(aim[1] - state["head"][1], -EYE_BOUND_MILLIDEGREES, EYE_BOUND_MILLIDEGREES))
             eye_pitch = int(_clamp(eye_pitch, -CARRIAGE_PITCH_BOUND_MILLIDEGREES - state["head"][1], CARRIAGE_PITCH_BOUND_MILLIDEGREES - state["head"][1]))
             state["eyes"] = [eye_yaw, eye_pitch]
+            self._last_target_polar = (float(math.hypot(point[0] - ex, point[1] - ey)), int(aim[0]))
         else:
+            self._last_target_polar = None
             if sensed.wide_luminance_u8:
                 state["head"] = list(head_step(self.head, tuple(sensed.wide_luminance_u8)))
             # Binaural acoustic orienting torque if sound is heard without an identified visual object:
@@ -2703,7 +2737,32 @@ class FunctionalOrganism:
         if sparse_k and has_event:
             self._ternary_substrate.present_experience(mm_vec)
             self._sync_ternary_substrate()
+            self._sync_modular_substrate()
             self._last_sparse_krimelack = sparse_k
+
+        # Step 4-Column 3D Modular Neuromorphic Substrate
+        polar = getattr(self, "_last_target_polar", None)
+        obs_r, obs_th = (polar[0], polar[1]) if polar is not None else (None, None)
+        sens_64 = self._modular_substrate.encode_sensory_stream(
+            optical_intensities=np.asarray(focal_u8, dtype=np.float64) if focal_u8 else None,
+            cochlear_channels=envs if envs else None,
+            palmar_contact=c_load,
+            thermal_gradient_mk=float(t_surf - 310_000) if t_surf is not None else float(measures.get("touch_warmth", 0.0) - 0.5) * 10_000.0,
+            dsf_vector=dsf_vec if (said and dsf_vec is not None) else None,
+        )
+        som_32 = self._modular_substrate.encode_somatic_apical(
+            sleep_pressure=float(state.get("sleep_pressure", 0)) / 100.0,
+            metabolic_deficit=float(measures.get("hunger", 0.0)),
+            arousal_surplus=float(salience),
+        )
+        barrier_stress = float(c_load if c_load > 0.5 else 0.0)
+        self._modular_substrate.step(
+            sens_64,
+            som_32,
+            observed_r_mm=obs_r,
+            observed_theta_mdeg=obs_th,
+            barrier_stress=barrier_stress,
+        )
 
         if not closed:
             last_moment_id = state.get("last_moment", [None])[0] if state.get("last_moment") else None
@@ -2888,6 +2947,14 @@ class FunctionalOrganism:
                 self._ternary_substrate.present_experience(reaff_vec)
                 self._sync_ternary_substrate()
 
+                # Step 4-Column 3D Modular Substrate on vocal reafference
+                sens_reaff = self._modular_substrate.encode_sensory_stream(
+                    cochlear_channels=self_envs,
+                )
+                som_reaff = self._modular_substrate.encode_somatic_apical()
+                self._modular_substrate.step(sens_reaff, som_reaff)
+                self._sync_modular_substrate()
+
             # The syllable she said is valued by the same measured worth, under its context.
             entry = self._state.setdefault("speech", {}).setdefault(str(pending["context"]), {"syllables": {}, "tick": tick})
             tried = entry["syllables"].setdefault(str(pending["syllable"]), [0, 0.0])
@@ -2940,6 +3007,10 @@ class FunctionalOrganism:
         # Apply global synaptic downscaling and noise pruning (Synaptic Homeostasis)
         decayed, pruned = self._ternary_substrate.sleep_decay_and_prune(decay_factor=0.03, min_conductance=0.015)
         self._sync_ternary_substrate()
+
+        # Offline nocturnal sleep consolidation across 4-Column 3D Modular Substrate
+        self._modular_substrate.sleep_consolidation(decay=0.03, prune_thresh=0.015)
+        self._sync_modular_substrate()
 
         record = state.setdefault("acts", {})
         if not record:
@@ -3383,11 +3454,6 @@ class FunctionalOrganism:
                 ] if candidate_options is not None else []
                 if valid_food_opts:
                     return "toward_food", f"{label}: metabolic hunger surge -> approach food; {valid_food_opts[0][1]}"
-            if is_barren and "toward_door" in acts and not door_refused:
-                return "toward_door", f"{label}: metabolic hunger surge -> evacuate barren basin ({cur_room}) toward nourishment"
-            if "toward_door" in acts and not door_refused:
-                return "toward_door", f"{label}: metabolic hunger surge -> search connecting portal for nourishment"
-
             # Phase 3 Homeostatic Exhaust Cycle (Section 4 of WHOLE_BRAIN_SPECIFICATION.md):
             # When motor affordances cannot relieve metabolic deficit (confined in playpen, barred doors, or food out of reach):
             # Frustrated kinetic energy is inhibited along the motor manifold and forced through the lowest-resistance
@@ -3398,20 +3464,21 @@ class FunctionalOrganism:
             s_uf = hunger_dsf["S_UF"] if hunger_dsf else (b_k - p_k)
             strained = (p_k > b_k or s_uf <= 0)
             since_last_exhaust = self.live_organism_tick - int(self._state.get("homeostatic_exhaust_tick", -999))
-            motor_affordances_available = (
-                any(a in acts for a in ("toward_door", "toward_food", "toward_thing", "take", "grasp", "bite"))
-                and not door_refused
-            )
 
-            # Vocal exhaust discharges only when strained AND motor pathways are blocked/unavailable (frustrated energy),
+            # Vocal exhaust discharges when strained (P_k > B_k -> S_UF <= 0) and direct food affordances are not reachable,
             # with a physiological refractory recovery period (B_k recovery) of >= 15 beats.
-            if strained and not motor_affordances_available and "say" in acts and since_last_exhaust >= 15:
+            if strained and "say" in acts and since_last_exhaust >= 15:
                 self._state["homeostatic_exhaust_tick"] = self.live_organism_tick
                 self._state["unsuccessful_bite_held_id"] = None
                 if hunger_dsf:
                     hunger_dsf["P_k"] = round(b_k * 0.5, 4)
                     hunger_dsf["S_UF"] = round(b_k - hunger_dsf["P_k"], 4)
                 return "say", f"{label}: homeostatic exhaust cycle: P_k ({p_k:.3f}) > B_k ({b_k:.3f}) [S_UF={s_uf:.3f} <= 0] -> vocal valve exhaust"
+
+            if is_barren and "toward_door" in acts and not door_refused:
+                return "toward_door", f"{label}: metabolic hunger surge -> evacuate barren basin ({cur_room}) toward nourishment"
+            if "toward_door" in acts and not door_refused:
+                return "toward_door", f"{label}: metabolic hunger surge -> search connecting portal for nourishment"
 
         entry = self._state.setdefault("acts", {}).get(key)
         label = "structure " + key[:6]

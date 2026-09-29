@@ -568,6 +568,8 @@ class FunctionalPhysicalLoop:
                 "her_ear": organism.ear,
                 "her_eye": organism.eye,
                 "her_moment": organism.moment,
+                "spatial_tracking": list(organism.spatial_tracking),
+                "barrier_refusal_active": organism.barrier_refusal_active,
                 "kernel_novel": decision.novel,
                 "kernel_signature": decision.signature,
                 "latest_retinal_field_kind": "external-rgb" if external_rgb is not None else "world-rgb",
