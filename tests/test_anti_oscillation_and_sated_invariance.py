@@ -276,3 +276,44 @@ def test_vocal_exhaust_does_not_halt_motor_locomotion():
 
     assert vocalized_while_moving, "Guala never emitted acoustic vocal drive while simultaneously moving!"
 
+
+def test_dining_room_milk_bottle_grasp_invariance_and_anti_oscillation():
+    """Anti-Oscillation Invariant: When an organism at 0% reserve reaches bottle-milk in dining,
+    she must grasp the milk rather than falsely declaring the room barren and evacuating
+    toward the door in a 2-beat limit cycle oscillation.
+    """
+    from dsf_ai_service.substrate.embodiment_world import PoseMM, PositionMM
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+
+    organism._state["reserve_micrograms"] = 0
+    organism._state["feeding"] = True
+    organism._state["room_now"] = "dining"
+    organism._state["room_dwell_beats"] = 100
+
+    # Transport Guala to the exact live oscillation coordinate in dining facing south toward bottle-milk
+    world.admit_authored_body_transport("guala-body-1", PoseMM(PositionMM(7999, 3857, 0), 270087))
+
+    loop = FunctionalPhysicalLoop()
+    achieved_intake = False
+    acts_taken = []
+
+    for beat in range(10):
+        res = loop.settle(organism, world, UNATTENDED)
+        obs = res.observation
+        act = obs.get("her_act")
+        reason = obs.get("act_reason", "")
+        acts_taken.append(act)
+        intake = obs.get("real_nutrition_intake_zeptojoules", 0)
+
+        # On beat 1, she must NOT evacuate toward_door with barren basin exhaustion
+        if beat == 0:
+            assert act == "grasp", f"Expected grasp on beat 1 at milk bottle, got {act} ({reason})"
+
+        if intake > 0:
+            achieved_intake = True
+            break
+
+    assert achieved_intake, f"Failed to consume bottle-milk from dining arrival position! Acts: {acts_taken}"
+    assert organism._state.get("reserve_micrograms", 0) > 0, "Reserve not replenished!"

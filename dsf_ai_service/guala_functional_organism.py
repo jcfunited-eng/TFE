@@ -3282,14 +3282,14 @@ class FunctionalOrganism:
             has_bed = any(c.get("room_id") == cur_room for o_id, c in conserved.items() if o_id == BED_ID) or (candidate_options is not None and any(opt[0] == "toward_bed" for opt in candidate_options))
             # Food is present only if genuine food is located in the current room or currently visible
             has_food = any(is_genuine_food_object(o_id) and o_id in known_foods and c.get("room_id") == cur_room for o_id, c in conserved.items()) or (
-                candidate_options is not None and any(opt[0] == "toward_food" and is_genuine_food_object(opt[3]) and not str(opt[1]).startswith("via ") for opt in candidate_options)
+                candidate_options is not None and any(opt[0] in ("toward_food", "grasp", "take") and is_genuine_food_object(opt[3]) and not str(opt[1]).startswith("via ") for opt in candidate_options)
             )
             has_candidate_nourishment = has_food
 
             is_barren = (needs_bed and not has_bed) or (needs_food and not has_candidate_nourishment)
             if is_barren:
                 phi_barren = 1.0 - math.exp(-float(dwell_beats) / 20.0)
-                if (needs_food or phi_barren > 0.25) and "toward_door" in acts and not door_refused:
+                if phi_barren > 0.25 and "toward_door" in acts and not door_refused:
                     return "toward_door", f"{label}: barren basin exhaustion ({phi_barren:.2f} over {dwell_beats} dwell beats in {cur_room}): evacuating toward negative space"
 
         # Physical release: when holding an item whose bite was unsuccessful, or is depleted/non-nutritive, release it
