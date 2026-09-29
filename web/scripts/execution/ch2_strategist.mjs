@@ -82,6 +82,27 @@ export function liquidityFloorPasses(price, avgVolume, minDollarVolume = CH2_MIN
   return p * v >= minDollarVolume;
 }
 
+// ENTRY-R12 as one pure check: a reading is current when its last bar is on
+// or after the run's session date. Missing or unparseable dates are stale.
+export function readingIsCurrent(lastBarTimestamp, sessionDate) {
+  const bar = String(lastBarTimestamp ?? "").slice(0, 10);
+  const session = String(sessionDate ?? "").slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(bar) || !/^\d{4}-\d{2}-\d{2}$/.test(session)) return false;
+  return bar >= session;
+}
+
+// The run's session = the most common last-bar date across the whole run.
+async function resolveSessionDate(runId) {
+  const res = await pool.query(
+    `SELECT LEFT(snapshot_row_json->>'last_bar_timestamp', 10) AS d, COUNT(*) AS n
+       FROM runtime_decisions_latest
+      WHERE run_id = $1 AND snapshot_row_json->>'last_bar_timestamp' IS NOT NULL
+      GROUP BY 1 ORDER BY n DESC, d DESC LIMIT 1`,
+    [runId]
+  );
+  return res.rows[0]?.d ?? null;
+}
+
 // ENTRY-R11 as one pure check. The SQL in fetchCandidateRows applies the same test.
 export function entryAssetTypeAllowed(assetType) {
   return String(assetType ?? "").trim().toLowerCase() === CH2_ENTRY_ASSET_TYPE;
@@ -304,7 +325,24 @@ export async function getCh2Signals() {
   // Previously: contracting > expanding → return [] (blocked all CH2 entries)
   // Now: log the breadth reading for observability, proceed to individual evaluation.
 
-  const rows    = await fetchCandidateRows(runId);
+  const allRows = await fetchCandidateRows(runId);
+
+  // ── ENTRY-R12 (Claude 2026-09-29): never buy on a reading whose last bar
+  // is older than the run's session. The nightly refresh swallows provider
+  // errors and silently reuses cached bars, so a name can carry today's
+  // run_id on last week's prices: on the 09-29 run 9,652 names were read on
+  // the 09-28 bar and 1,220 on 09-25 or older (FNRN and SIND among the
+  // holdings). The session is the run's own most common last-bar date — no
+  // calendar needed. A stale reading is not a basis for a buy.
+  const sessionDate = await resolveSessionDate(runId);
+  const rows = allRows.filter(row => {
+    const lbt = row.snapshot_row_json?.last_bar_timestamp;
+    if (readingIsCurrent(lbt, sessionDate)) return true;
+    console.log(`[CH2-STRATEGIST]   ${row.ticker} — REJECT stale reading: last bar ${String(lbt ?? "none").slice(0, 10)} < session ${sessionDate} (ENTRY-R12)`);
+    return false;
+  });
+  console.log(`[CH2-DIAG] session=${sessionDate} | current readings: ${rows.length} of ${allRows.length} candidates`);
+
   const signals = rows.map(parseSignal).filter(Boolean);
 
   // Exclude tickers that already have open positions

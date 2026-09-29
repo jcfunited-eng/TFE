@@ -10,6 +10,7 @@ import assert from "node:assert/strict";
 import {
   liquidityFloorPasses,
   entryAssetTypeAllowed,
+  readingIsCurrent,
   CH2_MIN_AVG_DOLLAR_VOLUME,
   CH2_ENTRY_ASSET_TYPE,
 } from "../ch2_strategist.mjs";
@@ -55,5 +56,15 @@ t("index fails",                     () => assert.equal(entryAssetTypeAllowed("i
 t("blank fails",                     () => assert.equal(entryAssetTypeAllowed(""), false));
 t("missing fails",                   () => assert.equal(entryAssetTypeAllowed(undefined), false));
 t("case and spaces tolerated",       () => assert.equal(entryAssetTypeAllowed(" Stock "), true));
+
+// ENTRY-R12 (2026-09-29): never buy on a reading older than the run's session.
+// Real values from run 09-29: session 2026-09-28; FNRN and SIND read on 09-25.
+t("reading on the session bar is current",   () => assert.equal(readingIsCurrent("2026-09-28T04:00:00+00:00", "2026-09-28"), true));
+t("FNRN read on Friday's bar is stale",      () => assert.equal(readingIsCurrent("2026-09-25T04:00:00+00:00", "2026-09-28"), false));
+t("CWAN read on a June bar is stale",        () => assert.equal(readingIsCurrent("2026-06-24T04:00:00+00:00", "2026-09-28"), false));
+t("a bar newer than the session is current", () => assert.equal(readingIsCurrent("2026-09-29", "2026-09-28"), true));
+t("missing last bar is stale",               () => assert.equal(readingIsCurrent(null, "2026-09-28"), false));
+t("missing session refuses everything",      () => assert.equal(readingIsCurrent("2026-09-28", null), false));
+t("garbage date is stale",                   () => assert.equal(readingIsCurrent("yesterday", "2026-09-28"), false));
 
 console.log(`${passed}/${passed} passed`);
