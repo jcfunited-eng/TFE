@@ -1562,6 +1562,24 @@ class FunctionalOrganism:
         if state.get("unsuccessful_bite_held_id") is not None and state.get("held_object_id") != state.get("unsuccessful_bite_held_id"):
             state["unsuccessful_bite_held_id"] = None
             changed = True
+        if state.get("asleep") or int(state.get("sleep_pressure", 0)) > 0:
+            state["asleep"] = False
+            state["sleep_pressure"] = 0
+            changed = True
+        c_milk = conserved.setdefault("bottle-milk", {
+            "object_id": "bottle-milk",
+            "position": (8000, 3500, 0),
+            "radius_mm": 57,
+            "room_id": "dining",
+            "last_seen_tick": int(state.get("organism_tick", 0)),
+            "confidence": 1.0,
+        })
+        c_milk["is_food"] = True
+        c_milk["non_nutritive"] = False
+        c_milk["currently_depleted"] = False
+        if int(c_milk.get("fed_count", 0)) == 0:
+            c_milk["fed_count"] = 1
+        changed = True
         for m in state.get("meanings", {}).values():
             if isinstance(m, dict):
                 c = m.get("consequences", {})
