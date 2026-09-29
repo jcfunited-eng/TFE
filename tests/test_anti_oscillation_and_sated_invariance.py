@@ -317,3 +317,54 @@ def test_dining_room_milk_bottle_grasp_invariance_and_anti_oscillation():
 
     assert achieved_intake, f"Failed to consume bottle-milk from dining arrival position! Acts: {acts_taken}"
     assert organism._state.get("reserve_micrograms", 0) > 0, "Reserve not replenished!"
+
+
+def test_contaminated_historical_checkpoint_purges_false_non_food_and_grasps_milk():
+    """Durable State Hygiene Invariant: When an organism restores from an older contaminated
+    checkpoint where bottle-milk was erroneously marked non-nutritive or added to tested_non_nutritive,
+    migrate() must scrub the false designation and allow immediate grasp and intake.
+    """
+    from dsf_ai_service.substrate.embodiment_world import PoseMM, PositionMM
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+
+    organism._state["reserve_micrograms"] = 0
+    organism._state["feeding"] = True
+    organism._state["room_now"] = "dining"
+    organism._state["room_dwell_beats"] = 100
+    # Artificially inject historical contamination:
+    organism._state["tested_non_nutritive"] = ["bottle-milk", "dining-table"]
+    organism._state["conserved_objects"] = {
+        "bottle-milk": {"position": (8000, 3500, 0), "radius_mm": 57, "room_id": "dining", "non_nutritive": True, "tested_non_food": True},
+        "dining-table": {"position": (9500, 2500, 0), "radius_mm": 700, "room_id": "dining", "non_nutritive": True},
+    }
+
+    # Execute migration
+    organism.migrate()
+    assert "bottle-milk" not in organism._state["tested_non_nutritive"], "bottle-milk was not purged from tested_non_nutritive!"
+    assert not organism._state["conserved_objects"]["bottle-milk"].get("non_nutritive"), "bottle-milk still marked non_nutritive!"
+
+    # Transport Guala to dining arrival position facing south
+    world.admit_authored_body_transport("guala-body-1", PoseMM(PositionMM(7999, 3857, 0), 270087))
+
+    loop = FunctionalPhysicalLoop()
+    achieved_intake = False
+    acts_taken = []
+
+    for beat in range(10):
+        res = loop.settle(organism, world, UNATTENDED)
+        obs = res.observation
+        act = obs.get("her_act")
+        acts_taken.append(act)
+        intake = obs.get("real_nutrition_intake_zeptojoules", 0)
+
+        if beat == 0:
+            assert act == "grasp", f"Expected grasp on beat 1 from contaminated checkpoint, got {act} ({obs.get('act_reason')})"
+
+        if intake > 0:
+            achieved_intake = True
+            break
+
+    assert achieved_intake, f"Failed to consume bottle-milk after state purge! Acts: {acts_taken}"
+    assert organism._state.get("reserve_micrograms", 0) > 0, "Reserve not replenished!"
