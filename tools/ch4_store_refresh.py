@@ -89,7 +89,29 @@ def validate_frame(frame):
     return out
 
 
-def assemble(frame, roster, sessions, key, *, fetch=fetch_day, max_fetch_days=10):
+def fetch_symbol_history(symbol, start, end, key):
+    """One symbol's adjusted daily bars over [start, end], as store rows."""
+    query = urllib.parse.urlencode({'adjusted': 'true', 'sort': 'asc', 'limit': 50000, 'apiKey': key})
+    url = f'https://api.polygon.io/v2/aggs/ticker/{symbol}/range/1/day/{start}/{end}?{query}'
+    try:
+        with urllib.request.urlopen(url, timeout=60) as response:
+            payload = json.load(response)
+    except Exception as error:
+        raise RuntimeError(f'provider history fetch failed for {symbol}: {type(error).__name__}') from None
+    if payload.get('status') not in ('OK', 'DELAYED'):
+        raise RuntimeError(f'provider did not confirm a history response for {symbol}')
+    rows = []
+    for bar in payload.get('results') or []:
+        day = dt.datetime.fromtimestamp(bar['t'] / 1000, dt.timezone.utc).date()
+        rows.append((pd.Timestamp(day), symbol, float(bar['c']), float(bar['v'])))
+    return rows
+
+
+MAX_UNCOVERED_SYMBOLS = 50
+
+
+def assemble(frame, roster, sessions, key, *, fetch=fetch_day, max_fetch_days=10,
+             fetch_symbol=None):
     """Return a complete proposed replacement, or raise without publishing."""
     frame = validate_frame(frame)
     days = set(frame.Date.dt.date)
@@ -134,8 +156,41 @@ def assemble(frame, roster, sessions, key, *, fetch=fetch_day, max_fetch_days=10
                 revised_volumes[symbol] = volume
     appended_symbols = {s for day in missing for s in responses[day]}
     uncovered = (appended_symbols & set(frame.Symbol)) - (set(overlap.index) & set(responses[overlap_day]))
+    verified_own_overlap, rebased_symbols = [], []
     if uncovered:
-        raise RuntimeError('no verified adjustment overlap for: ' + ','.join(sorted(uncovered)))
+        # A symbol that did not trade on the store's overlap day has no bar
+        # there to check its price basis against. Until 2026-09-29 that
+        # refused the WHOLE refresh (BYFC, DGZ, ELTK, STG, UCIB skipped
+        # 09-25 and froze the store for every other symbol). Each such symbol
+        # is now verified on ITS OWN last stored bar: the provider's adjusted
+        # close for that day must equal the stored close. Equal -> same
+        # basis, its new bars append. Different -> the provider re-based it,
+        # and its stored history is replaced by the provider's series. No
+        # provider bar on that day -> unverifiable, and the refresh refuses,
+        # as before. Nothing is appended on a guess.
+        if fetch_symbol is None:
+            raise RuntimeError('no verified adjustment overlap for: ' + ','.join(sorted(uncovered)))
+        if len(uncovered) > MAX_UNCOVERED_SYMBOLS:
+            raise RuntimeError(f'{len(uncovered)} symbols lack an overlap bar; resource budget is {MAX_UNCOVERED_SYMBOLS}')
+        for symbol in sorted(uncovered):
+            stored = frame[frame.Symbol == symbol].sort_values('Date')
+            first_day, last_day = stored.Date.iloc[0].date(), stored.Date.iloc[-1].date()
+            stored_close = float(stored.Close.iloc[-1])
+            probe = [r for r in fetch_symbol(symbol, last_day.isoformat(), last_day.isoformat(), key)
+                     if r[0].date() == last_day]
+            if not probe:
+                raise RuntimeError(f'no verified adjustment overlap for: {symbol} (provider has no bar on its last stored day {last_day})')
+            if probe[0][2] == stored_close:
+                verified_own_overlap.append(symbol)
+                continue
+            history = [r for r in fetch_symbol(symbol, first_day.isoformat(), last_day.isoformat(), key)
+                       if first_day <= r[0].date() <= last_day]
+            if not history or history[-1][0].date() != last_day:
+                raise RuntimeError(f'no verified adjustment overlap for: {symbol} (provider history does not reach {last_day})')
+            frame = pd.concat([frame[frame.Symbol != symbol],
+                               pd.DataFrame(history, columns=COLUMNS)], ignore_index=True)
+            rebased_symbols.append(symbol)
+        overlap_mask = frame.Date.dt.date == overlap_day
     # Raw provider corrections, not inferred factors or rounded quantities.
     if revised_volumes:
         mask = overlap_mask & frame.Symbol.isin(revised_volumes)
@@ -145,7 +200,9 @@ def assemble(frame, roster, sessions, key, *, fetch=fetch_day, max_fetch_days=10
     receipt = {'fetched_days': len(requests), 'added_rows': len(rows),
                'revised_overlap_rows': len(revised_volumes),
                'repaired_sessions': [str(d) for d in missing],
-               'latest_session': str(sessions[-1])}
+               'latest_session': str(sessions[-1]),
+               'verified_on_own_last_bar': verified_own_overlap,
+               'rebased_symbols': rebased_symbols}
     if not rows:
         return frame, receipt
     out = pd.concat([frame, pd.DataFrame(rows, columns=COLUMNS)], ignore_index=True)
@@ -187,8 +244,10 @@ def main():
         frame = validate_frame(pd.read_parquet(source, columns=COLUMNS))
         roster = {s for group in json.loads(ROSTER.read_text())['roster'] for s in group}
         sessions = completed_sessions(frame.Date.min().date(), dt.datetime.now(dt.timezone.utc))
-        proposed, receipt = assemble(frame, roster, sessions, key, max_fetch_days=args.max_fetch_days)
-        if receipt['added_rows'] or receipt['revised_overlap_rows'] or source != LIVE:
+        proposed, receipt = assemble(frame, roster, sessions, key, max_fetch_days=args.max_fetch_days,
+                                     fetch_symbol=fetch_symbol_history)
+        if (receipt['added_rows'] or receipt['revised_overlap_rows']
+                or receipt['rebased_symbols'] or source != LIVE):
             publish_atomic(proposed, LIVE)
         print(json.dumps({'status': 'complete', **receipt}, sort_keys=True))
     return 0

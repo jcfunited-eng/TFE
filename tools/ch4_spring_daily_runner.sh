@@ -49,7 +49,9 @@ while true; do
   now_h=$(date -u +%H)
   now_m=$(date -u +%M)
   dow=$(date -u +%u)
-  if [[ "$dow" -le 5 && "$now_h" = '21' && "$now_m" -ge 10 && "$now_m" -lt 25 ]]; then
+  # 10# forces base ten: "08" and "09" are invalid octal and made this test
+  # error out every hour at minutes 8 and 9 (seen in the log 2026-09-29).
+  if [[ "$dow" -le 5 && "$now_h" = '21' && "$((10#$now_m))" -ge 10 && "$((10#$now_m))" -lt 25 ]]; then
     echo "[spring-runner] close pass $(date -u +%FT%TZ)"
     if run_close_pass >> artifacts/vtvr_observer/spring_passes.log 2>&1; then
       echo "[spring-runner] close pass succeeded $(date -u +%FT%TZ)"

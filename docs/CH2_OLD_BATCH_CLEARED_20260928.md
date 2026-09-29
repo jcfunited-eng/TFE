@@ -57,6 +57,35 @@ exits      7-day no-loss-sale hold (EXIT-R9) · dead clock on true sessions ·
            -20 % brake · 90-day wall · profit protection
 ```
 
+## 2026-09-29 — the gate bought thirteen of them back
+
+The next morning's entry pass (09:47 ET):
+
+```
+[CH2-STRATEGIST] 3744 candidates → 30 passed V3 basin → 21 dedup → 21 after epoch governance
+[DAILY-ENTRY] Pass complete: 15 entries placed | cash remaining=$30695 | invested=$65940
+filled     AEBI AGNC AROW BAM BDX DEI HRB HTH LINE MSBI SNY VALE VRTS   (13 of the 14 sold 09-28)
+cancelled  FIZZ, AVBH
+```
+
+Why: the sells were filed under the reset convention (`manual_reset_*`), which
+carries no cooling-off — stated at the time — and the gate's list barely
+moves from day to day. Thirty names passed the basin on 09-24, thirty on
+09-28, thirty on 09-29, and they are largely the same thirty: the kernel's
+state for a stock changes a handful of times a year, so the entry list is
+close to static and "new entries" happen only when cash frees up or a name
+leaves the held set. The pool fix added about ten names to that list; it
+did not make the list turn over.
+
+So the book is again 24 CH2 positions + CWAN/HTBK, all of them now
+fresh-logic entries at 09-24/28/29 prices. The thirteen re-entered at
+prices 2–10 % below their 09-16 entries. They are in the grade.
+
+What this costs the evaluation: nothing in honesty — the logic picked them —
+but the 20-closure grade will be dominated by the same names the old book
+held. If Joseph wants those names out of the sample, that needs cooling-off
+(sell again under a non-reset reason) and is his call.
+
 ## Grading bar — unchanged, restated on the clean book
 
 ```
