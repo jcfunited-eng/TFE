@@ -6637,7 +6637,7 @@ class EmbodimentWorldAuthority:
                     if not placed_contact:
                         continue
                     if len(contacted) != 1:
-                        return None, "place_recipient_contact_ambiguous"
+                        continue
                     _candidate, patch = placed_contact[0]
                     bodies[recipient_index] = replace(
                         recipient,

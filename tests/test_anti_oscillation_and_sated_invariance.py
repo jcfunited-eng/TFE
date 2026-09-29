@@ -368,3 +368,54 @@ def test_contaminated_historical_checkpoint_purges_false_non_food_and_grasps_mil
 
     assert achieved_intake, f"Failed to consume bottle-milk after state purge! Acts: {acts_taken}"
     assert organism._state.get("reserve_micrograms", 0) > 0, "Reserve not replenished!"
+
+
+def test_depleted_container_clean_release_and_never_retaken():
+    """Anti-Oscillation & Release Invariance:
+    When an organism consumes a bottle to depletion in the dining room:
+    1. Release must succeed cleanly without place_recipient_contact_ambiguous refusal.
+    2. Depleted container must never be retaken (take/grasp suppressed when tastant <= 0).
+    3. Organism must evacuate barren dining room through door-7 toward kitchen nourishment.
+    4. Absolutely zero limit-cycle attractor oscillations.
+    """
+    from dsf_ai_service.substrate.embodiment_world import PoseMM, PositionMM
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+
+    # Transport Guala to dining arrival position facing bottle-milk
+    world.admit_authored_body_transport("guala-body-1", PoseMM(PositionMM(7999, 3857, 0), 270087))
+
+    organism._state["reserve_micrograms"] = 0
+    organism._state["feeding"] = True
+    organism._state["room_now"] = "dining"
+    organism._state["room_dwell_beats"] = 100
+
+    loop = FunctionalPhysicalLoop()
+    actions = []
+    reasons = []
+    released = False
+
+    for beat in range(12):
+        res = loop.settle(organism, world, UNATTENDED)
+        obs = res.observation
+        act = obs.get("her_act")
+        reason = obs.get("act_reason", "")
+        req = obs.get("requested_world_action")
+        ref = obs.get("world_action_refusal")
+        actions.append(act)
+        reasons.append(reason)
+
+        if act == "release":
+            released = True
+            assert req == "release", f"Release action not applied: {req}"
+            assert ref is None, f"Release refused with: {ref}"
+
+        if released and act != "release":
+            assert act != "take", f"Organism retook depleted container on beat {beat}!"
+            assert not (act == "grasp" and "bottle-milk" in reason), f"Organism regrasped depleted bottle on beat {beat}!"
+
+    assert released, f"Organism never released depleted bottle! Actions: {actions}"
+    is_cycle, cycle = _detect_limit_cycle(actions)
+    assert not is_cycle, f"Detected limit cycle {cycle} in actions: {actions}"
+    assert any(a in ("toward_door", "through_door", "stride") for a in actions[actions.index("release")+1:]), f"Organism did not evacuate: {actions}"

@@ -1257,10 +1257,15 @@ def candidates(
 
     # 1. Take from hand
     if held is None and offered is not None and handleable_held(offered):
-        is_depleted = bool(conserved_objects and conserved_objects.get(offered.object_id, {}).get("currently_depleted"))
+        is_depleted = bool(
+            (conserved_objects and conserved_objects.get(offered.object_id, {}).get("currently_depleted"))
+            or (offered.material is not None and sum(offered.material.tastant_mass_micrograms) < 2_000)
+            or (getattr(offered, "tastant_remaining_micrograms", None) is not None and offered.tastant_remaining_micrograms <= 0)
+        )
         is_non_nutritive = bool(
             (conserved_objects and conserved_objects.get(offered.object_id, {}).get("non_nutritive"))
             or (tested_non_nutritive_ids and offered.object_id in tested_non_nutritive_ids)
+            or (not is_genuine_food_object(offered.object_id))
         )
         if not (feeding and (is_depleted or is_non_nutritive)):
             out.append(("take", offered.object_id + " from a hand", (TakeContactHeldObjectCommand(BEAT_MICROSECONDS),), offered.object_id, None))
@@ -1272,6 +1277,7 @@ def candidates(
         is_known_non_food = bool(
             item.material is None
             or (item.material is not None and sum(item.material.tastant_mass_micrograms) < 2_000)
+            or (getattr(item, "tastant_remaining_micrograms", None) is not None and item.tastant_remaining_micrograms <= 0)
             or (not is_genuine_food_object(item.object_id) and (
                 c_entry.get("non_nutritive")
                 or c_entry.get("currently_depleted")
@@ -1552,6 +1558,9 @@ class FunctionalOrganism:
         cleaned_tested = sorted(tested_non_nutritive - {o_id for o_id in tested_non_nutritive if is_genuine_food_object(o_id)})
         if cleaned_tested != state.get("tested_non_nutritive"):
             state["tested_non_nutritive"] = cleaned_tested
+            changed = True
+        if state.get("unsuccessful_bite_held_id") is not None and state.get("held_object_id") != state.get("unsuccessful_bite_held_id"):
+            state["unsuccessful_bite_held_id"] = None
             changed = True
         for m in state.get("meanings", {}).values():
             if isinstance(m, dict):
@@ -3516,16 +3525,18 @@ class FunctionalOrganism:
                 }
         elif (applied_action == "bite" or (decision.act == "bite" and refusal is not None)) and decision.target_object_id:
             state["unsuccessful_bite_held_id"] = decision.target_object_id
-            if not is_genuine_food_object(decision.target_object_id):
-                conserved = state.setdefault("conserved_objects", {})
-                entry = conserved.setdefault(decision.target_object_id, {
-                    "object_id": decision.target_object_id,
-                    "position": tuple(state.get("body_pos") or (0, 0, 0)),
-                    "radius_mm": 0,
-                    "room_id": state.get("room_now"),
-                    "last_seen_tick": tick_now,
-                    "confidence": 1.0,
-                })
+            conserved = state.setdefault("conserved_objects", {})
+            entry = conserved.setdefault(decision.target_object_id, {
+                "object_id": decision.target_object_id,
+                "position": tuple(state.get("body_pos") or (0, 0, 0)),
+                "radius_mm": 0,
+                "room_id": state.get("room_now"),
+                "last_seen_tick": tick_now,
+                "confidence": 1.0,
+            })
+            if is_genuine_food_object(decision.target_object_id):
+                entry["currently_depleted"] = True
+            else:
                 tested_set = set(state.get("tested_non_nutritive") or ())
                 tested_set.add(decision.target_object_id)
                 state["tested_non_nutritive"] = sorted(tested_set)
