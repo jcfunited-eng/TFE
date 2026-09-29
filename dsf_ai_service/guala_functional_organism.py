@@ -1562,24 +1562,14 @@ class FunctionalOrganism:
         if state.get("unsuccessful_bite_held_id") is not None and state.get("held_object_id") != state.get("unsuccessful_bite_held_id"):
             state["unsuccessful_bite_held_id"] = None
             changed = True
-        if state.get("asleep") or int(state.get("sleep_pressure", 0)) > 0:
-            state["asleep"] = False
-            state["sleep_pressure"] = 0
-            changed = True
-        c_milk = conserved.setdefault("bottle-milk", {
-            "object_id": "bottle-milk",
-            "position": (8000, 3500, 0),
-            "radius_mm": 57,
-            "room_id": "dining",
-            "last_seen_tick": int(state.get("organism_tick", 0)),
-            "confidence": 1.0,
-        })
-        c_milk["is_food"] = True
-        c_milk["non_nutritive"] = False
-        c_milk["currently_depleted"] = False
-        if int(c_milk.get("fed_count", 0)) == 0:
-            c_milk["fed_count"] = 1
-        changed = True
+
+        if "bottle-milk" in conserved:
+            c_milk = conserved["bottle-milk"]
+            if not c_milk.get("is_food") or c_milk.get("currently_depleted") or c_milk.get("non_nutritive"):
+                c_milk["is_food"] = True
+                c_milk["non_nutritive"] = False
+                c_milk["currently_depleted"] = False
+                changed = True
         for m in state.get("meanings", {}).values():
             if isinstance(m, dict):
                 c = m.get("consequences", {})
@@ -2559,6 +2549,7 @@ class FunctionalOrganism:
             strained = (deficit >= 0.6 and (p_k > b_k or s_uf <= 0))
             since_last_exhaust = self.live_organism_tick - int(self._state.get("homeostatic_exhaust_tick", -999))
 
+            since_last_vocal = tick - int(state.get("last_spoke_tick", -999))
             should_vocalize = False
             if strained and since_last_exhaust >= 15:
                 should_vocalize = True
@@ -2567,6 +2558,9 @@ class FunctionalOrganism:
                     hunger_dsf["P_k"] = round(b_k * 0.5, 4)
                     hunger_dsf["S_UF"] = round(b_k - hunger_dsf["P_k"], 4)
             elif sound_heard and getattr(sensed, "sound_source_id", None) == "person-body-1":
+                should_vocalize = True
+            elif not state.get("asleep") and since_last_vocal >= 8:
+                # Spontaneous phonemic exploration during wakefulness
                 should_vocalize = True
 
             if should_vocalize and drive is None and say_drive is not None:
@@ -3133,17 +3127,18 @@ class FunctionalOrganism:
                 p_idx = decoded["pitch_idx"] if decoded["pitch_idx"] is not None else 0
                 if o_idx < len(ONSETS) and v_idx < len(VOWELS) and p_idx < len(PITCHES_DECIHERTZ):
                     syl_name = f"{ONSETS[o_idx]}{VOWELS[v_idx][0]}{p_idx}"
-                    drive = (PITCHES_DECIHERTZ[p_idx], o_idx, v_idx)
+                    drive = (PITCHES_DECIHERTZ[p_idx], v_idx, o_idx)
                     ctx = f"{situation}:{prior_syllable if prior_syllable else 'start'}"
                     return drive, syl_name, ctx, f"native ternary lattice resonance: {syl_name}"
 
-        # Phase 3 Homeostatic Exhaust Resonant Pathway:
+        # Phase 3 Homeostatic Exhaust Resonant Pathway (genuine metabolic distress only):
         hunger_dsf = self._last_dsf_states.get("hunger") if hasattr(self, "_last_dsf_states") else None
         deficit = float(self.deficit)
         p_k = hunger_dsf["P_k"] if hunger_dsf else (deficit if deficit >= float(HUNGRY_BELOW) else 0.0)
         b_k = hunger_dsf["B_k"] if hunger_dsf else 0.5
         s_uf = hunger_dsf["S_UF"] if hunger_dsf else (b_k - p_k)
-        if (hunger_dsf and (p_k > b_k or s_uf <= 0)) or (deficit >= float(HUNGRY_BELOW) and (p_k > b_k or s_uf <= 0)):
+        is_strained = (deficit >= float(HUNGRY_BELOW)) and (p_k > b_k or s_uf < 0.0)
+        if is_strained:
             cue_1024 = [0] * TOTAL_NODES
             cue_1024[SOMATIC_START:SOMATIC_START + 16] = [1] * 16
             d_k = hunger_dsf["D_k"] if hunger_dsf else deficit
@@ -3161,12 +3156,12 @@ class FunctionalOrganism:
                 v_idx = decoded["vowel_idx"]
                 p_idx = decoded["pitch_idx"] if decoded["pitch_idx"] is not None else 3
             else:
-                o_idx = 0  # 'm'
-                v_idx = 0  # 'ah'
+                o_idx = 1  # 'm' (infant nasal murmur)
+                v_idx = 0  # 'ah' (open vowel)
                 p_idx = 3  # 3750 dHz (infant distress cry)
             if o_idx < len(ONSETS) and v_idx < len(VOWELS) and p_idx < len(PITCHES_DECIHERTZ):
                 syl_name = f"{ONSETS[o_idx]}{VOWELS[v_idx][0]}{p_idx}"
-                drive = (PITCHES_DECIHERTZ[p_idx], o_idx, v_idx)
+                drive = (PITCHES_DECIHERTZ[p_idx], v_idx, o_idx)
                 ctx = f"{situation}:{prior_syllable if prior_syllable else 'start'}"
                 return drive, syl_name, ctx, f"homeostatic exhaust resonance: {syl_name} (P_k={p_k:.2f}>B_k={b_k:.2f})"
 
