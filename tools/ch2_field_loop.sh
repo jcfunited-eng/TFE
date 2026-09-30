@@ -14,17 +14,22 @@ run_in_prod() { # $1 = command
   local t; t=$(task)
   timeout 1800 aws ecs execute-command --cluster tfe-web-cluster --task "$t" --container tfe-web --region us-east-1 --interactive --command "sh -c '$1'" 2>&1 | grep -v -E '^$|session'
 }
-last_day=""
+last_slot=""
 while true; do
   date +%s > "$HB"
   now_h=$(date -u +%H); now_m=$(date -u +%M); today=$(date -u +%F); dow=$(date -u +%u)
-  # 23:30–23:59 UTC on weekdays, once a day: the refresh has run (21:00 UTC) and bars are synced
-  if [ "$dow" -le 5 ] && [ "$now_h" = "23" ] && [ "$((10#$now_m))" -ge 30 ] && [ "$last_day" != "$today" ]; then
-    echo "[$(date -u +%FT%TZ)] field job start" >> "$LOG"
-    if [ "$dow" = "5" ]; then run_in_prod 'cd /app && nice -n 10 python3 tools/ch2_filings_sync.py > /tmp/fil.log 2>&1; tail -n 2 /tmp/fil.log' >> "$LOG" 2>&1; fi
+  # two runs a day: 01:15 UTC (after the nightly refresh has synced the session's bars) and
+  # 12:30 UTC (a second chance before the 13:45 UTC entry pass). Each recomputes as of the
+  # last bar in daily_bars; rerunning on the same bars rewrites the same state.
+  slot=""
+  if [ "$now_h" = "01" ] && [ "$((10#$now_m))" -ge 15 ]; then slot="$today-a"; fi
+  if [ "$now_h" = "12" ] && [ "$((10#$now_m))" -ge 30 ]; then slot="$today-b"; fi
+  if [ -n "$slot" ] && [ "$last_slot" != "$slot" ]; then
+    echo "[$(date -u +%FT%TZ)] field job start ($slot)" >> "$LOG"
+    if [ "$dow" = "6" ] && [ "$slot" = "$today-a" ]; then run_in_prod 'cd /app && nice -n 10 python3 tools/ch2_filings_sync.py > /tmp/fil.log 2>&1; tail -n 2 /tmp/fil.log' >> "$LOG" 2>&1; fi
     run_in_prod 'cd /app && nice -n 10 python3 tools/ch2_field_nightly_db.py > /tmp/fdb.log 2>&1; echo exit=$?; grep -E "as of|field_long|priority|bear|eligible_names|wrote|Traceback|Error" /tmp/fdb.log | head -12' >> "$LOG" 2>&1
     echo "[$(date -u +%FT%TZ)] field job end" >> "$LOG"
-    last_day="$today"
+    last_slot="$slot"
   fi
   sleep 60
 done
