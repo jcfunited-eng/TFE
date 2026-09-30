@@ -76,7 +76,13 @@ def one(task):
         if e + tau_out >= n:
             continue
         release = s * (close[e + tau_out] / close[e] - 1.0)
-        rows.append((symbol, str(df.Date.values[e])[:10], tau_in, tau_out, abs(shock), s, release))
+        t_a = t_b - tau_in                                   # the quiet gate is bars [t_a, t_b)
+        ref = close[t_a - 1] if t_a >= 1 else close[t_a]
+        drift = close[t_b - 1] / ref - 1.0                   # what the quiet stored: its own drift
+        d = 1 if drift > 0 else (-1 if drift < 0 else 0)
+        plain = close[e + tau_out] / close[e] - 1.0          # unsigned forward move (long-only finance)
+        r20 = close[e + 20] / close[e] - 1.0 if e + 20 < n else np.nan
+        rows.append((symbol, str(df.Date.values[e])[:10], tau_in, tau_out, abs(shock), s, release, d, abs(drift), plain, r20))
     return rows
 
 
@@ -100,7 +106,7 @@ def main():
         with Pool(a.workers, initializer=_init, initargs=(tau_map, field)) as pool:
             for r in pool.imap_unordered(one, tasks, chunksize=4):
                 rows.extend(r)
-        ev = pd.DataFrame(rows, columns=["symbol", "date", "tau_in", "tau_out", "shock", "dir", "release"])
+        ev = pd.DataFrame(rows, columns=["symbol", "date", "tau_in", "tau_out", "shock", "dir", "release", "drift_dir", "drift", "plain", "r20"])
         ev = ev[ev.date >= "2017-01-01"]
         ev["band"] = pd.cut(ev.tau_in, [1] + [b[1] for b in BANDS], labels=[f"{lo}-{hi if hi < 10**6 else '+'}" for lo, hi in BANDS])
         ev["year"] = ev.date.str[:4]
@@ -118,6 +124,24 @@ def main():
         long = ev[ev.tau_in >= 21]
         py = long.groupby("year").release.agg(n="size", cont=lambda s: float((s > 0).mean()), mean_pct=lambda s: float(s.mean() * 100))
         print("PER YEAR, quiet >= 21 bars:"); print(py.round(4).to_string())
+        # ---- EXHAUSTION: the shock against the drift that stored it; the release against that drift ----
+        ev["against"] = (ev["dir"] * ev.drift_dir < 0).astype(int)
+        ev["rel_vs_drift"] = ev.drift_dir * (ev.plain)         # + = release continues the quiet's drift, - = reverses it
+        ex = ev[ev.drift_dir != 0].groupby("band", observed=True)
+        exh = pd.DataFrame({"n": ex.size(), "shock_against_drift": ex.against.mean(), "drift_median%": ex.drift.median() * 100,
+                            "release_continues_drift": ex.rel_vs_drift.apply(lambda s: float((s > 0).mean())), "mean_vs_drift%": ex.rel_vs_drift.mean() * 100})
+        print("EXHAUSTION — does the shock break against the quiet's drift, and does the release continue or reverse that drift?"); print(exh.round(4).to_string())
+        ex2 = ev[ev.drift_dir != 0].groupby(["band", "drift_dir", "against"], observed=True)
+        exh2 = pd.DataFrame({"n": ex2.size(), "release_continues_drift": ex2.rel_vs_drift.apply(lambda s: float((s > 0).mean())), "mean_vs_drift%": ex2.rel_vs_drift.mean() * 100,
+                             "plain_up": ex2.plain.apply(lambda s: float((s > 0).mean())), "plain_mean%": ex2.plain.mean() * 100})
+        print("by drift direction and whether the shock went against it:"); print(exh2.round(4).to_string())
+        # ---- FINANCE, long only: plain forward move after long-quiet shocks, per year, vs the pool base ----
+        fy = long.groupby("year").agg(n=("plain", "size"), up=("plain", lambda s: float((s > 0).mean())), mean_pct=("plain", lambda s: float(s.mean() * 100)),
+                                      up20=("r20", lambda s: float((s.dropna() > 0).mean())), mean20_pct=("r20", lambda s: float(s.mean() * 100)))
+        print("LONG-ONLY after a shock that ends a quiet >= 21 bars, per year (plain move over tau_in//3; and over 20 bars):"); print(fy.round(4).to_string())
+        res.setdefault("exhaustion", {})[field] = {"by_band": {str(k): {c: round(float(v), 4) for c, v in row.items()} for k, row in exh.iterrows()},
+                                                   "by_drift_and_against": {" | ".join(map(str, k)): {c: round(float(v), 4) for c, v in row.items()} for k, row in exh2.iterrows()},
+                                                   "long_only_per_year": {str(k): {c: round(float(v), 4) for c, v in row.items()} for k, row in fy.iterrows()}}
         res["fields"][field] = {"shocks": int(len(ev)),
                                 "physics": {str(k): {c: round(float(v), 4) for c, v in row.items()} for k, row in phys.iterrows()},
                                 "finance": {str(k): {c: round(float(v), 4) for c, v in row.items()} for k, row in fin.iterrows()},
