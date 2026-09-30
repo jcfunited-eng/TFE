@@ -55,10 +55,16 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 C = 3.77
+FIXED_TAU = None
 MIN_BARS = 1000
 CONFIRM_FROM = np.datetime64("2024-01-01")
 OUT = ROOT / "artifacts" / "ch4_uf" / "ch2_gate_transition_census"
 UNIVERSE = ROOT / "artifacts" / "ch2_life" / "universe_tradable_20260930.csv"
+
+
+def _set_tau(v):
+    global FIXED_TAU
+    FIXED_TAU = v
 
 
 def one_symbol(task):
@@ -67,7 +73,10 @@ def one_symbol(task):
     from tools.ch2_draw_life import chain
     from tools.ch2_tuples_over_time import own_resolution
     closes = np.asarray(closes, dtype=float)
-    tau, typical = own_resolution(closes, C)
+    if FIXED_TAU is not None:
+        tau = FIXED_TAU                      # production resolution, unchanged
+    else:
+        tau, typical = own_resolution(closes, C)
     cfg.KERNEL_THRESHOLDS.tau_D = float(tau)
     series = pd.Series(closes, index=pd.to_datetime(dates))
     sev, gates, interps, res, dsf = chain(series)
@@ -106,7 +115,12 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("--every", type=int, default=1)
+    ap.add_argument("--tau", type=float, default=None, help="fixed tau_D (production 0.20) instead of own resolution")
     args = ap.parse_args()
+    global FIXED_TAU, OUT
+    if args.tau is not None:
+        FIXED_TAU = args.tau
+        OUT = OUT.with_name(OUT.name + f"_tau{args.tau}")
     uni = pd.read_csv(UNIVERSE)
     store = pd.read_parquet(ROOT / "ch4_live_store.parquet", columns=["Date", "Symbol", "Close"])
     store = store[store.Symbol.isin(set(uni.ticker))]
@@ -118,7 +132,7 @@ def main() -> int:
     del store
     t0 = time.time()
     rows_all, done = [], 0
-    with Pool(args.workers) as pool:
+    with Pool(args.workers, initializer=_set_tau, initargs=(FIXED_TAU,)) as pool:
         for symbol, rows in pool.imap_unordered(one_symbol, tasks, chunksize=4):
             rows_all.extend(rows); done += 1
             if done % 250 == 0:
@@ -160,11 +174,12 @@ def main() -> int:
            "by_prev_kind_and_prev_move": table(["prev_kind", "prev_move_band"]),
            "by_shock_run": table(["shock_run_capped"]),
            "by_prev_g": table(["prev_g"]),
+           "by_prev_D": table(["prev_D"]),
            "by_prev_regime": table(["prev_regime"]),
            "all": table(["all"])}
     json.dump(res, open(OUT.with_suffix(".json"), "w"), indent=1)
     pd.set_option("display.width", 220)
-    for name in ("all", "by_prev_kind", "by_prev_kind_and_jump", "by_prev_move", "by_shock_run", "by_prev_g", "by_prev_regime"):
+    for name in ("all", "by_prev_D", "by_prev_kind", "by_prev_kind_and_jump", "by_prev_move", "by_shock_run", "by_prev_g", "by_prev_regime"):
         for half in ("seen", "confirm"):
             print(f"\n== {name} [{half}]")
             print(pd.DataFrame(res[name][half]).T.to_string())
