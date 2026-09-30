@@ -2,7 +2,9 @@
 """arcloom_demonstrator/run_demonstrator.py
 
 Tactical Sensorimotor Console & Oscilloscope Verification Harness
-Substrate: ArcLoom Discrete Balanced-Ternary Neuromorphic Core (8-Column Balanced Octet)
+Substrate: ArcLoom Discrete Balanced-Ternary Neuromorphic Core
+  - 8-Column Balanced Octet (Hardware FPGA Silicon Prototype)
+  - 64-Column Cortical Array (High-Capacity Cortical Array, 20,480 nodes)
 Governing Law: Continuum von Mises Plasticity (f = |sigma| - Y <= 0)
 
 Interactive Real-Time Benchtop Demonstration for DARPA / AFRL Evaluators.
@@ -16,7 +18,8 @@ import time
 import select
 import tty
 import termios
-from typing import Optional
+import argparse
+from typing import Optional, Tuple
 
 # Ensure local packages are loaded
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -50,9 +53,9 @@ def render_dashboard(
     barrier_stress: float,
     yield_thresh: float,
     refusal: bool,
-    vocal_pulse: float,
-    stride: float,
+    motor_efferent: Tuple[float, ...],
     active_synapses: int,
+    num_columns: int,
     status_msg: str,
 ) -> None:
     # Clear screen (ANSI escape)
@@ -64,8 +67,12 @@ def render_dashboard(
     filled = int(stress_ratio * bar_len)
     stress_bar = "[" + "#" * filled + "-" * (bar_len - filled) + "]"
 
+    total_synapses = 83_886_080 if num_columns == 64 else 1_048_576
+    total_nodes = 20_480 if num_columns == 64 else 2_560
+    config_title = f"{num_columns}-COLUMN CORTICAL ARRAY ({total_nodes:,} NODES)"
+
     print("=" * 76)
-    print("      ARCLOOM TERNARY NEUROMORPHIC PROCESSOR -- 8-COLUMN OCTET DEMO      ")
+    print(f"      ARCLOOM TERNARY NEUROMORPHIC PROCESSOR -- {config_title}      ")
     print("        Governing Physical Law: Material Yield Stress  f = |σ| - Y ≤ 0    ")
     print("=" * 76)
     print(f" TICK: {tick:,}  |  CYCLE LATENCY: {dt_us:0.2f} µs  |  THROUGHPUT: {1e6/max(1.0, dt_us):,.0f} Hz")
@@ -94,13 +101,19 @@ def render_dashboard(
 
     # Sector 4: Motor Pyramidal Efferents
     print(f" [SECTOR 4: MOTOR PYRAMIDAL EFFERENTS (M1/M2)]")
-    print(f"   Locomotion Stride Drive:     {stride:6.1f} mm/step   (M2 Pyramidal efferent)")
-    print(f"   Airway Vocal Valve Pulse:    {vocal_pulse:6.1f} Hz        (M1 Homeostatic exhaust)")
+    vocal = motor_efferent[0] if len(motor_efferent) > 0 else 0.0
+    stride = motor_efferent[1] if len(motor_efferent) > 1 else 0.0
+    print(f"   Locomotion Stride Drive:     {stride:6.1f} mm/step   (Pyramidal efferent)")
+    print(f"   Airway Vocal Valve Pulse:    {vocal:6.1f} Hz        (Homeostatic exhaust)")
+    if len(motor_efferent) >= 4:
+        steer = motor_efferent[2]
+        grip = motor_efferent[3]
+        print(f"   Steering Heading Rate:       {steer:6.1f} deg/s      Gripper Clamping Force: {grip:6.1f} N")
     print()
 
     # Sector 5: Plastic Associative Matrix
     print(f" [SECTOR 5: CONTINUUM PLASTIC CONDUCTANCES]")
-    print(f"   Active Hardened Synapses:    {active_synapses:,} / 1,048,576 fasciculi (|g| ≥ 0.001)")
+    print(f"   Active Hardened Synapses:    {active_synapses:,} / {total_synapses:,} fasciculi (|g| ≥ 0.001)")
     print("-" * 76)
     print(f" STATUS: {status_msg}")
     print("-" * 76)
@@ -110,8 +123,13 @@ def render_dashboard(
     sys.stdout.flush()
 
 
-def run_interactive() -> None:
-    substrate = ModularColumnSubstrate(yield_threshold=0.60, plastic_rate=0.04, activation_threshold=0.25, columns=8)
+def run_interactive(num_columns: int = 8) -> None:
+    substrate = ModularColumnSubstrate(
+        yield_threshold=0.60,
+        plastic_rate=0.04,
+        activation_threshold=0.25,
+        columns=num_columns,
+    )
 
     # Initial state
     target_r = 350.0
@@ -119,7 +137,7 @@ def run_interactive() -> None:
     is_blind = False
     acoustic_stim = 0.0
     barrier_stress = 0.0
-    status_msg = "Substrate operating at nominal 20 Hz causal loop. Press keys to interact."
+    status_msg = f"Substrate operating at nominal 20 Hz loop ({num_columns} columns). Press keys to interact."
 
     tick = 0
     with NonBlockingInput() as kb:
@@ -175,7 +193,7 @@ def run_interactive() -> None:
             # Query physical state
             r_mm, theta_mdeg, trace, occluded = substrate.get_spatial_tracking()
             refusal = substrate.is_barrier_refusal_active()
-            vocal, stride = substrate.get_motor_efferent()
+            motor = substrate.get_motor_efferent()
             active_syn = substrate.active_synapses()
 
             # Decay transient stimuli
@@ -196,9 +214,9 @@ def run_interactive() -> None:
                     barrier_stress=barrier_stress,
                     yield_thresh=substrate.yield_threshold,
                     refusal=refusal,
-                    vocal_pulse=vocal,
-                    stride=stride,
+                    motor_efferent=motor,
                     active_synapses=active_syn,
+                    num_columns=num_columns,
                     status_msg=status_msg,
                 )
 
@@ -207,4 +225,7 @@ def run_interactive() -> None:
 
 
 if __name__ == "__main__":
-    run_interactive()
+    parser = argparse.ArgumentParser(description="ArcLoom Sensorimotor Console Demonstrator")
+    parser.add_argument("--columns", type=int, default=8, choices=[8, 64], help="Column count: 8 (hardware octet) or 64 (cortical array)")
+    args = parser.parse_args()
+    run_interactive(num_columns=args.columns)

@@ -1,20 +1,16 @@
 """dsf_ai_service/substrate/modular_column_substrate.py
 
-ArcLoom Neuromorphic Substrate: 8-Column Balanced Octet Modular Neuromorphic Substrate.
+ArcLoom Neuromorphic Substrate: Modular Cortical Column Substrate (4D, 8D, and 64D).
 
 Directly bridges authentic physical sensory streams (optical raycast, cochlear audio,
 somatosensory pressure/temperature, and DSF L0-L4 invariants) to the compiled native Rust
-ModularSubstrate8D / ModularSubstrate4D core without software dictionaries or ML.
+ModularSubstrate64D / ModularSubstrate8D / ModularSubstrate4D core without software dictionaries or ML.
 
-Physical Architecture (8-Column Balanced Octet with 6-Layer Vertical Laminar Microcircuits):
-  1. Column 0 (V1): Optical Foveal Focal Target (distance r_mm, target foveal presence)
-  2. Column 1 (V2): Optical Motion Gradient & Spatial Angle (theta_mdeg, angular heading)
-  3. Column 2 (A1): Cochlear Formant Peak Resonance (primary acoustic formant band)
-  4. Column 3 (A2): Cochlear Pitch / Envelope (spectral contour)
-  5. Column 4 (S1): Somatosensory Palmar Tactile Contact (palmar pressure)
-  6. Column 5 (S2): Somatosensory Barrier Stress (von Mises yield evaluation: f = |sigma| - Y <= 0)
-  7. Column 6 (M1): Motor Airway Vocal Valve (homeostatic exhaust discharge pulse)
-  8. Column 7 (M2): Motor Locomotion Stride & Steer (gated by S2 barrier refusal)
+Physical Architecture:
+  - 4-Column Core (V1, A1, S1, M1) for minimal baseline testbeds.
+  - 8-Column Balanced Octet (V1, V2, A1, A2, S1, S2, M1, M2) for FPGA silicon synthesis.
+  - 64-Column Cortical Array (8 macro-clusters x 8 columns, 20,480 ternary nodes, 67M fasciculi)
+    for high-capacity spatial permanence, multi-word spoken syntax chaining, and multi-channel efferents.
 
 Plasticity:
   Local continuum von Mises yield stress mechanics:
@@ -29,11 +25,11 @@ Sleep Consolidation (Synaptic Homeostasis Hypothesis):
 from __future__ import annotations
 
 import math
-from typing import List, Tuple, Optional, Dict, Any, Sequence
+from typing import List, Tuple, Optional, Dict, Any, Sequence, Union
 import numpy as np
 
 import guala_core
-from guala_core import ModularSubstrate4D, ModularSubstrate8D
+from guala_core import ModularSubstrate4D, ModularSubstrate8D, ModularSubstrate64D
 
 L4_AFFERENT_NODES = 64
 L1_APICAL_NODES = 32
@@ -41,7 +37,7 @@ L1_APICAL_NODES = 32
 
 class ModularColumnSubstrate:
     """
-    Physical Modular Neuromorphic Substrate for Guala (Defaults to 8-Column Balanced Octet).
+    Physical Modular Neuromorphic Substrate for Guala (Supports 4D, 8D, and 64D).
     Operates under strict material yield stress plasticity and vertical laminar causal flow.
     """
 
@@ -57,8 +53,14 @@ class ModularColumnSubstrate:
         self.activation_threshold = float(activation_threshold)
         self.num_columns = int(columns)
 
-        # Compiled native Rust Modular Substrate (8D or 4D)
-        if self.num_columns == 8:
+        # Compiled native Rust Modular Substrate (64D, 8D, or 4D)
+        if self.num_columns == 64:
+            self.substrate = ModularSubstrate64D(
+                yield_threshold=self.yield_threshold,
+                plastic_rate=self.plastic_rate,
+                activation_threshold=self.activation_threshold,
+            )
+        elif self.num_columns == 8:
             self.substrate = ModularSubstrate8D(
                 yield_threshold=self.yield_threshold,
                 plastic_rate=self.plastic_rate,
@@ -185,7 +187,7 @@ class ModularColumnSubstrate:
         observed_r_mm: Optional[float] = None,
         observed_theta_mdeg: Optional[int] = None,
         barrier_stress: float = 0.0,
-        acoustic_formant: float = 0.0,
+        acoustic_formant: Union[float, Sequence[float]] = 0.0,
     ) -> Tuple[int, float]:
         """
         Step one full causal cycle across all cortical columns:
@@ -196,14 +198,30 @@ class ModularColumnSubstrate:
 
         Returns: (yield_synapses_count, total_strain_energy).
         """
-        if self.num_columns == 8:
+        if self.num_columns == 64:
+            if isinstance(acoustic_formant, (int, float)):
+                formants = [float(acoustic_formant)] if acoustic_formant > 0 else []
+            elif isinstance(acoustic_formant, (list, tuple)):
+                formants = [float(f) for f in acoustic_formant]
+            else:
+                formants = []
             return self.substrate.step(
                 sensory_trits,
                 somatic_trits,
                 observed_r_mm,
                 observed_theta_mdeg,
                 float(barrier_stress),
-                float(acoustic_formant),
+                formants,
+            )
+        elif self.num_columns == 8:
+            single_formant = float(acoustic_formant[0]) if isinstance(acoustic_formant, (list, tuple)) and len(acoustic_formant) > 0 else float(acoustic_formant) if isinstance(acoustic_formant, (int, float)) else 0.0
+            return self.substrate.step(
+                sensory_trits,
+                somatic_trits,
+                observed_r_mm,
+                observed_theta_mdeg,
+                float(barrier_stress),
+                single_formant,
             )
         else:
             return self.substrate.step(
@@ -228,10 +246,10 @@ class ModularColumnSubstrate:
         """
         return self.substrate.is_barrier_refusal_active()
 
-    def get_motor_efferent(self) -> Tuple[float, float]:
+    def get_motor_efferent(self) -> Tuple[float, ...]:
         """
         Query Motor Efferents:
-        Returns: (vocal_drive, locomotion_stride).
+        Returns: (vocal_drive, locomotion_stride) for 8D or (vocal, stride, steer, grip) for 64D.
         """
         if hasattr(self.substrate, "get_motor_efferent"):
             return self.substrate.get_motor_efferent()

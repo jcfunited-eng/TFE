@@ -1,7 +1,7 @@
 """tests/test_phase5_modular_column_substrate.py
 
 Verification suite for Item 3 of WHOLE_BRAIN_SPECIFICATION.md:
-ModularColumnSubstrate Python Adapter bridging native 4-Column 3D Substrate.
+ModularColumnSubstrate Python Adapter bridging native 4-Column, 8-Column, and 64-Column Cortical Array.
 
 Verifies:
   1. Multimodal Sensory Transduction:
@@ -12,7 +12,7 @@ Verifies:
   3. Spatial Permanence Attractor:
      - Column 1 maintains egocentric polar coordinates (r_mm, theta_mdeg) across blank frames.
   4. Material Barrier Gating:
-     - Column 3 activates barrier refusal if and only if contact stress exceeds yield limit.
+     - Column 3 / Column 5 / Column 23 activates barrier refusal if and only if contact stress exceeds yield limit.
   5. Continuum von Mises Plasticity:
      - Synchronized multimodal activity induces plastic deformation in intra-column laminar
        and inter-column fasciculi tensors.
@@ -20,6 +20,8 @@ Verifies:
      - Downscaling and competitive noise pruning restore capacity during offline sleep.
   7. Deterministic Serialization:
      - to_dict() / from_dict() roundtrip preserves configuration and active synapse states.
+  8. 64-Column Cortical Array Scaling:
+     - High-capacity 20,480-node substrate operates with multimodal acoustic formants and multi-channel efferents.
 """
 
 from __future__ import annotations
@@ -157,3 +159,53 @@ def test_serialization_roundtrip() -> None:
     assert sub_restored.yield_threshold == 0.45
     assert sub_restored.plastic_rate == 0.04
     assert sub_restored.activation_threshold == 0.30
+
+
+def test_modular_column_substrate_64d_adapter() -> None:
+    """Verify ModularColumnSubstrate adapter properly drives the 64-column array."""
+    sub64 = ModularColumnSubstrate(yield_threshold=0.55, plastic_rate=0.03, activation_threshold=0.25, columns=64)
+    assert sub64.num_columns == 64
+    assert sub64.active_synapses() == 0
+
+    # Encode multimodal sensory and somatic vectors
+    sens = sub64.encode_sensory_stream(optical_intensities=np.ones(16) * 0.9)
+    som = sub64.encode_somatic_apical(arousal_surplus=0.5)
+
+    # Step with speech formants and visual target
+    formants = [220.0, 750.0, 2400.0]
+    yields, strain = sub64.step(
+        sensory_trits=sens,
+        somatic_trits=som,
+        observed_r_mm=320.0,
+        observed_theta_mdeg=12500,
+        barrier_stress=0.10,
+        acoustic_formant=formants,
+    )
+    assert strain >= 0.0
+
+    r, theta, trace, occluded = sub64.get_spatial_tracking()
+    assert r == 320.0
+    assert theta == 12500
+    assert trace == 1.0
+    assert occluded is False
+
+    # Check 4-channel motor efferents
+    motor = sub64.get_motor_efferent()
+    assert len(motor) == 4
+    vocal, stride, steer, grip = motor
+    assert stride > 0.0
+    assert grip > 0.0
+
+    # Over-yield barrier contact
+    sub64.step(sens, som, barrier_stress=0.90)
+    assert sub64.is_barrier_refusal_active()
+    v_over, s_over, _, g_over = sub64.get_motor_efferent()
+    assert s_over == 0.0
+    assert v_over == 220.0
+    assert g_over == 0.0
+
+    # Serialization roundtrip with 64 columns
+    state = sub64.to_dict()
+    assert state["num_columns"] == 64
+    restored = ModularColumnSubstrate.from_dict(state)
+    assert restored.num_columns == 64

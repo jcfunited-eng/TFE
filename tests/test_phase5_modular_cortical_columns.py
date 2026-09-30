@@ -33,7 +33,7 @@ from __future__ import annotations
 
 import pytest
 import guala_core
-from guala_core import ModularSubstrate4D, ModularSubstrate8D
+from guala_core import ModularSubstrate4D, ModularSubstrate8D, ModularSubstrate64D
 
 
 # =============================================================================
@@ -247,3 +247,94 @@ def test_modular_substrate_8d_plastic_yield_binding() -> None:
     sparse_data = sub8.export_sparse()
     assert len(sparse_data) > 0
     assert len(sparse_data) % 8 == 0
+
+
+# =============================================================================
+# 64-Column Cortical Array Tests (ModularSubstrate64D)
+# =============================================================================
+
+def test_modular_substrate_64d_initialization() -> None:
+    """Verify clean initialization of the 64-Column Cortical Array (20,480 nodes)."""
+    sub64 = ModularSubstrate64D(yield_threshold=0.60, plastic_rate=0.03, activation_threshold=0.25)
+    assert sub64.active_synapses() == 0
+    r, theta, trace, occluded = sub64.get_spatial_tracking()
+    assert r == 0.0
+    assert theta == 0
+    assert trace == 0.0
+    assert occluded is False
+
+
+def test_modular_substrate_64d_spatial_permanence() -> None:
+    """Verify 2D spatial permanence attractor locks coordinates in 64D substrate under total optical occlusion."""
+    sub64 = ModularSubstrate64D(yield_threshold=0.60, plastic_rate=0.03, activation_threshold=0.25)
+    sensory = [1] * 64
+    somatic = [0] * 32
+
+    # Step 1: Optical presence
+    for _ in range(10):
+        sub64.step(sensory, somatic, observed_r_mm=380.0, observed_theta_mdeg=14000, barrier_stress=0.0)
+
+    r_vis, theta_vis, trace_vis, is_vis = sub64.get_spatial_tracking()
+    assert r_vis == 380.0
+    assert theta_vis == 14000
+    assert trace_vis == 1.0
+    assert is_vis is False
+
+    # Step 2: Optical blindout for 20 consecutive ticks
+    for _ in range(20):
+        sub64.step(sensory, somatic, observed_r_mm=None, observed_theta_mdeg=None, barrier_stress=0.0)
+
+    r_occ, theta_occ, trace_occ, is_occ = sub64.get_spatial_tracking()
+    assert r_occ == 380.0
+    assert theta_occ == 14000
+    assert is_occ is True
+    assert 0.0 < trace_occ < 1.0
+
+
+def test_modular_substrate_64d_barrier_refusal_and_motor() -> None:
+    """Verify 64-Column Col 23 (S8) barrier yield refusal gating and multi-channel motor efferents."""
+    sub64 = ModularSubstrate64D(yield_threshold=0.50, plastic_rate=0.04, activation_threshold=0.20)
+    sensory = [0] * 64
+    somatic = [0] * 32
+
+    # 1. Sub-yield contact
+    sub64.step(sensory, somatic, barrier_stress=0.25)
+    assert not sub64.is_barrier_refusal_active()
+    vocal, stride, steer, grip = sub64.get_motor_efferent()
+    assert stride == 60.0
+    assert vocal == 0.0
+    assert grip == 25.0
+
+    # 2. Over-yield collision
+    sub64.step(sensory, somatic, barrier_stress=0.85)
+    assert sub64.is_barrier_refusal_active()
+    vocal_over, stride_over, steer_over, grip_over = sub64.get_motor_efferent()
+    assert stride_over == 0.0     # Locomotion stride arrested
+    assert vocal_over == 220.0   # Vocal exhaust pulse fired
+    assert grip_over == 0.0      # Gripper released to prevent damage
+
+
+def test_modular_substrate_64d_plasticity_and_sleep_consolidation() -> None:
+    """Verify continuum von Mises plasticity and nocturnal consolidation across 64 columns."""
+    sub64 = ModularSubstrate64D(yield_threshold=0.40, plastic_rate=0.05, activation_threshold=0.20)
+    sensory = [1] * 64
+    somatic = [0] * 32
+    formants = [220.0, 800.0, 1500.0]
+
+    for _ in range(15):
+        sub64.step(sensory, somatic, observed_r_mm=300.0, observed_theta_mdeg=8000, barrier_stress=0.0, acoustic_formants=formants)
+
+    active_pre = sub64.active_synapses()
+    assert active_pre > 1000
+
+    decayed, pruned = sub64.sleep_consolidation(decay=0.05, prune_thresh=0.01)
+    assert decayed > 0
+
+    # Sparse binary export and import round-trip
+    sparse_data = sub64.export_sparse()
+    assert len(sparse_data) > 0
+    assert len(sparse_data) % 8 == 0
+
+    sub_clone = ModularSubstrate64D()
+    sub_clone.import_sparse(sparse_data)
+    assert sub_clone.active_synapses() > 0

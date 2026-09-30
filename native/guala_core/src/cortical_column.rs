@@ -50,6 +50,12 @@ pub const TOTAL_SUBSTRATE_NODES_8D: usize = NUM_COLUMNS_8D * COLUMN_NODES; // 2,
 pub const INTER_COL_23_SIZE_8D: usize = NUM_COLUMNS_8D * NUM_COLUMNS_8D * L23_NODES * L23_NODES; // 64 * 16384 = 1,048,576
 pub const INTER_COL_5_SIZE_8D: usize = NUM_COLUMNS_8D * NUM_COLUMNS_8D * L5_NODES * L5_NODES;    // 64 * 4096 = 262,144
 
+// 64-Column Dimensions (Cortical Array)
+pub const NUM_COLUMNS_64D: usize = 64;
+pub const TOTAL_SUBSTRATE_NODES_64D: usize = NUM_COLUMNS_64D * COLUMN_NODES; // 20,480 nodes
+pub const INTER_COL_23_SIZE_64D: usize = NUM_COLUMNS_64D * NUM_COLUMNS_64D * L23_NODES * L23_NODES; // 4096 * 16384 = 67,108,864
+pub const INTER_COL_5_SIZE_64D: usize = NUM_COLUMNS_64D * NUM_COLUMNS_64D * L5_NODES * L5_NODES;    // 4096 * 4096 = 16,777,216
+
 // ---------------------------------------------------------------------------
 // 1. Laminar Microcircuit (Canonical 6-Layer Primitive)
 // ---------------------------------------------------------------------------
@@ -1051,8 +1057,415 @@ impl PyModularSubstrate8D {
     }
 }
 
+
+// ---------------------------------------------------------------------------
+// 5. 64-Column 3D Modular Neuromorphic Substrate (Cortical Array)
+// ---------------------------------------------------------------------------
+// 8 Macro-Clusters of 8 Specialized Cortical Columns (20,480 Nodes | 83.8M Fasciculi):
+//   Cluster 0 (Cols 0..8):   Optical Cortical Sheet (V1-V8: Depth, Heading, Contrast, Flow, Color, Width, Texture, Multi-Track)
+//   Cluster 1 (Cols 8..16):  Acoustic Cochlear Sheet (A1-A8: F1, F2, F3 Formants, Pitch F0, Transient, Harmonic, Cadence, Phonation)
+//   Cluster 2 (Cols 16..24): Somatosensory Sheet (S1-S8: Palmar, Friction, Thermal, Compliance, Roughness, Multi-Grasp, Proprioception, Barrier Yield)
+//   Cluster 3 (Cols 24..32): Spatial Hippocampal Field (H1-H8: 2D Grid Cells, Place Attractors, Heading Compass, Portal Novelty)
+//   Cluster 4 (Cols 32..40): Sequential Syntax & Temporal Grammar (Syn1-Syn8: Subject, Verb, Object, Locus, 4-Stage Asymmetric Delay Chaining)
+//   Cluster 5 (Cols 40..48): Actuator & Motor Cortex (M1-M8: Vocal F0, Formant Articulation, Stride L/R, Steer, Reach, Wrist, Gripper)
+//   Cluster 6 (Cols 48..56): Somatic Valence & Homeostasis (B1-B8: Pressure P_k, Breathing B_k, Surplus, Boredom, Thermal, Fatigue, Satiety, Stability S_UF)
+//   Cluster 7 (Cols 56..64): Prefrontal Arbitration & Invariant Gates (PFC1-PFC8: Goal Lock, Barrier Override, Novelty, Verification, Attention)
+
+pub struct ModularSubstrate64D {
+    pub columns: Vec<CorticalColumn>,
+    pub w_inter_23: Vec<f32>,
+    pub w_inter_5: Vec<f32>,
+    pub yield_threshold: f32,
+    pub plastic_rate: f32,
+    pub motor_vocal_drive: f32,
+    pub motor_locomotion_stride: f32,
+    pub motor_steer_angle: f32,
+    pub motor_grip_force: f32,
+}
+
+impl ModularSubstrate64D {
+    pub fn new(yield_threshold: f32, plastic_rate: f32, activation_threshold: f32) -> Self {
+        let mut columns = Vec::with_capacity(NUM_COLUMNS_64D);
+        for id in 0..NUM_COLUMNS_64D {
+            columns.push(CorticalColumn::new(id, yield_threshold, plastic_rate, activation_threshold));
+        }
+
+        Self {
+            columns,
+            w_inter_23: vec![0.0; INTER_COL_23_SIZE_64D],
+            w_inter_5: vec![0.0; INTER_COL_5_SIZE_64D],
+            yield_threshold: yield_threshold.clamp(0.01, 0.99),
+            plastic_rate: plastic_rate.clamp(0.001, 1.0),
+            motor_vocal_drive: 0.0,
+            motor_locomotion_stride: 60.0,
+            motor_steer_angle: 0.0,
+            motor_grip_force: 0.0,
+        }
+    }
+
+    #[inline(always)]
+    fn index_inter_23(c_from: usize, c_to: usize, i: usize, j: usize) -> usize {
+        ((c_from * NUM_COLUMNS_64D + c_to) * L23_NODES + i) * L23_NODES + j
+    }
+
+    #[inline(always)]
+    fn index_inter_5(c_from: usize, c_to: usize, i: usize, j: usize) -> usize {
+        ((c_from * NUM_COLUMNS_64D + c_to) * L5_NODES + i) * L5_NODES + j
+    }
+
+    pub fn step_cycle(
+        &mut self,
+        sensory_trits: &[i8],
+        somatic_trits: &[i8],
+        observed_r_mm: Option<f32>,
+        observed_theta_mdeg: Option<i32>,
+        current_barrier_stress: f32,
+        acoustic_formants: &[f32],
+    ) -> (usize, f32) {
+        let mut total_yields = 0usize;
+        let mut total_strain = 0.0f32;
+
+        // 1. Cluster 0: Optical Cortical Sheet (Cols 0..8)
+        if let Some(r) = observed_r_mm {
+            self.columns[0].spatial_r_mm = r;
+            self.columns[0].persistence_trace = 1.0;
+            self.columns[0].target_occluded = false;
+        } else {
+            self.columns[0].persistence_trace *= 0.985;
+            self.columns[0].target_occluded = true;
+        }
+        let mut v1_aff = vec![0i8; L4_NODES];
+        let r_bin = ((self.columns[0].spatial_r_mm / 100.0) as usize).min(63);
+        v1_aff[r_bin] = if self.columns[0].persistence_trace > 0.05 { 1 } else { 0 };
+        let (y0, s0) = self.columns[0].microcircuit.step_laminar_flow(&v1_aff, somatic_trits);
+        total_yields += y0; total_strain += s0;
+
+        if let Some(th) = observed_theta_mdeg {
+            self.columns[1].spatial_theta_mdeg = th;
+            self.columns[1].persistence_trace = 1.0;
+            self.columns[1].target_occluded = false;
+        } else {
+            self.columns[1].persistence_trace *= 0.985;
+            self.columns[1].target_occluded = true;
+        }
+        let mut v2_aff = vec![0i8; L4_NODES];
+        let th_bin = (((self.columns[1].spatial_theta_mdeg + 180_000) / 6000) as usize).min(63);
+        v2_aff[th_bin] = if self.columns[1].persistence_trace > 0.05 { 1 } else { 0 };
+        let (y1, s1) = self.columns[1].microcircuit.step_laminar_flow(&v2_aff, somatic_trits);
+        total_yields += y1; total_strain += s1;
+
+        for c in 2..8 {
+            let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(sensory_trits, somatic_trits);
+            total_yields += yc; total_strain += sc;
+        }
+
+        // 2. Cluster 1: Acoustic Cochlear Sheet (Cols 8..16)
+        for (i, c) in (8..16).enumerate() {
+            let mut a_aff = vec![0i8; L4_NODES];
+            if i < acoustic_formants.len() && acoustic_formants[i] > 10.0 {
+                let bin = ((acoustic_formants[i] / 5.0) as usize).min(63);
+                a_aff[bin] = 1;
+            } else if i < sensory_trits.len() {
+                a_aff[0] = sensory_trits[i];
+            }
+            let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(&a_aff, somatic_trits);
+            total_yields += yc; total_strain += sc;
+        }
+
+        // 3. Cluster 2: Somatosensory Sheet (Cols 16..24)
+        for c in 16..23 {
+            let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(sensory_trits, somatic_trits);
+            total_yields += yc; total_strain += sc;
+        }
+        // Col 23 (S8: Barrier Yield Refusal)
+        self.columns[23].barrier_contact_stress = current_barrier_stress;
+        self.columns[23].refusal_active = current_barrier_stress >= self.columns[23].yield_limit_threshold;
+        let mut s8_aff = vec![0i8; L4_NODES];
+        s8_aff[0] = if self.columns[23].refusal_active { 1 } else { 0 };
+        let (y23, s23) = self.columns[23].microcircuit.step_laminar_flow(&s8_aff, somatic_trits);
+        total_yields += y23; total_strain += s23;
+
+        // 4. Clusters 3, 4: Spatial & Syntax (Cols 24..40)
+        for c in 24..40 {
+            let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(sensory_trits, somatic_trits);
+            total_yields += yc; total_strain += sc;
+        }
+
+        // 5. Cluster 5: Motor Cortex (Cols 40..48)
+        let is_strained = somatic_trits.len() > 0 && somatic_trits[0] < 0;
+        let refusal = self.columns[23].refusal_active;
+        if refusal || is_strained {
+            self.motor_vocal_drive = 220.0;
+            self.motor_locomotion_stride = 0.0;
+            self.motor_grip_force = 0.0;
+        } else {
+            let primary_formant = if acoustic_formants.len() > 0 { acoustic_formants[0] } else { 0.0 };
+            if primary_formant > 50.0 {
+                self.motor_vocal_drive = primary_formant;
+                self.motor_locomotion_stride = 30.0;
+            } else {
+                self.motor_vocal_drive = 0.0;
+                self.motor_locomotion_stride = 60.0;
+            }
+            self.motor_grip_force = 25.0;
+        }
+        for c in 40..48 {
+            let mut m_aff = vec![0i8; L4_NODES];
+            m_aff[0] = if self.motor_locomotion_stride > 0.0 { 1 } else { 0 };
+            let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(&m_aff, somatic_trits);
+            total_yields += yc; total_strain += sc;
+        }
+
+        // 6. Clusters 6, 7: Valence & Prefrontal Arbitration (Cols 48..64)
+        for c in 48..64 {
+            let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(sensory_trits, somatic_trits);
+            total_yields += yc; total_strain += sc;
+        }
+
+        // 7. Inter-Column Directional Fasciculi Plasticity across 64 Columns
+        let (inter_y, inter_s) = self.apply_inter_column_plasticity();
+        total_yields += inter_y;
+        total_strain += inter_s;
+
+        (total_yields, total_strain)
+    }
+
+    pub fn apply_inter_column_plasticity(&mut self) -> (usize, f32) {
+        let mut yield_count = 0usize;
+        let mut total_strain = 0.0f32;
+        let y = self.yield_threshold;
+        let eta = self.plastic_rate;
+
+        // Optimized biological sparsity skip: evaluate only active column pairs
+        for c_from in 0..NUM_COLUMNS_64D {
+            let from_l23_active = self.columns[c_from].microcircuit.l23.iter().any(|&v| v != 0);
+            if from_l23_active {
+                for c_to in 0..NUM_COLUMNS_64D {
+                    if c_from == c_to { continue; }
+                    let to_l23_active = self.columns[c_to].microcircuit.l23.iter().any(|&v| v != 0);
+                    if !to_l23_active { continue; }
+
+                    for i in 0..L23_NODES {
+                        let from_val = self.columns[c_from].microcircuit.l23[i];
+                        if from_val == 0 { continue; }
+                        for j in 0..L23_NODES {
+                            let to_val = self.columns[c_to].microcircuit.l23[j];
+                            if to_val == 0 { continue; }
+                            let idx = Self::index_inter_23(c_from, c_to, i, j);
+                            let target = (from_val * to_val) as f32;
+                            let sigma = target - self.w_inter_23[idx];
+                            let abs_sigma = sigma.abs();
+                            if abs_sigma > y {
+                                let overstress = abs_sigma - y;
+                                self.w_inter_23[idx] = (self.w_inter_23[idx] + eta * overstress * sigma.signum()).clamp(-1.0, 1.0);
+                                yield_count += 1;
+                                total_strain += overstress;
+                            }
+                        }
+                    }
+                }
+            }
+
+            let from_l5_active = self.columns[c_from].microcircuit.l5.iter().any(|&v| v != 0);
+            if from_l5_active {
+                for c_to in 0..NUM_COLUMNS_64D {
+                    if c_from == c_to { continue; }
+                    let to_l5_active = self.columns[c_to].microcircuit.l5.iter().any(|&v| v != 0);
+                    if !to_l5_active { continue; }
+
+                    for i in 0..L5_NODES {
+                        let from_val = self.columns[c_from].microcircuit.l5[i];
+                        if from_val == 0 { continue; }
+                        for j in 0..L5_NODES {
+                            let to_val = self.columns[c_to].microcircuit.l5[j];
+                            if to_val == 0 { continue; }
+                            let idx = Self::index_inter_5(c_from, c_to, i, j);
+                            let target = (from_val * to_val) as f32;
+                            let sigma = target - self.w_inter_5[idx];
+                            let abs_sigma = sigma.abs();
+                            if abs_sigma > y {
+                                let overstress = abs_sigma - y;
+                                self.w_inter_5[idx] = (self.w_inter_5[idx] + eta * overstress * sigma.signum()).clamp(-1.0, 1.0);
+                                yield_count += 1;
+                                total_strain += overstress;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        (yield_count, total_strain)
+    }
+
+    pub fn dream_consolidation(&mut self, decay: f32, prune_thresh: f32) -> (usize, usize) {
+        let mut total_decayed = 0usize;
+        let mut total_pruned = 0usize;
+        for col in self.columns.iter_mut() {
+            let (d, p) = col.microcircuit.dream_downscale_and_prune(decay, prune_thresh);
+            total_decayed += d;
+            total_pruned += p;
+        }
+        for g in self.w_inter_23.iter_mut() {
+            if *g != 0.0 {
+                total_decayed += 1;
+                *g *= 1.0 - decay;
+                if g.abs() < prune_thresh {
+                    *g = 0.0;
+                    total_pruned += 1;
+                }
+            }
+        }
+        for g in self.w_inter_5.iter_mut() {
+            if *g != 0.0 {
+                total_decayed += 1;
+                *g *= 1.0 - decay;
+                if g.abs() < prune_thresh {
+                    *g = 0.0;
+                    total_pruned += 1;
+                }
+            }
+        }
+        (total_decayed, total_pruned)
+    }
+
+    pub fn total_active_synapses(&self) -> usize {
+        let mut count = 0usize;
+        for col in &self.columns {
+            count += col.microcircuit.active_intra_synapses();
+        }
+        for &g in &self.w_inter_23 {
+            if g.abs() > 0.001 { count += 1; }
+        }
+        for &g in &self.w_inter_5 {
+            if g.abs() > 0.001 { count += 1; }
+        }
+        count
+    }
+}
+
+// ---------------------------------------------------------------------------
+// PyO3 Bindings for 64-Column Cortical Array
+// ---------------------------------------------------------------------------
+
+#[pyclass(name = "ModularSubstrate64D")]
+pub struct PyModularSubstrate64D {
+    inner: ModularSubstrate64D,
+}
+
+#[pymethods]
+impl PyModularSubstrate64D {
+    #[new]
+    #[pyo3(signature = (yield_threshold=0.60, plastic_rate=0.03, activation_threshold=0.25))]
+    pub fn new(yield_threshold: f32, plastic_rate: f32, activation_threshold: f32) -> Self {
+        Self {
+            inner: ModularSubstrate64D::new(yield_threshold, plastic_rate, activation_threshold),
+        }
+    }
+
+    #[pyo3(signature = (sensory_trits, somatic_trits, observed_r_mm=None, observed_theta_mdeg=None, barrier_stress=0.0, acoustic_formants=None))]
+    pub fn step(
+        &mut self,
+        sensory_trits: Vec<i8>,
+        somatic_trits: Vec<i8>,
+        observed_r_mm: Option<f32>,
+        observed_theta_mdeg: Option<i32>,
+        barrier_stress: f32,
+        acoustic_formants: Option<Vec<f32>>,
+    ) -> (usize, f32) {
+        let formants = acoustic_formants.unwrap_or_default();
+        self.inner.step_cycle(
+            &sensory_trits,
+            &somatic_trits,
+            observed_r_mm,
+            observed_theta_mdeg,
+            barrier_stress,
+            &formants,
+        )
+    }
+
+    pub fn get_spatial_tracking(&self) -> (f32, i32, f32, bool) {
+        let col0 = &self.inner.columns[0];
+        let col1 = &self.inner.columns[1];
+        let r = col0.spatial_r_mm;
+        let theta = col1.spatial_theta_mdeg;
+        let trace = (col0.persistence_trace + col1.persistence_trace) * 0.5;
+        let occluded = col0.target_occluded || col1.target_occluded;
+        (r, theta, trace, occluded)
+    }
+
+    pub fn is_barrier_refusal_active(&self) -> bool {
+        self.inner.columns[23].refusal_active
+    }
+
+    pub fn get_motor_efferent(&self) -> (f32, f32, f32, f32) {
+        (
+            self.inner.motor_vocal_drive,
+            self.inner.motor_locomotion_stride,
+            self.inner.motor_steer_angle,
+            self.inner.motor_grip_force,
+        )
+    }
+
+    pub fn active_synapses(&self) -> usize {
+        self.inner.total_active_synapses()
+    }
+
+    #[pyo3(signature = (decay=0.02, prune_thresh=0.005))]
+    pub fn sleep_consolidation(&mut self, decay: f32, prune_thresh: f32) -> (usize, usize) {
+        self.inner.dream_consolidation(decay, prune_thresh)
+    }
+
+    pub fn export_sparse(&self) -> Vec<u8> {
+        let mut candidates: Vec<(u32, f32)> = Vec::new();
+        for (idx, &g) in self.inner.w_inter_23.iter().enumerate() {
+            if g.abs() >= 0.005 {
+                candidates.push((idx as u32, g));
+            }
+        }
+        for (idx, &g) in self.inner.w_inter_5.iter().enumerate() {
+            if g.abs() >= 0.005 {
+                let offset_idx = (INTER_COL_23_SIZE_64D + idx) as u32;
+                candidates.push((offset_idx, g));
+            }
+        }
+        candidates.sort_by(|a, b| b.1.abs().partial_cmp(&a.1.abs()).unwrap_or(std::cmp::Ordering::Equal));
+        let bounded = if candidates.len() > 16384 { &candidates[..16384] } else { &candidates[..] };
+
+        let mut out = Vec::with_capacity(bounded.len() * 8);
+        for &(idx, g) in bounded {
+            out.extend_from_slice(&idx.to_le_bytes());
+            out.extend_from_slice(&g.to_le_bytes());
+        }
+        out
+    }
+
+    pub fn import_sparse(&mut self, data: &[u8]) -> PyResult<()> {
+        let n_entries = data.len() / 8;
+        for i in 0..n_entries {
+            let offset = i * 8;
+            if offset + 8 <= data.len() {
+                let idx = u32::from_le_bytes([data[offset], data[offset + 1], data[offset + 2], data[offset + 3]]) as usize;
+                let g = f32::from_le_bytes([data[offset + 4], data[offset + 5], data[offset + 6], data[offset + 7]]);
+                if idx < INTER_COL_23_SIZE_64D {
+                    if idx < self.inner.w_inter_23.len() {
+                        self.inner.w_inter_23[idx] = g;
+                    }
+                } else {
+                    let off_5 = idx - INTER_COL_23_SIZE_64D;
+                    if off_5 < self.inner.w_inter_5.len() {
+                        self.inner.w_inter_5[off_5] = g;
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyModularSubstrate4D>()?;
     m.add_class::<PyModularSubstrate8D>()?;
+    m.add_class::<PyModularSubstrate64D>()?;
     Ok(())
 }
