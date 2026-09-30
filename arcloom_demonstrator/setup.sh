@@ -57,7 +57,7 @@ maturin develop --release --manifest-path native/guala_core/Cargo.toml
 
 # 7. Run Invariant Verification Tests
 echo "[*] Executing Demonstrator Invariant Verification Suite..."
-pytest -q tests/test_octal_column_invariants.py tests/test_arcloom_causal_action_witness.py
+python3 -m pytest -q tests/test_octal_column_invariants.py tests/test_arcloom_causal_action_witness.py
 
 echo ""
 echo "======================================================================"

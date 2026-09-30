@@ -42,11 +42,11 @@ The substrate models 8 specialized cortical macrocolumns ($2,560$ ternary nodes,
 7. **Column 6 ($M_1$)**: Motor Airway Vocal Valve (homeostatic exhaust discharge pulse).
 8. **Column 7 ($M_2$)**: Motor Locomotion Stride & Steer (gated by $S_2$ barrier refusal).
 
-### B. The 64-Column Cortical Array (High-Capacity Multi-Modal Cognition)
+### B. The 64-Column Cortical Array (High-Capacity Modular Substrate)
 The workstation host executes the 64-Column Cortical Array (`ModularSubstrate64D`):
-- **Structure**: 8 interconnected macro-clusters of 8 columns each ($20,480$ ternary nodes, $83.8\text{ million}$ plastic fasciculi).
-- **Sensory Capacity**: 512-channel cochlear filterbank, full foveal retinal grid, multi-word spoken command syntax tracking ("pick up bear", "find tv remote", "get bottle").
-- **Throughput**: $8.5\text{ ms}$ per tick ($118\text{ Hz}$ execution in native Rust SIMD).
+- **Structure**: 8 interconnected macro-clusters of 8 columns each ($20,480$ ternary nodes, up to $83.8\text{ million}$ potential inter-column plastic fasciculi).
+- **Sensory Interface**: Multi-column sensory transductions (optical, cochlear, somatosensory, and prefrontal projection sheets) mapped across modular column clusters.
+- **Measured Throughput**: Native Rust SIMD execution scales sub-millisecond per column group, executing well within the 20 Hz real-time control target.
 
 ---
 
@@ -76,7 +76,7 @@ arcloom_demonstrator/
 │   └── modular_column_substrate.py # Python adapter for 8D & 64D physical substrate
 └── tests/
     ├── test_octal_column_invariants.py    # Multi-phase invariant test suite
-    └── test_arcloom_causal_action_witness.py # Formal audit witness suite (A3-01 through A3-06)
+    └── test_arcloom_causal_action_witness.py # Formal audit witness suite (A4-01 through A4-06)
 ```
 
 ---
@@ -106,7 +106,7 @@ python3 run_demonstrator.py --columns 64
 * **`[B]` Blind Camera**: Simulates total optical occlusion. Demonstrates egocentric polar spatial tracking registers maintaining target coordinates $(r, \theta)$ under occlusion while persistence trace decays exponentially.
 * **`[A]` Acoustic Pulse**: Injects acoustic formant peaks into cochlear columns, demonstrating plastic associative binding.
 * **`[C]` Collision Impact**: Induces over-yield barrier stress ($\sigma = 0.95 > Y = 0.60$), demonstrating immediate locomotion stride arrest ($0.0\text{ mm}$) via protective motor interlock.
-* **`[S]` Sleep Consolidation**: Executes nocturnal downscaling and pruning of sub-threshold noise without memory collapse.
+* **`[S]` Sleep Consolidation**: Executes nocturnal downscaling and pruning of sub-threshold noise.
 * **`[Q]` Quit**: Exits console.
 
 ---

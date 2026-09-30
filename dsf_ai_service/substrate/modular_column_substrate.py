@@ -76,12 +76,14 @@ class ModularColumnSubstrate:
                 plastic_rate=self._plastic_rate,
                 activation_threshold=self._activation_threshold,
             )
-        else:
+        elif self.num_columns == 4:
             self.substrate = ModularSubstrate4D(
                 yield_threshold=self._yield_threshold,
                 plastic_rate=self._plastic_rate,
                 activation_threshold=self._activation_threshold,
             )
+        else:
+            raise ValueError(f"Unsupported substrate column dimension: {self.num_columns} (must be 4, 8, or 64)")
 
     @property
     def yield_threshold(self) -> float:
@@ -112,6 +114,11 @@ class ModularColumnSubstrate:
     @activation_threshold.setter
     def activation_threshold(self, val: float) -> None:
         self._activation_threshold = float(val)
+
+    def zero_plastic_weights(self) -> None:
+        """Zero all plastic inter-column and intra-column conductances for unconfounded plasticity ablation."""
+        if hasattr(self.substrate, "zero_plastic_weights"):
+            self.substrate.zero_plastic_weights()
 
     def encode_sensory_stream(
         self,
@@ -317,63 +324,57 @@ class ModularColumnSubstrate:
             return bool(self.substrate.is_tract_severed(c_from, c_to))
         return False
 
-    def applied_kinematic_action(self, dt_s: float = 0.05) -> Tuple[dict[str, Any], dict[str, Any]]:
+    def proposed_kinematic_action(self, dt_s: float = 0.05) -> Tuple[dict[str, Any], dict[str, Any]]:
         """
-        Execute multi-axis causal actuator commands into physical kinematic settlement:
-        Efferents operate along distinct physical axes without cross-dimensional scalar ranking:
-          - vocal_hz: vocal acoustic oscillation frequency in Hz [0, 480]
-          - stride_mm: forward linear displacement per cycle in mm [0, 60]
-          - steer_deg: steering heading angle in degrees [-45, +45]
-          - grip_n: normal grasping force in Newtons [0, 25]
+        Query read-only proposed kinematic consequence and intention receipt (A4-01).
+        Efferents operate along distinct physical axes without cross-dimensional scalar ranking.
+        Does NOT execute or settle real actions; unavailable physical load/work quantities
+        (acoustic pressure, normal force, mechanical work) report strictly as None because
+        they can only be determined upon canonical world settlement.
 
         Returns:
-          (consequence, receipt)
+            (proposed_consequence, proposed_receipt)
         """
         vocal, stride, steer, grip = self.get_motor_efferent()
         is_silent = (vocal == 0.0 and stride == 0.0 and steer == 0.0 and grip == 0.0)
 
-        # 2D Euclidean rigid body kinematics
+        # 2D Euclidean rigid body kinematics proposal
         th_rad = float(np.radians(steer))
         delta_x_mm = float(stride * np.cos(th_rad))
         delta_y_mm = float(stride * np.sin(th_rad))
         delta_theta_deg = float(steer * (stride / 60.0))
 
-        # Acoustic pressure amplitude in Pascals
-        acoustic_pressure_pa = float((vocal / 480.0) * 1.0) if vocal > 0 else 0.0
-
-        # Normal contact force
-        normal_force_n = float(grip)
-
-        # Mechanical work in microjoules: W = F_n * dx_grip + F_loco * dx_loco
-        mechanical_work_uj = float((grip * 0.5 + abs(stride) * 0.1) * 1000.0) if not is_silent else 0.0
-
-        consequence = {
+        proposed_consequence = {
             "delta_x_mm": delta_x_mm,
             "delta_y_mm": delta_y_mm,
             "delta_theta_deg": delta_theta_deg,
-            "acoustic_pressure_pa": acoustic_pressure_pa,
-            "normal_force_n": normal_force_n,
-            "mechanical_work_uj": mechanical_work_uj,
+            "acoustic_pressure_pa": None,
+            "normal_force_n": None,
+            "mechanical_work_uj": None,
         }
 
-        receipt = {
+        proposed_receipt = {
             "is_silent": is_silent,
             "motion_vector": (delta_x_mm, delta_y_mm, delta_theta_deg),
             "vocal_frequency_hz": vocal,
-            "normal_force_n": normal_force_n,
+            "normal_force_n": None,
             "applied_stride_mm": stride,
             "applied_steer_deg": steer,
             "cycle_dt_s": dt_s,
         }
 
-        return (consequence, receipt)
+        return (proposed_consequence, proposed_receipt)
+
+    def applied_kinematic_action(self, dt_s: float = 0.05) -> Tuple[dict[str, Any], dict[str, Any]]:
+        """Deprecated ungrounded kinematic estimate; delegates to proposed_kinematic_action."""
+        return self.proposed_kinematic_action(dt_s=dt_s)
 
     def applied_motor_action(self) -> Tuple[str, dict[str, Any]]:
         """
         Multi-axis kinematic summary without cross-dimensional scalar ranking:
         Returns ('rest', {}) if silent, or ('active', receipt) with independent channels.
         """
-        consequence, receipt = self.applied_kinematic_action()
+        consequence, receipt = self.proposed_kinematic_action()
         if receipt["is_silent"]:
             return ("rest", {})
         return ("active", receipt)
@@ -404,7 +405,7 @@ class ModularColumnSubstrate:
         """Serialize substrate configuration and sparse conductances for persistent body storage."""
         raw_bytes = self.export_sparse_bytes()
         return {
-            "format": "ARCLOOM2",
+            "format": "ARCLOOM3",
             "num_columns": self.num_columns,
             "yield_threshold": self.yield_threshold,
             "plastic_rate": self.plastic_rate,
@@ -419,6 +420,10 @@ class ModularColumnSubstrate:
         Reconstitute substrate from serialized body dictionary with fail-closed binary verification.
         Preserves column dimension unless explicitly instructed.
         """
+        sparse_hex = data.get("sparse_hex")
+        if not sparse_hex or not isinstance(sparse_hex, str) or len(sparse_hex.strip()) == 0:
+            raise ValueError("missing or empty sparse_hex payload: cannot restore without valid state payload")
+
         num_cols = force_columns if force_columns is not None else int(data.get("num_columns", 64))
         sub = cls(
             yield_threshold=float(data.get("yield_threshold", 0.60)),
@@ -426,8 +431,6 @@ class ModularColumnSubstrate:
             activation_threshold=float(data.get("activation_threshold", 0.25)),
             columns=num_cols,
         )
-        if "sparse_hex" in data and data["sparse_hex"]:
-            raw = bytes.fromhex(data["sparse_hex"])
-            if len(raw) > 0:
-                sub.substrate.import_sparse(raw)
+        raw = bytes.fromhex(sparse_hex.strip())
+        sub.substrate.import_sparse(raw)
         return sub

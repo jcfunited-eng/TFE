@@ -6,7 +6,7 @@ Substrate: ArcLoom Discrete Neuromorphic Architecture in Native SIMD Rust (guala
 
 Benchmarks:
   1. Microsecond Timing & Throughput (1,000 causal ticks)
-  2. Spatial Attractor Permanence under Heavy Sensory Noise & Occlusion
+  2. Spatial Tracking Polar Register Hold under Sensory Noise & Occlusion
   3. Multi-Modal Plastic Synaptic Hardening (Acoustic-Optical Binding)
   4. von Mises Barrier Yield Refusal & Motor Gating (S2 -> M1 / M2)
   5. Nocturnal Sleep Consolidation & Synaptic Downscaling
@@ -39,7 +39,7 @@ def benchmark_timing(n_ticks: int = 1000) -> dict:
         t0 = time.perf_counter()
         sub4.step(sensory_trits, somatic_trits, observed_r_mm=300.0, observed_theta_mdeg=15000, barrier_stress=0.1)
         t1 = time.perf_counter()
-        latencies_4d.append((t1 - t0) * 1_000_000.0) # microseconds
+        latencies_4d.append((t1 - t0) * 1_000_000.0)  # microseconds
 
     # 8-Column Timing
     latencies_8d: list[float] = []
@@ -47,7 +47,7 @@ def benchmark_timing(n_ticks: int = 1000) -> dict:
         t0 = time.perf_counter()
         sub8.step(sensory_trits, somatic_trits, observed_r_mm=300.0, observed_theta_mdeg=15000, barrier_stress=0.1, acoustic_formant=120.0)
         t1 = time.perf_counter()
-        latencies_8d.append((t1 - t0) * 1_000_000.0) # microseconds
+        latencies_8d.append((t1 - t0) * 1_000_000.0)  # microseconds
 
     mean_4 = statistics.mean(latencies_4d)
     median_4 = statistics.median(latencies_4d)
@@ -59,6 +59,9 @@ def benchmark_timing(n_ticks: int = 1000) -> dict:
     p99_8 = statistics.quantiles(latencies_8d, n=100)[98]
     fps_8 = 1_000_000.0 / mean_8
 
+    assert fps_4 > 20.0, f"4-Column Substrate failed >20 Hz requirement: {fps_4:.0f} Hz"
+    assert fps_8 > 20.0, f"8-Column Octet failed >20 Hz requirement: {fps_8:.0f} Hz"
+
     print(f"4-Column Substrate (1,280 Nodes):")
     print(f"  Mean Latency:   {mean_4:6.2f} µs | Median: {median_4:6.2f} µs | P99: {p99_4:6.2f} µs")
     print(f"  Max Throughput: {fps_4:10,.0f} ticks/second (Requirement: >20 Hz)")
@@ -68,7 +71,7 @@ def benchmark_timing(n_ticks: int = 1000) -> dict:
     print(f"  Max Throughput: {fps_8:10,.0f} ticks/second (Requirement: >20 Hz)")
     print()
     print(f"  Scaling Factor: {mean_8 / mean_4:0.2f}x execution time for 2.0x column count & 4.0x fasciculi.")
-    print(f"  DARPA Standard: Both architectures execute in < 0.10 ms (100 µs), well within hard real-time.\n")
+    print(f"  Real-Time Throughput (>20 Hz requirement): PASS (Measured: 4D={fps_4:,.0f} Hz, 8D={fps_8:,.0f} Hz; latency << 50 ms).\n")
 
     return {
         "mean_4d_us": mean_4,
@@ -81,7 +84,7 @@ def benchmark_timing(n_ticks: int = 1000) -> dict:
 def benchmark_spatial_occlusion_and_noise(n_blank_ticks: int = 60) -> dict:
     """Benchmark spatial permanence retention under +100% sensory noise."""
     print("=" * 70)
-    print(f"BENCHMARK 2: SPATIAL PERMANENCE UNDER +100% SENSORY NOISE & OCCLUSION")
+    print(f"BENCHMARK 2: SPATIAL TRACKING POLAR REGISTER HOLD UNDER SENSORY NOISE & OCCLUSION")
     print("=" * 70)
 
     sub4 = ModularSubstrate4D(yield_threshold=0.50, plastic_rate=0.03, activation_threshold=0.20)
@@ -96,7 +99,7 @@ def benchmark_spatial_occlusion_and_noise(n_blank_ticks: int = 60) -> dict:
 
     # Now enter occlusion: Target is occluded (observed=None), but sensor buffer is flooded with 100% white noise
     print(f"Blinding visual feed and injecting random white noise for {n_blank_ticks} consecutive ticks...")
-    
+
     trace_history_4d = []
     trace_history_8d = []
 
@@ -114,18 +117,27 @@ def benchmark_spatial_occlusion_and_noise(n_blank_ticks: int = 60) -> dict:
     final_r4, final_th4, final_tr4 = trace_history_4d[-1]
     final_r8, final_th8, final_tr8 = trace_history_8d[-1]
 
+    drift_4d = abs(final_r4 - 450.0)
+    drift_8d = abs(final_r8 - 450.0)
+    assert drift_4d == 0.0, f"4D substrate drifted {drift_4d} mm under occlusion"
+    assert drift_8d == 0.0, f"8D substrate drifted {drift_8d} mm under occlusion"
+
+    expected_decay = 0.985 ** n_blank_ticks
+    assert abs(final_tr4 - expected_decay) < 0.01, f"4D trace failed exponential decay: {final_tr4} vs {expected_decay}"
+    assert abs(final_tr8 - expected_decay) < 0.01, f"8D trace failed exponential decay: {final_tr8} vs {expected_decay}"
+
     print(f"Results after {n_blank_ticks} ticks of visual blindout + noise:")
     print(f"  4-Column Substrate:")
     print(f"    Target Coordinates: r={final_r4:.1f} mm, theta={final_th4:,} mdeg")
-    print(f"    Coordinate Drift:   0.00 mm error (coordinates locked in L5 spatial well)")
-    print(f"    Persistence Trace:  {final_tr4:0.4f}")
+    print(f"    Coordinate Drift:   {drift_4d:.2f} mm error (measured polar register hold)")
+    print(f"    Persistence Trace:  {final_tr4:0.4f} (decay law: 0.985^{n_blank_ticks} = {expected_decay:.4f})")
     print()
     print(f"  8-Column Octet (Coupled V1/V2):")
     print(f"    Target Coordinates: r={final_r8:.1f} mm, theta={final_th8:,} mdeg")
-    print(f"    Coordinate Drift:   0.00 mm error (coordinates locked in dual L5 wells)")
-    print(f"    Persistence Trace:  {final_tr8:0.4f}")
+    print(f"    Coordinate Drift:   {drift_8d:.2f} mm error (measured polar register hold)")
+    print(f"    Persistence Trace:  {final_tr8:0.4f} (decay law: 0.985^{n_blank_ticks} = {expected_decay:.4f})")
     print()
-    print("  PASS: Invariant spatial permanence sustained across total optical occlusion.\n")
+    print("  PASS: Invariant polar coordinate register hold sustained across total optical occlusion.\n")
 
     return {
         "final_trace_4d": final_tr4,
@@ -151,6 +163,9 @@ def benchmark_plastic_yield_binding(coactive_ticks: int = 50) -> dict:
 
     synapses_4 = sub4.active_synapses()
     synapses_8 = sub8.active_synapses()
+
+    assert synapses_4 > 0, "No active synapses formed in 4D substrate"
+    assert synapses_8 > 0, "No active synapses formed in 8D substrate"
 
     print(f"Active Hardened Synapses (|g| >= 0.001) after {coactive_ticks} coactive ticks:")
     print(f"  4-Column Substrate: {synapses_4:,} active conductances")
@@ -231,12 +246,14 @@ def benchmark_sleep_consolidation() -> dict:
         total_decayed += d
         total_pruned += p
 
+    assert total_decayed > 0, "No conductances were downscaled during sleep consolidation"
+
     post_synapses = sub8.active_synapses()
     print(f"Post-Sleep Active Synapses: {post_synapses:,}")
     print(f"Downscaled Conductances:    {total_decayed:,}")
     print(f"Pruned Weak Noise:          {total_pruned:,}")
-    print(f"Synaptic Reduction:         {(1.0 - post_synapses / max(1, pre_synapses)) * 100.0:0.1f}% pruned without memory collapse")
-    print("  PASS: Nocturnal consolidation downscaled and pruned noise cleanly.\n")
+    print(f"Synaptic Reduction:         {(1.0 - post_synapses / max(1, pre_synapses)) * 100.0:0.1f}% pruned via competitive downscaling")
+    print("  PASS: Nocturnal consolidation downscaled conductances and pruned sub-threshold noise.\n")
 
     return {
         "pre_synapses": pre_synapses,

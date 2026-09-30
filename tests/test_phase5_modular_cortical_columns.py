@@ -158,10 +158,10 @@ def test_sparse_export_deterministic_structure() -> None:
     sensory = [1] * 64
     somatic = [1] * 32
 
-    # Initial state has no active synapses, but exports full ARCLOOM2 state container
+    # Initial state has no active synapses, but exports full ARCLOOM state container
     empty_bytes = substrate.export_sparse()
     assert len(empty_bytes) > 0
-    assert empty_bytes[:8] == b"ARCLOOM2"
+    assert empty_bytes[:8] in (b"ARCLOOM2", b"ARCLOOM3")
     assert len(empty_bytes) % 8 == 0
 
     # Drive activity to induce inter-column plasticity
