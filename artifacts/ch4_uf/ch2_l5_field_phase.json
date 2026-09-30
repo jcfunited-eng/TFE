@@ -1,0 +1,362 @@
+{
+ "declared": "field state, phase, polarity, arms, per-year report and pass bar in the docstring before results",
+ "arms": {
+  "N0 every tradeable day": {
+   "2021": {
+    "positions": 18281.0,
+    "win_rate": 0.4928,
+    "mean_r20_pct": 0.3199
+   },
+   "2022": {
+    "positions": 25491.0,
+    "win_rate": 0.456,
+    "mean_r20_pct": -0.499
+   },
+   "2023": {
+    "positions": 26005.0,
+    "win_rate": 0.5142,
+    "mean_r20_pct": 0.6192
+   },
+   "2024": {
+    "positions": 26864.0,
+    "win_rate": 0.5186,
+    "mean_r20_pct": 1.1644
+   },
+   "2025": {
+    "positions": 27677.0,
+    "win_rate": 0.5195,
+    "mean_r20_pct": 1.2015
+   },
+   "2026": {
+    "positions": 19136.0,
+    "win_rate": 0.5158,
+    "mean_r20_pct": 1.1981
+   },
+   "total": {
+    "positions": 143454,
+    "win_rate": 0.5032,
+    "mean_r20_pct": 0.674
+   }
+  },
+  "P1 charging": {
+   "2021": {
+    "positions": 12189.0,
+    "win_rate": 0.5278,
+    "mean_r20_pct": 0.8515
+   },
+   "2022": {
+    "positions": 19037.0,
+    "win_rate": 0.4873,
+    "mean_r20_pct": -0.4151
+   },
+   "2023": {
+    "positions": 17469.0,
+    "win_rate": 0.5611,
+    "mean_r20_pct": 1.4102
+   },
+   "2024": {
+    "positions": 17803.0,
+    "win_rate": 0.4358,
+    "mean_r20_pct": -0.787
+   },
+   "2025": {
+    "positions": 18479.0,
+    "win_rate": 0.5248,
+    "mean_r20_pct": 1.2405
+   },
+   "2026": {
+    "positions": 12005.0,
+    "win_rate": 0.5407,
+    "mean_r20_pct": 1.6752
+   },
+   "total": {
+    "positions": 96982,
+    "win_rate": 0.51,
+    "mean_r20_pct": 0.579
+   },
+   "PASS": false,
+   "years_wr_ge_plus3": 3,
+   "years_mean_better": 5
+  },
+  "P2 discharging": {
+   "2021": {
+    "positions": 12124.0,
+    "win_rate": 0.4718,
+    "mean_r20_pct": -0.1142
+   },
+   "2022": {
+    "positions": 14834.0,
+    "win_rate": 0.4339,
+    "mean_r20_pct": -1.1809
+   },
+   "2023": {
+    "positions": 17201.0,
+    "win_rate": 0.5407,
+    "mean_r20_pct": 1.2531
+   },
+   "2024": {
+    "positions": 22175.0,
+    "win_rate": 0.5266,
+    "mean_r20_pct": 1.1219
+   },
+   "2025": {
+    "positions": 18475.0,
+    "win_rate": 0.4865,
+    "mean_r20_pct": -0.2588
+   },
+   "2026": {
+    "positions": 16692.0,
+    "win_rate": 0.5154,
+    "mean_r20_pct": 0.6756
+   },
+   "total": {
+    "positions": 101501,
+    "win_rate": 0.4997,
+    "mean_r20_pct": 0.335
+   },
+   "PASS": false,
+   "years_wr_ge_plus3": 0,
+   "years_mean_better": 1
+  },
+  "P3 discharging & polarity DOWN": {
+   "2021": {
+    "positions": 8057.0,
+    "win_rate": 0.4989,
+    "mean_r20_pct": 0.0472
+   },
+   "2022": {
+    "positions": 14595.0,
+    "win_rate": 0.482,
+    "mean_r20_pct": -0.2245
+   },
+   "2023": {
+    "positions": 8721.0,
+    "win_rate": 0.547,
+    "mean_r20_pct": 1.8207
+   },
+   "2024": {
+    "positions": 13437.0,
+    "win_rate": 0.5046,
+    "mean_r20_pct": 0.8952
+   },
+   "2025": {
+    "positions": 13800.0,
+    "win_rate": 0.5133,
+    "mean_r20_pct": 0.3375
+   },
+   "2026": {
+    "positions": 12057.0,
+    "win_rate": 0.4835,
+    "mean_r20_pct": 0.1714
+   },
+   "total": {
+    "positions": 70667,
+    "win_rate": 0.5026,
+    "mean_r20_pct": 0.449
+   },
+   "PASS": false,
+   "years_wr_ge_plus3": 1,
+   "years_mean_better": 2
+  },
+  "P4 discharging & polarity UP": {
+   "2021": {
+    "positions": 9999.0,
+    "win_rate": 0.4357,
+    "mean_r20_pct": -0.711
+   },
+   "2022": {
+    "positions": 10581.0,
+    "win_rate": 0.4585,
+    "mean_r20_pct": -0.4813
+   },
+   "2023": {
+    "positions": 12892.0,
+    "win_rate": 0.4321,
+    "mean_r20_pct": -1.1729
+   },
+   "2024": {
+    "positions": 13558.0,
+    "win_rate": 0.5301,
+    "mean_r20_pct": 0.9847
+   },
+   "2025": {
+    "positions": 11656.0,
+    "win_rate": 0.4575,
+    "mean_r20_pct": -1.1612
+   },
+   "2026": {
+    "positions": 12029.0,
+    "win_rate": 0.4228,
+    "mean_r20_pct": -1.2801
+   },
+   "total": {
+    "positions": 70715,
+    "win_rate": 0.458,
+    "mean_r20_pct": -0.607
+   },
+   "PASS": false,
+   "years_wr_ge_plus3": 0,
+   "years_mean_better": 1
+  },
+  "P5 charging & polarity DOWN": {
+   "2021": {
+    "positions": 8061.0,
+    "win_rate": 0.61,
+    "mean_r20_pct": 2.5657
+   },
+   "2022": {
+    "positions": 18940.0,
+    "win_rate": 0.524,
+    "mean_r20_pct": 1.1067
+   },
+   "2023": {
+    "positions": 10845.0,
+    "win_rate": 0.5517,
+    "mean_r20_pct": 1.1921
+   },
+   "2024": {
+    "positions": 11082.0,
+    "win_rate": 0.5025,
+    "mean_r20_pct": 0.8058
+   },
+   "2025": {
+    "positions": 13664.0,
+    "win_rate": 0.5242,
+    "mean_r20_pct": 1.0206
+   },
+   "2026": {
+    "positions": 7067.0,
+    "win_rate": 0.6803,
+    "mean_r20_pct": 4.8752
+   },
+   "total": {
+    "positions": 69659,
+    "win_rate": 0.5507,
+    "mean_r20_pct": 1.606
+   },
+   "PASS": false,
+   "years_wr_ge_plus3": 4,
+   "years_mean_better": 4
+  },
+  "P6 charging & polarity UP": {
+   "2021": {
+    "positions": 12083.0,
+    "win_rate": 0.4539,
+    "mean_r20_pct": -1.11
+   },
+   "2022": {
+    "positions": 10514.0,
+    "win_rate": 0.4177,
+    "mean_r20_pct": -2.4703
+   },
+   "2023": {
+    "positions": 17234.0,
+    "win_rate": 0.5703,
+    "mean_r20_pct": 1.1868
+   },
+   "2024": {
+    "positions": 11077.0,
+    "win_rate": 0.4375,
+    "mean_r20_pct": -1.0268
+   },
+   "2025": {
+    "positions": 16199.0,
+    "win_rate": 0.5052,
+    "mean_r20_pct": 0.695
+   },
+   "2026": {
+    "positions": 9615.0,
+    "win_rate": 0.5204,
+    "mean_r20_pct": 1.3913
+   },
+   "total": {
+    "positions": 76722,
+    "win_rate": 0.4919,
+    "mean_r20_pct": -0.074
+   },
+   "PASS": false,
+   "years_wr_ge_plus3": 1,
+   "years_mean_better": 2
+  },
+  "P7 discharging & releasing HI & polarity DOWN": {
+   "2021": {
+    "positions": 8036.0,
+    "win_rate": 0.4803,
+    "mean_r20_pct": -0.1241
+   },
+   "2022": {
+    "positions": 6207.0,
+    "win_rate": 0.4796,
+    "mean_r20_pct": -0.0851
+   },
+   "2023": {
+    "positions": 4299.0,
+    "win_rate": 0.6602,
+    "mean_r20_pct": 4.7117
+   },
+   "2024": {
+    "positions": 11215.0,
+    "win_rate": 0.5149,
+    "mean_r20_pct": 1.1053
+   },
+   "2025": {
+    "positions": 9249.0,
+    "win_rate": 0.4439,
+    "mean_r20_pct": -1.9792
+   },
+   "2026": {
+    "positions": 11898.0,
+    "win_rate": 0.4985,
+    "mean_r20_pct": 0.6387
+   },
+   "total": {
+    "positions": 50904,
+    "win_rate": 0.5007,
+    "mean_r20_pct": 0.401
+   },
+   "PASS": false,
+   "years_wr_ge_plus3": 1,
+   "years_mean_better": 2
+  },
+  "P8 charging & releasing LO": {
+   "2021": {
+    "positions": 6003.0,
+    "win_rate": 0.584,
+    "mean_r20_pct": 2.1007
+   },
+   "2022": {
+    "positions": 12844.0,
+    "win_rate": 0.5632,
+    "mean_r20_pct": 1.5566
+   },
+   "2023": {
+    "positions": 10786.0,
+    "win_rate": 0.504,
+    "mean_r20_pct": 0.3728
+   },
+   "2024": {
+    "positions": 6706.0,
+    "win_rate": 0.568,
+    "mean_r20_pct": 2.2705
+   },
+   "2025": {
+    "positions": 9241.0,
+    "win_rate": 0.6215,
+    "mean_r20_pct": 4.2863
+   },
+   "2026": {
+    "positions": 4705.0,
+    "win_rate": 0.5996,
+    "mean_r20_pct": 3.6014
+   },
+   "total": {
+    "positions": 50285,
+    "win_rate": 0.5677,
+    "mean_r20_pct": 2.156
+   },
+   "PASS": true,
+   "years_wr_ge_plus3": 5,
+   "years_mean_better": 5
+  }
+ }
+}

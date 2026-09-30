@@ -1,0 +1,130 @@
+{
+ "N0 every tradeable day": {
+  "2021": {
+   "positions": 18281.0,
+   "win_rate": 0.4928,
+   "mean_r20_pct": 0.3199
+  },
+  "2022": {
+   "positions": 25491.0,
+   "win_rate": 0.456,
+   "mean_r20_pct": -0.499
+  },
+  "2023": {
+   "positions": 26005.0,
+   "win_rate": 0.5142,
+   "mean_r20_pct": 0.6192
+  },
+  "2024": {
+   "positions": 26864.0,
+   "win_rate": 0.5186,
+   "mean_r20_pct": 1.1644
+  },
+  "2025": {
+   "positions": 27677.0,
+   "win_rate": 0.5195,
+   "mean_r20_pct": 1.2015
+  },
+  "2026": {
+   "positions": 19136.0,
+   "win_rate": 0.5158,
+   "mean_r20_pct": 1.1981
+  }
+ },
+ "G1 charging&quiet OR field-wide down-release": {
+  "2021": {
+   "positions": 12085.0,
+   "win_rate": 0.5408,
+   "mean_r20_pct": 1.0344
+  },
+  "2022": {
+   "positions": 18892.0,
+   "win_rate": 0.4954,
+   "mean_r20_pct": 0.0261
+  },
+  "2023": {
+   "positions": 17141.0,
+   "win_rate": 0.5099,
+   "mean_r20_pct": 0.6472
+  },
+  "2024": {
+   "positions": 19979.0,
+   "win_rate": 0.5289,
+   "mean_r20_pct": 0.8317
+  },
+  "2025": {
+   "positions": 20622.0,
+   "win_rate": 0.5534,
+   "mean_r20_pct": 1.3395
+  },
+  "2026": {
+   "positions": 12023.0,
+   "win_rate": 0.5848,
+   "mean_r20_pct": 3.2676
+  }
+ },
+ "G2 G1 and not polarity UP": {
+  "2021": {
+   "positions": 8010.0,
+   "win_rate": 0.4561,
+   "mean_r20_pct": -1.3769
+  },
+  "2022": {
+   "positions": 17011.0,
+   "win_rate": 0.6188,
+   "mean_r20_pct": 3.2178
+  },
+  "2023": {
+   "positions": 8590.0,
+   "win_rate": 0.5264,
+   "mean_r20_pct": 0.6269
+  },
+  "2024": {
+   "positions": 10999.0,
+   "win_rate": 0.5916,
+   "mean_r20_pct": 2.3636
+  },
+  "2025": {
+   "positions": 13783.0,
+   "win_rate": 0.6367,
+   "mean_r20_pct": 3.7906
+  },
+  "2026": {
+   "positions": 9536.0,
+   "win_rate": 0.5582,
+   "mean_r20_pct": 2.821
+  }
+ },
+ "G3 simply: not polarity UP": {
+  "2021": {
+   "positions": 12206.0,
+   "win_rate": 0.5271,
+   "mean_r20_pct": 0.504
+  },
+  "2022": {
+   "positions": 21371.0,
+   "win_rate": 0.4933,
+   "mean_r20_pct": 0.2106
+  },
+  "2023": {
+   "positions": 17340.0,
+   "win_rate": 0.5162,
+   "mean_r20_pct": 0.4673
+  },
+  "2024": {
+   "positions": 15762.0,
+   "win_rate": 0.5602,
+   "mean_r20_pct": 2.2655
+  },
+  "2025": {
+   "positions": 20768.0,
+   "win_rate": 0.5719,
+   "mean_r20_pct": 2.0653
+  },
+  "2026": {
+   "positions": 14381.0,
+   "win_rate": 0.5058,
+   "mean_r20_pct": 0.5285
+  }
+ }
+}
