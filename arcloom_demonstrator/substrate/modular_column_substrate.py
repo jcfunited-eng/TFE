@@ -9,7 +9,7 @@ ModularSubstrate64D / ModularSubstrate8D / ModularSubstrate4D core without softw
 Physical Architecture:
   - 4-Column Core (V1, A1, S1, M1) for minimal baseline testbeds.
   - 8-Column Balanced Octet (V1, V2, A1, A2, S1, S2, M1, M2) for FPGA silicon synthesis.
-  - 64-Column Cortical Array (8 macro-clusters x 8 columns, 20,480 ternary nodes, 67M fasciculi)
+  - 64-Column Cortical Array (8 macro-clusters x 8 columns, 20,480 ternary nodes, 83.8M fasciculi)
     for high-capacity spatial permanence, multi-word spoken syntax chaining, and multi-channel efferents.
 
 Plasticity:
@@ -37,7 +37,7 @@ L1_APICAL_NODES = 32
 
 class ModularColumnSubstrate:
     """
-    Physical Modular Neuromorphic Substrate for Guala (Supports 4D, 8D, and 64D).
+    Physical Modular Neuromorphic Substrate for Guala (Defaults to 64-Column Cortical Array).
     Operates under strict material yield stress plasticity and vertical laminar causal flow.
     """
 
@@ -46,7 +46,7 @@ class ModularColumnSubstrate:
         yield_threshold: float = 0.60,
         plastic_rate: float = 0.03,
         activation_threshold: float = 0.25,
-        columns: int = 8,
+        columns: int = 64,
     ) -> None:
         self.yield_threshold = float(yield_threshold)
         self.plastic_rate = float(plastic_rate)
@@ -291,9 +291,9 @@ class ModularColumnSubstrate:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> ModularColumnSubstrate:
-        """Reconstitute substrate from serialized body dictionary."""
-        num_cols = int(data.get("num_columns", 8))
+    def from_dict(cls, data: dict, force_columns: Optional[int] = 64) -> ModularColumnSubstrate:
+        """Reconstitute substrate from serialized body dictionary (defaults to upgrading to 64 columns)."""
+        num_cols = force_columns if force_columns is not None else int(data.get("num_columns", 64))
         sub = cls(
             yield_threshold=float(data.get("yield_threshold", 0.60)),
             plastic_rate=float(data.get("plastic_rate", 0.03)),

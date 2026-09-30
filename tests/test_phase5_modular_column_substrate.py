@@ -209,3 +209,4 @@ def test_modular_column_substrate_64d_adapter() -> None:
     assert state["num_columns"] == 64
     restored = ModularColumnSubstrate.from_dict(state)
     assert restored.num_columns == 64
+
