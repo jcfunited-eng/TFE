@@ -11,7 +11,8 @@ WHAT IT COMPUTES (all causal, all from the kernel's readings):
                    (median particle energy vs its own normal), epic window
   field long       epic window OR field-wide down-release OR charging &
                    quiet, and NOT 20-day polarity UP;
-                   if slow polarity < 0.5 (bear): epic window only
+                   bear regime (slow polarity with hysteresis: enters below 0.48,
+                   leaves above 0.52): epic window only
   eligible names   tradeable (ch2_canon_census filters), in the pool as of
                    this year, 61–95 days since last filing, not late
                    (96–130), not 0–3 days after a filing; priority
@@ -112,7 +113,15 @@ def main():
     c_epic = fs.epic_window & (fs.polarity20 != "UP")
     c_d2 = (fs.releasing_band == "HI") & (fs.rel_up_band == "LO") & (fs.polarity20 != "UP")
     c_p8 = (fs.phase == "CHARGING") & (fs.releasing_band == "LO") & (fs.polarity20 != "UP")
-    bear = fs.slow120 < 0.5
+    # bear regime with hysteresis (declared ±0.02 around one half — the middle of the tested band, not the best-scoring):
+    # enter below 0.48, leave above 0.52; the knife-edge at 0.50 flipped 40 times in six years, this flips four
+    bear_arr = np.zeros(len(fs), dtype=bool); b = False
+    for i, v in enumerate(fs.slow120.values):
+        if not np.isnan(v):
+            if not b and v < 0.48: b = True
+            elif b and v > 0.52: b = False
+        bear_arr[i] = b
+    bear = pd.Series(bear_arr, index=fs.index)
     fs["c_epic"], fs["c_d2"], fs["c_p8"], fs["bear"] = c_epic, c_d2, c_p8, bear
     fs["field_long"] = np.where(bear, c_epic, c_epic | c_d2 | c_p8)
     fs["priority"] = np.where(c_epic, 0, np.where(c_d2 & ~bear, 1, np.where(c_p8 & ~bear, 2, 9)))
@@ -128,7 +137,7 @@ def main():
     tod["pre"] = tod.dsl.between(61, 95); tod["late"] = tod.dsl.between(96, 130); tod["post"] = tod.dsl <= 3
     elig = tod[tod.tradeable & tod.in_pool & tod.pre & ~tod.late & ~tod.post].copy()
     elig["priority"] = int(today.priority)
-    state = {"asof": str(asof.date()), "field_long": bool(today.field_long), "priority": int(today.priority), "bear(slow120<0.5)": bool(today.bear),
+    state = {"asof": str(asof.date()), "field_long": bool(today.field_long), "priority": int(today.priority), "bear(hysteresis 0.48/0.52)": bool(today.bear),
              "slow120": round(float(today.slow120), 4) if pd.notna(today.slow120) else None, "phase": today.phase, "polarity20": today.polarity20,
              "releasing": round(float(today.releasing), 4), "releasing_band": today.releasing_band, "rel_up": round(float(today.rel_up), 3) if pd.notna(today.rel_up) else None,
              "rel_up_band": today.rel_up_band, "storing": round(float(today.storing), 4), "temperature": round(float(today.temperature), 3) if pd.notna(today.temperature) else None,
