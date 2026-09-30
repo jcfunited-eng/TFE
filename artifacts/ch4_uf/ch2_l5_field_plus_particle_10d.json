@@ -1,0 +1,359 @@
+{
+ "N0 every tradeable day": {
+  "2021": {
+   "positions": 45334.0,
+   "win_rate": 0.5424,
+   "mean_r10_pct": 0.7182
+  },
+  "2022": {
+   "positions": 47750.0,
+   "win_rate": 0.4765,
+   "mean_r10_pct": -0.3813
+  },
+  "2023": {
+   "positions": 48568.0,
+   "win_rate": 0.5216,
+   "mean_r10_pct": 0.5765
+  },
+  "2024": {
+   "positions": 50277.0,
+   "win_rate": 0.5128,
+   "mean_r10_pct": 0.5353
+  },
+  "2025": {
+   "positions": 51699.0,
+   "win_rate": 0.5378,
+   "mean_r10_pct": 0.8065
+  },
+  "2026": {
+   "positions": 35480.0,
+   "win_rate": 0.5082,
+   "mean_r10_pct": 0.5791
+  },
+  "total": {
+   "positions": 279108,
+   "win_rate": 0.517,
+   "mean_r10_pct": 0.471
+  }
+ },
+ "F  field-long (G)": {
+  "2021": {
+   "positions": 10015.0,
+   "win_rate": 0.555,
+   "mean_r10_pct": 0.9613
+  },
+  "2022": {
+   "positions": 29160.0,
+   "win_rate": 0.5251,
+   "mean_r10_pct": 0.6725
+  },
+  "2023": {
+   "positions": 12750.0,
+   "win_rate": 0.5951,
+   "mean_r10_pct": 1.3041
+  },
+  "2024": {
+   "positions": 17568.0,
+   "win_rate": 0.5956,
+   "mean_r10_pct": 1.6464
+  },
+  "2025": {
+   "positions": 20275.0,
+   "win_rate": 0.658,
+   "mean_r10_pct": 2.4978
+  },
+  "2026": {
+   "positions": 11792.0,
+   "win_rate": 0.5569,
+   "mean_r10_pct": 1.8346
+  },
+  "total": {
+   "positions": 101560,
+   "win_rate": 0.5793,
+   "mean_r10_pct": 1.448
+  },
+  "years_wr_ge_plus3": 5,
+  "years_mean_better": 6,
+  "PASS": true
+ },
+ "F1 field-long, particle not late, not 0-3d post-report": {
+  "2021": {
+   "positions": 9755.0,
+   "win_rate": 0.557,
+   "mean_r10_pct": 0.9224
+  },
+  "2022": {
+   "positions": 27697.0,
+   "win_rate": 0.5316,
+   "mean_r10_pct": 0.7676
+  },
+  "2023": {
+   "positions": 12385.0,
+   "win_rate": 0.5953,
+   "mean_r10_pct": 1.3039
+  },
+  "2024": {
+   "positions": 16792.0,
+   "win_rate": 0.6045,
+   "mean_r10_pct": 1.7763
+  },
+  "2025": {
+   "positions": 18859.0,
+   "win_rate": 0.6766,
+   "mean_r10_pct": 2.981
+  },
+  "2026": {
+   "positions": 9625.0,
+   "win_rate": 0.5822,
+   "mean_r10_pct": 2.4196
+  },
+  "total": {
+   "positions": 95113,
+   "win_rate": 0.5893,
+   "mean_r10_pct": 1.637
+  },
+  "years_wr_ge_plus3": 5,
+  "years_mean_better": 6,
+  "PASS": true
+ },
+ "F2 F1 and particle in pre-report charge (61-95d)": {
+  "2021": {
+   "positions": 2243.0,
+   "win_rate": 0.6228,
+   "mean_r10_pct": 1.4956
+  },
+  "2022": {
+   "positions": 9824.0,
+   "win_rate": 0.5759,
+   "mean_r10_pct": 1.3707
+  },
+  "2023": {
+   "positions": 3364.0,
+   "win_rate": 0.7259,
+   "mean_r10_pct": 3.6259
+  },
+  "2024": {
+   "positions": 5695.0,
+   "win_rate": 0.6399,
+   "mean_r10_pct": 2.917
+  },
+  "2025": {
+   "positions": 3859.0,
+   "win_rate": 0.6727,
+   "mean_r10_pct": 3.1698
+  },
+  "2026": {
+   "positions": 3057.0,
+   "win_rate": 0.614,
+   "mean_r10_pct": 2.893
+  },
+  "total": {
+   "positions": 28042,
+   "win_rate": 0.6281,
+   "mean_r10_pct": 2.379
+  },
+  "years_wr_ge_plus3": 6,
+  "years_mean_better": 6,
+  "PASS": true
+ },
+ "F3 F1 and particle fell >5% in last 10d": {
+  "2021": {
+   "positions": 3266.0,
+   "win_rate": 0.5964,
+   "mean_r10_pct": 1.8409
+  },
+  "2022": {
+   "positions": 14681.0,
+   "win_rate": 0.5761,
+   "mean_r10_pct": 1.6944
+  },
+  "2023": {
+   "positions": 3540.0,
+   "win_rate": 0.5364,
+   "mean_r10_pct": 0.8937
+  },
+  "2024": {
+   "positions": 5461.0,
+   "win_rate": 0.6605,
+   "mean_r10_pct": 2.7964
+  },
+  "2025": {
+   "positions": 6419.0,
+   "win_rate": 0.6808,
+   "mean_r10_pct": 3.1187
+  },
+  "2026": {
+   "positions": 3062.0,
+   "win_rate": 0.596,
+   "mean_r10_pct": 3.2656
+  },
+  "total": {
+   "positions": 36429,
+   "win_rate": 0.6068,
+   "mean_r10_pct": 2.178
+  },
+  "years_wr_ge_plus3": 5,
+  "years_mean_better": 6,
+  "PASS": true
+ },
+ "F4 F1 and particle stored (gate >= 21) and fell >5%": {
+  "2021": {
+   "positions": 2324.0,
+   "win_rate": 0.6015,
+   "mean_r10_pct": 1.8611
+  },
+  "2022": {
+   "positions": 10626.0,
+   "win_rate": 0.5727,
+   "mean_r10_pct": 1.7441
+  },
+  "2023": {
+   "positions": 2600.0,
+   "win_rate": 0.54,
+   "mean_r10_pct": 0.9916
+  },
+  "2024": {
+   "positions": 4129.0,
+   "win_rate": 0.6631,
+   "mean_r10_pct": 2.9159
+  },
+  "2025": {
+   "positions": 4702.0,
+   "win_rate": 0.6795,
+   "mean_r10_pct": 3.1103
+  },
+  "2026": {
+   "positions": 2129.0,
+   "win_rate": 0.5923,
+   "mean_r10_pct": 3.1376
+  },
+  "total": {
+   "positions": 26510,
+   "win_rate": 0.6066,
+   "mean_r10_pct": 2.217
+  },
+  "years_wr_ge_plus3": 5,
+  "years_mean_better": 6,
+  "PASS": true
+ },
+ "F5 F2 and fell >5%": {
+  "2021": {
+   "positions": 537.0,
+   "win_rate": 0.5903,
+   "mean_r10_pct": 1.4947
+  },
+  "2022": {
+   "positions": 4306.0,
+   "win_rate": 0.5625,
+   "mean_r10_pct": 1.3689
+  },
+  "2023": {
+   "positions": 415.0,
+   "win_rate": 0.7614,
+   "mean_r10_pct": 6.7544
+  },
+  "2024": {
+   "positions": 1118.0,
+   "win_rate": 0.6619,
+   "mean_r10_pct": 3.3073
+  },
+  "2025": {
+   "positions": 1237.0,
+   "win_rate": 0.7017,
+   "mean_r10_pct": 3.1364
+  },
+  "2026": {
+   "positions": 668.0,
+   "win_rate": 0.6512,
+   "mean_r10_pct": 4.6607
+  },
+  "total": {
+   "positions": 8281,
+   "win_rate": 0.6156,
+   "mean_r10_pct": 2.438
+  },
+  "years_wr_ge_plus3": 6,
+  "years_mean_better": 6,
+  "PASS": true
+ },
+ "A1 ALL days: particle in pre-report charge, not late": {
+  "2021": {
+   "positions": 13904.0,
+   "win_rate": 0.5598,
+   "mean_r10_pct": 1.2801
+  },
+  "2022": {
+   "positions": 14842.0,
+   "win_rate": 0.5311,
+   "mean_r10_pct": 0.4065
+  },
+  "2023": {
+   "positions": 15378.0,
+   "win_rate": 0.5362,
+   "mean_r10_pct": 0.9763
+  },
+  "2024": {
+   "positions": 16434.0,
+   "win_rate": 0.5515,
+   "mean_r10_pct": 1.1282
+  },
+  "2025": {
+   "positions": 14952.0,
+   "win_rate": 0.5075,
+   "mean_r10_pct": 0.5047
+  },
+  "2026": {
+   "positions": 11309.0,
+   "win_rate": 0.5359,
+   "mean_r10_pct": 0.7782
+  },
+  "total": {
+   "positions": 86819,
+   "win_rate": 0.537,
+   "mean_r10_pct": 0.849
+  },
+  "years_wr_ge_plus3": 2,
+  "years_mean_better": 5,
+  "PASS": false
+ },
+ "A2 ALL days: late filer (96-130d) \u2014 the avoid": {
+  "2021": {
+   "positions": 2617.0,
+   "win_rate": 0.5992,
+   "mean_r10_pct": 1.6262
+  },
+  "2022": {
+   "positions": 2764.0,
+   "win_rate": 0.4244,
+   "mean_r10_pct": -0.6049
+  },
+  "2023": {
+   "positions": 2940.0,
+   "win_rate": 0.3956,
+   "mean_r10_pct": -1.107
+  },
+  "2024": {
+   "positions": 3790.0,
+   "win_rate": 0.5422,
+   "mean_r10_pct": 1.0169
+  },
+  "2025": {
+   "positions": 4211.0,
+   "win_rate": 0.4182,
+   "mean_r10_pct": -1.9245
+  },
+  "2026": {
+   "positions": 3462.0,
+   "win_rate": 0.4702,
+   "mean_r10_pct": -0.4237
+  },
+  "total": {
+   "positions": 19784,
+   "win_rate": 0.4725,
+   "mean_r10_pct": -0.323
+  },
+  "years_wr_ge_plus3": 1,
+  "years_mean_better": 2,
+  "PASS": false
+ }
+}
