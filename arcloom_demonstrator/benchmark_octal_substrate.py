@@ -18,7 +18,7 @@ import time
 import random
 import statistics
 import guala_core
-from guala_core import ModularSubstrate4D, ModularSubstrate8D
+from guala_core import ModularSubstrate4D, ModularSubstrate8D, ModularSubstrate64D
 
 
 def benchmark_timing(n_ticks: int = 1000) -> dict:
@@ -71,13 +71,38 @@ def benchmark_timing(n_ticks: int = 1000) -> dict:
     print(f"  Max Throughput: {fps_8:10,.0f} ticks/second (Requirement: >20 Hz)")
     print()
     print(f"  Scaling Factor: {mean_8 / mean_4:0.2f}x execution time for 2.0x column count & 4.0x fasciculi.")
-    print(f"  Real-Time Throughput (>20 Hz requirement): PASS (Measured: 4D={fps_4:,.0f} Hz, 8D={fps_8:,.0f} Hz; latency << 50 ms).\n")
+    
+
+    # 64-Column Full Cortical Array Timing (50 ticks)
+    sub64 = ModularSubstrate64D(yield_threshold=0.60, plastic_rate=0.03, activation_threshold=0.25)
+    latencies_64d: list[float] = []
+    for _ in range(50):
+        t0 = time.perf_counter()
+        sub64.step(sensory_trits, somatic_trits, observed_r_mm=300.0, observed_theta_mdeg=15000, barrier_stress=0.1, acoustic_formants=[120.0])
+        t1 = time.perf_counter()
+        latencies_64d.append((t1 - t0) * 1_000_000.0)
+
+    mean_64 = statistics.mean(latencies_64d)
+    median_64 = statistics.median(latencies_64d)
+    p99_64 = statistics.quantiles(latencies_64d, n=100)[98]
+    fps_64 = 1_000_000.0 / mean_64
+
+    assert fps_64 > 20.0, f"64-Column Cortical Array failed >20 Hz requirement: {fps_64:.0f} Hz"
+
+    print(f"64-Column Cortical Array (20,480 Nodes, 4,096 Fasciculi):")
+    print(f"  Mean Latency:   {mean_64:6.2f} µs | Median: {median_64:6.2f} µs | P99: {p99_64:6.2f} µs")
+    print(f"  Max Throughput: {fps_64:10,.0f} ticks/second (Requirement: >20 Hz)")
+    print()
+    print(f"  Scaling Factor: {mean_8 / mean_4:0.2f}x (8D/4D), {mean_64 / mean_8:0.2f}x (64D/8D).")
+    print(f"  Real-Time Throughput (>20 Hz requirement): PASS (Measured: 4D={fps_4:,.0f} Hz, 8D={fps_8:,.0f} Hz, 64D={fps_64:,.0f} Hz).\n")
 
     return {
         "mean_4d_us": mean_4,
         "mean_8d_us": mean_8,
+        "mean_64d_us": mean_64,
         "fps_4d": fps_4,
         "fps_8d": fps_8,
+        "fps_64d": fps_64,
     }
 
 
@@ -279,6 +304,7 @@ def main() -> None:
     print("ALL 5 BENCHMARK SUITES COMPLETED: 100% INVARIANTS PRESERVED")
     print(f"  4-Column Substrate: {t_res['mean_4d_us']:0.2f} µs/tick ({t_res['fps_4d']:,.0f} Hz)")
     print(f"  8-Column Octet:     {t_res['mean_8d_us']:0.2f} µs/tick ({t_res['fps_8d']:,.0f} Hz)")
+    print(f"  64-Column Array:    {t_res['mean_64d_us']:0.2f} µs/tick ({t_res['fps_64d']:,.0f} Hz)")
     print("=" * 70 + "\n")
 
 

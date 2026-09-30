@@ -64,6 +64,7 @@ class InvariantVetoReceipt:
     violated_invariant: Optional[str] = None
     delta_violation: float = 0.0
     physical_readings: Dict[str, float] = field(default_factory=dict)
+    proposed_action: Optional[str] = None
     applied_action: Optional[str] = None
     action_receipt: Dict[str, Any] = field(default_factory=dict)
 
@@ -186,7 +187,7 @@ class GroundedSensorimotorBridge:
         r_mm, theta_mdeg, persistence_trace, is_occluded = self.substrate.get_spatial_tracking()
         barrier_refusal = self.substrate.is_barrier_refusal_active()
         motor_eff = self.substrate.get_motor_efferent()
-        applied_act, receipt = self.substrate.applied_motor_action()
+        proposed_act, receipt = self.substrate.proposed_motor_action()
         synapses = self.substrate.active_synapses()
 
         dsf = self.last_telemetry.dsf_invariants if self.last_telemetry else (0.0,) * 8
@@ -234,7 +235,8 @@ class GroundedSensorimotorBridge:
                 "stride_mm": motor_eff[1] if len(motor_eff) > 1 else 0.0,
                 "steer_deg": motor_eff[2] if len(motor_eff) > 2 else 0.0,
                 "grip_force_n": motor_eff[3] if len(motor_eff) > 3 else 0.0,
-                "applied_action": applied_act,
+                "proposed_action": proposed_act,
+                "applied_action": proposed_act,
                 "receipt": receipt,
             },
         }
@@ -356,10 +358,11 @@ class GroundedSensorimotorBridge:
         # ---------------------------------------------------------------------
         # ADMISSION: Action conforms strictly to all physical boundary conditions
         # ---------------------------------------------------------------------
-        applied_act, receipt = self.substrate.applied_motor_action()
+        proposed_act, receipt = self.substrate.proposed_motor_action()
         return InvariantVetoReceipt(
             verdict="ADMITTED",
-            applied_action=applied_act,
+            proposed_action=proposed_act,
+            applied_action=proposed_act,
             action_receipt={
                 "requested_action": act_type,
                 "admitted_stride_mm": target_stride,

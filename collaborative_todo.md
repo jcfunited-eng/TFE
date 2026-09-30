@@ -28405,3 +28405,85 @@ Single next item for G1: deliver the original real-action plus native cold-conti
     * **Thermal Sensor Streams**: Map real-world ambient temperature and thermal flux sensors into laminar homeostatic somatic context trits (`somatic_trits`), driving thermodynamic energy balance and metabolic yield limits.
     * **Optical Camera Telemetry**: Ingest real-time camera frames into the dual-column egocentric polar retinotopic foveal projection ($V_1: r_{\text{mm}}, V_2: \theta_{\text{mdeg}}$), testing object tracking, boundary detection, and optical occlusion permanence under natural illumination and physical obstacles.
     * **Hard Invariant Veto Enforcement**: Route all incoming physical sensor streams through `evaluate_admissibility` (Viability Basin Gate $S_{UF} \le 0$, Kill Switch $R_{\text{rev}} > 0$, Barrier Yield Refusal $|\sigma| > Y$, Thermodynamic Strain Collapse $P_k \ge B_k$, and Occlusion Collision Hazard) to ensure zero ungrounded actions are permitted to settle.
+
+
+---
+
+## G1 & Senior DARPA Neuromorphic Systems Architect — Fifth-Pass Architectural Resolution & Formal Audit Closure (2026-09-30)
+
+### Mandatory Architecture Honesty Gate
+1. `requested architecture`:
+   - Physically grounded motor action: Native Layer 5 motor efferent (`stride_mm > 0`) drives canonical lattice locomotion through the authoritative world action boundary (`world.prepare_port_command` $\to$ `world.commit_prepared_action`), measuring actual world displacement, while a silent substrate produces zero motion and barrier stress produces execution refusal receipts.
+   - Supported constitutive baseline: Flawed Holm arithmetic comment withdrawn; `G_ELASTIC_BASELINE = 0.05` declared as dimensionless baseline contact compliance parameter in the reversible regime ($|\sigma| \le Y, \dot{\lambda} = 0$); matched ablation of learned plastic conductances connected through the world action path (`dx_intact \ne dx_ablated`).
+   - Lossless ARCLOOM3 persistence & authentic predecessor migration: Strict alignment padding validation (`expected_pad = (8 - (offset % 8)) % 8`) rejecting relabeled payloads, bit-for-bit retention of sub-0.005 weights, duplicate index rejection, non-finite float rejection, and complete failure atomicity.
+   - Honest projection designation: 2-trit encoding designated as discrete receptor projection (Voronoi collapse for 0.40 vs 0.41), while native continuous joint field transport preserves exact IEEE-754 floats ($0.40 \ne 0.41$).
+   - Retained competence across quiet, sleep, and cold restart: Probing motor competence under matched stimulus before/after quiet, sleep downscaling, and cold restart without unphysical synapse-to-byte assertions.
+   - Clean demonstrator package: Measured 64D throughput (~8.2 ms / 123 Hz), minimal standalone native entry point, reconciled README/setup, and component evidence labeling.
+2. `current code reality`:
+   - All six findings (A5-01 through A5-06) resolved in source and verified across all test suites.
+   - Repository witness suite: 6/6 tests passing (`tests/test_arcloom_causal_action_witness.py`).
+   - Standalone demonstrator test suite: 19/19 tests passing (`arcloom_demonstrator/tests/`).
+   - Standalone demonstrator benchmark suite: 5/5 benchmarks passing with 100% invariants preserved.
+   - Clean-room archive verification in `/tmp/test_archive_eval_clean`: 19/19 tests passing.
+3. `conflict with requested architecture: yes or no`: NO.
+4. `what exact mechanism or files will not be extended`: No heuristic scalar ranking, no ungrounded execution receipts from observation getters, no lossy sub-0.005 pruning, no fake headers, no speculative documentation claims.
+5. `the single exact next item`: Commit candidate to `guala-live`, push to `origin/guala-live`, and send verified Slack completion ping.
+6. `am I evaluating the full field or a reduced approximation?`: Dual interface: Continuous joint field interface evaluates and transports the full 7-field IEEE-754 continuous floating-point manifold without reduction; the 2-trit sensory encoder is explicitly designated as a finite discrete receptor projection (9 discrete Voronoi intervals on $[-1.0, 1.0]$).
+7. `if reduced, what exact field structure is being lost?`: In the discrete receptor projection, continuous float precision is partitioned into 9 discrete Voronoi intervals across $[-1.0, 1.0]$ (e.g., 0.40 and 0.41 map to the same ternary pair `(1, 1)`). In the continuous joint field interface (`consume_continuous_joint_field`), zero field structure is lost ($0.40 \ne 0.41$ preserved exactly).
+
+### Summary of Completed Repairs (A5-01 through A5-06)
+
+1. **A5-01: Physical Motor-to-World Connection**:
+   - Replaced `applied_motor_action` with non-actuating `proposed_motor_action` in `ModularColumnSubstrate` and `GroundedSensorimotorBridge`.
+   - Connected actual Layer 5 motor efferent (`stride_mm > 0`) through canonical lattice locomotion:
+     `dx, dy = rotate_lattice_offset(int(stride_act), 0, her_before.pose.heading_millidegrees)`
+     passed to `world.prepare_port_command` and committed with `world.commit_prepared_action`.
+   - Verified silent substrate produces strictly zero efferents and zero displacement; active substrate produces measured world coordinate motion; barrier stress triggers `ActionExecutionReceipt` refusal.
+
+2. **A5-02: Constitutive Contact Baseline & Matched Plasticity Ablation**:
+   - Formally withdrew flawed Holm arithmetic (`sqrt(3 / 150) ~ 0.045`). Declared `G_ELASTIC_BASELINE = 0.05` as dimensionless baseline contact compliance parameter in reversible elastic regime ($|\sigma| \le Y, \dot{\lambda} = 0$).
+   - Connected matched learned plasticity ablation (`sub_ablated.zero_plastic_weights()`) directly to world displacement: `dx_intact != dx_ablated`, proving network-level dependence on retained plastic conductances.
+
+3. **A5-03: Lossless ARCLOOM3 Persistence & Authentic Predecessor Migration**:
+   - Implemented authentic ARCLOOM2 exporter/importer (`export_sparse_v2_bytes`, `import_sparse_v2`).
+   - Enforced exact alignment padding check: `expected_pad = (8 - (offset % 8)) % 8`. Relabeled ARCLOOM3 bytes wearing an ARCLOOM2 header fail with exact error: `Incorrect trailing alignment padding in ARCLOOM2 payload: expected 1 bytes, got 9`.
+   - Enforced complete failure atomicity, duplicate index rejection, and non-finite float rejection.
+   - Retained sub-0.005 weights bit-for-bit.
+   - Exposed unrounded native properties (`yield_threshold`, `plastic_rate`, `activation_threshold`) and eliminated shadow setters.
+
+4. **A5-04: Honest Designation of Projection & Full-Field Transport**:
+   - Designated 2-trit encoding as discrete receptor projection (`_quantize_radix3_signed`), demonstrating Voronoi collapse for 0.40 vs 0.41.
+   - Provided native continuous joint field transport interface (`consume_continuous_joint_field`, `get_continuous_joint_field`), preserving exact IEEE-754 floating point values ($0.40 \ne 0.41$).
+   - Retained matched slice ablation test for afferent influence.
+
+5. **A5-05: Competence Preservation Across Quiet, Sleep, and Restart**:
+   - Probed motor competence under matched stimulus across (1) trained baseline, (2) after 50 quiet beats, (3) after sleep downscaling, (4) after cold restore from serialized snapshot.
+   - Eliminated unphysical assertion comparing active synapse count to serialized byte length.
+
+6. **A5-06: Demonstrator Package Closure & Measured Benchmarks**:
+   - Measured 64D throughput empirically in `benchmark_octal_substrate.py` (measured ~8.2 ms / 123 Hz across 20,480 nodes and 4,096 fasciculi).
+   - Reconciled README.md with measured configurations and explicitly labeled standalone test suite as component evidence.
+   - Rebuilt `arcloom_demonstrator_v1.0.tar.gz` and `.zip` clean, verifying 19/19 passing tests in clean-room `/tmp/test_archive_eval_clean`.
+
+### Verified Artifact SHA256 Checksums
+
+| Artifact | SHA256 |
+| --- | --- |
+| `native/guala_core/src/cortical_column.rs` | `d0061f87a0ec0fbfcd006abb05f67b903e222b94792423100d4ccc6274618e96` |
+| `dsf_ai_service/substrate/modular_column_substrate.py` | `f4597038cacef3f10e7b340dceec164d42f2427150e99e94015f8333b34290b7` |
+| `tests/test_arcloom_causal_action_witness.py` | `01db9b9f60c34aa5cc684f5be9b7e0db4c4de25e962cb943db89437db765a71e` |
+| `arcloom_demonstrator/native/guala_core/src/lib.rs` | `9013e4037abbee3d49c4c4255f33d65e36d71ea748ed60777767328407215e34` |
+| `arcloom_demonstrator_v1.0.tar.gz` | `33d09dd2b8d99f2cb6bc214c90420963078e357ed7bd5c6ec463709093a9a9f7` |
+| `arcloom_demonstrator_v1.0.zip` | `fea8cc241fc38a2c6332676be62c557a2b6169cac7e896a41b53e2b783061671` |
+
+---
+
+### QUEUED ROADMAP ITEM (POST-AUDIT CLEAN SIGN-OFF) — 2026-09-30 (RECONFIRMED ON DECK)
+
+- [ ] **Option 2: Mount Live Streaming Planetary Sensors into Grounded Sensorimotor Bridge Runner**:
+  - **Prerequisite**: Formal fifth-pass architectural sign-off / clean audit from Astra (A1).
+  - **Target Integration**:
+    * **Atmospheric Barometric Pressure Transduction**: Map live atmospheric barometric pressure transducers into cochlear/somatosensory dynamic pressure gradient channels ($P_k, B_k$), validating acoustic and somatic pressure manifolds against real ambient air pressure variations.
+    * **Thermal Sensor Streams**: Map real-world ambient temperature and thermal flux sensors into laminar homeostatic somatic context trits (`somatic_trits`), driving thermodynamic energy balance and metabolic yield limits.
+    * **Optical Camera Telemetry**: Ingest real-time camera frames into the dual-column egocentric polar retinotopic foveal projection ($V_1: r_{\text{mm}}, V_2: \theta_{\text{mdeg}}$), testing object tracking, boundary detection, and optical occlusion permanence under natural illumination and physical obstacles.
+    * **Hard Invariant Veto Enforcement**: Route all incoming physical sensor streams through `evaluate_admissibility` (Viability Basin Gate $S_{UF} \le 0$, Kill Switch $R_{\text{rev}} > 0$, Barrier Yield Refusal $|\sigma| > Y$, Thermodynamic Strain Collapse $P_k \ge B_k$, and Occlusion Collision Hazard) to ensure zero ungrounded actions are permitted to settle.

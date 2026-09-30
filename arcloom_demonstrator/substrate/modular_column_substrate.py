@@ -87,38 +87,40 @@ class ModularColumnSubstrate:
 
     @property
     def yield_threshold(self) -> float:
+        """Unrounded native yield threshold property (no shadow setter)."""
         if hasattr(self.substrate, "yield_threshold"):
-            return round(float(self.substrate.yield_threshold), 6)
+            return float(self.substrate.yield_threshold)
         return self._yield_threshold
-
-    @yield_threshold.setter
-    def yield_threshold(self, val: float) -> None:
-        self._yield_threshold = float(val)
 
     @property
     def plastic_rate(self) -> float:
+        """Unrounded native plastic rate property (no shadow setter)."""
         if hasattr(self.substrate, "plastic_rate"):
-            return round(float(self.substrate.plastic_rate), 6)
+            return float(self.substrate.plastic_rate)
         return self._plastic_rate
-
-    @plastic_rate.setter
-    def plastic_rate(self, val: float) -> None:
-        self._plastic_rate = float(val)
 
     @property
     def activation_threshold(self) -> float:
+        """Unrounded native activation threshold property (no shadow setter)."""
         if hasattr(self.substrate, "activation_threshold"):
-            return round(float(self.substrate.activation_threshold), 6)
+            return float(self.substrate.activation_threshold)
         return self._activation_threshold
-
-    @activation_threshold.setter
-    def activation_threshold(self, val: float) -> None:
-        self._activation_threshold = float(val)
 
     def zero_plastic_weights(self) -> None:
         """Zero all plastic inter-column and intra-column conductances for unconfounded plasticity ablation."""
         if hasattr(self.substrate, "zero_plastic_weights"):
             self.substrate.zero_plastic_weights()
+
+    def consume_continuous_joint_field(self, field_7d: Sequence[float], s_uf: float) -> None:
+        """Preserve continuous 7-field tensor + S_UF invariant directly in native storage without Voronoi quantization loss."""
+        if hasattr(self.substrate, "consume_continuous_joint_field"):
+            self.substrate.consume_continuous_joint_field(list(field_7d), float(s_uf))
+
+    def get_continuous_joint_field(self) -> Tuple[float, float, float, float, float, float, float, float]:
+        """Retrieve stored continuous 7-field tensor + S_UF invariant."""
+        if hasattr(self.substrate, "get_continuous_joint_field"):
+            return self.substrate.get_continuous_joint_field()
+        return (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
     def encode_sensory_stream(
         self,
@@ -358,8 +360,8 @@ class ModularColumnSubstrate:
             "motion_vector": (delta_x_mm, delta_y_mm, delta_theta_deg),
             "vocal_frequency_hz": vocal,
             "normal_force_n": None,
-            "applied_stride_mm": stride,
-            "applied_steer_deg": steer,
+            "proposed_stride_mm": stride,
+            "proposed_steer_deg": steer,
             "cycle_dt_s": dt_s,
         }
 
@@ -369,15 +371,19 @@ class ModularColumnSubstrate:
         """Deprecated ungrounded kinematic estimate; delegates to proposed_kinematic_action."""
         return self.proposed_kinematic_action(dt_s=dt_s)
 
-    def applied_motor_action(self) -> Tuple[str, dict[str, Any]]:
+    def proposed_motor_action(self) -> Tuple[str, dict[str, Any]]:
         """
-        Multi-axis kinematic summary without cross-dimensional scalar ranking:
+        Multi-axis proposed kinematic summary without cross-dimensional scalar ranking:
         Returns ('rest', {}) if silent, or ('active', receipt) with independent channels.
         """
         consequence, receipt = self.proposed_kinematic_action()
         if receipt["is_silent"]:
             return ("rest", {})
         return ("active", receipt)
+
+    def applied_motor_action(self) -> Tuple[str, dict[str, Any]]:
+        """Deprecated compatibility alias for proposed_motor_action."""
+        return self.proposed_motor_action()
 
     def active_synapses(self) -> int:
         """
@@ -400,6 +406,19 @@ class ModularColumnSubstrate:
     def export_sparse_bytes(self) -> bytes:
         """Export sparse active conductances as raw byte stream."""
         return bytes(self.substrate.export_sparse())
+
+    def export_sparse_v2_bytes(self) -> bytes:
+        """Export sparse active conductances in authentic ARCLOOM2 predecessor format."""
+        if hasattr(self.substrate, "export_sparse_v2"):
+            return bytes(self.substrate.export_sparse_v2())
+        return self.export_sparse_bytes()
+
+    def import_sparse_bytes(self, raw: bytes, version: int = 3) -> None:
+        """Import sparse conductances with fail-closed binary verification."""
+        if version == 2 and hasattr(self.substrate, "import_sparse_v2"):
+            self.substrate.import_sparse_v2(raw)
+        else:
+            self.substrate.import_sparse(raw)
 
     def to_dict(self) -> dict:
         """Serialize substrate configuration and sparse conductances for persistent body storage."""
@@ -424,6 +443,10 @@ class ModularColumnSubstrate:
         if not sparse_hex or not isinstance(sparse_hex, str) or len(sparse_hex.strip()) == 0:
             raise ValueError("missing or empty sparse_hex payload: cannot restore without valid state payload")
 
+        fmt = str(data.get("format", "ARCLOOM3")).strip()
+        if fmt not in ("ARCLOOM2", "ARCLOOM3"):
+            raise ValueError(f"Unsupported format: {fmt}")
+
         num_cols = force_columns if force_columns is not None else int(data.get("num_columns", 64))
         sub = cls(
             yield_threshold=float(data.get("yield_threshold", 0.60)),
@@ -432,5 +455,8 @@ class ModularColumnSubstrate:
             columns=num_cols,
         )
         raw = bytes.fromhex(sparse_hex.strip())
-        sub.substrate.import_sparse(raw)
+        if fmt == "ARCLOOM2":
+            sub.import_sparse_bytes(raw, version=2)
+        else:
+            sub.import_sparse_bytes(raw, version=3)
         return sub

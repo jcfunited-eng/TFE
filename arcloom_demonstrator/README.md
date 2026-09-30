@@ -46,7 +46,7 @@ The substrate models 8 specialized cortical macrocolumns ($2,560$ ternary nodes,
 The workstation host executes the 64-Column Cortical Array (`ModularSubstrate64D`):
 - **Structure**: 8 interconnected macro-clusters of 8 columns each ($20,480$ ternary nodes, up to $83.8\text{ million}$ potential inter-column plastic fasciculi).
 - **Sensory Interface**: Multi-column sensory transductions (optical, cochlear, somatosensory, and prefrontal projection sheets) mapped across modular column clusters.
-- **Measured Throughput**: Native Rust SIMD execution scales sub-millisecond per column group, executing well within the 20 Hz real-time control target.
+- **Measured Throughput**: Native Rust SIMD execution scales sub-millisecond per column group, executing well within the 20 Hz real-time control target (~8.2 ms per cycle across 20,480 nodes; measured 123 Hz in standalone benchmarks).
 
 ---
 
@@ -76,7 +76,7 @@ arcloom_demonstrator/
 │   └── modular_column_substrate.py # Python adapter for 8D & 64D physical substrate
 └── tests/
     ├── test_octal_column_invariants.py    # Multi-phase invariant test suite
-    └── test_arcloom_causal_action_witness.py # Formal audit witness suite (A4-01 through A4-06)
+    └── test_arcloom_causal_action_witness.py # Formal audit witness suite (A5-01 through A5-06, component evidence)
 ```
 
 ---
@@ -126,4 +126,4 @@ Connect the 4 channels of the **Siglent SDS1104X-E 100 MHz Oscilloscope** to the
 
 1. **Zero ML Approximations**: No neural network weights, no backpropagation, no statistical gradient descent. Plasticity proceeds strictly from continuum yield mechanics ($f = |\sigma| - Y \le 0$).
 2. **Zero Heuristics / Lookup Tables**: Spatial tracking and barrier refusal proceed from continuous potential manifolds and laminar causal propagation. Continuous mathematical radix-3 expansion: $x \sim \sum_{k=1}^K t_k 3^{-k}$.
-3. **Deterministic Latency**: Software simulation targets (~$255\ \mu\text{s}$ for 8D, ~$8.5\text{ ms}$ for 64D on modern host CPU); sub-microsecond digital circuit hardware targets ($< 100\text{ ns}$ on FPGA/ASIC).
+3. **Deterministic Latency**: Software simulation targets (~$255\ \mu\text{s}$ for 8D, ~$8.2\text{ ms}$ for 64D on modern host CPU; measured 123 Hz in benchmarks); sub-microsecond digital circuit hardware targets ($< 100\text{ ns}$ on FPGA/ASIC).
