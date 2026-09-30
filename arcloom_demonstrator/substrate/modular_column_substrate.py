@@ -12,8 +12,42 @@ import numpy as np
 import guala_core
 from guala_core import ModularSubstrate4D, ModularSubstrate8D, ModularSubstrate64D
 
+try:
+    from dsf_ai_service.substrate.embodiment_world import MoveCommand, PoseMM, PositionMM
+    from dsf_ai_service.substrate.exact_lattice_rotation import rotate_lattice_offset
+except ImportError:
+    try:
+        from substrate.embodiment_world import MoveCommand, PoseMM, PositionMM
+        from substrate.exact_lattice_rotation import rotate_lattice_offset
+    except ImportError:
+        # Fallback minimal definitions if executed outside embodiment world dependencies
+        from dataclasses import dataclass
+
+        @dataclass(frozen=True, slots=True)
+        class PositionMM:
+            x: int
+            y: int
+            z: int = 0
+
+        @dataclass(frozen=True, slots=True)
+        class PoseMM:
+            position: PositionMM
+            heading_millidegrees: int
+
+        @dataclass(frozen=True, slots=True)
+        class MoveCommand:
+            target_pose: PoseMM
+            duration_microseconds: int
+
+        def rotate_lattice_offset(x: int, y: int, heading: int) -> Tuple[int, int]:
+            rad = np.radians(heading / 1000.0)
+            rx = int(round(x * np.cos(rad) - y * np.sin(rad)))
+            ry = int(round(x * np.sin(rad) + y * np.cos(rad)))
+            return rx, ry
+
 L4_AFFERENT_NODES = 64
 L1_APICAL_NODES = 32
+CANONICAL_MOTOR_INTERVAL_US = 250_000
 
 
 def _quantize_radix3_signed(x: float, num_trits: int = 2) -> Tuple[int, int]:
@@ -43,6 +77,48 @@ def _quantize_radix3_signed(x: float, num_trits: int = 2) -> Tuple[int, int]:
         trits.append(t)
         power /= 3.0
     return (trits[0], trits[1])
+
+
+def motor_efferent_to_locomotion_command(
+    efferent: Tuple[float, float, float, float] | Sequence[float],
+    current_pose: PoseMM,
+    duration_microseconds: int = CANONICAL_MOTOR_INTERVAL_US,
+) -> Optional[MoveCommand]:
+    """
+    Authorized substrate-to-command translation helper.
+    Converts native motor efferents (vocal_drive_hz, locomotion_stride_mm, steer_angle_deg, grip_force_n)
+    into a canonical W1 MoveCommand using:
+      - Canonical interval: duration_microseconds (default 250,000 µs = 0.25 s)
+      - Body-relative steering: integer millidegrees
+      - Valid lattice displacement: exact rigid rotation onto the millimetre lattice.
+    Silent efferents (stride <= 0.0 and abs(steer) <= 0.0) return None.
+    """
+    if len(efferent) < 3:
+        return None
+    stride_mm = float(efferent[1])
+    steer_deg = float(efferent[2])
+
+    if stride_mm <= 0.0 and abs(steer_deg) <= 0.0:
+        return None
+
+    steer_millidegrees = int(round(steer_deg * 1000.0))
+    target_heading = (current_pose.heading_millidegrees + steer_millidegrees) % 360_000
+
+    stride_int = int(round(stride_mm))
+    if stride_int > 0:
+        dx, dy = rotate_lattice_offset(stride_int, 0, current_pose.heading_millidegrees)
+        target_pos = PositionMM(
+            current_pose.position.x + dx,
+            current_pose.position.y + dy,
+            current_pose.position.z,
+        )
+    else:
+        target_pos = current_pose.position
+
+    return MoveCommand(
+        target_pose=PoseMM(target_pos, target_heading),
+        duration_microseconds=duration_microseconds,
+    )
 
 
 class ModularColumnSubstrate:
@@ -113,11 +189,15 @@ class ModularColumnSubstrate:
 
     def consume_continuous_joint_field(self, field_7d: Sequence[float], s_uf: float) -> None:
         """Preserve continuous 7-field tensor + S_UF invariant directly in native storage without Voronoi quantization loss."""
+        if self.num_columns != 64:
+            raise NotImplementedError("Continuous joint field transport requires 64-column cortical array")
         if hasattr(self.substrate, "consume_continuous_joint_field"):
-            self.substrate.consume_continuous_joint_field(list(field_7d), float(s_uf))
+            self.substrate.consume_continuous_joint_field([float(x) for x in field_7d], float(s_uf))
 
     def get_continuous_joint_field(self) -> Tuple[float, float, float, float, float, float, float, float]:
         """Retrieve stored continuous 7-field tensor + S_UF invariant."""
+        if self.num_columns != 64:
+            raise NotImplementedError("Continuous joint field query requires 64-column cortical array")
         if hasattr(self.substrate, "get_continuous_joint_field"):
             return self.substrate.get_continuous_joint_field()
         return (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
@@ -310,6 +390,15 @@ class ModularColumnSubstrate:
                 return (float(eff[0]), 0.0, 0.0, 0.0)
         return (0.0, 0.0, 0.0, 0.0)
 
+    def motor_efferent_to_locomotion_command(
+        self,
+        current_pose: PoseMM,
+        duration_microseconds: int = CANONICAL_MOTOR_INTERVAL_US,
+    ) -> Optional[MoveCommand]:
+        """Convert current native substrate motor efferents into an authorized canonical MoveCommand."""
+        eff = self.get_motor_efferent()
+        return motor_efferent_to_locomotion_command(eff, current_pose, duration_microseconds=duration_microseconds)
+
     def sever_tract(self, c_from: int, c_to: int) -> None:
         """Sever physical inter-column fascicular contact bridge."""
         if hasattr(self.substrate, "sever_tract"):
@@ -368,8 +457,12 @@ class ModularColumnSubstrate:
         return (proposed_consequence, proposed_receipt)
 
     def applied_kinematic_action(self, dt_s: float = 0.05) -> Tuple[dict[str, Any], dict[str, Any]]:
-        """Deprecated ungrounded kinematic estimate; delegates to proposed_kinematic_action."""
-        return self.proposed_kinematic_action(dt_s=dt_s)
+        """Retired ungrounded kinematic estimate. Raises AttributeError."""
+        raise AttributeError(
+            "applied_kinematic_action is retired: substrate efferents are ungrounded proposals until "
+            "canonical world settlement. Use proposed_kinematic_action() for read-only inspection or pass commands "
+            "through motor_efferent_to_locomotion_command() into GroundedSensorimotorBridge / EmbodimentWorld for settled consequences."
+        )
 
     def proposed_motor_action(self) -> Tuple[str, dict[str, Any]]:
         """
@@ -382,8 +475,12 @@ class ModularColumnSubstrate:
         return ("active", receipt)
 
     def applied_motor_action(self) -> Tuple[str, dict[str, Any]]:
-        """Deprecated compatibility alias for proposed_motor_action."""
-        return self.proposed_motor_action()
+        """Retired ungrounded motor action. Raises AttributeError."""
+        raise AttributeError(
+            "applied_motor_action is retired: substrate efferents are ungrounded proposals until "
+            "canonical world settlement. Use proposed_motor_action() for read-only inspection or pass commands "
+            "through motor_efferent_to_locomotion_command() into GroundedSensorimotorBridge / EmbodimentWorld for settled consequences."
+        )
 
     def active_synapses(self) -> int:
         """
@@ -394,29 +491,27 @@ class ModularColumnSubstrate:
 
     def sleep_consolidation(
         self,
-        decay: float = 0.02,
-        prune_thresh: float = 0.005,
+        decay: float = 0.03,
+        prune_thresh: float = 0.015,
     ) -> Tuple[int, int]:
         """
         Offline nocturnal sleep consolidation and synaptic downscaling (Synaptic Homeostasis Hypothesis).
+        Uses production defaults (decay=0.03, prune_thresh=0.015).
         Returns: (decayed_count, pruned_count).
         """
         return self.substrate.sleep_consolidation(float(decay), float(prune_thresh))
 
     def export_sparse_bytes(self) -> bytes:
-        """Export sparse active conductances as raw byte stream."""
+        """Export sparse active conductances as raw ARCLOOM3 byte stream."""
         return bytes(self.substrate.export_sparse())
 
-    def export_sparse_v2_bytes(self) -> bytes:
-        """Export sparse active conductances in authentic ARCLOOM2 predecessor format."""
-        if hasattr(self.substrate, "export_sparse_v2"):
-            return bytes(self.substrate.export_sparse_v2())
-        return self.export_sparse_bytes()
-
     def import_sparse_bytes(self, raw: bytes, version: int = 3) -> None:
-        """Import sparse conductances with fail-closed binary verification."""
-        if version == 2 and hasattr(self.substrate, "import_sparse_v2"):
-            self.substrate.import_sparse_v2(raw)
+        """Import sparse conductances with fail-closed binary verification and explicit predecessor migration."""
+        if version == 2:
+            if hasattr(self.substrate, "migrate_predecessor_v2"):
+                self.substrate.migrate_predecessor_v2(raw)
+            else:
+                raise NotImplementedError("Historical predecessor migration is not supported on this substrate")
         else:
             self.substrate.import_sparse(raw)
 

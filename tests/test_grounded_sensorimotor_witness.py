@@ -248,4 +248,5 @@ def test_plastic_conduction_growth_under_live_streaming() -> None:
     manifest = bridge.get_grounded_manifest()
     assert manifest["cycle_count"] == 10
     assert manifest["contact_mechanics"]["active_plastic_fasciculi"] > 0
-    assert manifest["causal_motor_efferents"]["applied_action"] in ("vocalize", "locomote", "grasp", "active")
+    assert manifest["causal_motor_efferents"]["proposed_action"] in ("vocalize", "locomote", "grasp", "active")
+    assert manifest["causal_motor_efferents"]["applied_action"] is None

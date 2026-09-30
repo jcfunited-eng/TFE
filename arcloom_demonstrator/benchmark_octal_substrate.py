@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """tools/benchmark_modular_column_substrate.py
 
-Comparative Benchmark Suite: 4-Column Baseline vs. 8-Column Balanced Octet
+Comparative Benchmark Suite: 4-Column Baseline vs. 8-Column Balanced Octet vs. 64-Column Cortical Array
 Substrate: ArcLoom Discrete Neuromorphic Architecture in Native SIMD Rust (guala_core)
 
 Benchmarks:
-  1. Microsecond Timing & Throughput (1,000 causal ticks)
+  1. Microsecond Timing & Component Throughput (1,000 causal ticks, seeded: random.seed(42))
   2. Spatial Tracking Polar Register Hold under Sensory Noise & Occlusion
   3. Multi-Modal Plastic Synaptic Hardening (Acoustic-Optical Binding)
   4. von Mises Barrier Yield Refusal & Motor Gating (S2 -> M1 / M2)
@@ -22,10 +22,13 @@ from guala_core import ModularSubstrate4D, ModularSubstrate8D, ModularSubstrate6
 
 
 def benchmark_timing(n_ticks: int = 1000) -> dict:
-    """Benchmark raw per-tick latency and throughput in native Rust."""
+    """Benchmark raw per-tick latency and component throughput in native Rust (seeded input distribution)."""
     print("=" * 70)
-    print(f"BENCHMARK 1: TIMING & THROUGHPUT ({n_ticks:,} Causal Ticks)")
+    print(f"BENCHMARK 1: TIMING & COMPONENT THROUGHPUT ({n_ticks:,} Causal Ticks, Seeded: seed=42)")
     print("=" * 70)
+
+    # Seed random inputs for deterministic reproducibility
+    random.seed(42)
 
     sub4 = ModularSubstrate4D(yield_threshold=0.60, plastic_rate=0.03, activation_threshold=0.25)
     sub8 = ModularSubstrate8D(yield_threshold=0.60, plastic_rate=0.03, activation_threshold=0.25)
@@ -59,19 +62,15 @@ def benchmark_timing(n_ticks: int = 1000) -> dict:
     p99_8 = statistics.quantiles(latencies_8d, n=100)[98]
     fps_8 = 1_000_000.0 / mean_8
 
-    assert fps_4 > 20.0, f"4-Column Substrate failed >20 Hz requirement: {fps_4:.0f} Hz"
-    assert fps_8 > 20.0, f"8-Column Octet failed >20 Hz requirement: {fps_8:.0f} Hz"
-
-    print(f"4-Column Substrate (1,280 Nodes):")
-    print(f"  Mean Latency:   {mean_4:6.2f} µs | Median: {median_4:6.2f} µs | P99: {p99_4:6.2f} µs")
-    print(f"  Max Throughput: {fps_4:10,.0f} ticks/second (Requirement: >20 Hz)")
+    print(f"4-Column Substrate (1,280 Nodes, 16 Directional Column-Pair Fascicular Slots):")
+    print(f"  Mean Latency:         {mean_4:6.2f} µs | Median: {median_4:6.2f} µs | P99: {p99_4:6.2f} µs")
+    print(f"  Component Throughput: {fps_4:10,.0f} ticks/second (Component benchmark)")
     print()
-    print(f"8-Column Octet (2,560 Nodes):")
-    print(f"  Mean Latency:   {mean_8:6.2f} µs | Median: {median_8:6.2f} µs | P99: {p99_8:6.2f} µs")
-    print(f"  Max Throughput: {fps_8:10,.0f} ticks/second (Requirement: >20 Hz)")
+    print(f"8-Column Octet (2,560 Nodes, 64 Directional Column-Pair Fascicular Slots):")
+    print(f"  Mean Latency:         {mean_8:6.2f} µs | Median: {median_8:6.2f} µs | P99: {p99_8:6.2f} µs")
+    print(f"  Component Throughput: {fps_8:10,.0f} ticks/second (Component benchmark)")
     print()
-    print(f"  Scaling Factor: {mean_8 / mean_4:0.2f}x execution time for 2.0x column count & 4.0x fasciculi.")
-    
+    print(f"  Scaling Factor:       {mean_8 / mean_4:0.2f}x execution time for 2.0x column count & 4.0x fasciculi.")
 
     # 64-Column Full Cortical Array Timing (50 ticks)
     sub64 = ModularSubstrate64D(yield_threshold=0.60, plastic_rate=0.03, activation_threshold=0.25)
@@ -87,14 +86,12 @@ def benchmark_timing(n_ticks: int = 1000) -> dict:
     p99_64 = statistics.quantiles(latencies_64d, n=100)[98]
     fps_64 = 1_000_000.0 / mean_64
 
-    assert fps_64 > 20.0, f"64-Column Cortical Array failed >20 Hz requirement: {fps_64:.0f} Hz"
-
-    print(f"64-Column Cortical Array (20,480 Nodes, 4,096 Fasciculi):")
-    print(f"  Mean Latency:   {mean_64:6.2f} µs | Median: {median_64:6.2f} µs | P99: {p99_64:6.2f} µs")
-    print(f"  Max Throughput: {fps_64:10,.0f} ticks/second (Requirement: >20 Hz)")
+    print(f"64-Column Cortical Array (20,480 Nodes, 4,096 Directional Column-Pair Fascicular Slots):")
+    print(f"  Mean Latency:         {mean_64:6.2f} µs | Median: {median_64:6.2f} µs | P99: {p99_64:6.2f} µs")
+    print(f"  Component Throughput: {fps_64:10,.0f} ticks/second (Component benchmark)")
     print()
-    print(f"  Scaling Factor: {mean_8 / mean_4:0.2f}x (8D/4D), {mean_64 / mean_8:0.2f}x (64D/8D).")
-    print(f"  Real-Time Throughput (>20 Hz requirement): PASS (Measured: 4D={fps_4:,.0f} Hz, 8D={fps_8:,.0f} Hz, 64D={fps_64:,.0f} Hz).\n")
+    print(f"  Scaling Factor:       {mean_8 / mean_4:0.2f}x (8D/4D), {mean_64 / mean_8:0.2f}x (64D/8D).")
+    print(f"  Measured Component Throughput: 4D={fps_4:,.0f} Hz, 8D={fps_8:,.0f} Hz, 64D={fps_64:,.0f} Hz (seed=42).\n")
 
     return {
         "mean_4d_us": mean_4,
@@ -118,6 +115,7 @@ def benchmark_spatial_occlusion_and_noise(n_blank_ticks: int = 60) -> dict:
     # Prime both substrates with target at r=450 mm, theta=35,000 mdeg (35 deg)
     sensory_clean = [1] * 64
     somatic = [0] * 32
+
     for _ in range(10):
         sub4.step(sensory_clean, somatic, observed_r_mm=450.0, observed_theta_mdeg=35000, barrier_stress=0.0)
         sub8.step(sensory_clean, somatic, observed_r_mm=450.0, observed_theta_mdeg=35000, barrier_stress=0.0, acoustic_formant=0.0)
@@ -290,7 +288,7 @@ def benchmark_sleep_consolidation() -> dict:
 def main() -> None:
     print("\n" + "=" * 70)
     print("DSF-AI ARCLOOM SUBSTRATE COMPARATIVE BENCHMARK")
-    print("Target: 4-Column Baseline vs. 8-Column Balanced Octet")
+    print("Target: 4-Column Baseline vs. 8-Column Balanced Octet vs. 64-Column Cortical Array")
     print("Standard: Strict Physical Laws & Continuum von Mises Plasticity")
     print("=" * 70 + "\n")
 

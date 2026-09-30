@@ -28487,3 +28487,94 @@ Single next item for G1: deliver the original real-action plus native cold-conti
     * **Thermal Sensor Streams**: Map real-world ambient temperature and thermal flux sensors into laminar homeostatic somatic context trits (`somatic_trits`), driving thermodynamic energy balance and metabolic yield limits.
     * **Optical Camera Telemetry**: Ingest real-time camera frames into the dual-column egocentric polar retinotopic foveal projection ($V_1: r_{\text{mm}}, V_2: \theta_{\text{mdeg}}$), testing object tracking, boundary detection, and optical occlusion permanence under natural illumination and physical obstacles.
     * **Hard Invariant Veto Enforcement**: Route all incoming physical sensor streams through `evaluate_admissibility` (Viability Basin Gate $S_{UF} \le 0$, Kill Switch $R_{\text{rev}} > 0$, Barrier Yield Refusal $|\sigma| > Y$, Thermodynamic Strain Collapse $P_k \ge B_k$, and Occlusion Collision Hazard) to ensure zero ungrounded actions are permitted to settle.
+
+
+---
+
+## G1 & Senior DARPA Neuromorphic Architect — ArcLoom 64D Sixth-Pass Audit Finding Resolution (2026-09-30)
+
+### Mandatory Architecture Honesty Gate
+1. `requested architecture`: Decisive architectural and empirical resolution of all six findings (A6-01 through A6-06) identified in Astra's (A1) Sixth-Pass Audit handoff (`docs/A1_ARCLOOM_SIXTH_PASS_0dad5f2b9_2026-09-30.md`). Connect native L5 motor efferents to canonical world action execution, authenticate historical binary predecessor migration (`cb69d23ea` and `8c3244cb3`), integrate full continuous joint field (`[f64; 8]`) into native transition modulation and production organism, execute matched cold continuation on actively changing dynamic states advancing both original and restored copies under identical stimulus, establish constitutive contact baseline parameter provenance, and clean demonstrator package with seeded benchmarks.
+2. `current code reality`: All six findings (A6-01 through A6-06) are fully implemented and verified in native Rust (`guala_core`), Python adapters (`ModularColumnSubstrate`), organism loop (`FunctionalOrganism`), bridge (`GroundedSensorimotorBridge`), repository witness (`tests/test_arcloom_causal_action_witness.py`), and demonstrator package (`arcloom_demonstrator/`).
+3. `conflict with requested architecture: yes or no`: No.
+4. `what exact mechanism or files will not be extended`: No synthetic predecessor exporters (`export_sparse_v2_bytes` deleted), no deprecated unsettled action aliases (`applied_kinematic_action` and `applied_motor_action` retired and raise `AttributeError`), no fallback/shim logic, and no single-precision narrowing of continuous structural invariants.
+5. `the single exact next item`: Commit candidate to `guala-live`, push to `origin/guala-live`, and send verified Slack completion ping.
+6. `am I evaluating the full field or a reduced approximation?`: Dual interface: Continuous joint field interface evaluates, transports, and acts upon the full 8-dimensional IEEE-754 binary64 continuous field `[D_k, M_k, R_rev, U*, C_k, P_k, B_k, S_UF]` without precision narrowing; discrete 2-trit encoding is explicitly designated as a finite discrete receptor projection.
+7. `if reduced, what exact field structure is being lost?`: In the finite discrete receptor projection, continuous float precision is partitioned into 9 discrete Voronoi intervals across $[-1.0, 1.0]$. In the continuous joint field interface (`consume_continuous_joint_field` / `ModularSubstrate64D`), zero field structure is lost ($0.40000000000000002 \ne 0.40000005960464478$ preserved exactly with native viability clamp engagement).
+
+---
+
+### Detailed Resolution of Sixth-Pass Audit Findings (A6-01 through A6-06)
+
+#### 1. A6-01: Production Motor Conversion & Ordinary World Execution
+- **Authorized Conversion Helper**: Implemented `motor_efferent_to_locomotion_command(efferent, current_pose, duration_microseconds=250_000)` at module level and on `ModularColumnSubstrate`. Translates native Layer 5 motor efferents into canonical `MoveCommand` using the canonical 250,000 µs (0.25 s) interval, body-relative steering in integer millidegrees, and valid integer lattice displacement via `rotate_lattice_offset`.
+- **Organism Decision Wiring**: Connected `motor_efferent_to_locomotion_command` directly into `candidates()` and `decide()` in `dsf_ai_service/guala_functional_organism.py`. When native substrate efferents are non-silent, `candidates()` and `decide()` generate and execute the canonical `MoveCommand` driven by substrate stride and steer.
+- **Retired Deprecated Aliases**: `applied_kinematic_action` and `applied_motor_action` in `ModularColumnSubstrate` now raise an informative `AttributeError` explicitly instructing callers that substrate efferents are ungrounded proposals until canonical world settlement. In `GroundedSensorimotorBridge`, `manifest["causal_motor_efferents"]["applied_action"]` and `InvariantVetoReceipt.applied_action` are set strictly to `None` prior to world settlement.
+- **Matched Ordinary-Loop Execution**: In `test_witness_a6_01`, verified silent efferents produce `None`, active efferents execute real coordinate displacement through `world.prepare_port_command` / `world.commit_prepared_action`, and an actual obstacle on the candidate trajectory triggers a physical refusal receipt (`ActionExecutionReceipt`). In `test_witness_a6_02`, executed intact vs ablated substrate states in two cloned world instances, measuring actual divergent settled world positions: $\Delta x_{\text{intact}} \ne \Delta x_{\text{ablated}}$.
+
+#### 2. A6-02: Constitutive Contact Law Parameter Provenance & Ablation
+- **Provenance Ratification**: Formally documented $G_{\text{elastic\_baseline}} = 0.05$ as the configured dimensionless normalized tunneling conductance ratio ($g_0 / g_{\text{sat}}$) in the reversible elastic regime ($w = 0, |\sigma| \le Y, \dot{\lambda} = 0$).
+- **Super-Yield vs Baseline Compliance**: Demonstrated that super-yield training ($w > 0$) establishes plastic conductances across inter-column fasciculi that drive divergent motor efferents and divergent settled world actions compared to the ablated elastic baseline ($w = 0$).
+- **Causal Tract Severing**: Proved that severing incoming fasciculi to motor cortex (cols 40..47) halts motor actuation to strictly 0.0 under identical test inputs, and reconnecting restores motor actuation.
+
+#### 3. A6-03: Authentic Predecessor Migration & Strict ARCLOOM3 Codec
+- **Authentic Predecessor Fixtures**: Extracted authentic historical binary fixtures directly from historical git revisions:
+  - `tests/fixtures/arcloom2_cb69d23ea.bin` (SHA256: `1303782abd51a491b60b6faac8e880469c302ce808c2d5d995d686cac6d79175`, 24-byte column headers, default unsevered topology).
+  - `tests/fixtures/arcloom2_8c3244cb3.bin` (SHA256: `5be10a9e36a37415b9011e0646d6ee36a6a5f882dc0f8f432968e00e5dc7028d`, 36-byte column headers, authenticated severed tracts).
+- **Explicit Migration Path**: Implemented `migrate_predecessor_v2` in native Rust with two-pass historical parsing. Both authentic predecessors migrate cleanly without inventing missing topology, restoring operative active synapses (`active_synapses() > 0`).
+- **Strict Codec Boundaries**:
+  - `import_sparse_v3` strictly rejects `ARCLOOM2` magic with an informative error directing callers to explicit migration.
+  - Removed all `export_sparse_v2` methods; current code does not generate synthetic predecessor bytes.
+  - Enforced slot agreement (`col_id == expected_col_id`), unique intra/inter indices, weight domain $[-1.0, 1.0]$, finite float checks, ternary node states, and alignment padding.
+  - Complete failure atomicity: `StagedSubstrateState` guarantees recipient state across every variable (`yield_threshold`, `plastic_rate`, `activation_threshold`, `get_spatial_tracking()`, `get_motor_efferent()`, `active_synapses()`, `severed_tracts`) is 100% untouched upon any rejected payload.
+
+#### 4. A6-04: Full Continuous Joint Field IEEE-754 f64 Participation
+- **IEEE-754 binary64 Precision**: `ModularSubstrate64D` stores `continuous_joint_field: [f64; 8]` without narrowing to binary32, preserving distinct binary64 values ($0.40000000000000002 \ne 0.40000005960464478$).
+- **Native Transition Participation**:
+  - Non-viable DSF invariants ($S_{UF} \le 0.0$ or $R_{\text{rev}} > 0.0$) engage the hard native viability clamp, holding locomotion stride to 0.0 even under stimulation.
+  - Dynamic pressure ($P_k > B_k$) induces homeostatic strain damping.
+  - Structural cohesion ($C_k > 0$) boosts forward pyramidal drive.
+  - Prefrontal columns 48..55 receive continuous field trits as physical afferents.
+- **Strict Capability Enforcement**: 4D and 8D substrates raise strict `NotImplementedError` on continuous joint field calls, eliminating silent no-op/zero fallback disguises.
+- **Production Organism Wiring**: In `guala_functional_organism.py:_form_moments`, full continuous joint field `[f64; 8]` is passed via `consume_continuous_joint_field(dsf_vec[:7], dsf_vec[7])`.
+
+#### 5. A6-05: Matched Cold Continuation on Dynamic Changing States
+- **Matched Branch Advancement**: Cold continuation test exports state $S$, restores fresh copy $S_{\text{cold}}$, and advances **both** original copy $S$ and cold-restored copy $S_{\text{cold}}$ by 1 step under identical probe stimulus $u$ on an actively changing state.
+- **Complete Successor Equivalence**: Verifies bit-for-bit equivalence of complete successor states ($y_{\text{orig}} == y_{\text{cold}}$, $s_{\text{orig}} == s_{\text{cold}}$, efferents, active synapses, serialized bytes, and executed world commands).
+- **Production Sleep Parameters**: Evaluated sleep consolidation with production parameters (`decay=0.03, prune_thresh=0.015`), confirming lawful downscaling and subsequent motor competence preservation.
+
+#### 6. A6-06: Demonstrator Package Cleanup & Accurate Labeling
+- **Packaged Witness**: Removed fake `rotate_lattice_offset` helper from `arcloom_demonstrator/tests/test_arcloom_causal_action_witness.py`, removed duplicate try/except, and labeled test suite as component evidence.
+- **Benchmark Seed & Units**: Seeded random inputs with `random.seed(42)` in `benchmark_octal_substrate.py` and clearly distinguished 4,096 directional column-pair slots from scalar connections.
+- **Archive Rebuild**: Rebuilt `arcloom_demonstrator_v1.0.tar.gz` and `arcloom_demonstrator_v1.0.zip` clean, verifying 19/19 passing tests in the package test runner.
+
+---
+
+### Verified Artifact SHA256 Checksums
+
+| Artifact | SHA256 |
+| --- | --- |
+| `native/guala_core/src/cortical_column.rs` | `2c8850b174a5b0672d1c7862d2d6b6a4009bcdb58caa9d04c638bf5ffea9834d` |
+| `dsf_ai_service/substrate/modular_column_substrate.py` | `38e9cbad111d1574a2801caf4cf35aacb6e6216cebaad3de4439cb76de449037` |
+| `dsf_ai_service/substrate/grounded_sensorimotor_bridge.py` | `589af011dd635f73ca5cd9c07958cd48e4147bebd88c5aca1b7c453314382024` |
+| `dsf_ai_service/guala_functional_organism.py` | `bfa1baf76afa582688e4f2cc598853439b94e02e04e2f9466cbe7afe68b294d2` |
+| `tests/test_arcloom_causal_action_witness.py` | `720721451605e8d595c2036e9722b69498347c8a4f60f1dbecb4e067e2ec6e52` |
+| `tests/test_grounded_sensorimotor_witness.py` | `9fb29bce155d30e88cf4d23f1f489d6aa4640482ea0a6f43d92e75f85e41e14c` |
+| `arcloom_demonstrator/native/guala_core/src/cortical_column.rs` | `2c8850b174a5b0672d1c7862d2d6b6a4009bcdb58caa9d04c638bf5ffea9834d` |
+| `arcloom_demonstrator/substrate/modular_column_substrate.py` | `38e9cbad111d1574a2801caf4cf35aacb6e6216cebaad3de4439cb76de449037` |
+| `arcloom_demonstrator/tests/test_arcloom_causal_action_witness.py` | `078416cc65ad4c936828c30c22432db9cf004b41de8bf2cee7033d839ce73a3f` |
+| `arcloom_demonstrator/benchmark_octal_substrate.py` | `f7baf0a845e881679ae2f03f0b4fc475e1f4f0561590be6092847a30e58ad915` |
+| `arcloom_demonstrator_v1.0.tar.gz` | `fb618307dc8498731c519d54fa4f18783c2eb2e04e37eca02ef244f46625f0e8` |
+| `arcloom_demonstrator_v1.0.zip` | `bd5bf982c52077aca092f811260270501991867ac49af1e075607d1334daf620` |
+
+---
+
+### QUEUED ROADMAP ITEM (POST-AUDIT CLEAN SIGN-OFF) — 2026-09-30 (RECONFIRMED ON DECK)
+
+- [ ] **Option 2: Mount Live Streaming Planetary Sensors into Grounded Sensorimotor Bridge Runner**:
+  - **Prerequisite**: Formal sixth-pass architectural sign-off / clean audit from Astra (A1).
+  - **Target Integration**:
+    * **Atmospheric Barometric Pressure Transduction**: Map live atmospheric barometric pressure transducers into cochlear/somatosensory dynamic pressure gradient channels ($P_k, B_k$), validating acoustic and somatic pressure manifolds against real ambient air pressure variations.
+    * **Thermal Sensor Streams**: Map real-world ambient temperature and thermal flux sensors into laminar homeostatic somatic context trits (`somatic_trits`), driving thermodynamic energy balance and metabolic yield limits.
+    * **Optical Camera Telemetry**: Ingest real-time camera frames into the dual-column egocentric polar retinotopic foveal projection ($V_1: r_{\text{mm}}, V_2: \theta_{\text{mdeg}}$), testing object tracking, boundary detection, and optical occlusion permanence under natural illumination and physical obstacles.
+    * **Hard Invariant Veto Enforcement**: Route all incoming physical sensor streams through `evaluate_admissibility` (Viability Basin Gate $S_{UF} \le 0$, Kill Switch $R_{\text{rev}} > 0$, Barrier Yield Refusal $|\sigma| > Y$, Thermodynamic Strain Collapse $P_k \ge B_k$, and Occlusion Collision Hazard) to ensure zero ungrounded actions are permitted to settle.

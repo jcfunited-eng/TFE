@@ -1237,6 +1237,7 @@ def candidates(
     sound_heard: bool = False,
     consequence_food_ids: set[str] | None = None,
     tested_non_nutritive_ids: set[str] | None = None,
+    modular_sub: Any = None,
 ) -> list[tuple[str, str, tuple[Any, ...], str | None, tuple[int, int, int] | None]]:
     """What her body can do this beat, across every sensed target: each entry is
     (act, detail, world commands tried in order, target, voice drive).
@@ -1404,9 +1405,17 @@ def candidates(
 
     # 8. Elementary motions, airway, rest
     if not in_high_chair:
-        dx, dy = rotate_lattice_offset(STEP_MM, 0, heading)
-        ahead = PositionMM(position.x + dx, position.y + dy, position.z)
-        out.append(("step", "one stride ahead", (MoveCommand(PoseMM(ahead, heading), BEAT_MICROSECONDS),), None, None))
+        native_cmd = None
+        if modular_sub is not None and hasattr(modular_sub, "motor_efferent_to_locomotion_command"):
+            native_cmd = modular_sub.motor_efferent_to_locomotion_command(body.pose, BEAT_MICROSECONDS)
+
+        if native_cmd is not None:
+            eff = modular_sub.get_motor_efferent()
+            out.append(("step", f"native substrate motor stride {eff[1]:.1f}mm steer {eff[2]:.1f}deg", (native_cmd,), None, None))
+        else:
+            dx, dy = rotate_lattice_offset(STEP_MM, 0, heading)
+            ahead = PositionMM(position.x + dx, position.y + dy, position.z)
+            out.append(("step", "one stride ahead", (MoveCommand(PoseMM(ahead, heading), BEAT_MICROSECONDS),), None, None))
         for name, sign in (("turn_left", 1), ("turn_right", -1)):
             out.append((name, "", (MoveCommand(PoseMM(position, (heading + sign * TURN_MILLIDEGREES) % 360_000), BEAT_MICROSECONDS),), None, None))
     drive = say_drive if say_drive is not None else DEFAULT_DRIVE
@@ -2471,7 +2480,7 @@ class FunctionalOrganism:
         p_chain = list(state.get("pending_chain") or [])
         state["body_pos"] = (int(body.pose.position.x), int(body.pose.position.y), int(body.pose.position.z))
         state["body_heading"] = int(body.pose.heading_millidegrees)
-        options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason, feeding=feeding, sleepy=sleepy, conserved_objects=conserved, pending_chain=p_chain, last_crossed_portal=state.get("last_crossed_portal"), sound_heard=sound_heard, consequence_food_ids=consequence_foods, tested_non_nutritive_ids=tested_non_nutritive)
+        options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason, feeding=feeding, sleepy=sleepy, conserved_objects=conserved, pending_chain=p_chain, last_crossed_portal=state.get("last_crossed_portal"), sound_heard=sound_heard, consequence_food_ids=consequence_foods, tested_non_nutritive_ids=tested_non_nutritive, modular_sub=self._modular_substrate)
 
         # Cognitive Asset 1: Learned Closed-Loop Continuation Selector
         # When an internal demand is active, searches the empirical transition graph for supported continuation
@@ -2559,6 +2568,11 @@ class FunctionalOrganism:
                 target_totals[chosen_option[3]] = int(target_totals.get(chosen_option[3], 0)) + 1
 
         _name, detail, commands, target, drive = chosen_option
+
+        if act == "step" and self._modular_substrate is not None:
+            native_cmd = self._modular_substrate.motor_efferent_to_locomotion_command(body.pose, BEAT_MICROSECONDS)
+            if native_cmd is not None:
+                commands = (native_cmd,)
 
         if act in ("turn_left", "turn_right"):
             state["consecutive_turns"] = int(state.get("consecutive_turns", 0)) + 1
@@ -2745,6 +2759,8 @@ class FunctionalOrganism:
             self._last_sparse_krimelack = sparse_k
 
         # Step Modular Neuromorphic Substrate (Full Continuous DSF Delivery)
+        if dsf_vec is not None and len(dsf_vec) >= 8:
+            self._modular_substrate.consume_continuous_joint_field(dsf_vec[:7], dsf_vec[7])
         polar = getattr(self, "_last_target_polar", None)
         obs_r, obs_th = (polar[0], polar[1]) if polar is not None else (None, None)
         sens_64 = self._modular_substrate.encode_sensory_stream(

@@ -12,10 +12,13 @@
 //!      - Synaptic downscaling occurs strictly during nocturnal sleep consolidation (Synaptic Homeostasis).
 //!   2. Reversible Constitutive Elastic Contact Conduction:
 //!      - Reversible elastic compliance regime (|sigma| <= Y, lambda_dot = 0):
-//!        G_ELASTIC_BASELINE = 0.05.
-//!        Configured dimensionless baseline elastic contact compliance parameter of the
-//!        simulated ternary junction in the reversible regime (|sigma| <= Y, lambda_dot = 0).
-//!        Total conductance across the contact interface: G_total = G_elastic + g_plastic.
+//!        G_ELASTIC_BASELINE = 0.05 is the normalized innate tunneling conductance ratio (g_0 / g_sat)
+//!        for contact micro-junctions in the reversible elastic regime (|sigma| <= Y, w = 0).
+//!        Under sub-yield stress, contact area A_elastic provides baseline quantum tunneling conductance
+//!        g_0 = 0.05 * g_sat. Upon entering super-yield irreversible plastic deformation (|sigma| > Y, dot{lambda} > 0),
+//!        plastic work increases permanent contact area A_plastic = A_0 + delta_A_p, yielding irreversible
+//!        plastic conductance g_plastic = w * g_sat (w in [-1.0, 1.0]).
+//!        Total interface conductance is the superposition: G_total = G_ELASTIC_BASELINE + g_plastic.
 //!   3. Causal Multi-Axis Motor Efferent Transduction:
 //!      - Motor efferents scale directly from settled L5 pyramidal population excitation:
 //!        vocal_hz in [0, 480], stride_mm in [0, 60], steer_deg in [-45, +45], grip_n in [0, 25].
@@ -37,7 +40,7 @@
 
 use std::collections::HashSet;
 use pyo3::prelude::*;
-use pyo3::exceptions::PyValueError;
+use pyo3::exceptions::{PyValueError, PyNotImplementedError};
 
 // Common Dimensions
 pub const L1_NODES: usize = 32;
@@ -78,7 +81,14 @@ pub const ARCLOOM_STATE_VERSION_V2: u16 = 2;
 pub const ARCLOOM_STATE_MAGIC_V3: &[u8; 8] = b"ARCLOOM3";
 pub const ARCLOOM_STATE_VERSION_V3: u16 = 3;
 
-// Reversible Elastic Contact Baseline (dimensionless compliance parameter)
+/// Normalized innate elastic tunneling conductance ratio (g_0 / g_sat = 0.05)
+/// for contact micro-junctions in the reversible elastic deformation regime (|sigma| <= Y, w = 0).
+/// Under sub-yield mechanical/current stress (|sigma| <= Y), micro-junction contact area A_elastic
+/// provides a baseline reversible quantum tunneling conductance g_0 = 0.05 * g_sat.
+/// Upon entering the super-yield irreversible plastic deformation regime (|sigma| > Y, dot{lambda} > 0),
+/// plastic work increases permanent contact area A_plastic = A_0 + delta_A_p, yielding irreversible
+/// plastic conductance component g_plastic = w * g_sat (w in [-1.0, 1.0]).
+/// Total interface conductance is the superposition: G_total = G_ELASTIC_BASELINE + g_plastic.
 pub const G_ELASTIC_BASELINE: f32 = 0.05;
 
 // ---------------------------------------------------------------------------
@@ -546,13 +556,22 @@ fn serialize_column_state(col: &CorticalColumn, buf: &mut Vec<u8>) -> Result<(),
     Ok(())
 }
 
-fn deserialize_column_state(col: &mut CorticalColumn, data: &[u8], mut offset: usize, num_columns: usize) -> Result<usize, String> {
+fn deserialize_column_state(
+    col: &mut CorticalColumn,
+    data: &[u8],
+    mut offset: usize,
+    expected_col_id: usize,
+    num_columns: usize,
+) -> Result<usize, String> {
     if offset + 36 > data.len() {
         return Err("Unexpected EOF reading column header: requires 36 bytes".to_string());
     }
     let col_id = u16::from_le_bytes([data[offset], data[offset+1]]) as usize; offset += 2;
     if col_id >= num_columns {
         return Err(format!("Column id {} out of bounds (num_columns = {})", col_id, num_columns));
+    }
+    if col_id != expected_col_id {
+        return Err(format!("Column id mismatch: expected slot {}, got {}", expected_col_id, col_id));
     }
     let r_mm = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
     let theta_mdeg = i32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
@@ -672,6 +691,170 @@ fn deserialize_column_state(col: &mut CorticalColumn, data: &[u8], mut offset: u
         let val = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
         if !val.is_finite() {
             return Err("Non-finite synaptic weight in intra-column payload".to_string());
+        }
+        if val < -1.0 || val > 1.0 {
+            return Err(format!("Intra-column synaptic weight out of bounds [-1.0, 1.0]: {}", val));
+        }
+        if !seen_intra.insert((channel, idx as u16)) {
+            return Err(format!("Duplicate intra-column entry: channel {}, index {}", channel, idx));
+        }
+
+        match channel {
+            0 => {
+                if idx < col.microcircuit.g_4_23.len() { col.microcircuit.g_4_23[idx] = val; }
+                else { return Err(format!("Intra-column index {} out of bounds for channel 0", idx)); }
+            },
+            1 => {
+                if idx < col.microcircuit.g_23_23.len() { col.microcircuit.g_23_23[idx] = val; }
+                else { return Err(format!("Intra-column index {} out of bounds for channel 1", idx)); }
+            },
+            2 => {
+                if idx < col.microcircuit.g_23_5.len() { col.microcircuit.g_23_5[idx] = val; }
+                else { return Err(format!("Intra-column index {} out of bounds for channel 2", idx)); }
+            },
+            3 => {
+                if idx < col.microcircuit.g_5_6.len() { col.microcircuit.g_5_6[idx] = val; }
+                else { return Err(format!("Intra-column index {} out of bounds for channel 3", idx)); }
+            },
+            4 => {
+                if idx < col.microcircuit.g_6_4.len() { col.microcircuit.g_6_4[idx] = val; }
+                else { return Err(format!("Intra-column index {} out of bounds for channel 4", idx)); }
+            },
+            5 => {
+                if idx < col.microcircuit.g_1_23.len() { col.microcircuit.g_1_23[idx] = val; }
+                else { return Err(format!("Intra-column index {} out of bounds for channel 5", idx)); }
+            },
+            _ => {
+                return Err(format!("Invalid intra-column channel {}: must be 0..5", channel));
+            }
+        }
+        if val != 0.0 {
+            col.microcircuit.active_intra.push((channel, idx as u16));
+        }
+    }
+    Ok(offset)
+}
+
+fn deserialize_column_state_v2_24b(
+    col: &mut CorticalColumn,
+    data: &[u8],
+    mut offset: usize,
+    expected_col_id: usize,
+    num_columns: usize,
+) -> Result<usize, String> {
+    if offset + 24 > data.len() {
+        return Err("Unexpected EOF reading 24-byte column header: requires 24 bytes".to_string());
+    }
+    let col_id = u16::from_le_bytes([data[offset], data[offset+1]]) as usize; offset += 2;
+    if col_id >= num_columns {
+        return Err(format!("Column id {} out of bounds (num_columns = {})", col_id, num_columns));
+    }
+    if col_id != expected_col_id {
+        return Err(format!("Column id mismatch: expected slot {}, got {}", expected_col_id, col_id));
+    }
+    let r_mm = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+    let theta_mdeg = i32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+    let trace = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+
+    let occluded_byte = data[offset]; offset += 1;
+    if occluded_byte > 1 {
+        return Err(format!("Invalid boolean byte {} for target_occluded: must be 0 or 1", occluded_byte));
+    }
+    let occluded = occluded_byte == 1;
+
+    let barrier_stress = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+    let yield_limit = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+
+    let refusal_byte = data[offset]; offset += 1;
+    if refusal_byte > 1 {
+        return Err(format!("Invalid boolean byte {} for refusal_active: must be 0 or 1", refusal_byte));
+    }
+    let refusal = refusal_byte == 1;
+
+    if !r_mm.is_finite() || !trace.is_finite() || !barrier_stress.is_finite() || !yield_limit.is_finite() {
+        return Err("Non-finite float in column header".to_string());
+    }
+    if yield_limit <= 0.0 || yield_limit > 1.0 {
+        return Err(format!("Invalid yield_limit_threshold {}: must be in (0.0, 1.0]", yield_limit));
+    }
+    if barrier_stress < 0.0 {
+        return Err("Invalid negative barrier_contact_stress".to_string());
+    }
+    if trace < 0.0 {
+        return Err("Invalid negative persistence_trace".to_string());
+    }
+    if r_mm < 0.0 {
+        return Err("Invalid negative spatial_r_mm".to_string());
+    }
+
+    col.column_id = col_id;
+    col.spatial_r_mm = r_mm;
+    col.spatial_theta_mdeg = theta_mdeg;
+    col.persistence_trace = trace;
+    col.target_occluded = occluded;
+    col.barrier_contact_stress = barrier_stress;
+    col.yield_limit_threshold = yield_limit;
+    col.refusal_active = refusal;
+
+    let node_bytes = L1_NODES + L23_NODES + L4_NODES + L5_NODES + L6_NODES;
+    if offset + node_bytes > data.len() {
+        return Err("Unexpected EOF reading layer node states".to_string());
+    }
+    for i in 0..L1_NODES {
+        let b = data[offset + i] as i8;
+        if b < -1 || b > 1 { return Err(format!("Invalid ternary node state {}: must be -1, 0, or 1", b)); }
+        col.microcircuit.l1[i] = b;
+    } offset += L1_NODES;
+    for i in 0..L23_NODES {
+        let b = data[offset + i] as i8;
+        if b < -1 || b > 1 { return Err(format!("Invalid ternary node state {}: must be -1, 0, or 1", b)); }
+        col.microcircuit.l23[i] = b;
+    } offset += L23_NODES;
+    for i in 0..L4_NODES {
+        let b = data[offset + i] as i8;
+        if b < -1 || b > 1 { return Err(format!("Invalid ternary node state {}: must be -1, 0, or 1", b)); }
+        col.microcircuit.l4[i] = b;
+    } offset += L4_NODES;
+    for i in 0..L5_NODES {
+        let b = data[offset + i] as i8;
+        if b < -1 || b > 1 { return Err(format!("Invalid ternary node state {}: must be -1, 0, or 1", b)); }
+        col.microcircuit.l5[i] = b;
+    } offset += L5_NODES;
+    for i in 0..L6_NODES {
+        let b = data[offset + i] as i8;
+        if b < -1 || b > 1 { return Err(format!("Invalid ternary node state {}: must be -1, 0, or 1", b)); }
+        col.microcircuit.l6[i] = b;
+    } offset += L6_NODES;
+
+    if offset + 4 > data.len() {
+        return Err("Unexpected EOF reading intra-column synapse count".to_string());
+    }
+    let nz_count = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
+    offset += 4;
+
+    if offset + nz_count * 7 > data.len() {
+        return Err("Unexpected EOF in intra-column synapses".to_string());
+    }
+
+    col.microcircuit.g_4_23.fill(0.0);
+    col.microcircuit.g_23_23.fill(0.0);
+    col.microcircuit.g_23_5.fill(0.0);
+    col.microcircuit.g_5_6.fill(0.0);
+    col.microcircuit.g_6_4.fill(0.0);
+    col.microcircuit.g_1_23.fill(0.0);
+    col.microcircuit.active_intra.clear();
+
+    let mut seen_intra = HashSet::new();
+
+    for _ in 0..nz_count {
+        let channel = data[offset]; offset += 1;
+        let idx = u16::from_le_bytes([data[offset], data[offset+1]]) as usize; offset += 2;
+        let val = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+        if !val.is_finite() {
+            return Err("Non-finite synaptic weight in intra-column payload".to_string());
+        }
+        if val < -1.0 || val > 1.0 {
+            return Err(format!("Intra-column synaptic weight out of bounds [-1.0, 1.0]: {}", val));
         }
         if !seen_intra.insert((channel, idx as u16)) {
             return Err(format!("Duplicate intra-column entry: channel {}, index {}", channel, idx));
@@ -1001,13 +1184,6 @@ impl ModularSubstrate4D {
         Ok(buf)
     }
 
-    pub fn export_sparse_v2(&self) -> Result<Vec<u8>, String> {
-        let mut buf = self.export_sparse_v3()?;
-        buf[0..8].copy_from_slice(ARCLOOM_STATE_MAGIC_V2);
-        buf[8..10].copy_from_slice(&ARCLOOM_STATE_VERSION_V2.to_le_bytes());
-        Ok(buf)
-    }
-
     pub fn import_sparse_v3(&mut self, data: &[u8]) -> Result<(), String> {
         if data.is_empty() {
             return Err("Cannot import from empty byte buffer".to_string());
@@ -1048,8 +1224,8 @@ impl ModularSubstrate4D {
 
         let mut temp_columns = self.columns.clone();
         let mut offset = 24;
-        for col in &mut temp_columns {
-            offset = deserialize_column_state(col, data, offset, NUM_COLUMNS_4D)?;
+        for (col_idx, col) in temp_columns.iter_mut().enumerate() {
+            offset = deserialize_column_state(col, data, offset, col_idx, NUM_COLUMNS_4D)?;
         }
 
         if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_23 count".to_string()); }
@@ -1115,9 +1291,6 @@ impl ModularSubstrate4D {
         Ok(())
     }
 
-    pub fn import_sparse_v2(&mut self, data: &[u8]) -> Result<(), String> {
-        self.import_sparse_v3(data)
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1467,13 +1640,6 @@ impl ModularSubstrate8D {
         Ok(buf)
     }
 
-    pub fn export_sparse_v2(&self) -> Result<Vec<u8>, String> {
-        let mut buf = self.export_sparse_v3()?;
-        buf[0..8].copy_from_slice(ARCLOOM_STATE_MAGIC_V2);
-        buf[8..10].copy_from_slice(&ARCLOOM_STATE_VERSION_V2.to_le_bytes());
-        Ok(buf)
-    }
-
     pub fn import_sparse_v3(&mut self, data: &[u8]) -> Result<(), String> {
         if data.is_empty() {
             return Err("Cannot import from empty byte buffer".to_string());
@@ -1514,8 +1680,8 @@ impl ModularSubstrate8D {
 
         let mut temp_columns = self.columns.clone();
         let mut offset = 24;
-        for col in &mut temp_columns {
-            offset = deserialize_column_state(col, data, offset, NUM_COLUMNS_8D)?;
+        for (col_idx, col) in temp_columns.iter_mut().enumerate() {
+            offset = deserialize_column_state(col, data, offset, col_idx, NUM_COLUMNS_8D)?;
         }
 
         if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_23 count".to_string()); }
@@ -1584,14 +1750,29 @@ impl ModularSubstrate8D {
         Ok(())
     }
 
-    pub fn import_sparse_v2(&mut self, data: &[u8]) -> Result<(), String> {
-        self.import_sparse_v3(data)
-    }
 }
 
 // ---------------------------------------------------------------------------
 // 5. 64-Column Cortical Array Modular Substrate
 // ---------------------------------------------------------------------------
+
+pub struct StagedSubstrateState {
+    pub yield_threshold: f32,
+    pub plastic_rate: f32,
+    pub activation_threshold: f32,
+    pub columns: Vec<CorticalColumn>,
+    pub w_inter_23: Vec<f32>,
+    pub active_inter_23: Vec<usize>,
+    pub w_inter_5: Vec<f32>,
+    pub active_inter_5: Vec<usize>,
+    pub severed_tracts: Vec<bool>,
+    pub continuous_joint_field: [f64; 8],
+    pub continuous_joint_field_present: bool,
+    pub motor_vocal_drive: f32,
+    pub motor_locomotion_stride: f32,
+    pub motor_steer_angle: f32,
+    pub motor_grip_force: f32,
+}
 
 pub struct ModularSubstrate64D {
     pub columns: Vec<CorticalColumn>,
@@ -1600,7 +1781,8 @@ pub struct ModularSubstrate64D {
     pub active_inter_23: Vec<usize>,
     pub active_inter_5: Vec<usize>,
     pub severed_tracts: Vec<bool>,
-    pub continuous_joint_field: [f32; 8],
+    pub continuous_joint_field: [f64; 8],
+    pub continuous_joint_field_present: bool,
     pub yield_threshold: f32,
     pub plastic_rate: f32,
     pub activation_threshold: f32,
@@ -1625,6 +1807,7 @@ impl ModularSubstrate64D {
             active_inter_5: Vec::new(),
             severed_tracts: vec![false; NUM_COLUMNS_64D * NUM_COLUMNS_64D],
             continuous_joint_field: [0.0; 8],
+            continuous_joint_field_present: false,
             yield_threshold: yield_threshold.clamp(0.01, 0.99),
             plastic_rate: plastic_rate.clamp(0.001, 1.0),
             activation_threshold: activation_threshold.max(0.01),
@@ -1635,7 +1818,7 @@ impl ModularSubstrate64D {
         }
     }
 
-    pub fn consume_continuous_joint_field(&mut self, field_7d: [f32; 7], s_uf: f32) -> Result<(), String> {
+    pub fn consume_continuous_joint_field(&mut self, field_7d: [f64; 7], s_uf: f64) -> Result<(), String> {
         for (i, &val) in field_7d.iter().enumerate() {
             if !val.is_finite() {
                 return Err(format!("Non-finite value in continuous joint field index {}: {}", i, val));
@@ -1646,11 +1829,30 @@ impl ModularSubstrate64D {
         }
         self.continuous_joint_field[0..7].copy_from_slice(&field_7d);
         self.continuous_joint_field[7] = s_uf;
+        self.continuous_joint_field_present = true;
         Ok(())
     }
 
-    pub fn get_continuous_joint_field(&self) -> [f32; 8] {
+    pub fn get_continuous_joint_field(&self) -> [f64; 8] {
         self.continuous_joint_field
+    }
+
+    fn commit_staged_state(&mut self, staged: StagedSubstrateState) {
+        self.yield_threshold = staged.yield_threshold;
+        self.plastic_rate = staged.plastic_rate;
+        self.activation_threshold = staged.activation_threshold;
+        self.columns = staged.columns;
+        self.w_inter_23 = staged.w_inter_23;
+        self.active_inter_23 = staged.active_inter_23;
+        self.w_inter_5 = staged.w_inter_5;
+        self.active_inter_5 = staged.active_inter_5;
+        self.severed_tracts = staged.severed_tracts;
+        self.continuous_joint_field = staged.continuous_joint_field;
+        self.continuous_joint_field_present = staged.continuous_joint_field_present;
+        self.motor_vocal_drive = staged.motor_vocal_drive;
+        self.motor_locomotion_stride = staged.motor_locomotion_stride;
+        self.motor_steer_angle = staged.motor_steer_angle;
+        self.motor_grip_force = staged.motor_grip_force;
     }
 
     pub fn sever_tract(&mut self, c_from: usize, c_to: usize) {
@@ -1885,8 +2087,43 @@ impl ModularSubstrate64D {
             self.motor_locomotion_stride = 0.0;
         }
 
+        // Continuous Structural Joint Field Direct Participation:
+        // [D_k, M_k, R_rev_k, U_star_k, C_k, P_k, B_k, S_UF]
+        if self.continuous_joint_field_present {
+            let r_rev = self.continuous_joint_field[2];
+            let c_k = self.continuous_joint_field[4];
+            let p_k = self.continuous_joint_field[5];
+            let b_k = self.continuous_joint_field[6];
+            let s_uf = self.continuous_joint_field[7];
+
+            if s_uf <= 0.0 || r_rev > 0.0 {
+                // Structural viability collapse or directional reversal engages hard protective clamp
+                self.motor_locomotion_stride = 0.0;
+            } else if p_k > b_k && b_k > 0.0 {
+                // Dynamic structural pressure strain damping
+                let damping = (b_k / p_k) as f32;
+                self.motor_locomotion_stride *= damping.clamp(0.1, 1.0);
+            } else if c_k > 0.0 && s_uf > 0.0 {
+                // Cohesive resonant forward drive modulation
+                let boost = (1.0 + 0.15 * c_k.min(2.0)) as f32;
+                self.motor_locomotion_stride = (self.motor_locomotion_stride * boost).clamp(0.0, 60.0);
+            }
+        }
+
         // 6. Clusters 6, 7: Prefrontal / Structural Invariant Sheet (Cols 48..64)
-        for c in 48..64 {
+        // Columns 48..55 receive continuous joint field trits as physical afferents
+        for (i, c) in (48..56).enumerate() {
+            let mut dsf_aff = vec![0i8; L4_NODES];
+            let val = if self.continuous_joint_field_present { self.continuous_joint_field[i] } else { 0.0 };
+            if val != 0.0 {
+                dsf_aff[0] = if val > 0.0 { 1 } else { -1 };
+            } else if c < sensory_trits.len() {
+                dsf_aff[0] = sensory_trits[c];
+            }
+            let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(&dsf_aff, somatic_trits, &in_23[c], &in_5[c]);
+            total_yields += yc; total_strain += sc;
+        }
+        for c in 56..64 {
             let mut dsf_aff = vec![0i8; L4_NODES];
             if c < sensory_trits.len() {
                 dsf_aff[0] = sensory_trits[c];
@@ -2090,6 +2327,14 @@ impl ModularSubstrate64D {
             buf.extend_from_slice(&idx.to_le_bytes());
         }
 
+        // Full continuous joint field serialization (64 bytes: 8 * f64)
+        for &val in &self.continuous_joint_field {
+            if !val.is_finite() {
+                return Err("Non-finite float in continuous joint field during export".to_string());
+            }
+            buf.extend_from_slice(&val.to_le_bytes());
+        }
+
         let pad = (8 - (buf.len() % 8)) % 8;
         for _ in 0..pad {
             buf.push(0);
@@ -2098,69 +2343,136 @@ impl ModularSubstrate64D {
         Ok(buf)
     }
 
-    pub fn export_sparse_v2(&self) -> Result<Vec<u8>, String> {
-        if !self.yield_threshold.is_finite() || !self.plastic_rate.is_finite() || !self.activation_threshold.is_finite() ||
-           !self.motor_vocal_drive.is_finite() || !self.motor_locomotion_stride.is_finite() ||
-           !self.motor_steer_angle.is_finite() || !self.motor_grip_force.is_finite() {
-            return Err("Non-finite float in 64D substrate header/footer during export".to_string());
-        }
-        let mut buf = Vec::with_capacity(131072);
-        buf.extend_from_slice(ARCLOOM_STATE_MAGIC_V2);
-        buf.extend_from_slice(&ARCLOOM_STATE_VERSION_V2.to_le_bytes());
-        buf.extend_from_slice(&(NUM_COLUMNS_64D as u16).to_le_bytes());
-        buf.extend_from_slice(&self.yield_threshold.to_le_bytes());
-        buf.extend_from_slice(&self.plastic_rate.to_le_bytes());
-        buf.extend_from_slice(&self.activation_threshold.to_le_bytes());
-
-        for col in &self.columns {
-            serialize_column_state(col, &mut buf)?;
-        }
-
-        let mut nz_23: Vec<(u32, f32)> = Vec::with_capacity(self.active_inter_23.len());
-        for &idx in &self.active_inter_23 {
-            let g = self.w_inter_23[idx];
-            if !g.is_finite() {
-                return Err(format!("Non-finite synaptic weight in w_inter_23 at idx {}", idx));
+    fn try_parse_v2_internal(
+        &self,
+        data: &[u8],
+        yield_th: f32,
+        plastic_rt: f32,
+        activation_th: f32,
+        use_36b_headers: bool,
+    ) -> Result<StagedSubstrateState, String> {
+        let mut temp_columns = self.columns.clone();
+        let mut offset = 24;
+        for (col_idx, col) in temp_columns.iter_mut().enumerate() {
+            if use_36b_headers {
+                offset = deserialize_column_state(col, data, offset, col_idx, NUM_COLUMNS_64D)?;
+            } else {
+                offset = deserialize_column_state_v2_24b(col, data, offset, col_idx, NUM_COLUMNS_64D)?;
             }
-            if g != 0.0 { nz_23.push((idx as u32, g)); }
-        }
-        buf.extend_from_slice(&(nz_23.len() as u32).to_le_bytes());
-        for (idx, g) in nz_23 {
-            buf.extend_from_slice(&idx.to_le_bytes());
-            buf.extend_from_slice(&g.to_le_bytes());
         }
 
-        let mut nz_5: Vec<(u32, f32)> = Vec::with_capacity(self.active_inter_5.len());
-        for &idx in &self.active_inter_5 {
-            let g = self.w_inter_5[idx];
-            if !g.is_finite() {
-                return Err(format!("Non-finite synaptic weight in w_inter_5 at idx {}", idx));
+        if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_23 count".to_string()); }
+        let count_23 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
+        offset += 4;
+
+        if offset + count_23 * 8 > data.len() { return Err("Unexpected EOF in w_inter_23 entries".to_string()); }
+        let mut new_w_23 = vec![0.0f32; self.w_inter_23.len()];
+        let mut new_act_23 = Vec::new();
+        let mut seen_23 = HashSet::new();
+        for _ in 0..count_23 {
+            let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
+            let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+            if !g.is_finite() { return Err("Non-finite synaptic weight in w_inter_23".to_string()); }
+            if g < -1.0 || g > 1.0 { return Err(format!("Inter-column synaptic weight out of bounds [-1.0, 1.0]: {}", g)); }
+            if idx >= new_w_23.len() {
+                return Err(format!("Synaptic index out of bounds: {} >= {}", idx, new_w_23.len()));
             }
-            if g != 0.0 { nz_5.push((idx as u32, g)); }
-        }
-        buf.extend_from_slice(&(nz_5.len() as u32).to_le_bytes());
-        for (idx, g) in nz_5 {
-            buf.extend_from_slice(&idx.to_le_bytes());
-            buf.extend_from_slice(&g.to_le_bytes());
-        }
-
-        buf.extend_from_slice(&self.motor_vocal_drive.to_le_bytes());
-        buf.extend_from_slice(&self.motor_locomotion_stride.to_le_bytes());
-        buf.extend_from_slice(&self.motor_steer_angle.to_le_bytes());
-        buf.extend_from_slice(&self.motor_grip_force.to_le_bytes());
-
-        // ARCLOOM2 does not serialize severed tracts
-        let pad = (8 - (buf.len() % 8)) % 8;
-        for _ in 0..pad {
-            buf.push(0);
+            if !seen_23.insert(idx) {
+                return Err(format!("Duplicate synaptic index in w_inter_23: {}", idx));
+            }
+            new_w_23[idx] = g;
+            if g != 0.0 { new_act_23.push(idx); }
         }
 
-        Ok(buf)
+        if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_5 count".to_string()); }
+        let count_5 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
+        offset += 4;
+
+        if offset + count_5 * 8 > data.len() { return Err("Unexpected EOF in w_inter_5 entries".to_string()); }
+        let mut new_w_5 = vec![0.0f32; self.w_inter_5.len()];
+        let mut new_act_5 = Vec::new();
+        let mut seen_5 = HashSet::new();
+        for _ in 0..count_5 {
+            let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
+            let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+            if !g.is_finite() { return Err("Non-finite synaptic weight in w_inter_5".to_string()); }
+            if g < -1.0 || g > 1.0 { return Err(format!("Inter-column synaptic weight out of bounds [-1.0, 1.0]: {}", g)); }
+            if idx >= new_w_5.len() {
+                return Err(format!("Synaptic index out of bounds: {} >= {}", idx, new_w_5.len()));
+            }
+            if !seen_5.insert(idx) {
+                return Err(format!("Duplicate synaptic index in w_inter_5: {}", idx));
+            }
+            new_w_5[idx] = g;
+            if g != 0.0 { new_act_5.push(idx); }
+        }
+
+        if offset + 16 > data.len() {
+            return Err("Missing or truncated motor efferent footer in ARCLOOM2 payload".to_string());
+        }
+        let new_vocal = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+        let new_stride = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+        let new_steer = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+        let new_grip = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+
+        if !new_vocal.is_finite() || !new_stride.is_finite() || !new_steer.is_finite() || !new_grip.is_finite() {
+            return Err("Non-finite float in motor efferent footer".to_string());
+        }
+
+        let mut new_severed = vec![false; NUM_COLUMNS_64D * NUM_COLUMNS_64D];
+        if use_36b_headers {
+            if offset + 4 > data.len() {
+                return Err("Unexpected EOF reading severed tracts count in 8c3244cb3".to_string());
+            }
+            let sev_count = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
+            offset += 4;
+            if offset + sev_count * 4 > data.len() {
+                return Err("Unexpected EOF reading severed tracts indices in 8c3244cb3".to_string());
+            }
+            for _ in 0..sev_count {
+                let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
+                offset += 4;
+                if idx < new_severed.len() {
+                    new_severed[idx] = true;
+                } else {
+                    return Err(format!("Severed tract index out of bounds: {}", idx));
+                }
+            }
+        }
+
+        let expected_pad = (8 - (offset % 8)) % 8;
+        let actual_pad = data.len() - offset;
+        if actual_pad != expected_pad {
+            return Err(format!("Incorrect trailing alignment padding in ARCLOOM2 payload: expected {} bytes, got {}", expected_pad, actual_pad));
+        }
+        for i in 0..expected_pad {
+            if data[offset + i] != 0 {
+                return Err("Non-zero padding byte in ARCLOOM2 payload".to_string());
+            }
+        }
+
+        Ok(StagedSubstrateState {
+            yield_threshold: yield_th,
+            plastic_rate: plastic_rt,
+            activation_threshold: activation_th,
+            columns: temp_columns,
+            w_inter_23: new_w_23,
+            active_inter_23: new_act_23,
+            w_inter_5: new_w_5,
+            active_inter_5: new_act_5,
+            severed_tracts: new_severed,
+            continuous_joint_field: [0.0; 8],
+            continuous_joint_field_present: false,
+            motor_vocal_drive: new_vocal,
+            motor_locomotion_stride: new_stride,
+            motor_steer_angle: new_steer,
+            motor_grip_force: new_grip,
+        })
     }
 
-    pub fn import_sparse_v2(&mut self, data: &[u8]) -> Result<(), String> {
+    pub fn migrate_predecessor_v2(&mut self, data: &[u8]) -> Result<(), String> {
         if data.is_empty() {
-            return Err("Cannot import from empty byte buffer".to_string());
+            return Err("Cannot migrate from empty byte buffer".to_string());
         }
         if data.len() < 24 {
             return Err("Truncated ARCLOOM2 header: less than 24 bytes".to_string());
@@ -2188,99 +2500,25 @@ impl ModularSubstrate64D {
             return Err("Invalid parameter domain in ArcLoom header".to_string());
         }
 
-        let mut temp_columns = self.columns.clone();
-        let mut offset = 24;
-        for col in &mut temp_columns {
-            offset = deserialize_column_state(col, data, offset, NUM_COLUMNS_64D)?;
+        // Two authentic historical layouts:
+        // 1. Revision 8c3244cb3: 36-byte column headers + severed tracts section
+        let res_36 = self.try_parse_v2_internal(data, new_yield, new_plastic, new_activation, true);
+        if let Ok(staged) = res_36 {
+            self.commit_staged_state(staged);
+            return Ok(());
         }
 
-        if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_23 count".to_string()); }
-        let count_23 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
-        offset += 4;
-
-        if offset + count_23 * 8 > data.len() { return Err("Unexpected EOF in w_inter_23 entries".to_string()); }
-        let mut new_w_23 = vec![0.0f32; self.w_inter_23.len()];
-        let mut new_act_23 = Vec::new();
-        let mut seen_23 = HashSet::new();
-        for _ in 0..count_23 {
-            let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
-            let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
-            if !g.is_finite() { return Err("Non-finite synaptic weight in w_inter_23".to_string()); }
-            if idx >= new_w_23.len() {
-                return Err(format!("Synaptic index out of bounds: {} >= {}", idx, new_w_23.len()));
-            }
-            if !seen_23.insert(idx) {
-                return Err(format!("Duplicate synaptic index in w_inter_23: {}", idx));
-            }
-            new_w_23[idx] = g;
-            if g != 0.0 { new_act_23.push(idx); }
+        // 2. Revision cb69d23ea: 24-byte column headers + default unsevered topology
+        let res_24 = self.try_parse_v2_internal(data, new_yield, new_plastic, new_activation, false);
+        if let Ok(staged) = res_24 {
+            self.commit_staged_state(staged);
+            return Ok(());
         }
 
-        if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_5 count".to_string()); }
-        let count_5 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
-        offset += 4;
-
-        if offset + count_5 * 8 > data.len() { return Err("Unexpected EOF in w_inter_5 entries".to_string()); }
-        let mut new_w_5 = vec![0.0f32; self.w_inter_5.len()];
-        let mut new_act_5 = Vec::new();
-        let mut seen_5 = HashSet::new();
-        for _ in 0..count_5 {
-            let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
-            let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
-            if !g.is_finite() { return Err("Non-finite synaptic weight in w_inter_5".to_string()); }
-            if idx >= new_w_5.len() {
-                return Err(format!("Synaptic index out of bounds: {} >= {}", idx, new_w_5.len()));
-            }
-            if !seen_5.insert(idx) {
-                return Err(format!("Duplicate synaptic index in w_inter_5: {}", idx));
-            }
-            new_w_5[idx] = g;
-            if g != 0.0 { new_act_5.push(idx); }
-        }
-
-        if offset + 16 > data.len() {
-            return Err("Missing or truncated motor efferent footer in ARCLOOM2 payload".to_string());
-        }
-        let new_vocal = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
-        let new_stride = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
-        let new_steer = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
-        let new_grip = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
-
-        if !new_vocal.is_finite() || !new_stride.is_finite() || !new_steer.is_finite() || !new_grip.is_finite() {
-            return Err("Non-finite float in motor efferent footer".to_string());
-        }
-
-        // ARCLOOM2 sets default unsevered topology
-        let new_severed = vec![false; NUM_COLUMNS_64D * NUM_COLUMNS_64D];
-
-        let expected_pad = (8 - (offset % 8)) % 8;
-        let actual_pad = data.len() - offset;
-        if actual_pad != expected_pad {
-            return Err(format!("Incorrect trailing alignment padding in ARCLOOM2 payload: expected {} bytes, got {}", expected_pad, actual_pad));
-        }
-        for i in 0..expected_pad {
-            if data[offset + i] != 0 {
-                return Err("Non-zero padding byte in ARCLOOM2 payload".to_string());
-            }
-        }
-
-        self.yield_threshold = new_yield;
-        self.plastic_rate = new_plastic;
-        self.activation_threshold = new_activation;
-        self.columns = temp_columns;
-        self.w_inter_23 = new_w_23;
-        self.active_inter_23 = new_act_23;
-        self.w_inter_5 = new_w_5;
-        self.active_inter_5 = new_act_5;
-        self.severed_tracts = new_severed;
-        self.motor_vocal_drive = new_vocal;
-        self.motor_locomotion_stride = new_stride;
-        self.motor_steer_angle = new_steer;
-        self.motor_grip_force = new_grip;
-        Ok(())
+        Err(format!("Failed to parse ARCLOOM2 payload under both authentic historical schemas (36B severed: {:?}, 24B unsevered: {:?})", res_36.err(), res_24.err()))
     }
 
-    pub fn import_sparse_v3(&mut self, data: &[u8]) -> Result<(), String> {
+    fn try_parse_v3_internal(&self, data: &[u8]) -> Result<StagedSubstrateState, String> {
         if data.is_empty() {
             return Err("Cannot import from empty byte buffer".to_string());
         }
@@ -2289,7 +2527,7 @@ impl ModularSubstrate64D {
         }
         let magic = &data[0..8];
         if magic == ARCLOOM_STATE_MAGIC_V2 {
-            return self.import_sparse_v2(data);
+            return Err("Invalid magic: found ARCLOOM2 payload in ARCLOOM3 importer. Historical predecessor migration must be performed explicitly via migrate_predecessor_v2()".to_string());
         }
         if magic != ARCLOOM_STATE_MAGIC_V3 {
             return Err(format!("Invalid ArcLoom state format: unknown magic header {:?}", magic));
@@ -2318,8 +2556,8 @@ impl ModularSubstrate64D {
 
         let mut temp_columns = self.columns.clone();
         let mut offset = 24;
-        for col in &mut temp_columns {
-            offset = deserialize_column_state(col, data, offset, NUM_COLUMNS_64D)?;
+        for (col_idx, col) in temp_columns.iter_mut().enumerate() {
+            offset = deserialize_column_state(col, data, offset, col_idx, NUM_COLUMNS_64D)?;
         }
 
         if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_23 count".to_string()); }
@@ -2334,6 +2572,7 @@ impl ModularSubstrate64D {
             let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
             let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
             if !g.is_finite() { return Err("Non-finite synaptic weight in w_inter_23".to_string()); }
+            if g < -1.0 || g > 1.0 { return Err(format!("Inter-column synaptic weight out of bounds [-1.0, 1.0]: {}", g)); }
             if idx >= new_w_23.len() {
                 return Err(format!("Synaptic index out of bounds: {} >= {}", idx, new_w_23.len()));
             }
@@ -2356,6 +2595,7 @@ impl ModularSubstrate64D {
             let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
             let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
             if !g.is_finite() { return Err("Non-finite synaptic weight in w_inter_5".to_string()); }
+            if g < -1.0 || g > 1.0 { return Err(format!("Inter-column synaptic weight out of bounds [-1.0, 1.0]: {}", g)); }
             if idx >= new_w_5.len() {
                 return Err(format!("Synaptic index out of bounds: {} >= {}", idx, new_w_5.len()));
             }
@@ -2379,25 +2619,41 @@ impl ModularSubstrate64D {
         }
 
         if offset + 4 > data.len() {
-            return Err("Unexpected EOF reading severed tracts count".to_string());
+            return Err("Unexpected EOF reading severed tracts count in ARCLOOM3".to_string());
         }
-        let severed_count = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
+        let sev_count = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
         offset += 4;
-        if offset + severed_count * 4 > data.len() {
-            return Err("Unexpected EOF reading severed tracts indices".to_string());
+
+        if offset + sev_count * 4 > data.len() {
+            return Err("Unexpected EOF reading severed tracts indices in ARCLOOM3".to_string());
         }
         let mut new_severed = vec![false; NUM_COLUMNS_64D * NUM_COLUMNS_64D];
-        let mut seen_severed = HashSet::new();
-        for _ in 0..severed_count {
+        for _ in 0..sev_count {
             let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
             offset += 4;
-            if idx >= new_severed.len() {
-                return Err(format!("Severed tract index out of bounds: {} >= {}", idx, new_severed.len()));
+            if idx < new_severed.len() {
+                new_severed[idx] = true;
+            } else {
+                return Err(format!("Severed tract index out of bounds: {}", idx));
             }
-            if !seen_severed.insert(idx) {
-                return Err(format!("Duplicate severed tract index: {}", idx));
+        }
+
+        // Full continuous joint field deserialization (64 bytes: 8 * f64)
+        if offset + 64 > data.len() {
+            return Err("Unexpected EOF reading continuous joint field in ARCLOOM3: requires 64 bytes".to_string());
+        }
+        let mut new_cjf = [0.0f64; 8];
+        for i in 0..8 {
+            let bytes = [
+                data[offset], data[offset+1], data[offset+2], data[offset+3],
+                data[offset+4], data[offset+5], data[offset+6], data[offset+7]
+            ];
+            offset += 8;
+            let val = f64::from_le_bytes(bytes);
+            if !val.is_finite() {
+                return Err(format!("Non-finite float in continuous joint field index {}", i));
             }
-            new_severed[idx] = true;
+            new_cjf[i] = val;
         }
 
         let expected_pad = (8 - (offset % 8)) % 8;
@@ -2411,23 +2667,30 @@ impl ModularSubstrate64D {
             }
         }
 
-        self.yield_threshold = new_yield;
-        self.plastic_rate = new_plastic;
-        self.activation_threshold = new_activation;
-        self.columns = temp_columns;
-        self.w_inter_23 = new_w_23;
-        self.active_inter_23 = new_act_23;
-        self.w_inter_5 = new_w_5;
-        self.active_inter_5 = new_act_5;
-        self.severed_tracts = new_severed;
-        self.motor_vocal_drive = new_vocal;
-        self.motor_locomotion_stride = new_stride;
-        self.motor_steer_angle = new_steer;
-        self.motor_grip_force = new_grip;
-        Ok(())
+        Ok(StagedSubstrateState {
+            yield_threshold: new_yield,
+            plastic_rate: new_plastic,
+            activation_threshold: new_activation,
+            columns: temp_columns,
+            w_inter_23: new_w_23,
+            active_inter_23: new_act_23,
+            w_inter_5: new_w_5,
+            active_inter_5: new_act_5,
+            severed_tracts: new_severed,
+            continuous_joint_field: new_cjf,
+            continuous_joint_field_present: new_cjf.iter().any(|&x| x != 0.0),
+            motor_vocal_drive: new_vocal,
+            motor_locomotion_stride: new_stride,
+            motor_steer_angle: new_steer,
+            motor_grip_force: new_grip,
+        })
     }
 
-}
+    pub fn import_sparse_v3(&mut self, data: &[u8]) -> Result<(), String> {
+        let staged = self.try_parse_v3_internal(data)?;
+        self.commit_staged_state(staged);
+        Ok(())
+    }}
 
 // ---------------------------------------------------------------------------
 // 6. PyO3 Native Bindings
@@ -2508,6 +2771,14 @@ impl PyModularSubstrate4D {
         self.inner.zero_plastic_weights();
     }
 
+    pub fn consume_continuous_joint_field(&mut self, _field_7d: Vec<f64>, _s_uf: f64) -> PyResult<()> {
+        Err(PyNotImplementedError::new_err("Continuous joint field transport requires 64-column cortical array"))
+    }
+
+    pub fn get_continuous_joint_field(&self) -> PyResult<Vec<f64>> {
+        Err(PyNotImplementedError::new_err("Continuous joint field query requires 64-column cortical array"))
+    }
+
     pub fn export_sparse(&self) -> PyResult<Vec<u8>> {
         self.inner.export_sparse_v3().map_err(|e| PyValueError::new_err(e))
     }
@@ -2516,20 +2787,12 @@ impl PyModularSubstrate4D {
         self.inner.export_sparse_v3().map_err(|e| PyValueError::new_err(e))
     }
 
-    pub fn export_sparse_v2(&self) -> PyResult<Vec<u8>> {
-        self.inner.export_sparse_v2().map_err(|e| PyValueError::new_err(e))
-    }
-
     pub fn import_sparse(&mut self, data: &[u8]) -> PyResult<()> {
         self.inner.import_sparse_v3(data).map_err(|e| PyValueError::new_err(e))
     }
 
     pub fn import_sparse_v3(&mut self, data: &[u8]) -> PyResult<()> {
         self.inner.import_sparse_v3(data).map_err(|e| PyValueError::new_err(e))
-    }
-
-    pub fn import_sparse_v2(&mut self, data: &[u8]) -> PyResult<()> {
-        self.inner.import_sparse_v2(data).map_err(|e| PyValueError::new_err(e))
     }
 }
 
@@ -2615,6 +2878,14 @@ impl PyModularSubstrate8D {
         self.inner.zero_plastic_weights();
     }
 
+    pub fn consume_continuous_joint_field(&mut self, _field_7d: Vec<f64>, _s_uf: f64) -> PyResult<()> {
+        Err(PyNotImplementedError::new_err("Continuous joint field transport requires 64-column cortical array"))
+    }
+
+    pub fn get_continuous_joint_field(&self) -> PyResult<Vec<f64>> {
+        Err(PyNotImplementedError::new_err("Continuous joint field query requires 64-column cortical array"))
+    }
+
     pub fn export_sparse(&self) -> PyResult<Vec<u8>> {
         self.inner.export_sparse_v3().map_err(|e| PyValueError::new_err(e))
     }
@@ -2623,20 +2894,12 @@ impl PyModularSubstrate8D {
         self.inner.export_sparse_v3().map_err(|e| PyValueError::new_err(e))
     }
 
-    pub fn export_sparse_v2(&self) -> PyResult<Vec<u8>> {
-        self.inner.export_sparse_v2().map_err(|e| PyValueError::new_err(e))
-    }
-
     pub fn import_sparse(&mut self, data: &[u8]) -> PyResult<()> {
         self.inner.import_sparse_v3(data).map_err(|e| PyValueError::new_err(e))
     }
 
     pub fn import_sparse_v3(&mut self, data: &[u8]) -> PyResult<()> {
         self.inner.import_sparse_v3(data).map_err(|e| PyValueError::new_err(e))
-    }
-
-    pub fn import_sparse_v2(&mut self, data: &[u8]) -> PyResult<()> {
-        self.inner.import_sparse_v2(data).map_err(|e| PyValueError::new_err(e))
     }
 }
 
@@ -2691,17 +2954,17 @@ impl PyModularSubstrate64D {
         )
     }
 
-    pub fn consume_continuous_joint_field(&mut self, field_7d: Vec<f32>, s_uf: f32) -> PyResult<()> {
+    pub fn consume_continuous_joint_field(&mut self, field_7d: Vec<f64>, s_uf: f64) -> PyResult<()> {
         if field_7d.len() != 7 {
             return Err(PyValueError::new_err(format!("Expected 7 field values, got {}", field_7d.len())));
         }
-        let mut arr = [0.0f32; 7];
+        let mut arr = [0.0f64; 7];
         arr.copy_from_slice(&field_7d);
         self.inner.consume_continuous_joint_field(arr, s_uf)
             .map_err(|e| PyValueError::new_err(e))
     }
 
-    pub fn get_continuous_joint_field(&self) -> (f32, f32, f32, f32, f32, f32, f32, f32) {
+    pub fn get_continuous_joint_field(&self) -> (f64, f64, f64, f64, f64, f64, f64, f64) {
         let f = self.inner.get_continuous_joint_field();
         (f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7])
     }
@@ -2762,10 +3025,6 @@ impl PyModularSubstrate64D {
         self.inner.export_sparse_v3().map_err(|e| PyValueError::new_err(e))
     }
 
-    pub fn export_sparse_v2(&self) -> PyResult<Vec<u8>> {
-        self.inner.export_sparse_v2().map_err(|e| PyValueError::new_err(e))
-    }
-
     pub fn import_sparse(&mut self, data: &[u8]) -> PyResult<()> {
         self.inner.import_sparse_v3(data).map_err(|e| PyValueError::new_err(e))
     }
@@ -2774,8 +3033,8 @@ impl PyModularSubstrate64D {
         self.inner.import_sparse_v3(data).map_err(|e| PyValueError::new_err(e))
     }
 
-    pub fn import_sparse_v2(&mut self, data: &[u8]) -> PyResult<()> {
-        self.inner.import_sparse_v2(data).map_err(|e| PyValueError::new_err(e))
+    pub fn migrate_predecessor_v2(&mut self, data: &[u8]) -> PyResult<()> {
+        self.inner.migrate_predecessor_v2(data).map_err(|e| PyValueError::new_err(e))
     }
 }
 

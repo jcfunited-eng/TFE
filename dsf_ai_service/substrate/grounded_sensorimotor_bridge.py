@@ -236,7 +236,7 @@ class GroundedSensorimotorBridge:
                 "steer_deg": motor_eff[2] if len(motor_eff) > 2 else 0.0,
                 "grip_force_n": motor_eff[3] if len(motor_eff) > 3 else 0.0,
                 "proposed_action": proposed_act,
-                "applied_action": proposed_act,
+                "applied_action": None,  # Grounded consequence is settled exclusively by canonical world execution
                 "receipt": receipt,
             },
         }
@@ -362,7 +362,7 @@ class GroundedSensorimotorBridge:
         return InvariantVetoReceipt(
             verdict="ADMITTED",
             proposed_action=proposed_act,
-            applied_action=proposed_act,
+            applied_action=None,  # Settled world consequence is determined by world execution, not bridge admission
             action_receipt={
                 "requested_action": act_type,
                 "admitted_stride_mm": target_stride,
