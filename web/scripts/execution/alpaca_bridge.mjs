@@ -843,6 +843,13 @@ export async function executeCh2BracketOrder(signal) {
       status:            "pending",
       rationale_json: {
         chapter:          2,
+        // FIELD-R1 (2026-09-30): the field governs exposure, the particle's
+        // reporting cycle governs selection; the exit is FIELD-X1, the close
+        // of the 10th session after entry, plus the -20% brake. Recorded so
+        // the sentinel applies the law the position was opened under.
+        entry_law:        signal.entry_law ?? "V3-BASIN",
+        field:            signal.field ?? null,
+        cycle:            signal.cycle ?? null,
         regime:           signal.regime,
         s_uf:             signal.s_uf,
         d_k:              signal.d_k,
@@ -850,8 +857,8 @@ export async function executeCh2BracketOrder(signal) {
         // Recorded exits must be the REAL ones. "s_uf >= 0.75" sat here
         // long after that trigger was deleted (EXIT-A, no derivation) —
         // every ledger row was citing an exit that could never fire.
-        exit_trigger_a:   "basin_break >= 0.20",
-        exit_trigger_b:   "d_k != 1",
+        exit_trigger_a:   signal.entry_law === "FIELD-R1" ? "FIELD-X1: close of the 10th session after entry" : "basin_break >= 0.20",
+        exit_trigger_b:   signal.entry_law === "FIELD-R1" ? "ch2_catastrophic_floor -20%" : "d_k != 1",
         run_id:           signal.run_id,
         vault_equity:     vaultEquity,
         // The WHY of the trade, permanently: entry-time coupled read.

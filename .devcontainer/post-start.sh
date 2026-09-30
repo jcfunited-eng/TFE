@@ -35,6 +35,7 @@ start_loop() {
 start_loop tools/ch4_spring_daily_runner.sh        artifacts/vtvr_observer/ch4_spring_runner.log
 start_loop tools/ch6_loop.sh                       artifacts/vtvr_observer/ch6_runner.log
 start_loop tools/ch3_shadow_loop.sh                artifacts/vtvr_observer/ch3_shadow_loop.log
+start_loop tools/ch2_field_loop.sh                 artifacts/vtvr_observer/ch2_field_loop_stdout.log
 start_loop tools/channel_book_publication_loop.sh  artifacts/vtvr_observer/channel_book_publication.log
 start_loop tools/db_rotation_guard.sh              artifacts/vtvr_observer/db_rotation_guard.log
 # 2026-09-23: the loops die every few days, not only on container start

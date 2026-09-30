@@ -1,13 +1,29 @@
 /**
  * web/scripts/execution/ch2_strategist.mjs
- * PEE-1 Chapter 2 Strategist — V3 Basin Gate
+ * PEE-1 Chapter 2 Strategist — FIELD-R1 (the field governs exposure; the
+ * particle's reporting cycle governs selection). Claude's law, 2026-09-30,
+ * on Joe's word: "as long as it's a positive move go for it." One system:
+ * this replaces the V3 basin as the entry decision. Receipt:
+ * docs/CH2_CANON_KERNEL_FULL_BAR_20260930.md (book: every year positive
+ * 2022–2026, +$54k–$68k on $100k, one day in four in the market).
  *
  * Entry conditions (ALL must be true):
- *   1. computeV3Basin → decision_argmax = 'Accumulate'
- *   2. accumulate_basin >= 0.15
+ *   1. FIELD-R1: today's field state (ch2_field_state, written nightly by
+ *      tools/ch2_field_nightly_db.py from the pool's own bars) says
+ *      field_long — an epic window, a field-wide down-release, or a
+ *      charging & quiet field, never while the field's 20-day release
+ *      polarity is UP, and in a bear regime only the epic window.
+ *   2. the name is in today's ch2_field_eligible: tradeable by the
+ *      field job's filters and 61–95 days into its reporting cycle
+ *      (not a late filer, not 0–3 days after a report).
  *   3. bar_count > 20  — established stock
  *   4. avg dollar volume >= $2M  — liquidity floor (ENTRY-R5, re-based 2026-09-23)
  *   5. asset_type = 'stock'  — no funds, no crypto, no indexes (ENTRY-R11, Joe 2026-09-23)
+ *   6. ENTRY-R12: the reading's last bar is the run's session
+ *   Order: the field's priority (epic 0 > down-release 1 > charging 2),
+ *   then the name closest to its report first.
+ *   The V3 basin is still computed and recorded on each signal for the
+ *   ledger; it no longer decides.
  *
  * Replaces TFE-CMD-V3-BASIN-DETERMINISTIC-WC-20260707-v1: tuple-proximity
  * decision_label gate and D_k=1 scalar gate removed. V3 basin coupled math
@@ -135,6 +151,64 @@ export function readingsAreStale(ageMs, maxAgeMs = CH2_READINGS_MAX_AGE_MS) {
  * Fetch all Chapter 2 candidate rows for the given run_id.
  * Filters at the DB level for performance.
  */
+// ── FIELD-R1: today's field state and eligible names ───────────────────────
+// Written by tools/ch2_field_nightly_db.py after the close. The state is as
+// of the last closed session; the entry pass the next morning reads it. If
+// it is older than the readings' session by more than 3 calendar days the
+// field is unknown and nothing is bought (safe default).
+export const CH2_FIELD_MAX_LAG_DAYS = 3;
+
+export function fieldStateIsCurrent(asOf, sessionDate, maxLagDays = CH2_FIELD_MAX_LAG_DAYS) {
+  if (!asOf || !sessionDate) return false;
+  const a = new Date(String(asOf).slice(0, 10) + "T00:00:00Z").getTime();
+  const b = new Date(String(sessionDate).slice(0, 10) + "T00:00:00Z").getTime();
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return false;
+  return (b - a) / 864e5 <= maxLagDays;
+}
+
+async function fetchFieldState() {
+  const res = await pool.query(`SELECT as_of::text AS as_of, state FROM ch2_field_state ORDER BY as_of DESC LIMIT 1`);
+  if (!res.rows.length) return null;
+  const row = res.rows[0];
+  const state = typeof row.state === "string" ? JSON.parse(row.state) : row.state;
+  return { as_of: row.as_of, ...state };
+}
+
+async function fetchFieldEligible(asOf) {
+  const res = await pool.query(`SELECT ticker, dsl, age, priority FROM ch2_field_eligible WHERE as_of = $1::date`, [asOf]);
+  const out = new Map();
+  for (const r of res.rows) out.set(String(r.ticker).trim().toUpperCase(), { dsl: toInt(r.dsl), age: toInt(r.age), priority: toInt(r.priority) });
+  return out;
+}
+
+// The signal a FIELD-R1 entry carries: the tuple fields for the ledger
+// (recorded, not decided on), the field state, and the name's cycle position.
+function parseFieldSignal(row, elig, field) {
+  const snap     = row.snapshot_row_json ?? {};
+  const ticker   = String(row.ticker ?? "").trim().toUpperCase();
+  const runId    = String(row.run_id ?? "").trim();
+  const barCount = toInt(snap.bar_count ?? row.bar_count);
+  if (!ticker || !runId)                                 return null;
+  if (barCount === null || barCount < CH2_BAR_COUNT_MIN) return null;
+  const basin = computeV3Basin({
+    S_UF: toFloat(snap.S_UF ?? snap.s_uf), R_UF: toFloat(snap.R_UF ?? snap.r_uf), D_k: toFloat(snap.D_k ?? snap.d_k),
+    M_k: toFloat(snap.M_k ?? snap.m_k), R_rev_k: toFloat(snap.R_rev_k ?? snap.r_rev_k), U_star_k: toFloat(snap.U_star_k ?? snap.u_star_k),
+    C_k: toFloat(snap.C_k ?? snap.c_k), P_k: toFloat(snap.P_k ?? snap.p_k), B_k: toFloat(snap.B_k ?? snap.b_k),
+  });
+  return {
+    ticker, run_id: runId, signal_class: "CH2",
+    s_uf: toFloat(snap.S_UF ?? snap.s_uf), d_k: toFloat(snap.D_k ?? snap.d_k), bar_count: barCount,
+    b_k: toFloat(snap.B_k ?? snap.b_k), f_n: toFloat(snap.F_n ?? snap.f_n),
+    sector: String(row.sector ?? "Unknown").trim(), spy_dk: null,
+    v3_basin: basin,
+    entry_law: "FIELD-R1",
+    field: { as_of: field.as_of, priority: field.priority, rules: field.rules, bear: field.bear, phase: field.phase, polarity20: field.polarity20,
+             slow120: field.slow120, temperature: field.temperature, releasing: field.releasing },
+    cycle: { dsl: elig.dsl, age: elig.age },
+    priority: elig.priority,
+  };
+}
+
 async function fetchCandidateRows(runId) {
   const res = await pool.query(
     `SELECT
@@ -343,7 +417,26 @@ export async function getCh2Signals() {
   });
   console.log(`[CH2-DIAG] session=${sessionDate} | current readings: ${rows.length} of ${allRows.length} candidates`);
 
-  const signals = rows.map(parseSignal).filter(Boolean);
+  // ── FIELD-R1: the field governs exposure ─────────────────────────────
+  let field = null;
+  try { field = await fetchFieldState(); } catch (e) { console.log(`[CH2-FIELD] state unavailable: ${e.message}`); }
+  if (!field) { console.log("[CH2-FIELD] NO FIELD STATE — no entries (the nightly field job has not written ch2_field_state)"); return []; }
+  if (!fieldStateIsCurrent(field.as_of, sessionDate)) {
+    console.log(`[CH2-FIELD] FIELD STATE STALE — as_of ${field.as_of} vs session ${sessionDate} (> ${CH2_FIELD_MAX_LAG_DAYS}d) — no entries`);
+    return [];
+  }
+  console.log(`[CH2-FIELD] as_of=${field.as_of} | field_long=${field.field_long} | priority=${field.priority} | bear=${field.bear} | slow120=${field.slow120} | phase=${field.phase} | polarity20=${field.polarity20} | releasing=${field.releasing} (${field.releasing_band}) | temperature=${field.temperature} | epic_window=${field.epic_window} | rules=${JSON.stringify(field.rules)} | eligible=${field.eligible_names}`);
+  if (!field.field_long) { console.log("[CH2-FIELD] FIELD NOT LONG — no entries today"); return []; }
+
+  const eligible = await fetchFieldEligible(field.as_of);
+  const signals = [];
+  for (const row of rows) {
+    const t = String(row.ticker ?? "").trim().toUpperCase();
+    const e = eligible.get(t);
+    if (!e) continue;
+    const sig = parseFieldSignal(row, e, field);
+    if (sig) signals.push(sig);
+  }
 
   // Exclude tickers that already have open positions
   const openTickers = await fetchOpenPositionTickers();
@@ -355,34 +448,16 @@ export async function getCh2Signals() {
     return true;
   });
 
-  // L5 epoch governance — sort by sector pressure, block epoch-adverse stocks
-  let g32 = {};
-  try { g32 = JSON.parse(readFileSync("/app/g32_state.json", "utf-8")); } catch {}
-  const sectorPressures = g32.sector_pressures ?? {};
+  // Order: the field's priority first (epic 0 > down-release 1 > charging 2),
+  // then the name closest to its report. The epoch/sector governance that
+  // sorted the old basin list is retired with it (FIELD-R1 is the governance).
+  deduped.sort((a, b) => (a.priority - b.priority) || ((b.cycle?.dsl ?? 0) - (a.cycle?.dsl ?? 0)));
 
-  // Add epoch pressure to each signal
+  console.log(`[CH2-STRATEGIST] ${rows.length} candidates → ${signals.length} in the field's eligible list → ${deduped.length} after dedup (FIELD-R1, priority ${field.priority})`);
   for (const s of deduped) {
-    s.epoch_pressure = sectorPressures[s.sector] ?? 0;
+    console.log(`[CH2-STRATEGIST]   ${s.ticker} | dsl=${s.cycle.dsl} | age=${s.cycle.age} | priority=${s.priority} | acc(recorded)=${s.v3_basin ? s.v3_basin.accumulate_basin.toFixed(4) : "n/a"} | sector=${s.sector}`);
   }
-
-  // Block stocks in heavily adverse sectors (pressure < -0.5)
-  const governed = deduped.filter(s => {
-    if (s.epoch_pressure < -0.5) {
-      console.log(`[CH2-STRATEGIST]   ${s.ticker} — BLOCKED (sector ${s.sector} epoch pressure ${s.epoch_pressure.toFixed(2)})`);
-      return false;
-    }
-    return true;
-  });
-
-  // Sort: epoch-favored sectors first, then by accumulate_basin DESC
-  governed.sort((a, b) => (b.epoch_pressure - a.epoch_pressure) || (b.v3_basin.accumulate_basin - a.v3_basin.accumulate_basin));
-
-  console.log(`[CH2-STRATEGIST] ${rows.length} candidates → ${signals.length} passed V3 basin → ${deduped.length} dedup → ${governed.length} after epoch governance`);
-  for (const s of governed) {
-    console.log(`[CH2-STRATEGIST]   ${s.ticker} | acc=${s.v3_basin.accumulate_basin.toFixed(4)} | break=${s.v3_basin.break_agreement.toFixed(4)} | sector=${s.sector} | epoch=${s.epoch_pressure?.toFixed(2) ?? "?"}`);
-  }
-
-  return governed;
+  return deduped;
 }
 
 export async function closeCh2StrategistPool() {

@@ -27,6 +27,8 @@ import {
 import { computeV3Basin } from "./v3_basin.mjs";
 // THE DEAD CLOCK (Joseph 2026-09-15): the loss side of the exit law, able to run out.
 import { ch2DeadClock, CH2_DEAD_SESSIONS, CH2_DAMAGE_PCT } from "./ch2_dead_clock.mjs";
+// FIELD-X1 hold, in closed sessions (the book was measured on a 10-session hold).
+export const CH2_FIELD_HOLD_SESSIONS = 10;
 // assessExit import removed — EXIT-S removed (arbitrary thresholds, no backtest)
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
@@ -1328,6 +1330,38 @@ export async function runSentinel() {
     if (signalClass === "CH2") {
       const currentSUf = isFinite(fields.s_uf) ? fields.s_uf : null;
       const currentDk  = isFinite(fields.d_k)  ? fields.d_k  : null;
+
+      // ── FIELD-X1 (Claude 2026-09-30): positions opened under FIELD-R1 ──
+      // The law the position was opened under is in its rationale. Its exit
+      // is the close of the 10th closed session after entry — the hold the
+      // book was measured on (docs/CH2_CANON_KERNEL_FULL_BAR_20260930.md) —
+      // plus the -20% brake above (EXIT-F). The old kernel's exits (profit
+      // protect, dead clock, 90-day wall, basin break, verdict sheet) do not
+      // apply to it: one law per position. Sessions are counted from
+      // daily_bars, closed sessions only; a missing history never sells.
+      if (String(pos.rationale_json?.entry_law ?? "") === "FIELD-R1") {
+        try {
+          if (posEntryDate && isMarketHoursForExitF()) {
+            const sess = await pool.query(
+              `SELECT count(*)::int AS n FROM daily_bars
+                WHERE ticker = $1 AND bar_date > $2::date
+                  AND bar_date < (NOW() AT TIME ZONE 'America/New_York')::date`,
+              [pos.ticker, posEntryDate.toISOString().slice(0, 10)]
+            );
+            const closedSessions = sess.rows[0]?.n ?? 0;
+            // today is the (closedSessions + 1)th session; sell at the 10th
+            if (closedSessions + 1 >= CH2_FIELD_HOLD_SESSIONS) {
+              console.log(`[SENTINEL] CH2 ${pos.ticker} FIELD-X1 | session ${closedSessions + 1} of ${CH2_FIELD_HOLD_SESSIONS} since entry ${posEntryDate.toISOString().slice(0, 10)} — selling`);
+              await killPosition(pos, "field_x1_hold_complete", ALPACA_BASE);
+              continue;
+            }
+            console.log(`[SENTINEL] CH2 ${pos.ticker} FIELD-R1 position | session ${closedSessions + 1} of ${CH2_FIELD_HOLD_SESSIONS} — holding (field law; brake -20% only)`);
+          }
+        } catch (fx) {
+          console.log(`[SENTINEL] CH2 ${pos.ticker} FIELD-X1 error: ${fx.message} — holding`);
+        }
+        continue;
+      }
 
       // ── PROFIT PROTECT: free-fall guard (engages only above +20%) ────
       if (livePosEntry !== null && livePosPrice !== null) {
