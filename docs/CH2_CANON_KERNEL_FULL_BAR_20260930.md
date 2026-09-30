@@ -137,3 +137,25 @@ per $1 (n too small to mean anything).
 the null to the count. With volume as the canon's relevance the same
 modest excess over null appears that July found on the old kernel, and it
 is not yet enough to act on per year.**
+
+## Evening 09-30 — the field, the epics, reality's calendar (all per year, 10-day horizon)
+Tools: `ch2_l5_field_distribution.py` (field = distribution of readings over the pool),
+`ch2_l5_field_phase.py` (charge/discharge cycle — the quarterly heartbeat, seen first in
+`artifacts/ch2_life/field_over_time.png`), field temperature (each particle's energy vs its own
+normal, median over the pool — finds the epics: Feb 2018, Dec 2018, COVID, Jan/Feb/May/Jun 2022,
+Aug 2024, Nov 2024, Apr 2025; the herd-relative release share is blind to them by construction),
+`fetch_filings_pool.py` (2,490 names' filing dates; cadence median 91 days).
+```
+hold 10 sessions, per year                         2021        2022        2023        2024        2025        2026      all
+N0  every tradeable day                          54.2 +0.72  47.6 −0.38  52.2 +0.58  51.3 +0.54  53.8 +0.81  50.8 +0.58  51.7 +0.47
+F   field-long: epic window OR field-wide down-release OR charging&quiet, and NOT polarity UP
+                                                 55.5 +0.96  52.5 +0.67  59.5 +1.30  59.6 +1.65  65.8 +2.50  55.7 +1.83  57.9 +1.45  5/6, 6/6
+F2  F + particle 61–95 days into its reporting cycle (pre-report charge), not late, not 0–3d post-report
+                                                 62.3 +1.50  57.6 +1.37  72.6 +3.63  64.0 +2.92  67.3 +3.17  61.4 +2.89  62.8 +2.38  6/6, 6/6
+F5  F2 + particle fell > 5 % in the last 10 days (L0 signed dF)
+                                                 59.0 +1.49  56.2 +1.37  76.1 +6.75  66.2 +3.31  70.2 +3.14  65.1 +4.66  61.6 +2.44  6/6, 6/6
+late filers (96–130 days since filing), all days 59.9 +1.63  42.4 −0.60  39.6 −1.11  54.2 +1.02  41.8 −1.92  47.0 −0.42  47.3 −0.32  avoid
+```
+Physics: exposure from the field (phase, polarity, temperature); selection from the particle's
+scheduled cycle (charge before a known release) and its own displacement (restoring force).
+Costs, slippage, capital slots, survivorship: not yet. Nothing deployed.
