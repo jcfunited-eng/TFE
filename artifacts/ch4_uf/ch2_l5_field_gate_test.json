@@ -1,0 +1,350 @@
+{
+ "declared": "physics, states, entry, hold, arms, per-year report and pass bar in the docstring before results",
+ "arms": {
+  "A0 every tradeable day": {
+   "2021": {
+    "positions": 24159.0,
+    "win_rate": 0.5601,
+    "mean_r20_pct": 1.3974,
+    "sum_per_position": 337.6036
+   },
+   "2022": {
+    "positions": 25542.0,
+    "win_rate": 0.4337,
+    "mean_r20_pct": -1.0741,
+    "sum_per_position": -274.3388
+   },
+   "2023": {
+    "positions": 26041.0,
+    "win_rate": 0.5119,
+    "mean_r20_pct": 0.8286,
+    "sum_per_position": 215.7815
+   },
+   "2024": {
+    "positions": 26884.0,
+    "win_rate": 0.5227,
+    "mean_r20_pct": 1.1599,
+    "sum_per_position": 311.8189
+   },
+   "2025": {
+    "positions": 27692.0,
+    "win_rate": 0.5384,
+    "mean_r20_pct": 1.0563,
+    "sum_per_position": 292.5024
+   },
+   "2026": {
+    "positions": 19157.0,
+    "win_rate": 0.5194,
+    "mean_r20_pct": 1.0822,
+    "sum_per_position": 207.3098
+   },
+   "total": {
+    "positions": 149475,
+    "win_rate": 0.5141,
+    "mean_r20_pct": 0.73
+   }
+  },
+  "A1 field not quiet": {
+   "2021": {
+    "positions": 23917.0,
+    "win_rate": 0.5729,
+    "mean_r20_pct": 1.7299,
+    "sum_per_position": 413.7319
+   },
+   "2022": {
+    "positions": 21387.0,
+    "win_rate": 0.4715,
+    "mean_r20_pct": -0.4026,
+    "sum_per_position": -86.1048
+   },
+   "2023": {
+    "positions": 23802.0,
+    "win_rate": 0.5615,
+    "mean_r20_pct": 2.2077,
+    "sum_per_position": 525.4812
+   },
+   "2024": {
+    "positions": 17963.0,
+    "win_rate": 0.6105,
+    "mean_r20_pct": 2.9319,
+    "sum_per_position": 526.6576
+   },
+   "2025": {
+    "positions": 27633.0,
+    "win_rate": 0.5244,
+    "mean_r20_pct": 1.0395,
+    "sum_per_position": 287.2447
+   },
+   "2026": {
+    "positions": 16870.0,
+    "win_rate": 0.509,
+    "mean_r20_pct": 1.1065,
+    "sum_per_position": 186.664
+   },
+   "total": {
+    "positions": 131572,
+    "win_rate": 0.5411,
+    "mean_r20_pct": 1.409
+   },
+   "PASS": false,
+   "years_wr_ge_plus3": 3,
+   "years_mean_better": 5
+  },
+  "A2 field busy": {
+   "2021": {
+    "positions": 8023.0,
+    "win_rate": 0.668,
+    "mean_r20_pct": 3.1972,
+    "sum_per_position": 256.5081
+   },
+   "2022": {
+    "positions": 6357.0,
+    "win_rate": 0.5292,
+    "mean_r20_pct": 0.9356,
+    "sum_per_position": 59.4742
+   },
+   "2023": {
+    "positions": 6514.0,
+    "win_rate": 0.4286,
+    "mean_r20_pct": -1.3192,
+    "sum_per_position": -85.9318
+   },
+   "2024": {
+    "positions": 8956.0,
+    "win_rate": 0.658,
+    "mean_r20_pct": 3.2423,
+    "sum_per_position": 290.3779
+   },
+   "2025": {
+    "positions": 11558.0,
+    "win_rate": 0.6195,
+    "mean_r20_pct": 3.7612,
+    "sum_per_position": 434.7244
+   },
+   "2026": {
+    "positions": 2428.0,
+    "win_rate": 0.6602,
+    "mean_r20_pct": 5.6432,
+    "sum_per_position": 137.0174
+   },
+   "total": {
+    "positions": 43836,
+    "win_rate": 0.597,
+    "mean_r20_pct": 2.491
+   },
+   "PASS": true,
+   "years_wr_ge_plus3": 5,
+   "years_mean_better": 5
+  },
+  "A3 busy & particle quiet>=21": {
+   "2021": {
+    "positions": 5724.0,
+    "win_rate": 0.6688,
+    "mean_r20_pct": 3.2485,
+    "sum_per_position": 185.9426
+   },
+   "2022": {
+    "positions": 4637.0,
+    "win_rate": 0.5251,
+    "mean_r20_pct": 0.9116,
+    "sum_per_position": 42.2699
+   },
+   "2023": {
+    "positions": 4925.0,
+    "win_rate": 0.4378,
+    "mean_r20_pct": -1.1365,
+    "sum_per_position": -55.9715
+   },
+   "2024": {
+    "positions": 6927.0,
+    "win_rate": 0.6528,
+    "mean_r20_pct": 3.2382,
+    "sum_per_position": 224.3069
+   },
+   "2025": {
+    "positions": 9137.0,
+    "win_rate": 0.6148,
+    "mean_r20_pct": 3.6667,
+    "sum_per_position": 335.0239
+   },
+   "2026": {
+    "positions": 1992.0,
+    "win_rate": 0.6391,
+    "mean_r20_pct": 5.1195,
+    "sum_per_position": 101.9798
+   },
+   "total": {
+    "positions": 33342,
+    "win_rate": 0.5948,
+    "mean_r20_pct": 2.5
+   },
+   "PASS": true,
+   "years_wr_ge_plus3": 5,
+   "years_mean_better": 5
+  },
+  "A4 not quiet & particle quiet>=21": {
+   "2021": {
+    "positions": 17057.0,
+    "win_rate": 0.5724,
+    "mean_r20_pct": 1.8972,
+    "sum_per_position": 323.6032
+   },
+   "2022": {
+    "positions": 16049.0,
+    "win_rate": 0.4765,
+    "mean_r20_pct": -0.1453,
+    "sum_per_position": -23.3126
+   },
+   "2023": {
+    "positions": 18269.0,
+    "win_rate": 0.556,
+    "mean_r20_pct": 2.1069,
+    "sum_per_position": 384.9121
+   },
+   "2024": {
+    "positions": 14174.0,
+    "win_rate": 0.5991,
+    "mean_r20_pct": 2.7891,
+    "sum_per_position": 395.3211
+   },
+   "2025": {
+    "positions": 21567.0,
+    "win_rate": 0.5276,
+    "mean_r20_pct": 1.2341,
+    "sum_per_position": 266.1534
+   },
+   "2026": {
+    "positions": 12968.0,
+    "win_rate": 0.5123,
+    "mean_r20_pct": 1.1452,
+    "sum_per_position": 148.5128
+   },
+   "total": {
+    "positions": 100084,
+    "win_rate": 0.5404,
+    "mean_r20_pct": 1.494
+   },
+   "PASS": false,
+   "years_wr_ge_plus3": 3,
+   "years_mean_better": 6
+  },
+  "A5 busy & release today": {
+   "2021": {
+    "positions": 622.0,
+    "win_rate": 0.5096,
+    "mean_r20_pct": -0.7941,
+    "sum_per_position": -4.9395
+   },
+   "2022": {
+    "positions": 642.0,
+    "win_rate": 0.486,
+    "mean_r20_pct": 0.1165,
+    "sum_per_position": 0.748
+   },
+   "2023": {
+    "positions": 364.0,
+    "win_rate": 0.4753,
+    "mean_r20_pct": -0.6543,
+    "sum_per_position": -2.3818
+   },
+   "2024": {
+    "positions": 921.0,
+    "win_rate": 0.6232,
+    "mean_r20_pct": 2.5915,
+    "sum_per_position": 23.8675
+   },
+   "2025": {
+    "positions": 1505.0,
+    "win_rate": 0.5395,
+    "mean_r20_pct": 1.8879,
+    "sum_per_position": 28.4125
+   },
+   "2026": {
+    "positions": 385.0,
+    "win_rate": 0.5766,
+    "mean_r20_pct": 6.9922,
+    "sum_per_position": 26.9201
+   },
+   "total": {
+    "positions": 4439,
+    "win_rate": 0.5429,
+    "mean_r20_pct": 1.636
+   },
+   "PASS": false,
+   "years_wr_ge_plus3": 3,
+   "years_mean_better": 4
+  },
+  "A6 field quiet (avoid)": {
+   "2021": {
+    "positions": 11974.0,
+    "win_rate": 0.4589,
+    "mean_r20_pct": -0.607,
+    "sum_per_position": -72.6868
+   },
+   "2022": {
+    "positions": 6340.0,
+    "win_rate": 0.3869,
+    "mean_r20_pct": -2.2735,
+    "sum_per_position": -144.1402
+   },
+   "2023": {
+    "positions": 10791.0,
+    "win_rate": 0.4171,
+    "mean_r20_pct": -1.7242,
+    "sum_per_position": -186.0609
+   },
+   "2024": {
+    "positions": 20085.0,
+    "win_rate": 0.5288,
+    "mean_r20_pct": 1.4432,
+    "sum_per_position": 289.8709
+   },
+   "2025": {
+    "positions": 6777.0,
+    "win_rate": 0.565,
+    "mean_r20_pct": 1.3957,
+    "sum_per_position": 94.5836
+   },
+   "2026": {
+    "positions": 7272.0,
+    "win_rate": 0.4572,
+    "mean_r20_pct": -0.1863,
+    "sum_per_position": -13.5487
+   },
+   "total": {
+    "positions": 63239,
+    "win_rate": 0.4779,
+    "mean_r20_pct": -0.051
+   },
+   "PASS": false,
+   "years_wr_ge_plus3": 0,
+   "years_mean_better": 2
+  }
+ },
+ "field_state_share_of_days": {
+  "2021": {
+   "busy": 0.16457233532350216,
+   "not_quiet": 0.7899581429227853
+  },
+  "2022": {
+   "busy": 0.13117696431509795,
+   "not_quiet": 0.84051654403885
+  },
+  "2023": {
+   "busy": 0.12401760888428091,
+   "not_quiet": 0.8200231754207475
+  },
+  "2024": {
+   "busy": 0.2063544442336196,
+   "not_quiet": 0.45636200642924124
+  },
+  "2025": {
+   "busy": 0.3240092949224545,
+   "not_quiet": 0.9440030835184277
+  },
+  "2026": {
+   "busy": 0.10891047136177302,
+   "not_quiet": 0.7497149107002811
+  }
+ }
+}
