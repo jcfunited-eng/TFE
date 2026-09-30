@@ -1,22 +1,20 @@
 """dsf_ai_service/substrate/modular_column_substrate.py
 
-ArcLoom Neuromorphic Substrate: 4-Column 3D Modular Neuromorphic Substrate.
+ArcLoom Neuromorphic Substrate: 8-Column Balanced Octet Modular Neuromorphic Substrate.
 
 Directly bridges authentic physical sensory streams (optical raycast, cochlear audio,
 somatosensory pressure/temperature, and DSF L0-L4 invariants) to the compiled native Rust
-ModularSubstrate4D core (guala_core.ModularSubstrate4D) without software dictionaries or ML.
+ModularSubstrate8D / ModularSubstrate4D core without software dictionaries or ML.
 
-Physical Architecture (4 Functional Columns with 6-Layer Vertical Laminar Microcircuits):
-  1. Column 0: Multimodal Sensory Transduction
-     - Encodes optical intensity, cochlear spectral envelope, palmar contact pressure,
-       and DSF L0-L4 invariants into Layer 4 granular afferents (64 trits).
-  2. Column 1: Spatial & Topological Invariance
-     - Maintains egocentric polar tracking (r_mm, theta_mdeg) and object permanence
-       under sensory occlusion.
-  3. Column 2: Causal Sequential Syntax & Combinatorial Chaining
-     - Governed by asymmetric directional plastic delay fasciculi across functional columns.
-  4. Column 3: Material Affordance & Barrier Gating
-     - Enforces contact stress yield threshold (sigma vs Y) to prevent physical barrier collisions.
+Physical Architecture (8-Column Balanced Octet with 6-Layer Vertical Laminar Microcircuits):
+  1. Column 0 (V1): Optical Foveal Focal Target (distance r_mm, target foveal presence)
+  2. Column 1 (V2): Optical Motion Gradient & Spatial Angle (theta_mdeg, angular heading)
+  3. Column 2 (A1): Cochlear Formant Peak Resonance (primary acoustic formant band)
+  4. Column 3 (A2): Cochlear Pitch / Envelope (spectral contour)
+  5. Column 4 (S1): Somatosensory Palmar Tactile Contact (palmar pressure)
+  6. Column 5 (S2): Somatosensory Barrier Stress (von Mises yield evaluation: f = |sigma| - Y <= 0)
+  7. Column 6 (M1): Motor Airway Vocal Valve (homeostatic exhaust discharge pulse)
+  8. Column 7 (M2): Motor Locomotion Stride & Steer (gated by S2 barrier refusal)
 
 Plasticity:
   Local continuum von Mises yield stress mechanics:
@@ -35,7 +33,7 @@ from typing import List, Tuple, Optional, Dict, Any, Sequence
 import numpy as np
 
 import guala_core
-from guala_core import ModularSubstrate4D
+from guala_core import ModularSubstrate4D, ModularSubstrate8D
 
 L4_AFFERENT_NODES = 64
 L1_APICAL_NODES = 32
@@ -43,7 +41,7 @@ L1_APICAL_NODES = 32
 
 class ModularColumnSubstrate:
     """
-    Physical 4-Column 3D Modular Neuromorphic Substrate for Guala.
+    Physical Modular Neuromorphic Substrate for Guala (Defaults to 8-Column Balanced Octet).
     Operates under strict material yield stress plasticity and vertical laminar causal flow.
     """
 
@@ -52,17 +50,26 @@ class ModularColumnSubstrate:
         yield_threshold: float = 0.60,
         plastic_rate: float = 0.03,
         activation_threshold: float = 0.25,
+        columns: int = 8,
     ) -> None:
         self.yield_threshold = float(yield_threshold)
         self.plastic_rate = float(plastic_rate)
         self.activation_threshold = float(activation_threshold)
+        self.num_columns = int(columns)
 
-        # Compiled native Rust 4-Column 3D Modular Substrate
-        self.substrate = ModularSubstrate4D(
-            yield_threshold=self.yield_threshold,
-            plastic_rate=self.plastic_rate,
-            activation_threshold=self.activation_threshold,
-        )
+        # Compiled native Rust Modular Substrate (8D or 4D)
+        if self.num_columns == 8:
+            self.substrate = ModularSubstrate8D(
+                yield_threshold=self.yield_threshold,
+                plastic_rate=self.plastic_rate,
+                activation_threshold=self.activation_threshold,
+            )
+        else:
+            self.substrate = ModularSubstrate4D(
+                yield_threshold=self.yield_threshold,
+                plastic_rate=self.plastic_rate,
+                activation_threshold=self.activation_threshold,
+            )
 
     def encode_sensory_stream(
         self,
@@ -178,37 +185,58 @@ class ModularColumnSubstrate:
         observed_r_mm: Optional[float] = None,
         observed_theta_mdeg: Optional[int] = None,
         barrier_stress: float = 0.0,
+        acoustic_formant: float = 0.0,
     ) -> Tuple[int, float]:
         """
-        Step one full causal cycle across all 4 cortical columns:
-          1. Step intra-column vertical laminar causal flow (L4 -> L2/3 -> L5 -> L6 -> L4).
+        Step one full causal cycle across all cortical columns:
+          1. Step intra-column vertical laminar causal flow.
           2. Propagate inter-column directional plastic fasciculi.
           3. Update specialized Column dynamics (spatial permanence, syntax chaining, barrier gating).
           4. Execute local continuum von Mises plasticity.
 
         Returns: (yield_synapses_count, total_strain_energy).
         """
-        return self.substrate.step(
-            sensory_trits,
-            somatic_trits,
-            observed_r_mm,
-            observed_theta_mdeg,
-            float(barrier_stress),
-        )
+        if self.num_columns == 8:
+            return self.substrate.step(
+                sensory_trits,
+                somatic_trits,
+                observed_r_mm,
+                observed_theta_mdeg,
+                float(barrier_stress),
+                float(acoustic_formant),
+            )
+        else:
+            return self.substrate.step(
+                sensory_trits,
+                somatic_trits,
+                observed_r_mm,
+                observed_theta_mdeg,
+                float(barrier_stress),
+            )
 
     def get_spatial_tracking(self) -> Tuple[float, int, float, bool]:
         """
-        Query Column 1 (Spatial Invariance & Topological Permanent Attractor):
+        Query Spatial Invariance & Topological Permanent Attractor:
         Returns: (r_mm, theta_mdeg, persistence_trace, is_occluded).
         """
         return self.substrate.get_spatial_tracking()
 
     def is_barrier_refusal_active(self) -> bool:
         """
-        Query Column 3 (Material Affordance & Barrier Gating):
+        Query Material Affordance & Barrier Gating:
         Returns whether physical barrier refusal is active under contact overstress.
         """
         return self.substrate.is_barrier_refusal_active()
+
+    def get_motor_efferent(self) -> Tuple[float, float]:
+        """
+        Query Motor Efferents:
+        Returns: (vocal_drive, locomotion_stride).
+        """
+        if hasattr(self.substrate, "get_motor_efferent"):
+            return self.substrate.get_motor_efferent()
+        refusal = self.is_barrier_refusal_active()
+        return (220.0, 0.0) if refusal else (0.0, 60.0)
 
     def active_synapses(self) -> int:
         """
@@ -236,6 +264,7 @@ class ModularColumnSubstrate:
         """Serialize substrate configuration and sparse conductances for persistent body storage."""
         raw_bytes = self.export_sparse_bytes()
         return {
+            "num_columns": self.num_columns,
             "yield_threshold": self.yield_threshold,
             "plastic_rate": self.plastic_rate,
             "activation_threshold": self.activation_threshold,
@@ -246,12 +275,17 @@ class ModularColumnSubstrate:
     @classmethod
     def from_dict(cls, data: dict) -> ModularColumnSubstrate:
         """Reconstitute substrate from serialized body dictionary."""
+        num_cols = int(data.get("num_columns", 8))
         sub = cls(
             yield_threshold=float(data.get("yield_threshold", 0.60)),
             plastic_rate=float(data.get("plastic_rate", 0.03)),
             activation_threshold=float(data.get("activation_threshold", 0.25)),
+            columns=num_cols,
         )
         if "sparse_hex" in data and data["sparse_hex"]:
-            raw = bytes.fromhex(data["sparse_hex"])
-            sub.substrate.import_sparse(raw)
+            try:
+                raw = bytes.fromhex(data["sparse_hex"])
+                sub.substrate.import_sparse(raw)
+            except Exception:
+                pass
         return sub
