@@ -1,0 +1,233 @@
+{
+ "N0 every tradeable day": {
+  "2021": {
+   "positions": 24159.0,
+   "win_rate": 0.5601,
+   "mean_r20_pct": 1.3974
+  },
+  "2022": {
+   "positions": 25542.0,
+   "win_rate": 0.4337,
+   "mean_r20_pct": -1.0741
+  },
+  "2023": {
+   "positions": 26041.0,
+   "win_rate": 0.5119,
+   "mean_r20_pct": 0.8286
+  },
+  "2024": {
+   "positions": 26884.0,
+   "win_rate": 0.5227,
+   "mean_r20_pct": 1.1599
+  },
+  "2025": {
+   "positions": 27692.0,
+   "win_rate": 0.5384,
+   "mean_r20_pct": 1.0563
+  },
+  "2026": {
+   "positions": 19157.0,
+   "win_rate": 0.5194,
+   "mean_r20_pct": 1.0822
+  }
+ },
+ "T1 inside a temperature EPIC window (7 days)": {
+  "2021": {
+   "positions": 2049.0,
+   "win_rate": 0.7155,
+   "mean_r20_pct": 3.0198
+  },
+  "2022": {
+   "positions": 8499.0,
+   "win_rate": 0.6435,
+   "mean_r20_pct": 3.9081
+  },
+  "2023": {
+   "positions": 4400.0,
+   "win_rate": 0.5655,
+   "mean_r20_pct": 2.1503
+  },
+  "2024": {
+   "positions": 9066.0,
+   "win_rate": 0.547,
+   "mean_r20_pct": 0.738
+  },
+  "2025": {
+   "positions": 2274.0,
+   "win_rate": 0.843,
+   "mean_r20_pct": 10.0856
+  }
+ },
+ "T2 EPIC day and the field closed DOWN": {
+  "2022": {
+   "positions": 6155.0,
+   "win_rate": 0.6263,
+   "mean_r20_pct": 3.1963
+  },
+  "2023": {
+   "positions": 4296.0,
+   "win_rate": 0.6741,
+   "mean_r20_pct": 4.7319
+  },
+  "2024": {
+   "positions": 6699.0,
+   "win_rate": 0.5159,
+   "mean_r20_pct": 0.4467
+  },
+  "2025": {
+   "positions": 2229.0,
+   "win_rate": 0.8461,
+   "mean_r20_pct": 10.1929
+  }
+ },
+ "T3 temperature HOT (not epic)": {
+  "2021": {
+   "positions": 4072.0,
+   "win_rate": 0.4678,
+   "mean_r20_pct": -0.9347
+  },
+  "2022": {
+   "positions": 12578.0,
+   "win_rate": 0.4146,
+   "mean_r20_pct": -1.9804
+  },
+  "2023": {
+   "positions": 8582.0,
+   "win_rate": 0.6458,
+   "mean_r20_pct": 4.8495
+  },
+  "2024": {
+   "positions": 15868.0,
+   "win_rate": 0.558,
+   "mean_r20_pct": 1.8114
+  },
+  "2025": {
+   "positions": 6737.0,
+   "win_rate": 0.4996,
+   "mean_r20_pct": 0.5618
+  },
+  "2026": {
+   "positions": 14304.0,
+   "win_rate": 0.5322,
+   "mean_r20_pct": 1.1581
+  }
+ },
+ "T4 temperature COOL": {
+  "2021": {
+   "positions": 15745.0,
+   "win_rate": 0.5008,
+   "mean_r20_pct": 0.2282
+  },
+  "2022": {
+   "positions": 12720.0,
+   "win_rate": 0.5275,
+   "mean_r20_pct": 1.9753
+  },
+  "2023": {
+   "positions": 8841.0,
+   "win_rate": 0.3993,
+   "mean_r20_pct": -1.6599
+  },
+  "2024": {
+   "positions": 4440.0,
+   "win_rate": 0.7207,
+   "mean_r20_pct": 6.4824
+  },
+  "2025": {
+   "positions": 15938.0,
+   "win_rate": 0.5721,
+   "mean_r20_pct": 2.2439
+  },
+  "2026": {
+   "positions": 22.0,
+   "win_rate": 0.6364,
+   "mean_r20_pct": 2.0756
+  }
+ },
+ "T5 temperature MID": {
+  "2021": {
+   "positions": 23816.0,
+   "win_rate": 0.5378,
+   "mean_r20_pct": 1.1956
+  },
+  "2022": {
+   "positions": 19362.0,
+   "win_rate": 0.4283,
+   "mean_r20_pct": -1.5049
+  },
+  "2023": {
+   "positions": 21753.0,
+   "win_rate": 0.5015,
+   "mean_r20_pct": 0.3917
+  },
+  "2024": {
+   "positions": 22403.0,
+   "win_rate": 0.4975,
+   "mean_r20_pct": 0.7034
+  },
+  "2025": {
+   "positions": 22976.0,
+   "win_rate": 0.5072,
+   "mean_r20_pct": 0.3821
+  },
+  "2026": {
+   "positions": 14528.0,
+   "win_rate": 0.5875,
+   "mean_r20_pct": 3.0124
+  }
+ },
+ "T6 P8 (charging & quiet) & temperature not HOT/EPIC": {
+  "2021": {
+   "positions": 6003.0,
+   "win_rate": 0.584,
+   "mean_r20_pct": 2.1007
+  },
+  "2022": {
+   "positions": 12781.0,
+   "win_rate": 0.4924,
+   "mean_r20_pct": -0.3421
+  },
+  "2023": {
+   "positions": 8609.0,
+   "win_rate": 0.5476,
+   "mean_r20_pct": 1.1338
+  },
+  "2024": {
+   "positions": 4435.0,
+   "win_rate": 0.5017,
+   "mean_r20_pct": 1.2687
+  },
+  "2025": {
+   "positions": 9159.0,
+   "win_rate": 0.5979,
+   "mean_r20_pct": 3.0802
+  },
+  "2026": {
+   "positions": 4705.0,
+   "win_rate": 0.5996,
+   "mean_r20_pct": 3.6014
+  }
+ },
+ "T7 P8 (charging & quiet) & temperature HOT/EPIC": {
+  "2022": {
+   "positions": 4286.0,
+   "win_rate": 0.6442,
+   "mean_r20_pct": 4.5618
+  },
+  "2023": {
+   "positions": 2177.0,
+   "win_rate": 0.3316,
+   "mean_r20_pct": -2.6366
+  },
+  "2024": {
+   "positions": 4468.0,
+   "win_rate": 0.5063,
+   "mean_r20_pct": -0.5133
+  },
+  "2025": {
+   "positions": 2256.0,
+   "win_rate": 0.8205,
+   "mean_r20_pct": 9.827
+  }
+ }
+}
