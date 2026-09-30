@@ -97,3 +97,43 @@ both halves. Persistence adds nothing. Three-of-three is thin and flips.
 Production unchanged (it still runs the log/global-mean kernel on closes).
 No re-tuning after results. Units of the kernel's constants: Joe's call.
 Page with the readings: https://claude.ai/artifact/Hp3rBbpbabMKF3exVsZ39F
+
+## Herd — `tools/ch2_herd_census.py` (declared; artifacts/ch4_uf/ch2_herd_census.json)
+Joe: "look at similar groups of stocks." Herd = the July pedigree on the
+full bar: 27 cells a day (dispersion × attention × price class, cross-
+sectional 25/75 bands, causal). Resolution from the herd: a boundary is a
+bar > 3.77× the median bar of the stock's cell that day → 35 boundaries per
+name-year; gates are intervals again on every stock (no log, no global
+constant). Herd weather = share of the cell deviating, share rising,
+banded vs the cell's trailing 20 days.
+```
+                                         seen           confirm
+all tradeable days                       50.2 %         52.4 %
+individual ACTIVE (R_k top fifth)        50.8 %         52.8 %      +0.8 / +0.5, holds
+herd deviating lo / mid / hi             51.5 48.9 50.1  52.4 52.5 52.5   seen only
+herd rising lo / mid / hi                49.8 50.1 50.8  52.4 52.9 51.8   reverses
+best seen cell (dev hi, rising hi)       51.7 / +0.86 %  51.7 / +0.94 %
+worst seen cell (dev mid, rising lo)     48.0 / −0.14 %  52.6 / +1.23 %  reversed
+```
+The herd fixes the units. Herd weather as bands does not carry across halves.
+
+## Species spectrum — `tools/ch2_species_spectrum_fullbar.py` (Joe's July frame, declared)
+Gate class = full lattice signature of (T, V, R) self-scaled by trailing-20-
+gate medians + displacement sign; species = bigram; completion = next
+gate's sign; causal field-wide schema memory; spectrum vs binomial null;
+band predictions (n ≥ 20, live consistency ≥ 0.75) per year; L5 ledger.
+```
+field                         gates     species n≥20   consistency ≥ 0.75: real vs null   0.65–0.70 bin
+O,H,L,C,V in the norm         898,770   1,100          5 vs 8.2                           58 vs 57.4   = the null
+O,H,L,C in the norm,
+volume as relevance r (MINE)  270,373     369          7 vs 3.0                           33 vs 17.8   modest excess
+```
+Per-year band predictions (volume as relevance, bigram): 3–27 a year, hit
+rates 0.20–0.88 — too few to hold a year. L5 ledger 48 trades, 43.8 % WR,
++$0.05 per $1 over ten years. Pooled alphabet: 34 trades, 61.8 %, +$1.81
+per $1 (n too small to mean anything).
+
+**With volume inside the norm the field has no species — the spectrum is
+the null to the count. With volume as the canon's relevance the same
+modest excess over null appears that July found on the old kernel, and it
+is not yet enough to act on per year.**

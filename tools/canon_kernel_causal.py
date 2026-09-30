@@ -31,7 +31,7 @@ FIELDS = ["D_k", "M_k", "R_rev_k", "U_star_k", "C_k", "P_k", "B_k", "R_k", "URF_
 LATTICES = ((1.0, 1.0, 1.0), (2.0, 2.0, 2.0), (4.0, 4.0, 4.0))
 
 
-def readings(F: np.ndarray, tau_D: float | str = 0.20, W: int = 20, c: float = 3.77) -> pd.DataFrame:
+def readings(F: np.ndarray, tau_D: float | str = 0.20, W: int = 20, c: float = 3.77, r: np.ndarray | None = None) -> pd.DataFrame:
     """F: (n, m) field, one row per bar. Returns one row per day t >= 2 (the
     first day with a finished gate), each the causal reading on that day.
 
@@ -52,7 +52,9 @@ def readings(F: np.ndarray, tau_D: float | str = 0.20, W: int = 20, c: float = 3
     N = ((sigma < 1e-6) & (ndF < 1e-6) & (kappa < 1e-6)).astype(int)
     D = ndF + sigma + kappa
     # ---- L1: boundaries D >= tau_D; gate = [t_a, t_b) ----
-    if tau_D == "own":
+    if isinstance(tau_D, np.ndarray):
+        tau = np.where(np.isfinite(tau_D), tau_D, np.inf)      # a per-bar threshold supplied by the caller (e.g. the herd's scale)
+    elif tau_D == "own":
         tau = pd.Series(D).shift(1).rolling(252, min_periods=20).median().values * c
         tau = np.where(np.isfinite(tau), tau, np.inf)
     else:
@@ -71,7 +73,7 @@ def readings(F: np.ndarray, tau_D: float | str = 0.20, W: int = 20, c: float = 3
         sl = slice(t_a, t_b)
         T = float(t_b - t_a)
         V = float(np.sum(ndF[sl] + sigma[sl] + kappa[sl]))
-        Rr = float(T)                                     # relevance r = 1 per bar
+        Rr = float(np.sum(r[sl])) if r is not None else float(T)   # canon: R_k = sum of relevance over the gate (r = 1 unless supplied)
         P_list = [(int(T // h1), int(V // h2), int(Rr // h3)) for h1, h2, h3 in LATTICES]
         C = len(set(P_list))
         mu = np.array([ndF[sl].mean(), sigma[sl].mean(), kappa[sl].mean()])

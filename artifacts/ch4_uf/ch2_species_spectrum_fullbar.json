@@ -1,0 +1,340 @@
+{
+ "declared": "frame, gate stream, class, species, completion, spectrum, test and ledger in the docstring before results",
+ "symbols": 2887,
+ "gates": 898770,
+ "observations": 1763836,
+ "alphabets": {
+  "bigram": {
+   "base_rate_up": 0.5124,
+   "species_n_ge_20": 1100,
+   "spectrum_hist_edges": [
+    0.5,
+    0.55,
+    0.6,
+    0.65,
+    0.7,
+    0.75,
+    0.8,
+    0.85,
+    0.9,
+    0.95,
+    1.0001
+   ],
+   "spectrum_real": [
+    570,
+    304,
+    140,
+    58,
+    23,
+    3,
+    2,
+    0,
+    0,
+    0
+   ],
+   "spectrum_null": [
+    576.35,
+    297.95,
+    139.95,
+    57.35,
+    20.2,
+    6.5,
+    1.45,
+    0.15,
+    0.1,
+    0.0
+   ],
+   "species_ge_0.75": 5,
+   "null_ge_0.75": 8.2,
+   "species_ge_0.85": 0,
+   "null_ge_0.85": 0.25,
+   "band_predictions_per_year": {
+    "2016": {
+     "n": 385,
+     "hit_rate": 0.6623,
+     "base_up_rate_that_year": 0.5382
+    },
+    "2017": {
+     "n": 31,
+     "hit_rate": 0.4839,
+     "base_up_rate_that_year": 0.53
+    },
+    "2018": {
+     "n": 7,
+     "hit_rate": 0.1429,
+     "base_up_rate_that_year": 0.502
+    },
+    "2019": {
+     "n": 25,
+     "hit_rate": 0.36,
+     "base_up_rate_that_year": 0.5359
+    },
+    "2020": {
+     "n": 15,
+     "hit_rate": 0.6,
+     "base_up_rate_that_year": 0.5198
+    },
+    "2021": {
+     "n": 11,
+     "hit_rate": 0.6364,
+     "base_up_rate_that_year": 0.5033
+    },
+    "2022": {
+     "n": 21,
+     "hit_rate": 0.4762,
+     "base_up_rate_that_year": 0.4867
+    },
+    "2023": {
+     "n": 19,
+     "hit_rate": 0.4211,
+     "base_up_rate_that_year": 0.5124
+    },
+    "2024": {
+     "n": 18,
+     "hit_rate": 0.3889,
+     "base_up_rate_that_year": 0.505
+    },
+    "2025": {
+     "n": 16,
+     "hit_rate": 0.5625,
+     "base_up_rate_that_year": 0.5147
+    },
+    "2026": {
+     "n": 12,
+     "hit_rate": 0.3333,
+     "base_up_rate_that_year": 0.5013
+    }
+   },
+   "l5_ledger_per_year": {
+    "2017": {
+     "trades": 29,
+     "win_rate": 0.5862,
+     "sum_ret_per_$1": 0.59,
+     "mean_ret_pct": 2.033
+    },
+    "2018": {
+     "trades": 5,
+     "win_rate": 0.4,
+     "sum_ret_per_$1": -0.495,
+     "mean_ret_pct": -9.901
+    },
+    "2019": {
+     "trades": 17,
+     "win_rate": 0.4706,
+     "sum_ret_per_$1": -0.29,
+     "mean_ret_pct": -1.706
+    },
+    "2020": {
+     "trades": 10,
+     "win_rate": 0.5,
+     "sum_ret_per_$1": -0.806,
+     "mean_ret_pct": -8.056
+    },
+    "2021": {
+     "trades": 8,
+     "win_rate": 0.375,
+     "sum_ret_per_$1": -0.063,
+     "mean_ret_pct": -0.784
+    },
+    "2022": {
+     "trades": 14,
+     "win_rate": 0.5714,
+     "sum_ret_per_$1": 0.391,
+     "mean_ret_pct": 2.796
+    },
+    "2023": {
+     "trades": 10,
+     "win_rate": 0.5,
+     "sum_ret_per_$1": 0.176,
+     "mean_ret_pct": 1.763
+    },
+    "2024": {
+     "trades": 11,
+     "win_rate": 0.5455,
+     "sum_ret_per_$1": -0.222,
+     "mean_ret_pct": -2.022
+    },
+    "2025": {
+     "trades": 13,
+     "win_rate": 0.3077,
+     "sum_ret_per_$1": -0.795,
+     "mean_ret_pct": -6.116
+    },
+    "2026": {
+     "trades": 7,
+     "win_rate": 0.4286,
+     "sum_ret_per_$1": 0.781,
+     "mean_ret_pct": 11.157
+    }
+   },
+   "l5_ledger_total": {
+    "trades": 124,
+    "win_rate": 0.4919,
+    "sum_ret_per_$1": -0.732
+   }
+  },
+  "pooled": {
+   "base_rate_up": 0.5124,
+   "species_n_ge_20": 1070,
+   "spectrum_hist_edges": [
+    0.5,
+    0.55,
+    0.6,
+    0.65,
+    0.7,
+    0.75,
+    0.8,
+    0.85,
+    0.9,
+    0.95,
+    1.0001
+   ],
+   "spectrum_real": [
+    579,
+    283,
+    151,
+    42,
+    10,
+    4,
+    0,
+    1,
+    0,
+    0
+   ],
+   "spectrum_null": [
+    575.25,
+    284.4,
+    138.85,
+    47.85,
+    16.8,
+    5.8,
+    0.95,
+    0.05,
+    0.05,
+    0.0
+   ],
+   "species_ge_0.75": 5,
+   "null_ge_0.75": 6.85,
+   "species_ge_0.85": 1,
+   "null_ge_0.85": 0.1,
+   "band_predictions_per_year": {
+    "2016": {
+     "n": 616,
+     "hit_rate": 0.7094,
+     "base_up_rate_that_year": 0.5382
+    },
+    "2017": {
+     "n": 28,
+     "hit_rate": 0.5,
+     "base_up_rate_that_year": 0.53
+    },
+    "2018": {
+     "n": 34,
+     "hit_rate": 0.5294,
+     "base_up_rate_that_year": 0.502
+    },
+    "2019": {
+     "n": 27,
+     "hit_rate": 0.3704,
+     "base_up_rate_that_year": 0.5359
+    },
+    "2020": {
+     "n": 6,
+     "hit_rate": 0.5,
+     "base_up_rate_that_year": 0.5198
+    },
+    "2021": {
+     "n": 11,
+     "hit_rate": 0.4545,
+     "base_up_rate_that_year": 0.5033
+    },
+    "2022": {
+     "n": 18,
+     "hit_rate": 0.4444,
+     "base_up_rate_that_year": 0.4867
+    },
+    "2023": {
+     "n": 8,
+     "hit_rate": 0.125,
+     "base_up_rate_that_year": 0.5124
+    },
+    "2024": {
+     "n": 22,
+     "hit_rate": 0.3636,
+     "base_up_rate_that_year": 0.505
+    },
+    "2025": {
+     "n": 11,
+     "hit_rate": 0.4545,
+     "base_up_rate_that_year": 0.5147
+    },
+    "2026": {
+     "n": 4,
+     "hit_rate": 0.5,
+     "base_up_rate_that_year": 0.5013
+    }
+   },
+   "l5_ledger_per_year": {
+    "2017": {
+     "trades": 24,
+     "win_rate": 0.6667,
+     "sum_ret_per_$1": 3.185,
+     "mean_ret_pct": 13.273
+    },
+    "2018": {
+     "trades": 18,
+     "win_rate": 0.6111,
+     "sum_ret_per_$1": 0.044,
+     "mean_ret_pct": 0.245
+    },
+    "2019": {
+     "trades": 4,
+     "win_rate": 0.75,
+     "sum_ret_per_$1": 0.315,
+     "mean_ret_pct": 7.875
+    },
+    "2021": {
+     "trades": 4,
+     "win_rate": 0.5,
+     "sum_ret_per_$1": 0.093,
+     "mean_ret_pct": 2.336
+    },
+    "2022": {
+     "trades": 10,
+     "win_rate": 0.5,
+     "sum_ret_per_$1": 0.577,
+     "mean_ret_pct": 5.766
+    },
+    "2023": {
+     "trades": 7,
+     "win_rate": 0.5714,
+     "sum_ret_per_$1": 0.063,
+     "mean_ret_pct": 0.904
+    },
+    "2024": {
+     "trades": 8,
+     "win_rate": 0.5,
+     "sum_ret_per_$1": -0.618,
+     "mean_ret_pct": -7.725
+    },
+    "2025": {
+     "trades": 5,
+     "win_rate": 0.6,
+     "sum_ret_per_$1": -0.54,
+     "mean_ret_pct": -10.808
+    },
+    "2026": {
+     "trades": 4,
+     "win_rate": 0.75,
+     "sum_ret_per_$1": 0.484,
+     "mean_ret_pct": 12.109
+    }
+   },
+   "l5_ledger_total": {
+    "trades": 84,
+    "win_rate": 0.6071,
+    "sum_ret_per_$1": 3.604
+   }
+  }
+ }
+}
