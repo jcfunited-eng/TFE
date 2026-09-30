@@ -1,0 +1,158 @@
+{
+ "declared": "kernel, resolutions, state, gate, arms, null and pass bar in the docstring, before results",
+ "thresholds": {
+  "R0": 0.23870635032653809,
+  "R1": 0.34201547503471375,
+  "R2": 0.4479791522026062
+ },
+ "symbols": 2887,
+ "arms": {
+  "Q1_P1": {
+   "seen": {
+    "n_trades": 43172,
+    "win_rate": 0.5101,
+    "mean_r20_pct": 0.529,
+    "lift_pts": 0.8
+   },
+   "confirm": {
+    "n_trades": 39275,
+    "win_rate": 0.5344,
+    "mean_r20_pct": 1.347,
+    "lift_pts": 1.0
+   },
+   "PASS": false
+  },
+  "Q1_P3": {
+   "seen": {
+    "n_trades": 33655,
+    "win_rate": 0.5107,
+    "mean_r20_pct": 0.455,
+    "lift_pts": 0.86
+   },
+   "confirm": {
+    "n_trades": 29092,
+    "win_rate": 0.532,
+    "mean_r20_pct": 1.202,
+    "lift_pts": 0.76
+   },
+   "PASS": false
+  },
+  "Q1_P5": {
+   "seen": {
+    "n_trades": 30372,
+    "win_rate": 0.5082,
+    "mean_r20_pct": 0.482,
+    "lift_pts": 0.61
+   },
+   "confirm": {
+    "n_trades": 25747,
+    "win_rate": 0.5262,
+    "mean_r20_pct": 1.152,
+    "lift_pts": 0.18
+   },
+   "PASS": false
+  },
+  "Q2_P1": {
+   "seen": {
+    "n_trades": 16979,
+    "win_rate": 0.5197,
+    "mean_r20_pct": 0.637,
+    "lift_pts": 1.76
+   },
+   "confirm": {
+    "n_trades": 13980,
+    "win_rate": 0.5406,
+    "mean_r20_pct": 1.523,
+    "lift_pts": 1.62
+   },
+   "PASS": false
+  },
+  "Q2_P3": {
+   "seen": {
+    "n_trades": 12810,
+    "win_rate": 0.5171,
+    "mean_r20_pct": 0.677,
+    "lift_pts": 1.5
+   },
+   "confirm": {
+    "n_trades": 10527,
+    "win_rate": 0.5379,
+    "mean_r20_pct": 1.294,
+    "lift_pts": 1.35
+   },
+   "PASS": false
+  },
+  "Q2_P5": {
+   "seen": {
+    "n_trades": 11356,
+    "win_rate": 0.5168,
+    "mean_r20_pct": 0.652,
+    "lift_pts": 1.47
+   },
+   "confirm": {
+    "n_trades": 9394,
+    "win_rate": 0.5376,
+    "mean_r20_pct": 1.319,
+    "lift_pts": 1.32
+   },
+   "PASS": false
+  },
+  "Q3_P1": {
+   "seen": {
+    "n_trades": 3752,
+    "win_rate": 0.5096,
+    "mean_r20_pct": 0.448,
+    "lift_pts": 0.75
+   },
+   "confirm": {
+    "n_trades": 3095,
+    "win_rate": 0.5357,
+    "mean_r20_pct": 1.276,
+    "lift_pts": 1.13
+   },
+   "PASS": false
+  },
+  "Q3_P3": {
+   "seen": {
+    "n_trades": 2475,
+    "win_rate": 0.5248,
+    "mean_r20_pct": 0.901,
+    "lift_pts": 2.27
+   },
+   "confirm": {
+    "n_trades": 2137,
+    "win_rate": 0.525,
+    "mean_r20_pct": 1.125,
+    "lift_pts": 0.06
+   },
+   "PASS": false
+  },
+  "Q3_P5": {
+   "seen": {
+    "n_trades": 2018,
+    "win_rate": 0.5302,
+    "mean_r20_pct": 0.891,
+    "lift_pts": 2.81
+   },
+   "confirm": {
+    "n_trades": 1778,
+    "win_rate": 0.5343,
+    "mean_r20_pct": 1.344,
+    "lift_pts": 0.99
+   },
+   "PASS": false
+  }
+ },
+ "null": {
+  "seen": {
+   "n_days": 1544495,
+   "win_rate": 0.5021,
+   "mean_r20_pct": 0.384
+  },
+  "confirm": {
+   "n_days": 1507798,
+   "win_rate": 0.5244,
+   "mean_r20_pct": 1.142
+  }
+ }
+}

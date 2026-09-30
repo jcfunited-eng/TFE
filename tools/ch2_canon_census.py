@@ -51,6 +51,30 @@ def _init(field, tau):
     _FIELD, _TAU = field, tau
 
 
+def tradeable_flags(df: pd.DataFrame) -> pd.DataFrame:
+    """Causal per-day filters (MINE, 2026-09-30). Each flag on day t uses bars through t only."""
+    close, vol, high, low = df.Close.astype(float), df.Volume.astype(float), df.High.astype(float), df.Low.astype(float)
+    ret = close.pct_change().abs()
+    dv20 = (close * vol).rolling(20, min_periods=20).median()
+    zero60 = (vol <= 0).astype(int).rolling(60, min_periods=1).sum()
+    hist = pd.Series(np.arange(len(df)), index=df.index)
+    doubled20 = close.rolling(20, min_periods=20).max() / close.rolling(20, min_periods=20).min() > 2.0
+    big60 = (ret > 0.30).astype(int).rolling(60, min_periods=1).sum() > 0
+    spike = (vol > 8 * vol.rolling(60, min_periods=20).median()) & (ret > 0.15)
+    spike_block = spike.astype(int).rolling(60, min_periods=1).sum() > 0
+    rng60 = (high.rolling(60, min_periods=60).max() - low.rolling(60, min_periods=60).min()) / close
+    out = pd.DataFrame({
+        "f_bars": hist >= 252,
+        "f_price": close >= 5.0,
+        "f_dollar_vol": dv20 >= 2_000_000,
+        "f_zero_vol": zero60 <= 3,
+        "f_pump": ~(doubled20.fillna(False) | big60 | spike_block),
+        "f_zombie": rng60 >= 0.05,
+    })
+    out["tradeable"] = out.all(axis=1)
+    return out
+
+
 def one(task):
     from canon_kernel_causal import readings
     symbol, df = task
@@ -62,6 +86,9 @@ def one(task):
     t = r.t.values
     r["date"] = df.Date.values[t]
     r["close"] = close[t]
+    flags = tradeable_flags(df).iloc[t].reset_index(drop=True)
+    for c in flags.columns:
+        r[c] = flags[c].values
     for h in (5, 20):
         fwd = np.full(len(t), np.nan)
         ok = t + h < n
@@ -78,11 +105,12 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--field", choices=list(COLS), default="bar")
     ap.add_argument("--tau", default="0.20", help='0.20 (canon fixed) or "own" (per-ticker, trailing, MINE)')
+    ap.add_argument("--filters", action="store_true", help="keep only tradeable stock-days (zombie / pump-and-dump / too few bars / non-tradeable filters, MINE)")
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("--every", type=int, default=1)
     a = ap.parse_args()
     tau = "own" if a.tau == "own" else float(a.tau)
-    out = ROOT / "artifacts" / "ch4_uf" / f"ch2_canon_census_{a.field}_tau{a.tau}"
+    out = ROOT / "artifacts" / "ch4_uf" / f"ch2_canon_census_{a.field}_tau{a.tau.replace('.', 'p')}{'_filtered' if a.filters else ''}"
     bars = pd.read_parquet(ROOT / "artifacts" / "ch2_life" / "ohlcv_pool.parquet")
     symbols = sorted(bars.Symbol.unique())[:: a.every]
     tasks = [(s, g) for s, g in bars[bars.Symbol.isin(symbols)].groupby("Symbol")]
@@ -96,9 +124,14 @@ def main():
                 print(f"[canon] {i}/{len(tasks)} {time.time() - t0:.0f}s", flush=True)
     ev = pd.concat(parts, ignore_index=True); del parts
     ev["half"] = np.where(ev.date < CONFIRM, "seen", "confirm")
+    fl = {c: round(float(ev[c].mean()), 4) for c in ["f_bars", "f_price", "f_dollar_vol", "f_zero_vol", "f_pump", "f_zombie", "tradeable"]}
+    print("[canon] share of stock-days passing each filter:", fl, flush=True)
+    if a.filters:
+        ev = ev[ev.tradeable].reset_index(drop=True)
+        print(f"[canon] tradeable stock-days kept: {len(ev)}", flush=True)
     ev["after"] = np.where(ev.r20 >= MOVE, "RISE", np.where(ev.r20 <= -MOVE, "FALL", np.where(ev.r20.isna(), "?", "flat")))
     ev.sample(min(len(ev), 1_500_000), random_state=0).to_parquet(out.with_suffix(".parquet"), index=False)
-    res = {"declared": "reading, universe, outcomes, tables in the docstring before results", "field": a.field, "tau": a.tau,
+    res = {"declared": "reading, universe, outcomes, tables in the docstring before results", "field": a.field, "tau": a.tau, "filters": a.filters, "filter_pass_shares": fl,
            "symbols": len(tasks), "days": int(len(ev)), "tables": {}}
     pd.set_option("display.width", 220); pd.set_option("display.max_rows", 200)
 
