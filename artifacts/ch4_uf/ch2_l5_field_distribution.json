@@ -1,0 +1,272 @@
+{
+ "declared": "field state, governance, arms, per-year report and pass bar in the docstring before results",
+ "arms": {
+  "N0 every tradeable day": {
+   "2021": {
+    "positions": 20084.0,
+    "win_rate": 0.5052,
+    "mean_r20_pct": -0.2079
+   },
+   "2022": {
+    "positions": 25392.0,
+    "win_rate": 0.4946,
+    "mean_r20_pct": 0.2493
+   },
+   "2023": {
+    "positions": 24620.0,
+    "win_rate": 0.4976,
+    "mean_r20_pct": 0.6799
+   },
+   "2024": {
+    "positions": 26896.0,
+    "win_rate": 0.5225,
+    "mean_r20_pct": 1.19
+   },
+   "2025": {
+    "positions": 27715.0,
+    "win_rate": 0.5438,
+    "mean_r20_pct": 1.4913
+   },
+   "2026": {
+    "positions": 19168.0,
+    "win_rate": 0.5221,
+    "mean_r20_pct": 1.1837
+   },
+   "total": {
+    "positions": 143875,
+    "win_rate": 0.5149,
+    "mean_r20_pct": 0.799
+   }
+  },
+  "D1 field releasing HI": {
+   "2021": {
+    "positions": 16061.0,
+    "win_rate": 0.4971,
+    "mean_r20_pct": -0.1006
+   },
+   "2022": {
+    "positions": 8304.0,
+    "win_rate": 0.4538,
+    "mean_r20_pct": -0.8335
+   },
+   "2023": {
+    "positions": 10885.0,
+    "win_rate": 0.5115,
+    "mean_r20_pct": 0.9193
+   },
+   "2024": {
+    "positions": 20223.0,
+    "win_rate": 0.5116,
+    "mean_r20_pct": 1.1316
+   },
+   "2025": {
+    "positions": 18533.0,
+    "win_rate": 0.5137,
+    "mean_r20_pct": 0.3172
+   },
+   "2026": {
+    "positions": 16923.0,
+    "win_rate": 0.5193,
+    "mean_r20_pct": 1.0623
+   },
+   "total": {
+    "positions": 90929,
+    "win_rate": 0.5056,
+    "mean_r20_pct": 0.53
+   },
+   "PASS": false,
+   "years_wr_ge_plus3": 0,
+   "years_mean_better": 2
+  },
+  "D2 field releasing HI & releases mostly DOWN (rel_up LO)": {
+   "2021": {
+    "positions": 8058.0,
+    "win_rate": 0.5453,
+    "mean_r20_pct": 1.2186
+   },
+   "2022": {
+    "positions": 6152.0,
+    "win_rate": 0.532,
+    "mean_r20_pct": 1.5901
+   },
+   "2023": {
+    "positions": 8470.0,
+    "win_rate": 0.557,
+    "mean_r20_pct": 1.863
+   },
+   "2024": {
+    "positions": 17629.0,
+    "win_rate": 0.568,
+    "mean_r20_pct": 1.8938
+   },
+   "2025": {
+    "positions": 13759.0,
+    "win_rate": 0.4391,
+    "mean_r20_pct": -2.0035
+   },
+   "2026": {
+    "positions": 11964.0,
+    "win_rate": 0.5848,
+    "mean_r20_pct": 3.2726
+   },
+   "total": {
+    "positions": 66032,
+    "win_rate": 0.5366,
+    "mean_r20_pct": 1.217
+   },
+   "PASS": true,
+   "years_wr_ge_plus3": 5,
+   "years_mean_better": 5
+  },
+  "D3 field releasing HI & releases mostly UP (rel_up HI)": {
+   "2021": {
+    "positions": 10044.0,
+    "win_rate": 0.5383,
+    "mean_r20_pct": 0.5298
+   },
+   "2022": {
+    "positions": 4204.0,
+    "win_rate": 0.2471,
+    "mean_r20_pct": -4.7857
+   },
+   "2023": {
+    "positions": 4277.0,
+    "win_rate": 0.6895,
+    "mean_r20_pct": 5.2572
+   },
+   "2024": {
+    "positions": 13337.0,
+    "win_rate": 0.5585,
+    "mean_r20_pct": 1.5631
+   },
+   "2025": {
+    "positions": 11447.0,
+    "win_rate": 0.4982,
+    "mean_r20_pct": -0.4381
+   },
+   "2026": {
+    "positions": 11995.0,
+    "win_rate": 0.4422,
+    "mean_r20_pct": -0.5099
+   },
+   "total": {
+    "positions": 55304,
+    "win_rate": 0.5036,
+    "mean_r20_pct": 0.315
+   },
+   "PASS": false,
+   "years_wr_ge_plus3": 3,
+   "years_mean_better": 3
+  },
+  "D4 field storing HI (quiet stored field)": {
+   "2021": {
+    "positions": 10039.0,
+    "win_rate": 0.587,
+    "mean_r20_pct": 1.6088
+   },
+   "2022": {
+    "positions": 14855.0,
+    "win_rate": 0.4746,
+    "mean_r20_pct": 0.045
+   },
+   "2023": {
+    "positions": 17369.0,
+    "win_rate": 0.5241,
+    "mean_r20_pct": 1.2885
+   },
+   "2024": {
+    "positions": 11078.0,
+    "win_rate": 0.5625,
+    "mean_r20_pct": 1.7477
+   },
+   "2025": {
+    "positions": 9185.0,
+    "win_rate": 0.5876,
+    "mean_r20_pct": 3.7826
+   },
+   "total": {
+    "positions": 62526,
+    "win_rate": 0.5386,
+    "mean_r20_pct": 1.492
+   },
+   "PASS": false,
+   "years_wr_ge_plus3": 3,
+   "years_mean_better": 4
+  },
+  "D5 field releasing LO": {
+   "2021": {
+    "positions": 7976.0,
+    "win_rate": 0.6013,
+    "mean_r20_pct": 2.345
+   },
+   "2022": {
+    "positions": 18892.0,
+    "win_rate": 0.4579,
+    "mean_r20_pct": -0.7196
+   },
+   "2023": {
+    "positions": 15146.0,
+    "win_rate": 0.3995,
+    "mean_r20_pct": -1.6983
+   },
+   "2024": {
+    "positions": 6716.0,
+    "win_rate": 0.5795,
+    "mean_r20_pct": 2.5519
+   },
+   "2025": {
+    "positions": 9274.0,
+    "win_rate": 0.6364,
+    "mean_r20_pct": 4.6481
+   },
+   "2026": {
+    "positions": 7051.0,
+    "win_rate": 0.6049,
+    "mean_r20_pct": 3.4493
+   },
+   "total": {
+    "positions": 65055,
+    "win_rate": 0.5158,
+    "mean_r20_pct": 0.983
+   },
+   "PASS": false,
+   "years_wr_ge_plus3": 4,
+   "years_mean_better": 4
+  },
+  "D6 field releasing LO & storing HI": {
+   "2021": {
+    "positions": 5944.0,
+    "win_rate": 0.6191,
+    "mean_r20_pct": 1.9769
+   },
+   "2022": {
+    "positions": 12773.0,
+    "win_rate": 0.4607,
+    "mean_r20_pct": -1.2834
+   },
+   "2023": {
+    "positions": 10759.0,
+    "win_rate": 0.563,
+    "mean_r20_pct": 2.2026
+   },
+   "2024": {
+    "positions": 4464.0,
+    "win_rate": 0.6647,
+    "mean_r20_pct": 4.3475
+   },
+   "2025": {
+    "positions": 4555.0,
+    "win_rate": 0.7502,
+    "mean_r20_pct": 7.9174
+   },
+   "total": {
+    "positions": 38495,
+    "win_rate": 0.5717,
+    "mean_r20_pct": 1.936
+   },
+   "PASS": false,
+   "years_wr_ge_plus3": 4,
+   "years_mean_better": 4
+  }
+ }
+}

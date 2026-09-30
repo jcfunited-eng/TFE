@@ -96,6 +96,10 @@ def main():
     from ch2_herd_census import herd_state
     t0 = time.time()
     spy = pd.read_csv(ROOT / "artifacts" / "ch2_life" / "SPY_causal_state.csv"); spy["date"] = spy.date.astype(str)
+    spy_px = pd.read_csv(ROOT / "artifacts" / "ch2_life" / "SPY_ohlcv_daily.csv"); spy_px["date"] = spy_px.Date.astype(str)
+    spy_px["spy_day"] = np.sign(spy_px.Close.diff()).fillna(0).astype(int)                 # the field's own bar direction that day
+    spy_px["spy_20"] = np.sign(spy_px.Close / spy_px.Close.shift(20) - 1).fillna(0).astype(int)   # the field's drift over the past 20 bars
+    spy = spy.merge(spy_px[["date", "spy_day", "spy_20"]], on="date", how="left")
     bars = pd.read_parquet(ROOT / "artifacts" / "ch2_life" / "ohlcv_pool.parquet")
     symbols = sorted(bars.Symbol.unique())[:: a.every]
     bars = bars[bars.Symbol.isin(symbols)].sort_values(["Symbol", "Date"]).reset_index(drop=True)
@@ -108,13 +112,21 @@ def main():
         for r in pool.imap_unordered(one, tasks, chunksize=4):
             parts.append(r)
     ev = pd.concat(parts, ignore_index=True); del parts
-    ev = ev.merge(spy[["date", "spy_causal"]], on="date", how="left")
+    ev = ev.merge(spy[["date", "spy_causal", "spy_day", "spy_20"]], on="date", how="left")
     ev = ev[ev.spy_causal.notna() & ev.r20.notna()].sort_values(["symbol", "date"]).reset_index(drop=True)
     ev["year"] = ev.date.str[:4]
+    ev[["symbol", "date", "age", "release", "tradeable", "r20"]].to_parquet(ROOT / "artifacts" / "ch4_uf" / "ch2_particle_days_B.parquet", index=False)
     print(f"[l5] stock-days {len(ev)} ({time.time() - t0:.0f}s)", flush=True)
     busy = (ev.spy_causal == "busy").values; quiet = (ev.spy_causal == "quiet").values
     stored = (ev.age >= 21).values; release = ev.release.values; trad = ev.tradeable.values
+    spy_dn = (ev.spy_day < 0).values; spy_up = (ev.spy_day > 0).values; drift_dn = (ev.spy_20 < 0).values; drift_up = (ev.spy_20 > 0).values
     arms = {"A0 every tradeable day": trad,
+            "B1 busy & SPY's bar DOWN that day": trad & busy & spy_dn,
+            "B2 busy & SPY's bar UP that day": trad & busy & spy_up,
+            "B3 busy & SPY 20-day drift DOWN": trad & busy & drift_dn,
+            "B4 busy & SPY 20-day drift UP": trad & busy & drift_up,
+            "B5 quiet & SPY 20-day drift DOWN": trad & quiet & drift_dn,
+            "B6 quiet & SPY 20-day drift UP": trad & quiet & drift_up,
             "A1 field not quiet": trad & ~quiet,
             "A2 field busy": trad & busy,
             "A3 busy & particle quiet>=21": trad & busy & stored,
