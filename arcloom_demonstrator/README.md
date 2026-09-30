@@ -7,8 +7,11 @@ This standalone package contains the exact physical and digital circuits require
 
 ## 1. System Architectures: Two Complementary Scales
 
-### A. The 8-Column Balanced Octet (FPGA Silicon Synthesis & Scope Probes)
-The hardware substrate models 8 specialized cortical macrocolumns ($2,560$ ternary nodes, $1.05\text{ million}$ plastic fasciculi) operating under continuum material yield stress mechanics ($f = |\sigma| - Y \le 0$). Synthesizes directly into Xilinx Zynq-7020 FPGA silicon (~$22,000\text{ LUTs}$, $41\%$ fabric utilization):
+### A. The 8-Column Balanced Octet (Hardware Model & Scope Probes)
+The substrate models 8 specialized cortical macrocolumns ($2,560$ ternary nodes, $1.05\text{ million}$ plastic fasciculi) operating under continuum material yield stress mechanics ($f = |\sigma| - Y \le 0$).
+
+> [!NOTE]
+> **FPGA Verification Scope Note**: The `hdl/` directory provides complete cycle-accurate Verilog RTL circuits (`arcloom_octal_column.v`, `arcloom_mathloom.v`, `arcloom_mathloom_div.v`) and testbenches (`arcloom_octal_tb.v`). Target estimates (~$22,000\text{ LUTs}$, $41\%$ fabric utilization, 8.5 ms / 20 Hz timing) represent projected architectural synthesis targets; formal bitstream and on-board timing sign-off remain lab milestones currently verified in cycle-accurate HDL testbenches and native Rust SIMD execution.
 
 ```
                      ┌─────────────────────────────────────────┐
@@ -72,7 +75,8 @@ arcloom_demonstrator/
 ├── substrate/
 │   └── modular_column_substrate.py # Python adapter for 8D & 64D physical substrate
 └── tests/
-    └── test_octal_column_invariants.py # Verification test suite (13/13 passing)
+    ├── test_octal_column_invariants.py    # Multi-phase invariant test suite
+    └── test_arcloom_causal_action_witness.py # Formal audit witness suite (A2-01 through A2-06)
 ```
 
 ---
@@ -121,5 +125,5 @@ Connect the 4 channels of the **Siglent SDS1104X-E 100 MHz Oscilloscope** to the
 ## 5. Physical Invariants (Diamond Hard Contract)
 
 1. **Zero ML Approximations**: No neural network weights, no backpropagation, no statistical gradient descent. Plasticity proceeds strictly from continuum yield mechanics ($f = |\sigma| - Y \le 0$).
-2. **Zero Heuristics / Lookup Tables**: Spatial tracking and barrier refusal proceed from continuous potential manifolds and laminar causal propagation.
+2. **Zero Heuristics / Lookup Tables**: Spatial tracking and barrier refusal proceed from continuous potential manifolds and laminar causal propagation. Continuous mathematical radix-3 expansion: $x \sim \sum_{k=1}^K t_k 3^{-k}$.
 3. **Deterministic Latency**: Sub-millisecond ($255\ \mu\text{s}$ for 8D, $8.5\text{ ms}$ for 64D) software simulation; sub-microsecond ($< 100\text{ ns}$) digital circuit clocking.

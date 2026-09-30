@@ -1,31 +1,12 @@
-"""arcloom_demonstrator/substrate/modular_column_substrate.py
-
-ArcLoom Neuromorphic Substrate: Modular Cortical Column Substrate (4D, 8D, and 64D).
-
-Directly bridges authentic physical sensory streams (optical raycast, cochlear audio,
-somatosensory pressure/temperature, and DSF L0-L4 invariants) to the compiled native Rust
-ModularSubstrate64D / ModularSubstrate8D / ModularSubstrate4D core without software dictionaries or ML.
-
-Physical Architecture:
-  - 4-Column Core (V1, A1, S1, M1) for minimal baseline testbeds.
-  - 8-Column Balanced Octet (V1, V2, A1, A2, S1, S2, M1, M2) for FPGA silicon synthesis.
-  - 64-Column Cortical Array (8 macro-clusters x 8 columns, 20,480 ternary nodes, 83.8M fasciculi)
-    for high-capacity spatial permanence, multi-word spoken syntax chaining, and multi-channel efferents.
-
-Plasticity:
-  Local continuum von Mises yield stress mechanics:
-    f(sigma_ij) = |sigma_ij| - Y <= 0
-    delta_g_ij = eta * (|sigma_ij| - Y) * sgn(sigma_ij)
-    g_ij in [-1.0, 1.0] signed contact conductance bridges.
-
-Sleep Consolidation (Synaptic Homeostasis Hypothesis):
-  Offline synaptic downscaling and competitive noise pruning.
+"""
+Physical Modular Cortical Column Substrate for ArcLoom Neuromorphic Processor.
+Pure continuous dynamical systems physics, discrete balanced ternary mechanics,
+and deterministic material yield stress plasticity. Zero heuristics, zero ML.
 """
 
 from __future__ import annotations
 
-import math
-from typing import List, Tuple, Optional, Dict, Any, Sequence, Union
+from typing import Any, List, Optional, Sequence, Tuple, Union
 import numpy as np
 
 import guala_core
@@ -34,35 +15,31 @@ from guala_core import ModularSubstrate4D, ModularSubstrate8D, ModularSubstrate6
 L4_AFFERENT_NODES = 64
 L1_APICAL_NODES = 32
 
-# Discrete quantum levels for radix-3 balanced ternary expansion: (2*t1 + t2)/3
-# Maps continuous interval [-1.0, 1.0] onto 7 discrete levels: {-1.0, -0.67, -0.33, 0.0, +0.33, +0.67, +1.0}
-_RADIX3_TABLE = [
-    (-1, -1, -1.0),
-    (-1,  0, -2.0 / 3.0),
-    (-1,  1, -1.0 / 3.0),
-    ( 0, -1, -1.0 / 3.0),
-    ( 0,  0,  0.0),
-    ( 0,  1,  1.0 / 3.0),
-    ( 1, -1,  1.0 / 3.0),
-    ( 1,  0,  2.0 / 3.0),
-    ( 1,  1,  1.0),
-]
 
-
-def _quantize_radix3_signed(x: float) -> Tuple[int, int]:
+def _quantize_radix3_signed(x: float, num_trits: int = 2) -> Tuple[int, int]:
     """
-    Quantize signed continuous invariant [-1.0, 1.0] to 2 balanced trits
-    via radix-3 fractional ternary expansion: x ~ (2*t1 + t2)/3.
+    Exact continuous mathematical balanced ternary radix-3 positional expansion:
+        x ~ sum_{k=1}^K t_k * 3^(-k), where t_k in {-1, 0, +1}.
+    Determines trits iteratively via continuous interval division and remainder arithmetic.
+    Zero lookup tables, zero quantization collisions.
     """
-    x_clamped = min(max(float(x), -1.0), 1.0)
-    best_dist = float("inf")
-    best_pair = (0, 0)
-    for t1, t2, val in _RADIX3_TABLE:
-        dist = abs(x_clamped - val)
-        if dist < best_dist:
-            best_dist = dist
-            best_pair = (t1, t2)
-    return best_pair
+    val = min(max(float(x), -1.0), 1.0)
+    trits = []
+    rem = val
+    power = 1.0 / 3.0
+    for _ in range(num_trits):
+        threshold = power / 2.0
+        if rem > threshold:
+            t = 1
+            rem -= power
+        elif rem < -threshold:
+            t = -1
+            rem += power
+        else:
+            t = 0
+        trits.append(t)
+        power /= 3.0
+    return (trits[0], trits[1])
 
 
 class ModularColumnSubstrate:
@@ -159,7 +136,7 @@ class ModularColumnSubstrate:
             for i in range(8):
                 trits[40 + i] = val
 
-        # 4. DSF kernel invariants (Nodes 48..63) via exact balanced ternary radix-3 expansion
+        # 4. DSF kernel invariants (Nodes 48..63) via exact continuous balanced ternary radix-3 expansion
         if dsf_vector is not None and len(dsf_vector) >= 8:
             for inv_idx, val in enumerate(dsf_vector[:8]):
                 start_n = 48 + inv_idx * 2
@@ -262,8 +239,9 @@ class ModularColumnSubstrate:
 
     def get_spatial_tracking(self) -> Tuple[float, int, float, bool]:
         """
-        Query Spatial Invariance & Topological Permanent Attractor:
+        Query Spatial Invariance & Polar Coordinates:
         Returns: (r_mm, theta_mdeg, persistence_trace, is_occluded).
+        Note: Stored polar odometry; recurrent grid decoding claim is formally withdrawn until implemented.
         """
         return self.substrate.get_spatial_tracking()
 
@@ -276,13 +254,54 @@ class ModularColumnSubstrate:
 
     def get_motor_efferent(self) -> Tuple[float, ...]:
         """
-        Query Motor Efferents:
-        Returns: (vocal_drive, locomotion_stride) for 8D or (vocal, stride, steer, grip) for 64D.
+        Query Causal Motor Efferents from Layer 5 motor pyramidal columns:
+        Returns (vocal_drive_hz, locomotion_stride_mm, steer_angle_deg, grip_force_n).
+        Silent motor populations produce strictly (0.0, 0.0, 0.0, 0.0).
         """
         if hasattr(self.substrate, "get_motor_efferent"):
             return self.substrate.get_motor_efferent()
-        refusal = self.is_barrier_refusal_active()
-        return (220.0, 0.0) if refusal else (0.0, 60.0)
+        return (0.0, 0.0, 0.0, 0.0)
+
+    def sever_tract(self, c_from: int, c_to: int) -> None:
+        """Sever physical inter-column fascicular contact bridge."""
+        if hasattr(self.substrate, "sever_tract"):
+            self.substrate.sever_tract(c_from, c_to)
+
+    def reconnect_tract(self, c_from: int, c_to: int) -> None:
+        """Reconnect physical inter-column fascicular contact bridge."""
+        if hasattr(self.substrate, "reconnect_tract"):
+            self.substrate.reconnect_tract(c_from, c_to)
+
+    def is_tract_severed(self, c_from: int, c_to: int) -> bool:
+        """Query whether physical inter-column fascicular tract is severed."""
+        if hasattr(self.substrate, "is_tract_severed"):
+            return bool(self.substrate.is_tract_severed(c_from, c_to))
+        return False
+
+    def applied_motor_action(self) -> Tuple[str, dict]:
+        """
+        Decode causal motor efferents into applied physical action receipts:
+        - vocal_drive: 'vocalize'
+        - stride > 0: 'locomote'
+        - grip > 0: 'grasp'
+        - silent: 'rest'
+        """
+        eff = self.get_motor_efferent()
+        if len(eff) >= 4:
+            vocal, stride, steer, grip = eff[0], eff[1], eff[2], eff[3]
+        elif len(eff) >= 2:
+            vocal, stride, steer, grip = eff[0], eff[1], 0.0, 0.0
+        else:
+            vocal, stride, steer, grip = 0.0, 0.0, 0.0, 0.0
+
+        if vocal > 0.0 and vocal >= stride and vocal >= grip:
+            return ("vocalize", {"frequency_hz": vocal, "intensity": min(1.0, vocal / 480.0)})
+        elif stride > 0.0 and stride >= grip:
+            return ("locomote", {"stride_mm": stride, "steer_deg": steer})
+        elif grip > 0.0:
+            return ("grasp", {"grip_force_n": grip})
+        else:
+            return ("rest", {})
 
     def active_synapses(self) -> int:
         """
@@ -337,4 +356,3 @@ class ModularColumnSubstrate:
             if len(raw) > 0:
                 sub.substrate.import_sparse(raw)
         return sub
-

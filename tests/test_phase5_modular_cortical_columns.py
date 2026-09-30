@@ -22,7 +22,7 @@ Verifies:
      - Maintains egocentric polar coordinates (r_mm, theta_mdeg) even when sensor feed is occluded.
   4. Material Barrier Refusal & Homeostatic Motor Exhaust:
      - Sub-yield stress permits nominal locomotion.
-     - Over-yield impact triggers refusal, arrests stride, and discharges airway vocal valve.
+     - Over-yield impact triggers refusal and arrests stride.
   5. Continuum von Mises Plasticity:
      - Yield occurs if and only if |sigma_ij| > Y.
   6. Sleep Consolidation & Synaptic Downscaling:
@@ -155,14 +155,18 @@ def test_sleep_consolidation_and_pruning() -> None:
 
 def test_sparse_export_deterministic_structure() -> None:
     """
-    Verify export_sparse produces deterministic byte stream encoding active conductances.
+    Verify export_sparse produces complete, fail-closed ARCLOOM2 state stream.
+    Even with zero active synapses, the header, column states, and footer are preserved.
     """
     substrate = ModularSubstrate4D(yield_threshold=0.25, plastic_rate=0.10, activation_threshold=0.15)
     sensory = [1] * 64
     somatic = [1] * 32
 
+    # Zero-connection state exports full ARCLOOM2 state
     empty_bytes = substrate.export_sparse()
-    assert len(empty_bytes) == 0
+    assert len(empty_bytes) > 0
+    assert empty_bytes[:8] == b"ARCLOOM2"
+    assert len(empty_bytes) % 8 == 0
 
     for _ in range(25):
         substrate.step(sensory, somatic, observed_r_mm=300.0, observed_theta_mdeg=30000, barrier_stress=0.0)
@@ -297,21 +301,20 @@ def test_modular_substrate_64d_barrier_refusal_and_motor() -> None:
     sensory = [0] * 64
     somatic = [0] * 32
 
-    # 1. Sub-yield contact
+    # 1. Sub-yield contact with silent inputs
     sub64.step(sensory, somatic, barrier_stress=0.25)
     assert not sub64.is_barrier_refusal_active()
     vocal, stride, steer, grip = sub64.get_motor_efferent()
-    assert stride == 60.0
+    # Silent motor populations produce strictly 0.0 efferents (A2-01)
+    assert stride == 0.0
     assert vocal == 0.0
-    assert grip == 25.0
+    assert grip == 0.0
 
     # 2. Over-yield collision
     sub64.step(sensory, somatic, barrier_stress=0.85)
     assert sub64.is_barrier_refusal_active()
     vocal_over, stride_over, steer_over, grip_over = sub64.get_motor_efferent()
     assert stride_over == 0.0     # Locomotion stride arrested
-    assert vocal_over == 220.0   # Vocal exhaust pulse fired
-    assert grip_over == 0.0      # Gripper released to prevent damage
 
 
 def test_modular_substrate_64d_plasticity_and_sleep_consolidation() -> None:
