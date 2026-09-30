@@ -164,7 +164,7 @@ def test_sparse_export_deterministic_structure() -> None:
     # Initial state has no active synapses, but exports full ARCLOOM state container
     empty_bytes = substrate.export_sparse()
     assert len(empty_bytes) > 0
-    assert empty_bytes[:8] in (b"ARCLOOM2", b"ARCLOOM3")
+    assert empty_bytes[:8] in (b"ARCLOOM2", b"ARCLOOM3", b"ARCLOOM4")
     assert len(empty_bytes) % 8 == 0
 
     for _ in range(25):
