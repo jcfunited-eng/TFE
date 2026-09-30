@@ -26,7 +26,7 @@ import heapq
 import json
 import math
 import struct
-from typing import Any, Sequence
+from typing import Any, Optional, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
@@ -1220,6 +1220,57 @@ def _consequence_qualified_food_ids(state: dict[str, Any]) -> set[str]:
             known_foods.add(obj_id)
     return known_foods
 
+def motor_efferent_to_locomotion_command(
+    efferent: Tuple[float, float, float, float] | Sequence[float],
+    current_pose: PoseMM,
+    duration_microseconds: int = BEAT_MICROSECONDS,
+) -> Optional[MoveCommand]:
+    """
+    Authorized substrate-to-command translation helper at the organism motor boundary.
+    Converts native motor efferents (vocal_drive_hz, locomotion_stride_mm, steer_angle_deg, grip_force_n)
+    into a canonical W1 MoveCommand using:
+      - Canonical interval: duration_microseconds (default BEAT_MICROSECONDS = 250,000 µs = 0.25 s).
+        Note: Stride represents displacement over this canonical interval; duration scaling is not a dynamic velocity law.
+      - Body-relative steering: integer millidegrees (steer_deg * 1000).
+      - Integration order: Translation displacement uses pre-step heading; endpoint pose adopts steered heading.
+      - Exact lattice displacement: exact rigid rotation onto the discrete millimetre lattice.
+      - Finite/domain validation: efferents must be finite real numbers.
+    Silent efferents (stride <= 0.0 and abs(steer) <= 0.0) return None (locomotion inhibited).
+    """
+    if len(efferent) < 3:
+        return None
+    try:
+        stride_mm = float(efferent[1])
+        steer_deg = float(efferent[2])
+    except (TypeError, ValueError):
+        return None
+
+    if not (np.isfinite(stride_mm) and np.isfinite(steer_deg)):
+        return None
+
+    if stride_mm <= 0.0 and abs(steer_deg) <= 0.0:
+        return None
+
+    steer_millidegrees = int(round(steer_deg * 1000.0))
+    target_heading = (current_pose.heading_millidegrees + steer_millidegrees) % 360_000
+
+    stride_int = int(round(stride_mm))
+    if stride_int > 0:
+        dx, dy = rotate_lattice_offset(stride_int, 0, current_pose.heading_millidegrees)
+        target_pos = PositionMM(
+            current_pose.position.x + dx,
+            current_pose.position.y + dy,
+            current_pose.position.z,
+        )
+    else:
+        target_pos = current_pose.position
+
+    return MoveCommand(
+        target_pose=PoseMM(target_pos, target_heading),
+        duration_microseconds=duration_microseconds,
+    )
+
+
 def candidates(
     snapshot: Any,
     body: Any,
@@ -1405,13 +1456,19 @@ def candidates(
 
     # 8. Elementary motions, airway, rest
     if not in_high_chair:
-        native_cmd = None
-        if modular_sub is not None and hasattr(modular_sub, "motor_efferent_to_locomotion_command"):
-            native_cmd = modular_sub.motor_efferent_to_locomotion_command(body.pose, BEAT_MICROSECONDS)
-
-        if native_cmd is not None:
-            eff = modular_sub.get_motor_efferent()
-            out.append(("step", f"native substrate motor stride {eff[1]:.1f}mm steer {eff[2]:.1f}deg", (native_cmd,), None, None))
+        if modular_sub is not None:
+            eff = (
+                modular_sub.get_motor_efferent()
+                if hasattr(modular_sub, "get_motor_efferent")
+                else modular_sub.motor_efferents()
+                if hasattr(modular_sub, "motor_efferents")
+                else (0.0, 0.0, 0.0, 0.0)
+            )
+            native_cmd = motor_efferent_to_locomotion_command(eff, body.pose, BEAT_MICROSECONDS)
+            if native_cmd is not None:
+                out.append(("step", f"native substrate motor stride {eff[1]:.1f}mm steer {eff[2]:.1f}deg", (native_cmd,), None, None))
+            # Critical: when native substrate is present, silent efferents inhibit locomotion:
+            # NO fallback programmed stride is appended.
         else:
             dx, dy = rotate_lattice_offset(STEP_MM, 0, heading)
             ahead = PositionMM(position.x + dx, position.y + dy, position.z)
@@ -2569,11 +2626,6 @@ class FunctionalOrganism:
 
         _name, detail, commands, target, drive = chosen_option
 
-        if act == "step" and self._modular_substrate is not None:
-            native_cmd = self._modular_substrate.motor_efferent_to_locomotion_command(body.pose, BEAT_MICROSECONDS)
-            if native_cmd is not None:
-                commands = (native_cmd,)
-
         if act in ("turn_left", "turn_right"):
             state["consecutive_turns"] = int(state.get("consecutive_turns", 0)) + 1
         else:
@@ -2761,6 +2813,8 @@ class FunctionalOrganism:
         # Step Modular Neuromorphic Substrate (Full Continuous DSF Delivery)
         if dsf_vec is not None and len(dsf_vec) >= 8:
             self._modular_substrate.consume_continuous_joint_field(dsf_vec[:7], dsf_vec[7])
+        else:
+            self._modular_substrate.clear_continuous_joint_field()
         polar = getattr(self, "_last_target_polar", None)
         obs_r, obs_th = (polar[0], polar[1]) if polar is not None else (None, None)
         sens_64 = self._modular_substrate.encode_sensory_stream(

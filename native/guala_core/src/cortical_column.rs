@@ -10,15 +10,14 @@
 //!      - Waking experience creates persistent plastic conductances (g_plastic).
 //!      - Waking beats do NOT arbitrarily decay learned conductances (zero unphysical waking decay).
 //!      - Synaptic downscaling occurs strictly during nocturnal sleep consolidation (Synaptic Homeostasis).
-//!   2. Reversible Constitutive Elastic Contact Conduction:
+//!   2. Constitutive Elastic Baseline and Signed Synaptic Polarization:
 //!      - Reversible elastic compliance regime (|sigma| <= Y, lambda_dot = 0):
-//!        G_ELASTIC_BASELINE = 0.05 is the normalized innate tunneling conductance ratio (g_0 / g_sat)
-//!        for contact micro-junctions in the reversible elastic regime (|sigma| <= Y, w = 0).
-//!        Under sub-yield stress, contact area A_elastic provides baseline quantum tunneling conductance
-//!        g_0 = 0.05 * g_sat. Upon entering super-yield irreversible plastic deformation (|sigma| > Y, dot{lambda} > 0),
-//!        plastic work increases permanent contact area A_plastic = A_0 + delta_A_p, yielding irreversible
-//!        plastic conductance g_plastic = w * g_sat (w in [-1.0, 1.0]).
-//!        Total interface conductance is the superposition: G_total = G_ELASTIC_BASELINE + g_plastic.
+//!        G_ELASTIC_BASELINE = 0.05 represents the calibrated baseline elastic contact compliance.
+//!        In the balanced-ternary neuromorphic lattice, signed plastic variable w in [-1.0, 1.0]
+//!        represents normalized plastic synaptic polarization (conductance magnitude scaled by
+//!        transmission polarity: excitatory > 0, inhibitory < 0).
+//!        Effective coupling is the superposition: g_eff = G_ELASTIC_BASELINE + w.
+//!        Quantum tunneling and Holm contact area claims are formally withdrawn.
 //!   3. Causal Multi-Axis Motor Efferent Transduction:
 //!      - Motor efferents scale directly from settled L5 pyramidal population excitation:
 //!        vocal_hz in [0, 480], stride_mm in [0, 60], steer_deg in [-45, +45], grip_n in [0, 25].
@@ -29,7 +28,7 @@
 //!        consumed by Columns 48..63, propagating currents into associative and motor columns.
 //!      - Continuous 7-field joint tensor and S_UF viability invariant are preserved through
 //!        exact native continuous transport interfaces.
-//!   5. Fail-Closed Lossless ARCLOOM3 State Persistence:
+//!   5. Fail-Closed Lossless ARCLOOM4 State Persistence with Explicit Field Availability:
 //!      - Serializes complete topological configuration, including severed tracts,
 //!        column-local microcircuit plasticity parameters, and motor dynamics.
 //!      - Preserves ALL nonzero, finite conductances bit-for-bit without arbitrary sub-0.005 pruning.
@@ -81,14 +80,13 @@ pub const ARCLOOM_STATE_VERSION_V2: u16 = 2;
 pub const ARCLOOM_STATE_MAGIC_V3: &[u8; 8] = b"ARCLOOM3";
 pub const ARCLOOM_STATE_VERSION_V3: u16 = 3;
 
-/// Normalized innate elastic tunneling conductance ratio (g_0 / g_sat = 0.05)
-/// for contact micro-junctions in the reversible elastic deformation regime (|sigma| <= Y, w = 0).
-/// Under sub-yield mechanical/current stress (|sigma| <= Y), micro-junction contact area A_elastic
-/// provides a baseline reversible quantum tunneling conductance g_0 = 0.05 * g_sat.
-/// Upon entering the super-yield irreversible plastic deformation regime (|sigma| > Y, dot{lambda} > 0),
-/// plastic work increases permanent contact area A_plastic = A_0 + delta_A_p, yielding irreversible
-/// plastic conductance component g_plastic = w * g_sat (w in [-1.0, 1.0]).
-/// Total interface conductance is the superposition: G_total = G_ELASTIC_BASELINE + g_plastic.
+pub const ARCLOOM_STATE_MAGIC_V4: &[u8; 8] = b"ARCLOOM4";
+pub const ARCLOOM_STATE_VERSION_V4: u16 = 4;
+
+/// Calibrated baseline elastic contact compliance G_ELASTIC_BASELINE = 0.05.
+/// Under sub-yield stress (|sigma| <= Y), contact junctions exhibit baseline elastic compliance.
+/// Signed plastic weight w in [-1.0, 1.0] represents normalized synaptic polarization
+/// (excitatory > 0, inhibitory < 0). Effective transmission coupling is g_eff = G_ELASTIC_BASELINE + w.
 pub const G_ELASTIC_BASELINE: f32 = 0.05;
 
 // ---------------------------------------------------------------------------
@@ -1137,8 +1135,8 @@ impl ModularSubstrate4D {
             return Err("Non-finite float in 4D substrate header during export".to_string());
         }
         let mut buf = Vec::with_capacity(65536);
-        buf.extend_from_slice(ARCLOOM_STATE_MAGIC_V3);
-        buf.extend_from_slice(&ARCLOOM_STATE_VERSION_V3.to_le_bytes());
+        buf.extend_from_slice(ARCLOOM_STATE_MAGIC_V4);
+        buf.extend_from_slice(&ARCLOOM_STATE_VERSION_V4.to_le_bytes());
         buf.extend_from_slice(&(NUM_COLUMNS_4D as u16).to_le_bytes());
         buf.extend_from_slice(&self.yield_threshold.to_le_bytes());
         buf.extend_from_slice(&self.plastic_rate.to_le_bytes());
@@ -1192,20 +1190,15 @@ impl ModularSubstrate4D {
             return Err("Truncated header: less than 8 bytes".to_string());
         }
         let magic = &data[0..8];
-        let is_v3 = magic == ARCLOOM_STATE_MAGIC_V3;
-        let is_v2 = magic == ARCLOOM_STATE_MAGIC_V2;
-        if !is_v3 && !is_v2 {
-            return Err(format!("Invalid ArcLoom state format: unknown magic header {:?}", magic));
+        if magic != ARCLOOM_STATE_MAGIC_V4 {
+            return Err(format!("Invalid ArcLoom state format: expected ARCLOOM4, got unknown magic {:?}", magic));
         }
         if data.len() < 24 {
             return Err("Truncated ARCLOOM header: less than 24 bytes".to_string());
         }
         let version = u16::from_le_bytes([data[8], data[9]]);
-        if is_v3 && version != ARCLOOM_STATE_VERSION_V3 {
-            return Err(format!("Unsupported ArcLoom v3 version: {}", version));
-        }
-        if is_v2 && version != ARCLOOM_STATE_VERSION_V2 {
-            return Err(format!("Unsupported ArcLoom v2 version: {}", version));
+        if version != ARCLOOM_STATE_VERSION_V4 {
+            return Err(format!("Unsupported ArcLoom version for 4D: expected 4, got {}", version));
         }
         let n_cols = u16::from_le_bytes([data[10], data[11]]) as usize;
         if n_cols != NUM_COLUMNS_4D {
@@ -1291,6 +1284,13 @@ impl ModularSubstrate4D {
         Ok(())
     }
 
+    pub fn export_sparse_v4(&self) -> Result<Vec<u8>, String> {
+        self.export_sparse_v3()
+    }
+
+    pub fn import_sparse_v4(&mut self, data: &[u8]) -> Result<(), String> {
+        self.import_sparse_v3(data)
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1594,8 +1594,8 @@ impl ModularSubstrate8D {
             return Err("Non-finite float in 8D substrate header during export".to_string());
         }
         let mut buf = Vec::with_capacity(131072);
-        buf.extend_from_slice(ARCLOOM_STATE_MAGIC_V3);
-        buf.extend_from_slice(&ARCLOOM_STATE_VERSION_V3.to_le_bytes());
+        buf.extend_from_slice(ARCLOOM_STATE_MAGIC_V4);
+        buf.extend_from_slice(&ARCLOOM_STATE_VERSION_V4.to_le_bytes());
         buf.extend_from_slice(&(NUM_COLUMNS_8D as u16).to_le_bytes());
         buf.extend_from_slice(&self.yield_threshold.to_le_bytes());
         buf.extend_from_slice(&self.plastic_rate.to_le_bytes());
@@ -1648,20 +1648,15 @@ impl ModularSubstrate8D {
             return Err("Truncated header: less than 8 bytes".to_string());
         }
         let magic = &data[0..8];
-        let is_v3 = magic == ARCLOOM_STATE_MAGIC_V3;
-        let is_v2 = magic == ARCLOOM_STATE_MAGIC_V2;
-        if !is_v3 && !is_v2 {
-            return Err(format!("Invalid ArcLoom state format: unknown magic header {:?}", magic));
+        if magic != ARCLOOM_STATE_MAGIC_V4 {
+            return Err(format!("Invalid ArcLoom state format: expected ARCLOOM4, got unknown magic {:?}", magic));
         }
         if data.len() < 24 {
             return Err("Truncated ARCLOOM header: less than 24 bytes".to_string());
         }
         let version = u16::from_le_bytes([data[8], data[9]]);
-        if is_v3 && version != ARCLOOM_STATE_VERSION_V3 {
-            return Err(format!("Unsupported ArcLoom v3 version: {}", version));
-        }
-        if is_v2 && version != ARCLOOM_STATE_VERSION_V2 {
-            return Err(format!("Unsupported ArcLoom v2 version: {}", version));
+        if version != ARCLOOM_STATE_VERSION_V4 {
+            return Err(format!("Unsupported ArcLoom version for 8D: expected 4, got {}", version));
         }
         let n_cols = u16::from_le_bytes([data[10], data[11]]) as usize;
         if n_cols != NUM_COLUMNS_8D {
@@ -1750,6 +1745,13 @@ impl ModularSubstrate8D {
         Ok(())
     }
 
+    pub fn export_sparse_v4(&self) -> Result<Vec<u8>, String> {
+        self.export_sparse_v3()
+    }
+
+    pub fn import_sparse_v4(&mut self, data: &[u8]) -> Result<(), String> {
+        self.import_sparse_v3(data)
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1818,6 +1820,30 @@ impl ModularSubstrate64D {
         }
     }
 
+    #[inline]
+    pub fn quantize_radix3(val: f64) -> (i8, i8) {
+        if !val.is_finite() {
+            return (0, 0);
+        }
+        let mut rem = val;
+        let mut trits = [0i8; 2];
+        let mut power = 1.0 / 3.0;
+        for t in trits.iter_mut() {
+            let half = power / 2.0;
+            if rem > half {
+                *t = 1;
+                rem -= power;
+            } else if rem < -half {
+                *t = -1;
+                rem += power;
+            } else {
+                *t = 0;
+            }
+            power /= 3.0;
+        }
+        (trits[0], trits[1])
+    }
+
     pub fn consume_continuous_joint_field(&mut self, field_7d: [f64; 7], s_uf: f64) -> Result<(), String> {
         for (i, &val) in field_7d.iter().enumerate() {
             if !val.is_finite() {
@@ -1831,6 +1857,15 @@ impl ModularSubstrate64D {
         self.continuous_joint_field[7] = s_uf;
         self.continuous_joint_field_present = true;
         Ok(())
+    }
+
+    pub fn clear_continuous_joint_field(&mut self) {
+        self.continuous_joint_field = [0.0; 8];
+        self.continuous_joint_field_present = false;
+    }
+
+    pub fn has_continuous_joint_field(&self) -> bool {
+        self.continuous_joint_field_present
     }
 
     pub fn get_continuous_joint_field(&self) -> [f64; 8] {
@@ -2087,36 +2122,15 @@ impl ModularSubstrate64D {
             self.motor_locomotion_stride = 0.0;
         }
 
-        // Continuous Structural Joint Field Direct Participation:
-        // [D_k, M_k, R_rev_k, U_star_k, C_k, P_k, B_k, S_UF]
-        if self.continuous_joint_field_present {
-            let r_rev = self.continuous_joint_field[2];
-            let c_k = self.continuous_joint_field[4];
-            let p_k = self.continuous_joint_field[5];
-            let b_k = self.continuous_joint_field[6];
-            let s_uf = self.continuous_joint_field[7];
-
-            if s_uf <= 0.0 || r_rev > 0.0 {
-                // Structural viability collapse or directional reversal engages hard protective clamp
-                self.motor_locomotion_stride = 0.0;
-            } else if p_k > b_k && b_k > 0.0 {
-                // Dynamic structural pressure strain damping
-                let damping = (b_k / p_k) as f32;
-                self.motor_locomotion_stride *= damping.clamp(0.1, 1.0);
-            } else if c_k > 0.0 && s_uf > 0.0 {
-                // Cohesive resonant forward drive modulation
-                let boost = (1.0 + 0.15 * c_k.min(2.0)) as f32;
-                self.motor_locomotion_stride = (self.motor_locomotion_stride * boost).clamp(0.0, 60.0);
-            }
-        }
-
         // 6. Clusters 6, 7: Prefrontal / Structural Invariant Sheet (Cols 48..64)
         // Columns 48..55 receive continuous joint field trits as physical afferents
         for (i, c) in (48..56).enumerate() {
             let mut dsf_aff = vec![0i8; L4_NODES];
-            let val = if self.continuous_joint_field_present { self.continuous_joint_field[i] } else { 0.0 };
-            if val != 0.0 {
-                dsf_aff[0] = if val > 0.0 { 1 } else { -1 };
+            if self.continuous_joint_field_present {
+                let val = self.continuous_joint_field[i];
+                let (t0, t1) = Self::quantize_radix3(val);
+                dsf_aff[0] = t0;
+                dsf_aff[1] = t1;
             } else if c < sensory_trits.len() {
                 dsf_aff[0] = sensory_trits[c];
             }
@@ -2266,15 +2280,15 @@ impl ModularSubstrate64D {
         self.active_inter_5.clear();
     }
 
-    pub fn export_sparse_v3(&self) -> Result<Vec<u8>, String> {
+    pub fn export_sparse_v4(&self) -> Result<Vec<u8>, String> {
         if !self.yield_threshold.is_finite() || !self.plastic_rate.is_finite() || !self.activation_threshold.is_finite() ||
            !self.motor_vocal_drive.is_finite() || !self.motor_locomotion_stride.is_finite() ||
            !self.motor_steer_angle.is_finite() || !self.motor_grip_force.is_finite() {
             return Err("Non-finite float in 64D substrate header/footer during export".to_string());
         }
         let mut buf = Vec::with_capacity(131072);
-        buf.extend_from_slice(ARCLOOM_STATE_MAGIC_V3);
-        buf.extend_from_slice(&ARCLOOM_STATE_VERSION_V3.to_le_bytes());
+        buf.extend_from_slice(ARCLOOM_STATE_MAGIC_V4);
+        buf.extend_from_slice(&ARCLOOM_STATE_VERSION_V4.to_le_bytes());
         buf.extend_from_slice(&(NUM_COLUMNS_64D as u16).to_le_bytes());
         buf.extend_from_slice(&self.yield_threshold.to_le_bytes());
         buf.extend_from_slice(&self.plastic_rate.to_le_bytes());
@@ -2327,7 +2341,10 @@ impl ModularSubstrate64D {
             buf.extend_from_slice(&idx.to_le_bytes());
         }
 
-        // Full continuous joint field serialization (64 bytes: 8 * f64)
+        // Full continuous joint field serialization with explicit availability flag
+        let presence_flag: u8 = if self.continuous_joint_field_present { 1 } else { 0 };
+        buf.push(presence_flag);
+
         for &val in &self.continuous_joint_field {
             if !val.is_finite() {
                 return Err("Non-finite float in continuous joint field during export".to_string());
@@ -2343,6 +2360,10 @@ impl ModularSubstrate64D {
         Ok(buf)
     }
 
+    pub fn export_sparse_v3(&self) -> Result<Vec<u8>, String> {
+        self.export_sparse_v4()
+    }
+
     fn try_parse_v2_internal(
         &self,
         data: &[u8],
@@ -2352,6 +2373,18 @@ impl ModularSubstrate64D {
         use_36b_headers: bool,
     ) -> Result<StagedSubstrateState, String> {
         let mut temp_columns = self.columns.clone();
+        // Authenticated predecessor parameter initialization:
+        // For 24-byte layout where local parameters were omitted in historical format,
+        // initialize each column's microcircuit parameters from the container header
+        // (yield_th, plastic_rt, activation_th), so that the restored state does not inherit
+        // recipient instance defaults!
+        if !use_36b_headers {
+            for col in temp_columns.iter_mut() {
+                col.microcircuit.yield_threshold = yield_th;
+                col.microcircuit.plastic_rate = plastic_rt;
+                col.microcircuit.activation_threshold = activation_th;
+            }
+        }
         let mut offset = 24;
         for (col_idx, col) in temp_columns.iter_mut().enumerate() {
             if use_36b_headers {
@@ -2518,7 +2551,7 @@ impl ModularSubstrate64D {
         Err(format!("Failed to parse ARCLOOM2 payload under both authentic historical schemas (36B severed: {:?}, 24B unsevered: {:?})", res_36.err(), res_24.err()))
     }
 
-    fn try_parse_v3_internal(&self, data: &[u8]) -> Result<StagedSubstrateState, String> {
+    fn try_parse_v4_internal(&self, data: &[u8]) -> Result<StagedSubstrateState, String> {
         if data.is_empty() {
             return Err("Cannot import from empty byte buffer".to_string());
         }
@@ -2527,16 +2560,21 @@ impl ModularSubstrate64D {
         }
         let magic = &data[0..8];
         if magic == ARCLOOM_STATE_MAGIC_V2 {
-            return Err("Invalid magic: found ARCLOOM2 payload in ARCLOOM3 importer. Historical predecessor migration must be performed explicitly via migrate_predecessor_v2()".to_string());
+            return Err("Invalid magic: found ARCLOOM2 payload in ARCLOOM4 importer. Historical predecessor migration must be performed explicitly via migrate_predecessor_v2()".to_string());
         }
-        if magic != ARCLOOM_STATE_MAGIC_V3 {
-            return Err(format!("Invalid ArcLoom state format: unknown magic header {:?}", magic));
+        let is_v4 = magic == ARCLOOM_STATE_MAGIC_V4;
+        let is_v3 = magic == ARCLOOM_STATE_MAGIC_V3;
+        if !is_v4 && !is_v3 {
+            return Err(format!("Invalid ArcLoom state format: expected ARCLOOM4, got unknown magic {:?}", magic));
         }
         if data.len() < 24 {
-            return Err("Truncated ARCLOOM3 header: less than 24 bytes".to_string());
+            return Err("Truncated ARCLOOM header: less than 24 bytes".to_string());
         }
         let version = u16::from_le_bytes([data[8], data[9]]);
-        if version != ARCLOOM_STATE_VERSION_V3 {
+        if is_v4 && version != ARCLOOM_STATE_VERSION_V4 {
+            return Err(format!("Unsupported ArcLoom v4 version: {}", version));
+        }
+        if is_v3 && version != ARCLOOM_STATE_VERSION_V3 {
             return Err(format!("Unsupported ArcLoom v3 version: {}", version));
         }
         let n_cols = u16::from_le_bytes([data[10], data[11]]) as usize;
@@ -2607,7 +2645,7 @@ impl ModularSubstrate64D {
         }
 
         if offset + 16 > data.len() {
-            return Err("Missing or truncated motor efferent footer in ARCLOOM3 payload".to_string());
+            return Err("Missing or truncated motor efferent footer in ArcLoom payload".to_string());
         }
         let new_vocal = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
         let new_stride = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
@@ -2619,13 +2657,13 @@ impl ModularSubstrate64D {
         }
 
         if offset + 4 > data.len() {
-            return Err("Unexpected EOF reading severed tracts count in ARCLOOM3".to_string());
+            return Err("Unexpected EOF reading severed tracts count".to_string());
         }
         let sev_count = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
         offset += 4;
 
         if offset + sev_count * 4 > data.len() {
-            return Err("Unexpected EOF reading severed tracts indices in ARCLOOM3".to_string());
+            return Err("Unexpected EOF reading severed tracts indices".to_string());
         }
         let mut new_severed = vec![false; NUM_COLUMNS_64D * NUM_COLUMNS_64D];
         for _ in 0..sev_count {
@@ -2638,32 +2676,48 @@ impl ModularSubstrate64D {
             }
         }
 
-        // Full continuous joint field deserialization (64 bytes: 8 * f64)
-        if offset + 64 > data.len() {
-            return Err("Unexpected EOF reading continuous joint field in ARCLOOM3: requires 64 bytes".to_string());
-        }
-        let mut new_cjf = [0.0f64; 8];
-        for i in 0..8 {
-            let bytes = [
-                data[offset], data[offset+1], data[offset+2], data[offset+3],
-                data[offset+4], data[offset+5], data[offset+6], data[offset+7]
-            ];
-            offset += 8;
-            let val = f64::from_le_bytes(bytes);
-            if !val.is_finite() {
-                return Err(format!("Non-finite float in continuous joint field index {}", i));
+        let (new_cjf, is_present) = if is_v4 {
+            // ARCLOOM4: explicit presence flag followed by 64 bytes of f64 field values
+            if offset >= data.len() {
+                return Err("Unexpected EOF reading presence flag in ARCLOOM4".to_string());
             }
-            new_cjf[i] = val;
-        }
+            let presence_byte = data[offset];
+            offset += 1;
+            if presence_byte > 1 {
+                return Err(format!("Invalid presence flag {} in ARCLOOM4: must be 0 or 1", presence_byte));
+            }
+            let present = presence_byte == 1;
+
+            if offset + 64 > data.len() {
+                return Err("Unexpected EOF reading continuous joint field in ARCLOOM4: requires 64 bytes".to_string());
+            }
+            let mut cjf = [0.0f64; 8];
+            for i in 0..8 {
+                let bytes = [
+                    data[offset], data[offset+1], data[offset+2], data[offset+3],
+                    data[offset+4], data[offset+5], data[offset+6], data[offset+7]
+                ];
+                offset += 8;
+                let val = f64::from_le_bytes(bytes);
+                if !val.is_finite() {
+                    return Err(format!("Non-finite float in continuous joint field index {}", i));
+                }
+                cjf[i] = val;
+            }
+            (cjf, present)
+        } else {
+            // Predecessor ARCLOOM3 migration: ends after severed tracts; field is explicitly absent
+            ([0.0f64; 8], false)
+        };
 
         let expected_pad = (8 - (offset % 8)) % 8;
         let actual_pad = data.len() - offset;
         if actual_pad != expected_pad {
-            return Err(format!("Incorrect trailing alignment padding in ARCLOOM3 payload: expected {} bytes, got {}", expected_pad, actual_pad));
+            return Err(format!("Incorrect trailing alignment padding in ArcLoom payload: expected {} bytes, got {}", expected_pad, actual_pad));
         }
         for i in 0..expected_pad {
             if data[offset + i] != 0 {
-                return Err("Non-zero padding byte in ARCLOOM3 payload".to_string());
+                return Err("Non-zero padding byte in ArcLoom payload".to_string());
             }
         }
 
@@ -2678,7 +2732,7 @@ impl ModularSubstrate64D {
             active_inter_5: new_act_5,
             severed_tracts: new_severed,
             continuous_joint_field: new_cjf,
-            continuous_joint_field_present: new_cjf.iter().any(|&x| x != 0.0),
+            continuous_joint_field_present: is_present,
             motor_vocal_drive: new_vocal,
             motor_locomotion_stride: new_stride,
             motor_steer_angle: new_steer,
@@ -2686,10 +2740,14 @@ impl ModularSubstrate64D {
         })
     }
 
-    pub fn import_sparse_v3(&mut self, data: &[u8]) -> Result<(), String> {
-        let staged = self.try_parse_v3_internal(data)?;
+    pub fn import_sparse_v4(&mut self, data: &[u8]) -> Result<(), String> {
+        let staged = self.try_parse_v4_internal(data)?;
         self.commit_staged_state(staged);
         Ok(())
+    }
+
+    pub fn import_sparse_v3(&mut self, data: &[u8]) -> Result<(), String> {
+        self.import_sparse_v4(data)
     }}
 
 // ---------------------------------------------------------------------------
@@ -2780,19 +2838,27 @@ impl PyModularSubstrate4D {
     }
 
     pub fn export_sparse(&self) -> PyResult<Vec<u8>> {
-        self.inner.export_sparse_v3().map_err(|e| PyValueError::new_err(e))
+        self.inner.export_sparse_v4().map_err(|e| PyValueError::new_err(e))
+    }
+
+    pub fn export_sparse_v4(&self) -> PyResult<Vec<u8>> {
+        self.inner.export_sparse_v4().map_err(|e| PyValueError::new_err(e))
     }
 
     pub fn export_sparse_v3(&self) -> PyResult<Vec<u8>> {
-        self.inner.export_sparse_v3().map_err(|e| PyValueError::new_err(e))
+        self.inner.export_sparse_v4().map_err(|e| PyValueError::new_err(e))
     }
 
     pub fn import_sparse(&mut self, data: &[u8]) -> PyResult<()> {
-        self.inner.import_sparse_v3(data).map_err(|e| PyValueError::new_err(e))
+        self.inner.import_sparse_v4(data).map_err(|e| PyValueError::new_err(e))
+    }
+
+    pub fn import_sparse_v4(&mut self, data: &[u8]) -> PyResult<()> {
+        self.inner.import_sparse_v4(data).map_err(|e| PyValueError::new_err(e))
     }
 
     pub fn import_sparse_v3(&mut self, data: &[u8]) -> PyResult<()> {
-        self.inner.import_sparse_v3(data).map_err(|e| PyValueError::new_err(e))
+        self.inner.import_sparse_v4(data).map_err(|e| PyValueError::new_err(e))
     }
 }
 
@@ -2887,19 +2953,27 @@ impl PyModularSubstrate8D {
     }
 
     pub fn export_sparse(&self) -> PyResult<Vec<u8>> {
-        self.inner.export_sparse_v3().map_err(|e| PyValueError::new_err(e))
+        self.inner.export_sparse_v4().map_err(|e| PyValueError::new_err(e))
+    }
+
+    pub fn export_sparse_v4(&self) -> PyResult<Vec<u8>> {
+        self.inner.export_sparse_v4().map_err(|e| PyValueError::new_err(e))
     }
 
     pub fn export_sparse_v3(&self) -> PyResult<Vec<u8>> {
-        self.inner.export_sparse_v3().map_err(|e| PyValueError::new_err(e))
+        self.inner.export_sparse_v4().map_err(|e| PyValueError::new_err(e))
     }
 
     pub fn import_sparse(&mut self, data: &[u8]) -> PyResult<()> {
-        self.inner.import_sparse_v3(data).map_err(|e| PyValueError::new_err(e))
+        self.inner.import_sparse_v4(data).map_err(|e| PyValueError::new_err(e))
+    }
+
+    pub fn import_sparse_v4(&mut self, data: &[u8]) -> PyResult<()> {
+        self.inner.import_sparse_v4(data).map_err(|e| PyValueError::new_err(e))
     }
 
     pub fn import_sparse_v3(&mut self, data: &[u8]) -> PyResult<()> {
-        self.inner.import_sparse_v3(data).map_err(|e| PyValueError::new_err(e))
+        self.inner.import_sparse_v4(data).map_err(|e| PyValueError::new_err(e))
     }
 }
 
@@ -3017,20 +3091,36 @@ impl PyModularSubstrate64D {
         self.inner.zero_plastic_weights();
     }
 
+    pub fn has_continuous_joint_field(&self) -> bool {
+        self.inner.has_continuous_joint_field()
+    }
+
+    pub fn clear_continuous_joint_field(&mut self) {
+        self.inner.clear_continuous_joint_field();
+    }
+
     pub fn export_sparse(&self) -> PyResult<Vec<u8>> {
-        self.inner.export_sparse_v3().map_err(|e| PyValueError::new_err(e))
+        self.inner.export_sparse_v4().map_err(|e| PyValueError::new_err(e))
+    }
+
+    pub fn export_sparse_v4(&self) -> PyResult<Vec<u8>> {
+        self.inner.export_sparse_v4().map_err(|e| PyValueError::new_err(e))
     }
 
     pub fn export_sparse_v3(&self) -> PyResult<Vec<u8>> {
-        self.inner.export_sparse_v3().map_err(|e| PyValueError::new_err(e))
+        self.inner.export_sparse_v4().map_err(|e| PyValueError::new_err(e))
     }
 
     pub fn import_sparse(&mut self, data: &[u8]) -> PyResult<()> {
-        self.inner.import_sparse_v3(data).map_err(|e| PyValueError::new_err(e))
+        self.inner.import_sparse_v4(data).map_err(|e| PyValueError::new_err(e))
+    }
+
+    pub fn import_sparse_v4(&mut self, data: &[u8]) -> PyResult<()> {
+        self.inner.import_sparse_v4(data).map_err(|e| PyValueError::new_err(e))
     }
 
     pub fn import_sparse_v3(&mut self, data: &[u8]) -> PyResult<()> {
-        self.inner.import_sparse_v3(data).map_err(|e| PyValueError::new_err(e))
+        self.inner.import_sparse_v4(data).map_err(|e| PyValueError::new_err(e))
     }
 
     pub fn migrate_predecessor_v2(&mut self, data: &[u8]) -> PyResult<()> {

@@ -75,8 +75,8 @@ arcloom_demonstrator/
 ├── substrate/
 │   └── modular_column_substrate.py # Python adapter for 8D & 64D physical substrate
 └── tests/
-    ├── test_octal_column_invariants.py    # Multi-phase invariant test suite
-    └── test_arcloom_causal_action_witness.py # Formal audit witness suite (A5-01 through A5-06, component evidence)
+    ├── test_octal_column_invariants.py       # Multi-phase invariant test suite
+    └── test_arcloom_causal_action_witness.py # Formal audit witness suite (A7-01 through A7-06, component evidence)
 ```
 
 ---
