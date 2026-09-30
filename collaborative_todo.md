@@ -28392,3 +28392,16 @@ Single next item for G1: deliver the original real-action plus native cold-conti
    - Phase 5 cortical columns suite: `pytest tests/test_phase5_modular_cortical_columns.py -v` (6/6 PASSED in 4.52s).
    - Demonstrator isolated package tests: `pytest tests/test_octal_column_invariants.py tests/test_arcloom_causal_action_witness.py` (19/19 PASSED in 1.91s).
    - Demonstrator benchmark suite: `python3 benchmark_octal_substrate.py` (5/5 PASSED, 2,127 Hz / 1,279 Hz).
+
+
+---
+
+### QUEUED ROADMAP ITEM (POST-AUDIT CLEAN SIGN-OFF) — 2026-09-30
+
+- [ ] **Option 2: Mount Live Streaming Planetary Sensors into Grounded Sensorimotor Bridge Runner**:
+  - **Prerequisite**: Formal fifth-pass architectural sign-off / clean audit from Astra (A1).
+  - **Target Integration**:
+    * **Atmospheric Barometric Pressure Transduction**: Map live atmospheric barometric pressure transducers into cochlear/somatosensory dynamic pressure gradient channels ($P_k, B_k$), validating acoustic and somatic pressure manifolds against real ambient air pressure variations.
+    * **Thermal Sensor Streams**: Map real-world ambient temperature and thermal flux sensors into laminar homeostatic somatic context trits (`somatic_trits`), driving thermodynamic energy balance and metabolic yield limits.
+    * **Optical Camera Telemetry**: Ingest real-time camera frames into the dual-column egocentric polar retinotopic foveal projection ($V_1: r_{\text{mm}}, V_2: \theta_{\text{mdeg}}$), testing object tracking, boundary detection, and optical occlusion permanence under natural illumination and physical obstacles.
+    * **Hard Invariant Veto Enforcement**: Route all incoming physical sensor streams through `evaluate_admissibility` (Viability Basin Gate $S_{UF} \le 0$, Kill Switch $R_{\text{rev}} > 0$, Barrier Yield Refusal $|\sigma| > Y$, Thermodynamic Strain Collapse $P_k \ge B_k$, and Occlusion Collision Hazard) to ensure zero ungrounded actions are permitted to settle.
