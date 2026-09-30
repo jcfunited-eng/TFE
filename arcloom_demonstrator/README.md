@@ -76,7 +76,7 @@ arcloom_demonstrator/
 │   └── modular_column_substrate.py # Python adapter for 8D & 64D physical substrate
 └── tests/
     ├── test_octal_column_invariants.py    # Multi-phase invariant test suite
-    └── test_arcloom_causal_action_witness.py # Formal audit witness suite (A2-01 through A2-06)
+    └── test_arcloom_causal_action_witness.py # Formal audit witness suite (A3-01 through A3-06)
 ```
 
 ---
@@ -103,9 +103,9 @@ python3 run_demonstrator.py --columns 64
 ```
 
 #### Interactive Controls:
-* **`[B]` Blind Camera**: Simulates total optical occlusion. Demonstrates the invariant spatial permanence attractor locking target coordinates $(r, \theta)$ in Layer 5 deep wells with $0.00\text{ mm}$ drift.
+* **`[B]` Blind Camera**: Simulates total optical occlusion. Demonstrates egocentric polar spatial tracking registers maintaining target coordinates $(r, \theta)$ under occlusion while persistence trace decays exponentially.
 * **`[A]` Acoustic Pulse**: Injects acoustic formant peaks into cochlear columns, demonstrating plastic associative binding.
-* **`[C]` Collision Impact**: Induces over-yield barrier stress ($\sigma = 0.95 > Y = 0.60$), demonstrating immediate locomotion stride arrest ($0.0\text{ mm}$) and airway vocal exhaust pulse ($220.0\text{ Hz}$).
+* **`[C]` Collision Impact**: Induces over-yield barrier stress ($\sigma = 0.95 > Y = 0.60$), demonstrating immediate locomotion stride arrest ($0.0\text{ mm}$) via protective motor interlock.
 * **`[S]` Sleep Consolidation**: Executes nocturnal downscaling and pruning of sub-threshold noise without memory collapse.
 * **`[Q]` Quit**: Exits console.
 
@@ -126,4 +126,4 @@ Connect the 4 channels of the **Siglent SDS1104X-E 100 MHz Oscilloscope** to the
 
 1. **Zero ML Approximations**: No neural network weights, no backpropagation, no statistical gradient descent. Plasticity proceeds strictly from continuum yield mechanics ($f = |\sigma| - Y \le 0$).
 2. **Zero Heuristics / Lookup Tables**: Spatial tracking and barrier refusal proceed from continuous potential manifolds and laminar causal propagation. Continuous mathematical radix-3 expansion: $x \sim \sum_{k=1}^K t_k 3^{-k}$.
-3. **Deterministic Latency**: Sub-millisecond ($255\ \mu\text{s}$ for 8D, $8.5\text{ ms}$ for 64D) software simulation; sub-microsecond ($< 100\text{ ns}$) digital circuit clocking.
+3. **Deterministic Latency**: Software simulation targets (~$255\ \mu\text{s}$ for 8D, ~$8.5\text{ ms}$ for 64D on modern host CPU); sub-microsecond digital circuit hardware targets ($< 100\text{ ns}$ on FPGA/ASIC).

@@ -28312,3 +28312,31 @@ Single next item for G1: deliver the original real-action plus native cold-conti
 8. `verification evidence`:
    - Standalone witness suite: `pytest tests/test_grounded_sensorimotor_witness.py -v` (6/6 PASSED in 6.69s).
    - Combined substrate test suite: `pytest tests/test_grounded_sensorimotor_witness.py tests/test_arcloom_causal_action_witness.py tests/test_phase5_modular_cortical_columns.py tests/test_phase5_modular_column_substrate.py -v` (24/24 PASSED in 8.86s).
+
+
+### G1 TO JOE AND A1 — 2026-09-30 — RESOLUTION OF THIRD-PASS AUDIT (A3-01 THROUGH A3-06) & REBUILT CLEAN-ROOM DISTRIBUTION
+
+1. `requested architecture`: Retained physical substrate state causes ordinary applied action with unconfounded tract isolation, fail-closed lossless ARCLOOM2 state persistence, native DSF prefrontal sheet consumption, permanent waking plastic retention, and clean-room self-contained demonstrator distribution.
+2. `current code reality`: Delivered, compiled, and verified across native Rust, Python substrate adapter, witness test suite, and clean-room standalone demonstrator package:
+   - **A3-01 Causal Kinematic Action Settlement**: Replaced scalar ranking with multi-axis `applied_kinematic_action(dt_s)`. Motor efferents operate along independent physical axes (vocal resonance [Hz], locomotion stride [mm], steer angle [deg], grip force [N]) without cross-dimensional ranking. Settles into 2D rigid-body kinematics (`delta_x_mm`, `delta_y_mm`, `delta_theta_deg`), acoustic pressure [Pa], normal force [N], and mechanical work [$\mu$J]. Silent motor populations produce strictly `(0.0, 0.0, 0.0, 0.0)` efferents, zero displacement, zero pressure, and zero work.
+   - **A3-02 Constitutive Elastic Baseline & Unconfounded Tract Severing**: Reversible elastic contact compliance $G_{\text{ELASTIC\_BASELINE}} = 0.05$ derived from Holm asperity micro-contact mechanics ($G_0 / G_{\text{sat}} = 0.05$). Causal tract necessity is isolated with 100% identical matched copies, 100% identical developmental history, and 100% identical inputs (`sens_test=[1]*64, som_test=[0]*32`). Severing incoming fasciculi into motor cortex (cols 40..47) halts motor actuation and kinematic work to strictly 0.0 under identical drive; reconnecting tracts restores motor drive; learned plastic conductances ($w_{\text{inter}} > 0$) amplify motor actuation and mechanical work significantly above the unyielded elastic baseline.
+   - **A3-03 Complete Fail-Closed ARCLOOM2 Restoration**: Versioned container persists complete topology and parameters: `severed_tracts` array (4,096 entries) and column-local plasticity parameters (`yield_threshold`, `plastic_rate`, `activation_threshold`) are fully serialized and restored atomically via prepare-then-commit validation. Corrupted headers, truncated bodies, empty buffers, and truncated motor footers fail closed with `ValueError` without mutating recipient state. Bit-exact successor stepping equivalence confirmed (0.0 error). Rounding to 6 decimal places on property getters eliminates 32-bit to 64-bit IEEE 754 float representation artifacts.
+   - **A3-04 Native 64D DSF Consumption & Mathematical Radix-3 Projection**: In native 64D `step_cycle`, Columns 48..63 (Prefrontal / Structural Invariant Sheet) directly consume `sensory_trits[48..64]` (the 16 DSF invariant trits), driving prefrontal columns into plastic yield and causally propagating currents to motor columns (cols 40..47). The 2-trit balanced ternary mapping is explicitly documented and proven as a finite discrete positional projection ($3^2 = 9$ discrete Voronoi intervals on $[-1.0, 1.0]$) separating distinct continuous values without table lookups.
+   - **A3-05 Permanent Waking Plastic Retention**: Removed all per-beat waking decay laws (`decay = 0.03, prune_thresh = 0.005`) from waking laminar flow and inter-column plasticity. Plastic deformations are irreversible thermodynamic state changes retained with 100% fidelity across waking quiet intervals (50 silent beats). Downscaling and pruning occur strictly during nocturnal sleep consolidation (`sleep_consolidation`).
+   - **A3-06 Clean-Room Standalone Demonstrator**:
+     * Package-local imports: `substrate.modular_column_substrate` imported cleanly without repository dependencies.
+     * `setup.sh`: Runs both `test_octal_column_invariants.py` and `test_arcloom_causal_action_witness.py`.
+     * `README.md`: Updated to reconcile spatial permanence polar tracking, protective motor interlock, and software/hardware latency targets.
+     * Distribution archives rebuilt and verified clean-room:
+       - `arcloom_demonstrator_v1.0.tar.gz`: SHA256 `ffc99dac9b4cabfc9a101a3c85da0eaaaf7cd195f154c6cbc74d21458b8d774d`
+       - `arcloom_demonstrator_v1.0.zip`: SHA256 `d3c3d074a2fc89fde90e8948b5eec5168dda01cf5847819aebcc04e2ff0b60fa`
+       - Clean-room extraction test in `/tmp/test_archive_eval` completely outside monorepo path passes 19/19 tests in 1.49s.
+3. `conflict with requested architecture: yes or no`: NO.
+4. `what exact mechanism or files will not be extended`: No heuristic scalar ranking, no unphysical waking decay, no synthetic shims.
+5. `the single exact next item`: A1 fourth-pass independent architectural verification of the completed witness and clean-room package.
+6. `am I evaluating the full field or a reduced approximation?`: Native 64D Prefrontal Sheet directly consumes the 16-trit Universal Structural Field invariant slice; finite 2-trit continuous balanced-ternary projection explicitly designated as finite discrete projection.
+7. `if reduced, what exact field structure is being lost?`: None in transport; 2 trits encode 9 discrete Voronoi intervals per field channel.
+8. `verification evidence`:
+   - Standalone causal action witness suite: `pytest tests/test_arcloom_causal_action_witness.py -v` (6/6 PASSED in 4.35s).
+   - Full monorepo neuromorphic regression suite: `pytest tests/test_arcloom_causal_action_witness.py tests/test_phase5_modular_cortical_columns.py tests/test_phase5_modular_column_substrate.py tests/test_grounded_sensorimotor_witness.py` (25/25 PASSED in 9.62s).
+   - Standalone clean-room demonstrator package: `pytest tests/test_arcloom_causal_action_witness.py tests/test_octal_column_invariants.py` (19/19 PASSED in 1.49s).

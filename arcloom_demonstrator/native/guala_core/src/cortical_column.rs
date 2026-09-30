@@ -3,20 +3,29 @@
 //! Substrate: ArcLoom Discrete Balanced-Ternary Neuromorphic Core
 //! Physical Model: Specialized Cortical Columns with 6-Layer Vertical Laminar Microcircuits
 //!
-//! Architectural Corrections (Post-Audit 2026-09-30):
-//!   1. True Causal Inter-Column Synaptic Current Propagation:
-//!      - W_inter_23 propagates cortico-cortical associative current into Layer 2/3.
-//!      - W_inter_5 propagates subcortical descending projection current into Layer 5.
-//!   2. Deterministic Continuum Lateral Inhibitory Thresholding:
-//!      - Replaces artificial top-k / k-WTA sorting heuristics with collective inhibitory field.
-//!   3. Causal Motor Efferent Decoding:
-//!      - Motor commands (stride, steer, grip, vocal) are decoded directly from settled
-//!        infragranular motor pyramidal neurons (Layer 5) of Motor Columns 40..48.
-//!      - Physical barrier refusal engages instantaneous kinematic clamp (stride=0, grip=0, vocal=220).
-//!   4. Lossless Versioned Binary Persistence (ARCLOOM2):
-//!      - Full state recovery of all intra/inter conductances, layer states, spatial coordinates,
-//!        and motor dynamics without arbitrary truncation caps.
-//!      - Fail-closed malformed state validation.
+//! Governing Laws & Invariants:
+//!   1. Continuum Material Yield Stress Plasticity:
+//!      - Intra- and inter-column contacts undergo irreversible plastic deformation if and only if
+//!        mechanical/electrical stress exceeds yield threshold: f(|sigma|) = |sigma| - Y <= 0.
+//!      - Waking experience creates persistent plastic conductances (g_plastic).
+//!      - Waking beats do NOT arbitrarily decay learned conductances (zero unphysical waking decay).
+//!      - Synaptic downscaling occurs strictly during nocturnal sleep consolidation (Synaptic Homeostasis).
+//!   2. Reversible Constitutive Elastic Contact Conduction:
+//!      - Reversible elastic compliance regime (|sigma| <= Y, lambda_dot = 0):
+//!        G_ELASTIC_BASELINE = 0.05 (Holm asperity micro-contact conductance ratio G_0 / G_sat).
+//!      - G_total = G_elastic + g_plastic.
+//!   3. Causal Multi-Axis Motor Efferent Transduction:
+//!      - Motor efferents scale directly from settled L5 pyramidal population excitation:
+//!        vocal_hz in [0, 480], stride_mm in [0, 60], steer_deg in [-45, +45], grip_n in [0, 25].
+//!      - Silent motor populations produce strictly (0.0, 0.0, 0.0, 0.0) efferents.
+//!      - Actuators remain on independent physical axes; zero dimensionally invalid cross-ranking.
+//!   4. Prefrontal / Structural Invariant Sheet (Columns 48..63):
+//!      - Discrete balanced-ternary DSF invariant trits are directly consumed by Columns 48..63,
+//!        propagating currents into associative and motor columns across fasciculi.
+//!   5. Fail-Closed Lossless ARCLOOM2 State Persistence:
+//!      - Serializes complete topological configuration, including severed tracts,
+//!        column-local microcircuit plasticity parameters, and motor dynamics.
+//!      - Corrupted, truncated, or invalid payloads fail atomically without mutating recipient.
 
 use pyo3::prelude::*;
 use pyo3::exceptions::PyValueError;
@@ -57,13 +66,16 @@ pub const INTER_COL_5_SIZE_64D: usize = NUM_COLUMNS_64D * NUM_COLUMNS_64D * L5_N
 pub const ARCLOOM_STATE_MAGIC_V2: &[u8; 8] = b"ARCLOOM2";
 pub const ARCLOOM_STATE_VERSION_V2: u16 = 2;
 
+// Reversible Elastic Contact Baseline (Holm asperity micro-contact compliance ratio G_0 / G_sat)
+pub const G_ELASTIC_BASELINE: f32 = 0.05;
+
 // ---------------------------------------------------------------------------
 // 1. Laminar Microcircuit (Canonical 6-Layer Primitive)
 // ---------------------------------------------------------------------------
 
 #[derive(Clone)]
 pub struct LaminarMicrocircuit {
-    // Ternary node state vectors: T ∈ {-1, 0, +1}
+    // Ternary node state vectors: T in {-1, 0, +1}
     pub l1: Vec<i8>,
     pub l23: Vec<i8>,
     pub l4: Vec<i8>,
@@ -72,7 +84,7 @@ pub struct LaminarMicrocircuit {
     pub v_23: Vec<f32>,
     pub v_5: Vec<f32>,
 
-    // Intra-column conductance tensors ∈ [-1.0, 1.0]
+    // Intra-column conductance tensors in [-1.0, 1.0]
     pub g_4_23: Vec<f32>,
     pub g_23_23: Vec<f32>,
     pub g_23_5: Vec<f32>,
@@ -236,11 +248,12 @@ impl LaminarMicrocircuit {
             };
         }
 
-        // 7. Local continuum von Mises plasticity within the column
+        // 7. Local continuum von Mises plasticity within the column (permanent during waking)
         self.apply_intra_yield_plasticity()
     }
 
-    /// Apply local material yield stress plasticity f(|σ_ij|) = |σ_ij| - Y <= 0 across all intra-column connections
+    /// Apply local material yield stress plasticity f(|sigma_ij|) = |sigma_ij| - Y <= 0 across all intra-column connections.
+    /// Plastic deformations are irreversible and retained permanently during waking cycles.
     pub fn apply_intra_yield_plasticity(&mut self) -> (usize, f32) {
         let mut yield_count = 0usize;
         let mut total_strain = 0.0f32;
@@ -380,38 +393,10 @@ impl LaminarMicrocircuit {
             }
         }
 
-        // Continuous viscoelastic relaxation (3% decay per beat, threshold 0.005)
-        let decay = 0.03f32;
-        let prune_thresh = 0.005f32;
-        let g_4_23 = &mut self.g_4_23;
-        let g_23_23 = &mut self.g_23_23;
-        let g_23_5 = &mut self.g_23_5;
-        let g_5_6 = &mut self.g_5_6;
-        let g_6_4 = &mut self.g_6_4;
-        let g_1_23 = &mut self.g_1_23;
-
-        self.active_intra.retain(|&(ch, idx)| {
-            let g = match ch {
-                0 => &mut g_4_23[idx as usize],
-                1 => &mut g_23_23[idx as usize],
-                2 => &mut g_23_5[idx as usize],
-                3 => &mut g_5_6[idx as usize],
-                4 => &mut g_6_4[idx as usize],
-                5 => &mut g_1_23[idx as usize],
-                _ => return false,
-            };
-            *g *= 1.0 - decay;
-            if g.abs() < prune_thresh {
-                *g = 0.0;
-                false
-            } else {
-                true
-            }
-        });
-
         (yield_count, total_strain)
     }
 
+    /// Nocturnal sleep downscaling and pruning (Synaptic Homeostasis Hypothesis).
     pub fn dream_downscale_and_prune(&mut self, decay: f32, prune_thresh: f32) -> (usize, usize) {
         let mut decayed = 0usize;
         let mut pruned = 0usize;
@@ -500,6 +485,9 @@ fn serialize_column_state(col: &CorticalColumn, buf: &mut Vec<u8>) {
     buf.extend_from_slice(&col.barrier_contact_stress.to_le_bytes());
     buf.extend_from_slice(&col.yield_limit_threshold.to_le_bytes());
     buf.push(if col.refusal_active { 1 } else { 0 });
+    buf.extend_from_slice(&col.microcircuit.yield_threshold.to_le_bytes());
+    buf.extend_from_slice(&col.microcircuit.plastic_rate.to_le_bytes());
+    buf.extend_from_slice(&col.microcircuit.activation_threshold.to_le_bytes());
 
     for &x in &col.microcircuit.l1 { buf.push(x as u8); }
     for &x in &col.microcircuit.l23 { buf.push(x as u8); }
@@ -535,7 +523,7 @@ fn serialize_column_state(col: &CorticalColumn, buf: &mut Vec<u8>) {
 }
 
 fn deserialize_column_state(col: &mut CorticalColumn, data: &[u8], mut offset: usize) -> Result<usize, String> {
-    if offset + 23 > data.len() {
+    if offset + 35 > data.len() {
         return Err("Unexpected EOF reading column header".to_string());
     }
     col.column_id = u16::from_le_bytes([data[offset], data[offset+1]]) as usize; offset += 2;
@@ -545,8 +533,10 @@ fn deserialize_column_state(col: &mut CorticalColumn, data: &[u8], mut offset: u
     col.target_occluded = data[offset] != 0; offset += 1;
     col.barrier_contact_stress = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
     col.yield_limit_threshold = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
-    if offset >= data.len() { return Err("Unexpected EOF reading refusal_active".to_string()); }
     col.refusal_active = data[offset] != 0; offset += 1;
+    col.microcircuit.yield_threshold = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+    col.microcircuit.plastic_rate = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+    col.microcircuit.activation_threshold = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
 
     let node_bytes = L1_NODES + L23_NODES + L4_NODES + L5_NODES + L6_NODES;
     if offset + node_bytes > data.len() {
@@ -875,89 +865,68 @@ impl ModularSubstrate4D {
 
     pub fn import_sparse_v2(&mut self, data: &[u8]) -> Result<(), String> {
         if data.is_empty() {
-            self.w_inter_23.fill(0.0);
-            self.w_inter_5.fill(0.0);
-            return Ok(());
+            return Err("Cannot import from empty byte buffer".to_string());
         }
-        if data.len() >= 8 && &data[0..8] == ARCLOOM_STATE_MAGIC_V2 {
-            if data.len() < 24 {
-                return Err("Truncated ARCLOOM2 header".to_string());
-            }
-            let version = u16::from_le_bytes([data[8], data[9]]);
-            if version != ARCLOOM_STATE_VERSION_V2 {
-                return Err(format!("Unsupported ArcLoom version: {}", version));
-            }
-            let n_cols = u16::from_le_bytes([data[10], data[11]]) as usize;
-            if n_cols != NUM_COLUMNS_4D {
-                return Err(format!("Column count mismatch: data has {}, instance has {}", n_cols, NUM_COLUMNS_4D));
-            }
-            let new_yield = f32::from_le_bytes([data[12], data[13], data[14], data[15]]);
-            let new_plastic = f32::from_le_bytes([data[16], data[17], data[18], data[19]]);
-            let new_activation = f32::from_le_bytes([data[20], data[21], data[22], data[23]]);
-
-            let mut temp_columns = self.columns.clone();
-            let mut offset = 24;
-            for col in &mut temp_columns {
-                offset = deserialize_column_state(col, data, offset)?;
-            }
-
-            if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_23 count".to_string()); }
-            let count_23 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
-            offset += 4;
-
-            let mut new_w_23 = vec![0.0f32; self.w_inter_23.len()];
-            for _ in 0..count_23 {
-                if offset + 8 > data.len() { return Err("Unexpected EOF in w_inter_23 entry".to_string()); }
-                let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
-                let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
-                if idx < new_w_23.len() { new_w_23[idx] = g; }
-            }
-
-            if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_5 count".to_string()); }
-            let count_5 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
-            offset += 4;
-
-            let mut new_w_5 = vec![0.0f32; self.w_inter_5.len()];
-            for _ in 0..count_5 {
-                if offset + 8 > data.len() { return Err("Unexpected EOF in w_inter_5 entry".to_string()); }
-                let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
-                let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
-                if idx < new_w_5.len() { new_w_5[idx] = g; }
-            }
-
-            // Mandatory 16-byte motor footer
-            if offset + 16 > data.len() {
-                return Err("Missing or truncated motor efferent footer in ARCLOOM2 payload".to_string());
-            }
-            // All validation passed: atomically commit
-            self.yield_threshold = new_yield;
-            self.plastic_rate = new_plastic;
-            self.activation_threshold = new_activation;
-            self.columns = temp_columns;
-            self.w_inter_23 = new_w_23;
-            self.w_inter_5 = new_w_5;
-            Ok(())
-        } else if data.len() % 8 == 0 && !data.is_empty() {
-            let n_entries = data.len() / 8;
-            let mut new_w_23 = vec![0.0f32; self.w_inter_23.len()];
-            let mut new_w_5 = vec![0.0f32; self.w_inter_5.len()];
-            for e in 0..n_entries {
-                let off = e * 8;
-                let idx = u32::from_le_bytes([data[off], data[off+1], data[off+2], data[off+3]]) as usize;
-                let g = f32::from_le_bytes([data[off+4], data[off+5], data[off+6], data[off+7]]);
-                if idx < INTER_COL_23_SIZE_4D {
-                    if idx < new_w_23.len() { new_w_23[idx] = g; }
-                } else {
-                    let off_5 = idx - INTER_COL_23_SIZE_4D;
-                    if off_5 < new_w_5.len() { new_w_5[off_5] = g; }
-                }
-            }
-            self.w_inter_23 = new_w_23;
-            self.w_inter_5 = new_w_5;
-            Ok(())
-        } else {
-            Err("Invalid ArcLoom state format: neither ARCLOOM2 nor valid 8-byte entry stream".to_string())
+        if data.len() < 8 || &data[0..8] != ARCLOOM_STATE_MAGIC_V2 {
+            return Err("Invalid ArcLoom state format: missing ARCLOOM2 magic header".to_string());
         }
+        if data.len() < 24 {
+            return Err("Truncated ARCLOOM2 header".to_string());
+        }
+        let version = u16::from_le_bytes([data[8], data[9]]);
+        if version != ARCLOOM_STATE_VERSION_V2 {
+            return Err(format!("Unsupported ArcLoom version: {}", version));
+        }
+        let n_cols = u16::from_le_bytes([data[10], data[11]]) as usize;
+        if n_cols != NUM_COLUMNS_4D {
+            return Err(format!("Column count mismatch: data has {}, instance has {}", n_cols, NUM_COLUMNS_4D));
+        }
+        let new_yield = f32::from_le_bytes([data[12], data[13], data[14], data[15]]);
+        let new_plastic = f32::from_le_bytes([data[16], data[17], data[18], data[19]]);
+        let new_activation = f32::from_le_bytes([data[20], data[21], data[22], data[23]]);
+
+        let mut temp_columns = self.columns.clone();
+        let mut offset = 24;
+        for col in &mut temp_columns {
+            offset = deserialize_column_state(col, data, offset)?;
+        }
+
+        if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_23 count".to_string()); }
+        let count_23 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
+        offset += 4;
+
+        let mut new_w_23 = vec![0.0f32; self.w_inter_23.len()];
+        for _ in 0..count_23 {
+            if offset + 8 > data.len() { return Err("Unexpected EOF in w_inter_23 entry".to_string()); }
+            let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
+            let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+            if idx < new_w_23.len() { new_w_23[idx] = g; }
+        }
+
+        if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_5 count".to_string()); }
+        let count_5 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
+        offset += 4;
+
+        let mut new_w_5 = vec![0.0f32; self.w_inter_5.len()];
+        for _ in 0..count_5 {
+            if offset + 8 > data.len() { return Err("Unexpected EOF in w_inter_5 entry".to_string()); }
+            let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
+            let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+            if idx < new_w_5.len() { new_w_5[idx] = g; }
+        }
+
+        if offset + 16 > data.len() {
+            return Err("Missing or truncated motor efferent footer in ARCLOOM2 payload".to_string());
+        }
+        let _ = offset + 16;
+
+        self.yield_threshold = new_yield;
+        self.plastic_rate = new_plastic;
+        self.activation_threshold = new_activation;
+        self.columns = temp_columns;
+        self.w_inter_23 = new_w_23;
+        self.w_inter_5 = new_w_5;
+        Ok(())
     }
 }
 
@@ -1142,8 +1111,8 @@ impl ModularSubstrate8D {
 
         // Physical Barrier Refusal Kinematic Clamp:
         if self.columns[5].refusal_active {
-            self.motor_locomotion_stride = 0.0; // Inhibit pushing against rigid obstacle
-            self.motor_vocal_drive = 220.0;     // Strain discharge pulse
+            self.motor_locomotion_stride = 0.0;
+            self.motor_vocal_drive = 220.0;
         }
 
         // Step 9: Inter-Column Directional Fasciculi Plasticity
@@ -1295,103 +1264,80 @@ impl ModularSubstrate8D {
 
     pub fn import_sparse_v2(&mut self, data: &[u8]) -> Result<(), String> {
         if data.is_empty() {
-            self.w_inter_23.fill(0.0);
-            self.w_inter_5.fill(0.0);
-            return Ok(());
+            return Err("Cannot import from empty byte buffer".to_string());
         }
-        if data.len() >= 8 && &data[0..8] == ARCLOOM_STATE_MAGIC_V2 {
-            if data.len() < 24 {
-                return Err("Truncated ARCLOOM2 header".to_string());
-            }
-            let version = u16::from_le_bytes([data[8], data[9]]);
-            if version != ARCLOOM_STATE_VERSION_V2 {
-                return Err(format!("Unsupported ArcLoom version: {}", version));
-            }
-            let n_cols = u16::from_le_bytes([data[10], data[11]]) as usize;
-            if n_cols != NUM_COLUMNS_8D {
-                return Err(format!("Column count mismatch: data has {}, instance has {}", n_cols, NUM_COLUMNS_8D));
-            }
-            let new_yield = f32::from_le_bytes([data[12], data[13], data[14], data[15]]);
-            let new_plastic = f32::from_le_bytes([data[16], data[17], data[18], data[19]]);
-            let new_activation = f32::from_le_bytes([data[20], data[21], data[22], data[23]]);
-
-            let mut temp_columns = self.columns.clone();
-            let mut offset = 24;
-            for col in &mut temp_columns {
-                offset = deserialize_column_state(col, data, offset)?;
-            }
-
-            if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_23 count".to_string()); }
-            let count_23 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
-            offset += 4;
-
-            let mut new_w_23 = vec![0.0f32; self.w_inter_23.len()];
-            for _ in 0..count_23 {
-                if offset + 8 > data.len() { return Err("Unexpected EOF in w_inter_23 entry".to_string()); }
-                let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
-                let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
-                if idx < new_w_23.len() { new_w_23[idx] = g; }
-            }
-
-            if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_5 count".to_string()); }
-            let count_5 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
-            offset += 4;
-
-            let mut new_w_5 = vec![0.0f32; self.w_inter_5.len()];
-            for _ in 0..count_5 {
-                if offset + 8 > data.len() { return Err("Unexpected EOF in w_inter_5 entry".to_string()); }
-                let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
-                let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
-                if idx < new_w_5.len() { new_w_5[idx] = g; }
-            }
-
-            if offset + 16 > data.len() {
-                return Err("Missing or truncated motor efferent footer in ARCLOOM2 payload".to_string());
-            }
-            let new_vocal = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
-            let new_stride = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
-            let _new_steer = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
-            let _new_grip = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]);
-
-            // Commit atomically
-            self.yield_threshold = new_yield;
-            self.plastic_rate = new_plastic;
-            self.activation_threshold = new_activation;
-            self.columns = temp_columns;
-            self.w_inter_23 = new_w_23;
-            self.w_inter_5 = new_w_5;
-            self.motor_vocal_drive = new_vocal;
-            self.motor_locomotion_stride = new_stride;
-            Ok(())
-        } else if data.len() % 8 == 0 && !data.is_empty() {
-            let n_entries = data.len() / 8;
-            let mut new_w_23 = vec![0.0f32; self.w_inter_23.len()];
-            let mut new_w_5 = vec![0.0f32; self.w_inter_5.len()];
-            for e in 0..n_entries {
-                let off = e * 8;
-                let idx = u32::from_le_bytes([data[off], data[off+1], data[off+2], data[off+3]]) as usize;
-                let g = f32::from_le_bytes([data[off+4], data[off+5], data[off+6], data[off+7]]);
-                if idx < INTER_COL_23_SIZE_8D {
-                    if idx < new_w_23.len() { new_w_23[idx] = g; }
-                } else {
-                    let off_5 = idx - INTER_COL_23_SIZE_8D;
-                    if off_5 < new_w_5.len() { new_w_5[off_5] = g; }
-                }
-            }
-            self.w_inter_23 = new_w_23;
-            self.w_inter_5 = new_w_5;
-            Ok(())
-        } else {
-            Err("Invalid ArcLoom state format: neither ARCLOOM2 nor valid 8-byte entry stream".to_string())
+        if data.len() < 8 || &data[0..8] != ARCLOOM_STATE_MAGIC_V2 {
+            return Err("Invalid ArcLoom state format: missing ARCLOOM2 magic header".to_string());
         }
+        if data.len() < 24 {
+            return Err("Truncated ARCLOOM2 header".to_string());
+        }
+        let version = u16::from_le_bytes([data[8], data[9]]);
+        if version != ARCLOOM_STATE_VERSION_V2 {
+            return Err(format!("Unsupported ArcLoom version: {}", version));
+        }
+        let n_cols = u16::from_le_bytes([data[10], data[11]]) as usize;
+        if n_cols != NUM_COLUMNS_8D {
+            return Err(format!("Column count mismatch: data has {}, instance has {}", n_cols, NUM_COLUMNS_8D));
+        }
+        let new_yield = f32::from_le_bytes([data[12], data[13], data[14], data[15]]);
+        let new_plastic = f32::from_le_bytes([data[16], data[17], data[18], data[19]]);
+        let new_activation = f32::from_le_bytes([data[20], data[21], data[22], data[23]]);
+
+        let mut temp_columns = self.columns.clone();
+        let mut offset = 24;
+        for col in &mut temp_columns {
+            offset = deserialize_column_state(col, data, offset)?;
+        }
+
+        if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_23 count".to_string()); }
+        let count_23 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
+        offset += 4;
+
+        let mut new_w_23 = vec![0.0f32; self.w_inter_23.len()];
+        for _ in 0..count_23 {
+            if offset + 8 > data.len() { return Err("Unexpected EOF in w_inter_23 entry".to_string()); }
+            let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
+            let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+            if idx < new_w_23.len() { new_w_23[idx] = g; }
+        }
+
+        if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_5 count".to_string()); }
+        let count_5 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
+        offset += 4;
+
+        let mut new_w_5 = vec![0.0f32; self.w_inter_5.len()];
+        for _ in 0..count_5 {
+            if offset + 8 > data.len() { return Err("Unexpected EOF in w_inter_5 entry".to_string()); }
+            let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
+            let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+            if idx < new_w_5.len() { new_w_5[idx] = g; }
+        }
+
+        if offset + 16 > data.len() {
+            return Err("Missing or truncated motor efferent footer in ARCLOOM2 payload".to_string());
+        }
+        let new_vocal = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+        let new_stride = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+        let _new_steer = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+        let _new_grip = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]);
+        let _ = offset + 4;
+
+        self.yield_threshold = new_yield;
+        self.plastic_rate = new_plastic;
+        self.activation_threshold = new_activation;
+        self.columns = temp_columns;
+        self.w_inter_23 = new_w_23;
+        self.w_inter_5 = new_w_5;
+        self.motor_vocal_drive = new_vocal;
+        self.motor_locomotion_stride = new_stride;
+        Ok(())
     }
 }
 
 // ---------------------------------------------------------------------------
 // 5. 64-Column Cortical Array Modular Substrate
 // ---------------------------------------------------------------------------
-
-pub const G_ELASTIC_BASELINE: f32 = 0.05;
 
 pub struct ModularSubstrate64D {
     pub columns: Vec<CorticalColumn>,
@@ -1498,7 +1444,6 @@ impl ModularSubstrate64D {
     pub fn l5_contact_site(i: usize, j: usize) -> bool {
         (i as isize - j as isize).abs() <= 6 || (i % 8 == j % 8)
     }
-
 
     /// Fast sparse inter-column current integration across active fasciculi
     pub fn compute_inter_column_currents(&self) -> (Vec<Vec<f32>>, Vec<Vec<f32>>) {
@@ -1670,14 +1615,17 @@ impl ModularSubstrate64D {
             self.motor_locomotion_stride = 0.0;
         }
 
-        // 6. Clusters 6, 7: Valence & Prefrontal Arbitration (Cols 48..64) - Associative/apical sheets
-        let vp_aff = [0i8; L4_NODES];
+        // 6. Clusters 6, 7: Prefrontal / Structural Invariant Sheet (Cols 48..64) - consumes DSF kernel invariants
         for c in 48..64 {
-            let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(&vp_aff, somatic_trits, &in_23[c], &in_5[c]);
+            let mut dsf_aff = vec![0i8; L4_NODES];
+            if c < sensory_trits.len() {
+                dsf_aff[0] = sensory_trits[c];
+            }
+            let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(&dsf_aff, somatic_trits, &in_23[c], &in_5[c]);
             total_yields += yc; total_strain += sc;
         }
 
-        // 7. Inter-Column Directional Fasciculi Plasticity across 64 Columns
+        // 7. Inter-Column Directional Fasciculi Plasticity across 64 Columns (permanent during waking)
         let (inter_y, inter_s) = self.apply_inter_column_plasticity();
         total_yields += inter_y;
         total_strain += inter_s;
@@ -1685,6 +1633,8 @@ impl ModularSubstrate64D {
         (total_yields, total_strain)
     }
 
+    /// Apply inter-column material yield stress plasticity across active fasciculi.
+    /// Plastic deformations are irreversible and retained permanently during waking cycles.
     pub fn apply_inter_column_plasticity(&mut self) -> (usize, f32) {
         let mut yield_count = 0usize;
         let mut total_strain = 0.0f32;
@@ -1761,35 +1711,10 @@ impl ModularSubstrate64D {
             }
         }
 
-        // Continuous viscoelastic relaxation (3% decay per beat, threshold 0.005)
-        let decay = 0.03f32;
-        let prune_thresh = 0.005f32;
-        let w_23 = &mut self.w_inter_23;
-        self.active_inter_23.retain(|&idx| {
-            let g = &mut w_23[idx];
-            *g *= 1.0 - decay;
-            if g.abs() < prune_thresh {
-                *g = 0.0;
-                false
-            } else {
-                true
-            }
-        });
-        let w_5 = &mut self.w_inter_5;
-        self.active_inter_5.retain(|&idx| {
-            let g = &mut w_5[idx];
-            *g *= 1.0 - decay;
-            if g.abs() < prune_thresh {
-                *g = 0.0;
-                false
-            } else {
-                true
-            }
-        });
-
         (yield_count, total_strain)
     }
 
+    /// Nocturnal sleep consolidation and downscaling (Synaptic Homeostasis Hypothesis).
     pub fn dream_consolidation(&mut self, decay: f32, prune_thresh: f32) -> (usize, usize) {
         let mut total_decayed = 0usize;
         let mut total_pruned = 0usize;
@@ -1877,6 +1802,15 @@ impl ModularSubstrate64D {
         buf.extend_from_slice(&self.motor_steer_angle.to_le_bytes());
         buf.extend_from_slice(&self.motor_grip_force.to_le_bytes());
 
+        // Lossless severed tracts serialization
+        let severed_indices: Vec<u32> = self.severed_tracts.iter().enumerate()
+            .filter_map(|(idx, &s)| if s { Some(idx as u32) } else { None })
+            .collect();
+        buf.extend_from_slice(&(severed_indices.len() as u32).to_le_bytes());
+        for &idx in &severed_indices {
+            buf.extend_from_slice(&idx.to_le_bytes());
+        }
+
         while buf.len() % 8 != 0 {
             buf.push(0);
         }
@@ -1886,121 +1820,115 @@ impl ModularSubstrate64D {
 
     pub fn import_sparse_v2(&mut self, data: &[u8]) -> Result<(), String> {
         if data.is_empty() {
-            self.w_inter_23.fill(0.0);
-            self.w_inter_5.fill(0.0);
-            self.active_inter_23.clear();
-            self.active_inter_5.clear();
-            return Ok(());
+            return Err("Cannot import from empty byte buffer".to_string());
         }
-        if data.len() >= 8 && &data[0..8] == ARCLOOM_STATE_MAGIC_V2 {
-            if data.len() < 24 {
-                return Err("Truncated ARCLOOM2 header".to_string());
-            }
-            let version = u16::from_le_bytes([data[8], data[9]]);
-            if version != ARCLOOM_STATE_VERSION_V2 {
-                return Err(format!("Unsupported ArcLoom version: {}", version));
-            }
-            let n_cols = u16::from_le_bytes([data[10], data[11]]) as usize;
-            if n_cols != NUM_COLUMNS_64D {
-                return Err(format!("Column count mismatch: data has {}, instance has {}", n_cols, NUM_COLUMNS_64D));
-            }
-            let new_yield = f32::from_le_bytes([data[12], data[13], data[14], data[15]]);
-            let new_plastic = f32::from_le_bytes([data[16], data[17], data[18], data[19]]);
-            let new_activation = f32::from_le_bytes([data[20], data[21], data[22], data[23]]);
-
-            // Fail-closed failure atomicity: parse into temp copies first
-            let mut temp_columns = self.columns.clone();
-            let mut offset = 24;
-            for col in &mut temp_columns {
-                offset = deserialize_column_state(col, data, offset)?;
-            }
-
-            if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_23 count".to_string()); }
-            let count_23 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
-            offset += 4;
-
-            let mut new_w_23 = vec![0.0f32; self.w_inter_23.len()];
-            let mut new_act_23 = Vec::new();
-            for _ in 0..count_23 {
-                if offset + 8 > data.len() { return Err("Unexpected EOF in w_inter_23 entry".to_string()); }
-                let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
-                let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
-                if idx < new_w_23.len() {
-                    new_w_23[idx] = g;
-                    if g.abs() >= 0.005 { new_act_23.push(idx); }
-                }
-            }
-
-            if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_5 count".to_string()); }
-            let count_5 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
-            offset += 4;
-
-            let mut new_w_5 = vec![0.0f32; self.w_inter_5.len()];
-            let mut new_act_5 = Vec::new();
-            for _ in 0..count_5 {
-                if offset + 8 > data.len() { return Err("Unexpected EOF in w_inter_5 entry".to_string()); }
-                let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
-                let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
-                if idx < new_w_5.len() {
-                    new_w_5[idx] = g;
-                    if g.abs() >= 0.005 { new_act_5.push(idx); }
-                }
-            }
-
-            // Mandatory 16-byte motor footer
-            if offset + 16 > data.len() {
-                return Err("Missing or truncated motor efferent footer in ARCLOOM2 payload".to_string());
-            }
-            let new_vocal = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
-            let new_stride = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
-            let new_steer = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
-            let new_grip = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]);
-
-            // ALL VALIDATIONS PASSED: atomically commit to self
-            self.yield_threshold = new_yield;
-            self.plastic_rate = new_plastic;
-            self.activation_threshold = new_activation;
-            self.columns = temp_columns;
-            self.w_inter_23 = new_w_23;
-            self.active_inter_23 = new_act_23;
-            self.w_inter_5 = new_w_5;
-            self.active_inter_5 = new_act_5;
-            self.motor_vocal_drive = new_vocal;
-            self.motor_locomotion_stride = new_stride;
-            self.motor_steer_angle = new_steer;
-            self.motor_grip_force = new_grip;
-            Ok(())
-        } else if data.len() % 8 == 0 && !data.is_empty() {
-            let n_entries = data.len() / 8;
-            let mut new_w_23 = vec![0.0f32; self.w_inter_23.len()];
-            let mut new_act_23 = Vec::new();
-            let mut new_w_5 = vec![0.0f32; self.w_inter_5.len()];
-            let mut new_act_5 = Vec::new();
-            for e in 0..n_entries {
-                let off = e * 8;
-                let idx = u32::from_le_bytes([data[off], data[off+1], data[off+2], data[off+3]]) as usize;
-                let g = f32::from_le_bytes([data[off+4], data[off+5], data[off+6], data[off+7]]);
-                if idx < INTER_COL_23_SIZE_64D {
-                    if idx < new_w_23.len() {
-                        new_w_23[idx] = g;
-                        if g.abs() >= 0.005 { new_act_23.push(idx); }
-                    }
-                } else {
-                    let off_5 = idx - INTER_COL_23_SIZE_64D;
-                    if off_5 < new_w_5.len() {
-                        new_w_5[off_5] = g;
-                        if g.abs() >= 0.005 { new_act_5.push(off_5); }
-                    }
-                }
-            }
-            self.w_inter_23 = new_w_23;
-            self.active_inter_23 = new_act_23;
-            self.w_inter_5 = new_w_5;
-            self.active_inter_5 = new_act_5;
-            Ok(())
-        } else {
-            Err("Invalid ArcLoom state format: neither ARCLOOM2 nor valid 8-byte entry stream".to_string())
+        if data.len() < 8 || &data[0..8] != ARCLOOM_STATE_MAGIC_V2 {
+            return Err("Invalid ArcLoom state format: missing ARCLOOM2 magic header".to_string());
         }
+        if data.len() < 24 {
+            return Err("Truncated ARCLOOM2 header".to_string());
+        }
+        let version = u16::from_le_bytes([data[8], data[9]]);
+        if version != ARCLOOM_STATE_VERSION_V2 {
+            return Err(format!("Unsupported ArcLoom version: {}", version));
+        }
+        let n_cols = u16::from_le_bytes([data[10], data[11]]) as usize;
+        if n_cols != NUM_COLUMNS_64D {
+            return Err(format!("Column count mismatch: data has {}, instance has {}", n_cols, NUM_COLUMNS_64D));
+        }
+        let new_yield = f32::from_le_bytes([data[12], data[13], data[14], data[15]]);
+        let new_plastic = f32::from_le_bytes([data[16], data[17], data[18], data[19]]);
+        let new_activation = f32::from_le_bytes([data[20], data[21], data[22], data[23]]);
+
+        // Fail-closed failure atomicity: parse into temp copies first
+        let mut temp_columns = self.columns.clone();
+        let mut offset = 24;
+        for col in &mut temp_columns {
+            offset = deserialize_column_state(col, data, offset)?;
+        }
+
+        if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_23 count".to_string()); }
+        let count_23 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
+        offset += 4;
+
+        let mut new_w_23 = vec![0.0f32; self.w_inter_23.len()];
+        let mut new_act_23 = Vec::new();
+        for _ in 0..count_23 {
+            if offset + 8 > data.len() { return Err("Unexpected EOF in w_inter_23 entry".to_string()); }
+            let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
+            let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+            if idx < new_w_23.len() {
+                new_w_23[idx] = g;
+                if g.abs() >= 0.005 { new_act_23.push(idx); }
+            }
+        }
+
+        if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_5 count".to_string()); }
+        let count_5 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
+        offset += 4;
+
+        let mut new_w_5 = vec![0.0f32; self.w_inter_5.len()];
+        let mut new_act_5 = Vec::new();
+        for _ in 0..count_5 {
+            if offset + 8 > data.len() { return Err("Unexpected EOF in w_inter_5 entry".to_string()); }
+            let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
+            let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+            if idx < new_w_5.len() {
+                new_w_5[idx] = g;
+                if g.abs() >= 0.005 { new_act_5.push(idx); }
+            }
+        }
+
+        // Mandatory 16-byte motor footer
+        if offset + 16 > data.len() {
+            return Err("Missing or truncated motor efferent footer in ARCLOOM2 payload".to_string());
+        }
+        let new_vocal = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+        let new_stride = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+        let new_steer = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+        let new_grip = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+
+        // Severed tracts restoration
+        if offset + 4 > data.len() {
+            return Err("Unexpected EOF reading severed tracts count".to_string());
+        }
+        let severed_count = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
+        offset += 4;
+        if offset + severed_count * 4 > data.len() {
+            return Err("Unexpected EOF reading severed tracts indices".to_string());
+        }
+        let mut new_severed = vec![false; NUM_COLUMNS_64D * NUM_COLUMNS_64D];
+        for _ in 0..severed_count {
+            let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
+            offset += 4;
+            if idx < new_severed.len() {
+                new_severed[idx] = true;
+            }
+        }
+
+        // Validate that any remaining bytes are zero-padding
+        while offset < data.len() {
+            if data[offset] != 0 {
+                return Err("Non-zero padding or unexpected trailing bytes in ARCLOOM2 payload".to_string());
+            }
+            offset += 1;
+        }
+
+        // ALL VALIDATIONS PASSED: atomically commit to self
+        self.yield_threshold = new_yield;
+        self.plastic_rate = new_plastic;
+        self.activation_threshold = new_activation;
+        self.columns = temp_columns;
+        self.w_inter_23 = new_w_23;
+        self.active_inter_23 = new_act_23;
+        self.w_inter_5 = new_w_5;
+        self.active_inter_5 = new_act_5;
+        self.severed_tracts = new_severed;
+        self.motor_vocal_drive = new_vocal;
+        self.motor_locomotion_stride = new_stride;
+        self.motor_steer_angle = new_steer;
+        self.motor_grip_force = new_grip;
+        Ok(())
     }
 }
 
@@ -2021,6 +1949,21 @@ impl PyModularSubstrate4D {
         Self {
             inner: ModularSubstrate4D::new(yield_threshold, plastic_rate, activation_threshold),
         }
+    }
+
+    #[getter]
+    pub fn yield_threshold(&self) -> f32 {
+        self.inner.yield_threshold
+    }
+
+    #[getter]
+    pub fn plastic_rate(&self) -> f32 {
+        self.inner.plastic_rate
+    }
+
+    #[getter]
+    pub fn activation_threshold(&self) -> f32 {
+        self.inner.activation_threshold
     }
 
     #[pyo3(signature = (sensory_trits, somatic_trits, observed_r_mm=None, observed_theta_mdeg=None, barrier_stress=0.0))]
@@ -2086,6 +2029,21 @@ impl PyModularSubstrate8D {
         Self {
             inner: ModularSubstrate8D::new(yield_threshold, plastic_rate, activation_threshold),
         }
+    }
+
+    #[getter]
+    pub fn yield_threshold(&self) -> f32 {
+        self.inner.yield_threshold
+    }
+
+    #[getter]
+    pub fn plastic_rate(&self) -> f32 {
+        self.inner.plastic_rate
+    }
+
+    #[getter]
+    pub fn activation_threshold(&self) -> f32 {
+        self.inner.activation_threshold
     }
 
     #[pyo3(signature = (sensory_trits, somatic_trits, observed_r_mm=None, observed_theta_mdeg=None, barrier_stress=0.0, acoustic_formant=0.0))]
@@ -2158,6 +2116,21 @@ impl PyModularSubstrate64D {
         Self {
             inner: ModularSubstrate64D::new(yield_threshold, plastic_rate, activation_threshold),
         }
+    }
+
+    #[getter]
+    pub fn yield_threshold(&self) -> f32 {
+        self.inner.yield_threshold
+    }
+
+    #[getter]
+    pub fn plastic_rate(&self) -> f32 {
+        self.inner.plastic_rate
+    }
+
+    #[getter]
+    pub fn activation_threshold(&self) -> f32 {
+        self.inner.activation_threshold
     }
 
     #[pyo3(signature = (sensory_trits, somatic_trits, observed_r_mm=None, observed_theta_mdeg=None, barrier_stress=0.0, acoustic_formants=None))]

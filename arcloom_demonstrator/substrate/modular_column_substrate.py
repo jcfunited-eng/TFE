@@ -18,10 +18,13 @@ L1_APICAL_NODES = 32
 
 def _quantize_radix3_signed(x: float, num_trits: int = 2) -> Tuple[int, int]:
     """
-    Exact continuous mathematical balanced ternary radix-3 positional expansion:
+    Finite continuous balanced ternary radix-3 positional projection:
         x ~ sum_{k=1}^K t_k * 3^(-k), where t_k in {-1, 0, +1}.
-    Determines trits iteratively via continuous interval division and remainder arithmetic.
-    Zero lookup tables, zero quantization collisions.
+    Provides a deterministic 2-trit discrete projection (3^2 = 9 discrete quantized
+    Voronoi intervals on [-1.0, 1.0]) for discrete balanced-ternary neuromorphic afferents.
+    Note: as with any finite discrete representation, continuous values within the same
+    interval map to identical trit pairs; this is a finite projection, not an unrestricted
+    lossless continuous encoder.
     """
     val = min(max(float(x), -1.0), 1.0)
     trits = []
@@ -55,30 +58,60 @@ class ModularColumnSubstrate:
         activation_threshold: float = 0.25,
         columns: int = 64,
     ) -> None:
-        self.yield_threshold = float(yield_threshold)
-        self.plastic_rate = float(plastic_rate)
-        self.activation_threshold = float(activation_threshold)
+        self._yield_threshold = float(yield_threshold)
+        self._plastic_rate = float(plastic_rate)
+        self._activation_threshold = float(activation_threshold)
         self.num_columns = int(columns)
 
         # Compiled native Rust Modular Substrate (64D, 8D, or 4D)
         if self.num_columns == 64:
             self.substrate = ModularSubstrate64D(
-                yield_threshold=self.yield_threshold,
-                plastic_rate=self.plastic_rate,
-                activation_threshold=self.activation_threshold,
+                yield_threshold=self._yield_threshold,
+                plastic_rate=self._plastic_rate,
+                activation_threshold=self._activation_threshold,
             )
         elif self.num_columns == 8:
             self.substrate = ModularSubstrate8D(
-                yield_threshold=self.yield_threshold,
-                plastic_rate=self.plastic_rate,
-                activation_threshold=self.activation_threshold,
+                yield_threshold=self._yield_threshold,
+                plastic_rate=self._plastic_rate,
+                activation_threshold=self._activation_threshold,
             )
         else:
             self.substrate = ModularSubstrate4D(
-                yield_threshold=self.yield_threshold,
-                plastic_rate=self.plastic_rate,
-                activation_threshold=self.activation_threshold,
+                yield_threshold=self._yield_threshold,
+                plastic_rate=self._plastic_rate,
+                activation_threshold=self._activation_threshold,
             )
+
+    @property
+    def yield_threshold(self) -> float:
+        if hasattr(self.substrate, "yield_threshold"):
+            return round(float(self.substrate.yield_threshold), 6)
+        return self._yield_threshold
+
+    @yield_threshold.setter
+    def yield_threshold(self, val: float) -> None:
+        self._yield_threshold = float(val)
+
+    @property
+    def plastic_rate(self) -> float:
+        if hasattr(self.substrate, "plastic_rate"):
+            return round(float(self.substrate.plastic_rate), 6)
+        return self._plastic_rate
+
+    @plastic_rate.setter
+    def plastic_rate(self, val: float) -> None:
+        self._plastic_rate = float(val)
+
+    @property
+    def activation_threshold(self) -> float:
+        if hasattr(self.substrate, "activation_threshold"):
+            return round(float(self.substrate.activation_threshold), 6)
+        return self._activation_threshold
+
+    @activation_threshold.setter
+    def activation_threshold(self, val: float) -> None:
+        self._activation_threshold = float(val)
 
     def encode_sensory_stream(
         self,
@@ -136,7 +169,7 @@ class ModularColumnSubstrate:
             for i in range(8):
                 trits[40 + i] = val
 
-        # 4. DSF kernel invariants (Nodes 48..63) via exact continuous balanced ternary radix-3 expansion
+        # 4. DSF kernel invariants (Nodes 48..63) via finite continuous balanced ternary radix-3 projection
         if dsf_vector is not None and len(dsf_vector) >= 8:
             for inv_idx, val in enumerate(dsf_vector[:8]):
                 start_n = 48 + inv_idx * 2
@@ -252,14 +285,20 @@ class ModularColumnSubstrate:
         """
         return self.substrate.is_barrier_refusal_active()
 
-    def get_motor_efferent(self) -> Tuple[float, ...]:
+    def get_motor_efferent(self) -> Tuple[float, float, float, float]:
         """
         Query Causal Motor Efferents from Layer 5 motor pyramidal columns:
-        Returns (vocal_drive_hz, locomotion_stride_mm, steer_angle_deg, grip_force_n).
+        Returns: (vocal_drive_hz, locomotion_stride_mm, steer_angle_deg, grip_force_n).
         Silent motor populations produce strictly (0.0, 0.0, 0.0, 0.0).
         """
         if hasattr(self.substrate, "get_motor_efferent"):
-            return self.substrate.get_motor_efferent()
+            eff = self.substrate.get_motor_efferent()
+            if len(eff) >= 4:
+                return (float(eff[0]), float(eff[1]), float(eff[2]), float(eff[3]))
+            elif len(eff) >= 2:
+                return (float(eff[0]), float(eff[1]), 0.0, 0.0)
+            elif len(eff) == 1:
+                return (float(eff[0]), 0.0, 0.0, 0.0)
         return (0.0, 0.0, 0.0, 0.0)
 
     def sever_tract(self, c_from: int, c_to: int) -> None:
@@ -278,30 +317,66 @@ class ModularColumnSubstrate:
             return bool(self.substrate.is_tract_severed(c_from, c_to))
         return False
 
-    def applied_motor_action(self) -> Tuple[str, dict]:
+    def applied_kinematic_action(self, dt_s: float = 0.05) -> Tuple[dict[str, Any], dict[str, Any]]:
         """
-        Decode causal motor efferents into applied physical action receipts:
-        - vocal_drive: 'vocalize'
-        - stride > 0: 'locomote'
-        - grip > 0: 'grasp'
-        - silent: 'rest'
-        """
-        eff = self.get_motor_efferent()
-        if len(eff) >= 4:
-            vocal, stride, steer, grip = eff[0], eff[1], eff[2], eff[3]
-        elif len(eff) >= 2:
-            vocal, stride, steer, grip = eff[0], eff[1], 0.0, 0.0
-        else:
-            vocal, stride, steer, grip = 0.0, 0.0, 0.0, 0.0
+        Execute multi-axis causal actuator commands into physical kinematic settlement:
+        Efferents operate along distinct physical axes without cross-dimensional scalar ranking:
+          - vocal_hz: vocal acoustic oscillation frequency in Hz [0, 480]
+          - stride_mm: forward linear displacement per cycle in mm [0, 60]
+          - steer_deg: steering heading angle in degrees [-45, +45]
+          - grip_n: normal grasping force in Newtons [0, 25]
 
-        if vocal > 0.0 and vocal >= stride and vocal >= grip:
-            return ("vocalize", {"frequency_hz": vocal, "intensity": min(1.0, vocal / 480.0)})
-        elif stride > 0.0 and stride >= grip:
-            return ("locomote", {"stride_mm": stride, "steer_deg": steer})
-        elif grip > 0.0:
-            return ("grasp", {"grip_force_n": grip})
-        else:
+        Returns:
+          (consequence, receipt)
+        """
+        vocal, stride, steer, grip = self.get_motor_efferent()
+        is_silent = (vocal == 0.0 and stride == 0.0 and steer == 0.0 and grip == 0.0)
+
+        # 2D Euclidean rigid body kinematics
+        th_rad = float(np.radians(steer))
+        delta_x_mm = float(stride * np.cos(th_rad))
+        delta_y_mm = float(stride * np.sin(th_rad))
+        delta_theta_deg = float(steer * (stride / 60.0))
+
+        # Acoustic pressure amplitude in Pascals
+        acoustic_pressure_pa = float((vocal / 480.0) * 1.0) if vocal > 0 else 0.0
+
+        # Normal contact force
+        normal_force_n = float(grip)
+
+        # Mechanical work in microjoules: W = F_n * dx_grip + F_loco * dx_loco
+        mechanical_work_uj = float((grip * 0.5 + abs(stride) * 0.1) * 1000.0) if not is_silent else 0.0
+
+        consequence = {
+            "delta_x_mm": delta_x_mm,
+            "delta_y_mm": delta_y_mm,
+            "delta_theta_deg": delta_theta_deg,
+            "acoustic_pressure_pa": acoustic_pressure_pa,
+            "normal_force_n": normal_force_n,
+            "mechanical_work_uj": mechanical_work_uj,
+        }
+
+        receipt = {
+            "is_silent": is_silent,
+            "motion_vector": (delta_x_mm, delta_y_mm, delta_theta_deg),
+            "vocal_frequency_hz": vocal,
+            "normal_force_n": normal_force_n,
+            "applied_stride_mm": stride,
+            "applied_steer_deg": steer,
+            "cycle_dt_s": dt_s,
+        }
+
+        return (consequence, receipt)
+
+    def applied_motor_action(self) -> Tuple[str, dict[str, Any]]:
+        """
+        Multi-axis kinematic summary without cross-dimensional scalar ranking:
+        Returns ('rest', {}) if silent, or ('active', receipt) with independent channels.
+        """
+        consequence, receipt = self.applied_kinematic_action()
+        if receipt["is_silent"]:
             return ("rest", {})
+        return ("active", receipt)
 
     def active_synapses(self) -> int:
         """
