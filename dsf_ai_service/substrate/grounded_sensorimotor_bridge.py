@@ -151,11 +151,19 @@ class GroundedSensorimotorBridge:
     def ingest_and_step(self, telemetry: SensorimotorTelemetry) -> Dict[str, Any]:
         """
         Step one causal sensorimotor cycle:
-          1. Transduce continuous telemetry into discrete balanced ternary inputs.
-          2. Execute intra-column laminar causal flow and inter-column plastic fasciculi.
-          3. Evaluate material yield stress mechanics and barrier gating.
-          4. Return settled physical state manifest.
+          1. Mount authoritative continuous joint field directly into native substrate.
+          2. Transduce continuous telemetry into discrete balanced ternary inputs.
+          3. Execute intra-column laminar causal flow and inter-column plastic fasciculi.
+          4. Evaluate material yield stress mechanics and barrier gating.
+          5. Return settled physical state manifest.
         """
+        # Mount authoritative continuous joint field directly into native substrate
+        if hasattr(self.substrate, "consume_continuous_joint_field") and len(telemetry.dsf_invariants) >= 8:
+            self.substrate.consume_continuous_joint_field(
+                telemetry.dsf_invariants[:7],
+                telemetry.dsf_invariants[7],
+            )
+
         sens_trits, som_trits = self.transduce_telemetry(telemetry)
 
         # Extract acoustic formant peak for Column 2 syntax chaining

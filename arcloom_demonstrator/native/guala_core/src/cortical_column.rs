@@ -10,14 +10,14 @@
 //!      - Waking experience creates persistent plastic conductances (g_plastic).
 //!      - Waking beats do NOT arbitrarily decay learned conductances (zero unphysical waking decay).
 //!      - Synaptic downscaling occurs strictly during nocturnal sleep consolidation (Synaptic Homeostasis).
-//!   2. Constitutive Elastic Baseline and Signed Synaptic Polarization:
+//!   2. Discrete Lattice Baseline Resting Coupling and Signed Synaptic Polarization:
 //!      - Reversible elastic compliance regime (|sigma| <= Y, lambda_dot = 0):
-//!        G_ELASTIC_BASELINE = 0.05 represents the calibrated baseline elastic contact compliance.
-//!        In the balanced-ternary neuromorphic lattice, signed plastic variable w in [-1.0, 1.0]
-//!        represents normalized plastic synaptic polarization (conductance magnitude scaled by
-//!        transmission polarity: excitatory > 0, inhibitory < 0).
-//!        Effective coupling is the superposition: g_eff = G_ELASTIC_BASELINE + w.
-//!        Quantum tunneling and Holm contact area claims are formally withdrawn.
+//!        G_ELASTIC_BASELINE = 0.05 represents the dimensionless baseline resting coupling parameter w_0
+//!        in the discrete ternary neuromorphic lattice model.
+//!        Signed plastic weight w in [-1.0, 1.0] represents polarized synaptic coupling
+//!        (excitatory > 0, inhibitory < 0).
+//!        Effective transmission coupling is the superposition: g_eff = G_ELASTIC_BASELINE + w.
+//!        Claims of continuum material contact law closure or Holm/tunneling calibration are formally retracted.
 //!   3. Causal Multi-Axis Motor Efferent Transduction:
 //!      - Motor efferents scale directly from settled L5 pyramidal population excitation:
 //!        vocal_hz in [0, 480], stride_mm in [0, 60], steer_deg in [-45, +45], grip_n in [0, 25].
@@ -83,10 +83,12 @@ pub const ARCLOOM_STATE_VERSION_V3: u16 = 3;
 pub const ARCLOOM_STATE_MAGIC_V4: &[u8; 8] = b"ARCLOOM4";
 pub const ARCLOOM_STATE_VERSION_V4: u16 = 4;
 
-/// Calibrated baseline elastic contact compliance G_ELASTIC_BASELINE = 0.05.
-/// Under sub-yield stress (|sigma| <= Y), contact junctions exhibit baseline elastic compliance.
-/// Signed plastic weight w in [-1.0, 1.0] represents normalized synaptic polarization
+/// Dimensionless baseline resting coupling parameter G_ELASTIC_BASELINE = 0.05.
+/// In the discrete ternary neuromorphic lattice model, G_ELASTIC_BASELINE defines the
+/// baseline sub-yield coupling in the reversible regime (|sigma| <= Y, lambda_dot = 0).
+/// Signed plastic weight w in [-1.0, 1.0] represents polarized synaptic coupling
 /// (excitatory > 0, inhibitory < 0). Effective transmission coupling is g_eff = G_ELASTIC_BASELINE + w.
+/// Claims of continuum material contact law closure or Holm/tunneling calibration are retracted.
 pub const G_ELASTIC_BASELINE: f32 = 0.05;
 
 // ---------------------------------------------------------------------------
@@ -1844,6 +1846,36 @@ impl ModularSubstrate64D {
         (trits[0], trits[1])
     }
 
+    /// MathLoom Exact Positional Balanced Ternary Expansion (34 Trits).
+    /// Fully resolves the entire 53-bit mantissa of IEEE-754 binary64 floats (3^-34 ≈ 5.9e-17 < 2^-53 ≈ 1.11e-16).
+    #[inline]
+    pub fn float_to_balanced_ternary(val: f64, trits: &mut [i8]) {
+        for t in trits.iter_mut() {
+            *t = 0;
+        }
+        if !val.is_finite() {
+            return;
+        }
+        let mut rem = val.clamp(-1.0, 1.0);
+        let mut power = 1.0 / 3.0;
+        for t in trits.iter_mut() {
+            let half = power / 2.0;
+            if rem > half {
+                *t = 1;
+                rem -= power;
+            } else if rem < -half {
+                *t = -1;
+                rem += power;
+            } else {
+                *t = 0;
+            }
+            power /= 3.0;
+            if power < 1e-18 {
+                break;
+            }
+        }
+    }
+
     pub fn consume_continuous_joint_field(&mut self, field_7d: [f64; 7], s_uf: f64) -> Result<(), String> {
         for (i, &val) in field_7d.iter().enumerate() {
             if !val.is_finite() {
@@ -2123,27 +2155,32 @@ impl ModularSubstrate64D {
         }
 
         // 6. Clusters 6, 7: Prefrontal / Structural Invariant Sheet (Cols 48..64)
-        // Columns 48..55 receive continuous joint field trits as physical afferents
-        for (i, c) in (48..56).enumerate() {
-            let mut dsf_aff = vec![0i8; L4_NODES];
+        // Authoritative continuous joint field drives all 16 columns (48..63) with exact 34-trit MathLoom expansion:
+        // Each invariant k in 0..7 drives Primary column 48+2k and Conjugate column 48+2k+1.
+        for (k, inv_val) in self.continuous_joint_field.iter().enumerate() {
+            let col_primary = 48 + 2 * k;
+            let col_conjugate = 48 + 2 * k + 1;
+
+            let mut dsf_aff_primary = vec![0i8; L4_NODES];
+            let mut dsf_aff_conjugate = vec![0i8; L4_NODES];
+
             if self.continuous_joint_field_present {
-                let val = self.continuous_joint_field[i];
-                let (t0, t1) = Self::quantize_radix3(val);
-                dsf_aff[0] = t0;
-                dsf_aff[1] = t1;
-            } else if c < sensory_trits.len() {
-                dsf_aff[0] = sensory_trits[c];
+                Self::float_to_balanced_ternary(*inv_val, &mut dsf_aff_primary[..34]);
+                Self::float_to_balanced_ternary(-*inv_val, &mut dsf_aff_conjugate[..34]);
+            } else {
+                if col_primary < sensory_trits.len() {
+                    dsf_aff_primary[0] = sensory_trits[col_primary];
+                }
+                if col_conjugate < sensory_trits.len() {
+                    dsf_aff_conjugate[0] = sensory_trits[col_conjugate];
+                }
             }
-            let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(&dsf_aff, somatic_trits, &in_23[c], &in_5[c]);
-            total_yields += yc; total_strain += sc;
-        }
-        for c in 56..64 {
-            let mut dsf_aff = vec![0i8; L4_NODES];
-            if c < sensory_trits.len() {
-                dsf_aff[0] = sensory_trits[c];
-            }
-            let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(&dsf_aff, somatic_trits, &in_23[c], &in_5[c]);
-            total_yields += yc; total_strain += sc;
+
+            let (yc1, sc1) = self.columns[col_primary].microcircuit.step_laminar_flow(&dsf_aff_primary, somatic_trits, &in_23[col_primary], &in_5[col_primary]);
+            total_yields += yc1; total_strain += sc1;
+
+            let (yc2, sc2) = self.columns[col_conjugate].microcircuit.step_laminar_flow(&dsf_aff_conjugate, somatic_trits, &in_23[col_conjugate], &in_5[col_conjugate]);
+            total_yields += yc2; total_strain += sc2;
         }
 
         // 7. Inter-Column Directional Fasciculi Plasticity across 64 Columns
@@ -2503,7 +2540,7 @@ impl ModularSubstrate64D {
         })
     }
 
-    pub fn migrate_predecessor_v2(&mut self, data: &[u8]) -> Result<(), String> {
+    pub fn migrate_predecessor_v2(&mut self, data: &[u8], layout: Option<&str>) -> Result<(), String> {
         if data.is_empty() {
             return Err("Cannot migrate from empty byte buffer".to_string());
         }
@@ -2533,22 +2570,32 @@ impl ModularSubstrate64D {
             return Err("Invalid parameter domain in ArcLoom header".to_string());
         }
 
-        // Two authentic historical layouts:
-        // 1. Revision 8c3244cb3: 36-byte column headers + severed tracts section
-        let res_36 = self.try_parse_v2_internal(data, new_yield, new_plastic, new_activation, true);
-        if let Ok(staged) = res_36 {
-            self.commit_staged_state(staged);
-            return Ok(());
+        match layout {
+            Some("8c3244cb3") | Some("36B") => {
+                let staged = self.try_parse_v2_internal(data, new_yield, new_plastic, new_activation, true)?;
+                self.commit_staged_state(staged);
+                Ok(())
+            }
+            Some("cb69d23ea") | Some("24B") => {
+                let staged = self.try_parse_v2_internal(data, new_yield, new_plastic, new_activation, false)?;
+                self.commit_staged_state(staged);
+                Ok(())
+            }
+            Some(unknown) => Err(format!("Unknown ARCLOOM2 predecessor layout provenance: {}", unknown)),
+            None => {
+                let res_36 = self.try_parse_v2_internal(data, new_yield, new_plastic, new_activation, true);
+                if let Ok(staged) = res_36 {
+                    self.commit_staged_state(staged);
+                    return Ok(());
+                }
+                let res_24 = self.try_parse_v2_internal(data, new_yield, new_plastic, new_activation, false);
+                if let Ok(staged) = res_24 {
+                    self.commit_staged_state(staged);
+                    return Ok(());
+                }
+                Err(format!("Failed to parse ARCLOOM2 payload under both authentic historical schemas (36B severed: {:?}, 24B unsevered: {:?})", res_36.err(), res_24.err()))
+            }
         }
-
-        // 2. Revision cb69d23ea: 24-byte column headers + default unsevered topology
-        let res_24 = self.try_parse_v2_internal(data, new_yield, new_plastic, new_activation, false);
-        if let Ok(staged) = res_24 {
-            self.commit_staged_state(staged);
-            return Ok(());
-        }
-
-        Err(format!("Failed to parse ARCLOOM2 payload under both authentic historical schemas (36B severed: {:?}, 24B unsevered: {:?})", res_36.err(), res_24.err()))
     }
 
     fn try_parse_v4_internal(&self, data: &[u8]) -> Result<StagedSubstrateState, String> {
@@ -2562,19 +2609,211 @@ impl ModularSubstrate64D {
         if magic == ARCLOOM_STATE_MAGIC_V2 {
             return Err("Invalid magic: found ARCLOOM2 payload in ARCLOOM4 importer. Historical predecessor migration must be performed explicitly via migrate_predecessor_v2()".to_string());
         }
-        let is_v4 = magic == ARCLOOM_STATE_MAGIC_V4;
-        let is_v3 = magic == ARCLOOM_STATE_MAGIC_V3;
-        if !is_v4 && !is_v3 {
+        if magic == ARCLOOM_STATE_MAGIC_V3 {
+            return Err("Invalid magic: found ARCLOOM3 payload in ARCLOOM4 importer. Predecessor migration must be performed explicitly via migrate_predecessor_v3()".to_string());
+        }
+        if magic != ARCLOOM_STATE_MAGIC_V4 {
             return Err(format!("Invalid ArcLoom state format: expected ARCLOOM4, got unknown magic {:?}", magic));
         }
         if data.len() < 24 {
-            return Err("Truncated ARCLOOM header: less than 24 bytes".to_string());
+            return Err("Truncated ARCLOOM4 header: less than 24 bytes".to_string());
         }
         let version = u16::from_le_bytes([data[8], data[9]]);
-        if is_v4 && version != ARCLOOM_STATE_VERSION_V4 {
+        if version != ARCLOOM_STATE_VERSION_V4 {
             return Err(format!("Unsupported ArcLoom v4 version: {}", version));
         }
-        if is_v3 && version != ARCLOOM_STATE_VERSION_V3 {
+        let n_cols = u16::from_le_bytes([data[10], data[11]]) as usize;
+        if n_cols != NUM_COLUMNS_64D {
+            return Err(format!("Column count mismatch: data has {}, instance has {}", n_cols, NUM_COLUMNS_64D));
+        }
+        let new_yield = f32::from_le_bytes([data[12], data[13], data[14], data[15]]);
+        let new_plastic = f32::from_le_bytes([data[16], data[17], data[18], data[19]]);
+        let new_activation = f32::from_le_bytes([data[20], data[21], data[22], data[23]]);
+
+        if !new_yield.is_finite() || !new_plastic.is_finite() || !new_activation.is_finite() {
+            return Err("Non-finite float in ArcLoom header".to_string());
+        }
+        if new_yield <= 0.0 || new_yield > 1.0 || new_plastic <= 0.0 || new_plastic > 1.0 || new_activation <= 0.0 {
+            return Err("Invalid parameter domain in ArcLoom header".to_string());
+        }
+
+        let mut temp_columns = self.columns.clone();
+        let mut offset = 24;
+        for (col_idx, col) in temp_columns.iter_mut().enumerate() {
+            offset = deserialize_column_state(col, data, offset, col_idx, NUM_COLUMNS_64D)?;
+        }
+
+        if offset.checked_add(4).ok_or("Integer overflow in w_inter_23 count")? > data.len() {
+            return Err("Unexpected EOF in w_inter_23 count".to_string());
+        }
+        let count_23 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
+        offset += 4;
+
+        let bytes_23 = count_23.checked_mul(8).ok_or("Integer overflow in w_inter_23 bytes")?;
+        if offset.checked_add(bytes_23).ok_or("Integer overflow in w_inter_23 offset")? > data.len() {
+            return Err("Unexpected EOF in w_inter_23 entries".to_string());
+        }
+        let mut new_w_23 = vec![0.0f32; self.w_inter_23.len()];
+        let mut new_act_23 = Vec::new();
+        let mut seen_23 = HashSet::new();
+        for _ in 0..count_23 {
+            let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
+            let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+            if !g.is_finite() { return Err("Non-finite synaptic weight in w_inter_23".to_string()); }
+            if g < -1.0 || g > 1.0 { return Err(format!("Inter-column synaptic weight out of bounds [-1.0, 1.0]: {}", g)); }
+            if idx >= new_w_23.len() {
+                return Err(format!("Synaptic index out of bounds: {} >= {}", idx, new_w_23.len()));
+            }
+            if !seen_23.insert(idx) {
+                return Err(format!("Duplicate synaptic index in w_inter_23: {}", idx));
+            }
+            new_w_23[idx] = g;
+            if g != 0.0 { new_act_23.push(idx); }
+        }
+
+        if offset.checked_add(4).ok_or("Integer overflow in w_inter_5 count")? > data.len() {
+            return Err("Unexpected EOF in w_inter_5 count".to_string());
+        }
+        let count_5 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
+        offset += 4;
+
+        let bytes_5 = count_5.checked_mul(8).ok_or("Integer overflow in w_inter_5 bytes")?;
+        if offset.checked_add(bytes_5).ok_or("Integer overflow in w_inter_5 offset")? > data.len() {
+            return Err("Unexpected EOF in w_inter_5 entries".to_string());
+        }
+        let mut new_w_5 = vec![0.0f32; self.w_inter_5.len()];
+        let mut new_act_5 = Vec::new();
+        let mut seen_5 = HashSet::new();
+        for _ in 0..count_5 {
+            let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize; offset += 4;
+            let g = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+            if !g.is_finite() { return Err("Non-finite synaptic weight in w_inter_5".to_string()); }
+            if g < -1.0 || g > 1.0 { return Err(format!("Inter-column synaptic weight out of bounds [-1.0, 1.0]: {}", g)); }
+            if idx >= new_w_5.len() {
+                return Err(format!("Synaptic index out of bounds: {} >= {}", idx, new_w_5.len()));
+            }
+            if !seen_5.insert(idx) {
+                return Err(format!("Duplicate synaptic index in w_inter_5: {}", idx));
+            }
+            new_w_5[idx] = g;
+            if g != 0.0 { new_act_5.push(idx); }
+        }
+
+        if offset.checked_add(16).ok_or("Integer overflow in motor footer")? > data.len() {
+            return Err("Missing or truncated motor efferent footer in ArcLoom payload".to_string());
+        }
+        let new_vocal = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+        let new_stride = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+        let new_steer = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+        let new_grip = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
+
+        if !new_vocal.is_finite() || !new_stride.is_finite() || !new_steer.is_finite() || !new_grip.is_finite() {
+            return Err("Non-finite float in motor efferent footer".to_string());
+        }
+
+        if offset.checked_add(4).ok_or("Integer overflow in severed tracts count")? > data.len() {
+            return Err("Unexpected EOF reading severed tracts count".to_string());
+        }
+        let sev_count = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
+        offset += 4;
+
+        let sev_bytes = sev_count.checked_mul(4).ok_or("Integer overflow in severed tracts bytes")?;
+        if offset.checked_add(sev_bytes).ok_or("Integer overflow in severed tracts offset")? > data.len() {
+            return Err("Unexpected EOF reading severed tracts indices".to_string());
+        }
+        let mut new_severed = vec![false; NUM_COLUMNS_64D * NUM_COLUMNS_64D];
+        let mut seen_severed = HashSet::new();
+        for _ in 0..sev_count {
+            let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
+            offset += 4;
+            if idx >= new_severed.len() {
+                return Err(format!("Severed tract index out of bounds: {}", idx));
+            }
+            if !seen_severed.insert(idx) {
+                return Err(format!("Duplicate severed tract index: {}", idx));
+            }
+            new_severed[idx] = true;
+        }
+        for &idx in &seen_severed {
+            let r = idx / NUM_COLUMNS_64D;
+            let c = idx % NUM_COLUMNS_64D;
+            let rev_idx = c * NUM_COLUMNS_64D + r;
+            if !seen_severed.contains(&rev_idx) {
+                return Err(format!("Asymmetric severed tract topology: tract {} ({}->{}) severed but reverse {} ({}->{}) is not", idx, r, c, rev_idx, c, r));
+            }
+        }
+
+        // ARCLOOM4: explicit presence flag followed by 64 bytes of f64 field values
+        if offset >= data.len() {
+            return Err("Unexpected EOF reading presence flag in ARCLOOM4".to_string());
+        }
+        let presence_byte = data[offset];
+        offset += 1;
+        if presence_byte > 1 {
+            return Err(format!("Invalid presence flag {} in ARCLOOM4: must be 0 or 1", presence_byte));
+        }
+        let present = presence_byte == 1;
+
+        if offset.checked_add(64).ok_or("Integer overflow in field bytes")? > data.len() {
+            return Err("Unexpected EOF reading continuous joint field in ARCLOOM4: requires 64 bytes".to_string());
+        }
+        let mut cjf = [0.0f64; 8];
+        for i in 0..8 {
+            let bytes = [
+                data[offset], data[offset+1], data[offset+2], data[offset+3],
+                data[offset+4], data[offset+5], data[offset+6], data[offset+7]
+            ];
+            offset += 8;
+            let val = f64::from_le_bytes(bytes);
+            if !val.is_finite() {
+                return Err(format!("Non-finite float in continuous joint field index {}", i));
+            }
+            cjf[i] = val;
+        }
+
+        let expected_pad = (8 - (offset % 8)) % 8;
+        let actual_pad = data.len() - offset;
+        if actual_pad != expected_pad {
+            return Err(format!("Incorrect trailing alignment padding in ArcLoom payload: expected {} bytes, got {}", expected_pad, actual_pad));
+        }
+        for i in 0..expected_pad {
+            if data[offset + i] != 0 {
+                return Err("Non-zero padding byte in ArcLoom payload".to_string());
+            }
+        }
+
+        Ok(StagedSubstrateState {
+            yield_threshold: new_yield,
+            plastic_rate: new_plastic,
+            activation_threshold: new_activation,
+            columns: temp_columns,
+            w_inter_23: new_w_23,
+            active_inter_23: new_act_23,
+            w_inter_5: new_w_5,
+            active_inter_5: new_act_5,
+            severed_tracts: new_severed,
+            continuous_joint_field: cjf,
+            continuous_joint_field_present: present,
+            motor_vocal_drive: new_vocal,
+            motor_locomotion_stride: new_stride,
+            motor_steer_angle: new_steer,
+            motor_grip_force: new_grip,
+        })
+    }
+
+    fn try_parse_v3_internal(&self, data: &[u8], field_present_meta: Option<bool>) -> Result<StagedSubstrateState, String> {
+        if data.is_empty() {
+            return Err("Cannot migrate from empty byte buffer".to_string());
+        }
+        if data.len() < 24 {
+            return Err("Truncated ARCLOOM3 header: less than 24 bytes".to_string());
+        }
+        let magic = &data[0..8];
+        if magic != ARCLOOM_STATE_MAGIC_V3 {
+            return Err(format!("Invalid ArcLoom v3 magic header: expected {:?}, got {:?}", ARCLOOM_STATE_MAGIC_V3, magic));
+        }
+        let version = u16::from_le_bytes([data[8], data[9]]);
+        if version != ARCLOOM_STATE_VERSION_V3 {
             return Err(format!("Unsupported ArcLoom v3 version: {}", version));
         }
         let n_cols = u16::from_le_bytes([data[10], data[11]]) as usize;
@@ -2598,11 +2837,16 @@ impl ModularSubstrate64D {
             offset = deserialize_column_state(col, data, offset, col_idx, NUM_COLUMNS_64D)?;
         }
 
-        if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_23 count".to_string()); }
+        if offset.checked_add(4).ok_or("Integer overflow in w_inter_23 count")? > data.len() {
+            return Err("Unexpected EOF in w_inter_23 count".to_string());
+        }
         let count_23 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
         offset += 4;
 
-        if offset + count_23 * 8 > data.len() { return Err("Unexpected EOF in w_inter_23 entries".to_string()); }
+        let bytes_23 = count_23.checked_mul(8).ok_or("Integer overflow in w_inter_23 bytes")?;
+        if offset.checked_add(bytes_23).ok_or("Integer overflow in w_inter_23 offset")? > data.len() {
+            return Err("Unexpected EOF in w_inter_23 entries".to_string());
+        }
         let mut new_w_23 = vec![0.0f32; self.w_inter_23.len()];
         let mut new_act_23 = Vec::new();
         let mut seen_23 = HashSet::new();
@@ -2621,11 +2865,16 @@ impl ModularSubstrate64D {
             if g != 0.0 { new_act_23.push(idx); }
         }
 
-        if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_5 count".to_string()); }
+        if offset.checked_add(4).ok_or("Integer overflow in w_inter_5 count")? > data.len() {
+            return Err("Unexpected EOF in w_inter_5 count".to_string());
+        }
         let count_5 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
         offset += 4;
 
-        if offset + count_5 * 8 > data.len() { return Err("Unexpected EOF in w_inter_5 entries".to_string()); }
+        let bytes_5 = count_5.checked_mul(8).ok_or("Integer overflow in w_inter_5 bytes")?;
+        if offset.checked_add(bytes_5).ok_or("Integer overflow in w_inter_5 offset")? > data.len() {
+            return Err("Unexpected EOF in w_inter_5 entries".to_string());
+        }
         let mut new_w_5 = vec![0.0f32; self.w_inter_5.len()];
         let mut new_act_5 = Vec::new();
         let mut seen_5 = HashSet::new();
@@ -2644,7 +2893,7 @@ impl ModularSubstrate64D {
             if g != 0.0 { new_act_5.push(idx); }
         }
 
-        if offset + 16 > data.len() {
+        if offset.checked_add(16).ok_or("Integer overflow in motor footer")? > data.len() {
             return Err("Missing or truncated motor efferent footer in ArcLoom payload".to_string());
         }
         let new_vocal = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
@@ -2656,42 +2905,52 @@ impl ModularSubstrate64D {
             return Err("Non-finite float in motor efferent footer".to_string());
         }
 
-        if offset + 4 > data.len() {
+        if offset.checked_add(4).ok_or("Integer overflow in severed tracts count")? > data.len() {
             return Err("Unexpected EOF reading severed tracts count".to_string());
         }
         let sev_count = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
         offset += 4;
 
-        if offset + sev_count * 4 > data.len() {
+        let sev_bytes = sev_count.checked_mul(4).ok_or("Integer overflow in severed tracts bytes")?;
+        if offset.checked_add(sev_bytes).ok_or("Integer overflow in severed tracts offset")? > data.len() {
             return Err("Unexpected EOF reading severed tracts indices".to_string());
         }
         let mut new_severed = vec![false; NUM_COLUMNS_64D * NUM_COLUMNS_64D];
+        let mut seen_severed = HashSet::new();
         for _ in 0..sev_count {
             let idx = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
             offset += 4;
-            if idx < new_severed.len() {
-                new_severed[idx] = true;
-            } else {
+            if idx >= new_severed.len() {
                 return Err(format!("Severed tract index out of bounds: {}", idx));
+            }
+            if !seen_severed.insert(idx) {
+                return Err(format!("Duplicate severed tract index: {}", idx));
+            }
+            new_severed[idx] = true;
+        }
+        for &idx in &seen_severed {
+            let r = idx / NUM_COLUMNS_64D;
+            let c = idx % NUM_COLUMNS_64D;
+            let rev_idx = c * NUM_COLUMNS_64D + r;
+            if !seen_severed.contains(&rev_idx) {
+                return Err(format!("Asymmetric severed tract topology: tract {} ({}->{}) severed but reverse {} ({}->{}) is not", idx, r, c, rev_idx, c, r));
             }
         }
 
-        let (new_cjf, is_present) = if is_v4 {
-            // ARCLOOM4: explicit presence flag followed by 64 bytes of f64 field values
-            if offset >= data.len() {
-                return Err("Unexpected EOF reading presence flag in ARCLOOM4".to_string());
-            }
-            let presence_byte = data[offset];
-            offset += 1;
-            if presence_byte > 1 {
-                return Err(format!("Invalid presence flag {} in ARCLOOM4: must be 0 or 1", presence_byte));
-            }
-            let present = presence_byte == 1;
+        // Two authentic historical ARCLOOM3 layouts:
+        // Layout 1: ARCLOOM3_SHORT (commit 0dad5f2b9) - ends after severed tracts + padding
+        // Layout 2: ARCLOOM3_LONG (commit d577831de) - 64 bytes of f64 field values after severed tracts + padding
+        let rem_bytes = data.len() - offset;
+        let expected_pad_short = (8 - (offset % 8)) % 8;
 
-            if offset + 64 > data.len() {
-                return Err("Unexpected EOF reading continuous joint field in ARCLOOM4: requires 64 bytes".to_string());
+        let (cjf, is_present) = if rem_bytes == expected_pad_short {
+            ([0.0f64; 8], false)
+        } else if rem_bytes >= 64 {
+            let expected_pad_long = (8 - ((offset + 64) % 8)) % 8;
+            if rem_bytes != 64 + expected_pad_long {
+                return Err(format!("Invalid ARCLOOM3 trailing payload length: expected either {} bytes (short) or {} bytes (long), got {}", expected_pad_short, 64 + expected_pad_long, rem_bytes));
             }
-            let mut cjf = [0.0f64; 8];
+            let mut field_vals = [0.0f64; 8];
             for i in 0..8 {
                 let bytes = [
                     data[offset], data[offset+1], data[offset+2], data[offset+3],
@@ -2700,24 +2959,29 @@ impl ModularSubstrate64D {
                 offset += 8;
                 let val = f64::from_le_bytes(bytes);
                 if !val.is_finite() {
-                    return Err(format!("Non-finite float in continuous joint field index {}", i));
+                    return Err(format!("Non-finite float in ARCLOOM3 continuous joint field index {}", i));
                 }
-                cjf[i] = val;
+                field_vals[i] = val;
             }
-            (cjf, present)
+            let present = match field_present_meta {
+                Some(p) => p,
+                None => {
+                    return Err("ARCLOOM3 long layout (commit d577831de) omits presence flag; explicit authenticated predecessor metadata 'field_present' is required to migrate without unrecorded presence guessing".to_string());
+                }
+            };
+            (field_vals, present)
         } else {
-            // Predecessor ARCLOOM3 migration: ends after severed tracts; field is explicitly absent
-            ([0.0f64; 8], false)
+            return Err(format!("Incorrect trailing bytes in ARCLOOM3 payload: got {} bytes, expected short padding {}", rem_bytes, expected_pad_short));
         };
 
         let expected_pad = (8 - (offset % 8)) % 8;
         let actual_pad = data.len() - offset;
         if actual_pad != expected_pad {
-            return Err(format!("Incorrect trailing alignment padding in ArcLoom payload: expected {} bytes, got {}", expected_pad, actual_pad));
+            return Err(format!("Incorrect trailing alignment padding in ARCLOOM3 payload: expected {} bytes, got {}", expected_pad, actual_pad));
         }
         for i in 0..expected_pad {
             if data[offset + i] != 0 {
-                return Err("Non-zero padding byte in ArcLoom payload".to_string());
+                return Err("Non-zero padding byte in ARCLOOM3 payload".to_string());
             }
         }
 
@@ -2731,7 +2995,7 @@ impl ModularSubstrate64D {
             w_inter_5: new_w_5,
             active_inter_5: new_act_5,
             severed_tracts: new_severed,
-            continuous_joint_field: new_cjf,
+            continuous_joint_field: cjf,
             continuous_joint_field_present: is_present,
             motor_vocal_drive: new_vocal,
             motor_locomotion_stride: new_stride,
@@ -2746,9 +3010,12 @@ impl ModularSubstrate64D {
         Ok(())
     }
 
-    pub fn import_sparse_v3(&mut self, data: &[u8]) -> Result<(), String> {
-        self.import_sparse_v4(data)
-    }}
+    pub fn migrate_predecessor_v3(&mut self, data: &[u8], field_present: Option<bool>) -> Result<(), String> {
+        let staged = self.try_parse_v3_internal(data, field_present)?;
+        self.commit_staged_state(staged);
+        Ok(())
+    }
+}
 
 // ---------------------------------------------------------------------------
 // 6. PyO3 Native Bindings
@@ -3107,10 +3374,6 @@ impl PyModularSubstrate64D {
         self.inner.export_sparse_v4().map_err(|e| PyValueError::new_err(e))
     }
 
-    pub fn export_sparse_v3(&self) -> PyResult<Vec<u8>> {
-        self.inner.export_sparse_v4().map_err(|e| PyValueError::new_err(e))
-    }
-
     pub fn import_sparse(&mut self, data: &[u8]) -> PyResult<()> {
         self.inner.import_sparse_v4(data).map_err(|e| PyValueError::new_err(e))
     }
@@ -3119,12 +3382,14 @@ impl PyModularSubstrate64D {
         self.inner.import_sparse_v4(data).map_err(|e| PyValueError::new_err(e))
     }
 
-    pub fn import_sparse_v3(&mut self, data: &[u8]) -> PyResult<()> {
-        self.inner.import_sparse_v4(data).map_err(|e| PyValueError::new_err(e))
+    #[pyo3(signature = (data, field_present=None))]
+    pub fn migrate_predecessor_v3(&mut self, data: &[u8], field_present: Option<bool>) -> PyResult<()> {
+        self.inner.migrate_predecessor_v3(data, field_present).map_err(|e| PyValueError::new_err(e))
     }
 
-    pub fn migrate_predecessor_v2(&mut self, data: &[u8]) -> PyResult<()> {
-        self.inner.migrate_predecessor_v2(data).map_err(|e| PyValueError::new_err(e))
+    #[pyo3(signature = (data, layout=None))]
+    pub fn migrate_predecessor_v2(&mut self, data: &[u8], layout: Option<&str>) -> PyResult<()> {
+        self.inner.migrate_predecessor_v2(data, layout).map_err(|e| PyValueError::new_err(e))
     }
 }
 

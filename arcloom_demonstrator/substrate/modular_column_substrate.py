@@ -127,6 +127,17 @@ class ModularColumnSubstrate:
             return self.substrate.get_continuous_joint_field()
         return (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
+    def has_continuous_joint_field(self) -> bool:
+        """Check if authoritative continuous joint field is explicitly available."""
+        if hasattr(self.substrate, "has_continuous_joint_field"):
+            return bool(self.substrate.has_continuous_joint_field())
+        return False
+
+    def clear_continuous_joint_field(self) -> None:
+        """Mark continuous joint field as unavailable."""
+        if hasattr(self.substrate, "clear_continuous_joint_field"):
+            self.substrate.clear_continuous_joint_field()
+
     def clear_continuous_joint_field(self) -> None:
         """Explicitly clear the continuous joint field when inputs expire or are unavailable."""
         if hasattr(self.substrate, "clear_continuous_joint_field"):
@@ -194,18 +205,9 @@ class ModularColumnSubstrate:
             for i in range(8):
                 trits[40 + i] = val
 
-        # 4. DSF kernel invariants (Nodes 48..63) via finite continuous balanced ternary radix-3 projection
-        if dsf_vector is not None and len(dsf_vector) >= 8:
-            for inv_idx, val in enumerate(dsf_vector[:8]):
-                start_n = 48 + inv_idx * 2
-                v = float(val)
-                if inv_idx in (0, 1):  # D_k, M_k signed in [-1.0, 1.0]
-                    t1, t2 = _quantize_radix3_signed(v)
-                else:  # R_rev, U*, C_k, P_k, B_k, S_UF unsigned in [0.0, 1.0]
-                    # Direct affine mapping of [0, 1] onto [-1, 1] for balanced ternary representation
-                    t1, t2 = _quantize_radix3_signed(2.0 * min(max(v, 0.0), 1.0) - 1.0)
-                trits[start_n] = t1
-                trits[start_n + 1] = t2
+        # 4. Nodes 48..63 are reserved for the authoritative prefrontal sheet.
+        # Zero competing legacy mapping: when continuous joint field is active, columns 48..63
+        # are driven exclusively by consume_continuous_joint_field without competing sensory trits.
 
         return trits
 
@@ -454,43 +456,48 @@ class ModularColumnSubstrate:
         return self.substrate.sleep_consolidation(float(decay), float(prune_thresh))
 
     def export_sparse_bytes(self, version: int = 4) -> bytes:
-        """Export sparse active conductances as raw ARCLOOM4 (or prior) byte stream."""
+        """Export sparse active conductances as raw ARCLOOM4 byte stream."""
         if version == 4:
             if hasattr(self.substrate, "export_sparse_v4"):
                 return bytes(self.substrate.export_sparse_v4())
             return bytes(self.substrate.export_sparse())
-        elif version == 3:
-            if hasattr(self.substrate, "export_sparse_v3"):
-                return bytes(self.substrate.export_sparse_v3())
-            return bytes(self.substrate.export_sparse())
-        elif version == 2:
-            raise NotImplementedError("Direct export of legacy ARCLOOM2 format is unsupported; use ARCLOOM4.")
-        else:
-            raise ValueError(f"Unsupported export version: {version}")
+        raise ValueError(f"Direct export of legacy formats is retired; only ARCLOOM4 is supported, got version {version}")
 
-    def import_sparse_bytes(self, raw: bytes, version: Optional[int] = None) -> None:
+    def import_sparse_bytes(
+        self,
+        raw: bytes,
+        version: Optional[int] = None,
+        field_present: Optional[bool] = None,
+        layout: Optional[str] = None,
+    ) -> None:
         """Import sparse conductances with fail-closed binary verification and explicit predecessor migration."""
         if not raw or len(raw) < 8:
             raise ValueError("Raw state byte stream is empty or truncated")
 
         magic = raw[:8]
-        if magic == b"ARCLOOM4" or version == 4:
+        if magic == b"ARCLOOM4":
+            if version is not None and version != 4:
+                raise ValueError(f"Magic ARCLOOM4 conflicts with requested version {version}")
             if hasattr(self.substrate, "import_sparse_v4"):
                 self.substrate.import_sparse_v4(raw)
             else:
                 self.substrate.import_sparse(raw)
-        elif magic == b"ARCLOOM3" or version == 3:
-            if hasattr(self.substrate, "import_sparse_v3"):
-                self.substrate.import_sparse_v3(raw)
+        elif magic == b"ARCLOOM3":
+            if version is not None and version != 3:
+                raise ValueError(f"Magic ARCLOOM3 conflicts with requested version {version}")
+            if hasattr(self.substrate, "migrate_predecessor_v3"):
+                self.substrate.migrate_predecessor_v3(raw, field_present)
             else:
-                self.substrate.import_sparse(raw)
-        elif magic == b"ARCLOOM2" or version == 2:
+                raise NotImplementedError("Historical predecessor v3 migration is not supported on this substrate")
+        elif magic == b"ARCLOOM2":
+            if version is not None and version != 2:
+                raise ValueError(f"Magic ARCLOOM2 conflicts with requested version {version}")
             if hasattr(self.substrate, "migrate_predecessor_v2"):
-                self.substrate.migrate_predecessor_v2(raw)
+                self.substrate.migrate_predecessor_v2(raw, layout)
             else:
                 raise NotImplementedError("Historical predecessor v2 migration is not supported on this substrate")
         else:
-            self.substrate.import_sparse(raw)
+            raise ValueError(f"Unknown or unsupported ArcLoom magic header: {magic}")
 
     def to_dict(self) -> dict:
         """Serialize substrate configuration and sparse conductances for persistent body storage."""

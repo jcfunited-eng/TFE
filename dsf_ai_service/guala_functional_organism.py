@@ -1230,25 +1230,46 @@ def motor_efferent_to_locomotion_command(
     Converts native motor efferents (vocal_drive_hz, locomotion_stride_mm, steer_angle_deg, grip_force_n)
     into a canonical W1 MoveCommand using:
       - Canonical interval: duration_microseconds (default BEAT_MICROSECONDS = 250,000 µs = 0.25 s).
-        Note: Stride represents displacement over this canonical interval; duration scaling is not a dynamic velocity law.
+        Must be strictly positive integer.
+      - Schema validation: efferent must be a 4-element sequence of finite real numbers.
+      - Declared output domains:
+          stride_mm in [0.0, 100.0]
+          steer_deg in [-180.0, 180.0]
+          vocal_drive_hz >= 0.0
+          grip_force_n >= 0.0
+        Malformed schema, non-finite values, or out-of-domain efferents raise ValueError.
       - Body-relative steering: integer millidegrees (steer_deg * 1000).
       - Integration order: Translation displacement uses pre-step heading; endpoint pose adopts steered heading.
       - Exact lattice displacement: exact rigid rotation onto the discrete millimetre lattice.
-      - Finite/domain validation: efferents must be finite real numbers.
-    Silent efferents (stride <= 0.0 and abs(steer) <= 0.0) return None (locomotion inhibited).
+    Silent efferents (stride == 0.0 and steer == 0.0) return None (locomotion lawfully inhibited).
     """
-    if len(efferent) < 3:
-        return None
+    if duration_microseconds <= 0:
+        raise ValueError(f"duration_microseconds must be strictly positive, got {duration_microseconds}")
+
+    if not isinstance(efferent, (tuple, list)) or len(efferent) != 4:
+        raise ValueError(f"Efferent must be a 4-element sequence, got {type(efferent)} of length {len(efferent) if hasattr(efferent, '__len__') else 'unknown'}")
+
     try:
+        vocal_hz = float(efferent[0])
         stride_mm = float(efferent[1])
         steer_deg = float(efferent[2])
-    except (TypeError, ValueError):
-        return None
+        grip_n = float(efferent[3])
+    except (TypeError, ValueError) as err:
+        raise ValueError(f"Efferent elements must be numeric floats: {err}") from err
 
-    if not (np.isfinite(stride_mm) and np.isfinite(steer_deg)):
-        return None
+    if not (np.isfinite(vocal_hz) and np.isfinite(stride_mm) and np.isfinite(steer_deg) and np.isfinite(grip_n)):
+        raise ValueError(f"Non-finite efferent values detected: vocal={vocal_hz}, stride={stride_mm}, steer={steer_deg}, grip={grip_n}")
 
-    if stride_mm <= 0.0 and abs(steer_deg) <= 0.0:
+    if not (0.0 <= stride_mm <= 100.0):
+        raise ValueError(f"locomotion_stride_mm out of declared domain [0.0, 100.0]: {stride_mm}")
+
+    if not (-180.0 <= steer_deg <= 180.0):
+        raise ValueError(f"steer_angle_deg out of declared domain [-180.0, 180.0]: {steer_deg}")
+
+    if vocal_hz < 0.0 or grip_n < 0.0:
+        raise ValueError(f"Negative efferent force/frequency out of domain: vocal={vocal_hz}, grip={grip_n}")
+
+    if stride_mm == 0.0 and steer_deg == 0.0:
         return None
 
     steer_millidegrees = int(round(steer_deg * 1000.0))
@@ -1457,12 +1478,12 @@ def candidates(
     # 8. Elementary motions, airway, rest
     if not in_high_chair:
         if modular_sub is not None:
+            if not hasattr(modular_sub, "get_motor_efferent") and not hasattr(modular_sub, "motor_efferents"):
+                raise AttributeError("Modular substrate lacks required motor efferent capability ('get_motor_efferent' or 'motor_efferents')")
             eff = (
                 modular_sub.get_motor_efferent()
                 if hasattr(modular_sub, "get_motor_efferent")
                 else modular_sub.motor_efferents()
-                if hasattr(modular_sub, "motor_efferents")
-                else (0.0, 0.0, 0.0, 0.0)
             )
             native_cmd = motor_efferent_to_locomotion_command(eff, body.pose, BEAT_MICROSECONDS)
             if native_cmd is not None:
