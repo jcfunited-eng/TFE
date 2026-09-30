@@ -88,7 +88,10 @@ pub const ARCLOOM_STATE_VERSION_V4: u16 = 4;
 /// baseline sub-yield coupling in the reversible regime (|sigma| <= Y, lambda_dot = 0).
 /// Signed plastic weight w in [-1.0, 1.0] represents polarized synaptic coupling
 /// (excitatory > 0, inhibitory < 0). Effective transmission coupling is g_eff = G_ELASTIC_BASELINE + w.
-/// Claims of continuum material contact law closure or Holm/tunneling calibration are retracted.
+/// Rate-independent radial return plasticity enforces trial stress Sigma_tr, yield function f <= 0,
+/// and Kuhn-Tucker complementarity (delta_w * f = 0).
+/// Continuum material contact law closure and nanoscale parameter derivation in SI units remain
+/// an unratified open research contract (finding A8-02 open).
 pub const G_ELASTIC_BASELINE: f32 = 0.05;
 
 // ---------------------------------------------------------------------------
@@ -266,7 +269,7 @@ impl LaminarMicrocircuit {
         let mut total_strain = 0.0f32;
 
         let y = self.yield_threshold;
-        let eta = self.plastic_rate;
+        let _eta = self.plastic_rate;
 
         // Plasticity: L4 -> L2/3
         for i in 0..L4_NODES {
@@ -280,7 +283,7 @@ impl LaminarMicrocircuit {
                 if abs_sigma > y {
                     let overstress = abs_sigma - y;
                     let was_zero = self.g_4_23[idx] == 0.0;
-                    self.g_4_23[idx] = (self.g_4_23[idx] + eta * overstress * sigma.signum()).clamp(-1.0, 1.0);
+                    self.g_4_23[idx] = (self.g_4_23[idx] + overstress * sigma.signum()).clamp(-1.0, 1.0);
                     if was_zero && self.g_4_23[idx] != 0.0 {
                         self.active_intra.push((0, idx as u16));
                     }
@@ -302,7 +305,7 @@ impl LaminarMicrocircuit {
                 if abs_sigma > y {
                     let overstress = abs_sigma - y;
                     let was_zero = self.g_23_23[idx] == 0.0;
-                    self.g_23_23[idx] = (self.g_23_23[idx] + eta * overstress * sigma.signum()).clamp(-1.0, 1.0);
+                    self.g_23_23[idx] = (self.g_23_23[idx] + overstress * sigma.signum()).clamp(-1.0, 1.0);
                     if was_zero && self.g_23_23[idx] != 0.0 {
                         self.active_intra.push((1, idx as u16));
                     }
@@ -324,7 +327,7 @@ impl LaminarMicrocircuit {
                 if abs_sigma > y {
                     let overstress = abs_sigma - y;
                     let was_zero = self.g_23_5[idx] == 0.0;
-                    self.g_23_5[idx] = (self.g_23_5[idx] + eta * overstress * sigma.signum()).clamp(-1.0, 1.0);
+                    self.g_23_5[idx] = (self.g_23_5[idx] + overstress * sigma.signum()).clamp(-1.0, 1.0);
                     if was_zero && self.g_23_5[idx] != 0.0 {
                         self.active_intra.push((2, idx as u16));
                     }
@@ -346,7 +349,7 @@ impl LaminarMicrocircuit {
                 if abs_sigma > y {
                     let overstress = abs_sigma - y;
                     let was_zero = self.g_5_6[idx] == 0.0;
-                    self.g_5_6[idx] = (self.g_5_6[idx] + eta * overstress * sigma.signum()).clamp(-1.0, 1.0);
+                    self.g_5_6[idx] = (self.g_5_6[idx] + overstress * sigma.signum()).clamp(-1.0, 1.0);
                     if was_zero && self.g_5_6[idx] != 0.0 {
                         self.active_intra.push((3, idx as u16));
                     }
@@ -368,7 +371,7 @@ impl LaminarMicrocircuit {
                 if abs_sigma > y {
                     let overstress = abs_sigma - y;
                     let was_zero = self.g_6_4[idx] == 0.0;
-                    self.g_6_4[idx] = (self.g_6_4[idx] + eta * overstress * sigma.signum()).clamp(-1.0, 1.0);
+                    self.g_6_4[idx] = (self.g_6_4[idx] + overstress * sigma.signum()).clamp(-1.0, 1.0);
                     if was_zero && self.g_6_4[idx] != 0.0 {
                         self.active_intra.push((4, idx as u16));
                     }
@@ -390,7 +393,7 @@ impl LaminarMicrocircuit {
                 if abs_sigma > y {
                     let overstress = abs_sigma - y;
                     let was_zero = self.g_1_23[idx] == 0.0;
-                    self.g_1_23[idx] = (self.g_1_23[idx] + eta * overstress * sigma.signum()).clamp(-1.0, 1.0);
+                    self.g_1_23[idx] = (self.g_1_23[idx] + overstress * sigma.signum()).clamp(-1.0, 1.0);
                     if was_zero && self.g_1_23[idx] != 0.0 {
                         self.active_intra.push((5, idx as u16));
                     }
@@ -665,13 +668,18 @@ fn deserialize_column_state(
         col.microcircuit.l6[i] = b;
     } offset += L6_NODES;
 
-    if offset + 4 > data.len() {
+    if offset.checked_add(4).ok_or("Integer overflow reading intra-column synapse count")? > data.len() {
         return Err("Unexpected EOF reading intra-column synapse count".to_string());
     }
     let nz_count = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
     offset += 4;
 
-    if offset + nz_count * 7 > data.len() {
+    if nz_count > 40_960 {
+        return Err(format!("Intra-column non-zero count {} exceeds maximum structural capacity 40960", nz_count));
+    }
+    let byte_len = nz_count.checked_mul(7).ok_or("Arithmetic overflow in intra-column byte length")?;
+    let needed = offset.checked_add(byte_len).ok_or("Arithmetic overflow calculating intra-column boundary")?;
+    if needed > data.len() {
         return Err("Unexpected EOF in intra-column synapses".to_string());
     }
 
@@ -826,13 +834,18 @@ fn deserialize_column_state_v2_24b(
         col.microcircuit.l6[i] = b;
     } offset += L6_NODES;
 
-    if offset + 4 > data.len() {
+    if offset.checked_add(4).ok_or("Integer overflow reading intra-column synapse count")? > data.len() {
         return Err("Unexpected EOF reading intra-column synapse count".to_string());
     }
     let nz_count = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
     offset += 4;
 
-    if offset + nz_count * 7 > data.len() {
+    if nz_count > 40_960 {
+        return Err(format!("Intra-column non-zero count {} exceeds maximum structural capacity 40960", nz_count));
+    }
+    let byte_len = nz_count.checked_mul(7).ok_or("Arithmetic overflow in intra-column byte length")?;
+    let needed = offset.checked_add(byte_len).ok_or("Arithmetic overflow calculating intra-column boundary")?;
+    if needed > data.len() {
         return Err("Unexpected EOF in intra-column synapses".to_string());
     }
 
@@ -1034,7 +1047,7 @@ impl ModularSubstrate4D {
         let mut yield_count = 0usize;
         let mut total_strain = 0.0f32;
         let y = self.yield_threshold;
-        let eta = self.plastic_rate;
+        let _eta = self.plastic_rate;
 
         for c_from in 0..NUM_COLUMNS_4D {
             for c_to in 0..NUM_COLUMNS_4D {
@@ -1051,7 +1064,7 @@ impl ModularSubstrate4D {
                         let abs_sigma = sigma.abs();
                         if abs_sigma > y {
                             let overstress = abs_sigma - y;
-                            self.w_inter_23[idx] = (self.w_inter_23[idx] + eta * overstress * sigma.signum()).clamp(-1.0, 1.0);
+                            self.w_inter_23[idx] = (self.w_inter_23[idx] + overstress * sigma.signum()).clamp(-1.0, 1.0);
                             yield_count += 1;
                             total_strain += overstress;
                         }
@@ -1069,7 +1082,7 @@ impl ModularSubstrate4D {
                         let abs_sigma = sigma.abs();
                         if abs_sigma > y {
                             let overstress = abs_sigma - y;
-                            self.w_inter_5[idx] = (self.w_inter_5[idx] + eta * overstress * sigma.signum()).clamp(-1.0, 1.0);
+                            self.w_inter_5[idx] = (self.w_inter_5[idx] + overstress * sigma.signum()).clamp(-1.0, 1.0);
                             yield_count += 1;
                             total_strain += overstress;
                         }
@@ -1492,7 +1505,7 @@ impl ModularSubstrate8D {
         let mut yield_count = 0usize;
         let mut total_strain = 0.0f32;
         let y = self.yield_threshold;
-        let eta = self.plastic_rate;
+        let _eta = self.plastic_rate;
 
         for c_from in 0..NUM_COLUMNS_8D {
             for c_to in 0..NUM_COLUMNS_8D {
@@ -1509,7 +1522,7 @@ impl ModularSubstrate8D {
                         let abs_sigma = sigma.abs();
                         if abs_sigma > y {
                             let overstress = abs_sigma - y;
-                            self.w_inter_23[idx] = (self.w_inter_23[idx] + eta * overstress * sigma.signum()).clamp(-1.0, 1.0);
+                            self.w_inter_23[idx] = (self.w_inter_23[idx] + overstress * sigma.signum()).clamp(-1.0, 1.0);
                             yield_count += 1;
                             total_strain += overstress;
                         }
@@ -1527,7 +1540,7 @@ impl ModularSubstrate8D {
                         let abs_sigma = sigma.abs();
                         if abs_sigma > y {
                             let overstress = abs_sigma - y;
-                            self.w_inter_5[idx] = (self.w_inter_5[idx] + eta * overstress * sigma.signum()).clamp(-1.0, 1.0);
+                            self.w_inter_5[idx] = (self.w_inter_5[idx] + overstress * sigma.signum()).clamp(-1.0, 1.0);
                             yield_count += 1;
                             total_strain += overstress;
                         }
@@ -1778,6 +1791,201 @@ pub struct StagedSubstrateState {
     pub motor_grip_force: f32,
 }
 
+// ---------------------------------------------------------------------------
+// MathLoom Exact Rational Balanced Ternary Arithmetic (1088-Bit Precision)
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct BigInt1088 {
+    pub limbs: [u64; 18], // 18 * 64 = 1152 bits >= 1075 bits
+}
+
+impl BigInt1088 {
+    pub const ZERO: Self = Self { limbs: [0; 18] };
+
+    pub fn from_u64(val: u64) -> Self {
+        let mut limbs = [0u64; 18];
+        limbs[0] = val;
+        Self { limbs }
+    }
+
+    pub fn is_zero(&self) -> bool {
+        self.limbs.iter().all(|&l| l == 0)
+    }
+
+    pub fn shl(&self, shift: usize) -> Result<Self, String> {
+        if shift == 0 {
+            return Ok(*self);
+        }
+        let limb_shift = shift / 64;
+        let bit_shift = shift % 64;
+        if limb_shift >= 18 {
+            return Err("Shift exceeds maximum capacity 1088 bits".to_string());
+        }
+        let mut new_limbs = [0u64; 18];
+        for i in 0..18 {
+            if self.limbs[i] == 0 { continue; }
+            let target_idx = i + limb_shift;
+            if target_idx < 18 {
+                new_limbs[target_idx] |= self.limbs[i] << bit_shift;
+            } else {
+                return Err("Bit overflow shifting BigInt1088".to_string());
+            }
+            if bit_shift > 0 && target_idx + 1 < 18 {
+                new_limbs[target_idx + 1] |= self.limbs[i] >> (64 - bit_shift);
+            } else if bit_shift > 0 && (self.limbs[i] >> (64 - bit_shift)) != 0 {
+                return Err("Bit overflow shifting BigInt1088".to_string());
+            }
+        }
+        Ok(Self { limbs: new_limbs })
+    }
+
+    pub fn shr(&self, shift: usize) -> Self {
+        if shift == 0 {
+            return *self;
+        }
+        let limb_shift = shift / 64;
+        let bit_shift = shift % 64;
+        if limb_shift >= 18 {
+            return Self::ZERO;
+        }
+        let mut new_limbs = [0u64; 18];
+        for i in limb_shift..18 {
+            let target_idx = i - limb_shift;
+            new_limbs[target_idx] |= self.limbs[i] >> bit_shift;
+            if bit_shift > 0 && target_idx > 0 {
+                new_limbs[target_idx - 1] |= self.limbs[i] << (64 - bit_shift);
+            }
+        }
+        Self { limbs: new_limbs }
+    }
+
+    pub fn div_rem_3(&mut self) -> u8 {
+        let mut rem: u128 = 0;
+        for limb in self.limbs.iter_mut().rev() {
+            let cur = (rem << 64) | (*limb as u128);
+            *limb = (cur / 3) as u64;
+            rem = cur % 3;
+        }
+        rem as u8
+    }
+
+    pub fn add_u64(&mut self, val: u64) -> Result<(), String> {
+        let mut carry = val as u128;
+        for limb in self.limbs.iter_mut() {
+            let sum = (*limb as u128) + carry;
+            *limb = sum as u64;
+            carry = sum >> 64;
+            if carry == 0 { break; }
+        }
+        if carry > 0 {
+            return Err("Overflow adding to BigInt1088".to_string());
+        }
+        Ok(())
+    }
+
+    pub fn mul_3_add(&mut self, digit: u64) -> Result<(), String> {
+        let mut carry = digit as u128;
+        for limb in self.limbs.iter_mut() {
+            let cur = (*limb as u128) * 3 + carry;
+            *limb = cur as u64;
+            carry = cur >> 64;
+        }
+        if carry > 0 {
+            return Err("Overflow in mul_3_add".to_string());
+        }
+        Ok(())
+    }
+
+    pub fn gte(&self, other: &Self) -> bool {
+        for i in (0..18).rev() {
+            if self.limbs[i] > other.limbs[i] { return true; }
+            if self.limbs[i] < other.limbs[i] { return false; }
+        }
+        true
+    }
+
+    pub fn sub(&self, other: &Self) -> Result<Self, String> {
+        let mut res = [0u64; 18];
+        let mut borrow: u128 = 0;
+        for i in 0..18 {
+            let a = self.limbs[i] as u128;
+            let b = (other.limbs[i] as u128) + borrow;
+            if a >= b {
+                res[i] = (a - b) as u64;
+                borrow = 0;
+            } else {
+                res[i] = ((1u128 << 64) + a - b) as u64;
+                borrow = 1;
+            }
+        }
+        if borrow > 0 {
+            return Err("Negative result in unsigned BigInt1088 subtraction".to_string());
+        }
+        Ok(Self { limbs: res })
+    }
+
+    pub fn bit_length(&self) -> u32 {
+        for i in (0..18).rev() {
+            if self.limbs[i] != 0 {
+                return (i as u32 + 1) * 64 - self.limbs[i].leading_zeros();
+            }
+        }
+        0
+    }
+
+    pub fn trailing_zeros(&self) -> u32 {
+        for i in 0..18 {
+            if self.limbs[i] != 0 {
+                return (i as u32) * 64 + self.limbs[i].trailing_zeros();
+            }
+        }
+        1152
+    }
+
+    pub fn to_balanced_ternary(&self) -> Vec<i8> {
+        if self.is_zero() {
+            return vec![0];
+        }
+        let mut copy = *self;
+        let mut trits = Vec::new();
+        while !copy.is_zero() {
+            let rem = copy.div_rem_3();
+            if rem == 0 {
+                trits.push(0);
+            } else if rem == 1 {
+                trits.push(1);
+            } else {
+                trits.push(-1);
+                let _ = copy.add_u64(1);
+            }
+        }
+        trits
+    }
+
+    pub fn from_balanced_ternary(trits: &[i8]) -> Result<(Self, bool), String> {
+        let mut p = Self::ZERO;
+        let mut m = Self::ZERO;
+        for &t in trits.iter().rev() {
+            p.mul_3_add(if t == 1 { 1 } else { 0 })?;
+            m.mul_3_add(if t == -1 { 1 } else { 0 })?;
+        }
+        if p.gte(&m) {
+            Ok((p.sub(&m)?, false))
+        } else {
+            Ok((m.sub(&p)?, true))
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct MathLoomRationalField {
+    pub sign: i8, // -1 if negative, +1 if non-negative
+    pub is_zero: bool,
+    pub numerator_trits: Vec<i8>,
+    pub denominator_trits: Vec<i8>,
+}
+
 pub struct ModularSubstrate64D {
     pub columns: Vec<CorticalColumn>,
     pub w_inter_23: Vec<f32>,
@@ -1846,32 +2054,125 @@ impl ModularSubstrate64D {
         (trits[0], trits[1])
     }
 
-    /// MathLoom Exact Positional Balanced Ternary Expansion (34 Trits).
-    /// Fully resolves the entire 53-bit mantissa of IEEE-754 binary64 floats (3^-34 ≈ 5.9e-17 < 2^-53 ≈ 1.11e-16).
+    /// Exact MathLoom binary64 bit decomposition into integer numerator and denominator balanced ternary.
+    pub fn float_to_rational_trits(val: f64) -> Result<MathLoomRationalField, String> {
+        if !val.is_finite() {
+            return Err(format!("Cannot convert non-finite float to MathLoom rational field: {}", val));
+        }
+        let bits = val.to_bits();
+        let s = (bits >> 63) as u8;
+        let e = ((bits >> 52) & 0x7FF) as u32;
+        let f = bits & 0x000F_FFFF_FFFF_FFFF;
+
+        let sign: i8 = if s == 1 { -1 } else { 1 };
+
+        if e == 0 && f == 0 {
+            return Ok(MathLoomRationalField {
+                sign,
+                is_zero: true,
+                numerator_trits: vec![0],
+                denominator_trits: vec![1],
+            });
+        }
+
+        let (m, q): (u64, i32) = if e > 0 {
+            ((1u64 << 52) | f, (e as i32) - 1075)
+        } else {
+            (f, -1074)
+        };
+
+        let tz = m.trailing_zeros();
+        let (num_int, den_int) = if q >= 0 {
+            let num = BigInt1088::from_u64(m).shl(q as usize)?;
+            let den = BigInt1088::from_u64(1);
+            (num, den)
+        } else {
+            let shift = (-q) as u32;
+            let k = tz.min(shift);
+            let num = BigInt1088::from_u64(m >> k);
+            let den = BigInt1088::from_u64(1).shl((shift - k) as usize)?;
+            (num, den)
+        };
+
+        let mut num_trits = num_int.to_balanced_ternary();
+        if s == 1 {
+            for t in num_trits.iter_mut() {
+                *t = -*t;
+            }
+        }
+        let den_trits = den_int.to_balanced_ternary();
+
+        Ok(MathLoomRationalField {
+            sign,
+            is_zero: false,
+            numerator_trits: num_trits,
+            denominator_trits: den_trits,
+        })
+    }
+
+    /// Reconstructs exact IEEE-754 binary64 float from MathLoom rational balanced ternary field.
+    pub fn rational_trits_to_float(field: &MathLoomRationalField) -> Result<f64, String> {
+        if field.is_zero {
+            return Ok(if field.sign < 0 { -0.0 } else { 0.0 });
+        }
+        let (num, is_neg) = BigInt1088::from_balanced_ternary(&field.numerator_trits)?;
+        let (den, den_neg) = BigInt1088::from_balanced_ternary(&field.denominator_trits)?;
+        if den_neg || den.is_zero() {
+            return Err("Invalid non-positive denominator in MathLoom rational field".to_string());
+        }
+
+        let p = den.trailing_zeros();
+        let expected_den = BigInt1088::from_u64(1).shl(p as usize)?;
+        if den != expected_den {
+            return Err("Denominator in MathLoom rational field must be an exact power of 2".to_string());
+        }
+
+        let sign_bit: u64 = if is_neg || field.sign < 0 { 1 } else { 0 };
+        if num.is_zero() {
+            let bits = sign_bit << 63;
+            return Ok(f64::from_bits(bits));
+        }
+
+        let bl = num.bit_length();
+        let exponent_e = (bl as i32 - 1) - (p as i32);
+
+        let bits: u64 = if exponent_e >= -1022 {
+            if exponent_e > 1023 {
+                return Err("Float overflow in MathLoom rational reconstruction".to_string());
+            }
+            let e_biased = (exponent_e + 1023) as u64;
+            let mantissa: u64 = if bl - 1 >= 52 {
+                num.shr((bl - 1 - 52) as usize).limbs[0] & 0x000F_FFFF_FFFF_FFFF
+            } else {
+                (num.limbs[0] << (52 - (bl - 1))) & 0x000F_FFFF_FFFF_FFFF
+            };
+            (sign_bit << 63) | (e_biased << 52) | mantissa
+        } else {
+            // Subnormal float
+            if exponent_e < -1074 {
+                return Err("Float underflow below subnormal limit in MathLoom rational reconstruction".to_string());
+            }
+            let shift = 1074 - p;
+            let mantissa = (num.shl(shift as usize)?.limbs[0]) & 0x000F_FFFF_FFFF_FFFF;
+            (sign_bit << 63) | mantissa
+        };
+
+        Ok(f64::from_bits(bits))
+    }
+
+    /// Fills balanced ternary slice using exact numerator/denominator balanced ternary decomposition.
     #[inline]
     pub fn float_to_balanced_ternary(val: f64, trits: &mut [i8]) {
         for t in trits.iter_mut() {
             *t = 0;
         }
-        if !val.is_finite() {
-            return;
-        }
-        let mut rem = val.clamp(-1.0, 1.0);
-        let mut power = 1.0 / 3.0;
-        for t in trits.iter_mut() {
-            let half = power / 2.0;
-            if rem > half {
-                *t = 1;
-                rem -= power;
-            } else if rem < -half {
-                *t = -1;
-                rem += power;
-            } else {
-                *t = 0;
+        if let Ok(field) = Self::float_to_rational_trits(val) {
+            let half = trits.len() / 2;
+            for (idx, &t) in field.numerator_trits.iter().take(half).enumerate() {
+                trits[idx] = t;
             }
-            power /= 3.0;
-            if power < 1e-18 {
-                break;
+            for (idx, &t) in field.denominator_trits.iter().take(trits.len() - half).enumerate() {
+                trits[half + idx] = t;
             }
         }
     }
@@ -2165,8 +2466,22 @@ impl ModularSubstrate64D {
             let mut dsf_aff_conjugate = vec![0i8; L4_NODES];
 
             if self.continuous_joint_field_present {
-                Self::float_to_balanced_ternary(*inv_val, &mut dsf_aff_primary[..34]);
-                Self::float_to_balanced_ternary(-*inv_val, &mut dsf_aff_conjugate[..34]);
+                if let Ok(rational_primary) = Self::float_to_rational_trits(*inv_val) {
+                    for (i, &t) in rational_primary.numerator_trits.iter().take(32).enumerate() {
+                        dsf_aff_primary[i] = t;
+                    }
+                    for (i, &t) in rational_primary.denominator_trits.iter().take(32).enumerate() {
+                        dsf_aff_primary[32 + i] = t;
+                    }
+                }
+                if let Ok(rational_conjugate) = Self::float_to_rational_trits(-*inv_val) {
+                    for (i, &t) in rational_conjugate.numerator_trits.iter().take(32).enumerate() {
+                        dsf_aff_conjugate[i] = t;
+                    }
+                    for (i, &t) in rational_conjugate.denominator_trits.iter().take(32).enumerate() {
+                        dsf_aff_conjugate[32 + i] = t;
+                    }
+                }
             } else {
                 if col_primary < sensory_trits.len() {
                     dsf_aff_primary[0] = sensory_trits[col_primary];
@@ -2195,7 +2510,7 @@ impl ModularSubstrate64D {
         let mut yield_count = 0usize;
         let mut total_strain = 0.0f32;
         let y = self.yield_threshold;
-        let eta = self.plastic_rate;
+        let _eta = self.plastic_rate;
 
         for c_from in 0..NUM_COLUMNS_64D {
             for c_to in 0..NUM_COLUMNS_64D {
@@ -2215,7 +2530,7 @@ impl ModularSubstrate64D {
                         if abs_sigma > y {
                             let overstress = abs_sigma - y;
                             let was_zero = self.w_inter_23[idx] == 0.0;
-                            self.w_inter_23[idx] = (self.w_inter_23[idx] + eta * overstress * sigma.signum()).clamp(-1.0, 1.0);
+                            self.w_inter_23[idx] = (self.w_inter_23[idx] + overstress * sigma.signum()).clamp(-1.0, 1.0);
                             if was_zero && self.w_inter_23[idx] != 0.0 {
                                 self.active_inter_23.push(idx);
                             }
@@ -2239,7 +2554,7 @@ impl ModularSubstrate64D {
                         if abs_sigma > y {
                             let overstress = abs_sigma - y;
                             let was_zero = self.w_inter_5[idx] == 0.0;
-                            self.w_inter_5[idx] = (self.w_inter_5[idx] + eta * overstress * sigma.signum()).clamp(-1.0, 1.0);
+                            self.w_inter_5[idx] = (self.w_inter_5[idx] + overstress * sigma.signum()).clamp(-1.0, 1.0);
                             if was_zero && self.w_inter_5[idx] != 0.0 {
                                 self.active_inter_5.push(idx);
                             }
@@ -2431,11 +2746,19 @@ impl ModularSubstrate64D {
             }
         }
 
-        if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_23 count".to_string()); }
+        if offset.checked_add(4).ok_or("Integer overflow in w_inter_23 count")? > data.len() {
+            return Err("Unexpected EOF in w_inter_23 count".to_string());
+        }
         let count_23 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
         offset += 4;
 
-        if offset + count_23 * 8 > data.len() { return Err("Unexpected EOF in w_inter_23 entries".to_string()); }
+        if count_23 > 2_359_296 {
+            return Err(format!("w_inter_23 count {} exceeds maximum structural capacity 2359296", count_23));
+        }
+        let bytes_23 = count_23.checked_mul(8).ok_or("Integer overflow in w_inter_23 bytes")?;
+        if offset.checked_add(bytes_23).ok_or("Integer overflow in w_inter_23 offset")? > data.len() {
+            return Err("Unexpected EOF in w_inter_23 entries".to_string());
+        }
         let mut new_w_23 = vec![0.0f32; self.w_inter_23.len()];
         let mut new_act_23 = Vec::new();
         let mut seen_23 = HashSet::new();
@@ -2454,11 +2777,19 @@ impl ModularSubstrate64D {
             if g != 0.0 { new_act_23.push(idx); }
         }
 
-        if offset + 4 > data.len() { return Err("Unexpected EOF in w_inter_5 count".to_string()); }
+        if offset.checked_add(4).ok_or("Integer overflow in w_inter_5 count")? > data.len() {
+            return Err("Unexpected EOF in w_inter_5 count".to_string());
+        }
         let count_5 = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
         offset += 4;
 
-        if offset + count_5 * 8 > data.len() { return Err("Unexpected EOF in w_inter_5 entries".to_string()); }
+        if count_5 > 2_359_296 {
+            return Err(format!("w_inter_5 count {} exceeds maximum structural capacity 2359296", count_5));
+        }
+        let bytes_5 = count_5.checked_mul(8).ok_or("Integer overflow in w_inter_5 bytes")?;
+        if offset.checked_add(bytes_5).ok_or("Integer overflow in w_inter_5 offset")? > data.len() {
+            return Err("Unexpected EOF in w_inter_5 entries".to_string());
+        }
         let mut new_w_5 = vec![0.0f32; self.w_inter_5.len()];
         let mut new_act_5 = Vec::new();
         let mut seen_5 = HashSet::new();
@@ -2477,7 +2808,7 @@ impl ModularSubstrate64D {
             if g != 0.0 { new_act_5.push(idx); }
         }
 
-        if offset + 16 > data.len() {
+        if offset.checked_add(16).ok_or("Integer overflow in motor efferent footer")? > data.len() {
             return Err("Missing or truncated motor efferent footer in ARCLOOM2 payload".to_string());
         }
         let new_vocal = f32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]); offset += 4;
@@ -2491,12 +2822,16 @@ impl ModularSubstrate64D {
 
         let mut new_severed = vec![false; NUM_COLUMNS_64D * NUM_COLUMNS_64D];
         if use_36b_headers {
-            if offset + 4 > data.len() {
+            if offset.checked_add(4).ok_or("Integer overflow in severed tracts count")? > data.len() {
                 return Err("Unexpected EOF reading severed tracts count in 8c3244cb3".to_string());
             }
             let sev_count = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
             offset += 4;
-            if offset + sev_count * 4 > data.len() {
+            if sev_count > 4096 {
+                return Err(format!("Severed tracts count {} exceeds maximum capacity 4096", sev_count));
+            }
+            let sev_bytes = sev_count.checked_mul(4).ok_or("Integer overflow in severed tracts bytes")?;
+            if offset.checked_add(sev_bytes).ok_or("Integer overflow in severed tracts offset")? > data.len() {
                 return Err("Unexpected EOF reading severed tracts indices in 8c3244cb3".to_string());
             }
             for _ in 0..sev_count {
@@ -2540,7 +2875,7 @@ impl ModularSubstrate64D {
         })
     }
 
-    pub fn migrate_predecessor_v2(&mut self, data: &[u8], layout: Option<&str>) -> Result<(), String> {
+    pub fn migrate_predecessor_v2(&mut self, data: &[u8], layout: &str) -> Result<(), String> {
         if data.is_empty() {
             return Err("Cannot migrate from empty byte buffer".to_string());
         }
@@ -2571,30 +2906,17 @@ impl ModularSubstrate64D {
         }
 
         match layout {
-            Some("8c3244cb3") | Some("36B") => {
+            "8c3244cb3" | "36B" => {
                 let staged = self.try_parse_v2_internal(data, new_yield, new_plastic, new_activation, true)?;
                 self.commit_staged_state(staged);
                 Ok(())
             }
-            Some("cb69d23ea") | Some("24B") => {
+            "cb69d23ea" | "24B" => {
                 let staged = self.try_parse_v2_internal(data, new_yield, new_plastic, new_activation, false)?;
                 self.commit_staged_state(staged);
                 Ok(())
             }
-            Some(unknown) => Err(format!("Unknown ARCLOOM2 predecessor layout provenance: {}", unknown)),
-            None => {
-                let res_36 = self.try_parse_v2_internal(data, new_yield, new_plastic, new_activation, true);
-                if let Ok(staged) = res_36 {
-                    self.commit_staged_state(staged);
-                    return Ok(());
-                }
-                let res_24 = self.try_parse_v2_internal(data, new_yield, new_plastic, new_activation, false);
-                if let Ok(staged) = res_24 {
-                    self.commit_staged_state(staged);
-                    return Ok(());
-                }
-                Err(format!("Failed to parse ARCLOOM2 payload under both authentic historical schemas (36B severed: {:?}, 24B unsevered: {:?})", res_36.err(), res_24.err()))
-            }
+            unknown => Err(format!("Unknown ARCLOOM2 predecessor layout provenance: {}", unknown)),
         }
     }
 
@@ -2801,7 +3123,7 @@ impl ModularSubstrate64D {
         })
     }
 
-    fn try_parse_v3_internal(&self, data: &[u8], field_present_meta: Option<bool>) -> Result<StagedSubstrateState, String> {
+    fn try_parse_v3_internal(&self, data: &[u8], layout: &str, field_present_meta: Option<bool>) -> Result<StagedSubstrateState, String> {
         if data.is_empty() {
             return Err("Cannot migrate from empty byte buffer".to_string());
         }
@@ -2941,37 +3263,41 @@ impl ModularSubstrate64D {
         // Layout 1: ARCLOOM3_SHORT (commit 0dad5f2b9) - ends after severed tracts + padding
         // Layout 2: ARCLOOM3_LONG (commit d577831de) - 64 bytes of f64 field values after severed tracts + padding
         let rem_bytes = data.len() - offset;
-        let expected_pad_short = (8 - (offset % 8)) % 8;
-
-        let (cjf, is_present) = if rem_bytes == expected_pad_short {
-            ([0.0f64; 8], false)
-        } else if rem_bytes >= 64 {
-            let expected_pad_long = (8 - ((offset + 64) % 8)) % 8;
-            if rem_bytes != 64 + expected_pad_long {
-                return Err(format!("Invalid ARCLOOM3 trailing payload length: expected either {} bytes (short) or {} bytes (long), got {}", expected_pad_short, 64 + expected_pad_long, rem_bytes));
-            }
-            let mut field_vals = [0.0f64; 8];
-            for i in 0..8 {
-                let bytes = [
-                    data[offset], data[offset+1], data[offset+2], data[offset+3],
-                    data[offset+4], data[offset+5], data[offset+6], data[offset+7]
-                ];
-                offset += 8;
-                let val = f64::from_le_bytes(bytes);
-                if !val.is_finite() {
-                    return Err(format!("Non-finite float in ARCLOOM3 continuous joint field index {}", i));
+        let (cjf, is_present) = match layout {
+            "0dad5f2b9" | "short" => {
+                let expected_pad_short = (8 - (offset % 8)) % 8;
+                if rem_bytes != expected_pad_short {
+                    return Err(format!("Invalid ARCLOOM3 short payload: expected {} padding bytes, got trailing {} bytes", expected_pad_short, rem_bytes));
                 }
-                field_vals[i] = val;
+                ([0.0f64; 8], false)
             }
-            let present = match field_present_meta {
-                Some(p) => p,
-                None => {
-                    return Err("ARCLOOM3 long layout (commit d577831de) omits presence flag; explicit authenticated predecessor metadata 'field_present' is required to migrate without unrecorded presence guessing".to_string());
+            "d577831de" | "long" => {
+                let expected_pad_long = (8 - ((offset + 64) % 8)) % 8;
+                if rem_bytes != 64 + expected_pad_long {
+                    return Err(format!("Invalid ARCLOOM3 long payload: expected 64 field bytes + {} padding bytes, got trailing {} bytes", expected_pad_long, rem_bytes));
                 }
-            };
-            (field_vals, present)
-        } else {
-            return Err(format!("Incorrect trailing bytes in ARCLOOM3 payload: got {} bytes, expected short padding {}", rem_bytes, expected_pad_short));
+                let mut field_vals = [0.0f64; 8];
+                for i in 0..8 {
+                    let bytes = [
+                        data[offset], data[offset+1], data[offset+2], data[offset+3],
+                        data[offset+4], data[offset+5], data[offset+6], data[offset+7]
+                    ];
+                    offset += 8;
+                    let val = f64::from_le_bytes(bytes);
+                    if !val.is_finite() {
+                        return Err(format!("Non-finite float in ARCLOOM3 continuous joint field index {}", i));
+                    }
+                    field_vals[i] = val;
+                }
+                let present = match field_present_meta {
+                    Some(p) => p,
+                    None => {
+                        return Err("ARCLOOM3 long layout (commit d577831de) omits presence flag; explicit authenticated predecessor metadata 'field_present' is required to migrate without unrecorded presence guessing".to_string());
+                    }
+                };
+                (field_vals, present)
+            }
+            unknown => return Err(format!("Unknown ARCLOOM3 predecessor layout provenance: {}", unknown)),
         };
 
         let expected_pad = (8 - (offset % 8)) % 8;
@@ -3010,8 +3336,8 @@ impl ModularSubstrate64D {
         Ok(())
     }
 
-    pub fn migrate_predecessor_v3(&mut self, data: &[u8], field_present: Option<bool>) -> Result<(), String> {
-        let staged = self.try_parse_v3_internal(data, field_present)?;
+    pub fn migrate_predecessor_v3(&mut self, data: &[u8], layout: &str, field_present: Option<bool>) -> Result<(), String> {
+        let staged = self.try_parse_v3_internal(data, layout, field_present)?;
         self.commit_staged_state(staged);
         Ok(())
     }
@@ -3382,14 +3708,31 @@ impl PyModularSubstrate64D {
         self.inner.import_sparse_v4(data).map_err(|e| PyValueError::new_err(e))
     }
 
-    #[pyo3(signature = (data, field_present=None))]
-    pub fn migrate_predecessor_v3(&mut self, data: &[u8], field_present: Option<bool>) -> PyResult<()> {
-        self.inner.migrate_predecessor_v3(data, field_present).map_err(|e| PyValueError::new_err(e))
+    #[pyo3(signature = (data, layout, field_present=None))]
+    pub fn migrate_predecessor_v3(&mut self, data: &[u8], layout: &str, field_present: Option<bool>) -> PyResult<()> {
+        self.inner.migrate_predecessor_v3(data, layout, field_present).map_err(|e| PyValueError::new_err(e))
     }
 
-    #[pyo3(signature = (data, layout=None))]
-    pub fn migrate_predecessor_v2(&mut self, data: &[u8], layout: Option<&str>) -> PyResult<()> {
+    #[pyo3(signature = (data, layout))]
+    pub fn migrate_predecessor_v2(&mut self, data: &[u8], layout: &str) -> PyResult<()> {
         self.inner.migrate_predecessor_v2(data, layout).map_err(|e| PyValueError::new_err(e))
+    }
+
+    #[staticmethod]
+    pub fn float_to_rational_trits(val: f64) -> PyResult<(Vec<i8>, Vec<i8>, i8, bool)> {
+        let field = ModularSubstrate64D::float_to_rational_trits(val).map_err(|e| PyValueError::new_err(e))?;
+        Ok((field.numerator_trits, field.denominator_trits, field.sign, field.is_zero))
+    }
+
+    #[staticmethod]
+    pub fn rational_trits_to_float(num_trits: Vec<i8>, den_trits: Vec<i8>, sign: i8, is_zero: bool) -> PyResult<f64> {
+        let field = MathLoomRationalField {
+            sign,
+            is_zero,
+            numerator_trits: num_trits,
+            denominator_trits: den_trits,
+        };
+        ModularSubstrate64D::rational_trits_to_float(&field).map_err(|e| PyValueError::new_err(e))
     }
 }
 

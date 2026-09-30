@@ -22,8 +22,14 @@ Mounts live streaming planetary sensors into GroundedSensorimotorBridge:
    Occlusion Collision Hazard) to ensure zero ungrounded actions are permitted to settle.
 5. Dual-Mode Operation:
    Automatically probes host Linux hardware sensors (/sys/class/thermal/, V4L2/OpenCV cameras),
-   with seamless failover to high-fidelity physical planetary continuum simulation obeying
-   diurnal Navier-Stokes atmospheric/thermal curves.
+   with seamless failover to physical planetary continuum simulation test fixtures.
+
+TEST FIXTURE & CHANNEL PROVENANCE DISCLOSURE:
+Procedural waveforms (e.g. synthetic sine/cosine barometric tides, thermal waves, procedural sweeps,
+and static test DSF invariants) are strictly test-only fixtures for testing sensorimotor wiring,
+bounded resource stability, and veto enforcement. They are NOT claimed as live planetary measurements,
+environmental Navier-Stokes PDE solvers, or canonical full-field DSF evaluations. Missing hardware
+channels are explicitly marked with 'procedural_test_fixture' provenance.
 """
 
 from __future__ import annotations
@@ -63,6 +69,10 @@ class PlanetarySensorSource:
     def read_telemetry(self, cycle_index: int, elapsed_seconds: float) -> SensorimotorTelemetry:
         raise NotImplementedError
 
+    def get_channel_provenance(self) -> Dict[str, str]:
+        """Returns per-channel provenance metadata ('hardware', 'procedural_test_fixture', etc.)."""
+        return {}
+
 
 class HostHardwareSensorSource(PlanetarySensorSource):
     """
@@ -70,7 +80,8 @@ class HostHardwareSensorSource(PlanetarySensorSource):
       - /sys/class/thermal/thermal_zone*/temp (converting millidegrees C to deg C)
       - Host barometric / pressure sensor buses (if exposed)
       - Video capture devices (/dev/video* or OpenCV VideoCapture)
-    Falls back gracefully to continuum models for any unavailable hardware channel.
+    Falls back gracefully to procedural test fixtures for any unavailable hardware channel,
+    with explicit channel provenance tracking.
     """
 
     def __init__(self) -> None:
@@ -84,10 +95,8 @@ class HostHardwareSensorSource(PlanetarySensorSource):
         return zones
 
     def _init_camera(self) -> Optional[Any]:
-        # Attempt to probe OpenCV camera capture if cv2 is installed
         try:
             import cv2  # type: ignore
-            # Check if any video device exists
             if glob.glob("/dev/video*"):
                 cap = cv2.VideoCapture(0)
                 if cap.isOpened():
@@ -97,6 +106,15 @@ class HostHardwareSensorSource(PlanetarySensorSource):
             pass
         return None
 
+    def get_channel_provenance(self) -> Dict[str, str]:
+        return {
+            "ambient_temperature_c": "hardware" if self.has_hardware_thermal else "procedural_test_fixture",
+            "optical_luminance_rays": "hardware" if self.has_hardware_camera else "procedural_test_fixture",
+            "barometric_pressure_hpa": "procedural_test_fixture",
+            "cochlear_spectral_power": "procedural_test_fixture",
+            "dsf_invariants": "procedural_test_fixture",
+        }
+
     def read_host_temperature_c(self) -> Optional[float]:
         temps = []
         for zone in self.thermal_zones:
@@ -105,7 +123,6 @@ class HostHardwareSensorSource(PlanetarySensorSource):
                     val_str = f.read().strip()
                     if val_str:
                         millideg = float(val_str)
-                        # Filter obvious invalid readings
                         if 0.0 < millideg < 150000.0:
                             temps.append(millideg / 1000.0)
             except Exception:
@@ -121,7 +138,6 @@ class HostHardwareSensorSource(PlanetarySensorSource):
             ret, frame = self.camera_device.read()
             if not ret or frame is None:
                 return None
-            # Convert to grayscale and downsample to 16 horizontal azimuth columns
             if len(frame.shape) == 3:
                 gray = np.mean(frame, axis=2)
             else:
@@ -139,29 +155,25 @@ class HostHardwareSensorSource(PlanetarySensorSource):
             return None
 
     def read_telemetry(self, cycle_index: int, elapsed_seconds: float) -> SensorimotorTelemetry:
-        # Read available hardware channels
         temp_c = self.read_host_temperature_c()
         if temp_c is None:
-            # Baseline room temperature if no thermal zone present
             temp_c = 20.0 + 2.5 * math.sin(elapsed_seconds * 0.1)
 
         camera_rays = self.read_camera_frame_luminance_rays()
         if camera_rays is None:
-            # Procedural ambient light sweep
             camera_rays = tuple(
                 float(np.clip(0.3 + 0.4 * math.sin(elapsed_seconds * 0.2 + i * 0.4), 0.0, 1.0))
                 for i in range(16)
             )
 
-        # Barometric baseline with subtle diurnal variation
         pressure_hpa = 1013.25 + 2.0 * math.sin(elapsed_seconds * 0.05)
 
-        # Acoustic ambient spectral power
         acoustic_bands = tuple(
             float(np.clip(0.1 + 0.2 * math.cos(elapsed_seconds * 0.15 + i * 0.3), 0.0, 1.0))
             for i in range(16)
         )
 
+        # Invariant test-fixture tuple (disclosed fixture, not canonical kernel execution)
         return SensorimotorTelemetry(
             barometric_pressure_hpa=pressure_hpa,
             ambient_temperature_c=temp_c,
@@ -185,7 +197,7 @@ class HostHardwareSensorSource(PlanetarySensorSource):
 
 class PlanetaryContinuumSensorSource(PlanetarySensorSource):
     """
-    High-fidelity physical planetary continuum simulation engine:
+    Physical planetary continuum simulation test fixture:
       - Atmospheric Barometric Pressure:
         P(t) = P0 + A_p * sin(omega_diurnal * t) + micro_fluctuations
       - Ambient Thermal Flux Dynamics:
@@ -195,16 +207,18 @@ class PlanetaryContinuumSensorSource(PlanetarySensorSource):
         across the visual horizon, with periodic occlusion windows.
       - Cochlear Acoustic Power:
         16 tonotopic spectral bands modeling atmospheric wind turbulence.
-      - Canonical DSF Structural Field Dynamics:
-        Evolves structural invariants (D_k, M_k, R_rev, U*, C_k, P_k, B_k, S_UF)
-        across structural basins (Accumulate, Hold, Avoid).
+      - Structural Invariants:
+        Test-fixture waveforms modeling basin dynamics.
+
+    DISCLOSURE: This is a procedural simulation test fixture for verifying sensorimotor
+    transduction and invariant gate handling. It is not an atmospheric Navier-Stokes solver.
     """
 
     def __init__(
         self,
         nominal_pressure_hpa: float = 1013.25,
         nominal_temperature_c: float = 20.0,
-        diurnal_period_seconds: float = 60.0,  # Compressed diurnal cycle for simulation
+        diurnal_period_seconds: float = 60.0,
         simulate_occlusions: bool = True,
         simulate_barrier_contacts: bool = False,
     ) -> None:
@@ -214,27 +228,32 @@ class PlanetaryContinuumSensorSource(PlanetarySensorSource):
         self.simulate_occlusions = simulate_occlusions
         self.simulate_barrier_contacts = simulate_barrier_contacts
 
+    def get_channel_provenance(self) -> Dict[str, str]:
+        return {
+            "ambient_temperature_c": "procedural_test_fixture",
+            "optical_luminance_rays": "procedural_test_fixture",
+            "barometric_pressure_hpa": "procedural_test_fixture",
+            "cochlear_spectral_power": "procedural_test_fixture",
+            "dsf_invariants": "procedural_test_fixture",
+        }
+
     def read_telemetry(self, cycle_index: int, elapsed_seconds: float) -> SensorimotorTelemetry:
         omega = (2.0 * math.pi) / max(1.0, self.period)
 
         # 1. Barometric Atmospheric Dynamics (Tides & Fronts)
-        # Diurnal thermal tide (~2.5 hPa amplitude) + atmospheric turbulence
         p_tide = 2.5 * math.sin(omega * elapsed_seconds)
         p_turb = 0.4 * math.sin(omega * 3.7 * elapsed_seconds)
         p_atm = self.p0 + p_tide + p_turb
 
         # 2. Ambient Thermal Flux & Temperature Gradients
-        # Diurnal thermal wave (~8.0 C amplitude, lagged by pi/4) + micro-gradients
         t_diurnal = 8.0 * math.sin(omega * elapsed_seconds - math.pi / 4.0)
         t_flux = 0.3 * math.cos(omega * 2.3 * elapsed_seconds)
         t_ambient = self.t0 + t_diurnal + t_flux
 
         # 3. Optical Photonic Field (16 azimuth sectors: -45 deg to +45 deg)
-        # A luminant object moves across visual azimuth sectors
-        target_azimuth_norm = 0.5 + 0.45 * math.sin(omega * 0.8 * elapsed_seconds)  # in [0.05, 0.95]
+        target_azimuth_norm = 0.5 + 0.45 * math.sin(omega * 0.8 * elapsed_seconds)
         target_sector = int(target_azimuth_norm * 16.0)
 
-        # Occlusion phase: every 15 to 20 seconds, line of sight is obstructed
         cycle_phase = (elapsed_seconds % 10.0)
         is_occluded_window = self.simulate_occlusions and (7.0 <= cycle_phase <= 9.5)
 
@@ -242,7 +261,6 @@ class PlanetaryContinuumSensorSource(PlanetarySensorSource):
         ambient_light = float(np.clip(0.2 + 0.3 * max(0.0, math.sin(omega * elapsed_seconds)), 0.05, 0.8))
         for s in range(16):
             if is_occluded_window:
-                # Target occluded by physical obstacle; baseline ambient light only
                 val = ambient_light * 0.3
             else:
                 dist = abs(s - target_sector)
@@ -252,7 +270,6 @@ class PlanetaryContinuumSensorSource(PlanetarySensorSource):
         optical_rays = tuple(rays)
 
         # 4. Egocentric Polar Spatial Tracking
-        # Target distance in mm (300mm to 800mm) and heading in millidegrees (-30,000 to +30,000)
         if is_occluded_window:
             observed_r = None
             observed_theta = None
@@ -261,7 +278,6 @@ class PlanetaryContinuumSensorSource(PlanetarySensorSource):
             observed_theta = int((target_azimuth_norm - 0.5) * 60000.0)
 
         # 5. Acoustic Cochlear Formants (16 ERB bands)
-        # Wind shear and acoustic resonance
         acoustic_bands = []
         for b in range(16):
             band_energy = 0.08 + 0.25 * math.sin(omega * 1.5 * elapsed_seconds + b * 0.5) ** 2
@@ -269,15 +285,12 @@ class PlanetaryContinuumSensorSource(PlanetarySensorSource):
         cochlear_bands = tuple(acoustic_bands)
 
         # 6. Contact & Barrier Mechanics
-        # Palmar shear proportional to barometric gradient
         palmar_shear = float(np.clip(abs(p_tide) * 3.0, 0.0, 25.0))
         barrier_stress = 0.0
         if self.simulate_barrier_contacts and (cycle_index % 30 >= 25):
-            barrier_stress = 0.75  # Over-yield collision
+            barrier_stress = 0.75
 
-        # 7. Canonical DSF Structural Invariants
-        # D_k: displacement, M_k: momentum, R_rev: reversal, U*: uncertainty,
-        # C_k: cohesion, P_k: pressure, B_k: breathing, S_UF: stability
+        # 7. Procedural Structural Invariants (Test fixture)
         d_k = 0.35 + 0.2 * math.sin(omega * 0.7 * elapsed_seconds)
         m_k = 0.15 + 0.1 * math.cos(omega * 0.7 * elapsed_seconds)
         r_rev = 0.0
@@ -320,13 +333,19 @@ class PlanetaryBridgeRunSummary:
     sensor_telemetry_stats: Dict[str, Any]
     admissibility_evaluations: List[Dict[str, Any]]
     final_manifest: Dict[str, Any]
+    channel_provenance: Dict[str, str] = field(default_factory=dict)
+    total_veto_evaluations: int = 0
+    total_vetoes_issued: int = 0
 
 
 class GroundedPlanetaryBridgeRunner:
     """
     Production-grade continuous sensorimotor bridge runner.
     Ingests live planetary streams and enforces hard invariant veto gates.
+    Maintains O(1) bounded running summary statistics for lifelong execution without memory growth.
     """
+
+    MAX_RECENT_VETO_RECEIPTS = 16
 
     def __init__(
         self,
@@ -352,13 +371,36 @@ class GroundedPlanetaryBridgeRunner:
             columns=self.columns,
         )
 
-        # Telemetry tracking for statistical verification
-        self.recorded_pressures: List[float] = []
-        self.recorded_temps: List[float] = []
-        self.recorded_shear: List[float] = []
-        self.recorded_optical_peaks: List[float] = []
-        self.recorded_acoustic_peaks: List[float] = []
-        self.veto_receipts: List[Dict[str, Any]] = []
+        # Running summary statistics (O(1) memory bound, eliminating unbounded growth)
+        self._pressure_stats = {"min": float("inf"), "max": float("-inf"), "sum": 0.0, "count": 0}
+        self._temp_stats = {"min": float("inf"), "max": float("-inf"), "sum": 0.0, "count": 0}
+        self._shear_stats = {"min": float("inf"), "max": float("-inf"), "sum": 0.0, "count": 0}
+        self._optical_peak_stats = {"min": float("inf"), "max": float("-inf"), "sum": 0.0, "count": 0}
+        self._acoustic_peak_stats = {"min": float("inf"), "max": float("-inf"), "sum": 0.0, "count": 0}
+
+        self.total_veto_evaluations = 0
+        self.total_vetoes_issued = 0
+        self.recent_veto_receipts: List[Dict[str, Any]] = []
+
+    @staticmethod
+    def _update_running_stats(stats: Dict[str, float], val: float) -> None:
+        if val < stats["min"]:
+            stats["min"] = val
+        if val > stats["max"]:
+            stats["max"] = val
+        stats["sum"] += val
+        stats["count"] += 1
+
+    @staticmethod
+    def _finalize_stats(stats: Dict[str, float]) -> Dict[str, float]:
+        cnt = max(1, int(stats["count"]))
+        if stats["count"] == 0:
+            return {"min": 0.0, "max": 0.0, "mean": 0.0}
+        return {
+            "min": float(stats["min"]),
+            "max": float(stats["max"]),
+            "mean": float(stats["sum"] / cnt),
+        }
 
     def execute_cycles(
         self,
@@ -384,14 +426,14 @@ class GroundedPlanetaryBridgeRunner:
             # 1. Read live telemetry from physical or continuum sensor source
             telemetry = self.source.read_telemetry(cycle_index=cycle, elapsed_seconds=elapsed)
 
-            # Record metrics
-            self.recorded_pressures.append(telemetry.barometric_pressure_hpa)
-            self.recorded_temps.append(telemetry.ambient_temperature_c)
-            self.recorded_shear.append(telemetry.palmar_shear_n)
+            # Record running metrics (O(1) memory)
+            self._update_running_stats(self._pressure_stats, telemetry.barometric_pressure_hpa)
+            self._update_running_stats(self._temp_stats, telemetry.ambient_temperature_c)
+            self._update_running_stats(self._shear_stats, telemetry.palmar_shear_n)
             if telemetry.optical_luminance_rays:
-                self.recorded_optical_peaks.append(float(np.max(telemetry.optical_luminance_rays)))
+                self._update_running_stats(self._optical_peak_stats, float(np.max(telemetry.optical_luminance_rays)))
             if telemetry.cochlear_spectral_power:
-                self.recorded_acoustic_peaks.append(float(np.max(telemetry.cochlear_spectral_power)))
+                self._update_running_stats(self._acoustic_peak_stats, float(np.max(telemetry.cochlear_spectral_power)))
 
             # 2. Ingest and step substrate
             manifest = self.bridge.ingest_and_step(telemetry)
@@ -440,27 +482,16 @@ class GroundedPlanetaryBridgeRunner:
             total_plastic_yield_events=total_yield_events,
             final_strain_energy=final_manifest["contact_mechanics"]["total_strain_energy"],
             sensor_telemetry_stats={
-                "barometric_pressure_hpa": {
-                    "min": float(np.min(self.recorded_pressures)),
-                    "max": float(np.max(self.recorded_pressures)),
-                    "mean": float(np.mean(self.recorded_pressures)),
-                },
-                "ambient_temperature_c": {
-                    "min": float(np.min(self.recorded_temps)),
-                    "max": float(np.max(self.recorded_temps)),
-                    "mean": float(np.mean(self.recorded_temps)),
-                },
-                "optical_luminance_max": {
-                    "min": float(np.min(self.recorded_optical_peaks)) if self.recorded_optical_peaks else 0.0,
-                    "max": float(np.max(self.recorded_optical_peaks)) if self.recorded_optical_peaks else 0.0,
-                },
-                "acoustic_spectral_max": {
-                    "min": float(np.min(self.recorded_acoustic_peaks)) if self.recorded_acoustic_peaks else 0.0,
-                    "max": float(np.max(self.recorded_acoustic_peaks)) if self.recorded_acoustic_peaks else 0.0,
-                },
+                "barometric_pressure_hpa": self._finalize_stats(self._pressure_stats),
+                "ambient_temperature_c": self._finalize_stats(self._temp_stats),
+                "optical_luminance_max": self._finalize_stats(self._optical_peak_stats),
+                "acoustic_spectral_max": self._finalize_stats(self._acoustic_peak_stats),
             },
-            admissibility_evaluations=self.veto_receipts,
+            admissibility_evaluations=list(self.recent_veto_receipts),
             final_manifest=final_manifest,
+            channel_provenance=self.source.get_channel_provenance(),
+            total_veto_evaluations=self.total_veto_evaluations,
+            total_vetoes_issued=self.total_vetoes_issued,
         )
 
         return summary
@@ -475,6 +506,7 @@ class GroundedPlanetaryBridgeRunner:
             "target_stride_mm": 50.0,
             "target_heading_mdeg": manifest["spatial_manifold"]["polar_theta_mdeg"],
         }
+        self.total_veto_evaluations += 1
         safe_receipt = self.bridge.evaluate_admissibility(safe_action)
 
         # Periodic probe 2: High-stride forward movement into potentially occluded hazard
@@ -485,9 +517,13 @@ class GroundedPlanetaryBridgeRunner:
                 "target_stride_mm": 120.0,
                 "target_heading_mdeg": spatial["polar_theta_mdeg"],
             }
+            self.total_veto_evaluations += 1
             hazard_receipt = self.bridge.evaluate_admissibility(blind_heading_action)
             if not hazard_receipt.is_admitted:
-                self.veto_receipts.append({
+                self.total_vetoes_issued += 1
+                if len(self.recent_veto_receipts) >= self.MAX_RECENT_VETO_RECEIPTS:
+                    self.recent_veto_receipts.pop(0)
+                self.recent_veto_receipts.append({
                     "cycle": cycle,
                     "verdict": hazard_receipt.verdict,
                     "violated_invariant": hazard_receipt.violated_invariant,
@@ -502,9 +538,13 @@ class GroundedPlanetaryBridgeRunner:
                 "target_stride_mm": 80.0,
                 "target_heading_mdeg": 0,
             }
+            self.total_veto_evaluations += 1
             barrier_receipt = self.bridge.evaluate_admissibility(stride_action)
             if not barrier_receipt.is_admitted:
-                self.veto_receipts.append({
+                self.total_vetoes_issued += 1
+                if len(self.recent_veto_receipts) >= self.MAX_RECENT_VETO_RECEIPTS:
+                    self.recent_veto_receipts.pop(0)
+                self.recent_veto_receipts.append({
                     "cycle": cycle,
                     "verdict": barrier_receipt.verdict,
                     "violated_invariant": barrier_receipt.violated_invariant,
@@ -636,7 +676,9 @@ def main() -> None:
     print(f"Total Strain Energy: {summary.final_strain_energy:.4f}")
     print(f"Pressure Range:      {summary.sensor_telemetry_stats['barometric_pressure_hpa']['min']:.1f} - {summary.sensor_telemetry_stats['barometric_pressure_hpa']['max']:.1f} hPa")
     print(f"Temperature Range:   {summary.sensor_telemetry_stats['ambient_temperature_c']['min']:.2f} - {summary.sensor_telemetry_stats['ambient_temperature_c']['max']:.2f} C")
-    print(f"Veto Events Logged:  {len(summary.admissibility_evaluations)}")
+    print(f"Total Veto Evals:    {summary.total_veto_evaluations}")
+    print(f"Total Vetoes Issued: {summary.total_vetoes_issued}")
+    print(f"Recent Veto Log:     {len(summary.admissibility_evaluations)} events")
 
     # Emit JSON receipt if requested
     if args.emit_receipt:

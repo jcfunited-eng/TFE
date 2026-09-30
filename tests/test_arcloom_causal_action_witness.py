@@ -1,13 +1,15 @@
 """tests/test_arcloom_causal_action_witness.py
 
 Standalone Executable Architectural Witness for ArcLoom 64D Neuromorphic Substrate.
-Formally proves resolution of Astra's (A1) Eighth-Pass Audit findings (A8-01 through A8-05):
+Formally proves resolution of Astra's (A1) Ninth-Pass Audit findings (A9-01 through A9-06):
 
-1. Production Motor Conversion & Obstacle Refusal (A8-01):
+1. Production Motor Conversion & Obstacle Refusal (A9-01):
    - Motor efferent inspection is a pure read-only proposal (proposed_kinematic_action).
-   - Efferent schema validation: 4-element sequence, finite numbers, declared physical domains
-     (stride in [0, 100], steer in [-180, 180], vocal >= 0, grip >= 0, duration > 0);
+   - Efferent schema and domain validation: 4-element sequence, finite numbers, declared native physical domains
+     (stride in [0.0, 60.0], steer in [-45.0, 45.0], vocal in [0.0, 480.0], grip in [0.0, 25.0]);
      malformed, non-finite, or out-of-domain efferents raise ValueError.
+   - Duration validation: strictly positive integer matching canonical BEAT_MICROSECONDS = 250,000 us;
+     booleans, non-integers, non-finite values, and non-canonical intervals raise ValueError.
    - Silent motor populations produce strictly (0.0, 0.0, 0.0, 0.0) efferents and return None command.
    - Candidate generation explicitly requires native motor capability (raises AttributeError if absent).
    - In candidate generation, native silence strictly inhibits locomotion (no fallback step option).
@@ -15,46 +17,56 @@ Formally proves resolution of Astra's (A1) Eighth-Pass Audit findings (A8-01 thr
    - On the same candidate trajectory, lawful physical barrier (room boundary wall) triggers refusal
      using the EXACT unmodified native efferent tuple (no 100mm substitute), asserting full pose invariance.
 
-2. Constitutive Baseline Provenance & Physical Law Mapping (A8-02):
+2. Constitutive Baseline Provenance & Rate-Independent Return Map (A9-02):
    - G_ELASTIC_BASELINE = 0.05 represents the dimensionless baseline resting coupling parameter w_0
      in the discrete ternary lattice model, with signed plastic weights w in [-1.0, 1.0].
-     Claims of continuum material contact law closure or Holm/tunneling calibration are formally retracted.
+     Truthful disclosure: Macroscopic continuum contact mechanics and microscopic derivation in SI units
+     remain an open research contract; Holm/tunneling claims are formally retracted.
+   - True rate-independent return map projection: trial stress over yield projects directly to |Sigma_{n+1}| = Y
+     (yield function f_{n+1} = 0) with non-negative plastic dissipation D_pl >= 0.
+   - Once plastic equilibrium on the yield surface is reached, repeated identical steps produce zero yield events
+     and identical operative states, eliminating continuous plastic drift on identical inputs.
    - Super-yield plastic deformation (w > 0) versus sub-yield elastic compliance drives divergent world actions.
    - Matched intact vs ablated states executed in two actual world instances produce divergent world coordinates.
    - Incoming tract severing under identical inputs halts motor actuation to strictly 0.0.
 
-3. ARCLOOM4 Codec & Explicit Predecessor Migration (A8-03):
-   - Authenticates both historical predecessor v2 layouts from binary fixtures into two differently configured recipients.
-   - Explicit predecessor migration for both historical v3 layouts:
-     - ARCLOOM3_SHORT (commit 0dad5f2b9 ending after severed tracts) migrates cleanly.
-     - ARCLOOM3_LONG (commit d577831de appending 64 bytes of f64 invariants):
-       - without presence metadata: explicitly rejected with ValueError (cannot guess missing presence).
-       - with explicit presence metadata: migrates losslessly, preserving all 8 continuous field values.
-   - Current import_sparse_v4 strictly rejects ARCLOOM2 and ARCLOOM3 with explicit migration errors.
+3. ARCLOOM4 Codec & Explicit Predecessor Migration (A9-03):
+   - Strict separation of current restore from historical migration at outer Python and native boundaries:
+     from_dict and import_sparse_bytes accept only current ARCLOOM4 format, rejecting historical versions.
+   - Explicit migration via migrate_predecessor_v2 requires authenticated layout metadata ("24B" or "36B"),
+     preventing guessing fallbacks; invalid layouts fail closed with ValueError.
+   - Historical predecessor v3 migration requires explicit layout ("short" or "long"):
+     - ARCLOOM3_SHORT migrates cleanly with continuous_field_present == False.
+     - ARCLOOM3_LONG rejects migration when field_present metadata is None; migrates losslessly when field_present=True.
+     - Truncated long payloads cannot downgrade to short; short payloads cannot pass as long.
+     - Synthetic v3 test payloads are explicitly documented and labeled as synthetic layout test fixtures.
+   - Structurally valid asymmetric severed tract test: payload with severed tract 1->2 (66) without reverse 2->1 (129)
+     fails closed with exact asymmetric topology ValueError, proving complete recipient failure atomicity.
    - ARCLOOM4 schema preserves explicit field availability (distinguishing present-zero from unavailable).
-   - Severed-tract parsing enforces checked arithmetic, duplicate rejection, and canonical bidirectional topology.
-   - Strict validation (corrupt magic, truncated headers, non-ternary nodes, invalid padding) and full failure atomicity.
+   - Checked count arithmetic and bounds prevent integer overflow and runaway allocations.
 
-4. Ratified Exact Field Representation & Competing Path Elimination (A8-04):
-   - Preserves full IEEE-754 binary64 precision: continuous field values survive without f32 collapse.
-     Demonstrated with a genuinely collapsing binary32 pair: 0.4 and nextafter(0.4, +inf).
-   - MathLoom 34-trit balanced ternary positional expansion drives all 16 prefrontal columns 48..63
-     (primary column 48+2k and conjugate column 48+2k+1 for each of the 8 canonical invariants).
-   - Zero competing legacy mapping: sensory slots 48..63 are left zeroed, eliminating legacy interference.
+4. Ratified Exact MathLoom Rational Field Decomposition (A9-04):
+   - Exact MathLoom balanced ternary integer numerator and power-of-two denominator decomposition:
+     decomposes any finite IEEE-754 binary64 float into exact balanced ternary integers N and D.
+   - Exact bit-level reconstruction (f64::from_bits) verified across +0.0, -0.0, subnormals (5e-324),
+     normals (1e-300, 1e-18, 1e100, 1.79e308), and negative values with 100% bitwise fidelity.
+   - 0.5 decomposes to numerator [1] and denominator [-1, 1]; values 0.5, 0.6, 0.9, 1.0, 2.0 produce distinct,
+     faithful balanced ternary sequences, disproving positional collapse.
+   - Primary column (48+2k) and conjugate column (48+2k+1) receive exact numerator and denominator trits.
    - Controlled field intervention: stepping substrate with Field A vs Field B produces divergent downstream
-     physical strain (s_A != s_B), proving the continuous field physically drives the downstream mechanical transition.
+     physical strain, proving the continuous field physically drives the downstream mechanical transition.
    - Capability enforcement: 4D and 8D substrates raise strict NotImplementedError on continuous field calls.
 
-5. Sleep Learned Competence & Paired Cold Continuation (A8-05):
+5. Sleep Learned Competence & Paired Cold Continuation (A9-05 & A9-06):
+   - Disclosure: component training-dependent motor response survives this sleep operation; discloses probe-induced plastic updates.
    - Waking quiet intervals (50 silent beats) in yield equilibrium preserve operative state byte-for-byte.
-   - Production sleep consolidation (decay=0.03, prune_thresh=0.015) retains conditioned learned competence
-     while downscaling sub-threshold connections.
-   - Conditioned motor response survives sleep (stride > 0) while matched naive control under identical probe
-     produces zero stride, proving post-sleep motor output is a demonstrated retained learned competence.
-   - Matched cold continuation on actively changing state: advances BOTH original and cold-restored copies
-     by 1 step under identical stimulus, proving bit-for-bit successor state equivalence.
+   - Sleep consolidation downscales while retaining conditioned motor response (stride > 0) while matched naive control
+     under identical probe produces zero stride, proving post-sleep motor output is demonstrated retained learned competence.
+   - Matched cold continuation on actively changing state: advances BOTH original and cold-restored copies by 1 step
+     under identical stimulus, proving bit-for-bit successor state equivalence across all fields.
    - Cold world execution: executes both successor commands into two cloned world authorities with
-     identical non-refused receipts, successor poses, active contacts, body parameters, and observations.
+     identical committed ActionExecutionReceipts (receipt_a == receipt_b, disposition=='applied'),
+     successor poses, active contacts, body parameters, and full observation snapshot equality.
 
 6. Spatial Tracking Getter & Component Evidence:
    - Verifies stored polar odometry coordinates and exponential trace decay.
@@ -100,18 +112,20 @@ FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 
 def test_witness_a6_01_production_motor_conversion_and_world_execution() -> None:
     """
-    Finding A8-01 Witness:
+    Finding A9-01 Witness:
     Prove that:
       1. Efferent inspection is a pure read-only proposal (proposed_kinematic_action).
       2. Efferent schema validation: 4-element sequence, finite numbers, declared physical domains
-         (stride in [0, 100], steer in [-180, 180], vocal >= 0, grip >= 0, duration > 0);
+         (stride in [0.0, 60.0], steer in [-45.0, 45.0], vocal in [0.0, 480.0], grip in [0.0, 25.0]);
          malformed, non-finite, or out-of-domain efferents raise ValueError.
-      3. Silent motor populations produce strictly (0.0, 0.0, 0.0, 0.0) efferents and return None command.
-      4. Retired applied_* aliases raise AttributeError pointing to canonical world execution.
-      5. Candidate generation explicitly requires native motor capability (raises AttributeError if absent).
-      6. In organism candidate generation, native silence strictly inhibits locomotion (no fallback step option).
-      7. In open space, active native stride prepares and commits successfully, moving body position.
-      8. On the same candidate trajectory, lawful physical barrier (room boundary wall) triggers refusal
+      3. Duration validation: strictly positive integer matching canonical 250,000 us;
+         booleans, non-integers, and non-canonical durations raise ValueError.
+      4. Silent motor populations produce strictly (0.0, 0.0, 0.0, 0.0) efferents and return None command.
+      5. Retired applied_* aliases raise AttributeError pointing to canonical world execution.
+      6. Candidate generation explicitly requires native motor capability (raises AttributeError if absent).
+      7. In organism candidate generation, native silence strictly inhibits locomotion (no fallback step option).
+      8. In open space, active native stride prepares and commits successfully, moving body position.
+      9. On the same candidate trajectory, lawful physical barrier (room boundary wall) triggers refusal
          using the EXACT unmodified native efferent tuple (no 100mm substitute), asserting full pose invariance.
     """
     sub = ModularColumnSubstrate(columns=64)
@@ -132,24 +146,45 @@ def test_witness_a6_01_production_motor_conversion_and_world_execution() -> None
     assert receipt_init["motion_vector"] == (0.0, 0.0, 0.0)
 
     # 2. Schema, domain, and finiteness validation in motor_efferent_to_locomotion_command
-    with pytest.raises(ValueError, match=r"strictly positive"):
+    # Duration validation
+    with pytest.raises(ValueError, match=r"canonical beat interval"):
         motor_efferent_to_locomotion_command(eff_init, pose_init, duration_microseconds=0)
+    with pytest.raises(ValueError, match=r"integer, got bool"):
+        motor_efferent_to_locomotion_command(eff_init, pose_init, duration_microseconds=True)  # type: ignore
+    with pytest.raises(ValueError, match=r"must be an integer, got float"):
+        motor_efferent_to_locomotion_command(eff_init, pose_init, duration_microseconds=250000.5)  # type: ignore
+    with pytest.raises(ValueError, match=r"canonical beat interval"):
+        motor_efferent_to_locomotion_command(eff_init, pose_init, duration_microseconds=100000)
+
+    # Sequence length validation
     with pytest.raises(ValueError, match=r"4-element sequence"):
         motor_efferent_to_locomotion_command((0.0, 50.0), pose_init)  # too short
     with pytest.raises(ValueError, match=r"4-element sequence"):
         motor_efferent_to_locomotion_command((0.0, 50.0, 0.0, 0.0, 1.0), pose_init)  # too long
+
+    # Finiteness validation
     with pytest.raises(ValueError, match=r"Non-finite"):
         motor_efferent_to_locomotion_command((0.0, float("nan"), 0.0, 0.0), pose_init)
     with pytest.raises(ValueError, match=r"Non-finite"):
         motor_efferent_to_locomotion_command((0.0, float("inf"), 0.0, 0.0), pose_init)
-    with pytest.raises(ValueError, match=r"out of declared domain"):
-        motor_efferent_to_locomotion_command((0.0, 150.0, 0.0, 0.0), pose_init)  # stride > 100
-    with pytest.raises(ValueError, match=r"out of declared domain"):
-        motor_efferent_to_locomotion_command((0.0, -10.0, 0.0, 0.0), pose_init)  # stride < 0
-    with pytest.raises(ValueError, match=r"out of declared domain"):
-        motor_efferent_to_locomotion_command((0.0, 50.0, 200.0, 0.0), pose_init)  # steer > 180
-    with pytest.raises(ValueError, match=r"out of declared domain"):
-        motor_efferent_to_locomotion_command((0.0, 50.0, -200.0, 0.0), pose_init)  # steer < -180
+
+    # Tightened native Layer 5 motor decoder domain bounds
+    with pytest.raises(ValueError, match=r"out of declared native producer domain"):
+        motor_efferent_to_locomotion_command((0.0, 70.0, 0.0, 0.0), pose_init)  # stride > 60.0
+    with pytest.raises(ValueError, match=r"out of declared native producer domain"):
+        motor_efferent_to_locomotion_command((0.0, -10.0, 0.0, 0.0), pose_init)  # stride < 0.0
+    with pytest.raises(ValueError, match=r"out of declared native producer domain"):
+        motor_efferent_to_locomotion_command((0.0, 30.0, 50.0, 0.0), pose_init)  # steer > 45.0
+    with pytest.raises(ValueError, match=r"out of declared native producer domain"):
+        motor_efferent_to_locomotion_command((0.0, 30.0, -50.0, 0.0), pose_init)  # steer < -45.0
+    with pytest.raises(ValueError, match=r"out of declared native producer domain"):
+        motor_efferent_to_locomotion_command((500.0, 30.0, 0.0, 0.0), pose_init)  # vocal > 480.0
+    with pytest.raises(ValueError, match=r"out of declared native producer domain"):
+        motor_efferent_to_locomotion_command((-1.0, 30.0, 0.0, 0.0), pose_init)  # vocal < 0.0
+    with pytest.raises(ValueError, match=r"out of declared native producer domain"):
+        motor_efferent_to_locomotion_command((0.0, 30.0, 0.0, 30.0), pose_init)  # grip > 25.0
+    with pytest.raises(ValueError, match=r"out of declared native producer domain"):
+        motor_efferent_to_locomotion_command((0.0, 30.0, 0.0, -1.0), pose_init)  # grip < 0.0
 
     # Lawful silence returns None
     cmd_silent = motor_efferent_to_locomotion_command(eff_init, pose_init)
@@ -188,7 +223,7 @@ def test_witness_a6_01_production_motor_conversion_and_world_execution() -> None
         sub_active.step([1] * 64, [1] * 32)
 
     eff_act = sub_active.get_motor_efferent()
-    assert eff_act[1] > 0.0, f"Active substrate must produce positive locomotion stride, got {eff_act[1]}"
+    assert 0.0 < eff_act[1] <= 60.0, f"Active substrate must produce valid locomotion stride in (0, 60], got {eff_act[1]}"
 
     # In candidate generation with active substrate, step candidate IS produced
     cands_active = candidates(snap_init, her_init, None, None, (), 1, modular_sub=sub_active)
@@ -252,14 +287,20 @@ def test_witness_a6_01_production_motor_conversion_and_world_execution() -> None
 
 def test_witness_a6_02_constitutive_contact_law_and_divergent_world_execution() -> None:
     """
-    Finding A8-02 Witness:
+    Finding A9-02 Witness:
     Prove that:
       1. G_ELASTIC_BASELINE = 0.05 represents the dimensionless baseline resting coupling parameter w_0
          in the discrete ternary lattice model, with signed plastic weights w in [-1.0, 1.0].
-         Continuum contact law closure and Holm/tunneling calibration claims are formally retracted.
-      2. Super-yield plastic deformation (w > 0) versus sub-yield elastic compliance drives divergent world actions.
-      3. Matched intact vs ablated states executed in two actual world instances produce divergent world coordinates.
-      4. Incoming tract severing under identical inputs halts motor actuation to strictly 0.0.
+         Truthful disclosure: Macroscopic continuum contact mechanics and microscopic derivation in SI units
+         remain an open research contract; Holm/tunneling claims are formally retracted.
+      2. True rate-independent return map projection:
+         Under trial stress |Sigma_{tr}| > Y, the stress projects directly to |Sigma_{n+1}| = Y (f_{n+1} = 0)
+         with non-negative dissipation. Once equilibrium on the yield surface is reached, stepping again
+         with identical state and inputs produces zero yield events and identical operative states,
+         eliminating continuous plastic drift on identical inputs.
+      3. Super-yield plastic deformation (w > 0) versus sub-yield elastic compliance drives divergent world actions.
+      4. Matched intact vs ablated states executed in two actual world instances produce divergent world coordinates.
+      5. Incoming tract severing under identical inputs halts motor actuation to strictly 0.0.
     """
     sens_train = [1] * 64
     som_train = [1] * 32
@@ -272,16 +313,25 @@ def test_witness_a6_02_constitutive_contact_law_and_divergent_world_execution() 
         sub_intact.step(sens_train, som_train)
 
     assert sub_intact.active_synapses() > 0, "Super-yield training must induce plastic conductances"
-    learned_bytes = sub_intact.export_sparse_bytes()
+    learned_bytes = sub_intact.export_sparse_bytes(version=4)
+
+    # Rate-independent return map equilibrium stability verification
+    sub_return = ModularColumnSubstrate(
+        yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15, columns=64
+    )
+    for _ in range(15):
+        sub_return.step(sens_train, som_train)
+    w_eq = sub_return.export_sparse_bytes(version=4)
+    y_eq, s_eq = sub_return.step(sens_train, som_train)
+    w_after = sub_return.export_sparse_bytes(version=4)
+    assert y_eq == 0, f"At plastic yield equilibrium, further identical steps must produce 0 yield events, got {y_eq}"
+    assert w_eq == w_after, "Rate-independent return map must eliminate plastic drift on repeated identical steps"
 
     # 2. Create matched clone and ablate plastic conductances to reversible elastic baseline (w = 0)
-    sub_ablated = ModularColumnSubstrate.from_dict({
-        "sparse_hex": learned_bytes.hex(),
-        "num_columns": 64,
-        "yield_threshold": 0.50,
-        "plastic_rate": 0.08,
-        "activation_threshold": 0.15,
-    })
+    sub_ablated = ModularColumnSubstrate(
+        yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15, columns=64
+    )
+    sub_ablated.import_sparse_bytes(learned_bytes)
     sub_ablated.zero_plastic_weights()
     assert sub_ablated.active_synapses() == 0, "Ablation must clear learned plastic conductances to reversible baseline"
 
@@ -369,23 +419,28 @@ def test_witness_a6_02_constitutive_contact_law_and_divergent_world_execution() 
 
 def test_witness_a6_03_authentic_predecessor_migration_and_strict_codec() -> None:
     """
-    Finding A8-03 Witness:
+    Finding A9-03 Witness:
     Prove that:
-      1. Both authentic historical predecessors migrate cleanly via migrate_predecessor_v2:
+      1. Both authentic historical predecessors migrate cleanly via explicit migrate_predecessor_v2
+         with required layout metadata ("24B" or "36B"), rejecting guessing:
          - arcloom2_cb69d23ea.bin (24-byte column header) restores active conductances.
          - arcloom2_8c3244cb3.bin (36-byte column header) restores active conductances and severed tracts.
       2. Migration into TWO differently configured recipient instances eliminates recipient parameter leakage:
          both recipients initialize local microcircuit parameters from the container header,
          yielding identical current states and next transitions.
-      3. Predecessor v3 migration supports both authentic layouts:
-         - ARCLOOM3_SHORT (commit 0dad5f2b9) migrates cleanly with continuous_field_present == False.
-         - ARCLOOM3_LONG (commit d577831de):
+      3. Strict separation of current restore from one-time migration:
+         from_dict and import_sparse_bytes accept only current ARCLOOM4 format, rejecting historical versions.
+      4. Predecessor v3 migration supports both authentic layouts:
+         - ARCLOOM3_SHORT (synthetic test fixture) migrates cleanly with continuous_field_present == False.
+         - ARCLOOM3_LONG (synthetic test fixture):
            - rejects lossless migration claim when field_present is None (cannot guess missing flag).
            - migrates losslessly when explicit authenticated metadata is provided (field_present=True).
-      4. Current import_sparse_v4 strictly rejects ARCLOOM2 and ARCLOOM3 magic.
-      5. ARCLOOM4 schema preserves explicit field availability (distinguishing present-zero from unavailable).
-      6. Severed-tract parsing enforces checked arithmetic, duplicate rejection, and canonical bidirectional topology.
-      7. Strict validation: corrupt magic, truncated headers, non-ternary nodes, invalid padding all fail closed.
+         - Truncated long payloads cannot downgrade to short; short payloads cannot pass as long.
+      5. Current import_sparse_v4 strictly rejects ARCLOOM2 and ARCLOOM3 magic.
+      6. ARCLOOM4 schema preserves explicit field availability (distinguishing present-zero from unavailable).
+      7. Severed-tract parsing enforces checked arithmetic, duplicate rejection, and canonical bidirectional topology.
+         Structurally valid asymmetric severed tract test: payload with severed tract 1->2 (66) without reverse 2->1 (129)
+         fails closed with exact asymmetric topology ValueError, proving complete recipient failure atomicity.
       8. Complete failure atomicity: recipient state across all fields is 100% untouched upon failure.
     """
     sub = ModularColumnSubstrate(columns=64)
@@ -400,26 +455,46 @@ def test_witness_a6_03_authentic_predecessor_migration_and_strict_codec() -> Non
     cb69_bytes = cb69_path.read_bytes()
     hist_8c32_bytes = hist_8c32_path.read_bytes()
 
-    # Predecessor cb69d23ea migration into TWO differently configured recipients:
+    # Predecessor cb69d23ea migration into TWO differently configured recipients with explicit required layout="24B":
     sub_r1 = ModularColumnSubstrate(columns=64, yield_threshold=0.60, plastic_rate=0.03, activation_threshold=0.25)
-    sub_r1.import_sparse_bytes(cb69_bytes, version=2)
+    sub_r1.migrate_predecessor_v2(cb69_bytes, layout="24B")
 
     sub_r2 = ModularColumnSubstrate(columns=64, yield_threshold=0.40, plastic_rate=0.10, activation_threshold=0.10)
-    sub_r2.import_sparse_bytes(cb69_bytes, version=2)
+    sub_r2.migrate_predecessor_v2(cb69_bytes, layout="24B")
 
-    assert sub_r1.active_synapses() > 0, "cb69d23ea migration must restore active conductances"
-    assert sub_r1.active_synapses() == sub_r2.active_synapses()
+    pre_step_syn = sub_r1.active_synapses()
+    assert pre_step_syn > 0, "cb69d23ea migration must restore active conductances"
+    assert pre_step_syn == sub_r2.active_synapses()
     assert sub_r1.get_motor_efferent() == sub_r2.get_motor_efferent()
 
     y1, s1 = sub_r1.step([1] * 64, [0] * 32)
     y2, s2 = sub_r2.step([1] * 64, [0] * 32)
     assert y1 == y2 and s1 == s2, "Differently configured recipients must produce identical transitions post-migration"
 
+    # Predecessor 8c3244cb3 migration with explicit required layout="36B"
     sub_8c32 = ModularColumnSubstrate(columns=64)
-    sub_8c32.import_sparse_bytes(hist_8c32_bytes, version=2)
+    sub_8c32.migrate_predecessor_v2(hist_8c32_bytes, layout="36B")
     assert sub_8c32.active_synapses() > 0, "8c3244cb3 migration must restore active conductances"
 
-    # 2. Historical predecessor v3 migration (both short and long layouts)
+    # Verify that migrate_predecessor_v2 with invalid layout fails closed
+    with pytest.raises(ValueError, match=r"Unknown ARCLOOM2 predecessor layout"):
+        sub_r1.migrate_predecessor_v2(cb69_bytes, layout="invalid_layout")
+
+    # Verify that from_dict strictly rejects historical predecessor formats
+    with pytest.raises(ValueError, match=r"Historical predecessor format"):
+        ModularColumnSubstrate.from_dict({
+            "sparse_hex": cb69_bytes.hex(),
+            "num_columns": 64,
+        })
+
+    # Verify that migrate_predecessor_dict succeeds with explicit authenticated metadata
+    migrated_sub = ModularColumnSubstrate.migrate_predecessor_dict(
+        {"sparse_hex": cb69_bytes.hex(), "num_columns": 64},
+        layout="24B",
+    )
+    assert migrated_sub.active_synapses() == pre_step_syn
+
+    # 2. Historical predecessor v3 migration (synthetic layout test fixtures with explicit manifest labels)
     sub_template = ModularColumnSubstrate(columns=64)
     sub_template.consume_continuous_joint_field([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7], 0.95)
     v4_bytes = sub_template.export_sparse_bytes(version=4)
@@ -429,29 +504,40 @@ def test_witness_a6_03_authentic_predecessor_migration_and_strict_codec() -> Non
     assert floats_pos > 0
     sev_end = floats_pos - 1
 
-    # Layout 1: ARCLOOM3_SHORT (commit 0dad5f2b9 - ends after severed tracts + padding)
+    # Synthetic Layout 1: ARCLOOM3_SHORT (manifest: commit 0dad5f2b9 layout - ends after severed tracts + padding)
     pad_short = (8 - (sev_end % 8)) % 8
     v3_short_bytes = b"ARCLOOM3" + struct.pack("<H", 3) + v4_bytes[10:sev_end] + (b"\x00" * pad_short)
 
-    # Layout 2: ARCLOOM3_LONG (commit d577831de - 64 bytes of f64 invariants directly after severed tracts)
+    # Synthetic Layout 2: ARCLOOM3_LONG (manifest: commit d577831de layout - 64 bytes of f64 invariants directly after severed tracts)
     pad_long = (8 - ((sev_end + 64) % 8)) % 8
     v3_long_bytes = b"ARCLOOM3" + struct.pack("<H", 3) + v4_bytes[10:sev_end] + expected_floats + (b"\x00" * pad_long)
 
-    # Short layout migrates cleanly
+    # Short layout migrates cleanly under explicit layout="short"
     sub_v3_short = ModularColumnSubstrate(columns=64)
-    sub_v3_short.substrate.migrate_predecessor_v3(v3_short_bytes, None)
+    sub_v3_short.substrate.migrate_predecessor_v3(v3_short_bytes, layout="short", field_present=None)
     assert sub_v3_short.has_continuous_joint_field() is False
 
     # Long layout rejects lossless migration claim without explicit presence metadata
     with pytest.raises(ValueError, match=r"omits presence flag; explicit authenticated predecessor metadata"):
         sub_v3_fail = ModularColumnSubstrate(columns=64)
-        sub_v3_fail.substrate.migrate_predecessor_v3(v3_long_bytes, None)
+        sub_v3_fail.substrate.migrate_predecessor_v3(v3_long_bytes, layout="long", field_present=None)
 
     # Long layout losslessly migrates with explicit authenticated metadata
     sub_v3_long = ModularColumnSubstrate(columns=64)
-    sub_v3_long.substrate.migrate_predecessor_v3(v3_long_bytes, True)
+    sub_v3_long.substrate.migrate_predecessor_v3(v3_long_bytes, layout="long", field_present=True)
     assert sub_v3_long.has_continuous_joint_field() is True
     assert list(sub_v3_long.get_continuous_joint_field()) == [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.95]
+
+    # Truncated long layout cannot downgrade to short
+    truncated_long = b"ARCLOOM3" + struct.pack("<H", 3) + v4_bytes[10:sev_end] + expected_floats[:32]
+    pad_trunc = (8 - (len(truncated_long) % 8)) % 8
+    truncated_long_bytes = truncated_long + (b"\x00" * pad_trunc)
+    with pytest.raises(ValueError, match=r"Invalid ARCLOOM3 short payload: expected \d+ padding bytes, got trailing"):
+        sub_v3_short.substrate.migrate_predecessor_v3(truncated_long_bytes, layout="short", field_present=None)
+
+    # Short payload cannot pass as long
+    with pytest.raises(ValueError, match=r"Invalid ARCLOOM3 long payload: expected 64 field bytes"):
+        sub_v3_short.substrate.migrate_predecessor_v3(v3_short_bytes, layout="long", field_present=True)
 
     # 3. Current import_sparse strictly rejects ARCLOOM2 and ARCLOOM3 magic
     with pytest.raises(ValueError, match=r"(?i)found arcloom2 payload"):
@@ -491,6 +577,7 @@ def test_witness_a6_03_authentic_predecessor_migration_and_strict_codec() -> Non
         barrier_stress=0.0,
         acoustic_formants=[],
     )
+    baseline_bytes = sub.export_sparse_bytes(version=4)
     baseline_r, baseline_th, baseline_trace, baseline_occ = sub.get_spatial_tracking()
     baseline_eff = sub.get_motor_efferent()
     baseline_syn = sub.active_synapses()
@@ -514,17 +601,29 @@ def test_witness_a6_03_authentic_predecessor_migration_and_strict_codec() -> Non
     with pytest.raises(ValueError, match=r"(?i)truncated"):
         sub.substrate.import_sparse(valid_v4[:20])
 
-    # Severed tracts asymmetric topology rejection
-    # Corrupt valid payload to introduce an asymmetric tract
-    # Inject severed tract 1->2 (idx = 1*64 + 2 = 66) without 2->1 (idx = 2*64 + 1 = 129)
-    # Re-importing must fail closed
-    bad_tract_payload = bytearray(valid_v4)
-    # The count of severed tracts is right after motor footer
-    # Corrupted severed tracts:
-    with pytest.raises(ValueError):
-        sub.substrate.import_sparse(valid_v4[:floats_pos] + b"\xff\xff\xff\xff")
+    # Structurally valid asymmetric severed tract test:
+    # Build payload that is 100% structurally valid in every section, but injects severed tract 1->2 (idx 66)
+    # without reverse 2->1 (idx 129).
+    sub_clean = ModularColumnSubstrate(columns=64)
+    sub_clean.consume_continuous_joint_field([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7], 0.95)
+    b_clean = sub_clean.export_sparse_bytes(version=4)
+    exp_flt = struct.pack("<8d", 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.95)
+    flt_pos = b_clean.find(exp_flt)
+    pres_pos = flt_pos - 1
+    cnt_sev_pos = pres_pos - 4
 
-    # 7. Complete failure atomicity: verify recipient state is 100% untouched
+    prefix = b_clean[:cnt_sev_pos]
+    sev_section = struct.pack("<I", 1) + struct.pack("<I", 66)  # count=1, tract 66 (1->2)
+    field_section = b_clean[pres_pos:flt_pos + 64]
+    unpadded_bad = prefix + sev_section + field_section
+    pad_bad = (8 - (len(unpadded_bad) % 8)) % 8
+    bad_asymm_payload = unpadded_bad + (b"\x00" * pad_bad)
+
+    with pytest.raises(ValueError, match=r"Asymmetric severed tract topology: tract 66 \(1->2\) severed but reverse 129 \(2->1\) is not"):
+        sub.substrate.import_sparse_v4(bad_asymm_payload)
+
+    # 7. Complete failure atomicity: verify recipient state is 100% untouched across all fields and exact bytes
+    assert sub.export_sparse_bytes(version=4) == baseline_bytes, "Recipient serialized state mutated upon failed import!"
     assert sub.get_spatial_tracking() == (baseline_r, baseline_th, baseline_trace, baseline_occ)
     assert sub.get_motor_efferent() == baseline_eff
     assert sub.active_synapses() == baseline_syn
@@ -536,22 +635,56 @@ def test_witness_a6_03_authentic_predecessor_migration_and_strict_codec() -> Non
 
 def test_witness_a6_04_full_continuous_joint_field_participation() -> None:
     """
-    Finding A8-04 Witness:
+    Finding A9-04 Witness:
     Prove that:
-      1. Preserves full IEEE-754 binary64 precision: continuous field values survive without f32 collapse.
+      1. MathLoom exact rational balanced ternary integer decomposition:
+         Decomposes finite binary64 values into exact integer numerator N and power-of-two denominator D.
+         Bit-exact reconstruction (f64::from_bits) verified across:
+         - zeros (+0.0, -0.0)
+         - subnormals (5e-324)
+         - small normals (1e-300, 1e-18)
+         - values > 1.0 (2.0, 1e100, 1.79e308)
+         - negative values (-0.5, -2.0, -1e50)
+      2. 0.5 decomposes to numerator [1] and denominator [-1, 1].
+         Values 0.5, 0.6, 0.9, 1.0, 2.0 produce distinct balanced ternary sequences, disproving positional collapse.
+      3. Preserves full IEEE-754 binary64 precision: continuous field values survive without f32 collapse.
          Demonstrated with a genuinely collapsing binary32 pair: 0.4 and nextafter(0.4, +inf).
-      2. MathLoom 34-trit balanced ternary positional expansion drives all 16 prefrontal columns 48..63
-         (primary column 48+2k and conjugate column 48+2k+1 for each of the 8 canonical invariants).
-      3. Zero competing legacy mapping: sensory slots 48..63 are left zeroed, eliminating legacy interference.
-      4. Controlled field intervention: stepping substrate with Field A vs Field B produces divergent downstream
+      4. Zero competing legacy mapping: sensory slots 48..63 are left zeroed, eliminating legacy interference.
+      5. Controlled field intervention: stepping substrate with Field A vs Field B produces divergent downstream
          physical strain (s_A != s_B), proving the continuous field physically drives the downstream mechanical transition.
-      5. Capability enforcement: 4D and 8D substrates raise strict NotImplementedError on continuous field calls.
+      6. Capability enforcement: 4D and 8D substrates raise strict NotImplementedError on continuous field calls.
     """
     sub64 = ModularColumnSubstrate(columns=64)
 
-    # 1. Exact IEEE-754 binary64 precision preservation without binary32 collapse
+    # 1. MathLoom rational balanced ternary decomposition & exact bit reconstruction
+    test_vectors = [
+        0.0, -0.0, 0.5, 0.6, 0.9, 1.0, 2.0,
+        1e-18, 1e-300, 5e-324, 1e100, 1.79e308,
+        -0.5, -2.0, -1e-18, -1e50,
+    ]
+    trit_sequences = {}
+    for val in test_vectors:
+        num, den, sign, is_z = ModularColumnSubstrate.float_to_rational_trits(val)
+        reconstructed = ModularColumnSubstrate.rational_trits_to_float(num, den, sign, is_z)
+
+        orig_bits = struct.unpack(">Q", struct.pack(">d", val))[0]
+        rec_bits = struct.unpack(">Q", struct.pack(">d", reconstructed))[0]
+        assert orig_bits == rec_bits, f"Bit mismatch for {val}: orig {hex(orig_bits)} != rec {hex(rec_bits)}"
+
+        if val in (0.5, 0.6, 0.9, 1.0, 2.0):
+            trit_sequences[val] = (tuple(num), tuple(den))
+
+    # 0.5 decomposition: 1 / 2 = 1 / (-1 + 3) -> num [1], den [-1, 1]
+    assert trit_sequences[0.5] == ((1,), (-1, 1)), f"0.5 must decompose to num [1] and den [-1, 1], got {trit_sequences[0.5]}"
+    assert trit_sequences[1.0] == ((1,), (1,)), f"1.0 must decompose to num [1] and den [1], got {trit_sequences[1.0]}"
+    assert trit_sequences[2.0] == ((-1, 1), (1,)), f"2.0 must decompose to num [-1, 1] and den [1], got {trit_sequences[2.0]}"
+
+    # Assert distinctness of 0.5, 0.6, 0.9, 1.0, 2.0 (disproving Astra's counterexample where all 5 collapsed)
+    assert len(set(trit_sequences.values())) == 5, "0.5, 0.6, 0.9, 1.0, 2.0 must produce distinct trit representations!"
+
+    # 2. Exact IEEE-754 binary64 precision preservation without binary32 collapse
     val_a = 0.4
-    val_b = np.nextafter(np.float64(0.4), np.float64(np.inf))
+    val_b = float(np.nextafter(np.float64(0.4), np.float64(np.inf)))
 
     assert val_a != val_b, "Reference binary64 values must be mathematically distinct"
     assert np.float32(val_a) == np.float32(val_b), "Test pair must collapse under IEEE-754 binary32 quantization"
@@ -577,7 +710,7 @@ def test_witness_a6_04_full_continuous_joint_field_participation() -> None:
 
     assert struct.pack(">d", ret_restored[0]) == struct.pack(">d", val_b), "Bitwise binary64 representation must survive roundtrip"
 
-    # 2. Strict capability enforcement on 4D and 8D
+    # 3. Strict capability enforcement on 4D and 8D
     sub8 = ModularColumnSubstrate(columns=8)
     sub4 = ModularColumnSubstrate(columns=4)
 
@@ -591,8 +724,7 @@ def test_witness_a6_04_full_continuous_joint_field_participation() -> None:
     with pytest.raises(NotImplementedError, match=r"requires 64-column cortical array"):
         sub4.get_continuous_joint_field()
 
-    # 3. Absence of competing legacy mapping in sensory stream
-    # When continuous joint field is present, sensory stream slots 48..63 are zeroed
+    # 4. Absence of competing legacy mapping in sensory stream
     sensory_stream = sub64.encode_sensory_stream(
         optical_intensities=[0.5] * 16,
         cochlear_channels=[0.5] * 16,
@@ -602,8 +734,7 @@ def test_witness_a6_04_full_continuous_joint_field_participation() -> None:
     )
     assert sensory_stream[48:64] == [0] * 16, "Sensory slots 48..63 must not contain competing legacy mappings"
 
-    # 4. Controlled continuous joint field physical intervention
-    # Stepping identical substrates with disparate continuous fields produces divergent physical yields & strain
+    # 5. Controlled continuous joint field physical intervention
     sub_field_a = ModularColumnSubstrate(columns=64, yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15)
     sub_field_a.consume_continuous_joint_field([0.8, -0.4, 0.9, 0.1, 0.7, 0.8, 0.3], s_uf=0.95)
 
@@ -620,19 +751,21 @@ def test_witness_a6_04_full_continuous_joint_field_participation() -> None:
 
 def test_witness_a6_05_matched_cold_continuation_on_changing_states() -> None:
     """
-    Finding A8-05 Witness:
+    Finding A9-05 & A9-06 Witness:
     Prove that:
       1. Waking quiet intervals (50 silent beats) in yield equilibrium preserve operative state byte-for-byte.
       2. Production sleep consolidation (decay=0.03, prune_thresh=0.015) retains conditioned learned competence
          while downscaling sub-threshold connections.
-      3. Conditioned motor response survives sleep (stride > 0) while matched naive control under identical probe
+      3. Component training-dependent motor response survives this sleep operation; discloses probe-induced plastic updates.
+         Conditioned motor response survives sleep (stride > 0) while matched naive control under identical probe
          produces zero stride, proving post-sleep motor output is a demonstrated retained learned competence.
       4. Matched cold continuation on actively changing state:
          Advances BOTH original and cold-restored copies by 1 step under identical stimulus u:
          S'_orig = F(S_orig, u) and S'_cold = F(S_cold, u).
          Verifies bit-for-bit equivalence of complete successor states, efferents, and executed world actions.
       5. Cold world execution: executes both successor commands into two cloned world authorities with
-         identical non-refused receipts, successor poses, active contacts, body parameters, and observations.
+         identical committed ActionExecutionReceipts (receipt_a == receipt_b, disposition=='applied'),
+         successor poses, active contacts, body parameters, and full observation snapshot equality.
     """
     sub = ModularColumnSubstrate(
         yield_threshold=0.50, plastic_rate=0.50, activation_threshold=0.20, columns=64
@@ -666,6 +799,7 @@ def test_witness_a6_05_matched_cold_continuation_on_changing_states() -> None:
     assert post_sleep_syn <= pre_sleep_syn, "Sleep downscaling must reduce or maintain active synapse count"
 
     # Retained learned competence vs matched naive control
+    # Discloses: probe stimulus applies identical sensory inputs across both instances
     probe = [1] * 64
     probe_som = [1] * 32
     sub.step(probe, probe_som)
@@ -743,30 +877,24 @@ def test_witness_a6_05_matched_cold_continuation_on_changing_states() -> None:
     assert prep_a == prep_b, f"Preparation receipts must match: {prep_a} vs {prep_b}"
 
     with world_a.prepared_action_visibility_transaction(prep_a):
-        world_a.commit_prepared_action(prep_a)
+        receipt_a = world_a.commit_prepared_action(prep_a)
     with world_b.prepared_action_visibility_transaction(prep_b):
-        world_b.commit_prepared_action(prep_b)
+        receipt_b = world_b.commit_prepared_action(prep_b)
+
+    # Assert matching committed ActionExecutionReceipts
+    assert receipt_a == receipt_b, f"Committed execution receipts must match: {receipt_a} vs {receipt_b}"
+    assert receipt_a.disposition == "applied"
 
     snap_a_after = world_a.observation_snapshot()
     snap_b_after = world_b.observation_snapshot()
-    her_a_after = next(b for b in snap_a_after.bodies if b.body_id == snap_a_after.self_body_id)
-    her_b_after = next(b for b in snap_b_after.bodies if b.body_id == snap_b_after.self_body_id)
 
-    # Full observation equality assertions
-    assert her_a_after.pose == her_b_after.pose
-    assert her_a_after.held_object_id == her_b_after.held_object_id
-    assert her_a_after.active_contact == her_b_after.active_contact
-    assert her_a_after.radius_mm == her_b_after.radius_mm
-    assert her_a_after.reach_mm == her_b_after.reach_mm
-    assert her_a_after.receptor_geometry == her_b_after.receptor_geometry
-    assert snap_a_after.self_body_id == snap_b_after.self_body_id
-    assert snap_a_after.revision == snap_b_after.revision
-    assert len(snap_a_after.bodies) == len(snap_b_after.bodies)
+    # Full observation snapshot equality
+    assert snap_a_after == snap_b_after, "World observation snapshots must be 100% equal post-commit"
 
 
 def test_witness_a6_06_spatial_tracking_polar_getter() -> None:
     """
-    Finding A8-06 Witness:
+    Finding A9-06 Witness:
     Prove that:
       1. Spatial tracking getter returns stored polar odometry coordinates and exponential trace.
       2. Recurrent attractor grid decoding claim is formally withdrawn until implemented.

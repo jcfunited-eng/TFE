@@ -116,38 +116,50 @@ class ModularColumnSubstrate:
         """Preserve continuous 7-field tensor + S_UF invariant directly in native storage."""
         if self.num_columns != 64:
             raise NotImplementedError("Continuous joint field transport requires 64-column cortical array")
-        if hasattr(self.substrate, "consume_continuous_joint_field"):
-            self.substrate.consume_continuous_joint_field([float(x) for x in field_7d], float(s_uf))
+        if not hasattr(self.substrate, "consume_continuous_joint_field"):
+            raise RuntimeError("Substrate lacks native consume_continuous_joint_field capability")
+        self.substrate.consume_continuous_joint_field([float(x) for x in field_7d], float(s_uf))
 
     def get_continuous_joint_field(self) -> Tuple[float, float, float, float, float, float, float, float]:
         """Retrieve stored continuous 7-field tensor + S_UF invariant."""
         if self.num_columns != 64:
             raise NotImplementedError("Continuous joint field query requires 64-column cortical array")
-        if hasattr(self.substrate, "get_continuous_joint_field"):
-            return self.substrate.get_continuous_joint_field()
-        return (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-
-    def has_continuous_joint_field(self) -> bool:
-        """Check if authoritative continuous joint field is explicitly available."""
-        if hasattr(self.substrate, "has_continuous_joint_field"):
-            return bool(self.substrate.has_continuous_joint_field())
-        return False
-
-    def clear_continuous_joint_field(self) -> None:
-        """Mark continuous joint field as unavailable."""
-        if hasattr(self.substrate, "clear_continuous_joint_field"):
-            self.substrate.clear_continuous_joint_field()
-
-    def clear_continuous_joint_field(self) -> None:
-        """Explicitly clear the continuous joint field when inputs expire or are unavailable."""
-        if hasattr(self.substrate, "clear_continuous_joint_field"):
-            self.substrate.clear_continuous_joint_field()
+        if not hasattr(self.substrate, "get_continuous_joint_field"):
+            raise RuntimeError("Substrate lacks native get_continuous_joint_field capability")
+        return self.substrate.get_continuous_joint_field()
 
     def has_continuous_joint_field(self) -> bool:
         """Query whether continuous joint field is explicitly present."""
-        if hasattr(self.substrate, "has_continuous_joint_field"):
-            return bool(self.substrate.has_continuous_joint_field())
-        return False
+        if not hasattr(self.substrate, "has_continuous_joint_field"):
+            raise RuntimeError("Substrate lacks native has_continuous_joint_field capability")
+        return bool(self.substrate.has_continuous_joint_field())
+
+    def clear_continuous_joint_field(self) -> None:
+        """Explicitly clear the continuous joint field when inputs expire or are unavailable."""
+        if not hasattr(self.substrate, "clear_continuous_joint_field"):
+            raise RuntimeError("Substrate lacks native clear_continuous_joint_field capability")
+        self.substrate.clear_continuous_joint_field()
+
+    @classmethod
+    def float_to_rational_trits(cls, val: float) -> Tuple[List[int], List[int], int, bool]:
+        """Decompose IEEE-754 binary64 float into exact integer numerator and denominator balanced ternary trits."""
+        return ModularSubstrate64D.float_to_rational_trits(float(val))
+
+    @classmethod
+    def rational_trits_to_float(
+        cls,
+        num_trits: Sequence[int],
+        den_trits: Sequence[int],
+        sign: int,
+        is_zero: bool,
+    ) -> float:
+        """Reconstruct exact IEEE-754 binary64 float from MathLoom rational balanced ternary representation."""
+        return ModularSubstrate64D.rational_trits_to_float(
+            [int(t) for t in num_trits],
+            [int(t) for t in den_trits],
+            int(sign),
+            bool(is_zero),
+        )
 
     def encode_sensory_stream(
         self,
@@ -467,10 +479,8 @@ class ModularColumnSubstrate:
         self,
         raw: bytes,
         version: Optional[int] = None,
-        field_present: Optional[bool] = None,
-        layout: Optional[str] = None,
     ) -> None:
-        """Import sparse conductances with fail-closed binary verification and explicit predecessor migration."""
+        """Import sparse conductances with fail-closed binary verification (current format ARCLOOM4 only)."""
         if not raw or len(raw) < 8:
             raise ValueError("Raw state byte stream is empty or truncated")
 
@@ -482,22 +492,26 @@ class ModularColumnSubstrate:
                 self.substrate.import_sparse_v4(raw)
             else:
                 self.substrate.import_sparse(raw)
-        elif magic == b"ARCLOOM3":
-            if version is not None and version != 3:
-                raise ValueError(f"Magic ARCLOOM3 conflicts with requested version {version}")
-            if hasattr(self.substrate, "migrate_predecessor_v3"):
-                self.substrate.migrate_predecessor_v3(raw, field_present)
-            else:
-                raise NotImplementedError("Historical predecessor v3 migration is not supported on this substrate")
-        elif magic == b"ARCLOOM2":
-            if version is not None and version != 2:
-                raise ValueError(f"Magic ARCLOOM2 conflicts with requested version {version}")
-            if hasattr(self.substrate, "migrate_predecessor_v2"):
-                self.substrate.migrate_predecessor_v2(raw, layout)
-            else:
-                raise NotImplementedError("Historical predecessor v2 migration is not supported on this substrate")
+        elif magic in (b"ARCLOOM2", b"ARCLOOM3"):
+            raise ValueError(
+                f"Historical predecessor format {magic.decode('ascii', errors='replace')} detected. "
+                "Historical checkpoints cannot be imported via import_sparse_bytes; call "
+                "migrate_predecessor_v2() or migrate_predecessor_v3() explicitly with authenticated layout metadata."
+            )
         else:
             raise ValueError(f"Unknown or unsupported ArcLoom magic header: {magic}")
+
+    def migrate_predecessor_v2(self, raw: bytes, layout: str) -> None:
+        """Explicitly migrate an ARCLOOM2 predecessor payload into this substrate with required layout metadata."""
+        if not hasattr(self.substrate, "migrate_predecessor_v2"):
+            raise NotImplementedError("Underlying native substrate does not support migrate_predecessor_v2")
+        self.substrate.migrate_predecessor_v2(raw, layout=layout)
+
+    def migrate_predecessor_v3(self, raw: bytes, layout: str, field_present: Optional[bool] = None) -> None:
+        """Explicitly migrate an ARCLOOM3 predecessor payload into this substrate with required layout metadata."""
+        if not hasattr(self.substrate, "migrate_predecessor_v3"):
+            raise NotImplementedError("Underlying native substrate does not support migrate_predecessor_v3")
+        self.substrate.migrate_predecessor_v3(raw, layout=layout, field_present=field_present)
 
     def to_dict(self) -> dict:
         """Serialize substrate configuration and sparse conductances for persistent body storage."""
@@ -517,15 +531,18 @@ class ModularColumnSubstrate:
     def from_dict(cls, data: dict, force_columns: Optional[int] = None) -> ModularColumnSubstrate:
         """
         Reconstitute substrate from serialized body dictionary with fail-closed binary verification.
-        Preserves column dimension unless explicitly instructed.
+        Strictly requires current ARCLOOM4 format. Historical formats must be migrated via migrate_predecessor_dict.
         """
         sparse_hex = data.get("sparse_hex")
         if not sparse_hex or not isinstance(sparse_hex, str) or len(sparse_hex.strip()) == 0:
             raise ValueError("missing or empty sparse_hex payload: cannot restore without valid state payload")
 
         fmt = str(data.get("format", "ARCLOOM4")).strip()
-        if fmt not in ("ARCLOOM2", "ARCLOOM3", "ARCLOOM4"):
-            raise ValueError(f"Unsupported format: {fmt}")
+        if fmt != "ARCLOOM4":
+            raise ValueError(
+                f"from_dict only accepts current format ARCLOOM4, got '{fmt}'. "
+                "Predecessor checkpoints must be migrated explicitly via migrate_predecessor_dict()."
+            )
 
         num_cols = force_columns if force_columns is not None else int(data.get("num_columns", 64))
         sub = cls(
@@ -535,10 +552,47 @@ class ModularColumnSubstrate:
             columns=num_cols,
         )
         raw = bytes.fromhex(sparse_hex.strip())
+        sub.import_sparse_bytes(raw, version=4)
+        return sub
+
+    @classmethod
+    def migrate_predecessor_dict(
+        cls,
+        data: dict,
+        layout: str,
+        field_present: Optional[bool] = None,
+        force_columns: Optional[int] = None,
+    ) -> ModularColumnSubstrate:
+        """
+        Explicit authenticated one-time migration of historical predecessor checkpoints (ARCLOOM2 or ARCLOOM3).
+        Requires explicit layout provenance; returns current-format substrate instance.
+        """
+        sparse_hex = data.get("sparse_hex")
+        if not sparse_hex or not isinstance(sparse_hex, str) or len(sparse_hex.strip()) == 0:
+            raise ValueError("missing or empty sparse_hex payload: cannot migrate without valid state payload")
+
+        raw = bytes.fromhex(sparse_hex.strip())
+        fmt = str(data.get("format", "")).strip()
+        if not fmt and len(raw) >= 8:
+            magic = raw[:8]
+            if magic in (b"ARCLOOM2", b"ARCLOOM3"):
+                fmt = magic.decode("ascii", errors="replace")
+
+        if fmt not in ("ARCLOOM2", "ARCLOOM3"):
+            raise ValueError(f"migrate_predecessor_dict requires predecessor format ARCLOOM2 or ARCLOOM3, got '{fmt}'")
+
+        if not layout or not isinstance(layout, str):
+            raise ValueError("Predecessor migration requires explicit authenticated layout provenance")
+
+        num_cols = force_columns if force_columns is not None else int(data.get("num_columns", 64))
+        sub = cls(
+            yield_threshold=float(data.get("yield_threshold", 0.60)),
+            plastic_rate=float(data.get("plastic_rate", 0.03)),
+            activation_threshold=float(data.get("activation_threshold", 0.25)),
+            columns=num_cols,
+        )
         if fmt == "ARCLOOM2":
-            sub.import_sparse_bytes(raw, version=2)
-        elif fmt == "ARCLOOM3":
-            sub.import_sparse_bytes(raw, version=3)
-        else:
-            sub.import_sparse_bytes(raw, version=4)
+            sub.substrate.migrate_predecessor_v2(raw, layout=layout)
+        else: # ARCLOOM3
+            sub.substrate.migrate_predecessor_v3(raw, layout=layout, field_present=field_present)
         return sub

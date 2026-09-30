@@ -217,15 +217,16 @@ def test_witness_a6_03_authentic_predecessor_migration_and_strict_codec() -> Non
     # Predecessor cb69d23ea migration into TWO differently configured recipients:
     # Recipient 1: defaults (0.60, 0.03, 0.25)
     sub_r1 = ModularColumnSubstrate(columns=64, yield_threshold=0.60, plastic_rate=0.03, activation_threshold=0.25)
-    sub_r1.import_sparse_bytes(cb69_bytes, version=2)
+    sub_r1.migrate_predecessor_v2(cb69_bytes, layout="24B")
 
     # Recipient 2: disparate config (0.40, 0.10, 0.10)
     sub_r2 = ModularColumnSubstrate(columns=64, yield_threshold=0.40, plastic_rate=0.10, activation_threshold=0.10)
-    sub_r2.import_sparse_bytes(cb69_bytes, version=2)
+    sub_r2.migrate_predecessor_v2(cb69_bytes, layout="24B")
 
     # Verify recipient-independent migration: identical active synapses, identical efferents
-    assert sub_r1.active_synapses() > 0, "cb69d23ea migration must restore active conductances"
-    assert sub_r1.active_synapses() == sub_r2.active_synapses()
+    pre_step_syn = sub_r1.active_synapses()
+    assert pre_step_syn > 0, "cb69d23ea migration must restore active conductances"
+    assert pre_step_syn == sub_r2.active_synapses()
     assert sub_r1.get_motor_efferent() == sub_r2.get_motor_efferent()
 
     # Step both with identical test probe: must produce identical next transitions
@@ -235,7 +236,7 @@ def test_witness_a6_03_authentic_predecessor_migration_and_strict_codec() -> Non
 
     # Predecessor 8c3244cb3 migration (36-byte column headers)
     sub_8c32 = ModularColumnSubstrate(columns=64)
-    sub_8c32.import_sparse_bytes(hist_8c32_bytes, version=2)
+    sub_8c32.migrate_predecessor_v2(hist_8c32_bytes, layout="36B")
     assert sub_8c32.active_synapses() > 0, "8c3244cb3 migration must restore active conductances"
 
     # 2. ARCLOOM4 explicit presence tracking: present-zero vs unavailable
@@ -336,7 +337,30 @@ def test_witness_a6_04_full_continuous_joint_field_f64_participation() -> None:
     """
     sub64 = ModularColumnSubstrate(columns=64)
 
-    # 1. IEEE-754 binary64 precision preservation with genuinely collapsing binary32 pair
+    # 1. MathLoom exact rational balanced ternary integer decomposition & bit reconstruction
+    test_vectors = [
+        0.0, -0.0, 0.5, 0.6, 0.9, 1.0, 2.0,
+        1e-18, 1e-300, 5e-324, 1e100, 1.79e308,
+        -0.5, -2.0, -1e-18, -1e50,
+    ]
+    trit_sequences = {}
+    for val in test_vectors:
+        num, den, sign, is_z = ModularColumnSubstrate.float_to_rational_trits(val)
+        reconstructed = ModularColumnSubstrate.rational_trits_to_float(num, den, sign, is_z)
+
+        orig_bits = struct.unpack(">Q", struct.pack(">d", val))[0]
+        rec_bits = struct.unpack(">Q", struct.pack(">d", reconstructed))[0]
+        assert orig_bits == rec_bits, f"Bit mismatch for {val}: orig {hex(orig_bits)} != rec {hex(rec_bits)}"
+
+        if val in (0.5, 0.6, 0.9, 1.0, 2.0):
+            trit_sequences[val] = (tuple(num), tuple(den))
+
+    assert trit_sequences[0.5] == ((1,), (-1, 1))
+    assert trit_sequences[1.0] == ((1,), (1,))
+    assert trit_sequences[2.0] == ((-1, 1), (1,))
+    assert len(set(trit_sequences.values())) == 5, "0.5, 0.6, 0.9, 1.0, 2.0 must produce distinct representations"
+
+    # 2. IEEE-754 binary64 precision preservation with genuinely collapsing binary32 pair
     val_a = 0.4
     val_b = float(np.nextafter(np.float64(0.4), np.float64(np.inf)))
 

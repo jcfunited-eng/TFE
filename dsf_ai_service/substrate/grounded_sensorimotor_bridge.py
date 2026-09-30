@@ -158,11 +158,16 @@ class GroundedSensorimotorBridge:
           5. Return settled physical state manifest.
         """
         # Mount authoritative continuous joint field directly into native substrate
-        if hasattr(self.substrate, "consume_continuous_joint_field") and len(telemetry.dsf_invariants) >= 8:
+        if not hasattr(self.substrate, "consume_continuous_joint_field"):
+            raise RuntimeError("Substrate lacks native consume_continuous_joint_field capability")
+
+        if telemetry.dsf_invariants and len(telemetry.dsf_invariants) >= 8:
             self.substrate.consume_continuous_joint_field(
                 telemetry.dsf_invariants[:7],
                 telemetry.dsf_invariants[7],
             )
+        else:
+            self.substrate.clear_continuous_joint_field()
 
         sens_trits, som_trits = self.transduce_telemetry(telemetry)
 

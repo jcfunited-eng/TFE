@@ -146,8 +146,8 @@ def test_sleep_consolidation_and_pruning() -> None:
     assert decayed > 0
     assert pruned == 0
 
-    # 2. Competitive prune: prune conductances below 0.60
-    decayed2, pruned2 = substrate.sleep_consolidation(decay=0.0, prune_thresh=0.60)
+    # 2. Competitive prune: prune conductances below 0.70
+    decayed2, pruned2 = substrate.sleep_consolidation(decay=0.0, prune_thresh=0.70)
     assert pruned2 > 0
     post_sleep_synapses = substrate.active_synapses()
     assert post_sleep_synapses < pre_sleep_synapses

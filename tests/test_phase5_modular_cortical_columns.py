@@ -143,8 +143,8 @@ def test_sleep_consolidation_and_pruning() -> None:
     assert decayed > 0
     assert pruned == 0
 
-    # 2. Competitive prune: prune conductances below 0.60
-    decayed2, pruned2 = substrate.sleep_consolidation(decay=0.0, prune_thresh=0.60)
+    # 2. Competitive prune: prune conductances below 0.70
+    decayed2, pruned2 = substrate.sleep_consolidation(decay=0.0, prune_thresh=0.70)
     assert pruned2 > 0
     post_sleep_synapses = substrate.active_synapses()
     assert post_sleep_synapses < pre_sleep_synapses
@@ -161,7 +161,7 @@ def test_sparse_export_deterministic_structure() -> None:
     # Initial state has no active synapses, but exports full ARCLOOM state container
     empty_bytes = substrate.export_sparse()
     assert len(empty_bytes) > 0
-    assert empty_bytes[:8] in (b"ARCLOOM2", b"ARCLOOM3")
+    assert empty_bytes[:8] in (b"ARCLOOM2", b"ARCLOOM3", b"ARCLOOM4")
     assert len(empty_bytes) % 8 == 0
 
     # Drive activity to induce inter-column plasticity
