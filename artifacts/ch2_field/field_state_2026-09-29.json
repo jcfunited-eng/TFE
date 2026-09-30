@@ -1,0 +1,25 @@
+{
+ "asof": "2026-09-29",
+ "field_long": false,
+ "priority": 9,
+ "bear(slow120<0.5)": true,
+ "slow120": 0.4989,
+ "phase": "CHARGING",
+ "polarity20": "DOWN",
+ "releasing": 0.0471,
+ "releasing_band": "LO",
+ "rel_up": 0.324,
+ "rel_up_band": "LO",
+ "storing": 0.7231,
+ "temperature": 0.712,
+ "epic_day": false,
+ "epic_window": false,
+ "rules": {
+  "epic": false,
+  "down_release": false,
+  "charging_quiet": true
+ },
+ "eligible_names": 492,
+ "tradeable_names": 2355,
+ "seconds": 57.6
+}
