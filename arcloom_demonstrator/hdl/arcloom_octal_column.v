@@ -219,10 +219,9 @@ module arcloom_octal_column #(
                 end
             end
             
-            // Tally active yielded synapses (|g| >= 4)
+            // Tally active yielded synapses (|g| >= 4) without arbitrary additive constants
             total_active_synapses <= (fasciculi_conductance[0][2] > 8'sd4 ? 16'd1 : 16'd0) +
-                                     (fasciculi_conductance[5][6] > 8'sd4 ? 16'd1 : 16'd0) +
-                                     16'd128; // Baseline columnar minicolumn junctions
+                                     (fasciculi_conductance[5][6] > 8'sd4 ? 16'd1 : 16'd0);
         end
     end
 

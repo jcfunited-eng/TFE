@@ -2,9 +2,9 @@
 # ==============================================================================
 # arcloom_demonstrator/setup.sh
 #
-# Standalone Clean-Room Bootstrap for ArcLoom Neuromorphic Demonstrator
-# Completely Air-Gapped: Zero External Repositories, Zero Financial Files
-# Standard: Strict Physical Determinism, Continuum Mechanics, Verilog Hardware
+# Standalone Bootstrap for ArcLoom Neuromorphic Demonstrator
+# Portable Evaluation Package: Zero Financial Files, Standalone Package
+# Dependencies: Standard C Toolchain, Rust/Cargo, Python 3.10+, PyO3, num-complex
 # ==============================================================================
 
 set -euo pipefail
@@ -14,21 +14,21 @@ cd "$DIR"
 
 echo "======================================================================"
 echo "    ARCLOOM TERNARY NEUROMORPHIC HARDWARE DEMONSTRATOR"
-echo "    Clean-Room Standalone Setup (DARPA / AFRL Evaluation Package)"
+echo "    Standalone Setup & Verification (DARPA / AFRL Evaluation Package)"
 echo "======================================================================"
 
 # 1. Check Platform
 echo "[*] Verifying host environment: $(uname -s) $(uname -m)"
 
-# 2. Check/Install Core Build Dependencies if running on Debian/Ubuntu
+# 2. Check/Install Core Build Dependencies if running on Debian/Ubuntu with network access
 if command -v apt-get >/dev/null 2>&1 && [ "${EUID:-$(id -u)}" -eq 0 ]; then
-    echo "[*] Updating system packages..."
+    echo "[*] Ensuring system build packages (build-essential, python3, curl)..."
     apt-get update -y && apt-get install -y build-essential python3 python3-pip python3-venv curl
 fi
 
 # 3. Check Rust Toolchain
 if ! command -v cargo >/dev/null 2>&1; then
-    echo "[*] Installing Rust toolchain (stable)..."
+    echo "[*] Cargo not found. Bootstrapping Rust toolchain (stable)..."
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     # shellcheck disable=SC1091
     source "$HOME/.cargo/env"
@@ -47,7 +47,7 @@ echo "[*] Activating virtual environment..."
 source .venv/bin/activate
 
 # 5. Install Minimal Compilation & Numeric Dependencies (Zero ML)
-echo "[*] Installing build requirements..."
+echo "[*] Installing build requirements (maturin, pytest, numpy)..."
 pip install --upgrade pip
 pip install maturin pytest numpy
 
@@ -56,15 +56,12 @@ echo "[*] Compiling guala_core native SIMD substrate (Release mode)..."
 maturin develop --release --manifest-path native/guala_core/Cargo.toml
 
 # 7. Run Invariant Verification Tests
-echo "[*] Executing Invariant Verification Suite..."
+echo "[*] Executing Demonstrator Invariant Verification Suite..."
 pytest -q tests/test_octal_column_invariants.py
 
-# 8. Run Physical Benchmarks
-echo "[*] Executing Physical Invariant & Timing Benchmarks..."
-python3 benchmark_octal_substrate.py
-
+echo ""
 echo "======================================================================"
-echo "    SETUP SUCCESSFUL: 100% PHYSICAL INVARIANTS VERIFIED"
-echo "    To launch the interactive console demonstrator, run:"
-echo "        source .venv/bin/activate && python3 run_demonstrator.py"
+echo "    ARCLOOM DEMONSTRATOR READY FOR EVALUATION"
+echo "    Run: python3 run_demonstrator.py"
+echo "    Run: python3 benchmark_octal_substrate.py"
 echo "======================================================================"

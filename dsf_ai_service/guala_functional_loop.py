@@ -570,6 +570,7 @@ class FunctionalPhysicalLoop:
                 "her_moment": organism.moment,
                 "spatial_tracking": list(organism.spatial_tracking),
                 "barrier_refusal_active": organism.barrier_refusal_active,
+                "motor_efferent": list(organism.motor_efferent),
                 "kernel_novel": decision.novel,
                 "kernel_signature": decision.signature,
                 "latest_retinal_field_kind": "external-rgb" if external_rgb is not None else "world-rgb",

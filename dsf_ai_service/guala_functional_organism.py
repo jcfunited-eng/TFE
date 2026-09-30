@@ -1872,6 +1872,11 @@ class FunctionalOrganism:
         return self._modular_substrate.is_barrier_refusal_active()
 
     @property
+    def motor_efferent(self) -> tuple[float, ...]:
+        """Causal motor efferents from Layer 5 motor pyramidal columns: (vocal, stride, steer, grip)."""
+        return self._modular_substrate.get_motor_efferent()
+
+    @property
     def conserved_objects(self) -> dict[str, Any]:
         """Cognitive Asset 4: The topological spatial conservation register of unobserved and observed entities."""
         return dict(self._state.get("conserved_objects") or {})
@@ -2711,6 +2716,12 @@ class FunctionalOrganism:
         t_delta = (float(t_surf - 310_000) / 10_000.0) if t_surf is not None else float(measures.get("touch_warmth", 0.0) - 0.5)
         som_trits = self._ternary_substrate.encode_somatic_field(c_load, t_delta)
         eff_trits = [0] * 256
+        dsf_info = self._last_dsf_states.get("hunger") if hasattr(self, "_last_dsf_states") else None
+        dsf_vec = (
+            dsf_info["D_k"], dsf_info["M_k"], dsf_info["R_rev_k"],
+            dsf_info["U_star_k"], dsf_info["C_k"], dsf_info["P_k"],
+            dsf_info["B_k"], dsf_info["S_UF"]
+        ) if dsf_info is not None else None
         if said:
             o_idx, v_idx, p_idx = None, None, None
             for oi, o_name in enumerate(ONSETS):
@@ -2722,12 +2733,6 @@ class FunctionalOrganism:
                             v_idx = vi
                             break
                     break
-            dsf_info = self._last_dsf_states.get("hunger") if hasattr(self, "_last_dsf_states") else None
-            dsf_vec = (
-                dsf_info["D_k"], dsf_info["M_k"], dsf_info["R_rev_k"],
-                dsf_info["U_star_k"], dsf_info["C_k"], dsf_info["P_k"],
-                dsf_info["B_k"], dsf_info["S_UF"]
-            ) if dsf_info is not None else None
             eff_trits = self._ternary_substrate.encode_dsf_and_efferents(
                 dsf_vector=dsf_vec, onset_idx=o_idx, vowel_idx=v_idx, pitch_idx=p_idx
             )
@@ -2737,10 +2742,9 @@ class FunctionalOrganism:
         if sparse_k and has_event:
             self._ternary_substrate.present_experience(mm_vec)
             self._sync_ternary_substrate()
-            self._sync_modular_substrate()
             self._last_sparse_krimelack = sparse_k
 
-        # Step 4-Column 3D Modular Neuromorphic Substrate
+        # Step Modular Neuromorphic Substrate (Full Continuous DSF Delivery)
         polar = getattr(self, "_last_target_polar", None)
         obs_r, obs_th = (polar[0], polar[1]) if polar is not None else (None, None)
         sens_64 = self._modular_substrate.encode_sensory_stream(
@@ -2748,7 +2752,7 @@ class FunctionalOrganism:
             cochlear_channels=envs if envs else None,
             palmar_contact=c_load,
             thermal_gradient_mk=float(t_surf - 310_000) if t_surf is not None else float(measures.get("touch_warmth", 0.0) - 0.5) * 10_000.0,
-            dsf_vector=dsf_vec if (said and dsf_vec is not None) else None,
+            dsf_vector=dsf_vec,
         )
         som_32 = self._modular_substrate.encode_somatic_apical(
             sleep_pressure=float(state.get("sleep_pressure", 0)) / 100.0,
@@ -2763,6 +2767,7 @@ class FunctionalOrganism:
             observed_theta_mdeg=obs_th,
             barrier_stress=barrier_stress,
         )
+        self._sync_modular_substrate()
 
         if not closed:
             last_moment_id = state.get("last_moment", [None])[0] if state.get("last_moment") else None

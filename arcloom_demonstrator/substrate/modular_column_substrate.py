@@ -1,4 +1,4 @@
-"""dsf_ai_service/substrate/modular_column_substrate.py
+"""arcloom_demonstrator/substrate/modular_column_substrate.py
 
 ArcLoom Neuromorphic Substrate: Modular Cortical Column Substrate (4D, 8D, and 64D).
 
@@ -33,6 +33,36 @@ from guala_core import ModularSubstrate4D, ModularSubstrate8D, ModularSubstrate6
 
 L4_AFFERENT_NODES = 64
 L1_APICAL_NODES = 32
+
+# Discrete quantum levels for radix-3 balanced ternary expansion: (2*t1 + t2)/3
+# Maps continuous interval [-1.0, 1.0] onto 7 discrete levels: {-1.0, -0.67, -0.33, 0.0, +0.33, +0.67, +1.0}
+_RADIX3_TABLE = [
+    (-1, -1, -1.0),
+    (-1,  0, -2.0 / 3.0),
+    (-1,  1, -1.0 / 3.0),
+    ( 0, -1, -1.0 / 3.0),
+    ( 0,  0,  0.0),
+    ( 0,  1,  1.0 / 3.0),
+    ( 1, -1,  1.0 / 3.0),
+    ( 1,  0,  2.0 / 3.0),
+    ( 1,  1,  1.0),
+]
+
+
+def _quantize_radix3_signed(x: float) -> Tuple[int, int]:
+    """
+    Quantize signed continuous invariant [-1.0, 1.0] to 2 balanced trits
+    via radix-3 fractional ternary expansion: x ~ (2*t1 + t2)/3.
+    """
+    x_clamped = min(max(float(x), -1.0), 1.0)
+    best_dist = float("inf")
+    best_pair = (0, 0)
+    for t1, t2, val in _RADIX3_TABLE:
+        dist = abs(x_clamped - val)
+        if dist < best_dist:
+            best_dist = dist
+            best_pair = (t1, t2)
+    return best_pair
 
 
 class ModularColumnSubstrate:
@@ -129,20 +159,18 @@ class ModularColumnSubstrate:
             for i in range(8):
                 trits[40 + i] = val
 
-        # 4. DSF kernel invariants (Nodes 48..63)
+        # 4. DSF kernel invariants (Nodes 48..63) via exact balanced ternary radix-3 expansion
         if dsf_vector is not None and len(dsf_vector) >= 8:
             for inv_idx, val in enumerate(dsf_vector[:8]):
                 start_n = 48 + inv_idx * 2
-                if inv_idx in (0, 1):  # D_k, M_k signed [-1, +1]
-                    if val > 0.20:
-                        trits[start_n] = 1
-                    elif val < -0.20:
-                        trits[start_n] = -1
-                else:  # R_rev, U*, C_k, P_k, B_k, S_UF in [0, 1]
-                    if val > 0.50:
-                        trits[start_n] = 1
-                    elif val < 0.20:
-                        trits[start_n] = -1
+                v = float(val)
+                if inv_idx in (0, 1):  # D_k, M_k signed in [-1.0, 1.0]
+                    t1, t2 = _quantize_radix3_signed(v)
+                else:  # R_rev, U*, C_k, P_k, B_k, S_UF unsigned in [0.0, 1.0]
+                    # Direct affine mapping of [0, 1] onto [-1, 1] for balanced ternary representation
+                    t1, t2 = _quantize_radix3_signed(2.0 * min(max(v, 0.0), 1.0) - 1.0)
+                trits[start_n] = t1
+                trits[start_n + 1] = t2
 
         return trits
 
@@ -282,6 +310,7 @@ class ModularColumnSubstrate:
         """Serialize substrate configuration and sparse conductances for persistent body storage."""
         raw_bytes = self.export_sparse_bytes()
         return {
+            "format": "ARCLOOM2",
             "num_columns": self.num_columns,
             "yield_threshold": self.yield_threshold,
             "plastic_rate": self.plastic_rate,
@@ -291,8 +320,11 @@ class ModularColumnSubstrate:
         }
 
     @classmethod
-    def from_dict(cls, data: dict, force_columns: Optional[int] = 64) -> ModularColumnSubstrate:
-        """Reconstitute substrate from serialized body dictionary (defaults to upgrading to 64 columns)."""
+    def from_dict(cls, data: dict, force_columns: Optional[int] = None) -> ModularColumnSubstrate:
+        """
+        Reconstitute substrate from serialized body dictionary with fail-closed binary verification.
+        Preserves column dimension unless explicitly instructed.
+        """
         num_cols = force_columns if force_columns is not None else int(data.get("num_columns", 64))
         sub = cls(
             yield_threshold=float(data.get("yield_threshold", 0.60)),
@@ -301,9 +333,8 @@ class ModularColumnSubstrate:
             columns=num_cols,
         )
         if "sparse_hex" in data and data["sparse_hex"]:
-            try:
-                raw = bytes.fromhex(data["sparse_hex"])
+            raw = bytes.fromhex(data["sparse_hex"])
+            if len(raw) > 0:
                 sub.substrate.import_sparse(raw)
-            except Exception:
-                pass
         return sub
+
