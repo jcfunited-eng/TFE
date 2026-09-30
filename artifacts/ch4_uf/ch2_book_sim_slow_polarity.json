@@ -1,0 +1,278 @@
+{
+ "epic window only": {
+  "2022": {
+   "trades": 350.0,
+   "win_rate": 0.5846375,
+   "net_pnl": 10118.125,
+   "return_on_100k_pct": 10.11625
+  },
+  "2023": {
+   "trades": 50.0,
+   "win_rate": 0.7675000000000001,
+   "net_pnl": 3311.0,
+   "return_on_100k_pct": 3.3100000000000005
+  },
+  "2024": {
+   "trades": 150.0,
+   "win_rate": 0.6400125000000001,
+   "net_pnl": 5492.875,
+   "return_on_100k_pct": 5.4925
+  },
+  "2025": {
+   "trades": 100.0,
+   "win_rate": 0.7575000000000001,
+   "net_pnl": 8881.375,
+   "return_on_100k_pct": 8.881250000000001
+  }
+ },
+ "field-wide down-release only": {
+  "2022": {
+   "trades": 200.0,
+   "win_rate": 0.471875,
+   "net_pnl": -277.5,
+   "return_on_100k_pct": -0.27625
+  },
+  "2023": {
+   "trades": 150.0,
+   "win_rate": 0.545825,
+   "net_pnl": 1999.75,
+   "return_on_100k_pct": 2.0
+  },
+  "2024": {
+   "trades": 250.0,
+   "win_rate": 0.5335000000000001,
+   "net_pnl": 5027.75,
+   "return_on_100k_pct": 5.0287500000000005
+  },
+  "2025": {
+   "trades": 250.0,
+   "win_rate": 0.552,
+   "net_pnl": 1978.75,
+   "return_on_100k_pct": 1.97875
+  },
+  "2026": {
+   "trades": 250.0,
+   "win_rate": 0.5630000000000001,
+   "net_pnl": 8226.625,
+   "return_on_100k_pct": 8.227500000000001
+  }
+ },
+ "charging & quiet only": {
+  "2022": {
+   "trades": 500.0,
+   "win_rate": 0.50975,
+   "net_pnl": 3094.25,
+   "return_on_100k_pct": 3.0949999999999998
+  },
+  "2023": {
+   "trades": 100.0,
+   "win_rate": 0.54375,
+   "net_pnl": 1120.375,
+   "return_on_100k_pct": 1.12
+  },
+  "2024": {
+   "trades": 100.0,
+   "win_rate": 0.66125,
+   "net_pnl": 5203.25,
+   "return_on_100k_pct": 5.20375
+  },
+  "2025": {
+   "trades": 200.0,
+   "win_rate": 0.79375,
+   "net_pnl": 19352.25,
+   "return_on_100k_pct": 19.35375
+  },
+  "2026": {
+   "trades": 100.0,
+   "win_rate": 0.5762499999999999,
+   "net_pnl": 3922.0,
+   "return_on_100k_pct": 3.9212499999999997
+  }
+ },
+ "F (all fast rules)": {
+  "2022": {
+   "trades": 750.0,
+   "win_rate": 0.4578375,
+   "net_pnl": -6614.375,
+   "return_on_100k_pct": -6.61375
+  },
+  "2023": {
+   "trades": 300.0,
+   "win_rate": 0.5783125,
+   "net_pnl": 6409.75,
+   "return_on_100k_pct": 6.40875
+  },
+  "2024": {
+   "trades": 450.0,
+   "win_rate": 0.600575,
+   "net_pnl": 13336.25,
+   "return_on_100k_pct": 13.335
+  },
+  "2025": {
+   "trades": 450.0,
+   "win_rate": 0.660575,
+   "net_pnl": 22709.0,
+   "return_on_100k_pct": 22.71
+  },
+  "2026": {
+   "trades": 250.0,
+   "win_rate": 0.5465,
+   "net_pnl": 8798.0,
+   "return_on_100k_pct": 8.79875
+  }
+ },
+ "F, slow60 UP only": {
+  "2022": {
+   "trades": 100.0,
+   "win_rate": 0.18875,
+   "net_pnl": -9107.875,
+   "return_on_100k_pct": -9.1075
+  },
+  "2023": {
+   "trades": 250.0,
+   "win_rate": 0.546,
+   "net_pnl": 2845.75,
+   "return_on_100k_pct": 2.845
+  },
+  "2024": {
+   "trades": 250.0,
+   "win_rate": 0.5315000000000001,
+   "net_pnl": 2225.625,
+   "return_on_100k_pct": 2.225
+  },
+  "2025": {
+   "trades": 200.0,
+   "win_rate": 0.6443749999999999,
+   "net_pnl": 10988.375,
+   "return_on_100k_pct": 10.99125
+  },
+  "2026": {
+   "trades": 200.0,
+   "win_rate": 0.46125,
+   "net_pnl": -654.125,
+   "return_on_100k_pct": -0.655
+  }
+ },
+ "F, slow60 DOWN only": {
+  "2022": {
+   "trades": 700.0,
+   "win_rate": 0.48643749999999997,
+   "net_pnl": -1916.625,
+   "return_on_100k_pct": -1.91625
+  },
+  "2023": {
+   "trades": 50.0,
+   "win_rate": 0.8025,
+   "net_pnl": 3132.625,
+   "return_on_100k_pct": 3.1325
+  },
+  "2024": {
+   "trades": 250.0,
+   "win_rate": 0.6884999999999999,
+   "net_pnl": 14426.5,
+   "return_on_100k_pct": 14.425
+  },
+  "2025": {
+   "trades": 250.0,
+   "win_rate": 0.6789999999999999,
+   "net_pnl": 11898.875,
+   "return_on_100k_pct": 11.9
+  },
+  "2026": {
+   "trades": 150.0,
+   "win_rate": 0.69,
+   "net_pnl": 12151.375,
+   "return_on_100k_pct": 12.15125
+  }
+ },
+ "slow DOWN: epic+D2 only; slow UP: all fast rules": {
+  "2022": {
+   "trades": 500.0,
+   "win_rate": 0.43725,
+   "net_pnl": -8888.25,
+   "return_on_100k_pct": -8.89
+  },
+  "2023": {
+   "trades": 300.0,
+   "win_rate": 0.5862375,
+   "net_pnl": 6904.875,
+   "return_on_100k_pct": 6.90625
+  },
+  "2024": {
+   "trades": 400.0,
+   "win_rate": 0.5775,
+   "net_pnl": 10502.375,
+   "return_on_100k_pct": 10.502500000000001
+  },
+  "2025": {
+   "trades": 400.0,
+   "win_rate": 0.6443749999999999,
+   "net_pnl": 16593.625,
+   "return_on_100k_pct": 16.595
+  },
+  "2026": {
+   "trades": 250.0,
+   "win_rate": 0.5595000000000001,
+   "net_pnl": 10122.125,
+   "return_on_100k_pct": 10.12125
+  }
+ },
+ "slow120 UP: all fast; slow120 DOWN: epic only": {
+  "2022": {
+   "trades": 400.0,
+   "win_rate": 0.54125,
+   "net_pnl": 7695.625,
+   "return_on_100k_pct": 7.6975
+  },
+  "2023": {
+   "trades": 200.0,
+   "win_rate": 0.6018749999999999,
+   "net_pnl": 5287.75,
+   "return_on_100k_pct": 5.28875
+  },
+  "2024": {
+   "trades": 450.0,
+   "win_rate": 0.6041624999999999,
+   "net_pnl": 14102.0,
+   "return_on_100k_pct": 14.10125
+  },
+  "2025": {
+   "trades": 350.0,
+   "win_rate": 0.708925,
+   "net_pnl": 25116.75,
+   "return_on_100k_pct": 25.11625
+  },
+  "2026": {
+   "trades": 250.0,
+   "win_rate": 0.546,
+   "net_pnl": 8005.375,
+   "return_on_100k_pct": 8.004999999999999
+  }
+ },
+ "slow60 UP: P8 only": {
+  "2022": {
+   "trades": 100.0,
+   "win_rate": 0.18875,
+   "net_pnl": -9107.875,
+   "return_on_100k_pct": -9.1075
+  },
+  "2023": {
+   "trades": 100.0,
+   "win_rate": 0.55375,
+   "net_pnl": 944.75,
+   "return_on_100k_pct": 0.9437499999999999
+  },
+  "2025": {
+   "trades": 50.0,
+   "win_rate": 0.8400000000000001,
+   "net_pnl": 5678.375,
+   "return_on_100k_pct": 5.67625
+  },
+  "2026": {
+   "trades": 100.0,
+   "win_rate": 0.54875,
+   "net_pnl": 3680.75,
+   "return_on_100k_pct": 3.68125
+  }
+ }
+}
