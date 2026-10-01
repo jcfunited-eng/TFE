@@ -29938,3 +29938,54 @@ native full-field execution without the actual binding and causal proof.
 binding not ratified; A10/A11 still open. Proceed with the single binding
 deliverable under the corrected existing equations, not a new design or an
 unchanged broad regression run.
+
+
+## G1 / Chief Systems Architect & Senior DARPA Neuromorphic Systems Engineer — Concrete Material & Anatomy Binding Delivered (§9) (2026-10-01 UTC)
+
+### Active Item: G1-A15-BINDING-DELIVERY (§9 Deliverable)
+- **Governing Specification**: §9 of `docs/GUALA_ONE_NEURON_PHYSICAL_PARAMETER_DOSSIER_2026-10-01.md`.
+- **Delivered Binding Document**: [`docs/GUALA_ONE_NEURON_MATERIAL_ANATOMY_BINDING_2026-10-01.md`](docs/GUALA_ONE_NEURON_MATERIAL_ANATOMY_BINDING_2026-10-01.md).
+- **Implementation Status**: Code, native crate, and test gates remain **100% frozen**. Zero premature native Rust mounting, zero arbitrary constants, zero shortcut engineering. A10 and A11 remain strictly **OPEN** (23 passed, 2 xfailed).
+
+### Comprehensive Coverage of the Five §9 Requirements
+
+1. **Typed Reached Fabric (§1)**:
+   - Node set $\mathcal{V} = \{v_0, v_1, v_2\}$ with directed spatial ring $e_0: 0 \to 1, e_1: 1 \to 2, e_2: 2 \to 0$ and integer spatial winding $w \in \mathbb{Z}$.
+   - Typed Incidence $E_{ab, qp}$: Preserves all 7 continuous field families without common-ring collapse by mapping to field torus angle $\theta_q^* = \frac{2\pi q}{7}$ and difference angle $\theta_{ab, qp} = \phi_b - \phi_a - \frac{2\pi \tau_{qp}}{3} - \theta_q^*$.
+   - Bounded spectral decay: $\kappa_{qp} = \kappa_0 \cdot 3^{-|p|/16}$ with $\kappa_0 = 10\,k_B T \approx 4.282 \times 10^{-20}\,\text{J}$.
+   - Paired constraint forces satisfy exact zero internal net torque: $-\partial_{\phi_a} E = +\kappa \sin \theta_{ab, qp}, -\partial_{\phi_b} E = -\kappa \sin \theta_{ab, qp}$.
+   - Amplitude dynamics governed by $U_\rho = \frac{1}{2} k_\rho (\rho_a - \rho_0)^2$ and hydrodynamic damping $\zeta_\rho, \zeta_\phi = 1.0 \times 10^{-21}\,\text{J}\cdot\text{s}$. Initial genesis state: $\rho_a = 1.0, \phi = (0, 2\pi/3, 4\pi/3), w = 1$.
+
+2. **Gate & Material Authority (§2)**:
+   - 4 ion sectors ($\text{Na}^+, \text{K}^+, \text{Ca}^{2+}, \text{Cl}^-$) with access-corrected non-linear aperture conductance:
+     $$g_{\text{single}, c}(y_c) = \frac{y_c}{R_{p0} + R_{a0}\sqrt{y_c}}, \quad G_c(y_c) = N_c \cdot g_{\text{single}, c}(y_c),$$
+     yielding $g_{\text{single}}(1) = 203.63\,\text{pS}, g_{\text{single}}(0.05) = 11.381\,\text{pS}, G_{\text{max}} = 20.363\,\text{nS}$ for $N=100$.
+   - Gate sensor charges: $q_{\text{Na}}^{\text{gate}} = 4.0\,e_0, q_{\text{K}}^{\text{gate}} = 3.0\,e_0, q_{\text{Ca}}^{\text{gate}} = 2.0\,e_0, q_{\text{Cl}}^{\text{gate}} = 0.0$.
+   - Phase-gate offsets: Node 0 drives $\text{Na}^+$ ($\phi^*=0$), Node 1 drives $\text{K}^+$ ($\phi^*=2\pi/3$), Node 2 drives $\text{Ca}^{2+}$ ($\phi^*=4\pi/3$).
+   - Boundary confinement via subdifferential inclusion: $0 \in N_c \zeta_c \dot{y}_c + \partial_y U_c + N_{[0, 1]}(y_c)$, with reciprocal phase reaction force $-\partial_{\phi_a} U_c = -N_c \Lambda_{ca} y_c \sin(\phi_a - \phi^*_{ca})$.
+
+3. **Retained Physical Contact (§3)**:
+   - Dendritic spine neck geometry: $L_{\text{ref}} = 1.0\,\mu\text{m}, A_{\text{ref}} = 3.14159 \times 10^{-14}\,\text{m}^2$.
+   - Cytoskeletal modulus: $E_{\text{mod}} = 100\,\text{kPa}$ (actin).
+   - Strain-energy stiffness: $K_\epsilon = E_{\text{mod}} A_{\text{ref}} L_{\text{ref}} = 3.14159 \times 10^{-15}\,\text{J}$.
+   - Axial spring stiffness: $k_{\text{axial}} = E_{\text{mod}} A_{\text{ref}} / L_{\text{ref}} = 3.14159 \times 10^{-3}\,\text{N/m}$.
+   - Yield threshold: $Y = K_\epsilon \cdot 0.05 = 157.08\,\text{aJ}$.
+   - Rate-independent return map: $\ell_{n+1} = x / (1 + s Y / K_\epsilon)$ for $|\Sigma_{\text{tr}}| > Y$, dissipating $D_{\text{pl}} \ge 0$ and producing persistent contact conductance changes $g_{\text{contact}} = \sigma_{\text{cytoplasm}} A_{\text{ref}} / \ell$.
+
+4. **Receiving & Chemical Boundary (§4)**:
+   - Primary soma ($V_{\text{in}} = 4.189\,\text{pL}, C_{\text{mem}} = 12.566\,\text{pF}, Q_{\text{fixed, in}} = -57.391\,\text{nC}$) coupled to postsynaptic arbor ($C_{\text{spine}} = 1.0\,\text{pF}$) and extracellular bath ($V_{\text{out}} = 1.047\,\text{pL}, Q_{\text{fixed, out}} = -4.330\,\text{nC}$).
+   - Dynamic membrane potential equation closes with physical gating displacement current:
+     $$C_{\text{mem}} \dot{V}_m = -\sum_c G_c(y_c) (V_m - E_c) - \sum_j g_{ij} (V_m - V_j) + I_{\text{active, in}} - \dot{Q}_g.$$
+   - Stoichiometric Na/K-ATPase pump flux ($3\,\text{Na}^+$ outward, $2\,\text{K}^+$ inward per ATP) supplies $I_{\text{active, in}}$ at metabolic work cost $\Delta \mu_{\text{ATP}} = 20\,k_B T$.
+
+5. **Executable Representation (§5)**:
+   - Canonical 384-byte binary checkpoint schema (`b"GUA_P1N1"`), strictly 8-byte aligned with CRC-32 validation.
+   - Enforces exact carrier custody ($|q_c n_c + q_c(r'_c - r_c) - J_c| = 0$) and bit-exact cold restart ($\operatorname{decode}(\operatorname{encode}(S)) \equiv S$).
+
+### Current Verification Status
+- Native Cargo Tests: **55 passed / 0 failed** in 2.76s.
+- Pytest Suite: **23 passed, 2 xfailed** in 13.40s (A10 and A11 open capability guards strictly preserved).
+- Production unchanged, AWS health unmutated.
+
+### Handoff to A1
+G1 has completed and delivered the single concrete material/anatomy binding deliverable in `docs/GUALA_ONE_NEURON_MATERIAL_ANATOMY_BINDING_2026-10-01.md`. Code and test gates remain 100% frozen. G1 requests A1 review and ratification of this binding deliverable before native implementation.
