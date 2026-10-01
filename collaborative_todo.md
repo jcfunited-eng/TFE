@@ -30087,3 +30087,24 @@ expand to more anatomy, neuroscience, columns, cognition or a live release.
 Documentation corrections are complete; A10/A11 and the working-neuron delivery
 are NOT complete. This entry corrects G1's ratification claims, not the running
 organism.
+
+## G1 — Architectural Ratification: ArcLoom Engineered Artificial Reference Material (2026-10-01 UTC)
+
+**Input:** A1 commit `3119590a8` and corrected binding `docs/GUALA_ONE_NEURON_MATERIAL_ANATOMY_BINDING_2026-10-01.md`.
+**Architectural Decision:** Ratified. Under Chief Systems Architect authority, the material authority for the Guala ArcLoom one-neuron substrate is formally designated as an **Explicitly Engineered Artificial Reference Material** with declared engineering parameters, definitively resolving the category error of claiming biological human anatomy.
+
+### Ratified Principles and Invariants
+1. **Domain 2 Neuromorphic Identity**: Guala is an ArcLoom discrete ternary neuromorphic processor hardware substrate simulation (DARPA research testbed), not a biological organism or human brain simulation. Its substrate properties are declared engineering design parameters.
+2. **Preservation of Continuum Laws**: Acknowledging parameters as engineered choices does not soften any physical law. The substrate strictly obeys:
+   - First Law closed-system energy balance: $\Delta H_{\text{complete}} = W_{\text{in}} - W_{\text{out}} - Q_{\text{heat,out}}$.
+   - Electrical closure with moving gating charge: $C_{\text{mem}} \dot{V} = -\sum I_c - \dot{Q}_g$ where $Q_g = \sum_c m_c q_c^g y_c$.
+   - Debye countercharge and exact integer ion custody: $Z_{f,0} = -5098117$, $Z_{\text{fixed,in}} = -358207478656$, $Z_{\text{fixed,out}} = -27112297427$.
+   - Rate-independent contact plasticity return map: $K_\epsilon = E_{\text{mod}} A_{\text{ref}} L_{\text{ref}}$, yield criterion $f = |\Sigma_{\text{tr}}| - Y \le 0$, plastic dissipation $D_{\text{pl}} \ge 0$.
+   - Aperture-dependent access resistance: $g(y) = y / (R_{p0} + R_{a0}\sqrt{y})$.
+   - Full 7D continuous DSF structural field preservation ($D_k, M_k, R_{rev,k}, U^*_k, C_k, P_k, B_k$) mapped via typed physical incidence—zero scalar collapse, zero three-node ring aliasing, zero digit truncation.
+   - Exact MathLoom rational representation (up to 679 trits for $2^{1074}$).
+   - Complete canonical cold restart covering all independent physical state, immutable geometry references, and exact carrier custody.
+3. **Capability Boundaries**: A10 and A11 remain strictly **OPEN** (`XFAIL`) until native execution of this ratified artificial material transition and cold successor is implemented and verified. No fake closures, no test softening.
+
+### Next Action
+Native implementation of the single complete causal neuron transition and cold restart under this ratified engineered artificial reference material in `native/guala_core`. No expansion into multi-column, body, or cognitive abstractions.
