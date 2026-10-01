@@ -31113,3 +31113,35 @@ Repairs Executed:
    - `tests/test_audit_demo95_fixes.py`: 3/3 passed (signed pair distinction, non-modulo high powers, refusal kill switch clamp).
    - `native/guala_core` unit tests: 60/60 passed, 0 failures.
    - Comprehensive test suite: 40 passed, 1 xfailed (A11 documented negative control).
+
+### G1 — Audit Response & Repair Delivery: DEMO95-A1-04 (Standalone Package Completeness) — 2026-10-01T19:05Z
+
+Active item: DEMO-REPAIR-95D1-P2. Response to A1 audit finding DEMO95-A1-04.
+
+Architecture gate:
+- Requested architecture: Self-contained standalone demonstrator package containing all claimed native components (`arcloom_neuron.rs`, `exact_carrier.rs`, `cortical_column.rs`, `mathloom.rs`), accurate manifest, focused component test suite, and truthful environment/platform declaration.
+- Current code reality: Delivered and verified. `arcloom_neuron.rs` and `exact_carrier.rs` included in standalone crate, registered in demonstrator's `lib.rs`, verified with 11/11 native cargo tests and 10/10 focused Python component tests. Archive `arcloom_demonstrator_v1.0.tar.gz` repackaged cleanly (26 regular files, zero build cache).
+- Conflict with requested architecture: NO.
+- What exact mechanism or files will not be extended: Unimplemented/retired `constitutive.rs` omitted from manifest; no claims of offline pre-compiled air-gap bundle; truthful declaration of Linux x86_64 POSIX source package.
+- Single exact next item: Real environmental closed-loop return in demo runner (`DEMO95-A1-03`) and truthful hardware/dossier documentation (`DEMO95-A1-05..07`).
+- Evaluation: Standalone package integrity, module graph, PyO3 class registration, and bit-for-bit archive custody.
+- Lost structure: None.
+
+Repairs Executed:
+1. Microscopic Neuron Integration in Standalone Crate:
+   - Added `arcloom_neuron.rs` and `exact_carrier.rs` to `arcloom_demonstrator/native/guala_core/src/`.
+   - Updated `arcloom_demonstrator/native/guala_core/src/mathloom.rs` to ensure `pub(crate) struct Uint1152` visibility matches the primary crate byte-for-byte.
+   - Updated `arcloom_demonstrator/native/guala_core/src/lib.rs` to declare and register `arcloom_neuron::register(m)?`.
+2. Focused Component Test Integration:
+   - Added `arcloom_demonstrator/tests/test_arcloom_engineered_neuron.py` covering First Law thermodynamic balance, exact integer ion custody, and canonical cold restoration.
+   - Updated `arcloom_demonstrator/setup.sh` test command to execute all three demonstrator suites (`test_octal_column_invariants.py`, `test_arcloom_causal_action_witness.py`, and `test_arcloom_engineered_neuron.py`).
+3. Truthful Platform and Distribution Scoping:
+   - Updated `arcloom_demonstrator/README.md` and `setup.sh`:
+     * Accurately labeled as a standalone SOURCE package requiring connected build setup on Linux x86_64 POSIX terminal (termios/tty).
+     * Disclaimed native Windows execution and offline pre-compiled binary bundles.
+     * Cleaned manifest layout to list actual files: `src/{lib,cortical_column,mathloom,arcloom_neuron,exact_carrier}.rs` (omitting non-existent `constitutive.rs`).
+4. Verification Results:
+   - Standalone native cargo tests (`arcloom_demonstrator/native/guala_core`): 11/11 passed, 0 failures.
+   - Standalone pytest suite (`arcloom_demonstrator/tests/`): 29 passed, 1 xfailed (A11).
+   - Parent repository pytest suite: 60 passed, 1 xfailed.
+   - Archive custody contract (`test_arcloom_one_neuron_contract.py`): 7/7 passed.

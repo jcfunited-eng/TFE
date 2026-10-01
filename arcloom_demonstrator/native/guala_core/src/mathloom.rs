@@ -6,7 +6,7 @@
 const MAX_BINARY64_TRITS: usize = 679;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct Uint1152 {
+pub(crate) struct Uint1152 {
     pub limbs: [u64; 18], // 18 * 64 = 1152 bits >= 1075 bits
 }
 
@@ -417,4 +417,3 @@ mod tests {
         assert_eq!(rational(1, 1074).denominator_trits.len(), MAX_BINARY64_TRITS);
     }
 }
-
