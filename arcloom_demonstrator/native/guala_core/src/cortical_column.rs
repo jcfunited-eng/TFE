@@ -2039,7 +2039,7 @@ impl ModularSubstrate64D {
         let mut total_yields = 0usize;
         let mut total_strain = 0.0f32;
 
-        let (in_23, mut in_5) = self.compute_inter_column_currents();
+        let (in_23, in_5) = self.compute_inter_column_currents();
 
         // ---------------------------------------------------------------------------
         // Prefrontal / Structural Field Transduction (Columns 48..63)
@@ -2047,55 +2047,36 @@ impl ModularSubstrate64D {
         let mut prim_aff = [[0i8; L4_NODES]; 8];
         let mut conj_aff = [[0i8; L4_NODES]; 8];
 
-        if self.continuous_joint_field_present {
-            let _d_k = self.continuous_joint_field[0];
-            let _m_k = self.continuous_joint_field[1];
+        let field_refusal = if self.continuous_joint_field_present {
             let r_rev_k = self.continuous_joint_field[2];
-            let _u_star_k = self.continuous_joint_field[3];
-            let _c_k = self.continuous_joint_field[4];
-            let p_k = self.continuous_joint_field[5];
-            let b_k = self.continuous_joint_field[6];
             let s_uf = self.continuous_joint_field[7];
 
             // 1. Viability Gate & Structural Reversal Kill Switch (DSF V3 Basin Physics)
-            if s_uf <= 0.0 || r_rev_k > 0.0 {
-                self.columns[23].refusal_active = true;
-                self.motor_locomotion_stride = 0.0;
-            }
+            s_uf <= 0.0 || r_rev_k > 0.0
+        } else {
+            false
+        };
 
-            // 2. Continuous Potential Venting (Pressure vs Breathing Manifold)
-            // Somatic surplus sigma_surplus = max(0, P_k - B_k).
-            // When somatic pressure exceeds breathing capacity (P_k > B_k),
-            // excess somatic surplus vents into Motor Cortex Layer 5 (Cols 40..48).
-            if p_k > b_k {
-                let delta_phi = (p_k - b_k) as f32;
-                let venting_current = (delta_phi * G_ELASTIC_BASELINE).clamp(0.0, 1.0);
-                for c in 40..48 {
-                    for j in 0..L5_NODES {
-                        in_5[c][j] += venting_current;
-                    }
-                }
-            }
-
-            // 3. Exact Rational Balanced-Ternary Transduction across All Digits
+        if self.continuous_joint_field_present {
+            // 2. Exact Rational Balanced-Ternary Transduction across Distinct Node Positions
             // Transduces 8 continuous field dimensions into Primary Columns 48..55
-            // and Conjugate Columns 56..63 without digit truncation or heuristic smoothing.
+            // and Conjugate Columns 56..63 without extra sign multiplication or modulo folding.
             for k in 0..8 {
                 let val_k = self.continuous_joint_field[k];
                 if let Ok(rat) = crate::mathloom::float_to_rational_trits(val_k) {
                     if !rat.is_zero {
-                        // Project all numerator trits across Layer 4 afferents
+                        // Project numerator trits across Layer 4 afferents
+                        // rat.numerator_trits is ALREADY signed. Do NOT multiply by rat.sign again!
+                        // Do NOT modulo-fold: each node p receives only its exact ternary power 3^p.
                         for (p, &t) in rat.numerator_trits.iter().enumerate() {
-                            if t != 0 {
-                                let idx = p % L4_NODES;
-                                prim_aff[k][idx] = (prim_aff[k][idx] + t * rat.sign).clamp(-1, 1);
+                            if p < L4_NODES {
+                                prim_aff[k][p] = t;
                             }
                         }
-                        // Project all denominator trits across conjugate Layer 4 afferents
+                        // Project denominator trits across conjugate Layer 4 afferents
                         for (q, &t) in rat.denominator_trits.iter().enumerate() {
-                            if t != 0 {
-                                let idx = q % L4_NODES;
-                                conj_aff[k][idx] = (conj_aff[k][idx] + t).clamp(-1, 1);
+                            if q < L4_NODES {
+                                conj_aff[k][q] = t;
                             }
                         }
                     }
@@ -2171,9 +2152,10 @@ impl ModularSubstrate64D {
             let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(&som_aff, somatic_trits, &in_23[c], &in_5[c]);
             total_yields += yc; total_strain += sc;
         }
-        // Col 23 (S8: Barrier Yield Refusal)
+        // Col 23 (S8: Barrier Yield Refusal & Viability Kill Switch)
         self.columns[23].barrier_contact_stress = current_barrier_stress;
-        self.columns[23].refusal_active = current_barrier_stress.abs() >= self.columns[23].yield_limit_threshold;
+        let barrier_refusal = current_barrier_stress.abs() >= self.columns[23].yield_limit_threshold;
+        self.columns[23].refusal_active = barrier_refusal || field_refusal;
         let mut s8_aff = vec![0i8; L4_NODES];
         s8_aff[0] = if self.columns[23].refusal_active { 1 } else { 0 };
         let (y23, s23) = self.columns[23].microcircuit.step_laminar_flow(&s8_aff, somatic_trits, &in_23[23], &in_5[23]);
@@ -2207,7 +2189,7 @@ impl ModularSubstrate64D {
         let pos_vocal = self.columns[43].microcircuit.l5.iter().filter(|&&x| x > 0).count() as f32;
         self.motor_vocal_drive = ((pos_vocal / (L5_NODES as f32)) * 480.0).clamp(0.0, 480.0);
 
-        // Physical Barrier Refusal Kinematic Clamp (Protective Interlock):
+        // Physical Barrier & Viability Refusal Kinematic Clamp (Protective Interlock):
         if self.columns[23].refusal_active {
             self.motor_locomotion_stride = 0.0;
         }
