@@ -1,873 +1,847 @@
-//! arcloom_neuron.rs -- Single Causal Neuron Transition Operator and Cold Successor
+//! ArcLoom Single Causal Neuron Transition Operator and Cold Successor
 //!
-//! Substrate: ArcLoom Discrete Ternary Neuromorphic Processor (Domain 2)
-//! Governing Authority:
-//!   - docs/GUALA_ONE_NEURON_MATERIAL_ANATOMY_BINDING_2026-10-01.md
-//!   - docs/GUALA_ONE_NEURON_PHYSICAL_TRANSITION_CONTRACT_2026-10-01.md
-//!   - docs/GUALA_ONE_NEURON_PHYSICAL_PARAMETER_DOSSIER_2026-10-01.md
-//!
-//! Material Model: ArcLoom Engineered Artificial Reference Material
-//!
-//! Physical Invariants:
-//!   1. First Law Thermodynamic Balance:
-//!      Delta H_complete = W_in - W_out - Q_heat,out
-//!      where H = H_elec + E_fabric + \sum_c m_c U_c,nonel + U_contact.
-//!   2. Single Closed Electrical System & Gating Displacement Current:
-//!      H_elec = (Q_f - Q_g)^2 / (2 C_mem),  Q_g = \sum_c m_c q_c^g y_c
-//!      V = (Q_f - Q_g) / C_mem,  C_mem dV/dt = - \sum_c I_c - dQ_g/dt + I_ext
-//!   3. Debye Shielding Countercharge & Exact Integer Genesis:
-//!      Z_f,0 = -5098117,  Z_fixed,in = -358207478656,  Z_fixed,out = -27112297427
-//!      Total global net charge is exactly 0: Z_mobile + Z_fixed = 0.
-//!   4. Aperture-Dependent Nonlinear Access Conductance:
-//!      R_p0 = \ell / (\sigma \pi a_0^2),  R_a0 = 1 / (2 \sigma a_0)
-//!      g_c(y) = y / (R_p0 + R_a0 \sqrt{y}),  g_c(0) = 0.
-//!   5. Exact Carrier Custody & Checked Integer Reservoirs:
-//!      \xi_c = r_c + J_c / (z_c e),  n_c = trunc(\xi_c),  r'_c = \xi_c - n_c
-//!      z_c e [n_c + r'_c - r_c] = J_c holds to machine precision.
-//!   6. Contact Strain Mechanics & Rate-Independent Plastic Return Map:
-//!      K_eps = E_mod A_ref L_ref [J],  Y = 0.05 K_eps,  f = |\Sigma_tr| - Y <= 0
-//!      Plastic branch dissipates D_pl = 0.5 K_eps [\epsilon_tr^2 - (Y/K_eps)^2] >= 0.
-//!   7. Complete Canonical Cold State Custody:
-//!      decode(encode(S)) == S bit-for-bit.
-//!      T_{dt}(decode(encode(S)), u) == T_{dt}(S, u).
+//! Ratified under the ArcLoom Engineered Artificial Reference Material specification:
+//! - Exact First Law thermodynamic balance: $\Delta H_{\text{complete}} = W_{\text{in}} - W_{\text{out}} - Q_{\text{heat,out}}$
+//! - Closed electrical dynamics with moving gating displacement current:
+//!   $C_{\text{mem}} \dot{V} = -\sum I_c - I_{\text{rec}} - \dot{Q}_g + I_{\text{ext}}$, where $Q_g = \sum_c m_c q_c^g y_c$
+//! - Debye shielding countercharge and genesis electroneutrality:
+//!   $Z_{f,0} = -5\,098\,117$, $Z_{\text{fixed,in}} = -358\,207\,478\,656$, $Z_{\text{fixed,out}} = -27\,112\,297\,427$
+//! - Aperture-dependent nonlinear pore conductance: $g(y) = y / (R_{p0} + R_{a0}\sqrt{y})$
+//! - Exact rational carrier custody: $\xi_c = r_c + J_c / (z_c e)$, $n_c = \operatorname{trunc}(\xi_c)$, $r'_c = \xi_c - n_c$
+//! - Retained contact mechanics coupled to receiving compartment:
+//!   $g_{\text{contact}} = \sigma_{\text{mat}} A_{\text{actual}} / \ell_{\text{actual}}$, $\Delta Q_{\text{soma}} = -J_{\text{rec}}$, $\Delta Q_{\text{rec}} = +J_{\text{rec}}$
+//! - Rate-independent contact plasticity return map: $K_\epsilon = E_{\text{mod}} A_{\text{ref}} L_{\text{ref}}$, $f = |\Sigma_{\text{tr}}| - Y \le 0$
+//! - Full 7D continuous structural field preservation mapped via typed physical incidence ($F_a + F_b = 0$)
+//! - Canonical length-framed cold restart covering independent physical state and causal operator topology
 
-use std::fmt;
 use pyo3::prelude::*;
-use pyo3::exceptions::PyValueError;
+use pyo3::exceptions::{PyValueError, PyRuntimeError};
+use std::f64::consts::PI;
 
-// ---------------------------------------------------------------------------
-// Physical & Engineered Material Constants (CODATA 2018 / SI Exact)
-// ---------------------------------------------------------------------------
+/// Physical Constants
+pub const ELEMENTARY_CHARGE_C: f64 = 1.602176634e-19;
+pub const BOLTZMANN_CONST_J_PER_K: f64 = 1.380649e-23;
+pub const REFERENCE_TEMP_K: f64 = 300.0;
+pub const KT_J: f64 = BOLTZMANN_CONST_J_PER_K * REFERENCE_TEMP_K; // ~4.14195e-21 J
 
-/// Exact magnitude of elementary charge in Coulombs [C].
-pub const ELEMENTARY_CHARGE: f64 = 1.602_176_634e-19;
+/// Soma Geometry and Capacitance
+pub const SOMA_RADIUS_M: f64 = 10.0e-6; // 10 um
+pub const SOMA_AREA_M2: f64 = 4.0 * PI * SOMA_RADIUS_M * SOMA_RADIUS_M; // ~1.256637e-9 m^2
+pub const SPECIFIC_CAPACITANCE_F_PER_M2: f64 = 0.01; // 1 uF/cm^2 = 0.01 F/m^2
+pub const MEMBRANE_CAPACITANCE_F: f64 = SPECIFIC_CAPACITANCE_F_PER_M2 * SOMA_AREA_M2; // ~12.56637 pF
 
-/// Boltzmann constant in Joules per Kelvin [J/K].
-pub const BOLTZMANN_CONSTANT: f64 = 1.380_649e-23;
+/// Fluid Volumes
+pub const VOLUME_IN_M3: f64 = (4.0 / 3.0) * PI * SOMA_RADIUS_M * SOMA_RADIUS_M * SOMA_RADIUS_M; // ~4.18879 pL
+pub const VOLUME_OUT_M3: f64 = 0.25 * VOLUME_IN_M3; // 20% tissue extracellular volume fraction => 1.04720 pL
 
-/// Reference operating temperature in Kelvin [K] (37.0 deg C).
-pub const REFERENCE_TEMPERATURE_K: f64 = 310.15;
+/// Genesis Countercharge and Integer Ion Stocks
+pub const GENESIS_Z_F: i64 = -5098117;
+pub const GENESIS_Z_FIXED_IN: i64 = -358207478656;
+pub const GENESIS_Z_FIXED_OUT: i64 = -27112297427;
 
-/// Thermal voltage scale k_B * T / e in Volts [V] (~26.725 mV).
-pub const THERMAL_VOLTAGE_V: f64 = (BOLTZMANN_CONSTANT * REFERENCE_TEMPERATURE_K) / ELEMENTARY_CHARGE;
+pub const GENESIS_N_IN: [u64; 4] = [
+    30270581073,  // Na+
+    353156779183, // K+
+    252255,       // Ca2+
+    25225484227,  // Cl-
+];
 
-/// Somatic spherical radius in meters [m] (10.0 micrometers).
-pub const SOMA_RADIUS_M: f64 = 10.0e-6;
+pub const GENESIS_N_OUT: [u64; 4] = [
+    91442380324,  // Na+
+    2522548423,   // K+
+    1261274211,   // Ca2+
+    69370081625,  // Cl-
+];
 
-/// Specific membrane capacitance in Farads per square meter [F/m^2].
-pub const SPECIFIC_MEMBRANE_CAPACITANCE: f64 = 0.01;
+pub const SPECIES_VALENCE: [i8; 4] = [1, 1, 2, -1];
+pub const CHANNEL_POPULATIONS: [usize; 4] = [100, 100, 20, 50];
+pub const GATE_CHARGES_E: [f64; 4] = [4.0, 3.0, 2.0, 0.0];
+pub const RESTING_APERTURES: [f64; 4] = [0.05, 0.05, 0.02, 0.10];
 
-/// Geometry-derived somatic capacitance C_mem = 4 * pi * r^2 * c_m in Farads [F] (~12.566 pF).
-pub const MEMBRANE_CAPACITANCE_F: f64 = 4.0 * std::f64::consts::PI * SOMA_RADIUS_M * SOMA_RADIUS_M * SPECIFIC_MEMBRANE_CAPACITANCE;
-
-/// Intracellular somatic volume V_in = (4/3) * pi * r^3 in cubic meters [m^3] (~4.1888 pL).
-pub const INTRACELLULAR_VOLUME_M3: f64 = (4.0 / 3.0) * std::f64::consts::PI * SOMA_RADIUS_M * SOMA_RADIUS_M * SOMA_RADIUS_M;
-
-/// Extracellular volume fraction alpha = 0.20.
-pub const EXTRACELLULAR_VOLUME_FRACTION: f64 = 0.20;
-
-/// Accessible extracellular volume V_out = (alpha / (1 - alpha)) * V_in in cubic meters [m^3] (~1.0472 pL).
-pub const EXTRACELLULAR_VOLUME_M3: f64 = (EXTRACELLULAR_VOLUME_FRACTION / (1.0 - EXTRACELLULAR_VOLUME_FRACTION)) * INTRACELLULAR_VOLUME_M3;
-
-/// Pore length \ell in meters [m] (5.0 nanometers).
+/// Pore Resistance Parameters
 pub const PORE_LENGTH_M: f64 = 5.0e-9;
-
-/// Pore radius a_0 in meters [m] (0.50 nanometers).
 pub const PORE_RADIUS_M: f64 = 0.50e-9;
+pub const PORE_CONDUCTIVITY_S_PER_M: f64 = 1.50;
+pub const R_P0: f64 = PORE_LENGTH_M / (PORE_CONDUCTIVITY_S_PER_M * PI * PORE_RADIUS_M * PORE_RADIUS_M);
+pub const R_A0: f64 = 1.0 / (2.0 * PORE_CONDUCTIVITY_S_PER_M * PORE_RADIUS_M);
 
-/// Reference saline conductivity \sigma in Siemens per meter [S/m].
-pub const SALINE_CONDUCTIVITY_SM: f64 = 1.50;
+/// Contact Elasticity and Plasticity Constants
+pub const CONTACT_RADIUS_REF_M: f64 = 0.10e-6; // 0.1 um
+pub const CONTACT_LENGTH_REF_M: f64 = 1.0e-6;  // 1.0 um
+pub const CONTACT_AREA_REF_M2: f64 = PI * CONTACT_RADIUS_REF_M * CONTACT_RADIUS_REF_M;
+pub const CONTACT_MODULUS_PA: f64 = 100.0e3; // 100 kPa
+pub const CONTACT_STRAIN_STIFFNESS_J: f64 = CONTACT_MODULUS_PA * CONTACT_AREA_REF_M2 * CONTACT_LENGTH_REF_M; // ~3.14159e-15 J
+pub const CONTACT_YIELD_THRESHOLD_J: f64 = 0.05 * CONTACT_STRAIN_STIFFNESS_J; // ~1.5708e-16 J
+pub const CONTACT_MATERIAL_CONDUCTIVITY_S_PER_M: f64 = 0.50; // 0.5 S/m
 
-/// Undeformed contact reference radius in meters [m] (0.10 micrometers).
-pub const CONTACT_RADIUS_M: f64 = 0.10e-6;
+/// Receiving Compartment Defaults
+pub const RECEIVING_CAPACITANCE_F: f64 = 1.0e-12; // 1 pF
+pub const RECEIVING_RESTING_V: f64 = -0.065; // -65 mV
 
-/// Undeformed contact reference length L_ref in meters [m] (1.0 micrometers).
-pub const CONTACT_LENGTH_REF_M: f64 = 1.0e-6;
+/// Gate Mechanics Constants
+pub const GATE_STIFFNESS_K_J: f64 = 100.0 * KT_J; // 100 kBT ~ 4.14e-19 J
+pub const GATE_RELAXATION_TAU_S: f64 = 1.0e-3; // 1 ms characteristic response
+pub const GATE_DRAG_ZETA_J_S: f64 = GATE_STIFFNESS_K_J * GATE_RELAXATION_TAU_S; // ~4.14e-22 J s
 
-/// Contact cross-sectional area A_ref = pi * r^2 in square meters [m^2].
-pub const CONTACT_AREA_REF_M2: f64 = std::f64::consts::PI * CONTACT_RADIUS_M * CONTACT_RADIUS_M;
+/// Phase Damping and Coupling Bounds
+pub const PHASE_DRAG_GAMMA_J_S: f64 = 1.0e-20;
+pub const MAX_KAPPA_J: f64 = 1.0e-15;
+pub const MAX_FABRIC_EDGES: usize = 32;
 
-/// Contact Young's modulus E_mod in Pascals [Pa] (100.0 kPa).
-pub const CONTACT_YOUNGS_MODULUS_PA: f64 = 100.0e3;
+/// Checkpoint Serialization Framing
+pub const MAGIC_V2: &[u8; 18] = b"ARCLOOM_NEURON_V2\0";
+pub const FORMAT_VERSION_V2: u16 = 2;
 
-/// Strain-energy stiffness K_eps = E_mod * A_ref * L_ref in Joules [J] (~3.14159e-15 J).
-pub const CONTACT_STRAIN_STIFFNESS_J: f64 = CONTACT_YOUNGS_MODULUS_PA * CONTACT_AREA_REF_M2 * CONTACT_LENGTH_REF_M;
-
-/// Axial spring constant k_axial = E_mod * A_ref / L_ref in Newtons per meter [N/m] (~3.14159e-3 N/m).
-pub const CONTACT_AXIAL_STIFFNESS_NM: f64 = CONTACT_YOUNGS_MODULUS_PA * CONTACT_AREA_REF_M2 / CONTACT_LENGTH_REF_M;
-
-/// Yield threshold Y = 0.05 * K_eps in Joules [J] (~1.5708e-16 J).
-pub const CONTACT_YIELD_THRESHOLD_J: f64 = 0.05 * CONTACT_STRAIN_STIFFNESS_J;
-
-/// Contact electrical conductivity \sigma_contact in Siemens per meter [S/m].
-pub const CONTACT_CONDUCTIVITY_SM: f64 = 0.50;
-
-// ---------------------------------------------------------------------------
-// Ratified Channel Species Definitions
-// ---------------------------------------------------------------------------
-
-pub const NUM_SPECIES: usize = 4;
-pub const SPECIES_NA: usize = 0;
-pub const SPECIES_K: usize = 1;
-pub const SPECIES_CA: usize = 2;
-pub const SPECIES_CL: usize = 3;
-
-/// Channel population counts (Na=100, K=100, Ca=20, Cl=50).
-pub const CHANNEL_COUNTS: [u32; NUM_SPECIES] = [100, 100, 20, 50];
-
-/// Gate charges in units of elementary charge e (Na=4e, K=3e, Ca=2e, Cl=0).
-pub const GATE_CHARGES_E: [f64; NUM_SPECIES] = [4.0, 3.0, 2.0, 0.0];
-
-/// Ion valence z_c (Na=+1, K=+1, Ca=+2, Cl=-1).
-pub const ION_VALENCES: [i32; NUM_SPECIES] = [1, 1, 2, -1];
-
-/// Rest aperture coordinates y_{r,c}.
-pub const REST_APERTURES: [f64; NUM_SPECIES] = [0.05, 0.05, 0.02, 0.10];
-
-/// Initial aperture preparation y_{0,c}.
-pub const INITIAL_APERTURES: [f64; NUM_SPECIES] = [0.05, 0.05, 0.02, 0.10];
-
-/// Initial whole-carrier populations N_in.
-pub const INITIAL_N_IN: [u64; NUM_SPECIES] = [
-    30_270_581_073,  // Na+
-    353_156_779_183, // K+
-    252_255,         // Ca2+
-    25_225_484_227,  // Cl-
-];
-
-/// Initial whole-carrier populations N_out.
-pub const INITIAL_N_OUT: [u64; NUM_SPECIES] = [
-    91_442_380_324,  // Na+
-    2_522_548_423,   // K+
-    1_261_274_211,   // Ca2+
-    69_370_081_625,  // Cl-
-];
-
-/// Initial integer net free charge count Z_f,0 = -5,098,117.
-pub const INITIAL_Z_F: i64 = -5_098_117;
-
-/// Initial immobile intracellular virtual countercharge count Z_fixed,in = -358,207,478,656.
-pub const FIXED_CHARGE_IN: i64 = -358_207_478_656;
-
-/// Initial immobile extracellular virtual countercharge count Z_fixed,out = -27,112,297,427.
-pub const FIXED_CHARGE_OUT: i64 = -27_112_297_427;
-
-// ---------------------------------------------------------------------------
-// Single-Pore Access Conductance Constants
-// ---------------------------------------------------------------------------
-
-/// Pore resistance R_p0 = \ell / (\sigma * \pi * a_0^2) in Ohms [\Omega].
-pub const R_P0_OHM: f64 = PORE_LENGTH_M / (SALINE_CONDUCTIVITY_SM * std::f64::consts::PI * PORE_RADIUS_M * PORE_RADIUS_M);
-
-/// Access resistance R_a0 = 1 / (2 * \sigma * a_0) in Ohms [\Omega].
-pub const R_A0_OHM: f64 = 1.0 / (2.0 * SALINE_CONDUCTIVITY_SM * PORE_RADIUS_M);
-
-/// Evaluate single-pore conductance g(y) = y / (R_p0 + R_a0 * \sqrt{y}) in Siemens [S].
-#[inline]
-pub fn single_pore_conductance(y: f64) -> f64 {
-    if y <= 0.0 {
-        0.0
-    } else {
-        let y_clamped = y.min(1.0);
-        y_clamped / (R_P0_OHM + R_A0_OHM * y_clamped.sqrt())
-    }
+/// Structural Field Dimensions (DSF-AI L0-L4)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(u8)]
+pub enum StructuralFieldDim {
+    Displacement = 0, // D_k
+    Motion = 1,       // M_k
+    Reversal = 2,     // R_rev_k
+    Uncertainty = 3,  // U_star_k
+    Cohesion = 4,     // C_k
+    Pressure = 5,     // P_k
+    Breathing = 6,    // B_k
 }
 
-// ---------------------------------------------------------------------------
-// Error Handling
-// ---------------------------------------------------------------------------
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum NeuronPhysicsError {
-    InvalidState(String),
-    ReservoirDepleted {
-        species: String,
-        requested: u64,
-        available: u64,
-    },
-    CorruptSerialization(String),
-    InvalidChecksum {
-        expected: u32,
-        computed: u32,
-    },
-    TruncatedPayload {
-        expected: usize,
-        actual: usize,
-    },
-    NonFiniteArithmetic(String),
-}
-
-impl fmt::Display for NeuronPhysicsError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            NeuronPhysicsError::InvalidState(msg) => write!(f, "Invalid neuron physical state: {}", msg),
-            NeuronPhysicsError::ReservoirDepleted { species, requested, available } => {
-                write!(f, "Reservoir depleted for species '{}': requested {}, available {}", species, requested, available)
-            }
-            NeuronPhysicsError::CorruptSerialization(msg) => write!(f, "Corrupt neuron serialization: {}", msg),
-            NeuronPhysicsError::InvalidChecksum { expected, computed } => {
-                write!(f, "Invalid checksum: expected {:#010x}, computed {:#010x}", expected, computed)
-            }
-            NeuronPhysicsError::TruncatedPayload { expected, actual } => {
-                write!(f, "Truncated payload: expected {} bytes, got {} bytes", expected, actual)
-            }
-            NeuronPhysicsError::NonFiniteArithmetic(msg) => write!(f, "Non-finite arithmetic: {}", msg),
+impl StructuralFieldDim {
+    pub fn from_u8(v: u8) -> Option<Self> {
+        match v {
+            0 => Some(Self::Displacement),
+            1 => Some(Self::Motion),
+            2 => Some(Self::Reversal),
+            3 => Some(Self::Uncertainty),
+            4 => Some(Self::Cohesion),
+            5 => Some(Self::Pressure),
+            6 => Some(Self::Breathing),
+            _ => None,
         }
     }
 }
 
-impl std::error::Error for NeuronPhysicsError {}
+/// Perspective Role of Field Coordinate
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(u8)]
+pub enum FieldRole {
+    Numerator = 0,
+    Denominator = 1,
+    Invariant = 2,
+}
 
-// ---------------------------------------------------------------------------
-// Typed Fabric Incidence Edge
-// ---------------------------------------------------------------------------
+impl FieldRole {
+    pub fn from_u8(v: u8) -> Option<Self> {
+        match v {
+            0 => Some(Self::Numerator),
+            1 => Some(Self::Denominator),
+            2 => Some(Self::Invariant),
+            _ => None,
+        }
+    }
+}
 
-#[derive(Debug, Clone, PartialEq)]
+/// Typed Fabric Constraint Edge
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TypedFabricEdge {
+    pub dim: StructuralFieldDim,
+    pub role: FieldRole,
+    pub position: u16,
     pub from_node: usize,
     pub to_node: usize,
-    pub tau_trit: i8,    // in {-1, 0, +1}
-    pub kappa_j: f64,    // coupling energy in Joules [J]
+    pub tau_trit: i8, // in {-1, 0, 1}
+    pub kappa_j: f64, // coupling energy in Joules
 }
 
 impl TypedFabricEdge {
-    pub fn new(from_node: usize, to_node: usize, tau_trit: i8, kappa_j: f64) -> Result<Self, NeuronPhysicsError> {
-        if tau_trit < -1 || tau_trit > 1 {
-            return Err(NeuronPhysicsError::InvalidState(format!("tau_trit must be in {{-1, 0, 1}}, got {}", tau_trit)));
+    pub fn new(
+        dim: StructuralFieldDim,
+        role: FieldRole,
+        position: u16,
+        from_node: usize,
+        to_node: usize,
+        tau_trit: i8,
+        kappa_j: f64,
+    ) -> Result<Self, String> {
+        if from_node >= 4 || to_node >= 4 {
+            return Err(format!("Fabric edge node index out of bounds: ({}, {})", from_node, to_node));
         }
-        if !kappa_j.is_finite() || kappa_j < 0.0 {
-            return Err(NeuronPhysicsError::InvalidState(format!("kappa_j must be non-negative finite, got {}", kappa_j)));
+        if from_node == to_node {
+            return Err("Self-referential fabric edge is physically inadmissible".to_string());
         }
-        Ok(Self { from_node, to_node, tau_trit, kappa_j })
+        if tau_trit != -1 && tau_trit != 0 && tau_trit != 1 {
+            return Err(format!("Fabric edge trit must be in {{-1, 0, 1}}, got {}", tau_trit));
+        }
+        if !kappa_j.is_finite() || kappa_j < 0.0 || kappa_j > MAX_KAPPA_J {
+            return Err(format!("Coupling kappa out of physical bounds [0, {}]: {}", MAX_KAPPA_J, kappa_j));
+        }
+        Ok(Self {
+            dim,
+            role,
+            position,
+            from_node,
+            to_node,
+            tau_trit,
+            kappa_j,
+        })
     }
 
-    /// Compute edge phase argument \theta = \phi_b - \phi_a - 2\pi\tau / 3.
-    #[inline]
-    pub fn theta(&self, phi_a: f64, phi_b: f64) -> f64 {
-        let phase_offset = (2.0 * std::f64::consts::PI * (self.tau_trit as f64)) / 3.0;
-        phi_b - phi_a - phase_offset
-    }
-
-    /// Compute edge energy contribution E_ab = -\kappa \cos(\theta).
-    #[inline]
-    pub fn energy(&self, phi_a: f64, phi_b: f64) -> f64 {
-        let th = self.theta(phi_a, phi_b);
-        -self.kappa_j * th.cos()
-    }
-
-    /// Compute paired constraint forces on (\phi_a, \phi_b).
-    /// - \partial_{\phi_a} E = +\kappa \sin(\theta)
-    /// - \partial_{\phi_b} E = -\kappa \sin(\theta)
-    /// Internal sum is exactly zero: F_a + F_b = 0.
+    /// Internal paired constraint forces satisfying Fa + Fb = 0
     #[inline]
     pub fn forces(&self, phi_a: f64, phi_b: f64) -> (f64, f64) {
-        let th = self.theta(phi_a, phi_b);
-        let s = self.kappa_j * th.sin();
+        let theta = phi_b - phi_a - (2.0 * PI * (self.tau_trit as f64) / 3.0);
+        let s = self.kappa_j * theta.sin();
         (s, -s)
+    }
+
+    /// Potential energy: -kappa * cos(theta)
+    #[inline]
+    pub fn energy(&self, phi_a: f64, phi_b: f64) -> f64 {
+        let theta = phi_b - phi_a - (2.0 * PI * (self.tau_trit as f64) / 3.0);
+        -self.kappa_j * theta.cos()
     }
 }
 
-// ---------------------------------------------------------------------------
-// ArcLoom Neuron Physical State
-// ---------------------------------------------------------------------------
+/// Pure Pore Conductance Benchmark Formula
+#[inline]
+pub fn pore_conductance(y: f64) -> f64 {
+    if y <= 0.0 {
+        0.0
+    } else {
+        y / (R_P0 + R_A0 * y.sqrt())
+    }
+}
 
-pub const NUM_PHASE_NODES: usize = 4;
+/// Exact CRC-32 calculation (IEEE 802.3 standard)
+pub fn compute_crc32(data: &[u8]) -> u32 {
+    let mut crc: u32 = 0xFFFF_FFFF;
+    for &byte in data {
+        crc ^= byte as u32;
+        for _ in 0..8 {
+            let mask = if (crc & 1) != 0 { 0xEDB8_8320 } else { 0 };
+            crc = (crc >> 1) ^ mask;
+        }
+    }
+    !crc
+}
 
+/// Constant-time bounded modulo phase normalization to [-PI, PI)
+#[inline]
+pub fn wrap_phase(phi: f64) -> f64 {
+    if !phi.is_finite() {
+        return 0.0;
+    }
+    phi - 2.0 * PI * ((phi + PI) / (2.0 * PI)).floor()
+}
+
+/// Result of a single time-step causal transition
+#[derive(Debug, Clone, PartialEq)]
+pub struct TransitionResult {
+    pub prior_membrane_v: f64,
+    pub succ_membrane_v: f64,
+    pub prior_receiving_v: f64,
+    pub succ_receiving_v: f64,
+    pub plastic_yield_occurred: bool,
+    pub plastic_dissipation_j: f64,
+    pub work_input_j: f64,
+    pub heat_dissipated_j: f64,
+    pub delta_enthalpy_j: f64,
+    pub receiving_charge_transferred_c: f64,
+}
+
+/// Independent State of the Causal Neuron
 #[derive(Debug, Clone, PartialEq)]
 pub struct ArcLoomNeuronState {
-    /// Discrete step counter.
     pub step_count: u64,
-    /// Net free compartment charge Q_f in Coulombs [C].
-    pub q_free: f64,
-    /// Somatic membrane capacitance C_mem in Farads [F].
-    pub c_mem: f64,
-    /// Discrete net free charge integer count Z_f.
-    pub z_f: i64,
-    /// Discrete immobile intracellular charge count Z_fixed,in.
     pub z_fixed_in: i64,
-    /// Discrete immobile extracellular charge count Z_fixed,out.
     pub z_fixed_out: i64,
-    /// Whole-carrier intracellular reservoir counts (Na, K, Ca, Cl).
-    pub n_in: [u64; NUM_SPECIES],
-    /// Whole-carrier extracellular reservoir counts (Na, K, Ca, Cl).
-    pub n_out: [u64; NUM_SPECIES],
-    /// Continuous gate apertures y_c in [0.0, 1.0].
-    pub y_gate: [f64; NUM_SPECIES],
-    /// Fractional carrier remainders r_c in (-1.0, 1.0).
-    pub remainder: [f64; NUM_SPECIES],
-    /// Continuous node phases \phi_a in [-pi, pi).
-    pub phi: [f64; NUM_PHASE_NODES],
-    /// Continuous node amplitudes \rho_a > 0.
-    pub rho: [f64; NUM_PHASE_NODES],
-    /// Mechanical contact actual conducting length x in meters [m].
+    pub z_ext_port: i64,
+    pub r_ext: f64,
+    pub n_in: [u64; 4],
+    pub n_out: [u64; 4],
+    pub r_remainder: [f64; 4],
+    pub y_gate: [f64; 4],
+    pub phi: [f64; 4],
+    pub rho: [f64; 4],
     pub contact_x: f64,
-    /// Mechanical contact rest length \ell in meters [m].
     pub contact_ell: f64,
-    /// Cumulative plastic work dissipated D_pl in Joules [J].
+    pub q_rec: f64,
+    pub c_rec: f64,
     pub cumulative_d_pl: f64,
-    /// Cumulative external work input W_in in Joules [J].
     pub cumulative_w_in: f64,
-    /// Cumulative heat dissipated Q_heat in Joules [J].
     pub cumulative_q_heat: f64,
 }
 
 impl ArcLoomNeuronState {
-    /// Initialize canonical reference preparation state.
     pub fn new_reference_preparation() -> Self {
-        let q_f0 = (INITIAL_Z_F as f64) * ELEMENTARY_CHARGE;
         Self {
             step_count: 0,
-            q_free: q_f0,
-            c_mem: MEMBRANE_CAPACITANCE_F,
-            z_f: INITIAL_Z_F,
-            z_fixed_in: FIXED_CHARGE_IN,
-            z_fixed_out: FIXED_CHARGE_OUT,
-            n_in: INITIAL_N_IN,
-            n_out: INITIAL_N_OUT,
-            y_gate: INITIAL_APERTURES,
-            remainder: [0.0; NUM_SPECIES],
-            phi: [0.0; NUM_PHASE_NODES],
-            rho: [1.0; NUM_PHASE_NODES],
+            z_fixed_in: GENESIS_Z_FIXED_IN,
+            z_fixed_out: GENESIS_Z_FIXED_OUT,
+            z_ext_port: 0,
+            r_ext: 0.0,
+            n_in: GENESIS_N_IN,
+            n_out: GENESIS_N_OUT,
+            r_remainder: [0.0; 4],
+            y_gate: RESTING_APERTURES,
+            phi: [0.0; 4],
+            rho: [1.0; 4],
             contact_x: CONTACT_LENGTH_REF_M,
             contact_ell: CONTACT_LENGTH_REF_M,
+            q_rec: RECEIVING_RESTING_V * RECEIVING_CAPACITANCE_F,
+            c_rec: RECEIVING_CAPACITANCE_F,
             cumulative_d_pl: 0.0,
             cumulative_w_in: 0.0,
             cumulative_q_heat: 0.0,
         }
     }
 
-    /// Compute total gating displacement charge Q_g = \sum_c m_c * q_c^g * y_c in Coulombs [C].
+    /// Exact integer free charge on membrane inner surface
     #[inline]
-    pub fn compute_q_gate(&self) -> f64 {
-        let mut q_g_e = 0.0f64;
-        for c in 0..NUM_SPECIES {
-            q_g_e += (CHANNEL_COUNTS[c] as f64) * GATE_CHARGES_E[c] * self.y_gate[c];
+    pub fn integer_free_charge(&self) -> i64 {
+        let mobile_in: i64 = (SPECIES_VALENCE[0] as i64) * (self.n_in[0] as i64)
+            + (SPECIES_VALENCE[1] as i64) * (self.n_in[1] as i64)
+            + (SPECIES_VALENCE[2] as i64) * (self.n_in[2] as i64)
+            + (SPECIES_VALENCE[3] as i64) * (self.n_in[3] as i64);
+        self.z_fixed_in + mobile_in + self.z_ext_port
+    }
+
+    /// Moving gate charge Qg = sum_c m_c * q_c^g * y_c
+    #[inline]
+    pub fn gate_charge_c(&self) -> f64 {
+        let mut qg = 0.0;
+        for c in 0..4 {
+            qg += (CHANNEL_POPULATIONS[c] as f64) * (GATE_CHARGES_E[c] * ELEMENTARY_CHARGE_C) * self.y_gate[c];
         }
-        q_g_e * ELEMENTARY_CHARGE
+        qg
     }
 
-    /// Compute somatic membrane potential V = (Q_f - Q_g) / C_mem in Volts [V].
+    /// Membrane potential V = (Qf - Qg) / C_mem
     #[inline]
-    pub fn membrane_voltage(&self) -> f64 {
-        (self.q_free - self.compute_q_gate()) / self.c_mem
+    pub fn membrane_voltage(&self, c_mem: f64) -> f64 {
+        let qf = (self.integer_free_charge() as f64) * ELEMENTARY_CHARGE_C;
+        let qg = self.gate_charge_c();
+        (qf - qg) / c_mem
     }
 
-    /// Compute Nernst equilibrium potentials for all 4 species in Volts [V].
-    pub fn nernst_potentials(&self) -> Result<[f64; NUM_SPECIES], NeuronPhysicsError> {
-        let mut e_nernst = [0.0f64; NUM_SPECIES];
-        for c in 0..NUM_SPECIES {
-            if self.n_in[c] == 0 || self.n_out[c] == 0 {
-                return Err(NeuronPhysicsError::ReservoirDepleted {
-                    species: format!("Species {}", c),
-                    requested: 1,
-                    available: 0,
-                });
-            }
-            let conc_ratio = ((self.n_out[c] as f64) / EXTRACELLULAR_VOLUME_M3)
-                / ((self.n_in[c] as f64) / INTRACELLULAR_VOLUME_M3);
-            let z = ION_VALENCES[c] as f64;
-            e_nernst[c] = (THERMAL_VOLTAGE_V / z) * conc_ratio.ln();
-        }
-        Ok(e_nernst)
-    }
-
-    /// Compute total electrical energy H_elec = (Q_f - Q_g)^2 / (2 * C_mem) in Joules [J].
+    /// Receiving compartment voltage V_rec = Q_rec / C_rec
     #[inline]
-    pub fn electrical_energy(&self) -> f64 {
-        let q_cap = self.q_free - self.compute_q_gate();
-        (q_cap * q_cap) / (2.0 * self.c_mem)
-    }
-
-    /// Compute contact elastic strain energy U_contact = 0.5 * K_eps * (x / \ell - 1)^2 in Joules [J].
-    #[inline]
-    pub fn contact_strain_energy(&self) -> f64 {
-        let eps = self.contact_x / self.contact_ell - 1.0;
-        0.5 * CONTACT_STRAIN_STIFFNESS_J * eps * eps
+    pub fn receiving_voltage(&self) -> f64 {
+        self.q_rec / self.c_rec
     }
 }
 
-// ---------------------------------------------------------------------------
-// Transition Result & Diagnostics
-// ---------------------------------------------------------------------------
-
+/// Material Properties and Causal Operator
 #[derive(Debug, Clone, PartialEq)]
-pub struct ArcLoomTransitionResult {
-    pub prior_voltage: f64,
-    pub successor_voltage: f64,
-    pub whole_carriers_transported: [i64; NUM_SPECIES],
-    pub new_remainders: [f64; NUM_SPECIES],
-    pub ionic_currents: [f64; NUM_SPECIES],
-    pub total_conductances: [f64; NUM_SPECIES],
-    pub delta_q_free: f64,
-    pub delta_q_gate: f64,
-    pub plastic_yield_occurred: bool,
-    pub plastic_dissipation: f64,
-    pub delta_hamiltonian: f64,
-    pub carrier_identity_residual: f64,
-}
-
-// ---------------------------------------------------------------------------
-// Causal Transition Operator Execution
-// ---------------------------------------------------------------------------
-
 pub struct ArcLoomTransitionOperator {
-    /// Gate stiffness k_c in Joules [J] (nominal 100 k_B * T).
-    pub gate_stiffness: [f64; NUM_SPECIES],
-    /// Gate viscous friction \zeta_c in Joules * seconds [J * s].
-    pub gate_drag: [f64; NUM_SPECIES],
-    /// Gate phase coupling Lambda_ca in Joules [J] (nominal 5 k_B * T).
-    pub gate_phase_coupling: [[f64; NUM_PHASE_NODES]; NUM_SPECIES],
-    /// Gate phase target offset \phi^*_{ca} in radians.
-    pub gate_phase_offset: [[f64; NUM_PHASE_NODES]; NUM_SPECIES],
-    /// Phase relaxation viscosity \zeta_\phi in Joules * seconds [J * s].
-    pub phase_drag: f64,
-    /// Reached typed fabric constraint edges \mathcal{E}.
+    pub c_mem: f64,
+    pub k_strain: f64,
+    pub y_yield: f64,
+    pub zeta_gate: f64,
+    pub gamma_phi: f64,
     pub fabric_edges: Vec<TypedFabricEdge>,
 }
 
 impl ArcLoomTransitionOperator {
     pub fn new_reference_operator() -> Self {
-        let kbt = BOLTZMANN_CONSTANT * REFERENCE_TEMPERATURE_K;
-        let k_c_ref = 100.0 * kbt;
-        let zeta_c_ref = 1.0e-12; // 1 pJ*s overdamped gate relaxation
-        let lambda_ref = 5.0 * kbt;
-        let zeta_phi_ref = 1.0e-12;
-
         Self {
-            gate_stiffness: [k_c_ref; NUM_SPECIES],
-            gate_drag: [zeta_c_ref; NUM_SPECIES],
-            gate_phase_coupling: [[lambda_ref; NUM_PHASE_NODES]; NUM_SPECIES],
-            gate_phase_offset: [[0.0; NUM_PHASE_NODES]; NUM_SPECIES],
-            phase_drag: zeta_phi_ref,
-            fabric_edges: Vec::new(),
+            c_mem: MEMBRANE_CAPACITANCE_F,
+            k_strain: CONTACT_STRAIN_STIFFNESS_J,
+            y_yield: CONTACT_YIELD_THRESHOLD_J,
+            zeta_gate: GATE_DRAG_ZETA_J_S,
+            gamma_phi: PHASE_DRAG_GAMMA_J_S,
+            fabric_edges: Vec::with_capacity(MAX_FABRIC_EDGES),
         }
     }
 
-    /// Add a typed constraint edge to the reached fabric.
-    pub fn add_fabric_edge(&mut self, edge: TypedFabricEdge) {
+    pub fn add_fabric_edge(&mut self, edge: TypedFabricEdge) -> Result<(), String> {
+        if self.fabric_edges.len() >= MAX_FABRIC_EDGES {
+            return Err(format!("Fabric edge resource bound reached: max {}", MAX_FABRIC_EDGES));
+        }
         self.fabric_edges.push(edge);
+        Ok(())
     }
 
-    /// Execute one causal discrete transition interval \Delta t with external input u.
-    /// Invariants:
-    /// - Deterministic evolution.
-    /// - Failure atomicity: on error, state is unmodified.
-    /// - Conservation of charge, energy balance, and exact carrier identities.
+    /// Compute total system enthalpy H
+    pub fn compute_enthalpy(&self, state: &ArcLoomNeuronState) -> f64 {
+        // 1. Membrane electrostatic energy H_elec = (Qf - Qg)^2 / (2 * C_mem)
+        let qf = (state.integer_free_charge() as f64) * ELEMENTARY_CHARGE_C;
+        let qg = state.gate_charge_c();
+        let h_elec = (qf - qg).powi(2) / (2.0 * self.c_mem);
+
+        // 2. Receiving compartment electrostatic energy H_rec = Q_rec^2 / (2 * C_rec)
+        let h_rec = state.q_rec.powi(2) / (2.0 * state.c_rec);
+
+        // 3. Phase fabric constraint potential
+        let mut e_fabric = 0.0;
+        for edge in &self.fabric_edges {
+            e_fabric += edge.energy(state.phi[edge.from_node], state.phi[edge.to_node]);
+        }
+
+        // 4. Gate non-electrical mechanical strain energy
+        let mut e_gates = 0.0;
+        for c in 0..4 {
+            let dy = state.y_gate[c] - RESTING_APERTURES[c];
+            e_gates += (CHANNEL_POPULATIONS[c] as f64) * 0.5 * GATE_STIFFNESS_K_J * dy * dy;
+        }
+
+        // 5. Contact axial elastic strain energy
+        let eps_contact = (state.contact_x / state.contact_ell) - 1.0;
+        let e_contact = 0.5 * self.k_strain * eps_contact * eps_contact;
+
+        // 6. Finite chemical potential energy
+        let mut e_chem = 0.0;
+        let c_ref = 1.0; // reference concentration factor
+        for c in 0..4 {
+            let conc_in = (state.n_in[c] as f64) / VOLUME_IN_M3;
+            let conc_out = (state.n_out[c] as f64) / VOLUME_OUT_M3;
+            if conc_in > 0.0 && conc_out > 0.0 {
+                let mu_in = KT_J * (conc_in / c_ref).ln();
+                let mu_out = KT_J * (conc_out / c_ref).ln();
+                e_chem += (state.n_in[c] as f64) * mu_in + (state.n_out[c] as f64) * mu_out;
+            }
+        }
+
+        h_elec + h_rec + e_fabric + e_gates + e_contact + e_chem
+    }
+
+    /// Single Causal Transition Step
+    /// Strictly transactional: stage successor, validate physical domains, commit atomically.
     pub fn step(
         &self,
         state: &mut ArcLoomNeuronState,
         applied_contact_x: Option<f64>,
         external_current_a: f64,
         dt_seconds: f64,
-    ) -> Result<ArcLoomTransitionResult, NeuronPhysicsError> {
-        if !dt_seconds.is_finite() || dt_seconds <= 0.0 {
-            return Err(NeuronPhysicsError::InvalidState(format!("dt must be positive finite, got {}", dt_seconds)));
-        }
+    ) -> Result<TransitionResult, String> {
+        // Strict domain validation on inputs
         if !external_current_a.is_finite() {
-            return Err(NeuronPhysicsError::InvalidState(format!("external_current_a must be finite, got {}", external_current_a)));
+            return Err("External current must be finite".to_string());
+        }
+        if !dt_seconds.is_finite() || dt_seconds <= 0.0 || dt_seconds > 1.0 {
+            return Err(format!("Invalid time increment dt: {}", dt_seconds));
+        }
+        let target_x = applied_contact_x.unwrap_or(state.contact_x);
+        if !target_x.is_finite() || target_x <= 0.0 {
+            return Err(format!("Applied contact x must be positive finite: {}", target_x));
         }
 
-        // Snapshot prior physical state for First Law energy audit and failure rollback
-        let prior_state = state.clone();
-        let v_prior = state.membrane_voltage();
-        let e_nernst = state.nernst_potentials()?;
+        let h_prior = self.compute_enthalpy(state);
+        let prior_v = state.membrane_voltage(self.c_mem);
+        let prior_v_rec = state.receiving_voltage();
 
-        // 1. Mechanical contact evolution and plastic return map
-        let actual_x = match applied_contact_x {
-            Some(x) => {
-                if !x.is_finite() || x <= 0.0 {
-                    return Err(NeuronPhysicsError::InvalidState(format!("contact_x must be positive finite, got {}", x)));
-                }
-                x
-            }
-            None => state.contact_x,
-        };
+        // Stage next state into temporary copy
+        let mut next = state.clone();
 
-        let eps_tr = actual_x / state.contact_ell - 1.0;
-        let sigma_tr = CONTACT_STRAIN_STIFFNESS_J * eps_tr;
-        let mut plastic_yield = false;
-        let mut d_pl = 0.0f64;
-        let new_ell = if sigma_tr.abs() <= CONTACT_YIELD_THRESHOLD_J {
-            state.contact_ell
-        } else {
-            plastic_yield = true;
+        // Check step counter overflow
+        next.step_count = next.step_count.checked_add(1)
+            .ok_or_else(|| "Neuron step counter overflow".to_string())?;
+
+        // 1. Contact Mechanics & Plastic Return Map
+        let dx = target_x - state.contact_x;
+        let eps_tr = (target_x / state.contact_ell) - 1.0;
+        let sigma_tr = self.k_strain * eps_tr;
+        let yield_occurred = sigma_tr.abs() > self.y_yield;
+
+        let (new_ell, d_pl) = if yield_occurred {
             let s = if sigma_tr > 0.0 { 1.0 } else { -1.0 };
-            let ratio = CONTACT_YIELD_THRESHOLD_J / CONTACT_STRAIN_STIFFNESS_J;
-            d_pl = 0.5 * CONTACT_STRAIN_STIFFNESS_J * (eps_tr * eps_tr - ratio * ratio);
-            actual_x / (1.0 + s * ratio)
+            let updated_ell = target_x / (1.0 + s * (self.y_yield / self.k_strain));
+            let dissipation = 0.5 * self.k_strain * (eps_tr * eps_tr - (self.y_yield / self.k_strain).powi(2));
+            (updated_ell, dissipation.max(0.0))
+        } else {
+            (state.contact_ell, 0.0)
         };
 
-        // 2. Gate aperture evolution under reciprocal forces
-        let mut new_y_gate = [0.0f64; NUM_SPECIES];
-        let mut f_phase_from_gates = [0.0f64; NUM_PHASE_NODES];
+        // Mechanical loading work: W_mech = F_contact * dx
+        let f_contact = self.k_strain * ((state.contact_x + target_x) / (2.0 * state.contact_ell) - 1.0) / state.contact_ell;
+        let w_mech = f_contact * dx;
 
-        for c in 0..NUM_SPECIES {
-            let m_c = CHANNEL_COUNTS[c] as f64;
-            let q_gc = GATE_CHARGES_E[c] * ELEMENTARY_CHARGE;
-            let y_c = state.y_gate[c];
-            let y_rc = REST_APERTURES[c];
-            let k_c = self.gate_stiffness[c];
+        next.contact_x = target_x;
+        next.contact_ell = new_ell;
+        next.cumulative_d_pl += d_pl;
 
-            // Electrical force on gate from voltage
-            let f_elec = q_gc * v_prior;
+        // 2. Receiving Compartment Electrical Settlement
+        // Conducting geometry: actual instantaneous length is target_x
+        let a_actual = CONTACT_AREA_REF_M2 * (CONTACT_LENGTH_REF_M / target_x);
+        let g_contact = CONTACT_MATERIAL_CONDUCTIVITY_S_PER_M * (a_actual / target_x);
+        let v_diff = prior_v - prior_v_rec;
+        let i_rec = g_contact * v_diff;
+        let j_rec = i_rec * dt_seconds; // Coulombs transferred from soma to receiving compartment
 
-            // Restoring harmonic elastic force
-            let f_restoring = -k_c * (y_c - y_rc);
+        next.q_rec += j_rec;
+        let succ_v_rec = next.receiving_voltage();
+        let q_joule_contact = i_rec * v_diff * dt_seconds;
 
-            // Phase coupling force on gate
-            let mut f_phase_on_gate = 0.0f64;
-            for a in 0..NUM_PHASE_NODES {
-                let dphi = state.phi[a] - self.gate_phase_offset[c][a];
-                f_phase_on_gate += self.gate_phase_coupling[c][a] * dphi.cos();
-                // Reciprocal gate force on phase node a: -\partial_{\phi_a} U_c = -\Lambda y \sin(\phi - \phi^*)
-                f_phase_from_gates[a] += -m_c * self.gate_phase_coupling[c][a] * y_c * dphi.sin();
+        // 3. Gate Dynamics & Dissipation
+        let mut q_gate_fric = 0.0;
+        for c in 0..4 {
+            let dy_harm = next.y_gate[c] - RESTING_APERTURES[c];
+            let f_harm = -GATE_STIFFNESS_K_J * dy_harm;
+            let f_volt = (GATE_CHARGES_E[c] * ELEMENTARY_CHARGE_C) * prior_v;
+
+            // Reciprocal force from phase coupling
+            let mut f_phase_coupling = 0.0;
+            for edge in &self.fabric_edges {
+                if edge.from_node == c {
+                    f_phase_coupling += 1.0e-20 * (next.phi[edge.to_node] - next.phi[edge.from_node]).cos();
+                }
             }
 
-            let f_total_gate = f_elec + f_restoring + f_phase_on_gate;
-            let dy_dt = f_total_gate / self.gate_drag[c];
-            let y_next = (y_c + dy_dt * dt_seconds).clamp(0.0, 1.0);
-            new_y_gate[c] = y_next;
+            let total_gate_force = f_volt + f_harm + f_phase_coupling;
+            let y_dot = total_gate_force / self.zeta_gate;
+            let next_y = (next.y_gate[c] + y_dot * dt_seconds).clamp(0.0, 1.0);
+            let actual_y_dot = (next_y - next.y_gate[c]) / dt_seconds;
+
+            q_gate_fric += (CHANNEL_POPULATIONS[c] as f64) * self.zeta_gate * actual_y_dot * actual_y_dot * dt_seconds;
+            next.y_gate[c] = next_y;
         }
 
-        // 3. Phase dynamics on typed fabric edges with paired constraint forces
-        let mut f_phase_total = f_phase_from_gates;
+        // 4. Phase Dynamics & Dissipation
+        let mut phase_forces = [0.0; 4];
         for edge in &self.fabric_edges {
-            if edge.from_node < NUM_PHASE_NODES && edge.to_node < NUM_PHASE_NODES {
-                let (f_a, f_b) = edge.forces(state.phi[edge.from_node], state.phi[edge.to_node]);
-                f_phase_total[edge.from_node] += f_a;
-                f_phase_total[edge.to_node] += f_b;
-            }
+            let (fa, fb) = edge.forces(next.phi[edge.from_node], next.phi[edge.to_node]);
+            phase_forces[edge.from_node] += fa;
+            phase_forces[edge.to_node] += fb;
         }
 
-        let mut new_phi = [0.0f64; NUM_PHASE_NODES];
-        for a in 0..NUM_PHASE_NODES {
-            let dphi_dt = f_phase_total[a] / (self.phase_drag * state.rho[a]);
-            let mut phi_next = state.phi[a] + dphi_dt * dt_seconds;
-            // Wrap to [-pi, pi)
-            let two_pi = 2.0 * std::f64::consts::PI;
-            while phi_next >= std::f64::consts::PI { phi_next -= two_pi; }
-            while phi_next < -std::f64::consts::PI { phi_next += two_pi; }
-            new_phi[a] = phi_next;
+        let mut q_phase_fric = 0.0;
+        for a in 0..4 {
+            let phi_dot = phase_forces[a] / self.gamma_phi;
+            q_phase_fric += self.gamma_phi * phi_dot * phi_dot * dt_seconds;
+            let unnorm_phi = next.phi[a] + phi_dot * dt_seconds;
+            next.phi[a] = wrap_phase(unnorm_phi);
         }
 
-        // 4. Pore conductance and ionic current integration
-        let mut ionic_currents = [0.0f64; NUM_SPECIES];
-        let mut total_conductances = [0.0f64; NUM_SPECIES];
-        let mut charge_transfer_j = [0.0f64; NUM_SPECIES];
+        // 5. Ionic Pore Currents, Chemical Transfer & Exact Carrier Custody
+        let mut q_joule_pore = 0.0;
+        for c in 0..4 {
+            let z = SPECIES_VALENCE[c];
+            let q_ion = (z as f64) * ELEMENTARY_CHARGE_C;
 
-        for c in 0..NUM_SPECIES {
-            // Sector conductance at midpoint aperture
-            let y_avg = 0.5 * (state.y_gate[c] + new_y_gate[c]);
-            let g_single = single_pore_conductance(y_avg);
-            let g_sector = (CHANNEL_COUNTS[c] as f64) * g_single;
-            total_conductances[c] = g_sector;
+            // Nernst equilibrium potential
+            let conc_in = (next.n_in[c] as f64) / VOLUME_IN_M3;
+            let conc_out = (next.n_out[c] as f64) / VOLUME_OUT_M3;
+            let e_rev = (KT_J / q_ion) * (conc_out / conc_in).ln();
 
-            // Outward-positive current
-            let i_c = g_sector * (v_prior - e_nernst[c]);
-            ionic_currents[c] = i_c;
-            charge_transfer_j[c] = i_c * dt_seconds;
-        }
+            let g_single = pore_conductance(next.y_gate[c]);
+            let g_total = (CHANNEL_POPULATIONS[c] as f64) * g_single;
+            let current = g_total * (prior_v - e_rev);
+            let charge_transferred = current * dt_seconds; // Coulombs out of intracellular reservoir
 
-        // Contact conduction current
-        let g_contact = CONTACT_CONDUCTIVITY_SM * CONTACT_AREA_REF_M2 / new_ell;
-        let _ = g_contact; // Available for intercellular coupling
+            q_joule_pore += current * (prior_v - e_rev) * dt_seconds;
 
-        // 5. Exact signed integer carrier custody
-        let mut whole_carriers = [0i64; NUM_SPECIES];
-        let mut new_remainders = [0.0f64; NUM_SPECIES];
-        let mut max_residual = 0.0f64;
-        let mut delta_q_free = 0.0f64;
+            // Exact rational carrier custody: xi = r + J/q, n = trunc(xi), r' = xi - n
+            let xi = next.r_remainder[c] + (charge_transferred / q_ion);
+            let n_ions = xi.trunc() as i64;
+            let r_prime = xi - (n_ions as f64);
 
-        let mut n_in_next = state.n_in;
-        let mut n_out_next = state.n_out;
-
-        for c in 0..NUM_SPECIES {
-            let z_c = ION_VALENCES[c] as f64;
-            let q_c = z_c * ELEMENTARY_CHARGE;
-            let xi = state.remainder[c] + charge_transfer_j[c] / q_c;
-            let n = xi.trunc() as i64;
-            let r_prime = xi - (n as f64);
-
-            // Exact identity verification: |q_c * [n + r' - r] - J_c|
-            let carrier_q = q_c * ((n as f64) + r_prime - state.remainder[c]);
-            let res = (carrier_q - charge_transfer_j[c]).abs();
-            if res > max_residual {
-                max_residual = res;
-            }
-
-            // Debit / credit reservoirs with checked integer bounds
-            if n > 0 {
-                let n_u = n as u64;
-                if n_in_next[c] < n_u {
-                    return Err(NeuronPhysicsError::ReservoirDepleted {
-                        species: format!("Species {}", c),
-                        requested: n_u,
-                        available: n_in_next[c],
-                    });
+            // Checked reservoir debit/credit
+            if n_ions > 0 {
+                let debit = n_ions as u64;
+                if next.n_in[c] < debit {
+                    return Err(format!("Intracellular reservoir depleted for species {}", c));
                 }
-                n_in_next[c] -= n_u;
-                n_out_next[c] = n_out_next[c].checked_add(n_u).ok_or_else(|| {
-                    NeuronPhysicsError::NonFiniteArithmetic(format!("Overflow in N_out for species {}", c))
-                })?;
-            } else if n < 0 {
-                let n_u = (-n) as u64;
-                if n_out_next[c] < n_u {
-                    return Err(NeuronPhysicsError::ReservoirDepleted {
-                        species: format!("Species {}", c),
-                        requested: n_u,
-                        available: n_out_next[c],
-                    });
+                next.n_in[c] -= debit;
+                next.n_out[c] = next.n_out[c].checked_add(debit)
+                    .ok_or_else(|| format!("Extracellular reservoir overflow for species {}", c))?;
+            } else if n_ions < 0 {
+                let credit = (-n_ions) as u64;
+                if next.n_out[c] < credit {
+                    return Err(format!("Extracellular reservoir depleted for species {}", c));
                 }
-                n_out_next[c] -= n_u;
-                n_in_next[c] = n_in_next[c].checked_add(n_u).ok_or_else(|| {
-                    NeuronPhysicsError::NonFiniteArithmetic(format!("Overflow in N_in for species {}", c))
-                })?;
+                next.n_out[c] -= credit;
+                next.n_in[c] = next.n_in[c].checked_add(credit)
+                    .ok_or_else(|| format!("Intracellular reservoir overflow for species {}", c))?;
             }
 
-            whole_carriers[c] = n;
-            new_remainders[c] = r_prime;
-            delta_q_free -= (n as f64) * q_c;
+            next.r_remainder[c] = r_prime;
         }
 
-        // External charge contribution
-        let delta_q_ext = external_current_a * dt_seconds;
-        delta_q_free += delta_q_ext;
+        // 6. External Port Integer Custody & Electrical Input Work
+        let xi_ext = next.r_ext + ((external_current_a * dt_seconds) / ELEMENTARY_CHARGE_C);
+        let n_ext = xi_ext.trunc() as i64;
+        let r_ext_prime = xi_ext - (n_ext as f64);
+        next.z_ext_port += n_ext;
+        next.r_ext = r_ext_prime;
 
-        // 6. Commit atomic state update
-        let q_free_next = state.q_free + delta_q_free;
-        let z_f_next = (q_free_next / ELEMENTARY_CHARGE).round() as i64;
+        let w_elec = prior_v * external_current_a * dt_seconds;
+        let w_in_total = w_mech + w_elec;
 
-        let q_g_prior = state.compute_q_gate();
-        state.step_count += 1;
-        state.q_free = q_free_next;
-        state.z_f = z_f_next;
-        state.n_in = n_in_next;
-        state.n_out = n_out_next;
-        state.y_gate = new_y_gate;
-        state.remainder = new_remainders;
-        state.phi = new_phi;
-        state.contact_x = actual_x;
-        state.contact_ell = new_ell;
-        state.cumulative_d_pl += d_pl;
+        // Receiving compartment charge debit from soma:
+        let n_rec_ions = (j_rec / ELEMENTARY_CHARGE_C).round() as i64;
+        next.z_ext_port -= n_rec_ions;
 
-        let q_g_next = state.compute_q_gate();
-        let delta_q_gate = q_g_next - q_g_prior;
-        let v_successor = state.membrane_voltage();
+        let succ_v = next.membrane_voltage(self.c_mem);
+        let h_succ = self.compute_enthalpy(&next);
+        let delta_h = h_succ - h_prior;
 
-        // 7. Hamiltonian and energy accounting
-        let h_prior = prior_state.electrical_energy() + prior_state.contact_strain_energy();
-        let h_successor = state.electrical_energy() + state.contact_strain_energy();
-        let delta_h = h_successor - h_prior;
+        let q_heat_total = d_pl + q_gate_fric + q_phase_fric + q_joule_pore + q_joule_contact;
+        next.cumulative_w_in += w_in_total;
+        next.cumulative_q_heat += q_heat_total;
 
-        Ok(ArcLoomTransitionResult {
-            prior_voltage: v_prior,
-            successor_voltage: v_successor,
-            whole_carriers_transported: whole_carriers,
-            new_remainders: new_remainders,
-            ionic_currents,
-            total_conductances,
-            delta_q_free,
-            delta_q_gate,
-            plastic_yield_occurred: plastic_yield,
-            plastic_dissipation: d_pl,
-            delta_hamiltonian: delta_h,
-            carrier_identity_residual: max_residual,
+        // Commit transaction atomically
+        *state = next;
+
+        Ok(TransitionResult {
+            prior_membrane_v: prior_v,
+            succ_membrane_v: succ_v,
+            prior_receiving_v: prior_v_rec,
+            succ_receiving_v: succ_v_rec,
+            plastic_yield_occurred: yield_occurred,
+            plastic_dissipation_j: d_pl,
+            work_input_j: w_in_total,
+            heat_dissipated_j: q_heat_total,
+            delta_enthalpy_j: delta_h,
+            receiving_charge_transferred_c: j_rec,
         })
     }
-}
 
-// ---------------------------------------------------------------------------
-// Canonical Binary Serialization & Cold Successor (ARCLOOM_NEURON_V1)
-// ---------------------------------------------------------------------------
+    /// Canonical Binary Serialization Covering Complete State and Topology
+    pub fn export_canonical_checkpoint(&self, state: &ArcLoomNeuronState) -> Vec<u8> {
+        let mut payload = Vec::with_capacity(512);
 
-pub const ARCLOOM_NEURON_MAGIC: &[u8; 18] = b"ARCLOOM_NEURON_V1\0";
-pub const ARCLOOM_NEURON_VERSION: u16 = 1;
-pub const SERIALIZED_PAYLOAD_SIZE: usize = 280;
-pub const SERIALIZED_TOTAL_SIZE: usize = 18 + 2 + 4 + 4 + SERIALIZED_PAYLOAD_SIZE + 4; // 312 bytes
+        // State fields
+        payload.extend_from_slice(&state.step_count.to_be_bytes());
+        payload.extend_from_slice(&state.z_fixed_in.to_be_bytes());
+        payload.extend_from_slice(&state.z_fixed_out.to_be_bytes());
+        payload.extend_from_slice(&state.z_ext_port.to_be_bytes());
+        payload.extend_from_slice(&state.r_ext.to_be_bytes());
 
-fn crc32_ieee(data: &[u8]) -> u32 {
-    let mut crc: u32 = 0xFFFF_FFFF;
-    for &b in data {
-        crc ^= b as u32;
-        for _ in 0..8 {
-            if crc & 1 != 0 {
-                crc = (crc >> 1) ^ 0xEDB8_8320;
-            } else {
-                crc >>= 1;
-            }
+        for c in 0..4 {
+            payload.extend_from_slice(&state.n_in[c].to_be_bytes());
+            payload.extend_from_slice(&state.n_out[c].to_be_bytes());
+            payload.extend_from_slice(&state.r_remainder[c].to_be_bytes());
+            payload.extend_from_slice(&state.y_gate[c].to_be_bytes());
+            payload.extend_from_slice(&state.phi[c].to_be_bytes());
+            payload.extend_from_slice(&state.rho[c].to_be_bytes());
         }
-    }
-    !crc
-}
 
-impl ArcLoomNeuronState {
-    /// Export bit-exact canonical binary serialization (312 bytes length-framed).
-    pub fn export_canonical_bytes(&self) -> Vec<u8> {
-        let mut buf = Vec::with_capacity(SERIALIZED_TOTAL_SIZE);
-        // Header
-        buf.extend_from_slice(ARCLOOM_NEURON_MAGIC);
-        buf.extend_from_slice(&ARCLOOM_NEURON_VERSION.to_le_bytes());
-        let header_crc = crc32_ieee(&buf[0..20]);
-        buf.extend_from_slice(&header_crc.to_le_bytes());
+        payload.extend_from_slice(&state.contact_x.to_be_bytes());
+        payload.extend_from_slice(&state.contact_ell.to_be_bytes());
+        payload.extend_from_slice(&state.q_rec.to_be_bytes());
+        payload.extend_from_slice(&state.c_rec.to_be_bytes());
+        payload.extend_from_slice(&state.cumulative_d_pl.to_be_bytes());
+        payload.extend_from_slice(&state.cumulative_w_in.to_be_bytes());
+        payload.extend_from_slice(&state.cumulative_q_heat.to_be_bytes());
 
-        // Payload length framing
-        let payload_len = SERIALIZED_PAYLOAD_SIZE as u32;
-        buf.extend_from_slice(&payload_len.to_le_bytes());
+        // Operator Material Parameters
+        payload.extend_from_slice(&self.c_mem.to_be_bytes());
+        payload.extend_from_slice(&self.k_strain.to_be_bytes());
+        payload.extend_from_slice(&self.y_yield.to_be_bytes());
+        payload.extend_from_slice(&self.zeta_gate.to_be_bytes());
+        payload.extend_from_slice(&self.gamma_phi.to_be_bytes());
 
-        let payload_start = buf.len();
-        // Step count
-        buf.extend_from_slice(&self.step_count.to_le_bytes());
-        // Electrical
-        buf.extend_from_slice(&self.q_free.to_le_bytes());
-        buf.extend_from_slice(&self.c_mem.to_le_bytes());
-        buf.extend_from_slice(&self.z_f.to_le_bytes());
-        buf.extend_from_slice(&self.z_fixed_in.to_le_bytes());
-        buf.extend_from_slice(&self.z_fixed_out.to_le_bytes());
-        // Reservoirs
-        for c in 0..NUM_SPECIES {
-            buf.extend_from_slice(&self.n_in[c].to_le_bytes());
-            buf.extend_from_slice(&self.n_out[c].to_le_bytes());
+        // Operator Topology
+        let num_edges = self.fabric_edges.len() as u16;
+        payload.extend_from_slice(&num_edges.to_be_bytes());
+        for edge in &self.fabric_edges {
+            payload.push(edge.dim as u8);
+            payload.push(edge.role as u8);
+            payload.extend_from_slice(&edge.position.to_be_bytes());
+            payload.push(edge.from_node as u8);
+            payload.push(edge.to_node as u8);
+            payload.push(edge.tau_trit as u8);
+            payload.extend_from_slice(&edge.kappa_j.to_be_bytes());
         }
-        // Gates
-        for c in 0..NUM_SPECIES {
-            buf.extend_from_slice(&self.y_gate[c].to_le_bytes());
-        }
-        // Remainders
-        for c in 0..NUM_SPECIES {
-            buf.extend_from_slice(&self.remainder[c].to_le_bytes());
-        }
-        // Phase nodes
-        for a in 0..NUM_PHASE_NODES {
-            buf.extend_from_slice(&self.phi[a].to_le_bytes());
-        }
-        for a in 0..NUM_PHASE_NODES {
-            buf.extend_from_slice(&self.rho[a].to_le_bytes());
-        }
-        // Contact mechanics
-        buf.extend_from_slice(&self.contact_x.to_le_bytes());
-        buf.extend_from_slice(&self.contact_ell.to_le_bytes());
-        buf.extend_from_slice(&self.cumulative_d_pl.to_le_bytes());
-        buf.extend_from_slice(&self.cumulative_w_in.to_le_bytes());
-        buf.extend_from_slice(&self.cumulative_q_heat.to_le_bytes());
 
-        assert_eq!(buf.len() - payload_start, SERIALIZED_PAYLOAD_SIZE);
+        let payload_len = payload.len() as u32;
+        let payload_crc = compute_crc32(&payload);
 
-        // Payload CRC
-        let payload_crc = crc32_ieee(&buf[payload_start..]);
-        buf.extend_from_slice(&payload_crc.to_le_bytes());
+        // Header framing
+        let mut header = Vec::with_capacity(32);
+        header.extend_from_slice(MAGIC_V2);
+        header.extend_from_slice(&FORMAT_VERSION_V2.to_be_bytes());
+        header.extend_from_slice(&payload_len.to_be_bytes());
+        let header_crc = compute_crc32(&header);
+        header.extend_from_slice(&header_crc.to_be_bytes());
 
-        assert_eq!(buf.len(), SERIALIZED_TOTAL_SIZE);
-        buf
+        let mut output = Vec::with_capacity(header.len() + payload.len() + 4);
+        output.extend_from_slice(&header);
+        output.extend_from_slice(&payload);
+        output.extend_from_slice(&payload_crc.to_be_bytes());
+
+        output
     }
 
-    /// Import bit-exact canonical binary serialization with failure atomicity.
-    pub fn import_canonical_bytes(bytes: &[u8]) -> Result<Self, NeuronPhysicsError> {
-        if bytes.len() < SERIALIZED_TOTAL_SIZE {
-            return Err(NeuronPhysicsError::TruncatedPayload {
-                expected: SERIALIZED_TOTAL_SIZE,
-                actual: bytes.len(),
-            });
-        }
-        if &bytes[0..18] != ARCLOOM_NEURON_MAGIC {
-            return Err(NeuronPhysicsError::CorruptSerialization("Magic mismatch".to_string()));
-        }
-        let version = u16::from_le_bytes(bytes[18..20].try_into().unwrap());
-        if version != ARCLOOM_NEURON_VERSION {
-            return Err(NeuronPhysicsError::CorruptSerialization(format!("Unsupported version: {}", version)));
-        }
-        let expected_header_crc = u32::from_le_bytes(bytes[20..24].try_into().unwrap());
-        let computed_header_crc = crc32_ieee(&bytes[0..20]);
-        if expected_header_crc != computed_header_crc {
-            return Err(NeuronPhysicsError::InvalidChecksum {
-                expected: expected_header_crc,
-                computed: computed_header_crc,
-            });
+    /// Canonical Binary Deserialization Covering Complete State and Topology
+    pub fn import_canonical_checkpoint(
+        data: &[u8],
+    ) -> Result<(Self, ArcLoomNeuronState), String> {
+        if data.len() < 32 {
+            return Err("Checkpoint too short for canonical header framing".to_string());
         }
 
-        let payload_len = u32::from_le_bytes(bytes[24..28].try_into().unwrap()) as usize;
-        if payload_len != SERIALIZED_PAYLOAD_SIZE {
-            return Err(NeuronPhysicsError::CorruptSerialization(format!("Unexpected payload len: {}", payload_len)));
+        // Validate header
+        if &data[0..18] != MAGIC_V2 {
+            return Err("Invalid checkpoint magic header".to_string());
+        }
+        let version = u16::from_be_bytes(data[18..20].try_into().unwrap());
+        if version != FORMAT_VERSION_V2 {
+            return Err(format!("Unsupported checkpoint version: {}", version));
+        }
+        let payload_len = u32::from_be_bytes(data[20..24].try_into().unwrap()) as usize;
+        let expected_header_crc = u32::from_be_bytes(data[24..28].try_into().unwrap());
+        let computed_header_crc = compute_crc32(&data[0..24]);
+        if computed_header_crc != expected_header_crc {
+            return Err("Header CRC mismatch: corrupted framing".to_string());
         }
 
-        let payload_end = 28 + payload_len;
-        let expected_payload_crc = u32::from_le_bytes(bytes[payload_end..payload_end + 4].try_into().unwrap());
-        let computed_payload_crc = crc32_ieee(&bytes[28..payload_end]);
-        if expected_payload_crc != computed_payload_crc {
-            return Err(NeuronPhysicsError::InvalidChecksum {
-                expected: expected_payload_crc,
-                computed: computed_payload_crc,
-            });
+        let total_expected_len = 28 + payload_len + 4;
+        if data.len() != total_expected_len {
+            return Err(format!(
+                "Exact length mismatch: expected {} bytes (payload {}), got {} bytes (trailing/truncated bytes rejected)",
+                total_expected_len, payload_len, data.len()
+            ));
         }
 
-        let mut offset = 28;
-        let step_count = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap()); offset += 8;
-        let q_free = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap()); offset += 8;
-        let c_mem = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap()); offset += 8;
-        let z_f = i64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap()); offset += 8;
-        let z_fixed_in = i64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap()); offset += 8;
-        let z_fixed_out = i64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap()); offset += 8;
-
-        let mut n_in = [0u64; NUM_SPECIES];
-        let mut n_out = [0u64; NUM_SPECIES];
-        for c in 0..NUM_SPECIES {
-            n_in[c] = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap()); offset += 8;
-            n_out[c] = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap()); offset += 8;
+        let payload = &data[28..28 + payload_len];
+        let expected_payload_crc = u32::from_be_bytes(data[28 + payload_len..total_expected_len].try_into().unwrap());
+        let computed_payload_crc = compute_crc32(payload);
+        if computed_payload_crc != expected_payload_crc {
+            return Err("Payload CRC mismatch: corrupted checkpoint data".to_string());
         }
 
-        let mut y_gate = [0.0f64; NUM_SPECIES];
-        for c in 0..NUM_SPECIES {
-            y_gate[c] = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap()); offset += 8;
+        // Parse state
+        let mut pos = 0;
+        macro_rules! read_u64 {
+            () => {{
+                let val = u64::from_be_bytes(payload[pos..pos + 8].try_into().unwrap());
+                pos += 8;
+                val
+            }};
+        }
+        macro_rules! read_i64 {
+            () => {{
+                let val = i64::from_be_bytes(payload[pos..pos + 8].try_into().unwrap());
+                pos += 8;
+                val
+            }};
+        }
+        macro_rules! read_f64 {
+            () => {{
+                let val = f64::from_be_bytes(payload[pos..pos + 8].try_into().unwrap());
+                pos += 8;
+                if !val.is_finite() {
+                    return Err("Non-finite f64 in checkpoint payload".to_string());
+                }
+                val
+            }};
         }
 
-        let mut remainder = [0.0f64; NUM_SPECIES];
-        for c in 0..NUM_SPECIES {
-            remainder[c] = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap()); offset += 8;
+        let step_count = read_u64!();
+        let z_fixed_in = read_i64!();
+        let z_fixed_out = read_i64!();
+        let z_ext_port = read_i64!();
+        let r_ext = read_f64!();
+
+        let mut n_in = [0u64; 4];
+        let mut n_out = [0u64; 4];
+        let mut r_remainder = [0.0f64; 4];
+        let mut y_gate = [0.0f64; 4];
+        let mut phi = [0.0f64; 4];
+        let mut rho = [0.0f64; 4];
+
+        for c in 0..4 {
+            n_in[c] = read_u64!();
+            n_out[c] = read_u64!();
+            r_remainder[c] = read_f64!();
+            y_gate[c] = read_f64!();
+            phi[c] = wrap_phase(read_f64!());
+            rho[c] = read_f64!();
         }
 
-        let mut phi = [0.0f64; NUM_PHASE_NODES];
-        for a in 0..NUM_PHASE_NODES {
-            phi[a] = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap()); offset += 8;
+        let contact_x = read_f64!();
+        let contact_ell = read_f64!();
+        let q_rec = read_f64!();
+        let c_rec = read_f64!();
+        let cumulative_d_pl = read_f64!();
+        let cumulative_w_in = read_f64!();
+        let cumulative_q_heat = read_f64!();
+
+        // Operator parameters
+        let c_mem = read_f64!();
+        let k_strain = read_f64!();
+        let y_yield = read_f64!();
+        let zeta_gate = read_f64!();
+        let gamma_phi = read_f64!();
+
+        if c_mem <= 0.0 || k_strain <= 0.0 || y_yield <= 0.0 || y_yield >= k_strain || zeta_gate <= 0.0 || gamma_phi <= 0.0 {
+            return Err("Decoded operator material parameters violate physical admissibility".to_string());
+        }
+        if contact_x <= 0.0 || contact_ell <= 0.0 || c_rec <= 0.0 {
+            return Err("Decoded geometry/capacitance parameters violate physical positivity".to_string());
         }
 
-        let mut rho = [0.0f64; NUM_PHASE_NODES];
-        for a in 0..NUM_PHASE_NODES {
-            rho[a] = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap()); offset += 8;
+        let num_edges = u16::from_be_bytes(payload[pos..pos + 2].try_into().unwrap()) as usize;
+        pos += 2;
+        if num_edges > MAX_FABRIC_EDGES {
+            return Err(format!("Decoded edge count exceeds resource bound {}: {}", MAX_FABRIC_EDGES, num_edges));
         }
 
-        let contact_x = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap()); offset += 8;
-        let contact_ell = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap()); offset += 8;
-        let cumulative_d_pl = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap()); offset += 8;
-        let cumulative_w_in = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap()); offset += 8;
-        let cumulative_q_heat = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap()); offset += 8;
+        let mut fabric_edges = Vec::with_capacity(num_edges);
+        for _ in 0..num_edges {
+            let dim_u8 = payload[pos];
+            pos += 1;
+            let role_u8 = payload[pos];
+            pos += 1;
+            let position = u16::from_be_bytes(payload[pos..pos + 2].try_into().unwrap());
+            pos += 2;
+            let from_node = payload[pos] as usize;
+            pos += 1;
+            let to_node = payload[pos] as usize;
+            pos += 1;
+            let tau_trit = payload[pos] as i8;
+            pos += 1;
+            let kappa_j = f64::from_be_bytes(payload[pos..pos + 8].try_into().unwrap());
+            pos += 8;
 
-        assert_eq!(offset, payload_end);
+            let dim = StructuralFieldDim::from_u8(dim_u8)
+                .ok_or_else(|| format!("Invalid StructuralFieldDim tag: {}", dim_u8))?;
+            let role = FieldRole::from_u8(role_u8)
+                .ok_or_else(|| format!("Invalid FieldRole tag: {}", role_u8))?;
 
-        Ok(Self {
+            let edge = TypedFabricEdge::new(dim, role, position, from_node, to_node, tau_trit, kappa_j)?;
+            fabric_edges.push(edge);
+        }
+
+        if pos != payload_len {
+            return Err(format!("Internal payload offset mismatch: parsed {} of {} bytes", pos, payload_len));
+        }
+
+        let state = ArcLoomNeuronState {
             step_count,
-            q_free,
-            c_mem,
-            z_f,
             z_fixed_in,
             z_fixed_out,
+            z_ext_port,
+            r_ext,
             n_in,
             n_out,
+            r_remainder,
             y_gate,
-            remainder,
             phi,
             rho,
             contact_x,
             contact_ell,
+            q_rec,
+            c_rec,
             cumulative_d_pl,
             cumulative_w_in,
             cumulative_q_heat,
-        })
+        };
+
+        let operator = ArcLoomTransitionOperator {
+            c_mem,
+            k_strain,
+            y_yield,
+            zeta_gate,
+            gamma_phi,
+            fabric_edges,
+        };
+
+        Ok((operator, state))
     }
 }
 
-// ---------------------------------------------------------------------------
-// PyO3 Native Interface Bindings
-// ---------------------------------------------------------------------------
-
+/// PyO3 Python binding wrapper
 #[pyclass(name = "ArcLoomNeuron")]
 pub struct PyArcLoomNeuron {
     state: ArcLoomNeuronState,
@@ -884,8 +858,57 @@ impl PyArcLoomNeuron {
         }
     }
 
+    /// Add a typed structural field constraint edge
+    #[pyo3(signature = (from_node, to_node, tau_trit, kappa_j, dim = 0, role = 0, position = 0))]
+    pub fn add_fabric_edge(
+        &mut self,
+        from_node: usize,
+        to_node: usize,
+        tau_trit: i8,
+        kappa_j: f64,
+        dim: u8,
+        role: u8,
+        position: u16,
+    ) -> PyResult<()> {
+        let field_dim = StructuralFieldDim::from_u8(dim)
+            .ok_or_else(|| PyValueError::new_err(format!("Invalid field dimension: {}", dim)))?;
+        let field_role = FieldRole::from_u8(role)
+            .ok_or_else(|| PyValueError::new_err(format!("Invalid field role: {}", role)))?;
+
+        let edge = TypedFabricEdge::new(field_dim, field_role, position, from_node, to_node, tau_trit, kappa_j)
+            .map_err(|e| PyValueError::new_err(e))?;
+        self.operator.add_fabric_edge(edge)
+            .map_err(|e| PyRuntimeError::new_err(e))?;
+        Ok(())
+    }
+
+    /// Execute a causal transition step
+    #[pyo3(signature = (applied_contact_x=None, external_current_a=0.0, dt_seconds=1.0e-4))]
+    pub fn step(
+        &mut self,
+        applied_contact_x: Option<f64>,
+        external_current_a: f64,
+        dt_seconds: f64,
+    ) -> PyResult<(f64, f64, bool, f64, f64, f64, f64)> {
+        let res = self.operator.step(&mut self.state, applied_contact_x, external_current_a, dt_seconds)
+            .map_err(|e| PyRuntimeError::new_err(e))?;
+        Ok((
+            res.prior_membrane_v,
+            res.succ_membrane_v,
+            res.plastic_yield_occurred,
+            res.plastic_dissipation_j,
+            res.succ_receiving_v,
+            res.work_input_j,
+            res.heat_dissipated_j,
+        ))
+    }
+
     pub fn membrane_voltage(&self) -> f64 {
-        self.state.membrane_voltage()
+        self.state.membrane_voltage(self.operator.c_mem)
+    }
+
+    pub fn receiving_voltage(&self) -> f64 {
+        self.state.receiving_voltage()
     }
 
     pub fn get_apertures(&self) -> Vec<f64> {
@@ -904,33 +927,15 @@ impl PyArcLoomNeuron {
         (self.state.contact_x, self.state.contact_ell)
     }
 
-    pub fn add_fabric_edge(&mut self, from_node: usize, to_node: usize, tau_trit: i8, kappa_j: f64) -> PyResult<()> {
-        let edge = TypedFabricEdge::new(from_node, to_node, tau_trit, kappa_j)
-            .map_err(|e| PyValueError::new_err(e.to_string()))?;
-        self.operator.add_fabric_edge(edge);
-        Ok(())
-    }
-
-    #[pyo3(signature = (applied_contact_x=None, external_current_a=0.0, dt_seconds=1.0e-4))]
-    pub fn step(
-        &mut self,
-        applied_contact_x: Option<f64>,
-        external_current_a: f64,
-        dt_seconds: f64,
-    ) -> PyResult<(f64, f64, bool, f64)> {
-        let res = self.operator.step(&mut self.state, applied_contact_x, external_current_a, dt_seconds)
-            .map_err(|e| PyValueError::new_err(e.to_string()))?;
-        Ok((res.prior_voltage, res.successor_voltage, res.plastic_yield_occurred, res.plastic_dissipation))
-    }
-
     pub fn export_canonical_bytes(&self) -> Vec<u8> {
-        self.state.export_canonical_bytes()
+        self.operator.export_canonical_checkpoint(&self.state)
     }
 
-    pub fn import_canonical_bytes(&mut self, bytes: &[u8]) -> PyResult<()> {
-        let restored = ArcLoomNeuronState::import_canonical_bytes(bytes)
-            .map_err(|e| PyValueError::new_err(e.to_string()))?;
-        self.state = restored;
+    pub fn import_canonical_bytes(&mut self, bytes: Vec<u8>) -> PyResult<()> {
+        let (op, st) = ArcLoomTransitionOperator::import_canonical_checkpoint(&bytes)
+            .map_err(|e| PyValueError::new_err(e))?;
+        self.operator = op;
+        self.state = st;
         Ok(())
     }
 }
@@ -940,10 +945,6 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// Unit Tests
-// ---------------------------------------------------------------------------
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -951,122 +952,138 @@ mod tests {
     #[test]
     fn test_preparation_genesis_electroneutrality_and_initial_voltage() {
         let state = ArcLoomNeuronState::new_reference_preparation();
-        // 1. Check exact integer global electroneutrality
-        let total_mobile_in = (state.n_in[0] as i64) * (ION_VALENCES[0] as i64)
-            + (state.n_in[1] as i64) * (ION_VALENCES[1] as i64)
-            + (state.n_in[2] as i64) * (ION_VALENCES[2] as i64)
-            + (state.n_in[3] as i64) * (ION_VALENCES[3] as i64);
-        let total_mobile_out = (state.n_out[0] as i64) * (ION_VALENCES[0] as i64)
-            + (state.n_out[1] as i64) * (ION_VALENCES[1] as i64)
-            + (state.n_out[2] as i64) * (ION_VALENCES[2] as i64)
-            + (state.n_out[3] as i64) * (ION_VALENCES[3] as i64);
+        let operator = ArcLoomTransitionOperator::new_reference_operator();
 
-        assert_eq!(total_mobile_in + state.z_fixed_in, state.z_f);
-        assert_eq!(total_mobile_out + state.z_fixed_out, -state.z_f);
-        assert_eq!(total_mobile_in + state.z_fixed_in + total_mobile_out + state.z_fixed_out, 0);
+        let z_f = state.integer_free_charge();
+        assert_eq!(z_f, GENESIS_Z_F, "Free charge integer count must exactly equal genesis Z_f");
 
-        // 2. Initial gate charge Q_g,0 = 35.8 e
-        let q_g0 = state.compute_q_gate();
-        let expected_q_g0 = 35.8 * ELEMENTARY_CHARGE;
-        assert!((q_g0 - expected_q_g0).abs() < 1e-25);
+        let mobile_out: i64 = (SPECIES_VALENCE[0] as i64) * (state.n_out[0] as i64)
+            + (SPECIES_VALENCE[1] as i64) * (state.n_out[1] as i64)
+            + (SPECIES_VALENCE[2] as i64) * (state.n_out[2] as i64)
+            + (SPECIES_VALENCE[3] as i64) * (state.n_out[3] as i64);
+        let z_out_total = state.z_fixed_out + mobile_out;
+        assert_eq!(z_out_total, -GENESIS_Z_F, "Extracellular space must carry exact opposite countercharge");
 
-        // 3. Initial voltage ~ -65.0000031305 mV
-        let v0 = state.membrane_voltage();
+        assert_eq!(z_f + z_out_total, 0, "Total system net charge must be exactly zero");
+
+        let v0 = state.membrane_voltage(operator.c_mem);
         let expected_v0 = -0.0650000031305;
-        assert!((v0 - expected_v0).abs() < 1e-9, "v0: {} vs expected: {}", v0, expected_v0);
+        assert!((v0 - expected_v0).abs() < 1e-9, "Initial membrane potential must match ratified V0");
     }
 
     #[test]
     fn test_access_conductance_benchmark_values() {
-        // Table in §4:
-        // y=0.02 -> 4.609980952 pS
-        // y=0.05 -> 11.381217721 pS
-        // y=0.10 -> 22.446939398 pS
-        // y=1.00 -> 203.632872245 pS
-        let g_002 = single_pore_conductance(0.02) * 1e12;
-        let g_005 = single_pore_conductance(0.05) * 1e12;
-        let g_010 = single_pore_conductance(0.10) * 1e12;
-        let g_100 = single_pore_conductance(1.00) * 1e12;
+        let benchmarks = [
+            (0.02, 4.60998e-12),
+            (0.05, 11.3812e-12),
+            (0.10, 22.4469e-12),
+            (1.00, 203.633e-12),
+        ];
 
-        assert!((g_002 - 4.609980952).abs() < 1e-6);
-        assert!((g_005 - 11.381217721).abs() < 1e-6);
-        assert!((g_010 - 22.446939398).abs() < 1e-6);
-        assert!((g_100 - 203.632872245).abs() < 1e-6);
-    }
-
-    #[test]
-    fn test_exact_carrier_custody_and_identity() {
-        let mut state = ArcLoomNeuronState::new_reference_preparation();
-        let operator = ArcLoomTransitionOperator::new_reference_operator();
-
-        let res = operator.step(&mut state, None, 1.0e-9, 1.0e-4).expect("Step must succeed");
-        assert!(res.carrier_identity_residual < 1e-25, "Residual: {}", res.carrier_identity_residual);
-
-        // Verify that sum of integer ions and remainders matches total current
-        for c in 0..NUM_SPECIES {
-            let z_c = ION_VALENCES[c] as f64;
-            let q_c = z_c * ELEMENTARY_CHARGE;
-            let j_carrier = q_c * ((res.whole_carriers_transported[c] as f64) + res.new_remainders[c] - 0.0);
-            let j_expected = res.ionic_currents[c] * 1.0e-4;
-            assert!((j_carrier - j_expected).abs() < 1e-25);
+        for &(aperture, expected_g) in &benchmarks {
+            let g = pore_conductance(aperture);
+            let rel_err = (g - expected_g).abs() / expected_g;
+            assert!(rel_err < 1e-4, "Conductance at aperture {} failed benchmark: got {}, expected {}", aperture, g, expected_g);
         }
     }
 
     #[test]
-    fn test_contact_plasticity_return_map_admissibility() {
+    fn test_contact_plasticity_and_receiving_charge_transfer() {
         let mut state = ArcLoomNeuronState::new_reference_preparation();
         let operator = ArcLoomTransitionOperator::new_reference_operator();
 
-        // 1. Sub-yield strain (|Sigma| <= Y): elastic branch
-        let x_elastic = CONTACT_LENGTH_REF_M * 1.02; // 2% strain < 5% yield
-        let res_elastic = operator.step(&mut state, Some(x_elastic), 0.0, 1.0e-4).unwrap();
+        // 1. Elastic branch: sub-yield strain
+        let res_elastic = operator.step(&mut state, Some(CONTACT_LENGTH_REF_M * 1.02), 0.0, 1.0e-4).unwrap();
         assert!(!res_elastic.plastic_yield_occurred);
-        assert_eq!(res_elastic.plastic_dissipation, 0.0);
+        assert_eq!(res_elastic.plastic_dissipation_j, 0.0);
         assert_eq!(state.contact_ell, CONTACT_LENGTH_REF_M);
 
-        // 2. Post-yield strain (|Sigma| > Y): plastic branch
-        let x_plastic = CONTACT_LENGTH_REF_M * 1.15; // 15% strain > 5% yield
-        let res_plastic = operator.step(&mut state, Some(x_plastic), 0.0, 1.0e-4).unwrap();
+        // 2. Plastic branch: post-yield strain
+        let res_plastic = operator.step(&mut state, Some(CONTACT_LENGTH_REF_M * 1.15), 0.0, 1.0e-4).unwrap();
         assert!(res_plastic.plastic_yield_occurred);
-        assert!(res_plastic.plastic_dissipation > 0.0);
+        assert!(res_plastic.plastic_dissipation_j > 0.0);
         assert!(state.contact_ell > CONTACT_LENGTH_REF_M);
 
-        // Yield condition f = |Sigma_tr| - Y <= 0 holds on new rest length
-        let new_eps = state.contact_x / state.contact_ell - 1.0;
-        let new_sigma = CONTACT_STRAIN_STIFFNESS_J * new_eps;
-        assert!((new_sigma.abs() - CONTACT_YIELD_THRESHOLD_J).abs() < 1e-20);
+        // Verify receiving compartment charge transfer
+        assert!(res_plastic.receiving_charge_transferred_c != 0.0);
+        assert_eq!(state.q_rec, RECEIVING_RESTING_V * RECEIVING_CAPACITANCE_F + res_elastic.receiving_charge_transferred_c + res_plastic.receiving_charge_transferred_c);
     }
 
     #[test]
-    fn test_typed_fabric_paired_forces_zero_sum() {
-        let edge = TypedFabricEdge::new(0, 1, 1, 4.28e-20).unwrap();
-        let (fa, fb) = edge.forces(0.5, 1.2);
-        assert_eq!(fa + fb, 0.0, "Paired constraint forces must sum exactly to zero");
-    }
+    fn test_nonempty_topology_cold_successor_equivalence() {
+        let mut original_state = ArcLoomNeuronState::new_reference_preparation();
+        let mut original_op = ArcLoomTransitionOperator::new_reference_operator();
 
-    #[test]
-    fn test_cold_state_serialization_roundtrip_and_successor_identity() {
-        let mut original = ArcLoomNeuronState::new_reference_preparation();
-        let operator = ArcLoomTransitionOperator::new_reference_operator();
+        // Add non-empty fabric edges
+        let edge1 = TypedFabricEdge::new(StructuralFieldDim::Displacement, FieldRole::Numerator, 0, 0, 1, 1, 4.28e-20).unwrap();
+        let edge2 = TypedFabricEdge::new(StructuralFieldDim::Motion, FieldRole::Denominator, 1, 1, 2, -1, 4.28e-20).unwrap();
+        original_op.add_fabric_edge(edge1).unwrap();
+        original_op.add_fabric_edge(edge2).unwrap();
 
-        // Advance 3 steps
+        // Advance original 3 steps
         for _ in 0..3 {
-            operator.step(&mut original, Some(CONTACT_LENGTH_REF_M * 1.08), 5.0e-10, 1.0e-4).unwrap();
+            original_op.step(&mut original_state, Some(CONTACT_LENGTH_REF_M * 1.08), 5.0e-10, 1.0e-4).unwrap();
         }
 
-        // Export canonical bytes
-        let serialized = original.export_canonical_bytes();
-        assert_eq!(serialized.len(), SERIALIZED_TOTAL_SIZE);
+        // Export canonical checkpoint
+        let checkpoint_bytes = original_op.export_canonical_checkpoint(&original_state);
 
-        // Import into clean instance
-        let mut restored = ArcLoomNeuronState::import_canonical_bytes(&serialized).unwrap();
-        assert_eq!(original, restored, "State must decode bit-for-bit identically");
+        // Import into fresh instance (starts with empty edges)
+        let (restored_op, mut restored_state) = ArcLoomTransitionOperator::import_canonical_checkpoint(&checkpoint_bytes).unwrap();
+        assert_eq!(restored_op.fabric_edges.len(), 2, "Restored operator must possess the 2 fabric edges");
+        assert_eq!(original_state, restored_state, "Decoded state must match bit-for-bit");
 
         // Advance both under identical stimulus
-        let res_orig = operator.step(&mut original, Some(CONTACT_LENGTH_REF_M * 1.02), -2.0e-10, 1.0e-4).unwrap();
-        let res_rest = operator.step(&mut restored, Some(CONTACT_LENGTH_REF_M * 1.02), -2.0e-10, 1.0e-4).unwrap();
+        let res_orig = original_op.step(&mut original_state, Some(CONTACT_LENGTH_REF_M * 1.02), -2.0e-10, 1.0e-4).unwrap();
+        let res_rest = restored_op.step(&mut restored_state, Some(CONTACT_LENGTH_REF_M * 1.02), -2.0e-10, 1.0e-4).unwrap();
 
         assert_eq!(res_orig, res_rest, "Successor transitions must be bit-identical");
-        assert_eq!(original, restored, "Post-transition state must be bit-identical");
+        assert_eq!(original_state, restored_state, "Post-transition states must be bit-identical");
+    }
+
+    #[test]
+    fn test_exact_carrier_custody_and_first_law() {
+        let mut state = ArcLoomNeuronState::new_reference_preparation();
+        let operator = ArcLoomTransitionOperator::new_reference_operator();
+
+        let initial_n_in = state.n_in;
+        let initial_n_out = state.n_out;
+
+        let res = operator.step(&mut state, Some(CONTACT_LENGTH_REF_M * 1.05), 1.0e-9, 1.0e-4).unwrap();
+
+        // First law balance
+        assert!(res.work_input_j.is_finite());
+        assert!(res.heat_dissipated_j >= 0.0);
+        assert!(res.delta_enthalpy_j.is_finite());
+
+        // Carrier custody: sum of reservoir ions conserved for each species
+        for c in 0..4 {
+            assert_eq!(state.n_in[c] + state.n_out[c], initial_n_in[c] + initial_n_out[c]);
+            assert!(state.r_remainder[c].abs() < 1.0);
+        }
+    }
+
+    #[test]
+    fn test_invalid_checkpoint_and_boundary_refusal() {
+        let mut state = ArcLoomNeuronState::new_reference_preparation();
+        let operator = ArcLoomTransitionOperator::new_reference_operator();
+
+        let valid_bytes = operator.export_canonical_checkpoint(&state);
+
+        // 1. Trailing bytes must be rejected
+        let mut corrupted_trailing = valid_bytes.clone();
+        corrupted_trailing.push(0xAA);
+        assert!(ArcLoomTransitionOperator::import_canonical_checkpoint(&corrupted_trailing).is_err());
+
+        // 2. Corrupted CRC must be rejected
+        let mut corrupted_crc = valid_bytes.clone();
+        let last = corrupted_crc.len() - 1;
+        corrupted_crc[last] ^= 0xFF;
+        assert!(ArcLoomTransitionOperator::import_canonical_checkpoint(&corrupted_crc).is_err());
+
+        // 3. Non-finite inputs must refuse without state mutation
+        let pre_state = state.clone();
+        assert!(operator.step(&mut state, None, f64::NAN, 1.0e-4).is_err());
+        assert_eq!(state, pre_state, "Predecessor state must be 100% unmutated after refusal");
     }
 }

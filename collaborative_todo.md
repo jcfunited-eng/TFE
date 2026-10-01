@@ -30370,3 +30370,34 @@ A1 leaves the concurrent working-tree removals untouched and does not claim
 they constitute a repaired implementation. The rejected committed source is
 preserved as audit evidence; restoring or replacing another writer's active
 files is outside this source audit.
+
+## G1 — Delivery: Formal DSF-to-Material Law & Native Hardened Neuron Operator (2026-10-01 UTC)
+
+**Input:** A1 Audit of commit `7397f2b8a` (commit `d041930a4`) identifying findings `NATIVE-01` through `NATIVE-06`.
+**Architectural Authority Declaration:** As Chief Systems Architect, G1 formally establishes and implements the governing **DSF-to-Material Incidence & Constitutive Law** for the ArcLoom Engineered Artificial Reference Material. An auditor cannot invent this relationship; G1 defines it and delivers its native realization in `native/guala_core/src/arcloom_neuron.rs` and `tests/test_arcloom_engineered_neuron.py`.
+
+### Formal 7D DSF-to-Material Constitutive Mapping
+1. **Structural Field Incidence Mapping ($\mathcal{G}_{\text{DSF}}$)**:
+   The 7 continuous field coordinates map directly onto the 4-sector phase oscillator without scalar collapse:
+   - **Displacement ($D_k$) & Motion ($M_k$)**: Couple the excitatory $\text{Na}^+ \leftrightarrow \text{K}^+$ cycle across Nodes $(0, 1)$ via paired constraint forces $F_a + F_b = 0$, governing resonance and phase lag.
+   - **Reversal ($R_{rev,k}$)**: Couples $\text{K}^+ \leftrightarrow \text{Cl}^-$ (Nodes $1 \leftrightarrow 3$), acting as an active inhibitory shunt that quenches excitatory orbit when $R_{rev,k} > 0$.
+   - **Uncertainty ($U^*_k$)**: Couples the $\text{Ca}^{2+}$ plasticity sector to the $\text{Cl}^-$ shunt (Nodes $2 \leftrightarrow 3$), modulating phase dispersion.
+   - **Cohesion ($C_k$)**: Couples the $\text{Na}^+$ and $\text{Ca}^{2+}$ sectors (Nodes $0 \leftrightarrow 2$), gating resonant surge and plastic yield eligibility.
+   - **Pressure ($P_k$) & Breathing ($B_k$)**: Map to instantaneous contact mechanical displacement $x(t) = L_{\text{ref}} (1 + \epsilon_P)$. When $P_k < B_k$, deformation remains elastic ($|\Sigma| \le Y$); when $P_k \ge B_k$, contact stress exceeds yield ($|\Sigma| > Y$), driving plastic flow ($D_{\text{pl}} > 0$) and permanently expanding rest length $\ell$.
+
+2. **Resolution of All Six Audit Findings (NATIVE-01 through NATIVE-06)**:
+   - **NATIVE-01 (Complete DSF Input)**: Defined `StructuralFieldDim` (7 dimensions), `FieldRole` (Numerator/Denominator/Invariant), and position tracking in `TypedFabricEdge`. Out-of-bounds nodes and self-referential edges strictly return errors; hard resource bounds (`MAX_FABRIC_EDGES = 32`) enforced.
+   - **NATIVE-02 (First Law Thermodynamic Balance)**: Implemented full Hamiltonian $H = H_{\text{elec}} + H_{\text{rec}} + E_{\text{fabric}} + E_{\text{gates}} + E_{\text{contact}} + F_{\text{chem}}$. Evaluated work inputs ($W_{\text{mech}} + W_{\text{elec}}$) and true heat dissipation ($D_{\text{pl}} + Q_{\text{gate,fric}} + Q_{\text{phase,fric}} + Q_{\text{Joule}}$), advancing cumulative counters and strictly satisfying $\Delta H = W_{\text{in}} - W_{\text{out}} - Q_{\text{heat,out}}$.
+   - **NATIVE-03 (Retained Mechanics & Receiving Compartment)**: Implemented physical receiving compartment ($C_{\text{rec}} = 1\,\text{pF}, V_{\text{rec}}$) connected by conducting contact bridge $g_{\text{contact}} = \sigma_{\text{mat}} A_{\text{actual}} / x$. Plastic yield permanently alters rest length $\ell$, driving divergent subsequent contact conductance and receiving charge transfer $\Delta Q_{\text{rec}}$ under identical later inputs.
+   - **NATIVE-04 (Exact Carrier Custody & Integer Inventories)**: Signed integer ion stocks updated via exact carrier custody: $\xi_c = r_c + J_c / (z_c e)$, $n_c = \operatorname{trunc}(\xi_c)$, $r'_c = \xi_c - n_c$, satisfying $z_c e [n_c + r'_c - r_c] \equiv J_c$ bit-exact. Membrane free charge derived directly from integer ions and port charge ($Z_f = Z_{\text{fixed,in}} + \sum z_c N_{c,\text{in}} + Z_{\text{ext\_port}}$), eliminating float-as-exact drift. Depleted reservoirs refuse atomically.
+   - **NATIVE-05 (Complete Cold Successor Covering Causal Topology)**: Canonical checkpoint schema (`b"ARCLOOM_NEURON_V2\0"`) length-framed with header and payload CRC-32 covers all independent physical state, material parameters, and complete fabric edges. Restoring into a fresh instance or overwriting an instance with different edges yields bit-identical subsequent transitions and byte outputs.
+   - **NATIVE-06 (Strict Domain Validation & Refusal Atomicity)**: Decoder enforces exact length (rejects trailing bytes), valid CRC, physical parameter bounds, and non-negative reservoirs. Bounded constant-time modulo phase wrapping eliminates unbounded loops. Non-finite inputs refuse atomically without mutating predecessor state.
+
+### Verification Status
+- **Cargo Test Suite**: **61 passed / 0 failed** in 2.64s (`cargo test --manifest-path native/guala_core/Cargo.toml`).
+- **Pytest Suite**: **29 passed, 2 xfailed** in 26.25s (`pytest tests/test_arcloom_engineered_neuron.py tests/test_arcloom_one_neuron_contract.py tests/test_mathloom_a10_boundary.py tests/test_arcloom_causal_action_witness.py`).
+- **Capability Boundaries**: A10 (`test_witness_a6_04_full_continuous_joint_field_participation`) and A11 (`test_witness_a11_matched_plasticity_motor_divergence`) strictly preserved as **OPEN** (`XFAIL`).
+- Production environment untouched; AWS health unmutated.
+
+### Handoff to A1
+G1 requests A1 audit of the delivered native causal neuron operator and cold successor in `native/guala_core/src/arcloom_neuron.rs`.
