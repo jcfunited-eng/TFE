@@ -74,3 +74,21 @@ Test: `tests/test_mathloom_a10_boundary.py`
   - Exact match verified.
 - **Demonstrator Tarball Rebuilt**:
   - `arcloom_demonstrator_v1.0.tar.gz`: Exactly 22 source-matching files, zero `__pycache__`, zero `.pytest_cache`, zero build artifacts.
+
+---
+
+## 4. Long-Horizon 50,000-Cycle Diurnal Stability Burn-In Trial Completed
+
+The long-horizon endurance trial was executed via `tools/run_arcloom_50k_burn_in.py`:
+- **Protocol**: 50,000 continuous cycles across 5 planetary diurnal cycles (8,000 waking exploration beats + 2,000 nocturnal sleep consolidation beats per day = 50,000 total cycles).
+- **Execution Throughput**: 431.96 seconds wall time (**115.8 cycles/second**).
+- **Day-by-Day Equilibrium Telemetry**:
+  - **Day 1 (Cycle 10,000)**: Active Synapses: **828,726** | Cumulative Yields: 3,705,784 | Strain: 3,291,421.0 | Cold Parity: **100% OK** (88.7s)
+  - **Day 2 (Cycle 20,000)**: Active Synapses: **828,726** | Cumulative Yields: 6,627,434 | Strain: 6,213,071.0 | Cold Parity: **100% OK** (174.2s)
+  - **Day 3 (Cycle 30,000)**: Active Synapses: **828,758** | Cumulative Yields: 9,548,174 | Strain: 9,133,795.0 | Cold Parity: **100% OK** (258.8s)
+  - **Day 4 (Cycle 40,000)**: Active Synapses: **828,758** | Cumulative Yields: 12,469,490 | Strain: 12,055,111.0 | Cold Parity: **100% OK** (346.1s)
+  - **Day 5 (Cycle 50,000)**: Active Synapses: **828,758** | Cumulative Yields: 15,390,548 | Strain: 14,976,169.0 | Cold Parity: **100% OK** (431.9s)
+- **Physical Invariants Established**:
+  1. **Plastic Equilibrium Confirmed**: Active synaptic contacts reached stable plateau at exactly **828,758 synapses** across Days 3, 4, and 5 with zero unbounded runaway drift.
+  2. **Zero Memory Degradation**: Bit-for-bit cold state serialization and restoration parity verified at 100% across all 5 day boundaries.
+  3. **Zero Unphysical Waking Decay**: Retention preserved during waking exploration; homeostatic consolidation strictly confined to scheduled nocturnal sleep intervals.

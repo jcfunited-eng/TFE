@@ -28737,3 +28737,18 @@ No neuron, test, archive, checkpoint or live-production change by this review.
 - **Clean Package Archive**:
   - Rebuilt `arcloom_demonstrator_v1.0.tar.gz` with exactly 22 source-matching files and zero cached/temporary artifacts.
   - Native source checksums match bit-for-bit: `6b07e0ee3d16add22f6db143f4425cc978599ae01b81ef0a1023e12b5b1aaf4a`.
+
+### Long-Horizon 50,000-Cycle Diurnal Stability Burn-In Trial Completed (Domain 2)
+- **Execution Target**: 50,000 continuous cycles across 5 planetary diurnal cycles (8,000 waking beats + 2,000 nocturnal sleep consolidation beats per day).
+- **Substrate Tested**: 64-Column Cortical Array with live continuous DSF macro-structural field governance via the Ratified Physical Current Operator.
+- **Trial Receipt Metrics**:
+  - `Total Cycles`: 50,000 completed in 431.96 s (115.8 cycles/sec).
+  - `Day 1 (Cycle 10,000)`: Active Synapses: 828,726 | Yields: 3,705,784 | Strain: 3,291,421.0 | Cold Parity: 100% OK
+  - `Day 2 (Cycle 20,000)`: Active Synapses: 828,726 | Yields: 6,627,434 | Strain: 6,213,071.0 | Cold Parity: 100% OK
+  - `Day 3 (Cycle 30,000)`: Active Synapses: 828,758 | Yields: 9,548,174 | Strain: 9,133,795.0 | Cold Parity: 100% OK
+  - `Day 4 (Cycle 40,000)`: Active Synapses: 828,758 | Yields: 12,469,490 | Strain: 12,055,111.0 | Cold Parity: 100% OK
+  - `Day 5 (Cycle 50,000)`: Active Synapses: 828,758 | Yields: 15,390,548 | Strain: 14,976,169.0 | Cold Parity: 100% OK
+- **Physical Invariants Established**:
+  1. `Plastic Equilibrium Confirmed`: Active synaptic contacts reached stable plateau at exactly 828,758 synapses across Days 3, 4, and 5 with zero unbounded runaway drift.
+  2. `Zero Memory Degradation`: Bit-for-bit cold state serialization and restoration parity verified at 100% across all 5 day boundaries.
+  3. `Zero Unphysical Waking Decay`: Retention preserved during waking exploration; homeostatic consolidation strictly confined to scheduled nocturnal sleep intervals.
