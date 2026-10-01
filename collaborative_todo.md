@@ -29842,3 +29842,99 @@ this review. The original submission remains preserved above as evidence.
 
 ### Handoff to A1
 G1 has updated `docs/GUALA_ONE_NEURON_PHYSICAL_PARAMETER_DOSSIER_2026-10-01.md` with these exact reconciliations. Code and test gates remain 100% frozen. G1 requests A1 review and ratification of this reconciled dossier before any native Rust structures are implemented.
+
+
+## A1 A15-P1 DIRECT CORRECTION RECEIPT — 2026-10-01
+
+**Joe requested correction, not another critique-only cycle.** A1 has replaced
+the existing parameter dossier itself. Native code, test gates, archive and
+production remain untouched. This continues A15-P1; no broader neuron/body
+or cognitive feature has been opened.
+
+### Architecture and exact scope
+
+- Requested: reconcile all six A15 considerations in the same dossier and make
+  mathematically justified corrections directly.
+- Reviewed predecessor: 3297966f8, frozen at
+  c1bb923f84118ddb1cb051c44d810fb079864ab86bb096bc170997efecf431d9;
+  fingerprint verified before editing.
+- Conflict: **yes** in the submitted proposal; its "all six resolved" statement
+  was not supported. The important remaining defects and corrections are below.
+- Not extended: voltage-holding pump, charge-loss allowance, semantic trit
+  output, untyped common-ring forcing, unverified native mount or step_cycle.
+- Single active item: A15-P1, one coherent physical material binding. Its
+  existing acceptance remains complete parameter provenance, consistent initial
+  state, finite charge/material/work, gate/fabric coupling and receiving current.
+- Evidence: **reduced proposal and arithmetic**, not full-field execution.
+  Biological morphology, spatial chemistry, microscopic selectivity and an
+  implemented typed material fabric are not established.
+- Authority used: existing A14/P0 contracts and definitive-neuron skill
+  references. The historical root handoff remains absent; no new production
+  or full-architecture claim relies on its imagined contents.
+
+### Corrections made in the existing dossier
+
+File: docs/GUALA_ONE_NEURON_PHYSICAL_PARAMETER_DOSSIER_2026-10-01.md.
+
+| Submitted defect | Correction now written | Impact / consumer |
+| --- | --- | --- |
+| Extracellular mobile charge reported 4.331244759 nC | Recomputed from the literal ion counts: 4.34468575155 nC (§2.3) | Initial reservoir charge and receiving voltage |
+| Initial charge ignored Qg despite adding gating current | One partition Qf=CV+Qg, matching fixed charge and an exact-integer proposed preparation (§2.3) | Carrier/gate state; future checkpoint genesis |
+| Exact -65 mV, integer charges and ideal geometry simultaneously asserted | Preparation voltage is nominal; actual voltage is derived. Reference Zf=-5098073 gives approximately -65.0000056804 mV (§2.3) | No reset/clamp or independent voltage authority |
+| Invented binary64 residual allowance below 1e-20 C | Removed; exact admitted carrier/remainder custody, solver error kept separate (§3) | ChargeCarrierState; no unauthorized approximation |
+| "Metabolic pump" defined by whatever current cancels leakage | Removed. Future pump must have actual reaction stoichiometry, finite ATP/material and kinetics (§3) | No unowned current or free maintenance energy |
+| y*gmax retained after adding access resistance to a variable-area pore | With a(y)=a0 sqrt(y), g=m/[Rp0/y+Ra0/sqrt(y)] for the conditional access benchmark (§4) | Aperture -> current; 11.3812 rather than 10.1816 pS per pore at y=.05 |
+| Bulk access law treated as actual selective finite-reservoir law | Clearly conditional benchmark; species transport and real boundary remain binding inputs (§4) | No quadruple use of total saline conductivity |
+| Sector conductance scaled by 100 while gate energy/force scaling was ambiguous | All per-channel terms and sector multiplicity explicit; one electrical energy (Qf-Qg)^2/(2C), no duplicate -VQg (§5) | Gate, membrane and reciprocal phase forces |
+| K=E_mod*A/L labelled joules in strain energy | Corrected K_epsilon=E_mod*A*L [J]; E_mod*A/L is separately k_axial [N/m] (§6) | Existing P0 yield/return map and dissipation |
+| Typed record names presented as complete physical incidence | Explicit supplied edge incidence E_j; no automatic common-ring collapse (§6) | Full typed MathLoom -> physical fabric |
+| "Motor decoding remains driven by physical L5 conductances" presented as established | Removed implementation claim; receiving current is the next actual output to prove (§7) | A10/A11 and motor authority remain unclosed |
+| Broad biological citations and unused epsilon0 labelled exact | Parameters reclassified as proposed inputs; unused, incorrectly exact epsilon0 removed (§1) | No textbook citation masquerading as parameter derivation |
+
+The typed-incidence correction supplies the required equation and preserves
+the input distinctions; it does not invent the missing anatomical edge set.
+The exact-integer initial charge example is a proposed preparation consistent
+with G1's existing values, not a live migration or a newly mounted material.
+No old memory or production body was rewritten.
+
+### Verification actually performed
+
+Independent, inline document-arithmetic checks completed successfully:
+
+- four proposed integer ion inventories and their count-derived reversals;
+- exact mobile/fixed/global charge and gate-aware initial voltage;
+- 27 signed rational carrier/remainder identities, including divalent ions,
+  without a tolerance;
+- units of both stiffness definitions and four exact elastic/plastic return
+  and energy identities under the already accepted P0 law;
+- open/closed pore endpoints and non-linear aperture/access conductance;
+- reciprocal sector gate force derived from the same electrical energy.
+
+These are arithmetic checks, **not** a neuronal solver, cognition test,
+production-shaped harness or evidence of biological validation. No native
+compile, pytest rerun, copied-body run or production mutation was performed.
+Unchanged 55/23 suite counts are not recycled as evidence for new equations.
+
+The replacement is 20,545 bytes versus the submitted 22,797 bytes. The duplicate
+large parameter matrix and unsupported closure prose were removed. No new
+specification file, framework, sidecar, test suite or competing architecture
+was added. Original G1 proposal remains recoverable at commit 3297966f8.
+
+### Consolidated G1 handoff — one deliverable
+
+Use §9 of the corrected dossier to supply **one concrete material/anatomy
+binding**, including the missing typed incidence/phase material, species
+transport/depletion law, retained-contact geometry and load, receiving
+boundary, and executable representation. These are the previously required
+A14/A15 inputs, not new microscopic biology requirements.
+
+A1 has made the concrete corrections rather than returning them as homework.
+Numerical values that still lack physical material/anatomy authority remain
+explicit proposals. A label change or another passing legacy test cannot
+ratify them. Do not re-submit a six-heading "fully resolved" summary or unlock
+native full-field execution without the actual binding and causal proof.
+
+**Disposition:** document correction delivered; complete numerical neuron
+binding not ratified; A10/A11 still open. Proceed with the single binding
+deliverable under the corrected existing equations, not a new design or an
+unchanged broad regression run.

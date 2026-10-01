@@ -1,243 +1,428 @@
-# GUALA ONE-NEURON PHYSICAL PARAMETER DOSSIER (STAGE P1-A/A15 RECONCILIATION)
-**Authoritative Biophysical Provenance, Artificial-Material Specifications, and Conserved Continuum Laws**
+# Guala one-neuron physical parameter dossier — A15-P1 corrected binding contract
 
-**Date:** 2026-10-01 UTC  
-**Revision:** A15-P1 Consolidated Reconciliation  
-**Governing Contract:**
-- `docs/GUALA_ONE_NEURON_PHYSICAL_TRANSITION_CONTRACT_2026-10-01.md` (§§A14, A15)
-- `docs/GUALA_P0_LOCAL_LEARNING_A1_CORRECTED_2026-09-27.md` (§§5–10)
-- `collaborative_todo.md` (A15 fifteenth-pass audit review, line 29426)
+Date: 2026-10-01 UTC. Revision: A1 direct correction of G1 commit 3297966f8.
 
----
+**Status: corrected proposal, not a mounted or fully parameterized neuron.**
+This document closes the identifiable algebra/accounting defects together.
+It does not ratify unspecified material coefficients, authorize a new numerical
+approximation, unlock full-field step_cycle, or close A10/A11.
 
-## 1. Thermodynamic Reference State & Physical Constants
+Governing references:
 
-All biophysical kinetics and electrochemical potentials are evaluated at standard physiological temperature for mammalian neocortex using exact CODATA 2018 SI definitions.
+- [A14 transition contract](GUALA_ONE_NEURON_PHYSICAL_TRANSITION_CONTRACT_2026-10-01.md), especially A14-01 through A14-05.
+- [Corrected P0 physical law](GUALA_P0_LOCAL_LEARNING_A1_CORRECTED_2026-09-27.md), §§5–10.
+- Shared ledger: A15-P1 review and this revision's correction receipt.
 
-| Constant | Symbol | Value | SI Units | Classification | Source / Authority |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Elementary Charge** | $e_0$ | $1.602\,176\,634 \times 10^{-19}$ | $\text{C}$ | **[EXACT SI]** | CODATA 2018 |
-| **Boltzmann Constant** | $k_B$ | $1.380\,649 \times 10^{-23}$ | $\text{J} \cdot \text{K}^{-1}$ | **[EXACT SI]** | CODATA 2018 |
-| **Avogadro Constant** | $N_A$ | $6.022\,140\,76 \times 10^{23}$ | $\text{mol}^{-1}$ | **[EXACT SI]** | CODATA 2018 |
-| **Physiological Temperature** | $T$ | $310.15$ | $\text{K}$ | **[STANDARD]** | $37.0^\circ\text{C}$ Core Neocortical Norm |
-| **Thermal Voltage** | $V_T = \frac{k_B T}{e_0}$ | $0.026\,726\,659$ | $\text{V}$ | **[DERIVED]** | $\frac{1.380649 \times 10^{-23} \times 310.15}{1.602176634 \times 10^{-19}}$ ($26.7267\,\text{mV}$) |
-| **Vacuum Permittivity** | $\varepsilon_0$ | $8.854\,187\,8128 \times 10^{-12}$ | $\text{F} \cdot \text{m}^{-1}$ | **[EXACT SI]** | CODATA 2018 |
+## 1. Scope, provenance and parameter ownership
 
----
+Requested: one coherent physical connection from unchanged joint DSF through
+typed phase constraints, gates and conserved current to a receiving compartment.
+No new cognition, biological anatomy reconstruction, or semantic voltage rule.
 
-## 2. Anatomical Geometry & Reconciled Extracellular Volume Fraction (A15-01)
+Evidence: document equations and arithmetic only. Native code, tests and the
+standalone archive remain frozen. This is a **reduced lumped-compartment
+proposal**, not evidence of full-field execution. Spherical soma geometry,
+ideal activities, unbuffered free calcium and continuum pore mechanics omit
+biological morphology, microscopic selectivity, buffering and spatial chemistry.
+A data carrier preserving field values does not prove their physical coupling.
 
-The single-neuron model represents a **Prefrontal Column 48 Layer 2/3 Pyramidal Soma** embedded in a finite neocortical interstitial microdomain.
+Exact SI constants are e=1.602176634e-19 C, kB=1.380649e-23 J/K and
+NA=6.02214076e23 mol^-1. The selected temperature T=310.15 K is a proposed
+boundary condition, not an exact biological constant. VT=kBT/e is therefore
+approximately 26.7266591125 mV.
+[NIST constants](https://physics.nist.gov/cuu/pdf/all.pdf).
 
-```
-          Extracellular Microdomain (V_out = 1.0472 pL, α = 0.20)
-  ════════════════════════════════════════════════════════════════
-    ▲ [Na+]_out = 145 mM       ▲ [Ca2+]_out = 2.0 mM
-    │                          │
-  ──┴───────────────┬──────────┴───────────────┬──────────────────
-    Pore Length ℓ_c │  Pore Area A_c(y)        │ Lipid Bilayer
-    5.0 nm          │  0 to 7.854e-17 m²       │ C_mem = 12.566 pF
-  ──┬───────────────┴──────────┬───────────────┴──────────────────
-    │                          │
-    ▼ [K+]_in = 140 mM         ▼ [Na+]_in = 12 mM
-  ════════════════════════════════════════════════════════════════
-           Intracellular Soma (V_in = 4.1888 pL, V_0 = -65 mV)
-```
+The following are G1's **proposed virtual-material inputs**, not measurements
+of the running substrate or universal biological constants:
 
-### 2.1 Somatic Dimensions & Bilayer Capacitance
-- **Soma Morphology [PROPOSED - ARTIFICIAL MATERIAL]:** Idealized spherical soma of radius $r_{\text{soma}} = 10.0\,\mu\text{m} = 1.0 \times 10^{-5}\,\text{m}$ (typical mammalian Layer 2/3 pyramidal soma: Stuart & Spruston, 1998).
-- **Somatic Surface Area [DERIVED]:**
-  $$A_{\text{mem}} = 4 \pi r_{\text{soma}}^2 = 4 \pi (1.0 \times 10^{-5}\,\text{m})^2 \approx 1.256\,637\,0614 \times 10^{-9}\,\text{m}^2 = 1256.64\,\mu\text{m}^2.$$
-- **Specific Membrane Capacitance [MEASURED - BIOLOGICAL]:**
-  $$c_m = 0.010\,\text{F} \cdot \text{m}^{-2} = 1.0\,\mu\text{F} \cdot \text{cm}^{-2}$$
-  *(Consensus measurement for biological lipid bilayers: Cole, 1968; Hille, 2001).*
-- **Derived Membrane Capacitance [DERIVED]:**
-  $$C_{\text{mem}} = c_m \cdot A_{\text{mem}} = 0.010\,\text{F/m}^2 \times 1.256\,637\,0614 \times 10^{-9}\,\text{m}^2 = 1.256\,637\,0614 \times 10^{-11}\,\text{F} \approx 12.566\,\text{pF}.$$
-- **Initial Electrostatic State at Declared Initial Potential $V_0 = -65.0\,\text{mV}$ [DERIVED]:**
-  $$Q_{\text{cap}, 0} = C_{\text{mem}} \cdot V_0 = 1.256\,637\,0614 \times 10^{-11}\,\text{F} \times (-0.0650\,\text{V}) = -8.168\,140\,899 \times 10^{-13}\,\text{C} = -0.816814\,\text{pC}.$$
-  $$E_{\text{cap}, 0} = \frac{1}{2} C_{\text{mem}} V_0^2 = \frac{1}{2} (1.256\,637\,0614 \times 10^{-11}) (-0.0650)^2 \approx 2.654\,645\,792 \times 10^{-14}\,\text{J} = 26.546\,\text{fJ}.$$
+| Quantity | Proposed value | Role |
+| --- | --- | --- |
+| Soma radius r | 10 micrometres | Spherical compartment geometry |
+| Specific capacitance cm | 0.010 F/m² | Homogeneous membrane material |
+| Extracellular fraction alpha | 0.20 | Chosen local volume allocation |
+| Preparation potential Vprep | -65 mV | Charged initial condition, never a voltage clamp |
+| Pore length l and maximum radius a0 | 5 nm; 0.50 nm | Cylindrical pore benchmark |
+| Benchmark conductivity sigma | 1.50 S/m | Homogeneous bulk reference, not every species' conductivity |
+| Channels per sector m_c | 100 | Proposed finite anatomical population |
+| Single-channel gate charge qg,c | 4e | Proposed displacement sensor, not ionic valence |
+| Single-channel gate stiffness k_c | 50 kBT | Harmonic aperture material |
+| Single-channel gate drag zeta_c | 1e-21 J s | Proposed dissipative coefficient |
+| Single-channel phase coupling Lambda_ca | 5 kBT | Proposed coupling energy |
+| Undriven elastic aperture yrest,c; initial y0,c | 0.05; 0.05 | Distinct rest-coordinate and preparation roles |
+| Chemical gate bias mu_c | 0 J | Explicitly absent chemical gate drive in this reference proposal |
+| Phase coupling scale kappa0 | 10 kBT | Proposed material scale; not a derived H-bond measurement |
 
-### 2.2 Reconciled Extracellular Volume Fraction (Nicholson & Phillips, 1981)
-- **Intracellular Somatic Volume [DERIVED]:**
-  $$V_{\text{in}} = \frac{4}{3} \pi r_{\text{soma}}^3 = \frac{4}{3} \pi (1.0 \times 10^{-5}\,\text{m})^3 \approx 4.188\,790\,2048 \times 10^{-15}\,\text{m}^3 = 4.18879\,\text{pL}.$$
-- **Extracellular Volume Fraction Formulation [MEASURED / DERIVED]:**
-  By biological definition, the tissue extracellular volume fraction is $\alpha = \frac{V_{\text{out}}}{V_{\text{in}} + V_{\text{out}}} = 0.20$ (Nicholson & Phillips, 1981; Nicholson & Syková, 1998).
-  The associated microdomain volume is therefore:
-  $$V_{\text{out}} = \frac{\alpha}{1 - \alpha} V_{\text{in}} = \frac{0.20}{0.80} V_{\text{in}} = \frac{1}{4} V_{\text{in}} = 1.047\,197\,5512 \times 10^{-15}\,\text{m}^3 = 1.04720\,\text{pL}.$$
-  *(Total model microdomain volume $V_{\text{tot}} = V_{\text{in}} + V_{\text{out}} = 5.235\,987\,756 \times 10^{-15}\,\text{m}^3 = 5.23599\,\text{pL}$.)*
+Bibliographic motivation does not approve these values. A measured value needs
+a specific material, measurement conditions, source location and uncertainty;
+a design value needs explicit material/anatomy derivation and ratification.
+Remove the previous unused vacuum-permittivity entry: it was incorrectly called
+exact SI and is not used by any equation here. Do not substitute these nominal
+inputs for the missing species, topology and contact bindings in §9.
 
----
+## 2. Geometry, integer inventories and initial electrical state
 
-## 3. Finite Chemical Species, Reconciled Populations, and Initial Charge Inventory (A15-01, A15-02)
+### 2.1 Conditional continuum calculations
 
-### 3.1 Deterministic Integer Genesis Convention & Dynamic Nernst Reversals
-Concentrations represent the thermodynamic limit $c = N / (V N_A)$. Deterministic integer populations are initialized as $N = \operatorname{round}(c \cdot V \cdot N_A)$. Reversal potentials derive dynamically from the admitted integer counts:
-$$E_c = \frac{V_T}{z_c} \ln\left(\frac{N_{\text{out}, c} / V_{\text{out}}}{N_{\text{in}, c} / V_{\text{in}}}\right).$$
+\[
+A=4\pi r^2,\quad C_{\rm mem}=c_m A,\quad
+V_{\rm in}=4\pi r^3/3,\quad
+V_{\rm out}=\frac{\alpha}{1-\alpha}V_{\rm in}.
+\]
 
-| Species ($c$) | Valence ($z_c$) | Resting $[c]_{\text{out}}$ | Resting $[c]_{\text{in}}$ | Admitted Integer $N_{\text{out}}$ | Admitted Integer $N_{\text{in}}$ | Dynamic Nernst Potential ($E_c$) | Classification |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Sodium ($\text{Na}^+$)** | $+1$ | $145.0\,\text{mM}$ | $12.0\,\text{mM}$ | $91\,442\,380\,324$ | $30\,270\,581\,073$ | **$+66.5982\,\text{mV}$** | Measured conc. / Derived counts |
-| **Potassium ($\text{K}^+$)** | $+1$ | $4.0\,\text{mM}$ | $140.0\,\text{mM}$ | $2\,522\,548\,423$ | $353\,156\,779\,183$ | **$-95.0226\,\text{mV}$** | Measured conc. / Derived counts |
-| **Calcium ($\text{Ca}^{2+}$)** | $+2$ | $2.0\,\text{mM}$ | $100.0\,\text{nM}$ | $1\,261\,274\,211$ | $252\,255$ | **$+132.3436\,\text{mV}$** | Unbuffered free pool model |
-| **Chloride ($\text{Cl}^-$)** | $-1$ | $110.0\,\text{mM}$ | $10.0\,\text{mM}$ | $69\,370\,081\,625$ | $25\,225\,484\,227$ | **$-64.0877\,\text{mV}$** | Measured conc. / Derived counts |
+At the proposed inputs: A=1.2566370614e-9 m²,
+Cmem=12.5663706144 pF, Vin=4.1887902048 pL and
+Vout=1.0471975512 pL. Alpha is a fraction of total volume, not of Vin.
+Applying a tissue fraction to one soma is a proposed allocation, not a
+measurement of its accessible extracellular space.
+[Nicholson & Phillips, 1981](https://pubmed.ncbi.nlm.nih.gov/7338810/).
 
-### 3.2 Closed Charge Accounting & Fixed Macromolecular Countercharge (A15-02)
-Mobile ions in solution do not exist in an electrical vacuum. Intracellular and extracellular bulk electrolytes satisfy Debye electroneutrality in the bulk ($< 1\,\text{nm}$ Debye length), with net capacitive charge $Q_{\text{cap}}$ distributed strictly across the bilayer:
+### 2.2 Proposed finite initial species
 
-1. **Total Intracellular Mobile Ion Charge [DERIVED]:**
-   $$Q_{\text{mobile, in}} = e_0 \sum_{c} z_c N_{\text{in}, c} = e_0 (N_{\text{in,Na}} + N_{\text{in,K}} + 2 N_{\text{in,Ca}} - N_{\text{in,Cl}}) \approx +5.739\,034\,8434 \times 10^{-8}\,\text{C} \approx +57.39\,\text{nC}.$$
-2. **Total Extracellular Mobile Ion Charge [DERIVED]:**
-   $$Q_{\text{mobile, out}} = e_0 \sum_{c} z_c N_{\text{out}, c} = e_0 (N_{\text{out,Na}} + N_{\text{out,K}} + 2 N_{\text{out,Ca}} - N_{\text{out,Cl}}) \approx +4.331\,244\,759 \times 10^{-9}\,\text{C} \approx +4.331\,\text{nC}.$$
-3. **Immobile Macromolecular Countercharge [PROPOSED - ARTIFICIAL MATERIAL]:**
-   Intracellular impermeant proteins, nucleic acids, and organic anions provide fixed negative charge:
-   $$Q_{\text{fixed, in}} = Q_{\text{cap}, 0} - Q_{\text{mobile, in}} = -8.168\,141 \times 10^{-13}\,\text{C} - 5.739\,035 \times 10^{-8}\,\text{C} \approx -5.739\,116\,525 \times 10^{-8}\,\text{C}.$$
-   Extracellular matrix proteoglycans provide fixed countercharge:
-   $$Q_{\text{fixed, out}} = -Q_{\text{cap}, 0} - Q_{\text{mobile, out}} = +8.168\,141 \times 10^{-13}\,\text{C} - 4.331\,245 \times 10^{-9}\,\text{C} \approx -4.330\,428 \times 10^{-9}\,\text{C}.$$
-4. **Conservation Invariant:**
-   Net global charge $Q_{\text{total}} = (Q_{\text{mobile, in}} + Q_{\text{fixed, in}}) + (Q_{\text{mobile, out}} + Q_{\text{fixed, out}}) \equiv 0.0\,\text{C}$.
-   Net capacitive charge across dielectric bilayer: $Q_{\text{cap}} = Q_{\text{mobile, in}} + Q_{\text{fixed, in}} = -0.816814\,\text{pC} \implies V_m = Q_{\text{cap}} / C_{\text{mem}} = -65.0\,\text{mV}$.
+Use the following literal integer populations as the reference material
+inventory. Nominal concentrations explain their preparation; actual
+concentrations are always N/(V NA), not independently retained target values.
+Nearest-integer rounding of nominal c V NA uses ties-to-even; no rounding
+occurs repeatedly during an experience.
 
-### 3.3 Exact Carrier Custody & Floating-Point Residual Distinction (A15-02)
-For outward-positive ionic current $I_c = g_c (V_m - E_c)$ and integrated transport $J_c = \int_{t_n}^{t_{n+1}} I_c dt$:
-- Dimensionless quotient: $\xi_c = r_c + \frac{J_c}{q_c}$, with carrier charge $q_c = z_c e_0$.
-- Integer transported ions: $n_c = \operatorname{trunc}(\xi_c)$, with updated subcarrier remainder $r'_c = \xi_c - n_c \in (-1, 1)$.
-- Exact Reservoir Population Update:
-  $$N_{\text{in}, c}' = N_{\text{in}, c} - n_c, \quad N_{\text{out}, c}' = N_{\text{out}, c} + n_c.$$
-- **Arithmetic Invariant:**
-  In exact mathematical algebra, $q_c n_c + q_c (r'_c - r_c) \equiv J_c$.
-  In binary64 floating-point evaluation, roundoff residual is tracked explicitly:
-  $$\varepsilon_{\text{roundoff}} = \left| q_c n_c + q_c (r'_c - r_c) - J_c \right| < 10^{-20}\,\text{C}.$$
+| Species | Valence z_c | Nominal out/in | N_out | N_in | Initial E_c, mV (rounded) |
+| --- | ---: | --- | ---: | ---: | ---: |
+| Na | +1 | 145/12 mM | 91442380324 | 30270581073 | +66.598213272 |
+| K | +1 | 4/140 mM | 2522548423 | 353156779183 | -95.022575663 |
+| Ca | +2 | 2 mM/100 nM | 1261274211 | 252255 | +132.343559561 |
+| Cl | -1 | 110/10 mM | 69370081625 | 25225484227 | -64.087729544 |
 
----
+For strictly positive populations, the ideal-activity reference law is
+\[
+E_c=\frac{k_BT}{z_ce}\ln
+ \frac{N_{\rm out,c}/V_{\rm out}}{N_{\rm in,c}/V_{\rm in}}.
+\]
+General nonideal activities would replace concentration ratios; no such
+activity model is claimed here. The calcium inventory is an explicitly
+unbuffered free pool, not total biological cellular calcium.
 
-## 4. Nanoscale Pore Geometry & Cylindrical Conductance Model (A15-03)
+### 2.3 One charge partition, including the gates
 
-### 4.1 Cylindrical Pore Approximation vs Biological Protein Selectivity
-- **Model Classification:** [PROPOSED - ARTIFICIAL MATERIAL CONTINUUM MODEL]. This is a macroscopic cylindrical continuum pore model used to establish physical dimensions and SI scaling; it does not claim microscopic atomistic equivalence to biological potassium or sodium selectivity filters.
-- **Pore Nanoscale Geometry [PROPOSED]:**
-  - Length (dielectric bilayer core): $\ell_c = 5.0\,\text{nm} = 5.0 \times 10^{-9}\,\text{m}$ (White & Wimley, 1999).
-  - Pore radius: $a = 0.50\,\text{nm} = 5.0 \times 10^{-10}\,\text{m} \implies A_{\text{single}} = \pi a^2 = 7.85398 \times 10^{-19}\,\text{m}^2$.
-- **Saline Bulk Conductivity [MEASURED]:** $\sigma = 1.50\,\text{S/m}$ at $310.15\,\text{K}$ (Robinson & Stokes, 1959).
-- **Access Resistance Formulation [DERIVED - Sahu & Zwolak, 2018]:**
-  Accounting for convergent access resistance at both pore mouths in a homogeneous continuum:
-  $$R_{\text{access, total}} = 2 \times R_{\text{access, side}} = 2 \times \frac{1}{4 \sigma a} = \frac{1}{2 \sigma a} = \frac{1}{2 (1.50) (5.0 \times 10^{-10})} \approx 6.6667 \times 10^8\,\Omega.$$
-  $$R_{\text{pore, internal}} = \frac{\ell_c}{\sigma \pi a^2} = \frac{5.0 \times 10^{-9}}{(1.50) (7.85398 \times 10^{-19})} \approx 4.2441 \times 10^9\,\Omega.$$
-  $$R_{\text{total}} = R_{\text{pore, internal}} + R_{\text{access, total}} \approx 4.9108 \times 10^9\,\Omega \implies g_{\text{single}} = \frac{1}{R_{\text{total}}} \approx 2.0363 \times 10^{-10}\,\text{S} = 203.63\,\text{pS}.$$
-  *(Without access resistance, internal pore conductance alone is $g_{\text{pore}} = 235.62\,\text{pS}$.)*
-- **Sector Channel Density [PROPOSED - ARTIFICIAL MATERIAL]:**
-  $N_{\text{channels}} = 100$ channels per sector $\implies$ peak sector conductance:
-  $$g_{\text{max}} = 100 \times g_{\text{single}} \approx 20.363\,\text{nS} \quad (\text{or } 23.562\,\text{nS for internal-only boundary}).$$
+Use Q_f for net free compartment charge and Q_cap for dielectric capacitor
+charge. They differ when voltage sensors move:
+\[
+Q_g(y)=\sum_c m_c q^g_c y_c,\qquad
+Q_{\rm cap}=Q_f-Q_g,\qquad V=Q_{\rm cap}/C_{\rm mem}.
+\]
+The outside compartment has the opposite Q_f. Gating polarization is internal
+charge displacement, not creation of ions or an additional global charge.
 
----
+The exact mobile charge counts from the table are:
+\[
+Z_{\rm mobile,in}=358202380539,\quad
+Z_{\rm mobile,out}=27117395544,\quad Q_{\rm mobile,b}=eZ_{\rm mobile,b}.
+\]
+Thus Qmobile,in is approximately +57.3903484343 nC and Qmobile,out is
+**+4.34468575155 nC**, not the submitted +4.331244759 nC.
 
-## 5. Coupled Gate Mechanics, Gating Current, and Energy Closure (A15-04)
+To avoid simultaneously demanding non-integral net ionic charge and an exact
+target voltage, the reference preparation specifies:
+\[
+Z_{f,0}=\operatorname{round}_{even}
+ [(C_{\rm mem}V_{\rm prep}+Q_g(y_0))/e],\quad Q_{f,0}=eZ_{f,0},
+\]
+\[
+Z_{\rm fixed,in}=Z_{f,0}-Z_{\rm mobile,in},\qquad
+Z_{\rm fixed,out}=-Z_{f,0}-Z_{\rm mobile,out}.
+\]
+For the four proposed 100-channel sectors at y0=0.05, Qg,0=80e,
+Zf,0=-5098073, Zfixed,in=-358207478612 and Zfixed,out=-27112297471.
+These are **proposed immobile virtual charge inventories**, not counterions
+inferred from a Debye-length assertion. They are fixed after genesis and
+cannot be recomputed to maintain a preferred voltage.
 
-### 5.1 Definition of Gate Coordinate $y_c$
-- **Aperture Meaning [PROPOSED]:** $y_c \in [0, 1]$ represents the **continuous fraction of open pore area** for sector channel ensemble $c$ ($A_c(y_c) = y_c A_{\text{max}}$).
-- **Sector Conductance:** $g_c(y_c) = y_c g_{\text{max}}$.
+The resulting actual initial voltage is approximately -65.0000056804 mV;
+Qcap,0=-8.168141613157002e-13 C. Derive stored energy from this actual state,
+Ecap,0=Qcap,0²/(2Cmem), not from a separately imposed -65 mV.
+The reference geometry/constant representation must be fixed before executable
+genesis; printed decimals are not substitutes for canonical parameter bits.
+Global free charge is exactly zero because
+Zmobile,in+Zfixed,in+Zmobile,out+Zfixed,out=0.
 
-### 5.2 Physical Gate Energy & Coordinate Constraints
-- **Gate Energy Function $U_c(y)$ [PROPOSED - ARTIFICIAL MATERIAL]:**
-  $$U_c(y_c) = \frac{1}{2} k_{\text{barrier}} (y_c - y_{\text{rest}})^2 - q_c^{\text{gate}} V_m y_c - \sum_{a=0}^2 \Lambda_{ca} y_c \cos(\phi_a - \phi^*_{ca}) - \mu_c y_c \quad [\text{Joules}].$$
-- **Boundary Confinement Law [A15-04]:**
-  To guarantee $0 \le y_c \le 1$ without unphysical after-step clipping, gate evolution is governed by subdifferential inclusion on the admissible interval $K = [0, 1]$:
-  $$0 \in \zeta_c \dot{y}_c + \partial_{y_c} U_c(y_c) + N_{[0, 1]}(y_c),$$
-  where $N_{[0, 1]}(y_c)$ is the normal cone of outward constraint forces at the boundaries $y_c = 0$ and $y_c = 1$.
-- **Parameter Provenance:**
-  - $y_{\text{rest}} = 0.05$ [PROPOSED baseline unforced rest].
-  - Barrier stiffness: $k_{\text{barrier}} = 50\,k_B T \approx 2.141 \times 10^{-19}\,\text{J}$ [PROPOSED].
-  - Hydrodynamic drag: $\zeta_c = 1.0 \times 10^{-21}\,\text{J} \cdot \text{s} \implies$ relaxation time $\tau_{\text{gate}} = \zeta_c / k_{\text{barrier}} \approx 4.671\,\text{ms}$ [PROPOSED].
-  - Phase coupling: $\Lambda_{ca} = 5\,k_B T \approx 2.141 \times 10^{-20}\,\text{J}$ [PROPOSED].
-  - Chemical bias: $\mu_c = 0.0\,\text{J}$ [PROPOSED unshifted reference].
-  - Gate displacement charge: $q_c^{\text{gate}} = 4.0\,e_0 \approx 6.4087 \times 10^{-19}\,\text{C}$ per channel [PROPOSED electromechanical dipole].
+## 3. Transport, finite chemistry and energy accounting
 
-### 5.3 Gating Charge Displacement & Coupled Membrane Equation
-Voltage-sensitive gating physically moves sensor charge through the membrane dielectric, creating gating displacement current:
-$$Q_g(y) = \sum_c N_c^{\text{channel}} q_c^{\text{gate}} y_c.$$
-The total free charge on the membrane capacitor is $Q_f = C_{\text{mem}} V_m + Q_g(y)$.
-The coupled differential equation of motion for membrane potential is:
-$$C_{\text{mem}} \dot{V}_m = -\sum_c I_c(V_m, y_c) + I_{\text{syn}} + I_{\text{active, in}} - \dot{Q}_g,$$
-where $\dot{Q}_g = \sum_c N_c^{\text{channel}} q_c^{\text{gate}} \dot{y}_c$.
-- **Declared Initial State vs Resting Equilibrium:**
-  $V_0 = -65.0\,\text{mV}$ is the **declared initial potential**. Under arbitrary open fractions $y_c$, net ionic current is non-zero ($\sum I_c \ne 0$). Maintenance of steady state requires active metabolic pump current $I_{\text{active, in}} = \sum_c I_c(V_0, y_0)$, accounting for metabolic ATP work: $\dot{W}_{\text{metabolic}} = I_{\text{active}} \Delta \mu_{\text{ATP}} / e_0$.
+For outward-positive ionic current, q_c=z_c e:
+\[
+I_c=g_c(V-E_c),\quad J_c=\int I_c\,dt,\quad
+\xi_c=r_c+J_c/q_c,\quad n_c=\operatorname{trunc}\xi_c,\quad r'_c=\xi_c-n_c,
+\]
+\[
+q_cn_c+q_c(r'_c-r_c)=J_c,\quad
+N'_{\rm in,c}=N_{\rm in,c}-n_c,\quad
+N'_{\rm out,c}=N_{\rm out,c}+n_c.
+\]
+Keep whole counts and the admitted charge/remainder representation exact.
+Remove the invented 1e-20 C roundoff allowance. Numerical integration error in
+J and exact custody of its admitted finite value are different issues; this
+document approves no solver or tolerance. A remainder is not another whole ion.
 
----
+After all actual incoming/outgoing transfers:
+\[
+Q'_f=Q_f-\sum_c q_cn_c+\Delta Q_{\rm contact,in}
++\Delta Q_{\rm active,in},\quad
+V'=(Q'_f-Q_g(y'))/C_{\rm mem}.
+\]
+Every contact/active term must have a debit/credit at its physical endpoints;
+do not also settle the same transfer as an independent ionic current.
 
-## 6. Typed Structural Field Coupling & Spatial Ring Topology (A15-05)
+No negative population, oversubscribed shared source, clipped material,
+manufactured concentration floor or discarded remainder is admissible.
+The positive-population Nernst/Ohmic law above is undefined at depletion.
+Its current implementation boundary must refuse before mutation if no approved
+depletion transport law applies. This is an unavailable capability, not a claim
+that an actual depleted material would stop evolving. A depletion-safe law is
+still a required material binding, not permission to invent epsilon ions.
 
-### 6.1 Preservation of Typed Fact Incidence
-The 3-node spatial ring ($a \in \{0, 1, 2\}$, cyclic $a = 3 \equiv 0$) is a local spatial winding primitive. It does **not** collapse the 7 structural field coordinates onto an untyped scalar drive.
+Finite reservoirs supply chemical free energy. A compatible ideal-solution
+reference expression (n_ref is a number density) is
+\[
+F_{\rm chem}=k_BT\sum_{b,c}N_{b,c}
+ [\ln(N_{b,c}/(V_b n_{\rm ref}))-1],
+\]
+with the continuous 0 ln 0 limit for energy and any declared species standard/
+binding terms included. A finite ion transfer uses the finite energy change,
+not blindly I*E*dt with a reversal held fixed while the reservoir changes.
 
-For each canonical UF/DSF fact $\tau_{qp} \in \{-1, 0, 1\}$ characterized by:
-- Structural coordinate family: $q \in \{D, M, R_{\text{rev}}, U^*, C, P, B\}$
-- Rational ternary positional significance: $p \in \mathbb{Z}$
-- Numerator/denominator provenance: $(n_q, d_q)$
-- Locality and source timestamp $t_k$:
+For fixed capacitance,
+\[
+\Delta H_{\rm elec}=
+\frac{(Q'_f-Q_g(y'))^2-(Q_f-Q_g(y))^2}{2C_{\rm mem}}.
+\]
+Complete accounting remains the A14 law:
+\[
+\Delta(E_{\rm elec}+E_{\rm phase}+U_{\rm gate,nonel}
++U_{\rm elastic}+E_{\rm chemical}+E_{\rm kinetic})
+=W_{\rm in}-W_{\rm out}-Q_{\rm heat,out}.
+\]
+Use a declared isothermal heat boundary if T is held fixed; omit neither
+dissipated heat nor work from changing field constraints. Energy is counted
+once, including fixed-charge preparation and gate/phase reaction.
 
-The interaction energy is evaluated over the spatial ring:
-$$E_{qp}^{DSF} = -\kappa_{qp} \sum_{a=0}^{2} \cos\left(\phi_{a+1} - \phi_a - \frac{2\pi \tau_{qp}}{3}\right).$$
-- **Paired Invariant Forces (Zero Internal Net Torque):**
-  $$F_a = -\frac{\partial E_{ab}}{\partial \phi_a} = +\kappa_{qp} \sin(\theta_{ab}), \qquad F_b = -\frac{\partial E_{ab}}{\partial \phi_b} = -\kappa_{qp} \sin(\theta_{ab}).$$
-- **Amplitude and Phase Dynamics [P0 / A14]:**
-  $$\zeta_{\rho, a} \dot{\rho}_a = -\frac{\partial E}{\partial \rho_a} + P_a^{\text{ext}}, \qquad \zeta_{\phi, a} \rho_a \dot{\phi}_a = -\frac{\partial E}{\partial \phi_a} + \tau_a^{\text{ext}}.$$
-- **Coupling Energy Scale [PROPOSED]:** $\kappa_0 = 10\,k_B T \approx 4.282 \times 10^{-20}\,\text{J}$ (macromolecular hydrogen bond energy scale).
+**No voltage-holding pump is specified.** Withdraw
+Iactive,in=sum I_c(V0,y0) and the unqualified Iactive*Delta_mu_ATP/e formula.
+A charged passive component may relax; that is not a failed test.
+A future mounted pump requires reaction stoichiometry, finite reactants/products,
+kinetics and electrochemical work. For reaction extent nu_dot_r:
+\[
+\dot N_s=\sum_r S_{sr}\dot\nu_r,\quad
+I_{\rm active,in}=e\sum_{s,r}z_s S_{{\rm in},s,r}\dot\nu_r,\quad
+P_{\rm chem}=-\sum_r\Delta G_r\dot\nu_r .
+\]
+Units and sign depend on declared reaction orientation. No such pump may be
+synthesized solely to cancel leakage. Explicitly pump-free component cases
+are not full metabolic recovery or a complete autonomous neuron.
 
-### 6.2 Contact Mechanics & Material Plasticity Return Map
-Spine contact conductance is governed by genuine mechanical displacement $x$ and rate-independent plastic yield:
-- Contact elastic stiffness: $K = E_{\text{mod}} A_{\text{ref}} / L_{\text{ref}}$ (Units: Joules [J]).
-- Strain: $\epsilon = x / \ell_n - 1$, Elastic stress force: $\Sigma = K \epsilon$.
-- Yield condition: $f = |\Sigma| - Y \le 0$.
-- Admissible plastic return:
-  $$\ell_{n+1} = \begin{cases}
-  \ell_n & \text{if } |\Sigma_{\text{tr}}| \le Y, \\
-  x / (1 + s Y / K) & \text{if } |\Sigma_{\text{tr}}| > Y, \quad s = \operatorname{sign}(\Sigma_{\text{tr}}).
-  \end{cases}$$
-- Plastic dissipation: $D_{\text{pl}} = \frac{1}{2} K \left[ \epsilon_{\text{tr}}^2 - (Y/K)^2 \right] \ge 0$.
+## 4. Pore boundary: one geometry, one aperture law
 
----
+The submitted homogeneous bulk-cylinder benchmark is conditional, not a
+species-selective biological channel:
+\[
+R_{p0}=l/(\sigma\pi a_0^2),\quad R_{a0}=1/(2\sigma a_0).
+\]
+At the proposed values, Rp0 approximately 4.244131816e9 ohm and
+Ra0 approximately 6.666666667e8 ohm. At full aperture,
+gpore=235.619449 pS and gwith-access=203.632872 pS.
 
-## 7. Column 48 Layer 2/3 Receiving Compartment Integration (A15-06)
+Hall access resistance assumes a particular homogeneous, symmetric bath
+boundary. It is not derived for this model's finite asymmetric reservoirs.
+[Sahu & Zwolak, equation 1 and limitations](https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=923881).
+Keep it a conditional benchmark unless the actual boundary satisfies those
+assumptions or has its own derived access law. Adding its value to a table
+does not supply the missing species-selective transport.
 
-### 7.1 Elimination of Semantic Trit Thresholds
-- **Defect Removed:** The previous authored mapping "$-75\,\text{mV} \implies \text{Invariant Refusal}$" is completely withdrawn. Membrane potential does not possess semantic cognitive authority.
-- **Physical Electrical Inter-Column Contacts:**
-  Prefrontal Column 48 Layer 2/3 communicates with adjacent cortical columns strictly through physical contact conductances $g_{ij}$:
-  $$I_{ij} = g_{ij} (V_i - V_j), \quad J_{ij} = \int_{t_n}^{t_{n+1}} I_{ij} dt, \quad \Delta Q_i = -J_{ij}, \quad \Delta Q_j = +J_{ij}.$$
-  Total charge across participating columns is conserved: $\sum_k \Delta Q_k = 0$.
-- **Efferent Observation:** Voltage $V_{23}$ may be recorded by downstream observers, but motor decoding is driven by settled pyramidal L5 physical conductances, not arbitrary software threshold comparators.
+For the proposed **continuously changing circular area**, A(y)=y*pi*a0²,
+so a(y)=a0*sqrt(y). Therefore, for that access benchmark:
+\[
+g_c(y)=
+\begin{cases}
+m_c/[R_{p0,c}/y+R_{a0,c}/\sqrt y],&0<y\le1,\\
+0,&y=0.
+\end{cases}
+\]
+It is not y*gmax. At y=0.05 the benchmark per-pore conductance is
+11.381217721 pS rather than the linear formula's 10.181643612 pS.
+For an explicitly internal-pore-only voltage boundary, Ra is absent and
+g_c(y)=m_c*sigma_c*pi*a0,c²*y/l_c; bath drops belong elsewhere.
 
----
+The two boundaries are not interchangeable runtime options. The mounted
+material must specify one complete boundary and species transport law.
+Do not assign the complete saline bulk conductivity independently to every
+ion species. Species conductivity/permeability and depletion behavior remain
+required inputs (§9); no generic Na/K/Ca/Cl fallback is approved.
 
-## 8. Consolidated Master Parameter Matrix (A15-P1)
+## 5. Reciprocal gate mechanics without double-counted electrical energy
 
-```
-                    CONSOLIDATED PHYSICAL PARAMETER MATRIX
-┌─────────────────────────┬──────────────┬─────────────────────────────┬──────────────────────────────┬────────────────────────┐
-│ Parameter               │ Symbol       │ Value & Units               │ Classification               │ Authority / Citation   │
-├─────────────────────────┼──────────────┼─────────────────────────────┼──────────────────────────────┼────────────────────────┤
-│ Specific Capacitance    │ c_m          │ 0.010 F/m² (1.0 µF/cm²)     │ [MEASURED - BIOLOGICAL]      │ Cole (1968), Hille     │
-│ Soma Radius             │ r_soma       │ 10.0 µm                     │ [PROPOSED - ARTIFICIAL MAT.] │ L2/3 Pyramidal Soma    │
-│ Somatic Area            │ A_mem        │ 1.2566e-9 m²                │ [DERIVED - CONTINUUM]        │ 4 * π * r_soma²        │
-│ Membrane Capacitance    │ C_mem        │ 12.566 pF                   │ [DERIVED - CONTINUUM]        │ c_m * A_mem            │
-│ Initial Net Charge      │ Q_cap,0      │ -0.8168 pC                  │ [DERIVED - CONTINUUM]        │ C_mem * V_0 (-65 mV)   │
-│ Initial Stored Energy   │ E_cap,0      │ 26.55 fJ                    │ [DERIVED - CONTINUUM]        │ 1/2 * C_mem * V_0²     │
-│ Intracellular Volume    │ V_in         │ 4.1888 pL                   │ [DERIVED - CONTINUUM]        │ 4/3 * π * r_soma³      │
-│ Extracellular Vol. Frac.│ α            │ 0.20                        │ [MEASURED - BIOLOGICAL]      │ Nicholson & Phillips   │
-│ Extracellular Volume    │ V_out        │ 1.0472 pL                   │ [DERIVED - RECONCILED]       │ α / (1 - α) * V_in     │
-│ Pore Length             │ ℓ_c          │ 5.0 nm                      │ [MEASURED - BIOLOGICAL]      │ White & Wimley (1999)  │
-│ Saline Conductivity     │ σ            │ 1.50 S/m                    │ [MEASURED - BIOLOGICAL]      │ Robinson & Stokes 1959 │
-│ Pore Radius             │ a            │ 0.50 nm                     │ [PROPOSED - ARTIFICIAL MAT.] │ Cylindrical pore model │
-│ Single Channel Conduct. │ g_single     │ 203.6 pS (with access R)    │ [DERIVED - Sahu & Zwolak]    │ 1 / (R_pore + R_access)│
-│ Sector Peak Conductance │ g_max        │ 20.36 nS                    │ [PROPOSED - ARTIFICIAL MAT.] │ 100 channels / sector  │
-│ Sodium Reversal         │ E_Na         │ +66.60 mV                   │ [DERIVED - NERNST]           │ 145 mM / 12 mM         │
-│ Potassium Reversal      │ E_K          │ -95.02 mV                   │ [DERIVED - NERNST]           │ 4 mM / 140 mM          │
-│ Calcium Reversal        │ E_Ca         │ +132.34 mV                  │ [DERIVED - NERNST]           │ 2 mM / 100 nM free     │
-│ Chloride Reversal       │ E_Cl         │ -64.09 mV                   │ [DERIVED - NERNST]           │ 110 mM / 10 mM         │
-│ Fixed Intracellular Q   │ Q_fixed,in   │ -57.391 nC                  │ [DERIVED - DEBYE NEUTRALITY] │ Q_cap,0 - Q_mobile,in  │
-│ Fixed Extracellular Q   │ Q_fixed,out  │ -4.330 nC                   │ [DERIVED - DEBYE NEUTRALITY] │ -Q_cap,0 - Q_mobile,out│
-│ Gating Sensor Charge    │ q_gate       │ 6.4087e-19 C (4 e_0)        │ [PROPOSED - ARTIFICIAL MAT.] │ Electromechanical S4   │
-│ Barrier Stiffness       │ k_barrier    │ 2.141e-19 J (50 k_B T)      │ [PROPOSED - ARTIFICIAL MAT.] │ Harmonic gate potential│
-│ Gate Relaxation Time    │ τ_gate       │ 4.671 ms                    │ [DERIVED - CONTINUUM]        │ ζ_gate / k_barrier     │
-│ Phase Ring Coupling     │ κ_0          │ 4.282e-20 J (10 k_B T)      │ [PROPOSED - ARTIFICIAL MAT.] │ Macromolecular H-bond  │
-└─────────────────────────┴──────────────┴─────────────────────────────┴──────────────────────────────┴────────────────────────┘
-```
+All k_c, zeta_c, Lambda_ca and qg,c below are **per channel**.
+A sector has m_c identical gates with a common continuous aperture y_c:
+this is a declared reduced coordinate, not a probability or n_open/m_c.
+
+Separate the non-electrical gate potential from capacitor energy:
+\[
+u_c(y,\phi)=\tfrac12 k_c(y-y_{\rm rest,c})^2
+-\sum_a\Lambda_{ca}y\cos(\phi_a-\phi^*_{ca})-\mu_c y,
+\]
+\[
+H=\frac{(Q_f-Q_g(y))^2}{2C_{\rm mem}}+
+\sum_c m_c u_c+E_{\rm phase}+E_{\rm contact}+E_{\rm plastic}+E_{\rm chem}.
+\]
+Do not add a second -m_c*qg,c*V*y term to H: its gate force is already
+obtained by differentiating the electrical energy at fixed Q_f.
+
+For the explicitly proposed ideal hard aperture stops:
+\[
+0\in m_c\zeta_c\dot y_c+\partial_{y_c}H+
+N_{[0,1]}(y_c).
+\]
+The interior form, divided by m_c, is
+\[
+\zeta_c\dot y_c=-k_c(y_c-y_{\rm rest,c})+q^g_cV+
+\sum_a\Lambda_{ca}\cos(\phi_a-\phi^*_{ca})+\mu_c .
+\]
+At y=0 or 1 the normal-cone reaction enforces the material stop, not an
+after-step clipping algorithm. It does not supply the numerical solver.
+The phase receives the reciprocal force
+\[
+-\partial_{\phi_a}\sum_c m_c u_c
+=-\sum_c m_c\Lambda_{ca}y_c\sin(\phi_a-\phi^*_{ca}).
+\]
+Aggregate energy, drag, charge and conductance all use the same m_c.
+
+The continuum charge-balance identity is
+\[
+C_{\rm mem}\dot V=-\sum_c I_c+I_{\rm contact,in}
++I_{\rm active,in}-\dot Q_g .
+\]
+Actual whole-carrier publication follows §3; do not update Q_f a second time
+from this continuum identity.
+
+For fixed voltage/phases, the unconstrained gate stationary point is
+\[
+y_{\rm eq}=y_{\rm rest}+
+[q^gV+\sum_a\Lambda_{ca}\cos(\phi_a-\phi^*_{ca})+\mu_c]/k_c.
+\]
+Consequently yrest=0.05 is not a claimed coupled resting equilibrium.
+zeta_c/k_c approximately 4.670624 ms is an isolated frozen-drive timescale,
+not permission for one 50-ms explicit Euler step. Physical rest, coupled
+stability and solver accuracy still require the completed binding.
+
+## 6. Typed field incidence, phase fabric and retained mechanics
+
+Retain the complete shared UF result and each reached neuron's local
+perspective exactly as A14-01 specifies. A field family, numeric role,
+numerator/denominator, ternary position, sign/signed-zero evidence, source
+lineage/time and physical locality remain distinct. S(UF) stays separate.
+
+Name a complete typed digit j and its **supplied anatomical edge incidence**
+E_j within the mounted fabric. Then
+\[
+E_{\rm DSF}=-\sum_j\kappa_j\sum_{(a,b)\in E_j}
+\cos(\phi_b-\phi_a-2\pi\tau_j/3).
+\]
+The paired endpoint forces are +kappa_j*sin(theta_ab) and
+-kappa_j*sin(theta_ab). A local three-node ring can realize spatial winding;
+it is not the universal entire fabric. Typing a record does not prevent
+physical flattening if every type is then assigned the same nodes and forces.
+No automatic ring allocation, alphabetical wiring, shared untyped overwrite,
+seven-oscillator substitute or 3^p-to-drive scaling is approved.
+
+Use the existing complete energy and local settlement:
+\[
+\zeta_{\rho,a}\dot\rho_a=-\partial_{\rho_a}E+P_a,\qquad
+\zeta_{\phi,a}\rho_a\dot\phi_a=-\partial_{\phi_a}E+\tau_a.
+\]
+Anatomical incidence, amplitude energy/boundary, damping, gate offsets and
+contact coupling still require actual material data. Writing this equation
+does not supply those data. A changing imposed constraint carries work.
+
+For the already accepted P0 strain-energy element, correct the dimensional
+mistake in G1's revision:
+\[
+k_{\rm axial}=E_{\rm mod}A_{\rm ref}/L_{\rm ref}\ [N/m],\qquad
+K_\epsilon=E_{\rm mod}A_{\rm ref}L_{\rm ref}
+=k_{\rm axial}L_{\rm ref}^2\ [J].
+\]
+Use K_epsilon, not k_axial, in
+\[
+\epsilon=x/l-1,\quad U=\tfrac12K_\epsilon\epsilon^2,\quad
+\Sigma=K_\epsilon\epsilon,\quad f=|\Sigma|-Y,\quad 0<Y<K_\epsilon.
+\]
+At fixed actual mechanical x>0:
+\[
+l'=\begin{cases}
+l,&|\Sigma_{\rm tr}|\le Y,\\
+x/(1+sY/K_\epsilon),&|\Sigma_{\rm tr}|>Y,\quad s=\operatorname{sign}\Sigma_{\rm tr}.
+\end{cases}
+\]
+The plastic branch dissipates
+Dpl=K_epsilon[epsilon_tr²-(Y/K_epsilon)²]/2 >= 0.
+This is the prior P0 law, not a new material model. Changing-x work, actual
+contact geometry and the returned length's conductance consequence must be
+accounted for; do not invent x from DSF magnitude or activation products.
+
+## 7. Receiving current, persistence and evidence
+
+The proposed Column 48 receiver must have its own physically mounted
+capacitance, charge, gates and reservoirs. A label does not mount a compartment.
+
+For a mounted electrical contact:
+\[
+I_{ij}=g_{ij}(V_i-V_j),\quad J_{ij}=\int I_{ij}dt,\quad
+\Delta Q_{f,i}=-J_{ij},\quad\Delta Q_{f,j}=+J_{ij}
+\]
+at the continuum accounting level, with actual carrier custody and species
+endpoints specified once. Fan-out cannot duplicate charge. A chemical
+synapse instead uses finite release/receptor/post-synaptic mechanics.
+
+There is no voltage-to-refusal, voltage-to-word or threshold-to-cognition
+table. Receiving current is the next physical output to prove.
+**No claim is made that the existing L5 motor decoder already implements
+this proposed law.** Complete neuron-to-world motor authority remains A10/A11
+work, not something authorized by these equations.
+
+Preserve the A14 atomic successor, single state owner, explicit schema/version
+and full cold-next-step identity. Persist every causal remainder, gate,
+phase, ion inventory, fixed charge, contact and material state; no implicit
+genesis on restore, sidecar state, partial publication or all-population work.
+Work scales with physically reached nodes/contacts, not elapsed history.
+
+## 8. Corrections completed in this revision
+
+- Kept the corrected volume definition and recomputed values from literal ions.
+- Corrected extracellular charge; included gate polarization in initial charge;
+  supplied one exact-integer proposed preparation without a voltage reset.
+- Replaced unsupported measured/universal claims with proposed material inputs.
+- Removed the unapproved roundoff allowance and voltage-holding pump.
+- Made aperture geometry consistent with the chosen electrical boundary.
+- Made gate energy, sensor charge, drag and phase reaction share sector scaling.
+- Restored the correct joule-valued strain stiffness and existing return map.
+- Removed mounted/full-field/motor-success claims and made typed incidence explicit.
+- Preserved every runtime/test gate. These are document corrections, not a
+  physiological validation or implemented-neuron acceptance.
+
+## 9. One remaining binding deliverable — no new architecture or review ladder
+
+G1's next item is **one concrete material/anatomy binding for the existing
+corrected law**, not another paraphrase of this dossier. Do not guess defaults.
+
+| Required binding | Actual missing input | Consumer / consequence |
+| --- | --- | --- |
+| Typed reached fabric | Nodes, E_j incidence, amplitude energy/bounds, phase/amplitude damping and initial state | Exact MathLoom facts -> material phase/gate response |
+| Gate/material authority | Derivation/ratification of proposed coefficients and phase offsets; species-specific aperture/transport and depletion law | Gate -> conserved ionic transfer and dissipation |
+| Retained physical contact | Modulus, reference geometry, yield, actual x coupling and conductivity | Experience -> retained length/conductance change |
+| Receiving and chemical boundary | Source/receiver compartments, contacts, finite thermochemistry; pump/reaction law only if mounted | Real current, depletion/recovery, no invented energy |
+| Executable representation | Frozen parameter representation, coupled settlement/error law, complete canonical state and bounded resource plan | Determinism, no silent approximation, cold restart |
+
+These are the previously required A14/A15 bindings, not added biological detail.
+Concrete audit corrections are made; **numerical material ratification remains
+unavailable until these inputs exist**. Do not claim all six capabilities
+closed merely because the six document headings were rewritten.
+
+Acceptance after binding: one authentic full-input -> typed material -> gate ->
+source-debited receiving-current path, with real retained change if yielded,
+subsequent response, finite accounting, severed/unforced behavior and identical
+ordinary cold successor. Support it with focused falsification, not another
+broad rerun of unchanged tests or an artificially forced motor answer.
