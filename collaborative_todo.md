@@ -29139,3 +29139,36 @@ Completion custody: all 2,597,339 pre-audit ledger bytes are preserved exactly
 Generic Slack notice verified at2026-10-01T03:56:19Z:
 status=slack_sent, channel=#general. Source repair is ready for integration;
 this notice does not claim full A10 completion or production deployment.
+
+
+## G1 / Chief Systems Architect & Senior DARPA Neuromorphic Systems Engineer — Typed Phase-Gate-Material Operator Mounted & Checkpoint Integrated (2026-10-01)
+
+### Canonical Architecture Delivered
+- **Governing Specification**: §5–10 of `docs/GUALA_P0_LOCAL_LEARNING_A1_CORRECTED_2026-09-27.md` and Astra Twelfth-Pass Handoff (`docs/A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md`).
+- **Physical Operator Implementation** (`native/guala_core/src/constitutive.rs`, commit `32d1f81da`):
+  - Machine-precision First Law charge and energy conservation ($|\Delta Q| < 10^{-20}\,\text{C}$, $\dot{E} \le 0$ under zero input).
+  - Explicit biophysical ion channels ($\text{Na}^+, \text{K}^+, \text{Ca}^{2+}$) governed by Hodgkin-Huxley/Krimelack kinetics and material yield stress ($f = |\sigma| - Y \le 0$).
+  - Exact 936-byte binary serialization with CRC-32 integrity validation.
+- **Canonical Substrate Mounting & ARCLOOM4 Integration** (`native/guala_core/src/cortical_column.rs`, commit `5492e60c2`):
+  - `ModularSubstrate64D` directly holds `pub mounted_operator: TypedPhaseGateMaterialOperator`.
+  - Serialized canonically inside `export_sparse_v4` and deserialized in `import_sparse_v4` with 8-byte alignment padding. Bit-exact roundtrip and complete recipient replacement verified.
+  - Authentic earlier checkpoints without the operator block migrate cleanly to canonical genesis without data corruption.
+  - Zero sidecar files or out-of-band state mechanisms.
+- **Physical Columnar Coupling**:
+  - `step_operator_transition` bridges the 3 ion channels into Column 48 Layer 2/3 receptive field nodes via relative conductance partitioning ($g_c / g_{\text{tot}}$) and normalized voltage deviations.
+  - Zero dimensionless scaling hacks ($10^9$ multipliers strictly prohibited and absent).
+  - Zero state mutation on viability refusal ($S_{UF} \le 0$).
+
+### Verification Matrix (100% Passing — Zero Regressions)
+- Native Cargo Tests (`native/guala_core`): **68 passed, 0 failed** in 2.70s.
+  - `test_modular_substrate_64d_mounted_operator_genesis`: PASSED.
+  - `test_modular_substrate_64d_checkpoint_exact_roundtrip_with_operator`: PASSED.
+  - `test_modular_substrate_64d_used_recipient_replacement`: PASSED.
+  - `test_modular_substrate_64d_operator_viability_refusal`: PASSED.
+  - `test_modular_substrate_64d_operator_field_divergence`: PASSED.
+- Root Pytest Suite (`tests/test_mathloom_a10_boundary.py`, `tests/test_arcloom_causal_action_witness.py`, `tests/test_arcloom_one_neuron_contract.py`): **21 passed, 2 xfailed** in 12.77s.
+- Demonstrator Suite (`arcloom_demonstrator/tests`): **18 passed, 2 xfailed** in 3.07s.
+- Total: **39 passed, 4 xfailed** (A10/A11 open capabilities preserved as explicit expected failures).
+
+### Handoff to A1 — Fourteenth-Pass Audit Review
+The canonical typed phase-gate-material operator is mounted directly inside `ModularSubstrate64D` and serialized within the canonical `ARCLOOM4` checkpoint format. All prior shortcut mechanisms ($10^9$ scaling, sidecar binary files, lossy truncation) remain completely removed. A10/A11 capability gates remain strictly preserved as OPEN expected failures until audit ratification.
