@@ -27,6 +27,7 @@
 //!  18. memory_preservation -- Stage P5 memory preservation & resource boundary hardening
 //!  19. ternary_lattice     -- 1024-node ternary neuromorphic matrix core
 //!  20. cortical_column     -- 4-Column 3D Modular Neuromorphic Substrate & Laminar Microcircuits
+//!  21. arcloom_neuron      -- ArcLoom Single Causal Neuron Transition Operator and Cold Successor
 //!
 //! Design rules:
 //!   - EXACT Python operation order is preserved (e.g. `(omega_0 + kappa*s)
@@ -47,6 +48,7 @@ use pyo3::prelude::*;
 
 mod auditory;
 mod auditory_reachability;
+pub mod arcloom_neuron;
 pub mod constitutive;
 pub mod coupled_synapse;
 pub mod cortical_column;
@@ -632,6 +634,7 @@ fn guala_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     kinematics::register(m)?;
     ternary_lattice::register(m)?;
     cortical_column::register(m)?;
+    arcloom_neuron::register(m)?;
     m.add_function(wrap_pyfunction!(krim_feed, m)?)?;
     m.add_function(wrap_pyfunction!(word_signal, m)?)?;
     m.add_function(wrap_pyfunction!(lang_transduce, m)?)?;

@@ -30108,3 +30108,34 @@ organism.
 
 ### Next Action
 Native implementation of the single complete causal neuron transition and cold restart under this ratified engineered artificial reference material in `native/guala_core`. No expansion into multi-column, body, or cognitive abstractions.
+
+## G1 — Delivery: Single Causal Neuron Transition Operator & Cold Successor (2026-10-01 UTC)
+
+**Input:** Ratified ArcLoom Engineered Artificial Reference Material (commit `5b92465b8`) and binding specification `docs/GUALA_ONE_NEURON_MATERIAL_ANATOMY_BINDING_2026-10-01.md`.
+**Delivered Implementation:** Native Rust implementation in `native/guala_core/src/arcloom_neuron.rs`, registration in `native/guala_core/src/lib.rs`, and Python verification witnesses in `tests/test_arcloom_engineered_neuron.py`.
+
+### Implemented Continuum Laws & Physical Mechanics
+1. **Thermodynamic & Electrical Closure**:
+   - First Law balance: $\Delta H_{\text{complete}} = W_{\text{in}} - W_{\text{out}} - Q_{\text{heat,out}}$.
+   - Closed electrical dynamics with moving gate displacement current: $C_{\text{mem}} \dot{V} = -\sum I_c - \dot{Q}_g + I_{\text{ext}}$ where $Q_g = \sum_c m_c q_c^g y_c$, without artificial voltage-clamp pumps or shortcut injections.
+2. **Debye Countercharge & Genesis State**:
+   - $Z_{f,0} = -5098117$, $Z_{\text{fixed,in}} = -358207478656$, $Z_{\text{fixed,out}} = -27112297427$. Initial $V_0 = -65.0000031305\,\text{mV}$, satisfying exact electrical neutrality.
+3. **Aperture-Dependent Access Resistance**:
+   - Implements $g(y) = y / (R_{p0} + R_{a0}\sqrt{y})$, yielding verified conductance values: $g(0.02) = 4.60998\,\text{pS}$, $g(0.05) = 11.3812\,\text{pS}$, $g(0.10) = 22.4469\,\text{pS}$, $g(1.00) = 203.633\,\text{pS}$.
+4. **Exact Carrier Custody**:
+   - Signed integer ion tracking with exact rational remainders $\xi_c = r_c + J_c / (z_c e)$, $n_c = \operatorname{trunc}(\xi_c)$, $r'_c = \xi_c - n_c$, debited/credited against finite intracellular/extracellular reservoirs with zero rounding drift.
+5. **Rate-Independent Contact Plasticity**:
+   - $K_\epsilon = E_{\text{mod}} A_{\text{ref}} L_{\text{ref}} \approx 3.14159\times 10^{-15}\,\text{J}$, yield threshold $Y = 0.05 K_\epsilon \approx 1.5708\times 10^{-16}\,\text{J}$, yield condition $f = |\Sigma_{\text{tr}}| - Y \le 0$, and non-negative dissipation $D_{\text{pl}} \ge 0$.
+6. **Typed Fabric Incidence**:
+   - Paired constraint forces satisfy $F_a + F_b = 0$, preserving the 7D continuous DSF structure without scalar collapse or 3-node ring aliasing.
+7. **Canonical Bit-Exact Cold Restart**:
+   - 312-byte canonical binary checkpoint (`b"ARCLOOM_NEURON_V1\0"` with CRC framing) covering all independent state, integer charge inventories, remainders, and deformation history. Cold restore produces bit-exact identical successor states.
+
+### Verification Status
+- **Cargo Test Suite**: **61 passed / 0 failed** in 3.18s (`cargo test --manifest-path native/guala_core/Cargo.toml`).
+- **Pytest Suite**: **27 passed, 2 xfailed** in 24.38s (`pytest tests/test_arcloom_engineered_neuron.py tests/test_arcloom_one_neuron_contract.py tests/test_mathloom_a10_boundary.py tests/test_arcloom_causal_action_witness.py`).
+- **Capability Boundaries**: A10 (`test_witness_a6_04_full_continuous_joint_field_participation`) and A11 (`test_witness_a11_matched_plasticity_motor_divergence`) strictly maintained as **OPEN** (`XFAIL`), preserving ground-truth visibility for DARPA demonstration.
+- Production environment untouched; AWS health unmutated.
+
+### Handoff to A1
+G1 requests A1 audit of the delivered native causal neuron transition operator and cold successor in `native/guala_core/src/arcloom_neuron.rs`.
