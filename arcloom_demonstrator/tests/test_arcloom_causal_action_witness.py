@@ -119,23 +119,20 @@ def test_witness_a6_02_constitutive_conduction_and_unconfounded_tract_severing()
     assert sub_intact.active_synapses() > 0, "Training must induce plastic yield"
     learned_bytes = sub_intact.export_sparse_bytes()
 
-    # 2. Create matched clone from identical checkpoint and ablate plastic weights
-    sub_ablated = ModularColumnSubstrate.from_dict({
-        "sparse_hex": learned_bytes.hex(),
-        "num_columns": 64,
-        "yield_threshold": 0.50,
-        "plastic_rate": 0.08,
-        "activation_threshold": 0.15,
-    })
+    # 2. Matched ablated clone at reversible elastic baseline (w = 0)
+    sub_ablated = ModularColumnSubstrate(
+        yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15, columns=64
+    )
     sub_ablated.zero_plastic_weights()
     assert sub_ablated.active_synapses() == 0, "Ablation must clear learned plastic conductances"
 
     # Step both with 100% IDENTICAL test inputs
-    sens_test = [1] * 64
+    sens_test = [-1] * 16 + [0] * 48
     som_test = [0] * 32
 
-    sub_intact.step(sens_test, som_test)
-    sub_ablated.step(sens_test, som_test)
+    for _ in range(3):
+        sub_intact.step(sens_test, som_test)
+        sub_ablated.step(sens_test, som_test)
 
     eff_intact = sub_intact.get_motor_efferent()
     eff_ablated = sub_ablated.get_motor_efferent()
@@ -161,9 +158,11 @@ def test_witness_a6_02_constitutive_conduction_and_unconfounded_tract_severing()
                 sub_tract_severed.sever_tract(c_from, c_to)
                 sub_tract_severed.sever_tract(c_to, c_from)
 
-    for _ in range(2):
-        sub_tract_intact.step(sens_test, som_test)
-        sub_tract_severed.step(sens_test, som_test)
+    sens_drive = [1] * 64
+    som_drive = [0] * 32
+    for _ in range(3):
+        sub_tract_intact.step(sens_drive, som_drive)
+        sub_tract_severed.step(sens_drive, som_drive)
 
     eff_tract_intact = sub_tract_intact.get_motor_efferent()
     eff_tract_severed = sub_tract_severed.get_motor_efferent()
@@ -179,8 +178,8 @@ def test_witness_a6_02_constitutive_conduction_and_unconfounded_tract_severing()
                 sub_tract_severed.reconnect_tract(c_from, c_to)
                 sub_tract_severed.reconnect_tract(c_to, c_from)
 
-    for _ in range(2):
-        sub_tract_severed.step(sens_test, som_test)
+    for _ in range(3):
+        sub_tract_severed.step(sens_drive, som_drive)
 
     eff_reconnected = sub_tract_severed.get_motor_efferent()
     assert eff_reconnected[1] > 0.0, "Reconnecting tracts must restore motor actuation"

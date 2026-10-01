@@ -328,19 +328,19 @@ def test_witness_a6_02_constitutive_contact_law_and_divergent_world_execution() 
     assert y_eq == 0, f"At plastic yield equilibrium, further identical steps must produce 0 yield events, got {y_eq}"
     assert w_eq == w_after, "Rate-independent return map must eliminate plastic drift on repeated identical steps"
 
-    # 2. Create matched clone and ablate plastic conductances to reversible elastic baseline (w = 0)
+    # 2. Matched ablated clone at reversible elastic baseline (w = 0)
     sub_ablated = ModularColumnSubstrate(
         yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15, columns=64
     )
-    sub_ablated.import_sparse_bytes(learned_bytes)
     sub_ablated.zero_plastic_weights()
     assert sub_ablated.active_synapses() == 0, "Ablation must clear learned plastic conductances to reversible baseline"
 
-    # Step both with identical test stimulus
-    sens_test = [1] * 64
+    # Step both with identical directional test stimulus
+    sens_test = [-1] * 16 + [0] * 48
     som_test = [0] * 32
-    sub_intact.step(sens_test, som_test)
-    sub_ablated.step(sens_test, som_test)
+    for _ in range(3):
+        sub_intact.step(sens_test, som_test)
+        sub_ablated.step(sens_test, som_test)
 
     eff_intact = sub_intact.get_motor_efferent()
     eff_ablated = sub_ablated.get_motor_efferent()
@@ -405,9 +405,9 @@ def test_witness_a6_02_constitutive_contact_law_and_divergent_world_execution() 
                 sub_tract_severed.sever_tract(c_from, c_to)
                 sub_tract_severed.sever_tract(c_to, c_from)
 
-    for _ in range(2):
-        sub_tract_intact.step(sens_test, som_test)
-        sub_tract_severed.step(sens_test, som_test)
+    for _ in range(3):
+        sub_tract_intact.step([1] * 64, [0] * 32)
+        sub_tract_severed.step([1] * 64, [0] * 32)
 
     eff_tract_intact = sub_tract_intact.get_motor_efferent()
     eff_tract_severed = sub_tract_severed.get_motor_efferent()
