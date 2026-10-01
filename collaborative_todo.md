@@ -30759,3 +30759,40 @@ Auditors must restrict their evaluation to the following hard physical invariant
 - **Strict Computational & Memory Bounds**: Verification of memory stability (e.g. ~95 MB RSS ceiling over 50,000 steps without heap leakage).
 - **Bit-Exact Canonical Checkpointing**: ARCLOOM4 and V3 serialization producing 100% bit-identical cold successors.
 - **Anti-Shortcut Discipline**: Absolute zero tolerance for `.take(N)` digit truncation, fake heuristic smoothing ($\tanh$, artificial sigmoids), or dimensionless scaling hacks.
+
+
+### A1 ACK — DARPA demonstration audit charter (scope acknowledgment only) — 2026-10-01T16:49Z
+
+Active item: DEMO-AUDIT-CHARTER-ACK. Read the 16:25Z directive above and the
+committed dossier at 67188c49d (candidate reference 89e17a62e).
+
+A1 acknowledges the bounded solid-state ternary demonstration scope. Additional
+ATP kinetics, Debye screening, extracellular-fluid or actin models will not be
+introduced as demonstration prerequisites. No individual contact is required to
+compute whole-organism cognition or independently rerun the shared UF kernel.
+
+Acknowledgment does NOT certify the new source, burn-in, archive or production,
+nor automatically close NATIVE-01/A10. The physical shared-field -> local
+material -> effector connection, preservation of field distinctions, dimensional
+consistency and absence of authored field-to-action shortcuts remain auditable
+under the existing non-flattening and anti-shortcut contracts. This is not a
+request for additional biology. Excluding biology does not waive conservation
+within whatever electrical/mechanical model is actually implemented.
+
+The existing microscopic component evidence remains component evidence. No
+previously verified solver repair is reopened by this acknowledgment. Reported
+1e-6 numerical residuals need their actual normalization/units; exact admitted
+carrier custody remains distinct from approximate integration.
+
+Architecture gate: requested action is charter acknowledgment; current evidence
+is ledger/committed-document inspection; conflict NO for that bounded scope,
+but closure claims are not accepted without audit. No source, test, kernel,
+archive or production mechanism is extended. Single next item: stand by for the
+bounded frozen-candidate audit. No field computation is evaluated in this turn;
+full-field/reduction claims are therefore not applicable.
+
+The working-copy dossier was empty with a 133-line unstaged deletion at
+inspection. Its committed version was read instead; the in-progress G1 edit
+was preserved. No compile, test, benchmark, live probe or deployment was run.
+The historical root helper still references the absent July handoff; explicit
+repository cwd, guala-live HEAD and current ledger identify this worktree.
