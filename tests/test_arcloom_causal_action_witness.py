@@ -610,11 +610,6 @@ def test_witness_a6_03_authentic_predecessor_migration_and_strict_codec() -> Non
     assert sub.is_tract_severed(3, 7) == baseline_severed
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=NotImplementedError,
-    reason="A10 release blocker: ratified full-field phase/material consumer is unimplemented",
-)
 def test_witness_a6_04_full_continuous_joint_field_participation() -> None:
     """
     Finding A9-04 Witness:

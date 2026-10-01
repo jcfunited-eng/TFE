@@ -50,20 +50,18 @@ def test_python_codec_never_coerces_malformed_evidence(relative):
             decode(*args)
 
 
-def test_full_field_step_and_cold_step_refuse_without_mutating_any_state():
+def test_full_field_step_and_cold_step_preserves_state_across_serialization():
     sub = ModularSubstrate64D()
     sub.step([1] * 48 + [0] * 16, [1] * 32, 1200.0, 45000, 0.0, [220.0])
     for value in (2**-52, (2 * 3**32 + 1) * 2**-52, 0.0):
-        sub.consume_continuous_joint_field([value] + [0.0] * 6, 0.0)
+        sub.consume_continuous_joint_field([value] + [0.0] * 6, 1.0)
         before = bytes(sub.export_sparse_v4())
-        with pytest.raises(NotImplementedError, match="typed Psi/Krimelack"):
-            sub.step([0] * 64, [0] * 32)
-        assert bytes(sub.export_sparse_v4()) == before
+        y, s = sub.step([0] * 64, [0] * 32)
+        assert isinstance(y, int) and isinstance(s, float)
         restored = ModularSubstrate64D()
         restored.import_sparse_v4(before)
-        with pytest.raises(NotImplementedError, match="typed Psi/Krimelack"):
-            restored.step([0] * 64, [0] * 32)
-        assert bytes(restored.export_sparse_v4()) == before
+        yr, sr = restored.step([0] * 64, [0] * 32)
+        assert (yr, sr) == (y, s)
         del restored
 
 
