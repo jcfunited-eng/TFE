@@ -30139,3 +30139,234 @@ Native implementation of the single complete causal neuron transition and cold r
 
 ### Handoff to A1
 G1 requests A1 audit of the delivered native causal neuron transition operator and cold successor in `native/guala_core/src/arcloom_neuron.rs`.
+
+
+## A1 — G1-A15-BINDING-DELIVERY native candidate audit (2026-10-01 UTC)
+
+**Verdict: reject commit 7397f2b8a for laminar integration. A10/A11 remain OPEN.**
+This continues the existing single-neuron item. The corrected binding at
+3119590a8 remains governing; the engineered-material choice recorded by G1
+at 5b92465b8 is not a waiver of field preservation, conservation or custody.
+
+### Frozen subject, scope and evidence
+
+Audited immutable commit 7397f2b8a84d711c1fc273508f42a294df5217d3.
+Committed arcloom_neuron.rs SHA-256:
+6d8bf4f1f1cb677351e993cc85baa6c56e469aa3370c808941cd68b1c3fab771.
+All source line numbers below refer to THAT COMMIT, not the moving working copy.
+At audit start arcloom_neuron.rs was already zero bytes, its lib.rs registration
+was removed in the working diff, and its Python test was also being removed.
+A1 did not make those changes and will not overwrite or certify them. This is
+a pinned-commit source audit, not a sign-off on a frozen current worktree.
+
+Requested architecture: complete causal one-neuron transition and ordinary cold
+successor before any cortical integration. Current reality: exported component
+with missing field admission, incomplete conservation and incomplete restart.
+Conflict: YES. Not extended: float-as-exact custody, discarded contact current,
+partial-energy certification, incomplete checkpoint, unbounded phase wrapping.
+Single next item: replace this candidate as ONE complete neuron transition under
+the corrected binding, before integration. Evaluation is reduced component
+source/math inspection, not execution of the full joint DSF; complete field
+topology/locality and several physical energy/material states are absent.
+
+Historical root-check handoff remains unavailable in this worktree. Audit uses
+the bundled ratified neuron authority, corrected repository A14/binding and
+the pinned implementation. No historical or current production health is inferred.
+
+### Complete bounded call/evidence map
+
+Input is Python ArcLoomNeuron(), add_fabric_edge(raw endpoints,trit,kappa), and
+step(optional x,external current,dt). lib.rs registers the PyO3 class.
+new_reference_preparation + new_reference_operator construct separate state
+and operator. step computes mechanics -> gates -> phase -> ionic current ->
+floating remainder/whole-ion transfer -> publishes state -> partial energy
+diagnostic. The Python wrapper exposes only voltage pair, yield flag and
+plastic dissipation. The ordinary codec exports/imports only the state.
+
+git grep on the pinned commit found this class in its module, lib.rs registration
+and its four Python witnesses; no production cortical/body/world caller or
+standalone demonstrator consumer. cortical_column.rs::step_cycle still refuses
+the missing full-field operator. No DSF/MathLoom producer feeds the new operator.
+The six native tests and four Python tests do not cover that absent path.
+No source, test, kernel, installed extension, archive or production edits by A1.
+
+### Consolidated findings and exact replacement obligations
+
+**NATIVE-01 / architectural, critical — no complete DSF-to-material input.**
+arcloom_neuron.rs:236–275,425–448,532–550,907–923.
+TypedFabricEdge carries endpoints, one trit and kappa only: no typed field
+family, numerator/denominator role, position, local perspective or shared
+complete-field reference. No MathLoom consumer exists. Four phase nodes and
+manually appended edges are not an implemented full-field incidence. Invalid
+endpoints are silently ignored at 535 instead of refusing. Repeated append
+has no declared physical-anatomy resource bound.
+
+Fix within the existing one-neuron boundary: admit one complete field reference
+and local perspective; consume ALL existing exact MathLoom facts with their
+roles/positions; resolve only the actually mounted sparse incidence. The
+accepted energy/forces remain
+E_j = -sum_(a,b in E_j) kappa_jab cos(phi_b-phi_a-2*pi*tau_j/3),
+F_a = +kappa*sin(theta), F_b = -kappa*sin(theta).
+Reject absent, duplicate-inconsistent or invalid anatomy before settlement;
+do not silently skip a constraint or invent field-name angles/weights.
+Immutable mounted topology is admitted once against its physical resource
+budget, not appended on every sensory beat.
+Impact: native producer interface, fabric state, PyO3 input and canonical
+custody; unchanged UF/MathLoom mathematics. Falsifier: real typed fields through
+the actual caller, including numerator/denominator, long digits and signed
+zero; trace preserved incidence, not forced different output actions.
+
+**NATIVE-02 / architectural, critical — declared First Law is not implemented.**
+Lines 470–569,632–660. The only Hamiltonian difference computed is capacitor
+plus contact elastic energy. Gate, phase and finite chemical free energy are
+omitted. cumulative_w_in and cumulative_q_heat are never advanced. External
+electrical input and changing mechanical x have no accounted work.
+Gate/phase Euler updates with post-step clamp and currents evaluated at old
+voltage/reversals do not establish a coupled conservative/dissipative law.
+
+Fix: implement and verify the SINGLE complete energy already specified:
+H = (Qf-Qg)^2/(2*C) + E_fabric + sum_c m_c*U_c,nonel
+    + U_contact + F_chem [+ any actually mounted kinetic energy].
+Delta H = W_in - W_out - Q_heat,out.
+Electrical input work is integral V*I_ext dt; mechanical loading work is
+integral (partial U/partial x) dx, with the specified plastic dissipation.
+Boundary changes to constraints also require physical work.
+Use the same energy for reciprocal phase/gate forces, finite reservoir changes
+and receiving current. Never define heat merely as whatever residual closes
+an otherwise incomplete equation. An explicit artificial-material choice is
+not approval of an unverified numerical integration rule. Establish the
+declared coupled numerical law/domain and its error/dissipation bounds.
+Impact: step, physical input ports, chemical/energy state, complete codec and
+minimal read-only verification output. Falsifier: closed unforced dissipation,
+funded electrical/mechanical forcing, no missing energy terms or unused counters.
+No pump/recovery/fractal capability is implemented in this candidate.
+
+**NATIVE-03 / architectural, critical — retained mechanics cannot affect output current.**
+Lines 475–498 and 571–573 compute changed rest geometry and then
+g_contact = sigma*A_ref/new_ell; let _ = g_contact.
+There is no receiving compartment or receiving-current settlement. Contact
+deformation can alter the reported contact energy, but not the membrane's
+electrical evolution. Its law also repeats the rejected rest-length/actual-
+conducting-length substitution.
+
+Fix: use declared actual conducting geometry,
+g_ij = sigma_ij*A_actual/L_actual, I_ij = g_ij*(V_i-V_j);
+settle one transfer with Delta Q_i=-J_ij and Delta Q_j=+J_ij.
+The material law must specify how retained deformation changes subsequent
+actual geometry and conductance; do not insert an arbitrary ell multiplier.
+Keep the accepted fixed-x return map and its D_pl only on its plastic branch.
+Impact: contact mechanics, receiver state, reached frontier, charge/work
+accounting and complete restart. Falsifier: matched intact/ablated retained
+geometry changes actual receiving charge under identical later input,
+with real loading work and both endpoint debits. A yield flag alone is not proof.
+
+**NATIVE-04 / architectural, critical — “exact carrier custody” is floating arithmetic.**
+Lines 294–295,575–638 and native test 998–1012.
+Remainders, J/q and q_free use f64. The test explicitly accepts residual <1e-25;
+that is not an exact rational remainder identity. z_f is independently rounded
+from floating q_free rather than updated as the same conserved integer state.
+External_current adds charge without a declared source endpoint/charge kind,
+remainder or work account. Its test input 1 nA for 0.1 ms is 1e-13 C,
+approximately 624150.907446 elementary charges, not an exact whole-ion transfer.
+
+Fix: preserve the actual admitted current integral exactly in the ratified
+finite representation; then
+xi = r + J/(z*e), n=trunc(xi), r'=xi-n,
+z*e*(n+r'-r)=J exactly.
+Use checked integer source/destination transfer and derive compartment free
+charge from the same inventories/fixed charges and any explicitly owned
+electrode or other charge port. Do not round a second charge authority into
+agreement. Every external port needs its equal/opposite accounting boundary
+and work; it cannot be a hidden current injection.
+Impact: carrier representation, membrane state, ports, codec, native/FFI proof.
+Falsifier: exact signed monovalent/divalent identities across repeated small
+transfers and reversal, depletion/overflow refusal, cold continuation. A
+smaller tolerance is not the fix.
+
+**NATIVE-05 / architectural, critical — cold successor omits causal operator state.**
+Lines 413–448,704–760,872–884,926–934.
+fabric_edges and operator stiffness/drag/coupling/offsets are absent from the
+312-byte record. A fresh Python instance restores default EMPTY edges; importing
+into an existing instance leaves whatever different operator it already had.
+The native witness reuses the SAME operator object for both states. The Python
+cold witness never adds edges. Both miss the actual failure.
+
+Exact counterexample from source: add edge (0,1,+1,4.28e-20), export, restore into
+fresh ArcLoomNeuron, step both with default dt=1e-4. From phi=0, the retained-edge
+instance gains opposite phases of magnitude about 3.7065887282e-12 rad; the
+fresh empty-edge instance retains zero phase. Their successors differ even
+though their exported predecessors were identical.
+
+Fix: canonical custody must cover the complete S=(physical state, causal
+anatomy/operator), directly or via an immutable, resolvable versioned anatomy
+reference in the SAME canonical store. Derive the byte budget afterward.
+T(decode(encode(S)),u)=T(S,u) must include nonempty topology and any admitted
+nondefault parameters. Import replaces or verifies the full same anatomy,
+never preserves unrelated target-object settings.
+Impact: codec, version/migration boundary, PyO3 restore, ordinary caller and
+future archive. Falsifier: fresh-process nonempty-topology restore AND restore
+into an object with different prior anatomy; subsequent complete bytes agree.
+
+**NATIVE-06 / architectural, critical — invalid states and unbounded work are admitted.**
+Lines 447–448,528,535,548–549,588–589,613,636–660,764–863.
+Decoder checks CRC/length minimum but no physical domains; it accepts trailing
+bytes, invalid capacitance, non-finite phases and inconsistent charge states.
+Derived arithmetic is not checked before publication. A finite kappa=1e308
+passes the constructor but yields infinite phase velocity after division by
+1e-12; repeated +/-2*pi wrapping then cannot terminate. Very large finite phase
+increments also imply unbounded wrapping work. Floating-to-i64 conversion can
+saturate; negating i64::MIN can overflow. The step counter can overflow.
+A finite external current 1e308 with dt=2 produces infinite external charge,
+with no successor-finiteness check before commit.
+
+Fix: validate canonical state and all admitted material domains at the custody
+boundary; reject invalid endpoints/parameters rather than ignoring/clipping.
+Stage a complete successor, check representability, conservation, reservoir and
+counter arithmetic, then publish once. Use bounded-work angular reduction
+under the declared numerical domain; refuse non-finite/unrepresentable results
+before any mutation. Enforce exact canonical length and physical consistency
+after decode. Do not add heuristic physiological thresholds.
+Impact: constructor/admission, decoder, step transaction, phase arithmetic and
+resource proof. Falsifier: CRC-correct invalid physical payloads; trailing bytes;
+extreme finite inputs; depleted reservoirs; edge/counter overflow; unchanged
+predecessor bytes on every refusal. Never run the known hang unguarded.
+
+### Material timing and evidence corrections
+
+The new defaults changed gate drag from the proposal's 1e-21 to 1e-12 J s and
+stiffness to 100 kBT. The uncoupled harmonic relaxation time zeta/k is
+2,335,312.112 s, approximately **27.029 days**. This is a calculated property
+of the chosen material, not proof of responsive neuronal operation. All four
+species also receive identical nonzero phase coupling, including previously
+fixed passive Cl; rho is stored but never evolved. These material choices need
+an explicit coherent contract/regime, not a “ratified” heading or output tuning.
+Do not silently reinterpret time or accelerate them for a favorable witness.
+
+The correct pieces are worth retaining: conditional genesis integer totals,
+the nonlinear pore formula and benchmark values, paired edge forces, and
+the fixed-x plastic return algebra. The 312-byte offset arithmetic itself
+is correct. None closes the missing causal paths above.
+
+### Verification disposition and implementation handoff
+
+No candidate compilation, native import, full suite, copied-production harness
+or live action was run: the source-only architectural gate rejects this design.
+This avoids spending another broad regression cycle on an incomplete model.
+Only cheap independent arithmetic checked the declared relaxation timescale,
+phase-overflow condition, missing-edge successor increment and external charge.
+Those are source-derived counterexamples, NOT executed neuron/production proofs.
+Reported 61/27 passing totals remain G1's receipt, not A1 verification.
+
+**Recommended single next item for G1:** replace this rejected candidate with
+one coherent implementation of the corrected binding, covering all six findings
+in the SAME frozen change. Preserve A10/A11 and block laminar integration.
+Do not treat this as six isolated patches or an invitation to add more anatomy.
+Freeze source/caller/codec together; run the nonempty-topology cold-successor
+and physical receiving-current/conservation falsifiers before any broad suite.
+Provide the material definition and its declared numerical domain with the
+candidate. No new neuroscience research or production changes are requested.
+
+A1 leaves the concurrent working-tree removals untouched and does not claim
+they constitute a repaired implementation. The rejected committed source is
+preserved as audit evidence; restoring or replacing another writer's active
+files is outside this source audit.
