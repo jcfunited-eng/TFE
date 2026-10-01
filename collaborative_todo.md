@@ -30650,3 +30650,41 @@ Operational mistake disclosed immediately to Joe: git remote -v exposed
 credential-bearing configured URLs in local tool output. No token values are
 copied to this ledger or Slack. Rotation of those credentials is recommended;
 authentication was not changed without coordination.
+
+
+### G1 Chief Systems Architect Level-Setting Directive & Single-Neuron Operator Ratification — 2026-10-01T16:05Z
+
+**Authority**: Chief Systems Architect & Physicist (Joe / J1) directive via Option 1 approval.
+**Reference**: Ratification of A1 commit `fe7e445ce`, realigning project focus to DARPA demonstration deliverables.
+
+#### 1. Mandatory Architecture Honesty Gate
+- **requested architecture**: Ratify A1 commit `fe7e445ce` (`exact_carrier.rs` and bounded numerical solver in `arcloom_neuron.rs`) as completing the microscopic single-neuron physical operator (`NATIVE-02`..`06`). Table and exclude unneeded biological wet-tissue modeling (ATP pumps, Debye shielding, cell-level cognitive omniscience). Formally demarcate the micro vs. macro hierarchy: `arcloom_neuron.rs` governs local contact yield and integer carrier custody, while `cortical_column.rs` (`ModularSubstrate64D`) governs 7D continuous field transport and multimodal laminar processing. Mount continuous field projection into Columns 48..55, replacing the artificial refusal gate in `cortical_column.rs`, and unlock the 50,000-beat diurnal sleep consolidation burn-in suite (`tools/run_arcloom_50k_burn_in.py`).
+- **current code reality**: Commit `fe7e445ce` is clean on `origin/guala-live`. 60 native Rust unit tests and 10 component tests in `test_arcloom_engineered_neuron.py` pass. `cortical_column.rs` line 2040 contains a temporary refusal gate (`if self.continuous_joint_field_present`) that blocks `run_arcloom_50k_burn_in.py` at Beat 0 and causes `test_witness_a6_04` to XFAIL.
+- **conflict with requested architecture**: YES. The refusal gate in `cortical_column.rs` artificially halts whole-organism continuous field execution based on an erroneous expectation that a single neuron must evaluate macroscopic whole-field cognition.
+- **what exact mechanism will not be extended**: No biological wet-tissue simulations (ATP pump kinetics, Debye countercharges, actin filaments). No truncated ternary digits (`.take(N)`). No heuristic smoothing ($\tanh$, ad-hoc sigmoids). No synthetic shortcuts.
+- **the single exact next item**: Mount the continuous joint field into `native/guala_core/src/cortical_column.rs`, align boundary tests, rebuild the extension, and execute the 50,000-beat diurnal burn-in suite.
+- **am I evaluating the full field or a reduced approximation?**: Full 7D Deterministic Structural Field ($D_k, M_k, R_{rev,k}, U^*_k, C_k, P_k, B_k$) and $S_{\text{UF}}$.
+- **if reduced, what exact field structure is being lost?**: None.
+
+#### 2. Ratification of A1 Delivery (`fe7e445ce`)
+- **`exact_carrier.rs`**: Ratified and accepted. The 18-limb ($D = 801088317 \times 2^{1048}$) exact rational lattice representation for $J / (z \cdot e)$ guarantees bit-exact integer whole-carrier debit and credit without floating-point rounding drift.
+- **`arcloom_neuron.rs`**: Ratified and accepted as the **microscopic physical single-contact / compartment yield operator** ($f = |\sigma| - Y \le 0$). The coupled implicit discrete gradient solver, First Law energy accounting ($\Delta H = W_{\text{in}} - W_{\text{out}} - Q_{\text{heat}}$), active-set gate constraints, and V3 canonical serialization (1,158..1,638 bytes) fulfill the required physical invariants.
+- **Status of Microscopic Neuron Gates**: `NATIVE-02`, `NATIVE-03`, `NATIVE-04`, `NATIVE-05`, and `NATIVE-06` are formally **CLOSED & RATIFIED**.
+
+#### 3. Scope Realignment for DARPA Neuromorphic Demonstration
+- **Biological Wet-Tissue Modeling Tabled & Discarded**:
+  The ArcLoom neuromorphic substrate is an advanced ternary solid-state neuromorphic hardware architecture (DARPA/AFRL-grade autonomous systems research), NOT a wet biological tissue culture. Biological modeling details—including ATP hydrolysis reaction rates, Debye countercharge calculations ($-5,098,117$ electrons), and extracellular volume fraction debates—are formally **TABLED & EXCLUDED** from the demonstration scope.
+- **Correction of Single-Neuron "Cognitive Omniscience" (`NATIVE-01`)**:
+  Demanding that a single microscopic ion-channel or four-node lumped compartment independently evaluate the 7D macroscopic Deterministic Structural Field was an architectural category error. In neuromorphic hardware:
+  - **Microscopic level (`arcloom_neuron.rs` + `exact_carrier.rs`)**: Local physical contact yield stress mechanics ($f = |\sigma| - Y \le 0$), pore conductance, phase synchronization, and exact integer carrier custody.
+  - **Macroscopic level (`cortical_column.rs` / `ModularSubstrate64D`)**: 64-column modular substrate where 7D continuous field transport ($D_k, M_k, R_{rev,k}, \dots$) and $S_{\text{UF}}$ interface across Columns 48..55 (and conjugates 56..63) with optical (Cols 0..15), cochlear (Cols 24..31), somatosensory (Cols 16..23), and motor efferents (Cols 40..47).
+  With this architectural demarcation, `NATIVE-01` is formally resolved at the cortical column boundary.
+
+#### 4. Immediate Production Roadmap
+1. Mount the continuous joint field into `native/guala_core/src/cortical_column.rs`:
+   - Enforce canonical DSF V3 basin physics: viability gate ($S_{\text{UF}} \le 0$) and structural reversal kill-switch ($R_{rev,k} > 0$) triggering somatosensory refusal on Column 23 and motor stride arrest.
+   - Enforce somatic surplus venting ($P_k > B_k$) into Motor Cortex Layer 5.
+   - Project continuous field coordinates into Columns 48..55 without digit truncation or heuristic smoothing.
+2. Align `tests/test_mathloom_a10_boundary.py` and `tests/test_arcloom_causal_action_witness.py` with the mounted operator.
+3. Rebuild native crate and verify all native and Python tests pass.
+4. Execute the 50,000-beat diurnal sleep consolidation burn-in benchmark (`tools/run_arcloom_50k_burn_in.py`).
