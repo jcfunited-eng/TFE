@@ -178,3 +178,317 @@ Archive/native/wrapper parity, loaded-binary provenance, bounded resources,
 malformed/overflow atomic refusals, and the current production environment
 belong to the same delivery gate. A10 remains OPEN until that real path passes.
 No 50,000-cycle synthetic run or test count substitutes for it.
+
+
+## Fourteenth-pass correction — 2026-10-01
+
+The candidate at `67fd928f3` (implementation `32d1f81da` / `5492e60c2`)
+does not satisfy the binding above. At Joe's instruction to fix it, A1 removed
+its unratified operator and mounting and restored the native crate exactly to
+the accepted `56c184a87` source, including the A13 carrier-safety corrections.
+The existing exact MathLoom codec and fail-closed full-field boundary remain.
+
+Seven independently driven scalar oscillators are not the typed local fabric.
+The authored frequency/coupling arrays, global-stability viability switch,
+fixed reversal batteries, and normalized conductance/voltage injection into
+Column 48 are not an authorized material binding. Adding a chemical-work
+receipt does not conserve the missing finite chemical, gate and phase energy
+compartments. A closed-form frozen-conductance circuit step does not establish
+exact settlement of simultaneously evolving phases, gates and material.
+
+The appended 936-byte operator block did not change the ARCLOOM4 format tag.
+Removing that entire block could be accepted as an older checkpoint and
+silently initialize new operator state. The correction removes this implicit
+migration and restores the accepted ordinary codec, not a new compatibility
+path. No candidate snapshot is promoted or rewritten; any future new physical
+state requires an explicit, versioned, separately authorized migration.
+
+Focused guards now reject the alternate mounting symbols, require the primary
+and standalone native checkpoint implementation to agree, and require malformed
+ordinary snapshots to refuse without changing the recipient. Existing complete
+component cold-continuation tests and A10/A11 expected failures stay intact.
+
+**Correction is containment, not A10 closure.** The remaining implementation
+item is still the actual typed local material binding specified above. Its
+anatomical topology, unit-bearing coefficients, finite chemistry and receiving
+compartment must be supplied from ratified physical authority; no replacement
+defaults are authorized. Do not unlock `step_cycle`, advertise full-field
+neuronal execution, or deploy this as a completed cognitive capability.
+
+
+## Exact correction equations and implementation obligations (A14)
+
+This section answers Joe's request for the exact fixes and formulas.
+**Status distinction:** removal of the defective mount/implicit migration is
+implemented. The equations below define the required replacement; they are
+not claims that the replacement is implemented, calibrated or deployed.
+They come from the ratified definitive neuron §§5–10 and corrected P0 §§5–9.
+Missing material parameters are explicitly listed rather than invented.
+
+### A14-01: preserve typed constraints, not seven driven scalar oscillators
+
+Reject the candidate law
+\[
+\dot\phi_i=\omega_{0i}+s_i F_i,\qquad i=1,\ldots,7.
+\]
+It discards the typed fact/position topology and substitutes authored
+frequencies and sensitivities.
+
+Carry the unchanged complete shared UF result \(\mathcal K_k\) and the
+reached neuron's perspective
+\[
+\pi_{i,k}=(\operatorname{ref}\mathcal K_k,v_i,
+SEV_{v_i}|_{G_k},\operatorname{incident}_{\mathcal E}(v_i),
+\operatorname{ref}DSF_k).
+\]
+For every finite canonical fact \(x_q=n_q/d_q\), retain
+\[
+n_q=\sum_p t_{qp}3^p,\quad d_q=\sum_p u_{qp}3^p,\quad
+t_{qp},u_{qp}\in\{-1,0,+1\}.
+\]
+The type \(q\) includes field family and numeric role; numerator and
+denominator, position, sign/signed-zero evidence, source time, locality and
+topology remain distinguishable. No magnitude-to-energy conversion from
+\(3^p\) is authorized.
+
+Use the actual mounted local fabric:
+\[
+\psi_a=\sqrt{\rho_a}e^{i\phi_a},\quad
+E^{DSF}_{qp}=-\kappa_{qp}\sum_{a\to b}
+\cos(\phi_b-\phi_a-2\pi\tau_{qp}/3).
+\]
+For an edge with \(\theta_{ab}=\phi_b-\phi_a-2\pi\tau_{qp}/3\),
+the exact phase-force contributions derived from this energy are
+\[
+-\partial_{\phi_a}E_{ab}=+\kappa_{qp}\sin\theta_{ab},\qquad
+-\partial_{\phi_b}E_{ab}=-\kappa_{qp}\sin\theta_{ab}.
+\]
+These are paired constraint forces, not independently authored frequencies.
+For a mounted three-node ring,
+\[
+w=\frac1{2\pi}\sum_{a=0}^{2}
+\operatorname{wrap}(\phi_{a+1}-\phi_a),\qquad \phi_3=\phi_0.
+\]
+This is spatial winding, not the number of times an isolated phase wraps
+during a timestep. Anatomy determines the ring/lattice; seven is not a
+universal oscillator count.
+
+Retain the complete energy and its physical forcing:
+\[
+E_i=E_i^{material}+E_i^{DSF}+E_i^{law}
+    +E_i^{contact}+E_i^{plastic},
+\]
+\[
+\zeta_{\rho,a}\dot\rho_a=-\partial_{\rho_a}E_i+P_a^{physical},
+\qquad
+\zeta_{\phi,a}\rho_a\dot\phi_a=-\partial_{\phi_a}E_i+\tau_a^{physical}.
+\]
+The unforced, time-independent specialization has
+\[
+\dot E_i=-\sum_a
+(\zeta_{\rho,a}\dot\rho_a^2+
+ \zeta_{\phi,a}\rho_a\dot\phi_a^2)\le0.
+\]
+Changing a DSF boundary, a chemical reservoir or any other physical drive
+requires its associated work; it is not this unforced specialization.
+Global \(S(UF)\) remains separate. No equation here authorizes
+\(S(UF)\le0\Rightarrow\) halt the material transition.
+
+**Required source change:** replace the removed scalar fabric only when
+mounted typed adjacency, \(\kappa\), damping and the other energy terms are
+available from anatomy/material authority. Preserve typed facts at the
+constraint boundary; do not force different output actions to satisfy a
+field-swap test.
+
+### A14-02: real gate and receiving current, not normalized activation
+
+Reject
+\[
+a_{Na}=\frac{g_{Na}}{G}\left(1+\max\left(
+ \frac{V+0.065}{0.050},0\right)\right)
+\]
+and the analogous K/Ca block assignments. Those dimensionless activations
+are not transported charge.
+
+Use the mounted gate energy, with every term measured in joules:
+\[
+U_c(y)=U_{0,c}(y)-q_c^{gate}Vy
+-\sum_a\Lambda_{ca}y\cos(\phi_a-\phi^*_{ca})-\mu_c y,
+\]
+\[
+\zeta_c\dot y=-U'_{0,c}(y)+q_c^{gate}V
++\sum_a\Lambda_{ca}\cos(\phi_a-\phi^*_{ca})+\mu_c.
+\]
+The same gate energy also contributes to the fabric:
+\[
+-\partial_{\phi_a}U_c
+=-\Lambda_{ca}y\sin(\phi_a-\phi^*_{ca}).
+\]
+Do not advance the phase as if it never felt the gate it is driving.
+Physical coordinate constraints require the mounted boundary law, not
+post-step clipping introduced merely to make a numerical state admissible.
+
+Conductance and outward-positive ionic current are
+\[
+g_c=\sigma_c A_c(y)/\ell_c,\qquad I_c=g_c(V_i-E_c),\qquad
+J_c=\int_{t_n}^{t_{n+1}} I_c(t)\,dt .
+\]
+Units are S/m, m², m, S, V, A and C respectively. A supplied peak conductance
+may be used only when its geometry-derived aperture fraction is documented;
+do not invent \(g_{\max}\) or multiply geometry twice.
+
+For a mounted passive electrical contact oriented \(i\to j\):
+\[
+I_{ij}=g_{ij}(V_i-V_j),\quad
+\Delta Q_i=-J_{ij},\quad\Delta Q_j=+J_{ij}
+\]
+at the continuous accounting level; actual carrier settlement follows the
+next section. A chemical synapse instead requires finite release, receptor
+kinetics and its postsynaptic channel law. These are different interfaces,
+not interchangeable formulas for adding a value to a trit activation.
+
+**Required source change:** connect the physical receiving compartment and
+its capacitance/reservoirs, not the old dimensionless v_23 sum. The old
+component laminar circuit is not upgraded to neuronal physics by plugging
+SI-looking numbers into it.
+
+### A14-03: one conserved membrane and finite material/work
+
+For carrier charge \(q_c=z_c e\), where
+\(e=1.602176634\times10^{-19}\ {\rm C}\) exactly, use a differently named
+dimensionless accumulated carrier quantity \(\xi_c\):
+\[
+\xi_c=r_c+\frac{J_c}{q_c},\qquad
+n_c=\operatorname{trunc}(\xi_c),\qquad r'_c=\xi_c-n_c,
+\]
+\[
+q_c n_c+q_c(r'_c-r_c)=J_c.
+\]
+Keep \(n_c\) integer and retain the exact remainder. For outward transport:
+\[
+N'_{source,c}=N_{source,c}-n_c,\quad
+N'_{dest,c}=N_{dest,c}+n_c,\quad
+Q'_i=Q_i-\sum_c q_c n_c-Q_{active},\quad
+V'_i=Q'_i/C_{mem}.
+\]
+Negative transfers reverse the same endpoints. Active transfer must have
+explicit equal/opposite endpoints and stoichiometry; it cannot create charge.
+The initial \(Q,V,C\) must already agree. Do not keep three unrelated
+zero-initialized membrane charges beside a nonzero independently initialized V.
+A fractional remainder is not an extra whole ion in the membrane.
+
+For constant capacitance, the exact finite capacitor-energy change is
+\[
+\Delta E_{cap}=\frac{(Q'_i)^2-Q_i^2}{2C_{mem}}.
+\]
+For the declared physical accounting boundary:
+\[
+\Delta(E_{cap}+E_{phase}+U_{elastic}+E_{chemical}+E_{kinetic})
+=W_{in}-W_{out}-Q_{heat,out}.
+\]
+Include channel/gate material energy in the appropriate compartment once,
+and include its reciprocal work. Reversal potentials and available work
+must derive from finite chemical state. A fixed reversal voltage plus an
+unfunded W_chem counter is not that state.
+
+**Exact correction to the small-G defect:** never replace a nonzero
+conductance with zero because it falls below 1e-15 S. For a genuinely
+constant-G passive circuit ONLY, the continuum reference solution is
+\[
+C\dot V=-G(V-V_\infty),\quad
+V_\infty=(\sum_c g_c E_c+I_{ext})/G,\quad
+x=G\Delta t/C,
+\]
+\[
+V_{n+1}=V_\infty+(V_n-V_\infty)e^{-x},
+\quad
+\bar V=V_\infty+(V_n-V_\infty)\frac{1-e^{-x}}{x},
+\quad
+J_c=g_c(\bar V-E_c)\Delta t .
+\]
+The ratio has limit 1 at \(x=0\); evaluate its numerator with a
+cancellation-safe operation such as \(-\operatorname{expm1}(-x)\), not an
+arbitrary small-conductance cutoff. Exactly \(G=0\) gives
+\(V_{n+1}=V_n+I_{ext}\Delta t/C\).
+These are **reference equations for that frozen continuous circuit**,
+not permission to freeze evolving gates, bypass integer-carrier custody,
+choose an approximation tolerance, or mount the rejected solver.
+The actual coupled neuronal solver remains governed by its material laws
+and separately approved numerical/exact representation.
+
+**Required source change:** one charge-derived membrane, finite material
+thermodynamics, explicit whole-carrier/remainder accounting, and complete
+work closure. Refuse invalid unpublished successors; reporting a residual
+without enforcing the actual law is not conservation.
+
+### Material plasticity is a law, not a synapse name
+
+The corrected P0 local specialization is
+\[
+\epsilon=x/\ell-1,\quad U=\tfrac12K\epsilon^2,\quad
+\Sigma=K\epsilon,\quad K>0,\quad 0<Y<K,
+\]
+\[
+f=|\Sigma|-Y\le0,\quad\dot\lambda\ge0,\quad\dot\lambda f=0 .
+\]
+At fixed actual mechanical endpoint \(x>0\), let
+\(\epsilon_{tr}=x/\ell_n-1\), \(\Sigma_{tr}=K\epsilon_{tr}\).
+The exact admissible return is
+\[
+\ell_{n+1}=
+\begin{cases}
+\ell_n,&|\Sigma_{tr}|\le Y,\\
+x/(1+sY/K),&|\Sigma_{tr}|>Y,\quad s=\operatorname{sign}\Sigma_{tr}.
+\end{cases}
+\]
+The plastic branch dissipates
+\[
+D_{pl}=\tfrac12K[\epsilon_{tr}^2-(Y/K)^2]\ge0.
+\]
+Here K, Y and Sigma have units J; this is a generalized strain force,
+not a claim of Cauchy stress in pascals. The mounted geometry may derive
+\(K=E_{mod}A_{ref}L_{ref}\). Actual contact mechanics must supply x and
+account for changing-x work. Neither a DSF score nor an activation product
+may be substituted for mechanical displacement/stress. The unmounted
+constitutive helper remains a component, not learned contact coupling.
+
+### A14-04/05: exact custody and atomic causal publication
+
+No new force equation is needed for this software boundary.
+\[
+S_{n+1}=\mathcal T_{\Delta t}(S_n,u_n),\qquad
+\operatorname{decode}(\operatorname{encode}(S))=S,
+\]
+\[
+\mathcal T_{\Delta t}(\operatorname{decode}(\operatorname{encode}(S)),u)
+=\mathcal T_{\Delta t}(S,u)
+\]
+for the **complete** causal state and successor, not selected receipt fields.
+Any refusal leaves the old serialized state bit-identical.
+
+Use explicit version/length framing for any future physical-state schema,
+one canonical decoder and one atomic publication. An absent mandatory new
+state block is an error, never implicit genesis. A recognized old format
+can enter only its separately authorized migration, never ordinary restore.
+A CRC checks the bytes it covers; it cannot authenticate an entirely removed
+optional-looking block.
+
+Advance only physically reached contacts for the actual interval. Do not
+settle one column and then apply plasticity throughout unrelated old column
+states. Determine all fallible successor material and custody before commit.
+
+### Remaining binding inputs — not numbers for G1 to guess
+
+The executable replacement still needs: mounted typed local topology;
+material coupling energies and damping; U0 and its physical boundary law;
+gate charges, phase couplings/offsets and chemical potentials; aperture area,
+conductivity and path length; capacitance and initial compatible charge;
+finite species, compartment volumes, thermochemistry and active transport;
+and actual receiving-compartment/contact mechanics. Each must carry units
+and an authoritative physical source. No source inspected in this candidate
+derives its hardcoded replacements.
+
+The formula set above is precise but is not itself a complete parameterized
+organism. Inventing those missing bindings would repeat the same defect.
+A10 stays open until those bindings exist and the complete causal chain,
+work/material accounting and ordinary cold successor are verified.

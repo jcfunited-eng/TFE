@@ -29172,3 +29172,196 @@ this notice does not claim full A10 completion or production deployment.
 
 ### Handoff to A1 — Fourteenth-Pass Audit Review
 The canonical typed phase-gate-material operator is mounted directly inside `ModularSubstrate64D` and serialized within the canonical `ARCLOOM4` checkpoint format. All prior shortcut mechanisms ($10^9$ scaling, sidecar binary files, lossy truncation) remain completely removed. A10/A11 capability gates remain strictly preserved as OPEN expected failures until audit ratification.
+
+
+## A1 — Fourteenth-pass correction completed; A10 NOT closed (2026-10-01 UTC)
+
+Active item: **A14-CORRECTION**, authorized by Joe: "Can you just fix it".
+Candidate reviewed: 67fd928f3ef3fce0671442cf87381b0046fc0f3c
+(implementation 32d1f81da / 5492e60c2). Concurrent rules-only commit
+2d5cf0fc6 was read and preserved; it did not change the audited native source.
+
+### Architecture honesty and disposition
+
+Requested: the ratified complete typed DSF -> Psi/Krimelack -> gate/material
+-> receiving compartment path, ordinary lossless restart, and honest A10
+containment until that path exists. Source reality: the candidate supplied
+seven scalar oscillators, unsourced material constants, normalized column
+injection and an implicit checkpoint migration. Conflict: YES. Do not extend
+those mechanisms, invent a replacement material calibration, or unlock
+step_cycle. This is source/component correction, NOT full-field execution;
+joint typed topology, finite coupled chemical/phase energy and organism-level
+motor/world/sensory recurrence remain unimplemented or unproven. The single
+remaining implementation item is the real local material binding already
+specified in GUALA_ONE_NEURON_PHYSICAL_TRANSITION_CONTRACT_2026-10-01.md.
+
+A1 has made the concrete correction, not merely returned findings:
+native/guala_core/src/constitutive.rs and cortical_column.rs now exactly match
+accepted repair 56c184a87. This preserves the earlier checked carrier-safety
+repairs and exact MathLoom codec. The unsupported new operator, alternate
+Column 48 mount, 936-byte implicit-migration block, default neuronal genesis
+and its proof-by-authored-constants tests are removed. They remain recoverable
+in the reviewed commits. No physical state, checkpoint store, production
+container, caregiver, kernel or functional-body source was modified.
+
+### Consolidated findings, correction and incoming/outgoing impact
+
+All rejected line references below are at 67fd928f3, not the corrected files.
+
+**A14-01 — blocking: typed field/fabric and global stability are not preserved.**
+constitutive.rs:968–1073 and :1356–1410 prescribe one oscillator per field,
+omega_i = base_i + sensitivity_i * field_i, with authored frequency and
+sensitivity arrays. Their winding is temporal wrapping; there is no local
+amplitude lattice or typed spatial-ring winding and no call to the MathLoom
+fact/position constraint. :1443 rejects every S_UF <= 0 as non-viable.
+This is not the ratified joint field or permission for an instability measure
+to halt local material physics. A D/M swap producing different numbers under
+different authored coefficients is not proof of the required physical path.
+
+Correction applied: removed this operator/default and its mount.
+Incoming references: consume_continuous_joint_field -> eight stored binary64
+values -> step_operator_transition. Outgoing references: oscillator phases
+-> channel gates -> Column 48 -> plasticity/checkpoint. Those invented
+dependencies are gone; stored field evidence and the exact codec remain.
+Actual replacement must preserve typed rational roles, position, sign, time,
+locality and topology through the existing per-fact phase-constraint law,
+with anatomy-sourced couplings and global stability separate. No forced
+motor divergence is required merely because two legitimate fields differ.
+
+**A14-02 — blocking: the new output bridge is dimensionless, not SI coupling.**
+cortical_column.rs:1938–1959 computes g_c/g_total, then
+v_rel=(V+0.065)/0.050, and adds/subtracts these ratios plus a constant 1
+to hand-selected node blocks 0..31, 32..63 and 64..95.
+Removing the old 1e9 multiplier did not remove the normalization shortcut.
+The receiving step_laminar_flow (:150–238) sums these values directly into
+abstract activation; it has no corresponding receiving charge/capacitance
+settlement. Na/K contributions can be nonzero even at v_rel=0.
+
+Correction applied: removed the bridge and alternate entry point.
+Upstream: channel-conductance receipt; downstream: v_23, ternary activations,
+plastic weights and ordinary state. Existing component behavior is restored,
+not reclassified as a complete neuron. A future receiving path must settle
+actual current/charge through mounted contacts with equal/opposite material
+and work, not use a different gain or normalized channel partition.
+
+**A14-03 — blocking: conservation receipts do not establish complete physics.**
+constitutive.rs:1356–1410 reintroduces withdrawn 100 pF/resting-voltage defaults
+and arbitrary reservoir, frequency, friction and coupling coefficients.
+MaterialIonChannel stores a fixed reversal_potential; it is not derived from
+finite ion concentrations. The operator advances phases and gates first,
+then solves a frozen-conductance electrical subproblem. Its residual at
+:1520–1548 excludes gate/phase energy and finite chemical-source depletion.
+Three carrier q_membrane values initialized at zero do not establish one
+shared Q=C*V for the separately initialized V=-0.065.
+
+There is also a concrete low-conductance defect: for
+0 < g_total <= 1e-15, the fast path keeps V unchanged when i_ext=0, but still
+transports J_c=g_c*(V-E_c)*dt. For three valid channels each g=1e-16 S,
+V=0.05 V, E=0 and dt=1 s, Delta Q_mem=0 but sum J_c=1.5e-17 C.
+The routine reports and commits that mismatch; it does not enforce its
+claimed 1e-20 C bound. Q_joule/W_chem are also skipped in that branch.
+This is a source/algebra counterexample, not a measured biological neuron.
+
+Correction applied: removed the defective solver rather than threshold-tune
+or keep it under a "canonical" label. Existing unmounted P1-A numerical
+components and A13 integer-overflow protection remain exactly as accepted.
+A lawful complete replacement needs finite species/volumes, charge-derived
+voltage, exact carrier remainder and the complete coupled work balance.
+No new numerical-neuron permission or material parameters have been invented.
+
+**A14-04 — high: ordinary restore silently creates new state.**
+cortical_column.rs:2452 appends 936 bytes without changing ARCLOOM4's tag.
+At :2845–2856 the decoder accepts absence of that block as a predecessor
+and calls default_canonical. Because 936 is divisible by 8, removal of the
+whole block leaves the old valid alignment; the removed block's CRC cannot
+detect its own absence. Length alone cannot authenticate predecessor lineage.
+New-to-old archive interoperability was also not preserved.
+
+Correction applied: restored the accepted format and removed this implicit
+migration. New guards check primary/release codec identity and atomic
+refusal of unknown trailing state and truncation. No snapshot was migrated,
+reset, rewritten or deleted. Incoming: constructor/export/import and PyO3
+ordinary custody; outgoing: complete staged recipient and future intervals.
+Future additional causal state needs an explicit format version and an
+authorized predecessor migration, not automatic genesis. The correction does
+NOT recover information from a genuinely truncated checkpoint.
+
+**A14-05 — high: alternate execution is not a complete local causal interval.**
+cortical_column.rs:1931 publishes operator state first, steps only Column 48,
+then :1964 calls whole-substrate apply_inter_column_plasticity (:2253).
+Other columns can contribute old activity while their current interval was
+never settled. Broad current/plasticity scans are not reached-frontier proof.
+The new entry point has no ordinary PyO3 caller; ordinary step_cycle still
+refuses full-field execution. Unlocking that refusal would not integrate the
+missing receiving physics or same-organism sensory recurrence.
+
+Correction applied: deleted the alternate mount and retained the ordinary
+fail-closed gate. No second scheduling, ownership or validator mechanism added.
+A future real mount must stage a complete reached transition and publish it
+once, preserving the same physical interval at all participating endpoints.
+
+**A14-06 — high: test/package claims exceed the exercised path.**
+The candidate changed primary native source/format but not standalone native
+source/archive or Python adapters. Previous tests only prohibited the earlier
+API names, so they missed the same defect under new names. Root/standalone
+green counts therefore did not establish one delivered implementation.
+
+Correction applied: strengthened existing tests/test_arcloom_one_neuron_contract.py
+to reject the new retired API/types and require identical primary/standalone
+native checkpoint source, plus malformed restore refusal with unchanged
+recipient bytes. The accepted native source again agrees with the unchanged
+archive. This is a component/release-boundary check, not proof of A10.
+
+### Verification and cost
+
+- Three focused guards failed on the submitted source before correction
+  (3 failed, 3 deselected, 3.28 s): both adapter-boundary cases and
+  primary/standalone checkpoint-law equality.
+- After correction, the only regression execution was:
+  PYTHONPATH=/tmp/guala-a1-a13-jHP19r/python:. PYTEST_DISABLE_PLUGIN_AUTOLOAD=1
+  python -m pytest tests/test_arcloom_one_neuron_contract.py
+  tests/test_mathloom_a10_boundary.py tests/test_arcloom_causal_action_witness.py -q
+  Result: **23 passed, 2 xfailed in 16.18 s**. A10/A11 expected-failure witnesses
+  were NOT weakened. Complete component used-recipient restore/next interval,
+  present/missing field refusal, archive contents and invalid-custody refusal
+  were exercised; no new full-field behavioral success is claimed.
+- No new Rust build or large burn-in. The complete native crate matches
+  56c184a87 exactly, checked before use of its previously verified extension:
+  SHA-256 412ce89ce3fe516818547c29327dceb35c219a82a41647b5a63934c07c22beb2.
+  This avoids using the globally installed or G1 candidate binary.
+- One attempted test launch stopped BEFORE tests because /usr/bin/time is
+  absent; rerun omitted that wrapper. No test result was discarded or softened.
+  A broad git diff --stat was slow; subsequent checks were path-scoped.
+  Peak RAM was not measured in this run. No claimed new resource/production
+  qualification follows from these component checks.
+- Corrected constitutive.rs SHA-256:
+  eec3672132b51e8f20d91cd73e75eabacf551e350e9a0617f5b5a3f377199db4.
+- Corrected cortical_column.rs SHA-256:
+  ffcb71c072628c133f6d860aeb4d9f3a5219fc13fac4f969d66347bbea3237c7.
+- Strengthened test file SHA-256:
+  7b8748161f2a723ccd7b7bea999395e3c1cda66a5d21c88fd62aa5481d6091db.
+- Archive unchanged:
+  b30f4a2fa69c2d2ebbef103835cbf9e984016bf4f9783971b2b20561abb9e39f.
+
+### G1 handoff — one next item, no review loop by parameter substitution
+
+Use the corrected one-neuron contract already in this branch. The next
+implementation is the actual typed local material binding, not another
+seven-scalar oscillator or normalized current bridge. Missing mounted
+topology, gate/phase material coefficients with SI provenance, finite
+chemical thermodynamics and receiving-compartment law must be resolved
+explicitly before mounting. The present repository does not supply those
+by naming a default "canonical". A1 has not invented them and does not
+authorize unlocking step_cycle. Correction of the unsafe submitted code is
+complete; delivery of the requested complete A10 operator remains OPEN.
+
+Production was not deployed or mutated by this correction. No fresh AWS health
+claim is made. Historical receipt text above is preserved as evidence and
+superseded by this entry, not silently rewritten.
+
+Joe's subsequent request for exact fixes/formulas is fulfilled in the corrected
+one-neuron contract, section "Exact correction equations and implementation
+obligations (A14)": paired typed phase derivatives, reciprocal gate coupling,
+conductance/current, exact carrier/remainder identities, finite energy balance,
+small-G circuit reference, material return map and complete restart equations.
+It explicitly separates implemented containment from missing material bindings.

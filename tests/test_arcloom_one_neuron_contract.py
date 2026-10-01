@@ -1,4 +1,4 @@
-"""A13 rejection/custody falsifiers, NOT proof of a mounted neuron.
+"""A13/A14 rejection/custody falsifiers, NOT proof of a mounted neuron.
 
 The former positive fixtures exercised a rejected untyped one-phase operator.
 The actual A10 physical capability remains open in the causal witness suite.
@@ -17,6 +17,9 @@ RETIRED_API = (
     "get_mounted_neuron_state",
     "export_mounted_neuron_bytes",
     "import_mounted_neuron_bytes",
+    "step_operator_transition",
+    "mounted_operator",
+    "mounted_operator_mut",
 )
 
 
@@ -71,7 +74,8 @@ def test_native_and_python_cannot_reenter_rejected_mount(relative):
         "native/guala_core/src/constitutive.rs",
     ):
         source = (ROOT / relative_source).read_text()
-        for retired in (*RETIRED_API, "NeuronPhaseGateTransition", "normalize_phase_and_winding"):
+        for retired in (*RETIRED_API, "NeuronPhaseGateTransition", "normalize_phase_and_winding",
+                        "TypedPhaseGateMaterialOperator", "PhaseCoupledOscillatorFabric"):
             assert retired not in source, (relative_source, retired)
 
 
@@ -105,3 +109,21 @@ def test_release_archive_contains_exact_source_without_rejected_api():
             regular += 1
             assert archive.extractfile(member).read() == (ROOT / path).read_bytes(), member.name
         assert regular > 0
+
+
+def test_primary_and_demonstrator_share_the_same_native_checkpoint_law():
+    """No new primary state or migration may hide behind an old release archive."""
+    primary = ROOT / "native/guala_core/src/cortical_column.rs"
+    released = ROOT / "arcloom_demonstrator/native/guala_core/src/cortical_column.rs"
+    assert primary.read_bytes() == released.read_bytes()
+
+
+def test_current_restore_refuses_unrecognized_extension_atomically():
+    """Ordinary restore must not infer a new law or synthesize missing state."""
+    recipient = ModularSubstrate64D()
+    recipient.step([1] * 48 + [0] * 16, [1] * 32)
+    before = bytes(recipient.export_sparse_v4())
+    for malformed in (before + bytes(936), before[:-8]):
+        with pytest.raises(ValueError):
+            recipient.import_sparse_v4(malformed)
+        assert bytes(recipient.export_sparse_v4()) == before

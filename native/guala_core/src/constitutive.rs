@@ -2,9 +2,10 @@
 //!
 //! The carrier helper uses binary64 charge/remainder arithmetic with an explicit
 //! numerical residual. Whole-carrier reservoir counts are exact checked
-//! integers. Section 6 defines the canonical typed phase-gate-material dynamic
-//! operator under strict SI units, exact charge custody, and first-law energy
-//! conservation.
+//! integers. This is NOT the ratified exact complete-neuron transition.
+//! Local receptor, mechanical-return and continuation fixtures do not certify
+//! joint-field transduction, biological calibration or organism cognition.
+//! No constitutive component here is mounted by the cortical runtime.
 //!
 //! Governing requirements: GUALA_P0_LOCAL_LEARNING_A1_CORRECTED_2026-09-27.md.
 //! A13 removes the rejected single-phase/dimensionless-current mount.
@@ -136,11 +137,7 @@ impl ChargeCarrierState {
         dest_reservoir: u64,
     ) -> Result<Self, ConstitutiveError> {
         let state = Self {
-            q_membrane,
-            c_mem,
-            remainder,
-            source_reservoir,
-            dest_reservoir,
+            q_membrane, c_mem, remainder, source_reservoir, dest_reservoir,
         };
         state.validate_numeric_state()?;
         Ok(state)
@@ -952,844 +949,6 @@ impl ConstitutiveState {
 }
 
 // ---------------------------------------------------------------------------
-// 6. Canonical Typed Phase-Gate-Material Dynamic Operator
-// ---------------------------------------------------------------------------
-
-pub const DSF_CHANNELS: usize = 7;
-pub const ION_CHANNELS: usize = 3;
-
-/// Magic bytes identifying Guala Typed Phase-Gate-Material Operator Record.
-pub const OPERATOR_STATE_MAGIC: &[u8; 8] = b"GUALA_PG";
-pub const OPERATOR_SCHEMA_VERSION: u32 = 1;
-pub const OPERATOR_SERIALIZED_SIZE: usize = 936;
-
-/// Phase-coupled local oscillator fabric across 7 distinct structural field channels.
-#[derive(Debug, Clone, PartialEq)]
-pub struct PhaseCoupledOscillatorFabric {
-    pub phases: [f64; DSF_CHANNELS],
-    pub windings: [i64; DSF_CHANNELS],
-    pub base_frequencies: [f64; DSF_CHANNELS],
-    pub field_sensitivities: [f64; DSF_CHANNELS],
-}
-
-impl PhaseCoupledOscillatorFabric {
-    pub fn new(
-        phases: [f64; DSF_CHANNELS],
-        windings: [i64; DSF_CHANNELS],
-        base_frequencies: [f64; DSF_CHANNELS],
-        field_sensitivities: [f64; DSF_CHANNELS],
-    ) -> Result<Self, ConstitutiveError> {
-        let fabric = Self {
-            phases,
-            windings,
-            base_frequencies,
-            field_sensitivities,
-        };
-        fabric.validate()?;
-        Ok(fabric)
-    }
-
-    pub fn validate(&self) -> Result<(), ConstitutiveError> {
-        for i in 0..DSF_CHANNELS {
-            if !self.phases[i].is_finite()
-                || self.phases[i] < -std::f64::consts::PI - 1e-12
-                || self.phases[i] > std::f64::consts::PI + 1e-12
-            {
-                return Err(ConstitutiveError::InvalidDomain(format!(
-                    "Oscillator phase {} out of range [-pi, pi]: {}",
-                    i, self.phases[i]
-                )));
-            }
-            if !self.base_frequencies[i].is_finite() {
-                return Err(ConstitutiveError::InvalidDomain(format!(
-                    "Oscillator base frequency {} is non-finite: {}",
-                    i, self.base_frequencies[i]
-                )));
-            }
-            if !self.field_sensitivities[i].is_finite() {
-                return Err(ConstitutiveError::InvalidDomain(format!(
-                    "Oscillator field sensitivity {} is non-finite: {}",
-                    i, self.field_sensitivities[i]
-                )));
-            }
-        }
-        Ok(())
-    }
-
-    pub fn step(&mut self, field_7d: &[f64; DSF_CHANNELS], dt: f64) -> Result<(), ConstitutiveError> {
-        if !dt.is_finite() || dt <= 0.0 {
-            return Err(ConstitutiveError::InvalidTimeStep(dt));
-        }
-        let mut new_phases = self.phases;
-        let mut new_windings = self.windings;
-
-        let two_pi = 2.0 * std::f64::consts::PI;
-
-        for i in 0..DSF_CHANNELS {
-            let f_val = field_7d[i];
-            if !f_val.is_finite() {
-                return Err(ConstitutiveError::InvalidDomain(format!(
-                    "Field value {} is non-finite: {}",
-                    i, f_val
-                )));
-            }
-            let omega = self.base_frequencies[i] + self.field_sensitivities[i] * f_val;
-            if !omega.is_finite() {
-                return Err(ConstitutiveError::InvalidDomain(format!(
-                    "Calculated frequency {} is non-finite: {}",
-                    i, omega
-                )));
-            }
-            let unwrapped = self.phases[i] + omega * dt;
-            if !unwrapped.is_finite() {
-                return Err(ConstitutiveError::InvalidDomain(format!(
-                    "Unwrapped phase {} is non-finite",
-                    i
-                )));
-            }
-            let wraps_f = ((unwrapped + std::f64::consts::PI) / two_pi).floor();
-            let exact_int_limit = (1_u64 << f64::MANTISSA_DIGITS) as f64;
-            if !wraps_f.is_finite() || wraps_f.abs() >= exact_int_limit {
-                return Err(ConstitutiveError::InvalidDomain(format!(
-                    "Oscillator wrap count {} exceeds exact integer precision",
-                    i
-                )));
-            }
-            let wraps = wraps_f as i64;
-            let wrapped_phase = unwrapped - (wraps as f64) * two_pi;
-            let final_phase = wrapped_phase.clamp(-std::f64::consts::PI, std::f64::consts::PI);
-            let final_winding = self.windings[i].checked_add(wraps).ok_or_else(|| {
-                ConstitutiveError::InvalidDomain(format!("Oscillator winding {} overflowed", i))
-            })?;
-
-            new_phases[i] = final_phase;
-            new_windings[i] = final_winding;
-        }
-
-        self.phases = new_phases;
-        self.windings = new_windings;
-        Ok(())
-    }
-}
-
-/// Thermodynamic channel gate with continuous conformational potential.
-#[derive(Debug, Clone, PartialEq)]
-pub struct ThermodynamicChannelGate {
-    pub y: f64,
-    pub friction_zeta: f64,
-    pub conformal_stiffness: f64,
-    pub conformal_rest_y: f64,
-    pub gating_charge: f64,
-    pub chemical_potential: f64,
-    pub phase_coupling_lambda: [f64; DSF_CHANNELS],
-    pub target_phase_offset: [f64; DSF_CHANNELS],
-}
-
-impl ThermodynamicChannelGate {
-    pub fn new(
-        y: f64,
-        friction_zeta: f64,
-        conformal_stiffness: f64,
-        conformal_rest_y: f64,
-        gating_charge: f64,
-        chemical_potential: f64,
-        phase_coupling_lambda: [f64; DSF_CHANNELS],
-        target_phase_offset: [f64; DSF_CHANNELS],
-    ) -> Result<Self, ConstitutiveError> {
-        let gate = Self {
-            y,
-            friction_zeta,
-            conformal_stiffness,
-            conformal_rest_y,
-            gating_charge,
-            chemical_potential,
-            phase_coupling_lambda,
-            target_phase_offset,
-        };
-        gate.validate()?;
-        Ok(gate)
-    }
-
-    pub fn validate(&self) -> Result<(), ConstitutiveError> {
-        if !self.y.is_finite() || self.y < 0.0 || self.y > 1.0 {
-            return Err(ConstitutiveError::InvalidDomain(format!(
-                "Gate coordinate y must be in [0, 1], got {}",
-                self.y
-            )));
-        }
-        if !self.friction_zeta.is_finite() || self.friction_zeta <= 0.0 {
-            return Err(ConstitutiveError::InvalidDomain(format!(
-                "Friction zeta must be positive, got {}",
-                self.friction_zeta
-            )));
-        }
-        if !self.conformal_stiffness.is_finite() || self.conformal_stiffness <= 0.0 {
-            return Err(ConstitutiveError::InvalidDomain(format!(
-                "Conformal stiffness must be positive, got {}",
-                self.conformal_stiffness
-            )));
-        }
-        if !self.conformal_rest_y.is_finite()
-            || self.conformal_rest_y < 0.0
-            || self.conformal_rest_y > 1.0
-        {
-            return Err(ConstitutiveError::InvalidDomain(format!(
-                "Conformal rest y must be in [0, 1], got {}",
-                self.conformal_rest_y
-            )));
-        }
-        if !self.gating_charge.is_finite() || !self.chemical_potential.is_finite() {
-            return Err(ConstitutiveError::InvalidDomain(
-                "Gating charge and chemical potential must be finite".to_string(),
-            ));
-        }
-        for i in 0..DSF_CHANNELS {
-            if !self.phase_coupling_lambda[i].is_finite() || self.phase_coupling_lambda[i] < 0.0 {
-                return Err(ConstitutiveError::InvalidDomain(format!(
-                    "Phase coupling lambda {} must be non-negative and finite",
-                    i
-                )));
-            }
-            if !self.target_phase_offset[i].is_finite() {
-                return Err(ConstitutiveError::InvalidDomain(format!(
-                    "Target phase offset {} must be finite",
-                    i
-                )));
-            }
-        }
-        Ok(())
-    }
-
-    pub fn potential_force(&self, y: f64, v_membrane: f64, phases: &[f64; DSF_CHANNELS]) -> f64 {
-        let mut resonant_sum = 0.0;
-        for i in 0..DSF_CHANNELS {
-            let d_phi = phases[i] - self.target_phase_offset[i];
-            resonant_sum += self.phase_coupling_lambda[i] * d_phi.cos();
-        }
-        -self.conformal_stiffness * (y - self.conformal_rest_y)
-            + self.gating_charge * v_membrane
-            + resonant_sum
-            + self.chemical_potential
-    }
-
-    pub fn step(
-        &mut self,
-        v_membrane: f64,
-        phases: &[f64; DSF_CHANNELS],
-        dt: f64,
-    ) -> Result<f64, ConstitutiveError> {
-        if !dt.is_finite() || dt <= 0.0 {
-            return Err(ConstitutiveError::InvalidTimeStep(dt));
-        }
-        if !v_membrane.is_finite() {
-            return Err(ConstitutiveError::InvalidDomain(
-                "v_membrane must be finite".to_string(),
-            ));
-        }
-        let mut resonant_sum = 0.0;
-        for i in 0..DSF_CHANNELS {
-            let d_phi = phases[i] - self.target_phase_offset[i];
-            resonant_sum += self.phase_coupling_lambda[i] * d_phi.cos();
-        }
-        let f_ext = self.gating_charge * v_membrane + resonant_sum + self.chemical_potential;
-        let y_star = self.conformal_rest_y + f_ext / self.conformal_stiffness;
-
-        let decay_arg = (self.conformal_stiffness / self.friction_zeta) * dt;
-        let exp_factor = (-decay_arg).exp();
-        let y_next_unclamped = y_star + (self.y - y_star) * exp_factor;
-        let y_next = y_next_unclamped.clamp(0.0, 1.0);
-
-        let delta_y = y_next - self.y;
-        self.y = y_next;
-        Ok(delta_y)
-    }
-}
-
-/// Material ion channel with Nernst reversal and charge carrier reservoirs.
-#[derive(Debug, Clone, PartialEq)]
-pub struct MaterialIonChannel {
-    pub gate: ThermodynamicChannelGate,
-    pub g_max: f64,
-    pub reversal_potential: f64,
-    pub valence: i32,
-    pub carriers: ChargeCarrierState,
-}
-
-impl MaterialIonChannel {
-    pub fn new(
-        gate: ThermodynamicChannelGate,
-        g_max: f64,
-        reversal_potential: f64,
-        valence: i32,
-        carriers: ChargeCarrierState,
-    ) -> Result<Self, ConstitutiveError> {
-        if !g_max.is_finite() || g_max <= 0.0 {
-            return Err(ConstitutiveError::InvalidDomain(
-                "g_max must be positive and finite".to_string(),
-            ));
-        }
-        if !reversal_potential.is_finite() {
-            return Err(ConstitutiveError::InvalidDomain(
-                "reversal_potential must be finite".to_string(),
-            ));
-        }
-        if valence == 0 {
-            return Err(ConstitutiveError::ZeroValence);
-        }
-        Ok(Self {
-            gate,
-            g_max,
-            reversal_potential,
-            valence,
-            carriers,
-        })
-    }
-
-    #[inline]
-    pub fn conductance(&self) -> f64 {
-        self.g_max * self.gate.y
-    }
-
-    #[inline]
-    pub fn current(&self, v_membrane: f64) -> f64 {
-        self.conductance() * (v_membrane - self.reversal_potential)
-    }
-}
-
-/// Physical transition receipt documenting complete conservation balances.
-#[derive(Debug, Clone, PartialEq)]
-pub struct NeuronTransitionReceipt {
-    /// Final membrane potential V_i in Volts [V].
-    pub v_membrane_final: f64,
-    /// Total instantaneous membrane conductance G_tot in Siemens [S].
-    pub total_conductance: f64,
-    /// Channel conductances g_c in Siemens [S].
-    pub channel_conductances: [f64; ION_CHANNELS],
-    /// Channel currents I_c in Amperes [A].
-    pub channel_currents: [f64; ION_CHANNELS],
-    /// Channel current integrals J_c in Coulombs [C].
-    pub channel_current_integrals: [f64; ION_CHANNELS],
-    /// Discrete integer carrier transfers per channel.
-    pub carrier_transfers: [i64; ION_CHANNELS],
-    /// Change in capacitor stored electrical energy Delta E_cap in Joules [J].
-    pub delta_e_cap: f64,
-    /// Total Joule heat dissipated in conductors Q_Joule in Joules [J] (>= 0).
-    pub q_joule: f64,
-    /// Chemical work performed by reversal battery sources W_chem in Joules [J].
-    pub w_chem: f64,
-    /// External current work W_ext in Joules [J].
-    pub w_ext: f64,
-    /// First law energy conservation residual |Delta E_cap + Q_joule - W_chem - W_ext| [J].
-    pub energy_conservation_residual: f64,
-    /// Charge conservation residual |Delta Q_mem + sum(J_c) - I_ext * dt| [C].
-    pub charge_conservation_residual: f64,
-}
-
-/// Canonical Typed Phase-Gate-Material Dynamic Operator.
-#[derive(Debug, Clone, PartialEq)]
-pub struct TypedPhaseGateMaterialOperator {
-    pub fabric: PhaseCoupledOscillatorFabric,
-    pub channels: [MaterialIonChannel; ION_CHANNELS],
-    pub c_mem: f64,
-    pub v_membrane: f64,
-    pub s_uf: f64,
-}
-
-impl TypedPhaseGateMaterialOperator {
-    pub fn new(
-        fabric: PhaseCoupledOscillatorFabric,
-        channels: [MaterialIonChannel; ION_CHANNELS],
-        c_mem: f64,
-        v_membrane: f64,
-        s_uf: f64,
-    ) -> Result<Self, ConstitutiveError> {
-        if !c_mem.is_finite() || c_mem <= 0.0 {
-            return Err(ConstitutiveError::InvalidDomain(
-                "c_mem must be positive and finite".to_string(),
-            ));
-        }
-        if !v_membrane.is_finite() {
-            return Err(ConstitutiveError::InvalidDomain(
-                "v_membrane must be finite".to_string(),
-            ));
-        }
-        if !s_uf.is_finite() {
-            return Err(ConstitutiveError::InvalidDomain(
-                "s_uf must be finite".to_string(),
-            ));
-        }
-        let op = Self {
-            fabric,
-            channels,
-            c_mem,
-            v_membrane,
-            s_uf,
-        };
-        op.validate()?;
-        Ok(op)
-    }
-
-    pub fn validate(&self) -> Result<(), ConstitutiveError> {
-        self.fabric.validate()?;
-        for ch in &self.channels {
-            ch.gate.validate()?;
-        }
-        if !self.c_mem.is_finite() || self.c_mem <= 0.0 {
-            return Err(ConstitutiveError::InvalidDomain(
-                "c_mem must be positive and finite".to_string(),
-            ));
-        }
-        if !self.v_membrane.is_finite() {
-            return Err(ConstitutiveError::InvalidDomain(
-                "v_membrane must be finite".to_string(),
-            ));
-        }
-        if !self.s_uf.is_finite() {
-            return Err(ConstitutiveError::InvalidDomain(
-                "s_uf must be finite".to_string(),
-            ));
-        }
-        Ok(())
-    }
-
-    /// Canonical physical default constructor with calibrated parameters.
-    pub fn default_canonical() -> Result<Self, ConstitutiveError> {
-        let fabric = PhaseCoupledOscillatorFabric::new(
-            [0.0; DSF_CHANNELS],
-            [0; DSF_CHANNELS],
-            [10.0, 15.0, 8.0, 12.0, 20.0, 25.0, 18.0],
-            [1.0, 1.2, 0.8, 1.5, 2.0, 1.8, 1.1],
-        )?;
-
-        // Physical reservoir scale: 10^11 carriers for 100 pF membrane
-        let initial_reservoir = 100_000_000_000u64;
-
-        // Channel 0: Excitatory Na+
-        let gate_0 = ThermodynamicChannelGate::new(
-            0.10,
-            1.0e-3,
-            2.0,
-            0.10,
-            1.602_176_634e-19,
-            0.0,
-            [0.4, 0.05, 0.0, 0.0, 0.05, 0.0, 0.2],
-            [0.0; DSF_CHANNELS],
-        )?;
-        let carriers_0 = ChargeCarrierState::new(0.0, 100.0e-12, 0.0, initial_reservoir, initial_reservoir)?;
-        let ch_0 = MaterialIonChannel::new(gate_0, 12.0e-9, 0.060, 1, carriers_0)?;
-
-        // Channel 1: Inhibitory K+
-        let gate_1 = ThermodynamicChannelGate::new(
-            0.15,
-            2.0e-3,
-            2.0,
-            0.15,
-            -1.602_176_634e-19,
-            0.0,
-            [0.0, 0.35, 0.0, 0.2, 0.0, 0.3, 0.0],
-            [0.0; DSF_CHANNELS],
-        )?;
-        let carriers_1 = ChargeCarrierState::new(0.0, 100.0e-12, 0.0, initial_reservoir, initial_reservoir)?;
-        let ch_1 = MaterialIonChannel::new(gate_1, 16.0e-9, -0.090, 1, carriers_1)?;
-
-        // Channel 2: Stabilizing Ca2+
-        let gate_2 = ThermodynamicChannelGate::new(
-            0.10,
-            5.0e-3,
-            2.0,
-            0.10,
-            0.0,
-            0.0,
-            [0.0, 0.0, 0.4, 0.0, 0.3, 0.0, 0.0],
-            [0.0; DSF_CHANNELS],
-        )?;
-        let carriers_2 = ChargeCarrierState::new(0.0, 100.0e-12, 0.0, initial_reservoir, initial_reservoir)?;
-        let ch_2 = MaterialIonChannel::new(gate_2, 4.0e-9, -0.070, 2, carriers_2)?;
-
-        Self::new(fabric, [ch_0, ch_1, ch_2], 100.0e-12, -0.065, 1.0)
-    }
-
-    /// Dynamic physical step over interval dt [s].
-    ///
-    /// Staged atomically: refuses transition prior to mutation upon any error.
-    pub fn step_transition(
-        &mut self,
-        field_7d: &[f64; DSF_CHANNELS],
-        s_uf: f64,
-        i_ext: f64,
-        dt: f64,
-    ) -> Result<NeuronTransitionReceipt, ConstitutiveError> {
-        if !dt.is_finite() || dt <= 0.0 {
-            return Err(ConstitutiveError::InvalidTimeStep(dt));
-        }
-        if !s_uf.is_finite() {
-            return Err(ConstitutiveError::InvalidDomain(
-                "s_uf must be finite".to_string(),
-            ));
-        }
-        if !i_ext.is_finite() {
-            return Err(ConstitutiveError::InvalidDomain(
-                "i_ext must be finite".to_string(),
-            ));
-        }
-        for (i, &f) in field_7d.iter().enumerate() {
-            if !f.is_finite() {
-                return Err(ConstitutiveError::InvalidDomain(format!(
-                    "Field coordinate {} is non-finite: {}",
-                    i, f
-                )));
-            }
-        }
-
-        // Viability Gate: If S_UF <= 0, the macroscopic basin is non-viable.
-        if s_uf <= 0.0 {
-            return Err(ConstitutiveError::InvalidDomain(format!(
-                "Viability gate refused transition: S_UF = {} <= 0",
-                s_uf
-            )));
-        }
-
-        // 1. Stage advance of oscillator fabric
-        let mut staged_fabric = self.fabric.clone();
-        staged_fabric.step(field_7d, dt)?;
-
-        // 2. Stage gate updates under current potential
-        let mut staged_channels = self.channels.clone();
-        let mut conductances = [0.0f64; ION_CHANNELS];
-        let mut g_tot = 0.0f64;
-        let mut g_e_sum = 0.0f64;
-
-        for c in 0..ION_CHANNELS {
-            staged_channels[c]
-                .gate
-                .step(self.v_membrane, &staged_fabric.phases, dt)?;
-            let g_c = staged_channels[c].conductance();
-            conductances[c] = g_c;
-            g_tot += g_c;
-            g_e_sum += g_c * staged_channels[c].reversal_potential;
-        }
-
-        // 3. Exact electrodynamics integration
-        let (v_final, v_bar, int_1, int_2) = if g_tot > 1e-15 {
-            let tau = self.c_mem / g_tot;
-            let v_inf = (g_e_sum + i_ext) / g_tot;
-            let ratio = dt / tau;
-            let exp_term = (-ratio).exp();
-            let exp_2_term = (-2.0 * ratio).exp();
-
-            let v_fin = v_inf + (self.v_membrane - v_inf) * exp_term;
-
-            let int_exp1 = if ratio < 1e-6 {
-                dt * (1.0 - 0.5 * ratio + (ratio * ratio) / 6.0)
-            } else {
-                tau * (1.0 - exp_term)
-            };
-            let int_exp2 = if 2.0 * ratio < 1e-6 {
-                dt * (1.0 - ratio + (2.0 * ratio * ratio) / 3.0)
-            } else {
-                0.5 * tau * (1.0 - exp_2_term)
-            };
-            let v_b = (v_inf * dt + (self.v_membrane - v_inf) * int_exp1) / dt;
-            (v_fin, v_b, int_exp1, int_exp2)
-        } else {
-            let v_fin = self.v_membrane + (i_ext * dt) / self.c_mem;
-            let v_b = 0.5 * (self.v_membrane + v_fin);
-            (v_fin, v_b, dt, dt)
-        };
-
-        // 4. Current integrals and carrier custody
-        let mut currents = [0.0f64; ION_CHANNELS];
-        let mut current_integrals = [0.0f64; ION_CHANNELS];
-        let mut carrier_transfers = [0i64; ION_CHANNELS];
-        let mut sum_j_c = 0.0f64;
-
-        for c in 0..ION_CHANNELS {
-            let j_c = conductances[c] * (v_bar - staged_channels[c].reversal_potential) * dt;
-            current_integrals[c] = j_c;
-            currents[c] = j_c / dt;
-            sum_j_c += j_c;
-
-            let transport = staged_channels[c].carriers.settle_transport(
-                j_c,
-                staged_channels[c].valence,
-                0.0,
-            )?;
-            carrier_transfers[c] = transport.carriers_transported;
-        }
-
-        // 5. Energy and Charge Conservation Balance
-        let delta_q_mem = self.c_mem * (v_final - self.v_membrane);
-        let charge_residual = (delta_q_mem + sum_j_c - i_ext * dt).abs();
-
-        let delta_e_cap =
-            0.5 * self.c_mem * (v_final * v_final - self.v_membrane * self.v_membrane);
-        let w_ext = i_ext * v_bar * dt;
-
-        let mut w_chem = 0.0f64;
-        let mut q_joule = 0.0f64;
-
-        if g_tot > 1e-15 {
-            let v_inf = (g_e_sum + i_ext) / g_tot;
-            for c in 0..ION_CHANNELS {
-                let e_c = staged_channels[c].reversal_potential;
-                w_chem -= e_c * current_integrals[c];
-
-                let a = v_inf - e_c;
-                let b = self.v_membrane - v_inf;
-                let int_sq = a * a * dt + 2.0 * a * b * int_1 + b * b * int_2;
-                q_joule += conductances[c] * int_sq;
-            }
-        }
-
-        let energy_residual = (delta_e_cap + q_joule - (w_chem + w_ext)).abs();
-
-        // 6. Commit all staged updates atomically
-        self.fabric = staged_fabric;
-        self.channels = staged_channels;
-        self.v_membrane = v_final;
-        self.s_uf = s_uf;
-
-        Ok(NeuronTransitionReceipt {
-            v_membrane_final: v_final,
-            total_conductance: g_tot,
-            channel_conductances: conductances,
-            channel_currents: currents,
-            channel_current_integrals: current_integrals,
-            carrier_transfers,
-            delta_e_cap,
-            q_joule,
-            w_chem,
-            w_ext,
-            energy_conservation_residual: energy_residual,
-            charge_conservation_residual: charge_residual,
-        })
-    }
-
-    /// Serializes entire operator into a fixed 936-byte record with CRC32.
-    pub fn serialize(&self) -> [u8; OPERATOR_SERIALIZED_SIZE] {
-        let mut buf = [0u8; OPERATOR_SERIALIZED_SIZE];
-        buf[0..8].copy_from_slice(OPERATOR_STATE_MAGIC);
-        buf[8..12].copy_from_slice(&OPERATOR_SCHEMA_VERSION.to_le_bytes());
-
-        let mut offset = 12;
-
-        // Fabric (224 bytes)
-        for i in 0..DSF_CHANNELS {
-            buf[offset..offset + 8].copy_from_slice(&self.fabric.phases[i].to_le_bytes());
-            offset += 8;
-            buf[offset..offset + 8].copy_from_slice(&self.fabric.windings[i].to_le_bytes());
-            offset += 8;
-            buf[offset..offset + 8].copy_from_slice(&self.fabric.base_frequencies[i].to_le_bytes());
-            offset += 8;
-            buf[offset..offset + 8].copy_from_slice(&self.fabric.field_sensitivities[i].to_le_bytes());
-            offset += 8;
-        }
-
-        // Channels (672 bytes)
-        for c in 0..ION_CHANNELS {
-            let ch = &self.channels[c];
-            buf[offset..offset + 8].copy_from_slice(&ch.gate.y.to_le_bytes());
-            offset += 8;
-            buf[offset..offset + 8].copy_from_slice(&ch.gate.friction_zeta.to_le_bytes());
-            offset += 8;
-            buf[offset..offset + 8].copy_from_slice(&ch.gate.conformal_stiffness.to_le_bytes());
-            offset += 8;
-            buf[offset..offset + 8].copy_from_slice(&ch.gate.conformal_rest_y.to_le_bytes());
-            offset += 8;
-            buf[offset..offset + 8].copy_from_slice(&ch.gate.gating_charge.to_le_bytes());
-            offset += 8;
-            buf[offset..offset + 8].copy_from_slice(&ch.gate.chemical_potential.to_le_bytes());
-            offset += 8;
-            for i in 0..DSF_CHANNELS {
-                buf[offset..offset + 8]
-                    .copy_from_slice(&ch.gate.phase_coupling_lambda[i].to_le_bytes());
-                offset += 8;
-            }
-            for i in 0..DSF_CHANNELS {
-                buf[offset..offset + 8]
-                    .copy_from_slice(&ch.gate.target_phase_offset[i].to_le_bytes());
-                offset += 8;
-            }
-            buf[offset..offset + 8].copy_from_slice(&ch.g_max.to_le_bytes());
-            offset += 8;
-            buf[offset..offset + 8].copy_from_slice(&ch.reversal_potential.to_le_bytes());
-            offset += 8;
-            buf[offset..offset + 4].copy_from_slice(&ch.valence.to_le_bytes());
-            offset += 4;
-            buf[offset..offset + 4].copy_from_slice(&[0u8; 4]);
-            offset += 4; // padding
-            buf[offset..offset + 8].copy_from_slice(&ch.carriers.q_membrane.to_le_bytes());
-            offset += 8;
-            buf[offset..offset + 8].copy_from_slice(&ch.carriers.c_mem.to_le_bytes());
-            offset += 8;
-            buf[offset..offset + 8].copy_from_slice(&ch.carriers.remainder.to_le_bytes());
-            offset += 8;
-            buf[offset..offset + 8].copy_from_slice(&ch.carriers.source_reservoir.to_le_bytes());
-            offset += 8;
-            buf[offset..offset + 8].copy_from_slice(&ch.carriers.dest_reservoir.to_le_bytes());
-            offset += 8;
-        }
-
-        // Membrane & Invariants (24 bytes)
-        buf[offset..offset + 8].copy_from_slice(&self.c_mem.to_le_bytes());
-        offset += 8;
-        buf[offset..offset + 8].copy_from_slice(&self.v_membrane.to_le_bytes());
-        offset += 8;
-        buf[offset..offset + 8].copy_from_slice(&self.s_uf.to_le_bytes());
-        offset += 8;
-
-        // Checksum
-        let checksum = compute_crc32(&buf[0..offset]);
-        buf[offset..offset + 4].copy_from_slice(&checksum.to_le_bytes());
-
-        buf
-    }
-
-    /// Deserializes exact binary record into operator state.
-    pub fn deserialize(bytes: &[u8]) -> Result<Self, ConstitutiveError> {
-        if bytes.len() != OPERATOR_SERIALIZED_SIZE {
-            return Err(ConstitutiveError::TruncatedData {
-                expected: OPERATOR_SERIALIZED_SIZE,
-                actual: bytes.len(),
-            });
-        }
-
-        if &bytes[0..8] != OPERATOR_STATE_MAGIC {
-            return Err(ConstitutiveError::CorruptData(
-                "Invalid operator state magic bytes".to_string(),
-            ));
-        }
-
-        let version = u32::from_le_bytes(bytes[8..12].try_into().unwrap());
-        if version != OPERATOR_SCHEMA_VERSION {
-            return Err(ConstitutiveError::CorruptData(format!(
-                "Unsupported operator schema version: expected {}, got {}",
-                OPERATOR_SCHEMA_VERSION, version
-            )));
-        }
-
-        let stored_checksum = u32::from_le_bytes(bytes[932..936].try_into().unwrap());
-        let computed_checksum = compute_crc32(&bytes[0..932]);
-        if stored_checksum != computed_checksum {
-            return Err(ConstitutiveError::InvalidChecksum {
-                expected: stored_checksum,
-                computed: computed_checksum,
-            });
-        }
-
-        let mut offset = 12;
-
-        let mut phases = [0.0f64; DSF_CHANNELS];
-        let mut windings = [0i64; DSF_CHANNELS];
-        let mut base_freqs = [0.0f64; DSF_CHANNELS];
-        let mut field_sens = [0.0f64; DSF_CHANNELS];
-
-        for i in 0..DSF_CHANNELS {
-            phases[i] = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-            offset += 8;
-            windings[i] = i64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-            offset += 8;
-            base_freqs[i] = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-            offset += 8;
-            field_sens[i] = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-            offset += 8;
-        }
-
-        let fabric = PhaseCoupledOscillatorFabric::new(phases, windings, base_freqs, field_sens)?;
-
-        let mut channels_vec = Vec::with_capacity(ION_CHANNELS);
-        for _ in 0..ION_CHANNELS {
-            let y = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-            offset += 8;
-            let friction_zeta = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-            offset += 8;
-            let conformal_stiffness =
-                f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-            offset += 8;
-            let conformal_rest_y = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-            offset += 8;
-            let gating_charge = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-            offset += 8;
-            let chemical_potential =
-                f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-            offset += 8;
-
-            let mut phase_coupling_lambda = [0.0f64; DSF_CHANNELS];
-            for i in 0..DSF_CHANNELS {
-                phase_coupling_lambda[i] =
-                    f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-                offset += 8;
-            }
-
-            let mut target_phase_offset = [0.0f64; DSF_CHANNELS];
-            for i in 0..DSF_CHANNELS {
-                target_phase_offset[i] =
-                    f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-                offset += 8;
-            }
-
-            let gate = ThermodynamicChannelGate::new(
-                y,
-                friction_zeta,
-                conformal_stiffness,
-                conformal_rest_y,
-                gating_charge,
-                chemical_potential,
-                phase_coupling_lambda,
-                target_phase_offset,
-            )?;
-
-            let g_max = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-            offset += 8;
-            let reversal_potential =
-                f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-            offset += 8;
-            let valence = i32::from_le_bytes(bytes[offset..offset + 4].try_into().unwrap());
-            offset += 4;
-            offset += 4; // padding
-
-            let q_membrane = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-            offset += 8;
-            let c_mem = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-            offset += 8;
-            let remainder = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-            offset += 8;
-            let source_reservoir =
-                u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-            offset += 8;
-            let dest_reservoir = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-            offset += 8;
-
-            let carriers = ChargeCarrierState::new(
-                q_membrane,
-                c_mem,
-                remainder,
-                source_reservoir,
-                dest_reservoir,
-            )?;
-
-            let channel =
-                MaterialIonChannel::new(gate, g_max, reversal_potential, valence, carriers)?;
-            channels_vec.push(channel);
-        }
-
-        let channels = [
-            channels_vec.remove(0),
-            channels_vec.remove(0),
-            channels_vec.remove(0),
-        ];
-
-        let c_mem = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-        offset += 8;
-        let v_membrane = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-        offset += 8;
-        let s_uf = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-
-        Self::new(fabric, channels, c_mem, v_membrane, s_uf)
-    }
-}
-
-// ---------------------------------------------------------------------------
 // Pure CRC-32 (IEEE 802.3 standard polynomial 0xEDB88320)
 // ---------------------------------------------------------------------------
 
@@ -1815,17 +974,12 @@ mod tests {
 
     #[test]
     fn test_signed_carriers_exact_identity_and_reservoirs() {
-        let mut carrier =
-            ChargeCarrierState::new(-7.0e-12, 100.0e-12, 0.0, 1_000_000, 500_000).unwrap();
+        let mut carrier = ChargeCarrierState::new(-7.0e-12, 100.0e-12, 0.0, 1_000_000, 500_000).unwrap();
 
         // 1. Positive transfer (outward, n_c > 0)
         let j_c1 = 5.0e-19; // 5 Coulombs * 10^-19
         let res1 = carrier.settle_transport(j_c1, 1, 0.0).unwrap();
-        assert!(
-            res1.identity_residual < 1e-25,
-            "Residual: {}",
-            res1.identity_residual
-        );
+        assert!(res1.identity_residual < 1e-25, "Residual: {}", res1.identity_residual);
         assert_eq!(res1.carriers_transported, 3);
         assert_eq!(carrier.source_reservoir, 999_997);
         assert_eq!(carrier.dest_reservoir, 500_003);
@@ -1863,21 +1017,14 @@ mod tests {
         let j_overflow = 10.0 * ELEMENTARY_CHARGE;
         let err = small_carrier.settle_transport(j_overflow, 1, 0.0);
         match err {
-            Err(ConstitutiveError::ExhaustedReservoir {
-                required,
-                available,
-                reservoir_name,
-            }) => {
+            Err(ConstitutiveError::ExhaustedReservoir { required, available, reservoir_name }) => {
                 assert_eq!(required, 10);
                 assert_eq!(available, 5);
                 assert_eq!(reservoir_name, "source");
             }
             _ => panic!("Expected ExhaustedReservoir error, got {:?}", err),
         }
-        assert_eq!(
-            small_carrier.source_reservoir, 5,
-            "State must not mutate on failure"
-        );
+        assert_eq!(small_carrier.source_reservoir, 5, "State must not mutate on failure");
     }
 
     #[test]
@@ -1893,8 +1040,7 @@ mod tests {
             10.0,    // k_off
             5.0,     // k_inact
             2.0,     // k_rec
-        )
-        .unwrap();
+        ).unwrap();
 
         let initial_r_tot = rec.total_receptors();
         let initial_t_tot = rec.total_transmitter();
@@ -1902,16 +1048,8 @@ mod tests {
         // Step kinetics over 10 consecutive intervals
         for _ in 0..10 {
             let res = rec.step_kinetics(0.01).unwrap();
-            assert!(
-                res.delta_total_receptors.abs() < 1e-15,
-                "R_tot drifted: {}",
-                res.delta_total_receptors
-            );
-            assert!(
-                res.delta_total_transmitter.abs() < 1e-15,
-                "T_tot drifted: {}",
-                res.delta_total_transmitter
-            );
+            assert!(res.delta_total_receptors.abs() < 1e-15, "R_tot drifted: {}", res.delta_total_receptors);
+            assert!(res.delta_total_transmitter.abs() < 1e-15, "T_tot drifted: {}", res.delta_total_transmitter);
             assert!(rec.r_free >= 0.0);
             assert!(rec.a_active >= 0.0);
             assert!(rec.d_inact >= 0.0);
@@ -1930,27 +1068,18 @@ mod tests {
 
         // DELAYED EFFECT CHECK: A does not instantaneously drop to 0 when T becomes 0!
         let a_before_decay = rec.a_active;
-        assert!(
-            a_before_decay > 0.0,
-            "Residual active complex must be retained"
-        );
+        assert!(a_before_decay > 0.0, "Residual active complex must be retained");
 
         // Next physical step: A decays gracefully via k_off and k_inact
         rec.step_kinetics(0.005).unwrap();
-        assert!(
-            rec.a_active > 0.0,
-            "A decays over physical time, does not vanish at beat boundary"
-        );
-        assert!(
-            rec.a_active < a_before_decay,
-            "A decreases through dissociation/inactivation"
-        );
+        assert!(rec.a_active > 0.0, "A decays over physical time, does not vanish at beat boundary");
+        assert!(rec.a_active < a_before_decay, "A decreases through dissociation/inactivation");
     }
 
     #[test]
     fn test_plastic_return_map_all_cases() {
         let k = 100.0e-9; // 100 nJ
-        let y = 20.0e-9; // 20 nJ (0 < Y < K)
+        let y = 20.0e-9;  // 20 nJ (0 < Y < K)
 
         // Case 1: Elastic (sub-yield tension)
         let mut state_elastic = MechanicalPlasticState::new(1.05e-6, 1.0e-6, k, y, 0.0).unwrap();
@@ -1976,17 +1105,10 @@ mod tests {
         let mut state_tension = MechanicalPlasticState::new(1.5e-6, 1.0e-6, k, y, 0.0).unwrap();
         let res_t = state_tension.return_map_fixed_x().unwrap();
         assert!(res_t.is_yielded);
-        assert!(
-            res_t.delta_l > 0.0,
-            "Delta l must be positive for tension: {}",
-            res_t.delta_l
-        );
+        assert!(res_t.delta_l > 0.0, "Delta l must be positive for tension: {}", res_t.delta_l);
         assert!(res_t.returned_l > 1.0e-6);
         assert!(res_t.dissipated_energy > 0.0);
-        assert!(
-            res_t.yield_function_value.abs() < 1e-15,
-            "Yield function must be 0 after return"
-        );
+        assert!(res_t.yield_function_value.abs() < 1e-15, "Yield function must be 0 after return");
 
         // Verify returned Sigma == +Y
         assert!((res_t.final_sigma - y).abs() < 1e-15);
@@ -1995,16 +1117,9 @@ mod tests {
         let mut state_comp = MechanicalPlasticState::new(0.6e-6, 1.0e-6, k, y, 0.0).unwrap();
         let res_c = state_comp.return_map_fixed_x().unwrap();
         assert!(res_c.is_yielded);
-        assert!(
-            res_c.delta_l < 0.0,
-            "Delta l must be negative for compression: {}",
-            res_c.delta_l
-        );
+        assert!(res_c.delta_l < 0.0, "Delta l must be negative for compression: {}", res_c.delta_l);
         assert!(res_c.returned_l < 1.0e-6);
-        assert!(
-            res_c.returned_l > 0.0,
-            "Returned length must remain strictly positive"
-        );
+        assert!(res_c.returned_l > 0.0, "Returned length must remain strictly positive");
         assert!(res_c.dissipated_energy > 0.0);
         assert!(res_c.yield_function_value.abs() < 1e-15);
 
@@ -2012,26 +1127,11 @@ mod tests {
         assert!((res_c.final_sigma - (-y)).abs() < 1e-15);
 
         // Case 5: Invalid domain rejected without clipping
-        assert!(
-            MechanicalPlasticState::new(1.0e-6, 1.0e-6, k, k, 0.0).is_err(),
-            "Y == K must fail"
-        );
-        assert!(
-            MechanicalPlasticState::new(1.0e-6, 1.0e-6, k, k * 1.5, 0.0).is_err(),
-            "Y > K must fail"
-        );
-        assert!(
-            MechanicalPlasticState::new(1.0e-6, 1.0e-6, -k, y, 0.0).is_err(),
-            "K <= 0 must fail"
-        );
-        assert!(
-            MechanicalPlasticState::new(-1.0e-6, 1.0e-6, k, y, 0.0).is_err(),
-            "x <= 0 must fail"
-        );
-        assert!(
-            MechanicalPlasticState::new(1.0e-6, -1.0e-6, k, y, 0.0).is_err(),
-            "l <= 0 must fail"
-        );
+        assert!(MechanicalPlasticState::new(1.0e-6, 1.0e-6, k, k, 0.0).is_err(), "Y == K must fail");
+        assert!(MechanicalPlasticState::new(1.0e-6, 1.0e-6, k, k * 1.5, 0.0).is_err(), "Y > K must fail");
+        assert!(MechanicalPlasticState::new(1.0e-6, 1.0e-6, -k, y, 0.0).is_err(), "K <= 0 must fail");
+        assert!(MechanicalPlasticState::new(-1.0e-6, 1.0e-6, k, y, 0.0).is_err(), "x <= 0 must fail");
+        assert!(MechanicalPlasticState::new(1.0e-6, -1.0e-6, k, y, 0.0).is_err(), "l <= 0 must fail");
     }
 
     #[test]
@@ -2046,14 +1146,10 @@ mod tests {
 
         // Exact stored energy decrease equals plastic dissipation
         let delta_u = u_final - u_initial;
-        assert!(
-            (delta_u + res.dissipated_energy).abs() < 1e-20,
-            "Delta U + D_pl must be 0"
-        );
+        assert!((delta_u + res.dissipated_energy).abs() < 1e-20, "Delta U + D_pl must be 0");
 
         // Capacitor finite difference: Delta E_cap = (Q'^2 - Q^2) / (2 C_mem)
-        let mut carrier =
-            ChargeCarrierState::new(-10.0e-12, 100.0e-12, 0.0, 1000, 1000).unwrap();
+        let mut carrier = ChargeCarrierState::new(-10.0e-12, 100.0e-12, 0.0, 1000, 1000).unwrap();
         let e_cap_init = carrier.stored_energy();
         let transport = carrier.settle_transport(2.0 * ELEMENTARY_CHARGE, 1, 0.0).unwrap();
         let e_cap_final = carrier.stored_energy();
@@ -2061,25 +1157,17 @@ mod tests {
         let expected_delta_e = e_cap_final - e_cap_init;
         assert!((transport.delta_e_cap - expected_delta_e).abs() < 1e-25);
 
-        let balance = ClosedEnergyBalance::compute_fixed_x(
-            u_initial,
-            u_final,
-            res.dissipated_energy,
-            transport.delta_e_cap,
-        );
+        let balance = ClosedEnergyBalance::compute_fixed_x(u_initial, u_final, res.dissipated_energy, transport.delta_e_cap);
         assert!(balance.mechanical_energy_balance_residual < 1e-20);
     }
 
     #[test]
     fn test_continuation_serialization_and_exact_restoration() {
-        let carrier =
-            ChargeCarrierState::new(-6.8e-12, 100.0e-12, 0.4321, 999_800, 500_200).unwrap();
+        let carrier = ChargeCarrierState::new(-6.8e-12, 100.0e-12, 0.4321, 999_800, 500_200).unwrap();
         let receptor = ReceptorKineticsState::new(
             0.85e-9, 0.15e-9, 0.05e-9, 1.2e-9, 1.0e-18, 0.0035, 1.0e8, 10.0, 5.0, 2.0,
-        )
-        .unwrap();
-        let mechanics =
-            MechanicalPlasticState::new(1.4e-6, 1.1e-6, 80.0e-9, 16.0e-9, 0.0012).unwrap();
+        ).unwrap();
+        let mechanics = MechanicalPlasticState::new(1.4e-6, 1.1e-6, 80.0e-9, 16.0e-9, 0.0012).unwrap();
 
         let original_state = ConstitutiveState::new(carrier, receptor, mechanics);
 
@@ -2090,23 +1178,14 @@ mod tests {
 
         // Restore state
         let restored_state = ConstitutiveState::deserialize(&serialized).unwrap();
-        assert_eq!(
-            original_state, restored_state,
-            "Restored state must match original bit-exact"
-        );
+        assert_eq!(original_state, restored_state, "Restored state must match original bit-exact");
 
         // Verify next identical input produces bit-identical output
         let mut state_a = original_state.clone();
         let mut state_b = restored_state.clone();
 
-        let res_a_carrier = state_a
-            .carrier
-            .settle_transport(3.5 * ELEMENTARY_CHARGE, 1, 0.0)
-            .unwrap();
-        let res_b_carrier = state_b
-            .carrier
-            .settle_transport(3.5 * ELEMENTARY_CHARGE, 1, 0.0)
-            .unwrap();
+        let res_a_carrier = state_a.carrier.settle_transport(3.5 * ELEMENTARY_CHARGE, 1, 0.0).unwrap();
+        let res_b_carrier = state_b.carrier.settle_transport(3.5 * ELEMENTARY_CHARGE, 1, 0.0).unwrap();
         assert_eq!(res_a_carrier, res_b_carrier);
         assert_eq!(state_a.carrier, state_b.carrier);
 
@@ -2124,17 +1203,11 @@ mod tests {
         let mut corrupted = serialized;
         corrupted[100] ^= 0xFF; // corrupt one byte in payload
         let err = ConstitutiveState::deserialize(&corrupted);
-        assert!(matches!(
-            err,
-            Err(ConstitutiveError::InvalidChecksum { .. })
-        ));
+        assert!(matches!(err, Err(ConstitutiveError::InvalidChecksum { .. })));
 
         // Truncated data must fail
         let err_trunc = ConstitutiveState::deserialize(&serialized[0..100]);
-        assert!(matches!(
-            err_trunc,
-            Err(ConstitutiveError::TruncatedData { .. })
-        ));
+        assert!(matches!(err_trunc, Err(ConstitutiveError::TruncatedData { .. })));
 
         // Bad magic must fail
         let mut bad_magic = serialized;
@@ -2147,264 +1220,21 @@ mod tests {
     fn test_failure_and_resource_boundaries() {
         // Measure component memory footprint
         let carrier = ChargeCarrierState::new(0.0, 1.0, 0.0, 10, 10).unwrap();
-        let receptor =
-            ReceptorKineticsState::new(1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0)
-                .unwrap();
+        let receptor = ReceptorKineticsState::new(1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0).unwrap();
         let mechanics = MechanicalPlasticState::new(1.0, 1.0, 10.0, 2.0, 0.0).unwrap();
         let state = ConstitutiveState::new(carrier, receptor, mechanics);
 
         let bytes = state.serialize();
-        assert_eq!(
-            bytes.len(),
-            176,
-            "Component serialization footprint must be bounded to 176 bytes"
-        );
+        assert_eq!(bytes.len(), 176, "Component serialization footprint must be bounded to 176 bytes");
 
         // Zero valence error
         let mut carrier2 = ChargeCarrierState::new(0.0, 1.0, 0.0, 10, 10).unwrap();
-        assert_eq!(
-            carrier2.settle_transport(1.0, 0, 0.0),
-            Err(ConstitutiveError::ZeroValence)
-        );
+        assert_eq!(carrier2.settle_transport(1.0, 0, 0.0), Err(ConstitutiveError::ZeroValence));
 
         // Invalid dt error
-        let mut rec2 =
-            ReceptorKineticsState::new(1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0)
-                .unwrap();
-        assert_eq!(
-            rec2.step_kinetics(0.0),
-            Err(ConstitutiveError::InvalidTimeStep(0.0))
-        );
-        assert_eq!(
-            rec2.step_kinetics(-0.01),
-            Err(ConstitutiveError::InvalidTimeStep(-0.01))
-        );
-    }
-
-    // -----------------------------------------------------------------------
-    // Section 6 Tests: Canonical Typed Phase-Gate-Material Dynamic Operator
-    // -----------------------------------------------------------------------
-
-    #[test]
-    fn test_phase_coupled_oscillator_fabric_channel_differentiation() {
-        // Falsifies Finding A13-01: Swapping D and M produces completely distinct
-        // oscillator phase states, gate activations, conductances, and currents.
-        let mut op_d = TypedPhaseGateMaterialOperator::default_canonical().unwrap();
-        let mut op_m = TypedPhaseGateMaterialOperator::default_canonical().unwrap();
-
-        let field_d = [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]; // Pure Displacement D
-        let field_m = [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]; // Pure Momentum M
-
-        let receipt_d = op_d.step_transition(&field_d, 1.0, 0.0, 0.01).unwrap();
-        let receipt_m = op_m.step_transition(&field_m, 1.0, 0.0, 0.01).unwrap();
-
-        // 1. Fabric phases must be completely different
-        assert_ne!(op_d.fabric.phases, op_m.fabric.phases);
-        assert_ne!(op_d.fabric.phases[0], op_m.fabric.phases[0]);
-        assert_ne!(op_d.fabric.phases[1], op_m.fabric.phases[1]);
-
-        // 2. Gate states and conductances must be distinct
-        assert_ne!(
-            receipt_d.channel_conductances,
-            receipt_m.channel_conductances
-        );
-        assert_ne!(receipt_d.v_membrane_final, receipt_m.v_membrane_final);
-        assert_ne!(
-            receipt_d.channel_current_integrals,
-            receipt_m.channel_current_integrals
-        );
-    }
-
-    #[test]
-    fn test_phase_winding_checked_overflow_safety() {
-        let mut fabric = PhaseCoupledOscillatorFabric::new(
-            [0.0; DSF_CHANNELS],
-            [0; DSF_CHANNELS],
-            [100.0; DSF_CHANNELS],
-            [10.0; DSF_CHANNELS],
-        )
-        .unwrap();
-
-        // Step with large dt to trigger multiple complete 2*pi windings
-        fabric.step(&[1.0; DSF_CHANNELS], 1.0).unwrap();
-
-        for i in 0..DSF_CHANNELS {
-            assert!(fabric.phases[i] >= -std::f64::consts::PI);
-            assert!(fabric.phases[i] <= std::f64::consts::PI);
-            assert!(fabric.windings[i] > 0, "Winding must track integer wraps");
-        }
-
-        // Extreme overflow check refuses atomically
-        let mut overflow_fabric = PhaseCoupledOscillatorFabric::new(
-            [0.0; DSF_CHANNELS],
-            [i64::MAX; DSF_CHANNELS],
-            [1e20; DSF_CHANNELS],
-            [0.0; DSF_CHANNELS],
-        )
-        .unwrap();
-        assert!(overflow_fabric.step(&[0.0; DSF_CHANNELS], 1.0).is_err());
-    }
-
-    #[test]
-    fn test_thermodynamic_gate_potential_and_langevin_relaxation() {
-        let mut gate = ThermodynamicChannelGate::new(
-            0.0,
-            1.0e-3, // zeta
-            1.0,    // k
-            0.1,    // rest_y
-            0.0,
-            0.5,    // chemical potential positive bias
-            [0.0; DSF_CHANNELS],
-            [0.0; DSF_CHANNELS],
-        )
-        .unwrap();
-
-        let phases = [0.0; DSF_CHANNELS];
-        // Initially at 0.0, target is 0.1 + 0.5/1.0 = 0.6.
-        let delta_y = gate.step(-0.065, &phases, 0.001).unwrap();
-        assert!(delta_y > 0.0, "Gate must open towards lower potential");
-        assert!(gate.y > 0.0 && gate.y <= 1.0);
-
-        // Relax for long horizon (e.g. 50 steps)
-        for _ in 0..50 {
-            gate.step(-0.065, &phases, 0.001).unwrap();
-        }
-        // At equilibrium, y approaches 0.60
-        assert!((gate.y - 0.60).abs() < 1e-4);
-    }
-
-    #[test]
-    fn test_exact_membrane_electrodynamics_and_charge_conservation() {
-        let mut op = TypedPhaseGateMaterialOperator::default_canonical().unwrap();
-        let field = [0.5, 0.2, 0.1, 0.0, 0.3, 0.1, 0.4];
-
-        for step in 0..10 {
-            let i_ext = (step as f64 - 5.0) * 1.0e-10;
-            let receipt = op.step_transition(&field, 1.0, i_ext, 0.001).unwrap();
-
-            // Machine-precision charge conservation
-            assert!(
-                receipt.charge_conservation_residual < 1e-20,
-                "Charge residual: {}",
-                receipt.charge_conservation_residual
-            );
-            assert!(receipt.total_conductance > 0.0);
-            assert!(receipt.v_membrane_final.is_finite());
-        }
-    }
-
-    #[test]
-    fn test_exact_thermodynamic_first_law_energy_balance() {
-        let mut op = TypedPhaseGateMaterialOperator::default_canonical().unwrap();
-        let field = [0.8, -0.4, 0.2, 0.1, 0.5, 0.0, 0.7];
-
-        for _ in 0..10 {
-            let receipt = op.step_transition(&field, 1.0, 2.0e-10, 0.0005).unwrap();
-
-            // Exact first law balance: Delta E_cap + Q_joule = W_chem + W_ext
-            assert!(
-                receipt.energy_conservation_residual < 1e-20,
-                "Energy residual: {}",
-                receipt.energy_conservation_residual
-            );
-            // Dissipated Joule heat is non-negative
-            assert!(
-                receipt.q_joule >= 0.0,
-                "Joule dissipation must be non-negative"
-            );
-        }
-    }
-
-    #[test]
-    fn test_equal_opposite_integer_carrier_custody_across_channels() {
-        let mut op = TypedPhaseGateMaterialOperator::default_canonical().unwrap();
-        let field = [1.0, 0.5, 0.0, 0.0, 0.0, 0.0, 1.0];
-
-        let before_reservoirs: Vec<(u64, u64)> = op
-            .channels
-            .iter()
-            .map(|ch| (ch.carriers.source_reservoir, ch.carriers.dest_reservoir))
-            .collect();
-
-        let receipt = op.step_transition(&field, 1.0, 0.0, 0.01).unwrap();
-
-        for c in 0..ION_CHANNELS {
-            let n = receipt.carrier_transfers[c];
-            let (src_before, dst_before) = before_reservoirs[c];
-            let src_after = op.channels[c].carriers.source_reservoir;
-            let dst_after = op.channels[c].carriers.dest_reservoir;
-
-            if n > 0 {
-                assert_eq!(src_after, src_before - (n as u64));
-                assert_eq!(dst_after, dst_before + (n as u64));
-            } else if n < 0 {
-                let abs_n = n.unsigned_abs();
-                assert_eq!(src_after, src_before + abs_n);
-                assert_eq!(dst_after, dst_before - abs_n);
-            } else {
-                assert_eq!(src_after, src_before);
-                assert_eq!(dst_after, dst_before);
-            }
-            assert_eq!(
-                (src_after as u128) + (dst_after as u128),
-                (src_before as u128) + (dst_before as u128)
-            );
-        }
-    }
-
-    #[test]
-    fn test_operator_serialization_exact_roundtrip_and_corruption_rejection() {
-        let mut op = TypedPhaseGateMaterialOperator::default_canonical().unwrap();
-        op.step_transition(&[0.5; DSF_CHANNELS], 1.0, 1e-10, 0.01)
-            .unwrap();
-
-        let bytes = op.serialize();
-        assert_eq!(bytes.len(), OPERATOR_SERIALIZED_SIZE);
-        assert_eq!(&bytes[0..8], OPERATOR_STATE_MAGIC);
-
-        let restored = TypedPhaseGateMaterialOperator::deserialize(&bytes).unwrap();
-        assert_eq!(op, restored, "Restored operator must match bit-exact");
-
-        // Next step produces bit-identical results
-        let mut op_a = op.clone();
-        let mut op_b = restored.clone();
-        let rec_a = op_a
-            .step_transition(&[0.2; DSF_CHANNELS], 1.0, 0.0, 0.005)
-            .unwrap();
-        let rec_b = op_b
-            .step_transition(&[0.2; DSF_CHANNELS], 1.0, 0.0, 0.005)
-            .unwrap();
-        assert_eq!(rec_a, rec_b);
-        assert_eq!(op_a, op_b);
-
-        // Corruption handling
-        let mut corrupted = bytes;
-        corrupted[100] ^= 0xAA;
-        assert!(matches!(
-            TypedPhaseGateMaterialOperator::deserialize(&corrupted),
-            Err(ConstitutiveError::InvalidChecksum { .. })
-        ));
-
-        // Truncation handling
-        assert!(matches!(
-            TypedPhaseGateMaterialOperator::deserialize(&bytes[0..500]),
-            Err(ConstitutiveError::TruncatedData { .. })
-        ));
-    }
-
-    #[test]
-    fn test_viability_gate_refusal() {
-        let mut op = TypedPhaseGateMaterialOperator::default_canonical().unwrap();
-        let before = op.clone();
-
-        // Viability gate refuses transition when S_UF <= 0
-        let err_0 = op.step_transition(&[0.0; DSF_CHANNELS], 0.0, 0.0, 0.01);
-        assert!(err_0.is_err());
-        assert_eq!(op, before, "State must not mutate on refusal");
-
-        let err_neg = op.step_transition(&[0.0; DSF_CHANNELS], -0.5, 0.0, 0.01);
-        assert!(err_neg.is_err());
-        assert_eq!(op, before);
+        let mut rec2 = ReceptorKineticsState::new(1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0).unwrap();
+        assert_eq!(rec2.step_kinetics(0.0), Err(ConstitutiveError::InvalidTimeStep(0.0)));
+        assert_eq!(rec2.step_kinetics(-0.01), Err(ConstitutiveError::InvalidTimeStep(-0.01)));
     }
 }
 
@@ -2425,9 +1255,7 @@ mod a13_carrier_safety {
         for (source, destination, direction) in [(1, u64::MAX, 1.0), (u64::MAX, 1, -1.0)] {
             let mut state = ChargeCarrierState::new(0.0, 1.0, 0.0, source, destination).unwrap();
             let before = state.clone();
-            assert!(state
-                .settle_transport(direction * ELEMENTARY_CHARGE, 1, 0.0)
-                .is_err());
+            assert!(state.settle_transport(direction * ELEMENTARY_CHARGE, 1, 0.0).is_err());
             unchanged(&state, &before);
         }
     }
@@ -2436,15 +1264,11 @@ mod a13_carrier_safety {
     fn excessive_quotients_refuse_before_cast_or_mutation() {
         let boundary = (1_u64 << f64::MANTISSA_DIGITS) as f64;
         for integral in [
-            f64::MAX,
-            -f64::MAX,
-            boundary * ELEMENTARY_CHARGE,
-            -boundary * ELEMENTARY_CHARGE,
-            f64::NAN,
-            f64::INFINITY,
+            f64::MAX, -f64::MAX,
+            boundary * ELEMENTARY_CHARGE, -boundary * ELEMENTARY_CHARGE,
+            f64::NAN, f64::INFINITY,
         ] {
-            let mut state =
-                ChargeCarrierState::new(0.0, 1.0, 0.0, u64::MAX, u64::MAX).unwrap();
+            let mut state = ChargeCarrierState::new(0.0, 1.0, 0.0, u64::MAX, u64::MAX).unwrap();
             let before = state.clone();
             assert!(state.settle_transport(integral, 1, 0.0).is_err());
             unchanged(&state, &before);
@@ -2455,9 +1279,7 @@ mod a13_carrier_safety {
     fn nonfinite_successor_cannot_partially_debit_reservoir() {
         let mut state = ChargeCarrierState::new(0.0, 1.0, 0.0, 10, 10).unwrap();
         let before = state.clone();
-        assert!(state
-            .settle_transport(ELEMENTARY_CHARGE, 1, f64::MAX)
-            .is_err());
+        assert!(state.settle_transport(ELEMENTARY_CHARGE, 1, f64::MAX).is_err());
         unchanged(&state, &before);
     }
 
@@ -2489,18 +1311,9 @@ mod a13_carrier_safety {
                 let integral = direction * f64::from(valence) * ELEMENTARY_CHARGE;
                 let result = state.settle_transport(integral, valence, 0.0).unwrap();
                 let n = i128::from(result.carriers_transported);
-                assert_eq!(
-                    i128::from(state.source_reservoir),
-                    i128::from(before.source_reservoir) - n
-                );
-                assert_eq!(
-                    i128::from(state.dest_reservoir),
-                    i128::from(before.dest_reservoir) + n
-                );
-                assert_eq!(
-                    u128::from(state.source_reservoir) + u128::from(state.dest_reservoir),
-                    110
-                );
+                assert_eq!(i128::from(state.source_reservoir), i128::from(before.source_reservoir) - n);
+                assert_eq!(i128::from(state.dest_reservoir), i128::from(before.dest_reservoir) + n);
+                assert_eq!(u128::from(state.source_reservoir) + u128::from(state.dest_reservoir), 110);
                 assert!(result.identity_residual.is_finite());
             }
         }
