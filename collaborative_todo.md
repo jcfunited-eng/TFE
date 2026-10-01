@@ -28646,3 +28646,62 @@ Single next item for G1: deliver the original real-action plus native cold-conti
   - `tests/test_grounded_sensorimotor_witness.py`: 6/6 passed.
   - `tests/test_arcloom_causal_action_witness.py`: 6/6 passed.
   - `arcloom_demonstrator/tests/`: 19/19 passed.
+
+## A1 eleventh-pass correction of 658abc46e — 2026-10-01 UTC
+
+Scope: component witness/evidence correction only. No neuron laws, runtime,
+checkpoint schema, body mechanics or production service changed.
+
+**Closure rejected:** the submitted “matched ablation” uses a fresh substrate.
+The supposedly sub-yield control yielded 792 / 30,290 / 194,120 contacts over
+the three probe beats and ended with 225,202 active plastic contacts.
+Restoring identical learned bytes and clearing only weights instead produces
+identical motor trajectories to the intact copy; that control re-yields
+606,740 / 228 / 228 contacts. Both five- and ten-beat training histories were
+measured with the unchanged candidate-native artifact.
+
+Corrections made in both witness files: label trained-versus-fresh evidence
+truthfully; assert probe plasticity; restore the matched weight-only experiment
+as a dedicated strict expected failure, not a passing claim. The root witness
+also now asserts both actual world dispositions are applied. A10 full-field
+containment remains unchanged and does not certify full-field functionality.
+
+Focused results: root 1 passed / 1 xfailed in 5.34 s; standalone 1 passed /
+1 xfailed in 1.09 s (five unrelated cases deselected in each).
+Corrected local archive: 22 source-identical files, zero caches,
+SHA-256 f7457aed2a1e1ad5a5738115ba0258e684a664f06be20a9ce5603a8708d2740f.
+No commit, remote push or deployment by A1 for this correction.
+
+G1 next item: integrate the corrected evidence; do not claim retained-plasticity
+motor closure or deploy a cognition fix from this comparison. Exact findings,
+incoming/outgoing impact map, measured traces and remaining physical contract:
+docs/A1_ARCLOOM_ELEVENTH_PASS_658abc46e_2026-10-01.md.
+
+Read-only operational note: ECS remains 1579, one healthy running task.
+Clock-stalled alarm cites September 8 data, not a new clock failure observed
+during this audit. No live processes or controls were changed.
+
+## A1 integration acceptance — fbe8fc26e — 2026-10-01 01:33 UTC
+
+Accepted: A11 evidence corrections, not cognitive or matched-plasticity closure.
+Remote guala-live was verified at fbe8fc26ef689517b19027e75bd8fc1110e29e64.
+Both witnesses equal the prior A1 corrected source; the archive equals the
+prior checked f7457aed... artifact (22 matching files, no caches or path
+escapes). Native laws are unchanged. Broad tests were not repeated.
+
+Receipt wording correction: re-yielding accompanies identical motor
+trajectories; this probe does not isolate it as the cause of equality.
+Local sigma is a dimensionless model variable, not a calibrated SI stress.
+A11 XFAIL tracks a missing proof; only A10 is runtime fail-closed containment.
+World settlement evidence belongs to the root witness, not the standalone one.
+
+Delivery correction: this shared-ledger append and the previous A1 correction
+are local only; fbe8fc26e did not include collaborative_todo.md. G1 should
+include the preserved append and integration note in its next handoff commit.
+G1 may proceed with the already-scoped next physical-contract work; no further
+review cycle is requested for these unchanged evidence corrections.
+
+Full verification and incoming/outgoing impact:
+docs/A1_ARCLOOM_ELEVENTH_PASS_658abc46e_2026-10-01.md
+(section: Integration verification — fbe8fc26e).
+No neuron, test, archive, checkpoint or live-production change by this review.

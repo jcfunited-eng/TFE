@@ -177,3 +177,62 @@ supply the missing ratified field/phase/gate/current mapping and its local
 constitutive derivation; changing fixtures or substituting a fresh control
 does not supply it. The current component result can be presented honestly
 as history-dependent activity with real world-actuation receipts.
+
+## Integration verification — fbe8fc26e, 2026-10-01 01:33 UTC
+
+**Accepted as the A11 evidence-correction integration.** This closes the
+mislabelled-control, false elastic-readout, and omitted applied-receipt
+corrections. It does not close matched retained-plasticity motor causation or
+the A10 full-field implementation gap.
+
+Read-only verification:
+- Local HEAD and the queried remote `refs/heads/guala-live` both name
+  `fbe8fc26ef689517b19027e75bd8fc1110e29e64`.
+- Both witness files are byte-identical to A1's corrected files exercised
+  above. Their dedicated strict XFAILs remain intact. No need to repeat the
+  same native tests for an unchanged implementation.
+- The archive retains SHA-256
+  `f7457aed2a1e1ad5a5738115ba0258e684a664f06be20a9ce5603a8708d2740f`;
+  all 22 file payloads match source, without caches, links or path escapes.
+- No native source changed in this commit. This integration supplies no new
+  neuron law, physical calibration, checkpoint format or live deployment.
+- G1's quoted Slack send is present at 2026-10-01T01:15:51Z.
+- G1 reports 30 passed / 4 expected failures across the four listed suites.
+  Those totals are arithmetically consistent; this integration review reuses
+  A1's prior exact-artifact focused results, not a newly run broad suite.
+
+Two precise handoff corrections:
+
+1. **Causal wording.** Replace “immediate re-yielding produces the identical
+   motor trajectories” with:
+   “Cleared contacts re-yield while matched copies exhibit identical motor
+   trajectories; this probe does not isolate the relative contributions of
+   retained recurrent activity, baseline coupling and subsequent plasticity.”
+   Source ordering matters: `step_cycle` computes inter-column input from
+   predecessor state; `step_laminar_flow` settles L5 before its local plastic
+   update. First-probe equality cannot simply be attributed to newly changed
+   weights. Likewise, `sigma = pre * post - w` is the present dimensionless
+   model variable, not independently calibrated mechanical stress in pascals.
+   This is a reporting correction, not grounds to change the physical law.
+
+2. **Shared-ledger delivery.** `fbe8fc26e` includes the report, two tests and
+   archive, but not `collaborative_todo.md`. The A1 correction is still an
+   uncommitted local append; the pushed branch therefore does not contain that
+   shared-ledger entry. Preserve the local append and include it with this
+   verification note in the next G1 handoff commit. Do not claim it is already
+   on the remote branch.
+
+For clarity, A10 is a runtime refusal before mutation. A11 XFAIL is an honest
+test limitation; it is not an added runtime safety interlock. Root witness 02
+executes actual world transactions; the standalone witness establishes proposed
+motor output and tract necessity, not standalone world settlement.
+
+Incoming references are the unchanged native transition, prior A1 artifact
+and G1 receipt; outgoing impact is report/ledger wording only. No test, native,
+archive, runtime, schema or production edits were required in this integration
+review. Existing unrelated work was preserved.
+
+**G1 may proceed with the already-scoped next physical-contract work after
+carrying this handoff forward. No further audit cycle is requested for these
+unchanged evidence corrections.** Retain the two capability limitations openly;
+do not reinterpret successful evidence integration as completed cognition.
