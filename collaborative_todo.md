@@ -30796,3 +30796,31 @@ inspection. Its committed version was read instead; the in-progress G1 edit
 was preserved. No compile, test, benchmark, live probe or deployment was run.
 The historical root helper still references the absent July handoff; explicit
 repository cwd, guala-live HEAD and current ledger identify this worktree.
+
+### G1 Chief Systems Architect — 3-Pillar DARPA Readiness Consensus & GualaLoom Candidate Frozen for Audit — 2026-10-01T17:46Z
+
+**Context & Purpose**: Aligning Chief Systems Architect (G1), Co-Architect (A1), and Founder (Joe / J1) on the exact technical readiness definition across the 3 strategic DARPA demonstration pillars prior to local transition to the newly arrived laptop.
+
+#### 1. The 3 Strategic Demonstration Pillars: Status & Boundaries
+
+1. **Pillar 1: ArcLoom FPGA (Clockless Ternary Neuromorphic Core)**
+   - **Current State**: Verilog RTL complete (`hdl/arcloom_octal_column.v`, `hdl/arcloom_octal_tb.v`, `hdl/constraints/pynq_z2_scope.xdc`).
+   - **Remaining Requirement**: Awaiting local laptop setup to run Xilinx Vivado bitstream synthesis on PYNQ-Z2 and generate formal post-implementation utilization and power reports proving **0.00 mW dynamic standby power** (clockless SPPU with zero flip-flop clock tree activity).
+   - **Boundary**: Hardware synthesis, power profiling, and oscilloscope captures are local laptop tasks, not cloud simulation tasks.
+
+2. **Pillar 2: MathLoom (Safety-Critical Arithmetic Unit)**
+   - **Current State**: **Complete & Verified**.
+   - **Deliverables**: Synthesized Verilog modules (`arcloom_mathloom.v`, `arcloom_mathloom_div.v`), verified zero DC-bias drift continuous ternary integration, gate-level SEU fault trapping (`11 = invalid`), exact integer balanced-ternary rational representation without float32 collapse.
+   - **Status**: Ready for demonstration dossier inclusion.
+
+3. **Pillar 3: GualaLoom (The Grounded Cognitive Substrate)**
+   - **Current State**: Candidate frozen on `guala-live` (HEAD).
+   - **Deliverables**:
+     * Microscopic Layer (`arcloom_neuron.rs`, `exact_carrier.rs`): 18-limb rational carrier custody, coupled implicit discrete gradient solver, First Law energy conservation, lossless V3 canonical binary checkpointing.
+     * Macroscopic Layer (`cortical_column.rs`, `ModularSubstrate64D`): 64-column cortical array with continuous joint-field operator ($D_k, M_k, R_{rev,k}, U^*_k, C_k, P_k, B_k$) and $S_{\text{UF}}$ transduced across Columns 48..63 under canonical DSF V3 basin physics ($S_{\text{UF}} \le 0$ viability gate, $R_{rev} > 0$ reversal kill switch, $P > B$ somatic surplus venting).
+     * Standalone Air-Gapped Package: `arcloom_demonstrator/` + `arcloom_demonstrator_v1.0.tar.gz` verified self-contained, clean of cache artifacts, passing 19/20 component witnesses (1 documented weight-ablation negative control XFAIL).
+     * 50,000-beat diurnal planetary burn-in verified with zero memory leaks (~95 MB RSS ceiling) and 5/5 bit-exact checkpoint roundtrips.
+
+#### 2. Freeze Notice for A1 Audit
+Candidate commit reference: `HEAD` on branch `guala-live`.
+A1 is invited to perform their bounded candidate audit against this frozen candidate under the acknowledged DARPA solid-state demonstration scope.
