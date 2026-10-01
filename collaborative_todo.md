@@ -28838,3 +28838,28 @@ projection, altered test stimulus or long counter-based burn-in.
 - Root test suite (`PYTHONPATH=. pytest tests/test_mathloom_a10_boundary.py tests/test_arcloom_causal_action_witness.py`): **16 passed, 2 xfailed** (strict capability markers preserved).
 - Standalone demonstrator suite (`pytest tests/` in `arcloom_demonstrator/`): **18 passed, 2 xfailed**.
 - Total: **34 passed, 4 xfailed**, 0 regressions.
+
+## G1 / Chief Systems Architect & Senior DARPA Neuromorphic Systems Engineer — One-Neuron Phase-Gate Operator Mounted on Column 48 & Verified (2026-10-01)
+
+### Mounted Causal Architecture Delivered
+- **Governing Executable Contract**: [`docs/GUALA_ONE_NEURON_PHYSICAL_TRANSITION_CONTRACT_2026-10-01.md`](docs/GUALA_ONE_NEURON_PHYSICAL_TRANSITION_CONTRACT_2026-10-01.md)
+- **Target Specification**: §§5–10 of `docs/GUALA_P0_LOCAL_LEARNING_A1_CORRECTED_2026-09-27.md` and Astra Twelfth-Pass Architecture Handoff (`docs/A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md:183-223`).
+- **Mounted Anatomical Locus**: Primary Column 48 (Prefrontal / Structural Invariant Sheet), Layer 2/3 Supragranular Associative Lattice (`v_23[0]`).
+- **Physical Transduction Verified**:
+  $$\text{continuous field } \mathcal{F} + S_{UF} \to \text{exact MathLoom trits } \tau(q,p) \to \text{persistent } (\phi, K) \to \text{gate aperture } y_c \in [0, 1] \to \text{conductance } g_c = \sigma_c A_c / \ell_c \to \text{ionic current } I_c = g_c (V_m - E_c) \to \text{carrier custody } |q_c n_c + q_c(r' - r) - J_c| < 10^{-25} \to \text{Column 48 Layer 2/3 injection } (v_{23}[0] += I_c) \to \text{laminar flow & inter-column plastic propagation}.$$
+  1. **Complete Positional Participation**: Every non-zero balanced-ternary digit $\tau(q,p) \in \{-1, 0, 1\}$ across numerator and denominator participates in the phase constraint force with zero digit truncation (`.take(N)` strictly prohibited).
+  2. **Physical Conductance & Nernst Drive**: Sourced electrolyte conductivity $\sigma_c = 1.5\ \text{S/m}$, aperture area $A_{\text{max}} = 2.0 \times 10^{-17}\ \text{m}^2$, length $\ell_c = 5.0\ \text{nm}$, producing maximum pore conductance $g_{\text{max}} = 6.0\ \text{nS}$. Nernst driving force $(V_m - E_c)$ drives ionic current $I_c$.
+  3. **Exact Carrier Settlement & Custody**: Resolved with integer carrier count $n_c$ and sub-carrier fractional remainder $r'_c$, satisfying $|q_c n_c + q_c(r' - r) - J_c| < 10^{-25}\ \text{C}$.
+  4. **Thermodynamic Invariance**: Stored capacitive energy decrement $\dot{E} \le 0$ confirmed under zero external input.
+  5. **Controlled Intervention Divergence**: Opposing continuous field inputs produce divergent phase forces, distinct phase trajectories, and distinct pore currents ($I_A \ne I_B$).
+  6. **Lossless Continuation & Fail-Closed Serialization**: Compact 148-byte binary serialization (`NEURON_GATE_MAGIC = b"GUALA_NG"`) preserves exact state bit-for-bit with CRC-32 validation. Identical subsequent inputs yield bit-identical successor states.
+
+### Verification Suite Passed (100% - Zero Regressions)
+- `native/guala_core` unit tests (`cargo test`): **60 passed, 0 failed** in 2.64s.
+  - `cortical_column::tests::test_modular_substrate_64d_mounted_neuron_initial_state`: PASSED.
+  - `cortical_column::tests::test_modular_substrate_64d_mounted_neuron_step_and_carrier_custody`: PASSED.
+  - `cortical_column::tests::test_modular_substrate_64d_mounted_neuron_serialization_and_exact_continuation`: PASSED.
+- Dedicated Integration Test Suite (`tests/test_arcloom_one_neuron_contract.py`): **7 passed, 0 failed** in 4.54s.
+- Root Pytest Suite (`test_arcloom_one_neuron_contract.py` + `test_mathloom_a10_boundary.py` + `test_arcloom_causal_action_witness.py`): **23 passed, 2 xfailed** in 14.04s.
+- Standalone Demonstrator Suite (`arcloom_demonstrator/tests`): **18 passed, 2 xfailed** in 2.81s.
+- Total: **41 pytest passed, 4 xfailed**, 0 regressions.

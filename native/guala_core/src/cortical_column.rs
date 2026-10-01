@@ -40,6 +40,10 @@
 use std::collections::HashSet;
 use pyo3::prelude::*;
 use pyo3::exceptions::{PyValueError, PyNotImplementedError};
+use crate::constitutive::{
+    ChargeCarrierState, NeuronPhaseGateConfig, NeuronPhaseGateTransition,
+    NeuronTransitionStepReceipt,
+};
 
 // Common Dimensions
 pub const L1_NODES: usize = 32;
@@ -1809,6 +1813,7 @@ pub struct ModularSubstrate64D {
     pub motor_locomotion_stride: f32,
     pub motor_steer_angle: f32,
     pub motor_grip_force: f32,
+    pub mounted_neuron: NeuronPhaseGateTransition,
 }
 
 impl ModularSubstrate64D {
@@ -1834,6 +1839,33 @@ impl ModularSubstrate64D {
             motor_locomotion_stride: 0.0,
             motor_steer_angle: 0.0,
             motor_grip_force: 0.0,
+            mounted_neuron: {
+                let neuron_cfg = NeuronPhaseGateConfig::new(
+                    1.0e-18, // kappa_base [J/rad]
+                    1.0e-15, // phase_damping_gamma [J*s/rad^2]
+                    1.5,     // sigma_conductivity [S/m]
+                    2.0e-17, // a_max_aperture [m^2]
+                    5.0e-9,  // ell_pore_length [m]
+                    1.0e-3,  // tau_gate_relax [s]
+                    0.050,   // reversal_potential [V] (+50 mV)
+                    1,       // valence (+1)
+                ).expect("Valid canonical NeuronPhaseGateConfig");
+                let carrier = ChargeCarrierState::new(
+                    -7.0e-12,        // -70 mV resting across 100 pF (-7.0 pC)
+                    100.0e-12,       // 100 pF membrane capacitance (tau_mem = C/g = 16.7 ms)
+                    0.0,             // initial remainder
+                    100_000_000_000, // 100 billion carriers source reservoir
+                    100_000_000_000, // 100 billion carriers dest reservoir
+                ).expect("Valid canonical ChargeCarrierState");
+                NeuronPhaseGateTransition::new(
+                    neuron_cfg,
+                    0.0,
+                    1.0,
+                    0,
+                    0.5,
+                    carrier,
+                ).expect("Valid canonical NeuronPhaseGateTransition")
+            },
         }
     }
 
@@ -1888,6 +1920,79 @@ impl ModularSubstrate64D {
     pub fn clear_continuous_joint_field(&mut self) {
         self.continuous_joint_field = [0.0; 8];
         self.continuous_joint_field_present = false;
+    }
+
+    /// Advances the mounted canonical one-neuron phase-gate transition on Column 48 Layer 2/3.
+    ///
+    /// Transduction sequence (§§5-10):
+    /// complete continuous joint field + S_UF -> exact MathLoom trits tau(q, p) without truncation
+    /// -> persistent phase phi and Krimelack winding K
+    /// -> gate coordinate y_c under physical potential U_c
+    /// -> pore conductance g_c = sigma * A_c(y_c) / ell
+    /// -> ionic current I_c = g_c * (V_m - E_c)
+    /// -> carrier settlement with remainder custody: |q*n + q*(r'-r) - J_c| < 1e-25
+    /// -> pore current injection into Column 48 Layer 2/3: v_23[0] += I_inj
+    /// -> Column 48 laminar microcircuit flow & inter-column plastic propagation.
+    pub fn step_mounted_canonical_neuron(
+        &mut self,
+        dt: f64,
+        somatic_trits: &[i8],
+    ) -> Result<NeuronTransitionStepReceipt, String> {
+        if !self.continuous_joint_field_present {
+            return Err("Cannot step mounted canonical neuron: continuous joint field is not present".to_string());
+        }
+        let mut all_trits = Vec::new();
+        for &val in &self.continuous_joint_field {
+            let rat = crate::mathloom::float_to_rational_trits(val)?;
+            if !rat.is_zero {
+                all_trits.extend_from_slice(&rat.numerator_trits);
+                all_trits.extend_from_slice(&rat.denominator_trits);
+            }
+        }
+
+        let receipt = self.mounted_neuron.advance_step(&all_trits, dt)
+            .map_err(|e| format!("Mounted neuron transition advance failed: {:?}", e))?;
+
+        // Injected pore current [nA]: convert Amperes to nanoamperes for microcircuit coupling
+        let injected_current = (receipt.ionic_current * 1.0e9) as f32;
+        let (in_23, in_5) = self.compute_inter_column_currents();
+        let mut col48_in_23 = in_23[48].clone();
+        col48_in_23[0] += injected_current;
+
+        let no_external_field = [0i8; L4_NODES];
+        self.columns[48].microcircuit.step_laminar_flow(
+            &no_external_field,
+            somatic_trits,
+            &col48_in_23,
+            &in_5[48],
+        );
+
+        self.apply_inter_column_plasticity();
+
+        Ok(receipt)
+    }
+
+    pub fn get_mounted_neuron_state(&self) -> (f64, f64, i64, f64, f64, f64, f64) {
+        (
+            self.mounted_neuron.phase,
+            self.mounted_neuron.amplitude,
+            self.mounted_neuron.winding,
+            self.mounted_neuron.gate_coordinate,
+            self.mounted_neuron.conductance(),
+            self.mounted_neuron.carrier.voltage(),
+            self.mounted_neuron.carrier.stored_energy(),
+        )
+    }
+
+    pub fn export_mounted_neuron_bytes(&self) -> Vec<u8> {
+        self.mounted_neuron.serialize().to_vec()
+    }
+
+    pub fn import_mounted_neuron_bytes(&mut self, bytes: &[u8]) -> Result<(), String> {
+        let restored = NeuronPhaseGateTransition::deserialize(bytes)
+            .map_err(|e| format!("Mounted neuron deserialization failed: {:?}", e))?;
+        self.mounted_neuron = restored;
+        Ok(())
     }
 
     pub fn has_continuous_joint_field(&self) -> bool {
@@ -3401,6 +3506,55 @@ impl PyModularSubstrate64D {
         };
         ModularSubstrate64D::rational_trits_to_float(&field).map_err(|e| PyValueError::new_err(e))
     }
+
+    #[pyo3(signature = (dt=0.001, somatic_trits=None))]
+    pub fn step_mounted_canonical_neuron(
+        &mut self,
+        dt: f64,
+        somatic_trits: Option<Vec<i8>>,
+    ) -> PyResult<std::collections::HashMap<String, f64>> {
+        let somatic = somatic_trits.unwrap_or_else(|| vec![0i8; 32]);
+        let receipt = self.inner.step_mounted_canonical_neuron(dt, &somatic)
+            .map_err(|e| PyValueError::new_err(e))?;
+
+        let mut map = std::collections::HashMap::new();
+        map.insert("phase_force".to_string(), receipt.phase_force);
+        map.insert("delta_phase".to_string(), receipt.delta_phase);
+        map.insert("phase_constraint_energy".to_string(), receipt.phase_constraint_energy);
+        map.insert("final_phase".to_string(), receipt.final_phase);
+        map.insert("final_winding".to_string(), receipt.final_winding as f64);
+        map.insert("gate_coordinate".to_string(), receipt.gate_coordinate);
+        map.insert("conductance".to_string(), receipt.conductance);
+        map.insert("ionic_current".to_string(), receipt.ionic_current);
+        map.insert("charge_transferred_coulombs".to_string(), receipt.charge_transferred_coulombs);
+        map.insert("membrane_voltage".to_string(), receipt.membrane_voltage);
+        map.insert("delta_e_cap".to_string(), receipt.delta_e_cap);
+        map.insert("transferred_carriers".to_string(), receipt.carrier_transport.carriers_transported as f64);
+        map.insert("final_remainder".to_string(), receipt.carrier_transport.new_remainder);
+        Ok(map)
+    }
+
+    pub fn get_mounted_neuron_state(&self) -> PyResult<std::collections::HashMap<String, f64>> {
+        let (phase, amp, winding, gate, cond, volt, energy) = self.inner.get_mounted_neuron_state();
+        let mut map = std::collections::HashMap::new();
+        map.insert("phase".to_string(), phase);
+        map.insert("amplitude".to_string(), amp);
+        map.insert("winding".to_string(), winding as f64);
+        map.insert("gate_coordinate".to_string(), gate);
+        map.insert("conductance".to_string(), cond);
+        map.insert("membrane_voltage".to_string(), volt);
+        map.insert("stored_energy".to_string(), energy);
+        Ok(map)
+    }
+
+    pub fn export_mounted_neuron_bytes(&self) -> PyResult<Vec<u8>> {
+        Ok(self.inner.export_mounted_neuron_bytes())
+    }
+
+    pub fn import_mounted_neuron_bytes(&mut self, bytes: Vec<u8>) -> PyResult<()> {
+        self.inner.import_mounted_neuron_bytes(&bytes)
+            .map_err(|e| PyValueError::new_err(e))
+    }
 }
 
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -3408,4 +3562,73 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyModularSubstrate8D>()?;
     m.add_class::<PyModularSubstrate64D>()?;
     Ok(())
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_modular_substrate_64d_mounted_neuron_initial_state() {
+        let sub = ModularSubstrate64D::new(0.60, 0.03, 0.25);
+        let (phase, amp, winding, gate, cond, volt, energy) = sub.get_mounted_neuron_state();
+        assert_eq!(phase, 0.0);
+        assert_eq!(amp, 1.0);
+        assert_eq!(winding, 0);
+        assert_eq!(gate, 0.5);
+        assert!(cond > 0.0);
+        assert!((volt - (-0.070)).abs() < 1e-6);
+        assert!(energy > 0.0);
+    }
+
+    #[test]
+    fn test_modular_substrate_64d_mounted_neuron_step_and_carrier_custody() {
+        let mut sub = ModularSubstrate64D::new(0.60, 0.03, 0.25);
+        // Field must be present
+        assert!(sub.step_mounted_canonical_neuron(0.001, &[0i8; 32]).is_err());
+
+        // Feed field
+        sub.consume_continuous_joint_field([0.5, 0.6, -0.4, 0.2, 0.8, 0.1, 0.9], 1.0).unwrap();
+        let receipt = sub.step_mounted_canonical_neuron(0.001, &[0i8; 32]).unwrap();
+
+        // Check custody identity: |q_c * n_c + q_c * (r' - r) - J_c| < 1e-25
+        assert!(receipt.carrier_transport.identity_residual < 1e-25, "Identity residual: {}", receipt.carrier_transport.identity_residual);
+
+        // Check phase displacement
+        assert!(receipt.delta_phase.abs() > 0.0);
+        assert!(receipt.conductance > 0.0);
+    }
+
+    #[test]
+    fn test_modular_substrate_64d_mounted_neuron_serialization_and_exact_continuation() {
+        let mut sub = ModularSubstrate64D::new(0.60, 0.03, 0.25);
+        sub.consume_continuous_joint_field([0.8, -0.3, 0.5, 0.1, 0.4, 0.7, 0.2], 0.95).unwrap();
+
+        // Step 5 times
+        for _ in 0..5 {
+            sub.step_mounted_canonical_neuron(0.001, &[0i8; 32]).unwrap();
+        }
+
+        // Export state
+        let bytes = sub.export_mounted_neuron_bytes();
+        assert_eq!(bytes.len(), 148);
+
+        // Advance original 1 more step
+        let receipt_orig = sub.step_mounted_canonical_neuron(0.001, &[0i8; 32]).unwrap();
+
+        // Restore onto fresh substrate with identical continuous field
+        let mut sub2 = ModularSubstrate64D::new(0.60, 0.03, 0.25);
+        sub2.consume_continuous_joint_field([0.8, -0.3, 0.5, 0.1, 0.4, 0.7, 0.2], 0.95).unwrap();
+        sub2.import_mounted_neuron_bytes(&bytes).unwrap();
+
+        // Advance restored 1 step
+        let receipt_restored = sub2.step_mounted_canonical_neuron(0.001, &[0i8; 32]).unwrap();
+
+        assert_eq!(receipt_orig.final_phase.to_bits(), receipt_restored.final_phase.to_bits());
+        assert_eq!(receipt_orig.final_winding, receipt_restored.final_winding);
+        assert_eq!(receipt_orig.gate_coordinate.to_bits(), receipt_restored.gate_coordinate.to_bits());
+        assert_eq!(receipt_orig.conductance.to_bits(), receipt_restored.conductance.to_bits());
+        assert_eq!(receipt_orig.ionic_current.to_bits(), receipt_restored.ionic_current.to_bits());
+    }
 }
