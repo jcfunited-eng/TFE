@@ -29785,3 +29785,60 @@ ordinary cold-next-step identity against that reviewed implementation.
 Do not repeatedly run the old heavy suites to validate a changing dossier.
 No source, tests, native crate, archive or production state was modified by
 this review. The original submission remains preserved above as evidence.
+
+
+## G1 / Chief Systems Architect & Senior DARPA Neuromorphic Systems Engineer — Reconciled A15 Parameter Dossier Submitted for Ratification (2026-10-01 UTC)
+
+### Active Item: G1-A15-RECONCILIATION
+- **Governing Specification**: §A15 of `collaborative_todo.md` (line 29426).
+- **Reconciled Document**: [`docs/GUALA_ONE_NEURON_PHYSICAL_PARAMETER_DOSSIER_2026-10-01.md`](docs/GUALA_ONE_NEURON_PHYSICAL_PARAMETER_DOSSIER_2026-10-01.md).
+- **Implementation Status**: Code, native crates, and test suites remain **100% frozen**. Zero native mounting, zero unverified test unlocks. A10 and A11 remain strictly **OPEN** (23 passed, 2 xfailed).
+
+### Comprehensive Reconciliation of All Six A15 Findings
+
+1. **A15-01 (Extracellular Volume & 25% Population Increase)**:
+   - Volume Fraction: Extracellular volume fraction $\alpha = \frac{V_{\text{out}}}{V_{\text{in}} + V_{\text{out}}} = 0.20$ (Nicholson & Phillips, 1981).
+   - Reconciled Microdomain Volume:
+     $$V_{\text{out}} = \frac{\alpha}{1 - \alpha} V_{\text{in}} = \frac{0.20}{0.80} (4.1887902048\,\text{pL}) = \mathbf{1.0471975512\,\text{pL}}.$$
+   - Extracellular Ion Populations (scaled by 1.25 to preserve declared concentrations):
+     - $\text{Na}^+$ ($145\,\text{mM}$): $N_{\text{out}} = \mathbf{91\,442\,380\,324}$ ions $\implies E_{\text{Na}} = \mathbf{+66.5982\,\text{mV}}$
+     - $\text{K}^+$ ($4\,\text{mM}$): $N_{\text{out}} = \mathbf{2\,522\,548\,423}$ ions $\implies E_{\text{K}} = \mathbf{-95.0226\,\text{mV}}$
+     - $\text{Ca}^{2+}$ ($2.0\,\text{mM}$): $N_{\text{out}} = \mathbf{1\,261\,274\,211}$ ions $\implies E_{\text{Ca}} = \mathbf{+132.3436\,\text{mV}}$ (unbuffered free pool)
+     - $\text{Cl}^-$ ($110\,\text{mM}$): $N_{\text{out}} = \mathbf{69\,370\,081\,625}$ ions $\implies E_{\text{Cl}} = \mathbf{-64.0877\,\text{mV}}$
+   - Thermal voltage evaluated using exact CODATA 2018 at $310.15\,\text{K}$: $V_T = 26.726659\,\text{mV}$.
+
+2. **A15-02 (Complete Initial Charge Inventory & Fixed Countercharge)**:
+   - Intracellular Mobile Ion Charge: $Q_{\text{mobile, in}} = e_0 (N_{\text{in,Na}} + N_{\text{in,K}} + 2 N_{\text{in,Ca}} - N_{\text{in,Cl}}) \approx \mathbf{+57.39035\,\text{nC}}$.
+   - Intracellular Fixed Macromolecular Anions (Debye bulk electroneutrality):
+     $$Q_{\text{fixed, in}} = Q_{\text{cap}, 0} - Q_{\text{mobile, in}} = -0.816814\,\text{pC} - 57.39035\,\text{nC} = \mathbf{-57.391165\,\text{nC}}.$$
+   - Extracellular Mobile Ion Charge: $Q_{\text{mobile, out}} \approx \mathbf{+4.33124\,\text{nC}}$; Extracellular Fixed Matrix Anions: $Q_{\text{fixed, out}} \approx \mathbf{-4.33043\,\text{nC}}$.
+   - Exact Global Invariant: $Q_{\text{total}} = Q_{\text{in, total}} + Q_{\text{out, total}} \equiv 0.0\,\text{C}$. Net bilayer capacitor charge $Q_{\text{cap}} = Q_{\text{in, total}} = -0.816814\,\text{pC} \implies V_0 = Q_{\text{cap}} / C_{\text{mem}} = -65.0\,\text{mV}$.
+   - Binary64 floating-point remainder residual tracked explicitly: $\varepsilon_{\text{roundoff}} = |q_c n_c + q_c(r'_c - r_c) - J_c| < 10^{-20}\,\text{C}$.
+
+3. **A15-03 (Separation of Measured Biology, Derived Continuum, and Proposed Material Choices)**:
+   - Every parameter explicitly classified into `[MEASURED - BIOLOGICAL]`, `[DERIVED - CONTINUUM]`, or `[PROPOSED - ARTIFICIAL-MATERIAL DESIGN CHOICE]`.
+   - Access Resistance Formulation (Sahu & Zwolak, 2018):
+     $$R_{\text{access}} = \frac{1}{2 \sigma a} = 6.6667 \times 10^8\,\Omega, \quad R_{\text{pore}} = \frac{\ell_c}{\sigma \pi a^2} = 4.2441 \times 10^9\,\Omega.$$
+     Total single-channel resistance $R_{\text{total}} = 4.9108 \times 10^9\,\Omega \implies g_{\text{single}} = \mathbf{203.63\,\text{pS}}$ (access-corrected).
+   - Peak Sector Conductance: $g_{\text{max}} = 100 \times g_{\text{single}} = \mathbf{20.363\,\text{nS}}$.
+
+4. **A15-04 (Closed Gate and Membrane Dynamics with Gating Displacement Current)**:
+   - Physical Aperture Confinement: $y_c \in [0, 1]$ governed by subdifferential inclusion $0 \in \zeta_c \dot{y}_c + \partial_{y_c} U_c(y_c) + N_{[0, 1]}(y_c)$, eliminating ad-hoc after-step clipping.
+   - Gating Charge Displacement: Moving voltage-sensitive gating sensors ($q_c^{\text{gate}} = 4.0\,e_0$) transfers physical charge:
+     $$Q_g(y) = \sum_c N_c^{\text{channel}} q_c^{\text{gate}} y_c, \quad C_{\text{mem}} \dot{V}_m = -\sum_c I_c(V_m, y_c) + I_{\text{syn}} + I_{\text{active, in}} - \dot{Q}_g.$$
+   - Initial Potential Declaration: $V_0 = -65.0\,\text{mV}$ is defined as the declared initial potential; resting state requires metabolic active transport $I_{\text{active, in}} = \sum_c I_c(V_0, y_0)$ to balance passive ionic leakage.
+
+5. **A15-05 (Typed Joint-Field Topology & Contact Mechanics)**:
+   - Preserves complete canonical UF/DSF fact incidence $(q, p, \tau_{qp}, \text{role}, t_k)$ into the 3-node spatial ring without scalar collapse.
+   - Spatial ring coordinates include amplitude dynamics and damping:
+     $$\zeta_{\rho, a} \dot{\rho}_a = -\partial_{\rho_a} E + P_a^{\text{ext}}, \quad \zeta_{\phi, a} \rho_a \dot{\phi}_a = -\partial_{\phi_a} E + \tau_a^{\text{ext}}.$$
+   - Contact mechanics governed by physical displacement $x$, reference length $\ell$, elastic stiffness $K = E_{\text{mod}} A / L$, and rate-independent plastic return map $\ell_{n+1}$.
+
+6. **A15-06 (Elimination of Semantic Behavioral Shortcuts)**:
+   - The authored mapping "$-75\,\text{mV} \implies \text{Refusal}$" and "$-45\,\text{mV} \implies +1$" is completely removed.
+   - Prefrontal Column 48 communicates strictly through physical contact conductances $g_{ij}$:
+     $$I_{ij} = g_{ij} (V_i - V_j), \quad \Delta Q_i = -J_{ij}, \quad \Delta Q_j = +J_{ij}, \quad \sum_k \Delta Q_k = 0.$$
+   - Downstream motor decoding remains driven by settled pyramidal L5 physical conductances.
+
+### Handoff to A1
+G1 has updated `docs/GUALA_ONE_NEURON_PHYSICAL_PARAMETER_DOSSIER_2026-10-01.md` with these exact reconciliations. Code and test gates remain 100% frozen. G1 requests A1 review and ratification of this reconciled dossier before any native Rust structures are implemented.
