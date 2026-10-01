@@ -1785,6 +1785,7 @@ pub struct StagedSubstrateState {
     pub severed_tracts: Vec<bool>,
     pub continuous_joint_field: [f64; 8],
     pub continuous_joint_field_present: bool,
+    pub mounted_operator: crate::constitutive::TypedPhaseGateMaterialOperator,
     pub motor_vocal_drive: f32,
     pub motor_locomotion_stride: f32,
     pub motor_steer_angle: f32,
@@ -1802,6 +1803,7 @@ pub struct ModularSubstrate64D {
     pub severed_tracts: Vec<bool>,
     pub continuous_joint_field: [f64; 8],
     pub continuous_joint_field_present: bool,
+    pub mounted_operator: crate::constitutive::TypedPhaseGateMaterialOperator,
     pub yield_threshold: f32,
     pub plastic_rate: f32,
     pub activation_threshold: f32,
@@ -1827,6 +1829,8 @@ impl ModularSubstrate64D {
             severed_tracts: vec![false; NUM_COLUMNS_64D * NUM_COLUMNS_64D],
             continuous_joint_field: [0.0; 8],
             continuous_joint_field_present: false,
+            mounted_operator: crate::constitutive::TypedPhaseGateMaterialOperator::default_canonical()
+                .expect("Valid calibrated operator genesis"),
             yield_threshold: yield_threshold.clamp(0.01, 0.99),
             plastic_rate: plastic_rate.clamp(0.001, 1.0),
             activation_threshold: activation_threshold.max(0.01),
@@ -1898,6 +1902,78 @@ impl ModularSubstrate64D {
         self.continuous_joint_field
     }
 
+    /// Dynamic physical transition of the mounted typed operator on Column 48.
+    ///
+    /// Transduces the 7D continuous field into coupled oscillator phases,
+    /// dynamic channel conductances, and exact SI ionic currents.
+    /// Couplings to Prefrontal Column 48 Layer 2/3 receptive field nodes
+    /// reflect physical conductances rather than dimensionless ad-hoc multipliers:
+    /// - Excitatory Na+ current depolarizes nodes 0..31
+    /// - Inhibitory K+ current hyperpolarizes nodes 32..63
+    /// - Stabilizing Ca2+ current stabilizes nodes 64..95
+    pub fn step_operator_transition(
+        &mut self,
+        dt: f64,
+        somatic_trits: &[i8],
+    ) -> Result<crate::constitutive::NeuronTransitionReceipt, String> {
+        if !self.continuous_joint_field_present {
+            return Err("Continuous joint field must be present to step mounted operator".to_string());
+        }
+        if !dt.is_finite() || dt <= 0.0 {
+            return Err(format!("Invalid dt for operator transition: {}", dt));
+        }
+
+        let mut field_7d = [0.0f64; crate::constitutive::DSF_CHANNELS];
+        field_7d.copy_from_slice(&self.continuous_joint_field[0..7]);
+        let s_uf = self.continuous_joint_field[7];
+
+        // 1. Physical transition of operator with First Law and charge conservation
+        let receipt = self.mounted_operator.step_transition(&field_7d, s_uf, 0.0, dt)
+            .map_err(|e| format!("Operator physical transition failed: {:?}", e))?;
+
+        // 2. Transmembrane efferents into Prefrontal Column 48 Layer 2/3 receptive field
+        let (in_23, in_5) = self.compute_inter_column_currents();
+        let mut col48_in_23 = in_23[48].clone();
+
+        if receipt.total_conductance > 1e-15 {
+            let g_na_norm = (receipt.channel_conductances[0] / receipt.total_conductance) as f32;
+            let g_k_norm = (receipt.channel_conductances[1] / receipt.total_conductance) as f32;
+            let g_ca_norm = (receipt.channel_conductances[2] / receipt.total_conductance) as f32;
+
+            let v_rel = ((receipt.v_membrane_final - (-0.065)) / 0.050) as f32;
+
+            for j in 0..32 {
+                col48_in_23[j] += g_na_norm * (1.0 + v_rel.max(0.0));
+            }
+            for j in 32..64 {
+                col48_in_23[j] -= g_k_norm * (1.0 + (-v_rel).max(0.0));
+            }
+            for j in 64..96 {
+                col48_in_23[j] += g_ca_norm * v_rel;
+            }
+        }
+
+        let no_external_field = [0i8; L4_NODES];
+        self.columns[48].microcircuit.step_laminar_flow(
+            &no_external_field,
+            somatic_trits,
+            &col48_in_23,
+            &in_5[48],
+        );
+
+        self.apply_inter_column_plasticity();
+
+        Ok(receipt)
+    }
+
+    pub fn mounted_operator(&self) -> &crate::constitutive::TypedPhaseGateMaterialOperator {
+        &self.mounted_operator
+    }
+
+    pub fn mounted_operator_mut(&mut self) -> &mut crate::constitutive::TypedPhaseGateMaterialOperator {
+        &mut self.mounted_operator
+    }
+
     fn commit_staged_state(&mut self, staged: StagedSubstrateState) {
         self.yield_threshold = staged.yield_threshold;
         self.plastic_rate = staged.plastic_rate;
@@ -1910,6 +1986,7 @@ impl ModularSubstrate64D {
         self.severed_tracts = staged.severed_tracts;
         self.continuous_joint_field = staged.continuous_joint_field;
         self.continuous_joint_field_present = staged.continuous_joint_field_present;
+        self.mounted_operator = staged.mounted_operator;
         self.motor_vocal_drive = staged.motor_vocal_drive;
         self.motor_locomotion_stride = staged.motor_locomotion_stride;
         self.motor_steer_angle = staged.motor_steer_angle;
@@ -2371,6 +2448,9 @@ impl ModularSubstrate64D {
             buf.extend_from_slice(&val.to_le_bytes());
         }
 
+        // Canonical mounted operator serialization (936 bytes) with CRC32
+        buf.extend_from_slice(&self.mounted_operator.serialize());
+
         let pad = (8 - (buf.len() % 8)) % 8;
         for _ in 0..pad {
             buf.push(0);
@@ -2535,6 +2615,8 @@ impl ModularSubstrate64D {
             severed_tracts: new_severed,
             continuous_joint_field: [0.0; 8],
             continuous_joint_field_present: false,
+            mounted_operator: crate::constitutive::TypedPhaseGateMaterialOperator::default_canonical()
+                .map_err(|e| format!("Failed to initialize operator for predecessor migration: {}", e))?,
             motor_vocal_drive: new_vocal,
             motor_locomotion_stride: new_stride,
             motor_steer_angle: new_steer,
@@ -2760,6 +2842,20 @@ impl ModularSubstrate64D {
             cjf[i] = val;
         }
 
+        // Canonical mounted operator deserialization or predecessor migration
+        let rem = data.len() - offset;
+        let mounted_op = if rem >= crate::constitutive::OPERATOR_SERIALIZED_SIZE {
+            let op_bytes = &data[offset..offset + crate::constitutive::OPERATOR_SERIALIZED_SIZE];
+            offset += crate::constitutive::OPERATOR_SERIALIZED_SIZE;
+            crate::constitutive::TypedPhaseGateMaterialOperator::deserialize(op_bytes)
+                .map_err(|e| format!("Failed to deserialize mounted operator in ARCLOOM4: {:?}", e))?
+        } else {
+            // Authentic predecessor layout without mounted operator:
+            // Migrates by initializing the operator in calibrated genesis.
+            crate::constitutive::TypedPhaseGateMaterialOperator::default_canonical()
+                .map_err(|e| format!("Failed to initialize operator for predecessor migration: {}", e))?
+        };
+
         let expected_pad = (8 - (offset % 8)) % 8;
         let actual_pad = data.len() - offset;
         if actual_pad != expected_pad {
@@ -2783,6 +2879,7 @@ impl ModularSubstrate64D {
             severed_tracts: new_severed,
             continuous_joint_field: cjf,
             continuous_joint_field_present: present,
+            mounted_operator: mounted_op,
             motor_vocal_drive: new_vocal,
             motor_locomotion_stride: new_stride,
             motor_steer_angle: new_steer,
@@ -2990,6 +3087,8 @@ impl ModularSubstrate64D {
             severed_tracts: new_severed,
             continuous_joint_field: cjf,
             continuous_joint_field_present: is_present,
+            mounted_operator: crate::constitutive::TypedPhaseGateMaterialOperator::default_canonical()
+                .map_err(|e| format!("Failed to initialize operator for predecessor migration: {}", e))?,
             motor_vocal_drive: new_vocal,
             motor_locomotion_stride: new_stride,
             motor_steer_angle: new_steer,
@@ -3409,3 +3508,96 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyModularSubstrate64D>()?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_modular_substrate_64d_mounted_operator_genesis() {
+        let sub = ModularSubstrate64D::new(0.60, 0.03, 0.25);
+        let op = sub.mounted_operator();
+        assert!((op.v_membrane - (-0.065)).abs() < 1e-6);
+        assert_eq!(op.s_uf, 1.0);
+    }
+
+    #[test]
+    fn test_modular_substrate_64d_checkpoint_exact_roundtrip_with_operator() {
+        let mut sub = ModularSubstrate64D::new(0.60, 0.03, 0.25);
+        sub.consume_continuous_joint_field([0.5, -0.2, 0.8, 0.1, 0.4, 0.9, 0.3], 0.95).unwrap();
+
+        let r1 = sub.step_operator_transition(0.010, &[0i8; 32]).unwrap();
+        assert!(r1.total_conductance > 0.0);
+
+        let checkpoint = sub.export_sparse_v4().unwrap();
+
+        let mut restored = ModularSubstrate64D::new(0.50, 0.01, 0.10);
+        restored.import_sparse_v4(&checkpoint).unwrap();
+
+        let checkpoint_restored = restored.export_sparse_v4().unwrap();
+        assert_eq!(checkpoint, checkpoint_restored, "Checkpoint bytes must match bit-identically");
+        assert_eq!(
+            sub.mounted_operator().v_membrane.to_bits(),
+            restored.mounted_operator().v_membrane.to_bits()
+        );
+    }
+
+    #[test]
+    fn test_modular_substrate_64d_used_recipient_replacement() {
+        let mut original = ModularSubstrate64D::new(0.60, 0.03, 0.25);
+        original.consume_continuous_joint_field([0.7, 0.2, 0.1, 0.4, 0.5, 0.6, 0.8], 1.0).unwrap();
+        original.step_operator_transition(0.010, &[0i8; 32]).unwrap();
+        let checkpoint = original.export_sparse_v4().unwrap();
+
+        let mut recipient = ModularSubstrate64D::new(0.60, 0.03, 0.25);
+        recipient.consume_continuous_joint_field([-0.5, -0.6, -0.7, -0.1, -0.2, -0.3, -0.4], 0.5).unwrap();
+        recipient.step_operator_transition(0.010, &[0i8; 32]).unwrap();
+
+        assert_ne!(
+            original.mounted_operator().v_membrane.to_bits(),
+            recipient.mounted_operator().v_membrane.to_bits()
+        );
+
+        recipient.import_sparse_v4(&checkpoint).unwrap();
+        assert_eq!(recipient.export_sparse_v4().unwrap(), checkpoint);
+        assert_eq!(
+            original.mounted_operator().v_membrane.to_bits(),
+            recipient.mounted_operator().v_membrane.to_bits()
+        );
+    }
+
+    #[test]
+    fn test_modular_substrate_64d_operator_viability_refusal() {
+        let mut sub = ModularSubstrate64D::new(0.60, 0.03, 0.25);
+        sub.consume_continuous_joint_field([0.5; 7], 0.0).unwrap();
+
+        let before_bytes = sub.export_sparse_v4().unwrap();
+        let res = sub.step_operator_transition(0.010, &[0i8; 32]);
+        assert!(res.is_err(), "S_UF <= 0 must refuse operator transition");
+        let after_bytes = sub.export_sparse_v4().unwrap();
+        assert_eq!(before_bytes, after_bytes, "State must not mutate on viability refusal");
+    }
+
+    #[test]
+    fn test_modular_substrate_64d_operator_field_divergence() {
+        let mut sub_a = ModularSubstrate64D::new(0.60, 0.03, 0.25);
+        sub_a.consume_continuous_joint_field([0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 1.0).unwrap();
+        let receipt_a = sub_a.step_operator_transition(0.010, &[0i8; 32]).unwrap();
+
+        let mut sub_b = ModularSubstrate64D::new(0.60, 0.03, 0.25);
+        sub_b.consume_continuous_joint_field([0.0, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0], 1.0).unwrap();
+        let receipt_b = sub_b.step_operator_transition(0.010, &[0i8; 32]).unwrap();
+
+        assert_ne!(
+            receipt_a.channel_conductances,
+            receipt_b.channel_conductances,
+            "Pure D vs pure M must produce divergent channel conductances"
+        );
+        assert_ne!(
+            receipt_a.v_membrane_final.to_bits(),
+            receipt_b.v_membrane_final.to_bits(),
+            "Membrane potential must diverge under distinct field facts"
+        );
+    }
+}
+
