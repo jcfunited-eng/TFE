@@ -50,6 +50,7 @@ mod auditory_reachability;
 pub mod constitutive;
 pub mod coupled_synapse;
 pub mod cortical_column;
+pub mod mathloom;
 pub mod frame_observability;
 pub mod persistence_prediction;
 pub mod prospective_recombination;

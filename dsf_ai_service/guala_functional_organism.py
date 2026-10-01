@@ -1583,19 +1583,10 @@ class FunctionalOrganism:
         cached = getattr(self, "_cached_modular_substrate", None)
         if cached is None:
             if sub_dict is not None:
-                fmt = str(sub_dict.get("format", "ARCLOOM4")).strip()
-                if fmt in ("ARCLOOM2", "ARCLOOM3"):
-                    layout = sub_dict.get("predecessor_layout")
-                    if not layout:
-                        raise ValueError(f"Restoring historical format {fmt} requires explicit authenticated predecessor_layout metadata")
-                    self._cached_modular_substrate = ModularColumnSubstrate.migrate_predecessor_dict(
-                        sub_dict,
-                        layout=layout,
-                        field_present=sub_dict.get("field_present"),
-                    )
-                    self._sync_modular_substrate()
-                else:
-                    self._cached_modular_substrate = ModularColumnSubstrate.from_dict(sub_dict)
+                # Ordinary restoration never migrates history or changes the
+                # stored generation as a side effect of reading a property.
+                # Explicit predecessor migration is a separate custody operation.
+                self._cached_modular_substrate = ModularColumnSubstrate.from_dict(sub_dict)
             else:
                 self._cached_modular_substrate = ModularColumnSubstrate()
         return self._cached_modular_substrate
@@ -2820,19 +2811,12 @@ class FunctionalOrganism:
         t_delta = (float(t_surf - 310_000) / 10_000.0) if t_surf is not None else float(measures.get("touch_warmth", 0.0) - 0.5)
         som_trits = self._ternary_substrate.encode_somatic_field(c_load, t_delta)
         eff_trits = [0] * 256
-        if hasattr(self, "_last_dsf_states") and self._last_dsf_states:
-            st_list = list(self._last_dsf_states.values())
-            d_j = float(np.mean([s["D_k"] for s in st_list]))
-            m_j = float(np.mean([s["M_k"] for s in st_list]))
-            r_rev_j = float(np.max([s["R_rev_k"] for s in st_list]))
-            u_star_j = float(np.max([s["U_star_k"] for s in st_list]))
-            c_j = float(np.mean([s["C_k"] for s in st_list]))
-            p_j = float(np.mean([s["P_k"] for s in st_list]))
-            b_j = float(np.mean([s["B_k"] for s in st_list]))
-            s_uf_j = float(b_j - p_j) if b_j > 0.0 else float(-p_j)
-            dsf_vec = (d_j, m_j, r_rev_j, u_star_j, c_j, p_j, b_j, s_uf_j)
-        else:
-            dsf_vec = None
+        if getattr(self, "_last_dsf_states", None):
+            raise NotImplementedError(
+                "Shared full-field delivery is unavailable: per-channel averages/maxima "
+                "and B_k - P_k are not the canonical joint field or global S_UF"
+            )
+        dsf_vec = None
         if said:
             o_idx, v_idx, p_idx = None, None, None
             for oi, o_name in enumerate(ONSETS):

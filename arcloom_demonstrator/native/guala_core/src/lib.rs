@@ -4,6 +4,7 @@
 use pyo3::prelude::*;
 
 pub mod cortical_column;
+pub mod mathloom;
 
 #[pymodule]
 fn guala_core(m: &Bound<'_, PyModule>) -> PyResult<()> {

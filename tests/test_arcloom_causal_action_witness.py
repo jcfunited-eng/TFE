@@ -1,7 +1,8 @@
 """tests/test_arcloom_causal_action_witness.py
 
 Standalone Executable Architectural Witness for ArcLoom 64D Neuromorphic Substrate.
-Formally proves resolution of Astra's (A1) Ninth-Pass Audit findings (A9-01 through A9-06):
+Component witnesses only. A10 rejects full-field closure; its positive field
+case remains a strict expected failure, not a passing architecture claim:
 
 1. Production Motor Conversion & Obstacle Refusal (A9-01):
    - Motor efferent inspection is a pure read-only proposal (proposed_kinematic_action).
@@ -633,6 +634,11 @@ def test_witness_a6_03_authentic_predecessor_migration_and_strict_codec() -> Non
     assert sub.is_tract_severed(3, 7) == baseline_severed
 
 
+@pytest.mark.xfail(
+    strict=True,
+    raises=NotImplementedError,
+    reason="A10 release blocker: ratified full-field phase/material consumer is unimplemented",
+)
 def test_witness_a6_04_full_continuous_joint_field_participation() -> None:
     """
     Finding A9-04 Witness:

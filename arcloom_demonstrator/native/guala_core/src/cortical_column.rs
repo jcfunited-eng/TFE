@@ -24,10 +24,10 @@
 //!      - Silent motor populations produce strictly (0.0, 0.0, 0.0, 0.0) efferents.
 //!      - Actuators remain on independent physical axes; zero dimensionally invalid cross-ranking.
 //!   4. Prefrontal / Structural Invariant Sheet (Columns 48..63):
-//!      - Discrete balanced-ternary receptor projections of DSF invariant trits are directly
-//!        consumed by Columns 48..63, propagating currents into associative and motor columns.
-//!      - Continuous 7-field joint tensor and S_UF viability invariant are preserved through
-//!        exact native continuous transport interfaces.
+//!      - Complete binary64 field values are preserved in storage and exact
+//!        rational representation. The typed phase/material consumer is absent.
+//!      - Full-field transition refuses atomically. Component-only execution
+//!        is not evidence of ratified full-field neuron physics.
 //!   5. Fail-Closed Lossless ARCLOOM4 State Persistence with Explicit Field Availability:
 //!      - Serializes complete topological configuration, including severed tracts,
 //!        column-local microcircuit plasticity parameters, and motor dynamics.
@@ -1791,200 +1791,7 @@ pub struct StagedSubstrateState {
     pub motor_grip_force: f32,
 }
 
-// ---------------------------------------------------------------------------
-// MathLoom Exact Rational Balanced Ternary Arithmetic (1088-Bit Precision)
-// ---------------------------------------------------------------------------
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct BigInt1088 {
-    pub limbs: [u64; 18], // 18 * 64 = 1152 bits >= 1075 bits
-}
-
-impl BigInt1088 {
-    pub const ZERO: Self = Self { limbs: [0; 18] };
-
-    pub fn from_u64(val: u64) -> Self {
-        let mut limbs = [0u64; 18];
-        limbs[0] = val;
-        Self { limbs }
-    }
-
-    pub fn is_zero(&self) -> bool {
-        self.limbs.iter().all(|&l| l == 0)
-    }
-
-    pub fn shl(&self, shift: usize) -> Result<Self, String> {
-        if shift == 0 {
-            return Ok(*self);
-        }
-        let limb_shift = shift / 64;
-        let bit_shift = shift % 64;
-        if limb_shift >= 18 {
-            return Err("Shift exceeds maximum capacity 1088 bits".to_string());
-        }
-        let mut new_limbs = [0u64; 18];
-        for i in 0..18 {
-            if self.limbs[i] == 0 { continue; }
-            let target_idx = i + limb_shift;
-            if target_idx < 18 {
-                new_limbs[target_idx] |= self.limbs[i] << bit_shift;
-            } else {
-                return Err("Bit overflow shifting BigInt1088".to_string());
-            }
-            if bit_shift > 0 && target_idx + 1 < 18 {
-                new_limbs[target_idx + 1] |= self.limbs[i] >> (64 - bit_shift);
-            } else if bit_shift > 0 && (self.limbs[i] >> (64 - bit_shift)) != 0 {
-                return Err("Bit overflow shifting BigInt1088".to_string());
-            }
-        }
-        Ok(Self { limbs: new_limbs })
-    }
-
-    pub fn shr(&self, shift: usize) -> Self {
-        if shift == 0 {
-            return *self;
-        }
-        let limb_shift = shift / 64;
-        let bit_shift = shift % 64;
-        if limb_shift >= 18 {
-            return Self::ZERO;
-        }
-        let mut new_limbs = [0u64; 18];
-        for i in limb_shift..18 {
-            let target_idx = i - limb_shift;
-            new_limbs[target_idx] |= self.limbs[i] >> bit_shift;
-            if bit_shift > 0 && target_idx > 0 {
-                new_limbs[target_idx - 1] |= self.limbs[i] << (64 - bit_shift);
-            }
-        }
-        Self { limbs: new_limbs }
-    }
-
-    pub fn div_rem_3(&mut self) -> u8 {
-        let mut rem: u128 = 0;
-        for limb in self.limbs.iter_mut().rev() {
-            let cur = (rem << 64) | (*limb as u128);
-            *limb = (cur / 3) as u64;
-            rem = cur % 3;
-        }
-        rem as u8
-    }
-
-    pub fn add_u64(&mut self, val: u64) -> Result<(), String> {
-        let mut carry = val as u128;
-        for limb in self.limbs.iter_mut() {
-            let sum = (*limb as u128) + carry;
-            *limb = sum as u64;
-            carry = sum >> 64;
-            if carry == 0 { break; }
-        }
-        if carry > 0 {
-            return Err("Overflow adding to BigInt1088".to_string());
-        }
-        Ok(())
-    }
-
-    pub fn mul_3_add(&mut self, digit: u64) -> Result<(), String> {
-        let mut carry = digit as u128;
-        for limb in self.limbs.iter_mut() {
-            let cur = (*limb as u128) * 3 + carry;
-            *limb = cur as u64;
-            carry = cur >> 64;
-        }
-        if carry > 0 {
-            return Err("Overflow in mul_3_add".to_string());
-        }
-        Ok(())
-    }
-
-    pub fn gte(&self, other: &Self) -> bool {
-        for i in (0..18).rev() {
-            if self.limbs[i] > other.limbs[i] { return true; }
-            if self.limbs[i] < other.limbs[i] { return false; }
-        }
-        true
-    }
-
-    pub fn sub(&self, other: &Self) -> Result<Self, String> {
-        let mut res = [0u64; 18];
-        let mut borrow: u128 = 0;
-        for i in 0..18 {
-            let a = self.limbs[i] as u128;
-            let b = (other.limbs[i] as u128) + borrow;
-            if a >= b {
-                res[i] = (a - b) as u64;
-                borrow = 0;
-            } else {
-                res[i] = ((1u128 << 64) + a - b) as u64;
-                borrow = 1;
-            }
-        }
-        if borrow > 0 {
-            return Err("Negative result in unsigned BigInt1088 subtraction".to_string());
-        }
-        Ok(Self { limbs: res })
-    }
-
-    pub fn bit_length(&self) -> u32 {
-        for i in (0..18).rev() {
-            if self.limbs[i] != 0 {
-                return (i as u32 + 1) * 64 - self.limbs[i].leading_zeros();
-            }
-        }
-        0
-    }
-
-    pub fn trailing_zeros(&self) -> u32 {
-        for i in 0..18 {
-            if self.limbs[i] != 0 {
-                return (i as u32) * 64 + self.limbs[i].trailing_zeros();
-            }
-        }
-        1152
-    }
-
-    pub fn to_balanced_ternary(&self) -> Vec<i8> {
-        if self.is_zero() {
-            return vec![0];
-        }
-        let mut copy = *self;
-        let mut trits = Vec::new();
-        while !copy.is_zero() {
-            let rem = copy.div_rem_3();
-            if rem == 0 {
-                trits.push(0);
-            } else if rem == 1 {
-                trits.push(1);
-            } else {
-                trits.push(-1);
-                let _ = copy.add_u64(1);
-            }
-        }
-        trits
-    }
-
-    pub fn from_balanced_ternary(trits: &[i8]) -> Result<(Self, bool), String> {
-        let mut p = Self::ZERO;
-        let mut m = Self::ZERO;
-        for &t in trits.iter().rev() {
-            p.mul_3_add(if t == 1 { 1 } else { 0 })?;
-            m.mul_3_add(if t == -1 { 1 } else { 0 })?;
-        }
-        if p.gte(&m) {
-            Ok((p.sub(&m)?, false))
-        } else {
-            Ok((m.sub(&p)?, true))
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct MathLoomRationalField {
-    pub sign: i8, // -1 if negative, +1 if non-negative
-    pub is_zero: bool,
-    pub numerator_trits: Vec<i8>,
-    pub denominator_trits: Vec<i8>,
-}
+pub use crate::mathloom::MathLoomRationalField;
 
 pub struct ModularSubstrate64D {
     pub columns: Vec<CorticalColumn>,
@@ -2054,127 +1861,13 @@ impl ModularSubstrate64D {
         (trits[0], trits[1])
     }
 
-    /// Exact MathLoom binary64 bit decomposition into integer numerator and denominator balanced ternary.
+    /// Exact numerical representation, not a field-to-current operator.
     pub fn float_to_rational_trits(val: f64) -> Result<MathLoomRationalField, String> {
-        if !val.is_finite() {
-            return Err(format!("Cannot convert non-finite float to MathLoom rational field: {}", val));
-        }
-        let bits = val.to_bits();
-        let s = (bits >> 63) as u8;
-        let e = ((bits >> 52) & 0x7FF) as u32;
-        let f = bits & 0x000F_FFFF_FFFF_FFFF;
-
-        let sign: i8 = if s == 1 { -1 } else { 1 };
-
-        if e == 0 && f == 0 {
-            return Ok(MathLoomRationalField {
-                sign,
-                is_zero: true,
-                numerator_trits: vec![0],
-                denominator_trits: vec![1],
-            });
-        }
-
-        let (m, q): (u64, i32) = if e > 0 {
-            ((1u64 << 52) | f, (e as i32) - 1075)
-        } else {
-            (f, -1074)
-        };
-
-        let tz = m.trailing_zeros();
-        let (num_int, den_int) = if q >= 0 {
-            let num = BigInt1088::from_u64(m).shl(q as usize)?;
-            let den = BigInt1088::from_u64(1);
-            (num, den)
-        } else {
-            let shift = (-q) as u32;
-            let k = tz.min(shift);
-            let num = BigInt1088::from_u64(m >> k);
-            let den = BigInt1088::from_u64(1).shl((shift - k) as usize)?;
-            (num, den)
-        };
-
-        let mut num_trits = num_int.to_balanced_ternary();
-        if s == 1 {
-            for t in num_trits.iter_mut() {
-                *t = -*t;
-            }
-        }
-        let den_trits = den_int.to_balanced_ternary();
-
-        Ok(MathLoomRationalField {
-            sign,
-            is_zero: false,
-            numerator_trits: num_trits,
-            denominator_trits: den_trits,
-        })
+        crate::mathloom::float_to_rational_trits(val)
     }
 
-    /// Reconstructs exact IEEE-754 binary64 float from MathLoom rational balanced ternary field.
     pub fn rational_trits_to_float(field: &MathLoomRationalField) -> Result<f64, String> {
-        if field.is_zero {
-            return Ok(if field.sign < 0 { -0.0 } else { 0.0 });
-        }
-        let (num, is_neg) = BigInt1088::from_balanced_ternary(&field.numerator_trits)?;
-        let (den, den_neg) = BigInt1088::from_balanced_ternary(&field.denominator_trits)?;
-        if den_neg || den.is_zero() {
-            return Err("Invalid non-positive denominator in MathLoom rational field".to_string());
-        }
-
-        let p = den.trailing_zeros();
-        let expected_den = BigInt1088::from_u64(1).shl(p as usize)?;
-        if den != expected_den {
-            return Err("Denominator in MathLoom rational field must be an exact power of 2".to_string());
-        }
-
-        let sign_bit: u64 = if is_neg || field.sign < 0 { 1 } else { 0 };
-        if num.is_zero() {
-            let bits = sign_bit << 63;
-            return Ok(f64::from_bits(bits));
-        }
-
-        let bl = num.bit_length();
-        let exponent_e = (bl as i32 - 1) - (p as i32);
-
-        let bits: u64 = if exponent_e >= -1022 {
-            if exponent_e > 1023 {
-                return Err("Float overflow in MathLoom rational reconstruction".to_string());
-            }
-            let e_biased = (exponent_e + 1023) as u64;
-            let mantissa: u64 = if bl - 1 >= 52 {
-                num.shr((bl - 1 - 52) as usize).limbs[0] & 0x000F_FFFF_FFFF_FFFF
-            } else {
-                (num.limbs[0] << (52 - (bl - 1))) & 0x000F_FFFF_FFFF_FFFF
-            };
-            (sign_bit << 63) | (e_biased << 52) | mantissa
-        } else {
-            // Subnormal float
-            if exponent_e < -1074 {
-                return Err("Float underflow below subnormal limit in MathLoom rational reconstruction".to_string());
-            }
-            let shift = 1074 - p;
-            let mantissa = (num.shl(shift as usize)?.limbs[0]) & 0x000F_FFFF_FFFF_FFFF;
-            (sign_bit << 63) | mantissa
-        };
-
-        Ok(f64::from_bits(bits))
-    }
-
-    /// Fills balanced ternary slice using exact numerator/denominator balanced ternary decomposition.
-    #[inline]
-    pub fn float_to_balanced_ternary(val: f64, trits: &mut [i8]) {
-        for t in trits.iter_mut() {
-            *t = 0;
-        }
-        if let Ok(field) = Self::float_to_rational_trits(val) {
-            let half = trits.len() / 2;
-            for (idx, &t) in field.numerator_trits.iter().take(half).enumerate() {
-                trits[idx] = t;
-            }
-            for (idx, &t) in field.denominator_trits.iter().take(trits.len() - half).enumerate() {
-                trits[half + idx] = t;
-            }
-        }
+        crate::mathloom::rational_trits_to_float(field)
     }
 
     pub fn consume_continuous_joint_field(&mut self, field_7d: [f64; 7], s_uf: f64) -> Result<(), String> {
@@ -2340,7 +2033,13 @@ impl ModularSubstrate64D {
         observed_theta_mdeg: Option<i32>,
         current_barrier_stress: f32,
         acoustic_formants: &[f32],
-    ) -> (usize, f32) {
+    ) -> Result<(usize, f32), String> {
+        // Stored binary64 fields are lossless evidence, not an implemented
+        // typed Psi/Krimelack -> material gate -> current operator. Refuse
+        // before trace, motor, membrane or plastic state can change.
+        if self.continuous_joint_field_present {
+            return Err("Full-field transition unavailable: typed Psi/Krimelack material operator is not implemented; truncated trit afferents are prohibited".to_string());
+        }
         let mut total_yields = 0usize;
         let mut total_strain = 0.0f32;
 
@@ -2455,47 +2154,15 @@ impl ModularSubstrate64D {
             self.motor_locomotion_stride = 0.0;
         }
 
-        // 6. Clusters 6, 7: Prefrontal / Structural Invariant Sheet (Cols 48..64)
-        // Authoritative continuous joint field drives all 16 columns (48..63) with exact 34-trit MathLoom expansion:
-        // Each invariant k in 0..7 drives Primary column 48+2k and Conjugate column 48+2k+1.
-        for (k, inv_val) in self.continuous_joint_field.iter().enumerate() {
-            let col_primary = 48 + 2 * k;
-            let col_conjugate = 48 + 2 * k + 1;
-
-            let mut dsf_aff_primary = vec![0i8; L4_NODES];
-            let mut dsf_aff_conjugate = vec![0i8; L4_NODES];
-
-            if self.continuous_joint_field_present {
-                if let Ok(rational_primary) = Self::float_to_rational_trits(*inv_val) {
-                    for (i, &t) in rational_primary.numerator_trits.iter().take(32).enumerate() {
-                        dsf_aff_primary[i] = t;
-                    }
-                    for (i, &t) in rational_primary.denominator_trits.iter().take(32).enumerate() {
-                        dsf_aff_primary[32 + i] = t;
-                    }
-                }
-                if let Ok(rational_conjugate) = Self::float_to_rational_trits(-*inv_val) {
-                    for (i, &t) in rational_conjugate.numerator_trits.iter().take(32).enumerate() {
-                        dsf_aff_conjugate[i] = t;
-                    }
-                    for (i, &t) in rational_conjugate.denominator_trits.iter().take(32).enumerate() {
-                        dsf_aff_conjugate[32 + i] = t;
-                    }
-                }
-            } else {
-                if col_primary < sensory_trits.len() {
-                    dsf_aff_primary[0] = sensory_trits[col_primary];
-                }
-                if col_conjugate < sensory_trits.len() {
-                    dsf_aff_conjugate[0] = sensory_trits[col_conjugate];
-                }
-            }
-
-            let (yc1, sc1) = self.columns[col_primary].microcircuit.step_laminar_flow(&dsf_aff_primary, somatic_trits, &in_23[col_primary], &in_5[col_primary]);
-            total_yields += yc1; total_strain += sc1;
-
-            let (yc2, sc2) = self.columns[col_conjugate].microcircuit.step_laminar_flow(&dsf_aff_conjugate, somatic_trits, &in_23[col_conjugate], &in_5[col_conjugate]);
-            total_yields += yc2; total_strain += sc2;
+        // Component-only recurrent sheet. No direct DSF digit injection:
+        // neither truncated rational digits nor legacy slots 48..63 are
+        // authorized neuronal currents. Full-field execution refuses above.
+        let no_external_field = [0i8; L4_NODES];
+        for c in 48..64 {
+            let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(
+                &no_external_field, somatic_trits, &in_23[c], &in_5[c]);
+            total_yields += yc;
+            total_strain += sc;
         }
 
         // 7. Inter-Column Directional Fasciculi Plasticity across 64 Columns
@@ -2503,7 +2170,7 @@ impl ModularSubstrate64D {
         total_yields += inter_y;
         total_strain += inter_s;
 
-        (total_yields, total_strain)
+        Ok((total_yields, total_strain))
     }
 
     pub fn apply_inter_column_plasticity(&mut self) -> (usize, f32) {
@@ -3609,7 +3276,7 @@ impl PyModularSubstrate64D {
         observed_theta_mdeg: Option<i32>,
         barrier_stress: f32,
         acoustic_formants: Option<Vec<f32>>,
-    ) -> (usize, f32) {
+    ) -> PyResult<(usize, f32)> {
         let formants = acoustic_formants.unwrap_or_default();
         self.inner.step_cycle(
             &sensory_trits,
@@ -3618,7 +3285,7 @@ impl PyModularSubstrate64D {
             observed_theta_mdeg,
             barrier_stress,
             &formants,
-        )
+        ).map_err(PyNotImplementedError::new_err)
     }
 
     pub fn consume_continuous_joint_field(&mut self, field_7d: Vec<f64>, s_uf: f64) -> PyResult<()> {

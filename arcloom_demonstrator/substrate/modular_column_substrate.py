@@ -154,12 +154,15 @@ class ModularColumnSubstrate:
         is_zero: bool,
     ) -> float:
         """Reconstruct exact IEEE-754 binary64 float from MathLoom rational balanced ternary representation."""
-        return ModularSubstrate64D.rational_trits_to_float(
-            [int(t) for t in num_trits],
-            [int(t) for t in den_trits],
-            int(sign),
-            bool(is_zero),
-        )
+        # A transport boundary must not turn malformed data into different,
+        # apparently valid evidence (for example 1.9 -> 1 or "false" -> True).
+        num = list(num_trits)
+        den = list(den_trits)
+        if any(type(t) is not int for t in num + den):
+            raise ValueError("MathLoom digits must be integers without coercion")
+        if type(sign) is not int or type(is_zero) is not bool:
+            raise ValueError("MathLoom sign and zero metadata have invalid types")
+        return ModularSubstrate64D.rational_trits_to_float(num, den, sign, is_zero)
 
     def encode_sensory_stream(
         self,
