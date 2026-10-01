@@ -1,96 +1,34 @@
 #!/usr/bin/env bash
-# ==============================================================================
-# arcloom_demonstrator/setup.sh
-#
-# Standalone Bootstrap for ArcLoom Neuromorphic Demonstrator
-# Portable Evaluation Package: Zero Financial Files, Standalone Package
-# Prerequisites: gcc/clang (C toolchain), Rust/Cargo (>=1.75.0), Python 3.10+
-# ==============================================================================
-
+# Connected, component-only source build. Does not install system packages.
 set -euo pipefail
-
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$DIR"
-
-echo "======================================================================"
-echo "    ARCLOOM TERNARY NEUROMORPHIC HARDWARE DEMONSTRATOR"
-echo "    Standalone Setup & Verification (DARPA / AFRL Evaluation Package)"
-echo "======================================================================"
-
-# 1. Check Platform
-echo "[*] Verifying host environment: $(uname -s) $(uname -m)"
-
-# 2. Verify System Build Prerequisites (Non-mutating check)
-echo "[*] Checking system build prerequisites..."
-for cmd in gcc python3; do
-    if ! command -v "$cmd" >/dev/null 2>&1; then
-        echo "[ERROR] Required build prerequisite '$cmd' not found on PATH." >&2
-        echo "Please install build prerequisites (build-essential, python3, python3-venv, python3-pip) prior to running setup." >&2
-        exit 1
-    fi
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+for command in python3 cargo; do
+    command -v "$command" >/dev/null || { echo "Missing prerequisite: $command" >&2; exit 1; }
 done
-
-# 3. Verify Rust Toolchain (Non-mutating check)
-if ! command -v cargo >/dev/null 2>&1; then
-    echo "[ERROR] Cargo/Rust toolchain not found on PATH." >&2
-    echo "Please install Rust (>=1.75.0) via your system package manager or rustup before running setup." >&2
+if ! command -v gcc >/dev/null && ! command -v clang >/dev/null; then
+    echo "Missing C toolchain (gcc or clang)" >&2
     exit 1
 fi
-echo "[*] Rust compiler verified: $(cargo --version)"
-
-# 4. Create Pristine Virtual Environment
-if [ ! -d ".venv" ]; then
-    echo "[*] Creating dedicated Python virtual environment (.venv)..."
+python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else "Python 3.11+ required")'
+if [ ! -d .venv ]; then
     python3 -m venv .venv
 fi
-
-echo "[*] Activating virtual environment..."
-# shellcheck disable=SC1091
-source .venv/bin/activate
-
-# 5. Install Pinned Build & Test Dependencies (Locked versions, Zero ML)
-echo "[*] Installing pinned build and test dependencies (maturin==1.14.1, pytest==9.1.1, numpy==2.4.6)..."
-pip install --quiet maturin==1.14.1 pytest==9.1.1 numpy==2.4.6
-
-# 6. Compile guala_core Native Substrate (Release mode, Locked Build)
-echo "[*] Compiling guala_core native substrate wheel (--release --locked)..."
-maturin build --release --manifest-path native/guala_core/Cargo.toml --locked --out target/wheels
-pip install --force-reinstall --quiet target/wheels/*.whl
-
-# Ensure flat extension module layout for isolated subprocess dynamic linking
-SP_DIR="$(python3 -c 'import site; print(site.getsitepackages()[0])')"
-if [ -d "$SP_DIR/guala_core" ]; then
-    cp "$SP_DIR"/guala_core/guala_core.*.so "$SP_DIR"/
-    rm -rf "$SP_DIR/guala_core"
+PYTHON="$SCRIPT_DIR/.venv/bin/python"
+"$PYTHON" -I -c 'import sys; sys.exit(0 if sys.prefix != sys.base_prefix else "Isolated venv required")'
+"$PYTHON" -I -m pip install maturin==1.14.1 pytest==9.1.1 numpy==2.4.6
+WHEEL_DIR="$(mktemp -d /tmp/arcloom-wheel-XXXXXXXX)"
+echo "Candidate wheel custody: $WHEEL_DIR"
+"$PYTHON" -I -m maturin build --release --locked --manifest-path native/guala_core/Cargo.toml --out "$WHEEL_DIR"
+shopt -s nullglob
+wheels=("$WHEEL_DIR"/*.whl)
+if [ "${#wheels[@]}" -ne 1 ]; then
+    echo "Expected exactly one newly built wheel" >&2
+    exit 1
 fi
-
-# 7. Assert Module Actually Loaded from Isolated Package Environment & Identify Hash
-echo "[*] Verifying isolated environment module custody and exported capabilities..."
-python3 -c "
-import sys, hashlib
-import guala_core
-
-mod_file = getattr(guala_core, '__file__', None)
-assert mod_file is not None, 'guala_core __file__ is None'
-print(f'[*] Loaded module path: {mod_file}')
-
-assert hasattr(guala_core, 'ArcLoomNeuron'), 'guala_core missing ArcLoomNeuron export'
-assert hasattr(guala_core, 'ModularSubstrate64D'), 'guala_core missing ModularSubstrate64D export'
-
-with open(mod_file, 'rb') as f:
-    digest = hashlib.sha256(f.read()).hexdigest()
-print(f'[*] Loaded module SHA-256: {digest}')
-print(f'[*] Confirmed ArcLoomNeuron and ModularSubstrate64D symbols present in loaded binary.')
-"
-
-# 8. Run Invariant Verification Tests
-echo "[*] Executing Demonstrator Invariant Verification Suite..."
-python3 -m pytest -q tests/test_octal_column_invariants.py tests/test_arcloom_causal_action_witness.py tests/test_arcloom_engineered_neuron.py
-
-echo ""
-echo "======================================================================"
-echo "    ARCLOOM COMPONENT DEMONSTRATOR READY (COMPONENT CONSOLE FUNCTIONING;"
-echo "    OPEN A10/A11 INTEGRATION REMAINS FORMAL REFUSAL GATE)"
-echo "    Run: python3 run_demonstrator.py"
-echo "    Run: python3 benchmark_octal_substrate.py"
-echo "======================================================================"
+"$PYTHON" -I -m pip install --no-cache-dir --no-deps --force-reinstall "${wheels[0]}"
+"$PYTHON" -I verify_install.py "${wheels[0]}"
+"$PYTHON" -I -m pytest -q -p no:cacheprovider tests/test_octal_column_invariants.py tests/test_arcloom_causal_action_witness.py tests/test_arcloom_engineered_neuron.py tests/test_audit_demo95_fixes.py
+echo "COMPONENT package verified. A10/A11 remain OPEN, not passed capabilities."
+echo "Full-field transition refuses. No production deployment was performed."
+echo "Console: .venv/bin/python run_demonstrator.py"

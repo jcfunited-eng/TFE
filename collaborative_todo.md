@@ -31382,3 +31382,179 @@ Verification Evidence:
 - `python3 -m pytest tests/test_audit_demo95_fixes.py`: 3 passed in 4.14s.
 - `python3 -m pytest tests/test_mathloom_a10_boundary.py`: 11 passed in 6.95s.
 - `bash arcloom_demonstrator/setup.sh`: isolated environment compiled and verified, 29 passed, 1 expected xfailed (A11 boundary) in 6.22s.
+
+### A1 — 6292 bounded correction ownership and contract — 2026-10-01T21:25Z
+
+Active item: DEMO95-6292-REPAIR. Joe changed this turn from review to implementation:
+"Ok can you just fix these" and "Just fix what you find without going down a rabbit hole".
+Owner: A1, isolated branch a1/6292-bounded-repair at /tmp/a1-6292-repair-aPauCm8Z.
+G1 currently has concurrent edits to setup.sh, demonstrator lib.rs and
+tests/test_audit_demo95_fixes.py in the shared tree; A1 will not overwrite them.
+
+Requested: correct Findings 1/2/4 defects in the frozen component candidate,
+without inventing a field-to-motor law or broadening the accepted neuron model.
+Current reality: source review rejects 6292eefa1 as a full-field mounting.
+Conflict: YES. The reviewed candidate is preserved in Git and frozen at
+/tmp/a1-6292-review-0JS0nr0e, fingerprint
+f6ef81dd3c928e2559eb3a2558dad8a9990a72c62b72c6af3464be87973ee1da
+(verified before/after source review). No heavy candidate tests were run.
+Do not extend: position-zero material projection, direct DSF action rules,
+recipient-dependent restore, conditional/fixed-interval sidecar settlement,
+or package flatten/delete scripts. Do not change UF, accepted neuron equations,
+the live organism, world, body, unrelated UI or prior Findings 3/5/6/7.
+Next: one bounded rejection/containment and packaging repair, not A10/A11 closure.
+Evidence level: component source plus independent exact arithmetic/archive
+inspection, not full-field participation, production verification or cognition.
+
+Decisive source findings and complete bounded correction:
+- Field incidence: cortical_column.rs:1850-1864 mounts only position 0.
+  M=1/4 and M=1/16 have numerator [1], denominators [1,1] and [1,-1,-1,1].
+  Both produce the same material constraints; higher digits only reach the
+  unrelated column model. High-position refusal at 2080 is an improvement,
+  not complete field-to-material mounting. Sign handling/test observables improved.
+- Motor: 2239 still ORs the old barrier threshold into refusal, and 2276 zeros
+  stride. With stress=.85, new contact strain=.85*.02=.017 < Y/K=.05:
+  material does NOT yield, although the new test calls the old controller's
+  zero stride proof of material yield. Actual material receiving charge/voltage
+  is not consumed by the motor columns. Do not call this integration.
+- Atomicity/lifecycle: 2145/2150 alter constraint trits and work before the
+  fallible solver. Stress=-100 gives x/ell=-1 and an error after those changes.
+  Missing field plus zero stress freezes the material instead of relaxation;
+  fixed dt=1e-4 has no mounted relation to caller time. These are all introduced
+  by the rejected singleton mounting, not faults in the accepted component solver.
+- Restore: 2899-2909 clones recipient material state/operator if the optional
+  block is absent. Same ARCLOOM4 bytes then depend on recipient history.
+  V2/V3 migrations repeat the clone. The header was not versioned.
+- Package: release archive SHA256
+  426beb55e07157f10f1e0db6046ed2897575667b8473e3cf5929a7abf64b1047
+  still contains previous README/setup/cortical_column (3 mismatches; 25 files).
+  New setup correctly removes apt/rustup and pins top-level dependencies, but
+  installs every old wheel in target/wheels, manually moves/deletes installed
+  package files, and prints a hash without asserting the loaded candidate path
+  or matching extension bytes. Fix normal wheel custody, not package surgery.
+
+Implementation contract / impacts:
+- Restore the accepted fe7e445ce column execution/codec boundary as complete
+  files, removing the rejected partial neuron mounting rather than patching it.
+  Present DSF is retained exactly but native step refuses before any mutation.
+  Legacy component-only operation remains explicitly non-DSF control; its
+  old protective interlock is not described as material neuron cognition.
+- Keep the independently accepted arcloom_neuron.rs, exact_carrier.rs and
+  mathloom.rs byte-identical. ArcLoomNeuron remains separately callable and
+  checkpointed. No accepted physical capability is rewritten or unmounted.
+- Ordinary ARCLOOM4 remains the accepted complete component schema.
+  Extra bytes from rejected 6292 material checkpoints must refuse, never be
+  discarded or merged with recipient state; those bytes stay recoverable.
+- Caller map: Python ModularColumnSubstrate.step -> PyModularSubstrate64D.step
+  -> native step_cycle; consume/query/clear keep exact evidence.
+  export/import -> staged parse/commit -> adapter to_dict/from_dict ->
+  FunctionalOrganism._modular_substrate. On present-field refusal no motor
+  proposal/world settlement is certified. Startup/live production unchanged.
+- Restore the accepted A10 containment tests and truthful capability markers;
+  do not fabricate a success from the legacy motor controller. Add full-byte
+  rejection and warm-recipient restore checks rather than one L4-cell checks.
+- Setup builds one exact wheel in a fresh local directory, installs it without
+  cache, retains wheel layout, verifies resolved extension path and bytes from
+  that wheel. Correct fresh-process test loading for regular package layout.
+- Source/release twins remain equal; archive built from an explicit reviewed
+  file manifest, no caches, binaries, virtualenvs or stale artifacts.
+- Expected acceptance: exact retained input; atomic present-field refusal,
+  exact component warm/cold restore and next successor; unsupported footer
+  rejection; unchanged standalone neuron tests; exact installed binary custody;
+  archive member equality. These prove repair/containment, NOT A10 motor closure.
+- RF-001/003/036: explicit isolated root and fresh candidate wheel before tests.
+  RF-004/022: used recipient, exact successor and old/rejected schema cases.
+  RF-019/020: no fake integration or stale success assertion.
+  RF-024/031/032: resolve paths and nonzero test counts; no broad organism run.
+  No production-shaped harness, AWS mutation, deployment or live claim is in scope.
+
+### A1 — 6292 bounded correction delivered locally; integration NOT signed off — 2026-10-01T21:30Z
+
+Status: concrete containment/custody/package corrections are implemented and
+locally verified on branch a1/6292-bounded-repair. Findings 1 and 2 are safely
+contained, NOT closed as a working full-field motor integration. Finding 4's
+reviewed source-package/build-custody defects are corrected. Prior unrelated
+findings are neither reopened nor closed here.
+
+Actual changes:
+- Removed the defective singleton mounting, position-zero-only field consumption,
+  pre-error work mutations and incompatible optional checkpoint footer.
+  Restored accepted fe7e445ce column source and explicit pre-mutation A10 refusal.
+  This is a deliberate rejection/containment repair, not invented motor physics.
+- Retained the accepted material neuron and exact carrier/math implementation
+  byte-identically in both source trees. Its independent callable interface is
+  preserved; no solver or conservation law was weakened.
+- Added full serialized-state refusal checks for signs, zero/signed zero,
+  different rational denominators, positions beyond 63, warm and cold instances.
+  Added used-recipient exact restore/next-successor and unexpected material-footer
+  rejection. Reinstated truthful strict A10 markers; A11 stays visible.
+- Fixed fresh-process loading to register the package in sys.modules before
+  executing its normal relative imports. No relocation/deletion of site-packages.
+- Setup now builds ONE wheel in a fresh directory, installs that exact artifact
+  without cache, checks resolved native location AND byte equality to the wheel,
+  and confirms public symbols are the same loaded native objects.
+- Added package-local build/cache ignores and rebuilt archive from the explicit
+  tracked package manifest. No raw images, production state or neuron history
+  was touched. The rejected candidate is still recoverable in Git.
+
+Source review before tests:
+Containment gate precedes all mutation; rejected field/material execution is
+unreachable. Accepted current-state parser has no recipient material fallback
+or optional material section. Solver/MathLoom hashes unchanged. No new coupling
+coefficient, plasticity rule, source clock, motor threshold or resource model.
+Source twins verified equal. Bootstrap is isolated local build/verification.
+Initial source fingerprint was
+7db14e5d8ebcc0ef939bd37cf17804f57a16d1d5d0717830aad9be7eb84a3aca.
+The subsequent localized .gitignore and regenerated archive are packaging-only;
+native source was not altered after the build. Final commit freezes the result.
+
+Executed evidence (not copied G1 counts):
+- In the isolated package, timeout 180s bash setup.sh:
+  fresh native release compilation finished in 21.80s;
+  31 passed, 2 strict xfailed in 4.99s.
+  XFAILs are A10/A11 missing capabilities, not successful physical proofs.
+- Exact candidate-root Python import path, freshly built package extension:
+  tests/test_mathloom_a10_boundary.py -k 'not burn_in':
+  9 passed, 2 deselected in 0.43s.
+  No 50,000-cycle or production-shaped harness was run.
+- Wheel:
+  /tmp/arcloom-wheel-qGjkCkN4/guala_core-0.1.0-cp311-cp311-manylinux_2_34_x86_64.whl
+  SHA256 1e637103a41f6e2cf08b9237c756d01e182ea84f68429ca5f80d25afc24a1c54.
+- Loaded extension:
+  /tmp/a1-6292-repair-aPauCm8Z/arcloom_demonstrator/.venv/lib/python3.11/site-packages/guala_core/guala_core.cpython-311-x86_64-linux-gnu.so
+  SHA256 b5dd708b9efa63342a66b7e528e4b9ca108d28b06ffa05f8ce25d0dc8aa9dd03.
+- Rebuilt archive: 28 regular files, 85,399 bytes; exact member/source equality;
+  no symlinks, escapes, caches, target directories or virtual environments.
+  SHA256 8b5328c09942d0f699f39df377760cd02207cf10c30d6dc3e68b5e1ccbd5e657.
+- Twin cortical_column.rs SHA256
+  ffcb71c072628c133f6d860aeb4d9f3a5219fc13fac4f969d66347bbea3237c7.
+- Accepted neuron SHA256
+  ddd7add55cb642915f05d2a9ea41b08fd2984621e9edba1eab1edca9522b902f;
+  exact_carrier SHA256
+  9b7419841b7ead61bae0b0adcf1d043253a90e7a3f454e8ee9adb6eeb0250538;
+  mathloom SHA256
+  50b0e524f927032636a9d60bf52f998b24ca948fa4f583ed749dcf2c8b26a751.
+- git diff --check and bash syntax check passed.
+
+Exact remaining integration boundary, NOT a new biology research request:
+A complete typed incidence must preserve n=sum(t_p*3^p), d=sum(u_p*3^p),
+field family/role/position/locality, through mounted constraints
+E_e=-kappa_e*cos(phi_b-phi_a-2*pi*tau_e/3).
+A bounded supported subset may refuse other inputs; it may not silently use p=0.
+Changing boundary work is H(X,tau_new)-H(X,tau_old), staged with the successor.
+The existing component receiving charge must actually participate through
+a declared conserved contact, J_ab=integral(g_ab*(V_a-V_b) dt), with the same
+admitted carriers debited/credited once at both endpoints, before any claim
+about a motor output. An OR of the old stress threshold and a yield flag is
+not that connection. Local subintervals must cover the declared reached physical
+interval, including unforced relaxation; no field-present freeze controller.
+These conditions were already required. A1 did not invent an effector law,
+force a motor response, or label this unavailable connection as complete.
+
+G1 handoff — single next action:
+Use the isolated correction branch as the component correction package, preserving
+your unrelated working changes. The main working tree contains concurrent G1
+edits; A1 did not overwrite them. Do not remove ArcLoomNeuron from the standalone
+entry point or resurrect the rejected field controller/optional footer during
+integration. Do not deploy this branch as full cognition or report A10/A11 closed.
+No ECS, S3, CloudFront, live state, or production process was changed.

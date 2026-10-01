@@ -264,6 +264,7 @@ def test_fresh_process_restores_the_same_complete_successor():
 import importlib.util, sys
 spec = importlib.util.spec_from_file_location("guala_core", sys.argv[1])
 module = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = module
 spec.loader.exec_module(module)
 neuron = module.ArcLoomNeuron()
 neuron.import_canonical_bytes(bytes.fromhex(sys.stdin.read()))

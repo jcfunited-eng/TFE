@@ -63,33 +63,39 @@ def test_high_ternary_positions_are_not_interchangeable_evidence():
     assert ModularSubstrate64D.rational_trits_to_float(nb, db, sb, zb) == b
 
 
-def test_full_field_step_and_cold_step_with_mounted_operator():
+def test_full_field_step_and_cold_step_refuse_without_mutating_any_state():
     sub = ModularSubstrate64D()
     sub.step([1] * 48 + [0] * 16, [1] * 32, 1200.0, 45000, 0.0, [220.0])
     cases = [([value] + [0.0] * 6, 1.0)
              for value in (2**-52, (2 * 3**32 + 1) * 2**-52, 0.0)]
+    # Every field and global stability stay present evidence, never a shortcut
+    # for choosing a motor output. Include the former P-B and refusal branches.
     cases += [([float(i == slot) for i in range(7)], 0.0) for slot in range(7)]
     for field, stability in cases:
         sub.consume_continuous_joint_field(field, stability)
         before = bytes(sub.export_sparse_v4())
-        res_sub = sub.step([1] * 64, [1] * 32, 999.0, -45000, 1.0, [440.0])
-        after = bytes(sub.export_sparse_v4())
-        assert after != before
+        with pytest.raises(NotImplementedError, match="typed Psi/Krimelack"):
+            sub.step([1] * 64, [1] * 32, 999.0, -45000, 1.0, [440.0])
+        assert bytes(sub.export_sparse_v4()) == before
         restored = ModularSubstrate64D()
         restored.import_sparse_v4(before)
-        restored.consume_continuous_joint_field(field, stability)
-        res_restored = restored.step([1] * 64, [1] * 32, 999.0, -45000, 1.0, [440.0])
-        assert res_restored == res_sub
-        assert bytes(restored.export_sparse_v4()) == after
+        assert bytes(restored.export_sparse_v4()) == before
+        with pytest.raises(NotImplementedError, match="typed Psi/Krimelack"):
+            restored.step([1] * 64, [1] * 32, 999.0, -45000, 1.0, [440.0])
+        assert bytes(restored.export_sparse_v4()) == before
         del restored
 
 
-def test_component_continuation_preserves_exact_successor():
+def test_component_continuation_after_refusal_preserves_exact_successor():
+    # Removing unavailable evidence is an explicit component-only operation.
+    # It must not leave covert phase, motor, trace or plastic mutations behind.
     control = ModularSubstrate64D()
     control.step([1] * 48 + [0] * 16, [1] * 32)
     candidate = ModularSubstrate64D()
     candidate.import_sparse_v4(bytes(control.export_sparse_v4()))
     candidate.consume_continuous_joint_field([0.0] * 5 + [1.0, 0.0], 0.0)
+    with pytest.raises(NotImplementedError, match="typed Psi/Krimelack"):
+        candidate.step([1] * 64, [1] * 32, 10.0, 90000, 1.0, [220.0])
     candidate.clear_continuous_joint_field()
     control.clear_continuous_joint_field()
     assert bytes(candidate.export_sparse_v4()) == bytes(control.export_sparse_v4())
@@ -153,7 +159,7 @@ def test_source_does_not_recreate_joint_field_by_averaging():
 
 
 @pytest.mark.parametrize("optimization", [[], ["-O"]])
-def test_burn_in_executes_mounted_operator_successfully(optimization):
+def test_burn_in_cannot_certify_an_unmounted_operator(optimization):
     import json
     import subprocess
     import sys
@@ -162,7 +168,14 @@ def test_burn_in_executes_mounted_operator_successfully(optimization):
         [sys.executable, *optimization, str(ROOT / "tools/run_arcloom_50k_burn_in.py"),
          "--cycles", "1", "--checkpoint-interval", "2"],
         cwd=ROOT, capture_output=True, text=True, timeout=30, check=False)
-    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.returncode == 2, result.stdout + result.stderr
     report = json.loads(result.stdout)
-    assert report["status"] == "completed_component_cycles"
-    assert report["completed_cycles"] == 1
+    assert report["status"] == "blocked_unmounted_operator"
+    assert report["completed_cycles"] == 0
+    assert report["checkpoint_roundtrips"] == 0
+    assert report["same_process_next_step_checks"] == 0
+    assert report["canonical_uf_used"] is False
+    assert report["sleep_consolidation_tested"] is False
+    assert report["physical_equilibrium_proven"] is False
+    assert report["memory_competence_proven"] is False
+    assert report["full_field_closure_proven"] is False
