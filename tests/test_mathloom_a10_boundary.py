@@ -50,19 +50,57 @@ def test_python_codec_never_coerces_malformed_evidence(relative):
             decode(*args)
 
 
-def test_full_field_step_and_cold_step_preserves_state_across_serialization():
+def test_high_ternary_positions_are_not_interchangeable_evidence():
+    # This pair defeated the rejected 32-position consumer despite an exact codec.
+    a = 2**-52
+    b = (2 * 3**32 + 1) * 2**-52
+    na, da, sa, za = ModularSubstrate64D.float_to_rational_trits(a)
+    nb, db, sb, zb = ModularSubstrate64D.float_to_rational_trits(b)
+    assert a != b and da == db and sa == sb and za == zb
+    assert (list(na) + [0] * 32)[:32] == (list(nb) + [0] * 32)[:32]
+    assert na != nb and any(nb[32:])
+    assert ModularSubstrate64D.rational_trits_to_float(na, da, sa, za) == a
+    assert ModularSubstrate64D.rational_trits_to_float(nb, db, sb, zb) == b
+
+
+def test_full_field_step_and_cold_step_refuse_without_mutating_any_state():
     sub = ModularSubstrate64D()
     sub.step([1] * 48 + [0] * 16, [1] * 32, 1200.0, 45000, 0.0, [220.0])
-    for value in (2**-52, (2 * 3**32 + 1) * 2**-52, 0.0):
-        sub.consume_continuous_joint_field([value] + [0.0] * 6, 1.0)
+    cases = [([value] + [0.0] * 6, 1.0)
+             for value in (2**-52, (2 * 3**32 + 1) * 2**-52, 0.0)]
+    # Every field and global stability stay present evidence, never a shortcut
+    # for choosing a motor output. Include the former P-B and refusal branches.
+    cases += [([float(i == slot) for i in range(7)], 0.0) for slot in range(7)]
+    for field, stability in cases:
+        sub.consume_continuous_joint_field(field, stability)
         before = bytes(sub.export_sparse_v4())
-        y, s = sub.step([0] * 64, [0] * 32)
-        assert isinstance(y, int) and isinstance(s, float)
+        with pytest.raises(NotImplementedError, match="typed Psi/Krimelack"):
+            sub.step([1] * 64, [1] * 32, 999.0, -45000, 1.0, [440.0])
+        assert bytes(sub.export_sparse_v4()) == before
         restored = ModularSubstrate64D()
         restored.import_sparse_v4(before)
-        yr, sr = restored.step([0] * 64, [0] * 32)
-        assert (yr, sr) == (y, s)
+        assert bytes(restored.export_sparse_v4()) == before
+        with pytest.raises(NotImplementedError, match="typed Psi/Krimelack"):
+            restored.step([1] * 64, [1] * 32, 999.0, -45000, 1.0, [440.0])
+        assert bytes(restored.export_sparse_v4()) == before
         del restored
+
+
+def test_component_continuation_after_refusal_preserves_exact_successor():
+    # Removing unavailable evidence is an explicit component-only operation.
+    # It must not leave covert phase, motor, trace or plastic mutations behind.
+    control = ModularSubstrate64D()
+    control.step([1] * 48 + [0] * 16, [1] * 32)
+    candidate = ModularSubstrate64D()
+    candidate.import_sparse_v4(bytes(control.export_sparse_v4()))
+    candidate.consume_continuous_joint_field([0.0] * 5 + [1.0, 0.0], 0.0)
+    with pytest.raises(NotImplementedError, match="typed Psi/Krimelack"):
+        candidate.step([1] * 64, [1] * 32, 10.0, 90000, 1.0, [220.0])
+    candidate.clear_continuous_joint_field()
+    control.clear_continuous_joint_field()
+    assert bytes(candidate.export_sparse_v4()) == bytes(control.export_sparse_v4())
+    assert candidate.step([0] * 64, [0] * 32) == control.step([0] * 64, [0] * 32)
+    assert bytes(candidate.export_sparse_v4()) == bytes(control.export_sparse_v4())
 
 
 def test_legacy_field_slots_cannot_resurrect_digit_injection():
@@ -118,3 +156,26 @@ def test_source_does_not_recreate_joint_field_by_averaging():
     assert any(isinstance(n, ast.Constant) and isinstance(n.value, str)
                and "Shared full-field delivery is unavailable" in n.value for n in ast.walk(method))
 
+
+
+@pytest.mark.parametrize("optimization", [[], ["-O"]])
+def test_burn_in_cannot_certify_an_unmounted_operator(optimization):
+    import json
+    import subprocess
+    import sys
+
+    result = subprocess.run(
+        [sys.executable, *optimization, str(ROOT / "tools/run_arcloom_50k_burn_in.py"),
+         "--cycles", "1", "--checkpoint-interval", "2"],
+        cwd=ROOT, capture_output=True, text=True, timeout=30, check=False)
+    assert result.returncode == 2, result.stdout + result.stderr
+    report = json.loads(result.stdout)
+    assert report["status"] == "blocked_unmounted_operator"
+    assert report["completed_cycles"] == 0
+    assert report["checkpoint_roundtrips"] == 0
+    assert report["same_process_next_step_checks"] == 0
+    assert report["canonical_uf_used"] is False
+    assert report["sleep_consolidation_tested"] is False
+    assert report["physical_equilibrium_proven"] is False
+    assert report["memory_competence_proven"] is False
+    assert report["full_field_closure_proven"] is False

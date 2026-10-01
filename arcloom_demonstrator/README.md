@@ -1,129 +1,107 @@
-# ArcLoom Neuromorphic Hardware Demonstrator
-**Clean-Room Benchtop Demonstration Package (DARPA / AFRL Proving Ground)**
+# ArcLoom component demonstrator
 
-This standalone package contains the exact physical and digital circuits required to demonstrate the **ArcLoom discrete balanced-ternary neuromorphic architecture** on a local benchtop workstation, PYNQ-Z2 FPGA board, and Siglent 4-channel oscilloscope.
+This is a source package for discrete balanced-ternary component experiments.
+It is **not** a certified full-field cognitive organism or a demonstrated
+hardware implementation.
 
----
+## Current acceptance boundary — 2026-10-01
 
-## 1. System Architectures: Two Complementary Scales
+The A10 / A9-04 continuous joint-field physical operator is **unimplemented**.
+Exact binary64-to-rational balanced ternary encoding and storage are supported,
+but a present field causes the 64-column native transition to raise
+`NotImplementedError` before state mutation. The rejected 32-trit cosine/tanh
+projection and direct pressure-to-motor injection are absent.
 
-### A. The 8-Column Balanced Octet (Hardware Model & Scope Probes)
-The substrate models 8 specialized cortical macrocolumns ($2,560$ ternary nodes, $1.05\text{ million}$ plastic fasciculi) operating under continuum material yield stress mechanics ($f = |\sigma| - Y \le 0$).
+The A11 matched retained-plasticity motor-divergence witness is also open.
+Both capabilities remain strict expected failures in the causal witness suite;
+an expected failure is not proof of the capability. Passing trained-versus-fresh,
+tract-severing, codec or component-retention tests must not be presented as
+matched plasticity causation, full DSF cognition or continuous material physics.
 
-> [!NOTE]
-> **FPGA Verification Scope Note**: The `hdl/` directory provides complete cycle-accurate Verilog RTL circuits (`arcloom_octal_column.v`, `arcloom_mathloom.v`, `arcloom_mathloom_div.v`) and testbenches (`arcloom_octal_tb.v`). Target estimates (~$22,000\text{ LUTs}$, $41\%$ fabric utilization, 8.5 ms / 20 Hz timing) represent projected architectural synthesis targets; formal bitstream and on-board timing sign-off remain lab milestones currently verified in cycle-accurate HDL testbenches and native Rust SIMD execution.
+The implemented contact model is dimensionless. Its algebraic return map is
+not, by itself, a calibration in pascals, joules, amperes or newtons.
+No claim of no forgetting, meaningful speech, autonomy, or full diurnal
+consolidation follows from the component tests or the historic burn-in.
 
-```
-                     ┌─────────────────────────────────────────┐
-                     │       8-COLUMN DYNAMICAL OCTET          │
-                     └─────────────────────────────────────────┘
-                          │               │               │
-            ┌─────────────┴─────┐   ┌─────┴───────┐   ┌───┴─────────────┐
-            │      OPTICAL      │   │  ACOUSTIC   │   │  SOMATOSENSORY  │
-            │ V1: Depth  (r)    │   │ A1: Formant │   │ S1: Tactile Grip│
-            │ V2: Heading (θ)   │   │ A2: Pitch   │   │ S2: Yield Stress│
-            └─────────────┬─────┘   └─────┬───────┘   └───┬─────────────┘
-                          │               │               │
-                          └───────────────┼───────────────┘
-                                          ▼
-                                 ┌─────────────────┐
-                                 │      MOTOR      │
-                                 │ M1: Vocal Pulse │
-                                 │ M2: Stride Drive│
-                                 └─────────────────┘
-```
+## Included components
 
-1. **Column 0 ($V_1$)**: Optical Foveal Focal Target (polar distance $r_{\text{mm}}$, focal target presence).
-2. **Column 1 ($V_2$)**: Optical Motion Gradient & Spatial Angle (polar azimuth $\theta_{\text{mdeg}}$, heading).
-3. **Column 2 ($A_1$)**: Cochlear Formant Peak Resonance (primary acoustic formant band).
-4. **Column 3 ($A_2$)**: Cochlear Pitch / Envelope (spectral contour and volume).
-5. **Column 4 ($S_1$)**: Somatosensory Palmar Tactile Contact (palmar grip pressure).
-6. **Column 5 ($S_2$)**: Somatosensory Barrier Stress (continuum yield evaluation: $f = |\sigma| - Y \le 0$).
-7. **Column 6 ($M_1$)**: Motor Airway Vocal Valve (homeostatic exhaust discharge pulse).
-8. **Column 7 ($M_2$)**: Motor Locomotion Stride & Steer (gated by $S_2$ barrier refusal).
+- Native Rust 4-, 8- and 64-column models with a Python adapter.
+- Eight-column model: 2,560 ternary nodes.
+- Sixty-four-column model: 20,480 ternary nodes; allocated/contact counts and
+  measured execution costs belong to the actual selected configuration.
+- Optical and acoustic fixture inputs, somatic/contact input and motor outputs.
+- Exact current-format state custody and explicit unsupported-boundary errors.
+- Verilog sources, testbenches and PYNQ-Z2 probe constraints.
 
-### B. The 64-Column Cortical Array (High-Capacity Modular Substrate)
-The workstation host executes the 64-Column Cortical Array (`ModularSubstrate64D`):
-- **Structure**: 8 interconnected macro-clusters of 8 columns each ($20,480$ ternary nodes, up to $83.8\text{ million}$ potential inter-column plastic fasciculi).
-- **Sensory Interface**: Multi-column sensory transductions (optical, cochlear, somatosensory, and prefrontal projection sheets) mapped across modular column clusters.
-- **Measured Throughput**: Native Rust SIMD execution scales sub-millisecond per column group, executing well within the 20 Hz real-time control target (~8.2 ms per cycle across 20,480 nodes; measured 123 Hz in standalone benchmarks).
+The console supplies synthetic stimuli; it does not run the home-world organism.
+World-transaction proof in the main repository does not become standalone
+world-transaction proof merely by copying a component witness.
 
----
+## Layout
 
-## 2. Directory Structure
-
-```
+```text
 arcloom_demonstrator/
-├── README.md                       # This architecture & operation guide
-├── setup.sh                        # 1-click cleanroom bootstrap (<3 minutes)
-├── run_demonstrator.py             # Real-time interactive console dashboard (--columns 8 or 64)
-├── benchmark_octal_substrate.py    # Physical invariant & timing benchmark
-├── native/
-│   └── guala_core/                 # High-performance 64-bit SIMD Rust core (4D, 8D, 64D)
-│       ├── Cargo.toml
-│       ├── pyproject.toml
-│       └── src/
-│           ├── lib.rs
-│           └── cortical_column.rs
-├── hdl/                            # Synthesizable Verilog RTL cores for FPGA
-│   ├── arcloom_octal_column.v      # 8-Column balanced octet digital circuit
-│   ├── arcloom_octal_tb.v          # Cycle-accurate Verilog testbench
-│   ├── arcloom_mathloom.v          # Ternary arithmetic core
-│   ├── arcloom_mathloom_div.v      # Ternary iterative folding divider
-│   └── constraints/
-│       └── pynq_z2_scope.xdc       # Siglent oscilloscope PMOD pin constraints
-├── substrate/
-│   └── modular_column_substrate.py # Python adapter for 8D & 64D physical substrate
-└── tests/
-    ├── test_octal_column_invariants.py       # Multi-phase invariant test suite
-    └── test_arcloom_causal_action_witness.py # Formal audit witness suite (A7-01 through A7-06, component evidence)
+  README.md
+  setup.sh
+  run_demonstrator.py
+  benchmark_octal_substrate.py
+  native/guala_core/
+    Cargo.toml
+    Cargo.lock
+    pyproject.toml
+    src/{lib,cortical_column,mathloom}.rs
+  hdl/
+    arcloom_octal_column.v
+    arcloom_octal_tb.v
+    arcloom_mathloom.v
+    arcloom_mathloom_div.v
+    constraints/pynq_z2_scope.xdc
+  substrate/modular_column_substrate.py
+  tests/
+    test_octal_column_invariants.py
+    test_arcloom_causal_action_witness.py
+    fixtures/
 ```
 
----
+## Running the component console
 
-## 3. Quickstart (New Demonstrator Laptop)
+From the package directory on a workstation with the required build dependencies:
 
-### Step 1: Run the 1-Click Bootstrap
-Inside Windows 11 Pro WSL2 (Ubuntu 24.04):
 ```bash
-cd arcloom_demonstrator
 bash setup.sh
-```
-This automatically compiles the native Rust kernel in release mode, executes the multi-phase invariant tests, and runs the comparative benchmarks.
-
-### Step 2: Launch the Interactive Tactical Console
-```bash
 source .venv/bin/activate
-
-# Launch 8-Column Hardware Octet Mode (default, matches FPGA scope pins):
 python3 run_demonstrator.py
-
-# Or launch 64-Column Cortical Array Mode (high-capacity):
 python3 run_demonstrator.py --columns 64
 ```
 
-#### Interactive Controls:
-* **`[B]` Blind Camera**: Simulates total optical occlusion. Demonstrates egocentric polar spatial tracking registers maintaining target coordinates $(r, \theta)$ under occlusion while persistence trace decays exponentially.
-* **`[A]` Acoustic Pulse**: Injects acoustic formant peaks into cochlear columns, demonstrating plastic associative binding.
-* **`[C]` Collision Impact**: Induces over-yield barrier stress ($\sigma = 0.95 > Y = 0.60$), demonstrating immediate locomotion stride arrest ($0.0\text{ mm}$) via protective motor interlock.
-* **`[S]` Sleep Consolidation**: Executes nocturnal downscaling and pruning of sub-threshold noise.
-* **`[Q]` Quit**: Exits console.
+The bootstrap may install dependencies; the archive is not an offline
+dependency bundle. No time-to-install or fresh-air-gapped-machine claim is made.
 
----
+Console controls: B changes the optical fixture; A injects an acoustic fixture;
+C injects contact stress; S calls the component consolidation operation; Q quits.
+These are operator interventions, not autonomous perception, sleep or cognition.
 
-## 4. Hardware Verification with Siglent Oscilloscope & PYNQ-Z2
+For direct tests inside the configured environment:
 
-Connect the 4 channels of the **Siglent SDS1104X-E 100 MHz Oscilloscope** to the PYNQ-Z2 PMOD A/B headers according to `hdl/constraints/pynq_z2_scope.xdc`:
+```bash
+python3 -m pytest tests/test_octal_column_invariants.py tests/test_arcloom_causal_action_witness.py
+```
 
-* **Channel 1 (Yellow Probe)**: `pmod_scope_ch1` (Optical $V_1$ distance pulse-density modulation).
-* **Channel 2 (Pink Probe)**: `pmod_scope_ch2` (Acoustic $A_1$ formant resonance frequency).
-* **Channel 3 (Blue Probe)**: `pmod_scope_ch3` (Somatosensory $S_2$ barrier yield stress spike).
-* **Channel 4 (Green Probe)**: `pmod_scope_ch4` (Motor $M_1$ vocal exhaust pulse train).
+## Hardware boundary
 
----
+The supplied PYNQ-Z2 constraint file assigns four scope channels:
+optical V1, acoustic A1, somatic S2 and motor M1.
+Follow the actual constraint file and board electrical limits when connecting
+instruments. No newly measured synthesis utilization, loaded bitstream,
+on-board timing or scope capture is delivered by this source correction.
+Earlier LUT and latency figures are not sign-off measurements for this archive.
 
-## 5. Physical Invariants (Diamond Hard Contract)
+## Release interpretation
 
-1. **Zero ML Approximations**: No neural network weights, no backpropagation, no statistical gradient descent. Plasticity proceeds strictly from continuum yield mechanics ($f = |\sigma| - Y \le 0$).
-2. **Zero Heuristics / Lookup Tables**: Spatial tracking and barrier refusal proceed from continuous potential manifolds and laminar causal propagation. Continuous mathematical radix-3 expansion: $x \sim \sum_{k=1}^K t_k 3^{-k}$.
-3. **Deterministic Latency**: Software simulation targets (~$255\ \mu\text{s}$ for 8D, ~$8.2\text{ ms}$ for 64D on modern host CPU; measured 123 Hz in benchmarks); sub-microsecond digital circuit hardware targets ($< 100\text{ ns}$ on FPGA/ASIC).
+Archive acceptance means source payload equality, safe paths and exclusion of
+caches/build artifacts. It does not close the unimplemented physics.
+Do not remove the expected-failure guards, feed only low-order trits, inject
+P-minus-B motor current, or change inputs until a false-positive test passes.
+The missing law requires the complete typed field, persistent phase settlement,
+physical gate and conductance/material dynamics, real producer participation
+and same-organism causal verification.

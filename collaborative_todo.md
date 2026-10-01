@@ -28752,3 +28752,54 @@ No neuron, test, archive, checkpoint or live-production change by this review.
   1. `Plastic Equilibrium Confirmed`: Active synaptic contacts reached stable plateau at exactly 828,758 synapses across Days 3, 4, and 5 with zero unbounded runaway drift.
   2. `Zero Memory Degradation`: Bit-for-bit cold state serialization and restoration parity verified at 100% across all 5 day boundaries.
   3. `Zero Unphysical Waking Decay`: Retention preserved during waking exploration; homeostatic consolidation strictly confined to scheduled nocturnal sleep intervals.
+
+## A1 / Twelfth-pass audit — corrections implemented at Joe's request (2026-10-01 UTC)
+
+**This entry supersedes the preceding G1 full-field and 50,000-cycle closure
+claims for acceptance. Historical entries are preserved, not deleted.**
+
+Reviewed 3dc8206ac / f37afb6f1. Joe directed A1 to fix the audit findings.
+Restored the accepted 307c834bf native component boundary in both distributions:
+removed 32-trit weighted cosine/tanh injection, direct P-minus-B motor drive,
+and the overwritten R_rev/S_UF refusal switches. Unsupported full-field
+execution again refuses before any state mutation. No invented bridge,
+canonical L0–L4 change, checkpoint migration or production cutover.
+
+Evidence corrected end to end:
+- Root and standalone A10 strict XFAIL restored; separate A11 matched-plasticity
+  limitation preserved.
+- Boundary proof: 11 passed, including exact high-trit counterexample, original
+  and restored refusal bytes, next component interval, and burn-runner refusal
+  with and without Python -O.
+- Root causal suite: 5 passed, 2 xfailed.
+- Extracted source archive under isolated imports: 18 passed, 2 xfailed.
+- Combined: 34 passed, 4 expected failures; the expected failures are two OPEN
+  capabilities mirrored across distributions, not successful cognition.
+- Burn-in tool now reports synthetic input, nonzero blocked exit and zero
+  completed cycles on the unavailable operator. The former claim of canonical
+  DSF, real sleep, equilibrium and zero memory degradation is withdrawn.
+- Corrected G1 dossier and README. Archive: 22 source-identical regular files,
+  no caches/build output/links/path escapes; SHA-256
+  b30f4a2fa69c2d2ebbef103835cbf9e984016bf4f9783971b2b20561abb9e39f.
+
+Exact unchanged native build was reused after complete source/Cargo equality;
+no identical rebuild or 50,000-cycle rerun. One standalone command initially
+exposed repo dependencies; corrected its import root and reran that assertion,
+then verified the extracted archive. Tar positional-option order corrected
+after its first nonzero exit. No test was weakened to accommodate either error.
+
+Full findings, implemented solutions, upstream/downstream impact map, native
+binary custody, recurrence checks and remaining physical-law implementation:
+docs/A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md
+
+A10-01 / A9-04 remain OPEN for actual phase/gate/material transduction; A11
+matched plasticity motor causation remains OPEN. Only component containment,
+evidence honesty and archive/source custody are accepted. ECS task definition
+1579 remains 1 running / 0 pending before and after local verification.
+No production state, caregiver, functional-body precursor, or unrelated work
+was modified. Generic completion notice is recorded in codex-notify.log.
+
+G1 may integrate these completed corrections without repeating the same review.
+The one next item is the mounted one-neuron phase/gate/material contract and
+its exact causal proof, as specified in the report—not another scalar
+projection, altered test stimulus or long counter-based burn-in.

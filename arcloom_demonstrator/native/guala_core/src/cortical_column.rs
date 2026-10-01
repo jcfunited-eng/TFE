@@ -25,11 +25,9 @@
 //!      - Actuators remain on independent physical axes; zero dimensionally invalid cross-ranking.
 //!   4. Prefrontal / Structural Invariant Sheet (Columns 48..63):
 //!      - Complete binary64 field values are preserved in storage and exact
-//!        rational representation.
-//!      - Ratified Physical Current Operator mounts continuous 7-field tensor and S_UF
-//!        via MathLoom rational balanced-ternary decomposition, Krimelack phase settlement,
-//!        channel gate displacement, and pore current injection into Columns 48..63,
-//!        with continuous somatic potential venting (P_k > B_k) and refusal interlocks.
+//!        rational representation. The typed phase/material consumer is absent.
+//!      - Full-field transition refuses atomically. Component-only execution
+//!        is not evidence of ratified full-field neuron physics.
 //!   5. Fail-Closed Lossless ARCLOOM4 State Persistence with Explicit Field Availability:
 //!      - Serializes complete topological configuration, including severed tracts,
 //!        column-local microcircuit plasticity parameters, and motor dynamics.
@@ -2036,95 +2034,16 @@ impl ModularSubstrate64D {
         current_barrier_stress: f32,
         acoustic_formants: &[f32],
     ) -> Result<(usize, f32), String> {
+        // Stored binary64 fields are lossless evidence, not an implemented
+        // typed Psi/Krimelack -> material gate -> current operator. Refuse
+        // before trace, motor, membrane or plastic state can change.
+        if self.continuous_joint_field_present {
+            return Err("Full-field transition unavailable: typed Psi/Krimelack material operator is not implemented; truncated trit afferents are prohibited".to_string());
+        }
         let mut total_yields = 0usize;
         let mut total_strain = 0.0f32;
 
-        let (mut in_23, mut in_5) = self.compute_inter_column_currents();
-
-        // ---------------------------------------------------------------------------
-        // Prefrontal / Structural Field Transduction: Ratified Physical Current Operator
-        // ---------------------------------------------------------------------------
-        // Path: typed UF result -> exact rational trits -> typed Psi/Krimelack constraints
-        //       -> phase settlement -> channel gate displacement -> conductance/current
-        //       -> native state -> motor/world consequence -> sensory return.
-        if self.continuous_joint_field_present {
-            let _d_k = self.continuous_joint_field[0];
-            let _m_k = self.continuous_joint_field[1];
-            let r_rev_k = self.continuous_joint_field[2];
-            let _u_star_k = self.continuous_joint_field[3];
-            let _c_k = self.continuous_joint_field[4];
-            let p_k = self.continuous_joint_field[5];
-            let b_k = self.continuous_joint_field[6];
-            let s_uf = self.continuous_joint_field[7];
-
-            // 1. Viability & Structural Reversal Kill Switch (DSF V3 Basin Physics)
-            if s_uf <= 0.0 || r_rev_k > 0.0 {
-                self.columns[23].refusal_active = true;
-                self.motor_locomotion_stride = 0.0;
-            }
-
-            // 2. Continuous Potential Venting (Pressure vs Breathing Manifold)
-            // When somatic pressure exceeds breathing capacity (P_k > B_k),
-            // excess somatic surplus vents into Motor Cortex Layer 5 (Cols 40..48).
-            if p_k > b_k {
-                let delta_phi = (p_k - b_k) as f32;
-                let venting_current = (delta_phi * G_ELASTIC_BASELINE).clamp(0.0, 1.0);
-                for c in 40..48 {
-                    for j in 0..L5_NODES {
-                        in_5[c][j] += venting_current;
-                    }
-                }
-            }
-
-            // 3. Exact Rational Balanced-Ternary Transduction & Krimelack Phase Settlement
-            // Transduces 8 field dimensions into Primary Columns 48..55 and Conjugate Columns 56..63
-            for k in 0..8 {
-                let val_k = self.continuous_joint_field[k];
-                let c_prim = 48 + (k % 8);
-                let c_conj = 56 + (k % 8);
-
-                let rat = crate::mathloom::float_to_rational_trits(val_k)?;
-                if !rat.is_zero {
-                    let sign_f = rat.sign as f32;
-
-                    // Primary Column: Numerator trits phase constraint E_qp = -kappa sum cos(phi_b - phi_a - 2pi*tau/3)
-                    for j in 0..L23_NODES {
-                        let mut phi_acc = 0.0f32;
-                        for (p, &t) in rat.numerator_trits.iter().take(32).enumerate() {
-                            if t == 0 { continue; }
-                            let weight = 1.0f32 / (1.0f32 + (p as f32) * 0.05f32);
-                            let angle = (2.0f32 * std::f32::consts::PI * ((j * (p + 1)) as f32)) / (L23_NODES as f32);
-                            phi_acc += (t as f32) * weight * angle.cos();
-                        }
-                        // Dimensionless aperture gating: y = 0.5 * (1.0 + tanh(phi))
-                        let y_c = 0.5f32 * (1.0f32 + phi_acc.tanh());
-                        // Channel current: I_inj = sign * y_c
-                        let i_inj = sign_f * y_c;
-                        in_23[c_prim][j] += i_inj;
-                        if j < L5_NODES {
-                            in_5[c_prim][j] += i_inj * 0.5f32;
-                        }
-                    }
-
-                    // Conjugate Column: Denominator trits phase constraint
-                    for j in 0..L23_NODES {
-                        let mut phi_acc_den = 0.0f32;
-                        for (q, &t) in rat.denominator_trits.iter().take(32).enumerate() {
-                            if t == 0 { continue; }
-                            let weight = 1.0f32 / (1.0f32 + (q as f32) * 0.05f32);
-                            let angle = (2.0f32 * std::f32::consts::PI * ((j * (q + 1)) as f32)) / (L23_NODES as f32);
-                            phi_acc_den += (t as f32) * weight * angle.cos();
-                        }
-                        let y_conj = 0.5f32 * (1.0f32 + phi_acc_den.tanh());
-                        let i_conj = -sign_f * y_conj;
-                        in_23[c_conj][j] += i_conj;
-                        if j < L5_NODES {
-                            in_5[c_conj][j] += i_conj * 0.5f32;
-                        }
-                    }
-                }
-            }
-        }
+        let (in_23, in_5) = self.compute_inter_column_currents();
 
         // 1. Cluster 0: Optical Cortical Sheet (Cols 0..8)
         if let Some(r) = observed_r_mm {
@@ -2235,9 +2154,9 @@ impl ModularSubstrate64D {
             self.motor_locomotion_stride = 0.0;
         }
 
-        // 6. Prefrontal / Structural Recurrent Sheet (Columns 48..64):
-        // Physical laminar flow processes injected field currents (when present)
-        // and recurrent inter-column inputs without ad-hoc digit overriding.
+        // Component-only recurrent sheet. No direct DSF digit injection:
+        // neither truncated rational digits nor legacy slots 48..63 are
+        // authorized neuronal currents. Full-field execution refuses above.
         let no_external_field = [0i8; L4_NODES];
         for c in 48..64 {
             let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(
