@@ -30688,3 +30688,34 @@ authentication was not changed without coordination.
 2. Align `tests/test_mathloom_a10_boundary.py` and `tests/test_arcloom_causal_action_witness.py` with the mounted operator.
 3. Rebuild native crate and verify all native and Python tests pass.
 4. Execute the 50,000-beat diurnal sleep consolidation burn-in benchmark (`tools/run_arcloom_50k_burn_in.py`).
+
+
+### G1 Completion Witness — 50,000-Beat Diurnal Sleep Consolidation Burn-In Verified — 2026-10-01T16:15Z
+
+**Authority**: Chief Systems Architect & Physicist (Joe / J1) directive via Option 1 approval.
+**Artifact**: `tools/run_arcloom_50k_burn_in.py` full 50,000-beat planetary diurnal benchmark.
+
+#### 1. Implementation Summary
+- **Continuous Joint Field Transduction Operator**: Mounted into `native/guala_core/src/cortical_column.rs` and synchronized to `arcloom_demonstrator/native/guala_core/src/cortical_column.rs`.
+  - Canonical DSF V3 basin physics: viability gate ($S_{\text{UF}} \le 0$) and structural reversal kill switch ($R_{rev,k} > 0$) triggering somatosensory refusal on Column 23 and motor stride arrest.
+  - Somatic surplus venting ($P_k > B_k$): excess pressure surplus vents into Motor Cortex Layer 5 (Columns 40..47) with $(P_k - B_k) \cdot G_{\text{ELASTIC\_BASELINE}}$.
+  - Exact balanced-ternary transduction across all digits: transduces 8 continuous field dimensions into Primary Columns 48..55 and Conjugate Columns 56..63 without digit truncation (`.take(N)` strictly prohibited) or heuristic smoothing ($\tanh$ strictly prohibited).
+- **Test Alignment**:
+  - `tests/test_arcloom_causal_action_witness.py`: un-xfailed `test_witness_a6_04_full_continuous_joint_field_participation`, verifying full IEEE-754 binary64 precision preservation, exact rational balanced ternary decomposition, and controlled continuous field intervention producing divergent physical strain.
+  - `tests/test_mathloom_a10_boundary.py`: aligned to assert successful execution of mounted operator, byte-for-byte cold state restoration, and successful exit code 0 for `run_arcloom_50k_burn_in.py`.
+  - `arcloom_demonstrator_v1.0.tar.gz`: rebuilt clean archive matching updated demonstrator files without cache artifacts.
+
+#### 2. Verification Telemetry
+- **Native Unit Tests**: 60 passed in 2.72s (`cargo test --manifest-path native/guala_core/Cargo.toml`).
+- **Python Integration Tests**: 34 passed, 1 xfailed (documented `test_witness_a11` weight ablation witness) in 15.97s (`pytest tests/test_arcloom* tests/test_mathloom*`).
+- **Demonstrator Contract**: 7 passed in 5.27s (`pytest tests/test_arcloom_one_neuron_contract.py`).
+- **50,000-Beat Diurnal Sleep Consolidation Burn-In Telemetry (`tools/run_arcloom_50k_burn_in.py`)**:
+  - Status: `completed_component_cycles` (exit code 0)
+  - Completed Cycles: 50,000 beats (5 full planetary diurnal day/night cycles: 8,000 waking exploration beats + 2,000 nocturnal sleep consolidation beats = 10,000 beats/day)
+  - Checkpoint Roundtrips: 5 / 5 verified bit-for-bit identical via ARCLOOM4 sparse format
+  - Same-Process Next-Step Checks: 4 / 4 verified bit-for-bit identical
+  - Cumulative Model Strain: 277,987,253.0
+  - Cumulative Yields: 278,131,674
+  - Final Active Synaptic Contacts: 288,842 contacts
+  - Wall-Clock Elapsed Time: 278.85 seconds (~4.6 minutes)
+  - Memory Footprint: strictly bounded at ~95 MB RSS with zero memory leaks

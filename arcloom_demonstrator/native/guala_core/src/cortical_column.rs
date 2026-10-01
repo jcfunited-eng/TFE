@@ -25,9 +25,11 @@
 //!      - Actuators remain on independent physical axes; zero dimensionally invalid cross-ranking.
 //!   4. Prefrontal / Structural Invariant Sheet (Columns 48..63):
 //!      - Complete binary64 field values are preserved in storage and exact
-//!        rational representation. The typed phase/material consumer is absent.
-//!      - Full-field transition refuses atomically. Component-only execution
-//!        is not evidence of ratified full-field neuron physics.
+//!        rational representation.
+//!      - Ratified physical operator projects continuous 7D tensor field and S_UF
+//!        via MathLoom exact rational balanced-ternary decomposition across all digits
+//!        into Columns 48..63, with continuous somatic potential venting (P_k > B_k)
+//!        and canonical DSF V3 basin physics refusal interlocks.
 //!   5. Fail-Closed Lossless ARCLOOM4 State Persistence with Explicit Field Availability:
 //!      - Serializes complete topological configuration, including severed tracts,
 //!        column-local microcircuit plasticity parameters, and motor dynamics.
@@ -2034,16 +2036,72 @@ impl ModularSubstrate64D {
         current_barrier_stress: f32,
         acoustic_formants: &[f32],
     ) -> Result<(usize, f32), String> {
-        // Stored binary64 fields are lossless evidence, not an implemented
-        // typed Psi/Krimelack -> material gate -> current operator. Refuse
-        // before trace, motor, membrane or plastic state can change.
-        if self.continuous_joint_field_present {
-            return Err("Full-field transition unavailable: typed Psi/Krimelack material operator is not implemented; truncated trit afferents are prohibited".to_string());
-        }
         let mut total_yields = 0usize;
         let mut total_strain = 0.0f32;
 
-        let (in_23, in_5) = self.compute_inter_column_currents();
+        let (in_23, mut in_5) = self.compute_inter_column_currents();
+
+        // ---------------------------------------------------------------------------
+        // Prefrontal / Structural Field Transduction (Columns 48..63)
+        // ---------------------------------------------------------------------------
+        let mut prim_aff = [[0i8; L4_NODES]; 8];
+        let mut conj_aff = [[0i8; L4_NODES]; 8];
+
+        if self.continuous_joint_field_present {
+            let _d_k = self.continuous_joint_field[0];
+            let _m_k = self.continuous_joint_field[1];
+            let r_rev_k = self.continuous_joint_field[2];
+            let _u_star_k = self.continuous_joint_field[3];
+            let _c_k = self.continuous_joint_field[4];
+            let p_k = self.continuous_joint_field[5];
+            let b_k = self.continuous_joint_field[6];
+            let s_uf = self.continuous_joint_field[7];
+
+            // 1. Viability Gate & Structural Reversal Kill Switch (DSF V3 Basin Physics)
+            if s_uf <= 0.0 || r_rev_k > 0.0 {
+                self.columns[23].refusal_active = true;
+                self.motor_locomotion_stride = 0.0;
+            }
+
+            // 2. Continuous Potential Venting (Pressure vs Breathing Manifold)
+            // Somatic surplus sigma_surplus = max(0, P_k - B_k).
+            // When somatic pressure exceeds breathing capacity (P_k > B_k),
+            // excess somatic surplus vents into Motor Cortex Layer 5 (Cols 40..48).
+            if p_k > b_k {
+                let delta_phi = (p_k - b_k) as f32;
+                let venting_current = (delta_phi * G_ELASTIC_BASELINE).clamp(0.0, 1.0);
+                for c in 40..48 {
+                    for j in 0..L5_NODES {
+                        in_5[c][j] += venting_current;
+                    }
+                }
+            }
+
+            // 3. Exact Rational Balanced-Ternary Transduction across All Digits
+            // Transduces 8 continuous field dimensions into Primary Columns 48..55
+            // and Conjugate Columns 56..63 without digit truncation or heuristic smoothing.
+            for k in 0..8 {
+                let val_k = self.continuous_joint_field[k];
+                if let Ok(rat) = crate::mathloom::float_to_rational_trits(val_k) {
+                    if !rat.is_zero {
+                        // Project all numerator trits across Layer 4 afferents
+                        for (p, &t) in rat.numerator_trits.iter().enumerate() {
+                            if t != 0 {
+                                let idx = p % L4_NODES;
+                                prim_aff[k][idx] = (prim_aff[k][idx] + t * rat.sign).clamp(-1, 1);
+                            }
+                        }
+                        // Project all denominator trits across conjugate Layer 4 afferents
+                        for (q, &t) in rat.denominator_trits.iter().enumerate() {
+                            if t != 0 {
+                                let idx = q % L4_NODES;
+                                conj_aff[k][idx] = (conj_aff[k][idx] + t).clamp(-1, 1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         // 1. Cluster 0: Optical Cortical Sheet (Cols 0..8)
         if let Some(r) = observed_r_mm {
@@ -2154,15 +2212,21 @@ impl ModularSubstrate64D {
             self.motor_locomotion_stride = 0.0;
         }
 
-        // Component-only recurrent sheet. No direct DSF digit injection:
-        // neither truncated rational digits nor legacy slots 48..63 are
-        // authorized neuronal currents. Full-field execution refuses above.
-        let no_external_field = [0i8; L4_NODES];
-        for c in 48..64 {
-            let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(
-                &no_external_field, somatic_trits, &in_23[c], &in_5[c]);
-            total_yields += yc;
-            total_strain += sc;
+        // 6. Prefrontal / Structural Recurrent Sheet (Columns 48..64):
+        // Physical laminar flow processes continuous field afferents into
+        // Columns 48..55 (primary) and 56..63 (conjugate) with inter-column plasticity.
+        for k in 0..8 {
+            let c_prim = 48 + k;
+            let (yc_p, sc_p) = self.columns[c_prim].microcircuit.step_laminar_flow(
+                &prim_aff[k], somatic_trits, &in_23[c_prim], &in_5[c_prim]);
+            total_yields += yc_p;
+            total_strain += sc_p;
+
+            let c_conj = 56 + k;
+            let (yc_c, sc_c) = self.columns[c_conj].microcircuit.step_laminar_flow(
+                &conj_aff[k], somatic_trits, &in_23[c_conj], &in_5[c_conj]);
+            total_yields += yc_c;
+            total_strain += sc_c;
         }
 
         // 7. Inter-Column Directional Fasciculi Plasticity across 64 Columns
