@@ -30401,3 +30401,252 @@ files is outside this source audit.
 
 ### Handoff to A1
 G1 requests A1 audit of the delivered native causal neuron operator and cold successor in `native/guala_core/src/arcloom_neuron.rs`.
+
+## A1 — G1-A15-BINDING-DELIVERY implementation ownership (2026-10-01 UTC)
+
+Joe explicitly directs A1 to FIX all six findings, not issue another audit-only
+handoff. A1 is implementation owner for this single-neuron correction.
+Predecessor: 32ee3d97a4cead70a114839143f6fa2e8fba670c (G1's new candidate).
+Tracked candidate files were clean at acquisition; unrelated untracked user
+artifacts are preserved. G1: do not edit the files listed below during this
+repair. No laminar/organism cutover or live production change is part of this
+single-neuron implementation. The prior containment gates remain evidence of
+missing capabilities, not evidence of completion.
+
+Joe additionally APPROVED bounded neuron-only deterministic numerical
+integration with explicit accuracy and conservation-error checks in this turn.
+Exact admitted carrier bookkeeping remains exact. This is separate from the
+earlier body/optics permissions. No permission for heuristic material response,
+semantic field-to-action switches, false conservation or manufactured passes
+is inferred.
+
+Frozen outcome: one coherent physical single-neuron transition, its complete
+canonical cold successor, and decisive falsifiers for NATIVE-01..06. No
+redefinition of "fixed" as labels, finite-number checks or legacy test totals.
+Existing source/component and live-production evidence must remain distinct.
+
+Source impact / incoming and outgoing references:
+- Existing unchanged MathLoom finite-bit rational decomposition supplies exact
+  numeric evidence. Reuse its bounded limb representation where appropriate;
+  kernel L0-L4 equations remain untouched.
+- native/guala_core/src/arcloom_neuron.rs: preparation/material/fabric boundary
+  -> coupled physical step -> gate/charge/contact/receiving consequences
+  -> complete canonical bytes -> fresh or previously used recipient -> next
+  same-input successor. No current production caller exists in the inspected
+  reference map. lib.rs only registers the Python class.
+- tests/test_arcloom_engineered_neuron.py is the sole Python consumer found.
+  Its existing first-law test merely checks finite work and heat; it does NOT
+  establish Delta H = W - Q. Its plasticity comparison changes the entire
+  prior history and does not isolate retained rest length.
+- Supporting exact-arithmetic implementation may be added in the native crate;
+  its work/storage bounds derive from finite binary64 charge and integer
+  reservoirs, never elapsed time or a cognitive cap.
+- All required physical evidence must cross the PyO3 boundary (including
+  complete energy residual, source/receiver transfer, exact remainder and
+  rejection atomicity). No receipt-only substitute for state is accepted.
+- Canonical source, tests, and this existing ledger are the authorized edits.
+  No new audit-report series, caretaker/browser changes or archive release.
+
+New candidate defects confirmed in source, not counted as repaired:
+1. dim/role/position are metadata unused by the four-node force law; no complete
+   MathLoom/joint-field input is consumed. P<B/P>=B-to-yield prose is not the
+   approved phase -> gate -> material route and is not implemented in step.
+2. Euler/clipped gate and phase/current updates are not a coupled conservative
+   solver. Phase-to-gate force has no reciprocal term in the claimed Hamiltonian.
+3. Contact g=sigma*Aref*Lref/x^2 is independent of ell for fixed x. A matched
+   test must distinguish equal loading from artificially identical geometry:
+   fixed-volume material at identical actual geometry SHOULD have the same g.
+   A retained-shape response must follow declared mechanics, not an ell bonus.
+4. Carrier and external remainders remain f64; receiver credits continuous J
+   while soma debits rounded whole carriers.
+5. V2 now includes topology, an actual improvement; decoder still slices
+   unchecked CRC-valid short payloads and normalizes decoded phases.
+6. Finite admitted inputs can overflow intermediate arithmetic; successor
+   physical domains are not checked before publication.
+
+Acceptance: actual conservation identities (not just finite values), complete
+state equality under nonempty-topology cold continuation, identical-state
+single-cause plasticity intervention under the same physical loading, all
+rejected input paths byte-atomic, typed exact input retention without digit
+truncation, finite resource domain, and independently evaluated numerical
+error/convergence. Run focused causal falsifiers before the broad native suite.
+A10/A11 cannot be marked closed by these component tests or by this ledger.
+
+Skill drift: the root-check helper reports the historical
+HANDOFF_2026-07-31_GUALA_PRODUCTION.md missing. Root is instead established by
+explicit user cwd, guala-live HEAD and the current shared ledger; no historical
+production state is inferred. No production health claim is made.
+
+### A1 implementation continuation — bounded numerical contract and source preflight
+
+Approval now includes Joe's explicit answer "Approve bounded neuron-only
+numerical integration", followed by G1's endorsement of exact carrier custody,
+physical First Law accounting and atomic refusal. A1 has started source
+replacement, not another audit-only report.
+
+The numerical implementation uses coupled implicit discrete gradients for
+quadratic capacitor/gate energy, trigonometric phase energy (sinc divided
+differences), finite-reservoir chemical free energy and physical dissipative
+currents. The gate wall is the previously specified normal-cone boundary,
+solved as an active set; it is not an after-the-fact aperture repair. Its
+finite-step error is not relabelled heat. Refinement compares successive
+time resolutions and checks First Law residual independently.
+
+Numerical accuracy is an explicit input (default relative 1e-6), with a declared
+4096-subinterval and 48-iteration-per-subinterval refusal budget. These limits
+bound computation, never select behavior. Failure leaves all predecessor bytes
+unchanged. Energy error is reported separately as numerical integration/
+arithmetic error and the finite whole-carrier quantization bound. Heat remains
+the computed friction, Joule and plastic dissipation, never W-DeltaH.
+
+Exact custody representation:
+e=801088317/(2^27*5^28) C. For finite binary64 J and valence -1,+1,+2,
+J/(z*e) lies on the lattice 1/D, D=801088317*2^1048.
+A remainder needs 1078 bits. Eighteen existing MathLoom u64 limbs cover that
+remainder plus the largest u64 whole transfer (1078+64<1152). Work and size
+are constant, with exact signed cancellation and checked finite endpoints.
+The only MathLoom change exposes its existing unsigned integer internally;
+its numerical representation and kernel are unchanged.
+
+Cold format V3 covers all independent state, the six exact remainders, source/
+receiver/electrode charge bookkeeping, material parameters and every admitted
+component edge. V2 is NOT silently migrated. It is not a live deployed format:
+the class has no inspected production caller. Every read is length-checked;
+invalid values are rejected, never normalized on import. No sidecar is used.
+
+Source review: the component path is constructor -> optional preparation-only
+material edges -> coupled numerical trajectory -> exact carrier settlement ->
+complete energy/state validation -> one commit -> PyO3 NeuronTransition evidence
+and canonical checkpoint. Preparation edge edits are refused after the first
+transition to prevent unaccounted changes in coupling energy.
+All of delta-H, actual heat/work, residual, separate error budgets, integrated
+charges, whole carriers and bounded solver work reach Python. An independent
+Python Fraction/Decimal oracle will check these rather than reusing native
+receipt arithmetic. Matched plasticity controls change only retained ell,
+compare equal-force loading and include equal-actual-geometry negative control.
+
+IMPORTANT: this source preflight permits focused component falsification only.
+The complete shared UF/local-perspective path is still not present in the
+native crate. The older Python GLJSRC02 carrier is not evidence of a compiled
+UF consumer. No eight-value surrogate or semantic P/B yield switch is added.
+NATIVE-01 and whole-neuron/full-field acceptance are not marked resolved by
+these component corrections; the requested overall task remains incomplete.
+
+Pre-test read-only AWS envelope, 2026-10-01T15:25:44Z onward:
+tfe-web-cluster / dsf-ai-service-lb, desired=1 running=1 pending=0,
+task:1579, task 9d10d8236b3548798328d3de3278a648, container RUNNING/HEALTHY,
+image sha256:2f0f1f3d6bf369086eeec751768d3b775b3bc8ca6641d77505ad16932c6dacf7.
+CloudWatch already reports guala-clock-stalled ALARM before candidate tests.
+This is not an all-healthy production claim or proof of cognitive progress.
+No live process, store, task, occurrence or environment is mutated.
+
+Failed tool: rustfmt is not installed for the stable toolchain. No dependency
+installation or source rewrite was attempted as a workaround.
+
+
+### A1 repair checkpoint — actual implementation and falsification, 2026-10-01T15:48Z
+
+This continues G1-A15-BINDING-DELIVERY. It is NOT a whole-neuron completion,
+production deployment, or permission to unlock A10/A11. G1's claim that typed
+edge tags close NATIVE-01 remains false. A1 made the repairs below directly;
+they are no longer just recommendations for G1.
+
+Architecture gate: requested single-neuron coupled physics with exact admitted
+carrier custody and complete cold continuation; current reality is a locally
+compiled/exercised four-node reference material component; conflict YES for the
+missing complete-field/local-perspective material input. No P/B-to-yield switch,
+field-name action map, legacy controller, kernel change or column unlock is
+extended. Next exact item is the absent full-field-to-material incidence, not
+another solver test series. This is a reduced compartment model, not full DSF:
+complete shared UF geometry, local perspective, variable Psi amplitude/winding,
+sparse joint incidence, finite recovery and whole-neuron fractals are NOT proved.
+
+Implemented source disposition:
+- NATIVE-02: reciprocal phase/gate energy, coupled implicit discrete gradients,
+  finite chemical work, physical Joule/friction/plastic dissipation, and separate
+  numerical and whole-carrier energy discrepancy budgets. Refinement now checks
+  BOTH state/compartment voltages and integrated work/heat. Heat is not a residual.
+  Gate constraints solve the specified normal-cone active-set equation; an
+  excessive boundary/solver residual refuses instead of repairing the output.
+  Numerical tolerances and step-doubling are engineering convergence evidence,
+  NOT a theorem that every continuous physical trajectory has certified error.
+- NATIVE-03: same applied force gives x=ell*(1+F*ell/K), and g=sigma*Aref*Lref/x^2.
+  A matched retained-ell ablation changes actual receiving carriers. At identical
+  imposed actual x the two electrical trajectories agree. That negative control
+  corrects A1's earlier erroneous demand for different g at identical geometry.
+- NATIVE-04: six exact remainder lanes reuse MathLoom's fixed limbs; every
+  admitted binary64 J satisfies z*e*(n+r_new-r_old)=J in independent Fraction
+  arithmetic. Both receiver endpoints and external counterelectrode settle the
+  SAME integer transfer. This does not make the computed continuous J exact.
+- NATIVE-05: V3 restores complete component material, edges, ports and exact
+  remainders into fresh and previously used recipients. A separate Python
+  process produces bit-identical next-interval bytes. V2 is refused, not migrated.
+- NATIVE-06: bounded solver, checked domains/intermediates/counters, canonical
+  framing and CRC-correct malformed-input refusals, all byte-atomic. Python
+  checkpoint input now borrows bytes so framing is checked before decoded-state
+  allocation rather than first copying arbitrary-length input into a Rust Vec.
+
+Current-only component size = 1158 + 15*edge_count bytes (0..32 fixture edges):
+1158..1638 bytes, independent of elapsed steps. This cap describes the inherited
+reference anatomy, NOT adequate full-field anatomy. Numerical work is bounded
+by sum(2^level, level=0..12)=8191 subinterval attempts, at most 48 fixed-point
+iterations each, fixed 13-state scratch and up to 32 local fixture edges.
+No per-step history, raw-input log, sidecar, new Python controller or new
+dependency was introduced. Allocator/RSS lifetime behavior is not proved by
+this logical bound or the 32-step constant-checkpoint-size witness.
+
+Actual verification, loaded from target/debug/libguala_core.so, not installed
+site-packages:
+- Final component suite: 10 passed in 3.65 s.
+- Final native crate: 60 passed in 2.69 s (plus compile time).
+- Existing A10/causal boundary suites: 14 passed, 2 strict xfailed, 2 deselected
+  in 26.92 s. The two excluded burn-in subprocess cases were not claimed as
+  candidate evidence because their child imports could resolve the installed
+  extension. The new cold-process witness explicitly loads the candidate path.
+- Independent 70-digit Decimal oracle derives electrical energy from integer
+  charges and aperture state, not the native voltage or energy receipt.
+- Tested representative dt=1e-4,1e-3,1e-2 and rtol=1e-4,1e-6,1e-8; strong
+  inputs, depleted continuous domains, and exhausted work budgets refuse with
+  unchanged bytes. A 1e-3 s negative-current load closes charged gates within
+  the declared energy budget; the longer 1e-2 s load refuses, not a forced pass.
+- Positive/negative monovalent and divalent transfers, minimum subnormal charge,
+  exact reversal, nonempty-topology cold reuse, every truncated V3 byte length,
+  malformed CRC-valid records, oversized input and counter overflow are covered.
+- No candidate test failure is hidden. Existing unrelated unused-variable
+  warning in ternary_lattice.rs:432 remains outside this repair.
+
+G1 solver endorsement: accept its three principles, not its asserted physical
+timescales or bit-exact continuous dynamics. C*Vdot has units A, not seconds;
+zeta*ydot and phase forces have energy units. Reference estimates derive from
+the actual material: tau_mem=C/(sum(m*g_pore)+g_contact)=0.65454 ms,
+tau_receiver=C_receiver/g_contact=0.063662 ms, tau_gate=zeta/k=1 ms.
+Coupled eigenmodes differ; phase relaxation depends on the mounted energy
+curvature, not a universal 10 ms assertion.
+
+Remaining NATIVE-01 is a physical architecture boundary, not a request for
+another favorable test: the inspected native crate contains no compiled shared
+joint UF result/local-perspective consumer. Its four-node dim/role/position
+labels do not alter incidence. The older GLJSRC02 Python source carrier excludes
+contact topology and is not a mounted native evaluator. Solving this requires
+the real shared field authority and explicitly sourced material incidence;
+a bare eight-value tuple or P/B branch cannot substitute. Do not integrate this
+component into cortical_column::step_cycle, release archive, or live organism
+as a complete neuron. A1 retains ownership; no completion is handed to G1.
+
+Final source fingerprints:
+arcloom_neuron.rs ddd7add55cb642915f05d2a9ea41b08fd2984621e9edba1eab1edca9522b902f
+exact_carrier.rs 9b7419841b7ead61bae0b0adcf1d043253a90e7a3f454e8ee9adb6eeb0250538
+mathloom.rs 50b0e524f927032636a9d60bf52f998b24ca948fa4f583ed749dcf2c8b26a751
+test_arcloom_engineered_neuron.py 83106bbc7474b08ab32a279f24b68090f26bae37d6819b675f97138373bf94f0
+
+Post-test AWS read-only check: same task 1579 / 9d10d8236b3548798328d3de3278a648,
+same image, RUNNING/HEALTHY, desired=running=1 pending=0. The pre-existing
+guala-clock-stalled alarm remains ALARM, last updated 2026-09-08T14:15:41Z;
+not diagnosed here, not concealed as an all-healthy cognitive state.
+Slack partial-work notification VERIFIED:
+codex_notify 2026-10-01T15:48:13Z status=slack_sent channel=#general.
+
+Operational mistake disclosed immediately to Joe: git remote -v exposed
+credential-bearing configured URLs in local tool output. No token values are
+copied to this ledger or Slack. Rotation of those credentials is recommended;
+authentication was not changed without coordination.

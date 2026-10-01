@@ -1,186 +1,308 @@
-"""Verification of ArcLoom Engineered Artificial Reference Material Neuron.
+"""Component falsification for the numerical material transition.
 
-Addresses A1 Audit Findings NATIVE-01 through NATIVE-06:
-- NATIVE-01: Full typed continuous structural field incidence (D_k, M_k, R_rev,k, U*_k, C_k, P_k, B_k)
-- NATIVE-02: Complete First Law thermodynamic balance: Delta H = W_in - W_out - Q_heat,out
-- NATIVE-03: Retained contact mechanics coupled to physical receiving compartment
-- NATIVE-04: Exact rational carrier custody and integer reservoir conservation
-- NATIVE-05: Cold successor covering independent physical state and causal operator topology
-- NATIVE-06: Strict physical domain validation, trailing byte rejection, and transactional refusal atomicity
-
-Governing documents:
-- docs/GUALA_ONE_NEURON_MATERIAL_ANATOMY_BINDING_2026-10-01.md
-- collaborative_todo.md (A1 Audit Entry 2026-10-01 UTC)
+These tests do not close A10 (full joint-field mounting) or A11 (organism motor
+causality). They independently check actual energy residuals, exact carrier
+identities, causal controls, finite solver refusal and complete cold custody.
 """
+from fractions import Fraction
 import math
+import struct
+import zlib
 import pytest
 from guala_core import ArcLoomNeuron
 
-
-def test_arcloom_engineered_neuron_genesis_and_initial_state():
-    """Verify genesis electroneutrality, initial resting voltage, and ion stocks."""
-    neuron = ArcLoomNeuron()
-    v0 = neuron.membrane_voltage()
-    # Ratified V0 ~ -65.0000031305 mV
-    assert abs(v0 - (-0.0650000031305)) < 1e-9, f"Unexpected V0: {v0}"
-
-    v_rec = neuron.receiving_voltage()
-    assert abs(v_rec - (-0.065)) < 1e-9, f"Unexpected receiving V: {v_rec}"
-
-    apertures = neuron.get_apertures()
-    assert apertures == [0.05, 0.05, 0.02, 0.10], f"Unexpected apertures: {apertures}"
-
-    res_in = neuron.get_reservoirs_in()
-    assert res_in == [30270581073, 353156779183, 252255, 25225484227]
-
-    res_out = neuron.get_reservoirs_out()
-    assert res_out == [91442380324, 2522548423, 1261274211, 69370081625]
-
-    x, ell = neuron.get_contact_geometry()
-    assert abs(x - 1.0e-6) < 1e-15
-    assert abs(ell - 1.0e-6) < 1e-15
+E = Fraction(1602176634, 10**28)
+VALENCES = (1, 1, 2, -1, 1, 1)
+PAYLOAD_OFFSET = 26
 
 
-def test_arcloom_engineered_neuron_contact_plasticity_and_receiving_charge_transfer():
-    """Verify NATIVE-03: retained contact deformation alters receiving compartment transfer."""
-    neuron_intact = ArcLoomNeuron()
-    neuron_yielded = ArcLoomNeuron()
-
-    # Step neuron_yielded with 15% strain to trigger plastic flow (ell increases)
-    prior_v, succ_v, yielded, d_pl, v_rec, w_in, q_heat = neuron_yielded.step(
-        applied_contact_x=1.15e-6,
-        external_current_a=0.0,
-        dt_seconds=1.0e-4,
-    )
-    assert yielded, "15% strain must yield plastically"
-    assert d_pl > 0.0, "Plastic yield must produce positive dissipation"
-
-    x_yielded, ell_yielded = neuron_yielded.get_contact_geometry()
-    assert ell_yielded > 1.0e-6, "Plastic yield must increase rest length"
-
-    # Step neuron_intact with sub-yield strain (ell unchanged)
-    prior_v2, succ_v2, yielded2, d_pl2, v_rec2, w_in2, q_heat2 = neuron_intact.step(
-        applied_contact_x=1.02e-6,
-        external_current_a=0.0,
-        dt_seconds=1.0e-4,
-    )
-    assert not yielded2, "2% strain must be elastic"
-    assert d_pl2 == 0.0, "Elastic step has zero plastic dissipation"
-
-    # Now present BOTH neurons with the EXACT SAME test input: x=1.05e-6, external_current=0.0
-    res_intact = neuron_intact.step(applied_contact_x=1.05e-6, external_current_a=0.0, dt_seconds=1.0e-4)
-    res_yielded = neuron_yielded.step(applied_contact_x=1.05e-6, external_current_a=0.0, dt_seconds=1.0e-4)
-
-    # Receiving voltage must diverge because contact conductance depends on actual/retained geometry!
-    v_rec_intact = res_intact[4]
-    v_rec_yielded = res_yielded[4]
-    assert v_rec_intact != v_rec_yielded, "Retained contact geometry must drive divergent receiving charge transfer"
+def remainder_ratios(neuron):
+    def integer(limbs):
+        return sum(value << (64 * i) for i, value in enumerate(limbs))
+    return [
+        (-1 if negative else 1) * Fraction(integer(num), integer(den))
+        for negative, num, den in neuron.get_exact_remainders()
+    ]
 
 
-def test_nonempty_topology_cold_successor_equivalence():
-    """Verify NATIVE-05: cold restore covers complete state AND causal operator topology."""
+def rewrite_payload(snapshot, offset, fmt, value):
+    data = bytearray(snapshot)
+    struct.pack_into(fmt, data, PAYLOAD_OFFSET + offset, value)
+    data[-4:] = struct.pack(">I", zlib.crc32(data[PAYLOAD_OFFSET:-4]))
+    return bytes(data)
+
+
+def physical_bytes(neuron):
+    return bytes(neuron.export_canonical_bytes())
+
+
+def check_energy(result):
+    residual = result.delta_enthalpy_j - result.work_input_j + result.heat_dissipated_j
+    assert result.heat_dissipated_j >= 0
+    assert residual == result.energy_residual_j
+    assert abs(residual) <= result.numerical_energy_bound_j + result.carrier_energy_bound_j
+    assert result.convergence_error <= 1e-6
+    assert 2 <= result.subintervals <= 4096
+    assert math.isfinite(result.delta_enthalpy_j)
+
+
+def test_genesis_and_exact_endpoint_charge():
+    cell = ArcLoomNeuron()
+    assert cell.get_reservoirs_in() == [30270581073, 353156779183, 252255, 25225484227]
+    assert cell.get_reservoirs_out() == [91442380324, 2522548423, 1261274211, 69370081625]
+    assert cell.get_apertures() == [0.05, 0.05, 0.02, 0.10]
+    capacitance = .01 * 4 * math.pi * (10e-6)**2
+    gate = (20 + 15 + .8) * float(E)
+    expected = (-5098117 * float(E) - gate) / capacitance
+    assert cell.membrane_voltage() == pytest.approx(expected, rel=1e-14)
+    assert cell.receiving_voltage() == -405698 * float(E) / 1e-12
+    assert sum(cell.get_integer_charge_endpoints()) == 0
+    assert remainder_ratios(cell) == [0] * 6
+
+
+def test_exact_carrier_identity_and_receiving_endpoints():
+    cell = ArcLoomNeuron()
+    totals = [a+b for a,b in zip(cell.get_reservoirs_in(), cell.get_reservoirs_out())]
+    for current in (1e-9, -1e-9, 2e-10, 0.0):
+        before = remainder_ratios(cell)
+        endpoints_before = cell.get_integer_charge_endpoints()
+        result = cell.step(external_current_a=current, dt_seconds=1e-4)
+        after = remainder_ratios(cell)
+        for lane, (z, count, charge) in enumerate(zip(VALENCES, result.whole_carriers, result.integrated_charge_c)):
+            # Independent unbounded rational ORACLE, not production arithmetic.
+            assert z * E * (count + after[lane] - before[lane]) == Fraction.from_float(charge)
+            assert abs(after[lane]) < 1
+        endpoints_after = cell.get_integer_charge_endpoints()
+        assert sum(endpoints_after) == 0
+        assert endpoints_after[3] - endpoints_before[3] == result.whole_carriers[5]
+        assert endpoints_after[2] - endpoints_before[2] == -result.whole_carriers[4]
+        assert [a+b for a,b in zip(cell.get_reservoirs_in(), cell.get_reservoirs_out())] == totals
+        check_energy(result)
+
+
+def test_nonempty_topology_cold_successor_and_repeated_use():
     original = ArcLoomNeuron()
-
-    # Add non-empty typed fabric edges (DSF D_k and M_k dimensions)
-    # dim: 0=Displacement, 1=Motion; role: 0=Numerator, 1=Denominator
-    original.add_fabric_edge(
-        from_node=0,
-        to_node=1,
-        tau_trit=1,
-        kappa_j=4.28e-20,
-        dim=0,
-        role=0,
-        position=1,
-    )
-    original.add_fabric_edge(
-        from_node=1,
-        to_node=2,
-        tau_trit=-1,
-        kappa_j=4.28e-20,
-        dim=1,
-        role=1,
-        position=2,
-    )
-
-    # Advance original 3 steps
+    original.add_fabric_edge(0, 1, 1, 4.28e-20, dim=0, role=0, position=1)
+    original.add_fabric_edge(1, 2, -1, 4.28e-20, dim=1, role=1, position=2)
+    original.step(applied_contact_x=1.08e-6, external_current_a=5e-10)
+    encoded = physical_bytes(original)
+    fresh = ArcLoomNeuron()
+    used = ArcLoomNeuron()
+    used.add_fabric_edge(2, 3, -1, 1e-20, dim=4, position=5)
+    used.step(external_current_a=2e-10)
+    for copy in (fresh, used):
+        copy.import_canonical_bytes(encoded)
+        assert physical_bytes(copy) == encoded
     for _ in range(3):
-        original.step(applied_contact_x=1.08e-6, external_current_a=5.0e-10, dt_seconds=1.0e-4)
-
-    canonical_bytes = original.export_canonical_bytes()
-
-    # 1. Restore into fresh instance (which starts with empty edges)
-    restored_fresh = ArcLoomNeuron()
-    restored_fresh.import_canonical_bytes(canonical_bytes)
-
-    # 2. Restore into existing instance that had DIFFERENT prior edges
-    restored_existing = ArcLoomNeuron()
-    restored_existing.add_fabric_edge(from_node=2, to_node=3, tau_trit=1, kappa_j=1.0e-20, dim=2, role=0, position=9)
-    restored_existing.import_canonical_bytes(canonical_bytes)
-
-    # Verify that both restored instances match original bit-for-bit before next step
-    assert restored_fresh.export_canonical_bytes() == canonical_bytes
-    assert restored_existing.export_canonical_bytes() == canonical_bytes
-
-    # Advance all three under the exact same subsequent stimulus
-    orig_succ = original.step(applied_contact_x=1.01e-6, external_current_a=-2.0e-10, dt_seconds=1.0e-4)
-    fresh_succ = restored_fresh.step(applied_contact_x=1.01e-6, external_current_a=-2.0e-10, dt_seconds=1.0e-4)
-    existing_succ = restored_existing.step(applied_contact_x=1.01e-6, external_current_a=-2.0e-10, dt_seconds=1.0e-4)
-
-    assert orig_succ == fresh_succ, "Fresh-process restore successor must be bit-identical"
-    assert orig_succ == existing_succ, "Overwrite restore successor must be bit-identical"
-    assert original.export_canonical_bytes() == restored_fresh.export_canonical_bytes()
+        results = [n.step(applied_contact_x=1.01e-6, external_current_a=-2e-10) for n in (original, fresh, used)]
+        assert physical_bytes(original) == physical_bytes(fresh) == physical_bytes(used)
+        for key in ("delta_enthalpy_j", "energy_residual_j", "whole_carriers", "integrated_charge_c", "subintervals"):
+            assert getattr(results[0], key) == getattr(results[1], key) == getattr(results[2], key)
+        check_energy(results[0])
 
 
-def test_first_law_thermodynamic_balance_and_heat_dissipation():
-    """Verify NATIVE-02: First Law energy accounting: Delta H = W_in - W_out - Q_heat."""
-    neuron = ArcLoomNeuron()
-    res = neuron.step(applied_contact_x=1.10e-6, external_current_a=1.0e-9, dt_seconds=1.0e-4)
+def test_retained_deformation_causally_changes_equal_load_response():
+    learned = ArcLoomNeuron()
+    first = learned.step(applied_contact_x=1.15e-6, external_current_a=1e-9)
+    assert first.plastic_yield_occurred and first.plastic_dissipation_j > 0
+    encoded = physical_bytes(learned)
+    # This is a disclosed single-cause counterfactual, not an invented experience:
+    # all state/anatomy is identical except retained stress-free contact length.
+    ell_offset = 5*8 + 6*145 + 4*32 + 8
+    ablated = ArcLoomNeuron()
+    ablated.import_canonical_bytes(rewrite_payload(encoded, ell_offset, ">d", 1e-6))
+    assert learned.get_phases() == ablated.get_phases()
+    assert learned.get_apertures() == ablated.get_apertures()
+    assert learned.get_reservoirs_in() == ablated.get_reservoirs_in()
+    assert learned.get_integer_charge_endpoints() == ablated.get_integer_charge_endpoints()
+    a = learned.step(applied_contact_force_n=0.0)
+    b = ablated.step(applied_contact_force_n=0.0)
+    assert learned.get_contact_geometry()[0] != ablated.get_contact_geometry()[0]
+    assert a.integrated_charge_c[5] != b.integrated_charge_c[5]
+    assert a.whole_carriers[5] != b.whole_carriers[5]
+    check_energy(a)
+    check_energy(b)
+    # Negative control: identical imposed actual geometry must NOT receive
+    # a developer-authored conductance multiplier from the retained rest length.
+    learned.import_canonical_bytes(encoded)
+    ablated.import_canonical_bytes(rewrite_payload(encoded, ell_offset, ">d", 1e-6))
+    a = learned.step(applied_contact_x=1.05e-6)
+    b = ablated.step(applied_contact_x=1.05e-6)
+    assert a.integrated_charge_c == b.integrated_charge_c
+    assert a.whole_carriers == b.whole_carriers
 
-    w_in = res[5]
-    q_heat = res[6]
 
-    assert math.isfinite(w_in), "Work input must be finite"
-    assert math.isfinite(q_heat), "Heat dissipated must be finite"
-    assert q_heat >= 0.0, "Dissipated heat must be strictly non-negative (Second Law)"
+def independent_energy(cell):
+    # Independent high-precision oracle; no production energy getter is used.
+    from decimal import Decimal, localcontext
+    with localcontext() as ctx:
+        ctx.prec = 70
+        D = Decimal.from_float
+        material_offset = PAYLOAD_OFFSET + 5*8 + 6*145 + 4*32
+        data = physical_bytes(cell)
+        x, ell, crec, _, _, _, cmem, stiffness, _, _, _ = struct.unpack_from(">11d", data, material_offset)
+        y = cell.get_apertures()
+        phases = cell.get_phases()
+        kb_t = D(1.380649e-23 * 300.0)
+        z_free, _, _, z_receiver = cell.get_integer_charge_endpoints()
+        elementary = Decimal(E.numerator) / Decimal(E.denominator)
+        q_gate = sum(Decimal(m)*Decimal(z)*elementary*D(aperture)
+                     for m, z, aperture in zip((100,100,20,50),(4,3,2,0),y))
+        h = (Decimal(z_free)*elementary-q_gate)**2/(2*D(cmem))
+        h += (Decimal(-405698+z_receiver)*elementary)**2/(2*D(crec))
+        h += D(stiffness)*(D(x)/D(ell)-1)**2/2
+        for m, aperture, rest in zip((100,100,20,50), y, (.05,.05,.02,.10)):
+            h += Decimal(m)*D(100.0*(1.380649e-23*300.0))*(D(aperture)-D(rest))**2/2
+        nedge_offset = material_offset + 11*8
+        nedge, = struct.unpack_from(">H", data, nedge_offset)
+        for index in range(nedge):
+            _, _, _, a, b, trit, kappa = struct.unpack_from(">BBHBBbd", data, nedge_offset+2+15*index)
+            delta = phases[b]-phases[a]
+            h -= D(kappa)*D(math.cos(delta-2*math.pi*trit/3))
+            h -= Decimal((100,100,20,50)[a])*D(1e-20)*D(y[a])*D(math.cos(delta))
+        vin = (4.0/3.0)*math.pi*(10e-6)*(10e-6)*(10e-6)
+        for counts, volume in ((cell.get_reservoirs_in(),vin),(cell.get_reservoirs_out(),.25*vin)):
+            for count in counts:
+                n = Decimal(count)
+                h += kb_t*n*((n/D(volume)).ln()-1)
+        return +h
 
 
-def test_exact_carrier_custody_rational_identity():
-    """Verify NATIVE-04: exact whole-ion integer custody and reservoir conservation."""
-    neuron = ArcLoomNeuron()
-    initial_in = neuron.get_reservoirs_in()
-    initial_out = neuron.get_reservoirs_out()
-
-    for _ in range(5):
-        neuron.step(applied_contact_x=1.0e-6, external_current_a=2.0e-10, dt_seconds=1.0e-4)
-
-    succ_in = neuron.get_reservoirs_in()
-    succ_out = neuron.get_reservoirs_out()
-
-    for c in range(4):
-        total_initial = initial_in[c] + initial_out[c]
-        total_succ = succ_in[c] + succ_out[c]
-        assert total_initial == total_succ, f"Species {c} reservoir conservation violated: {total_initial} != {total_succ}"
+def test_first_law_is_an_equation_not_a_finite_number_test():
+    cell = ArcLoomNeuron()
+    cell.add_fabric_edge(0, 1, 1, 4.28e-20)
+    for x in (1e-6, 1.02e-6, 1.15e-6):
+        initial = independent_energy(cell)
+        result = cell.step(applied_contact_x=x, external_current_a=1e-9)
+        final = independent_energy(cell)
+        delta = float(final-initial)
+        check_energy(result)
+        assert abs(delta-result.delta_enthalpy_j) <= result.numerical_energy_bound_j
+        assert abs(delta-result.work_input_j+result.heat_dissipated_j) <= (
+            result.numerical_energy_bound_j + result.carrier_energy_bound_j)
+        assert result.heat_dissipated_j >= result.plastic_dissipation_j
 
 
-def test_physical_domain_validation_and_refusal_atomicity():
-    """Verify NATIVE-06: invalid inputs, corrupted bytes, and out-of-bound states refuse atomically."""
-    neuron = ArcLoomNeuron()
-    valid_bytes = neuron.export_canonical_bytes()
+def test_invalid_and_crc_valid_malformed_input_is_atomic():
+    cell = ArcLoomNeuron()
+    encoded = physical_bytes(cell)
+    for size in range(len(encoded)):
+        with pytest.raises(ValueError):
+            cell.import_canonical_bytes(encoded[:size])
+        assert physical_bytes(cell) == encoded
+    for offset, fmt, value in [
+        (0, ">Q", 2**64-1),             # admitted endpoint, next-step overflow tested below
+        (40, ">B", 2),                 # noncanonical remainder sign
+        (5*8+6*145+16, ">d", -0.01),    # gate aperture
+        (5*8+6*145+24, ">d", math.pi),  # noncanonical phase, no wrapping on decode
+    ]:
+        changed = rewrite_payload(encoded, offset, fmt, value)
+        if offset == 0:
+            cell.import_canonical_bytes(changed)
+            with pytest.raises(RuntimeError):
+                cell.step()
+            assert physical_bytes(cell) == changed
+            cell.import_canonical_bytes(encoded)
+        else:
+            with pytest.raises(ValueError):
+                cell.import_canonical_bytes(changed)
+            assert physical_bytes(cell) == encoded
+    # A valid checksum over an empty payload used to reach unchecked slices.
+    header = b"ARCLOOM_NEURON_V3\0" + struct.pack(">I", 0)
+    empty = header + struct.pack(">I", zlib.crc32(header)) + struct.pack(">I", zlib.crc32(b""))
+    for invalid in (empty, encoded + b"\0", encoded + bytes(1 << 20)):
+        with pytest.raises(ValueError):
+            cell.import_canonical_bytes(invalid)
+        assert physical_bytes(cell) == encoded
+    for args in (
+        {"external_current_a": math.nan}, {"external_current_a": 1e308, "dt_seconds": 1.0},
+        {"applied_contact_x": 1e308}, {"dt_seconds": 0.0}, {"relative_tolerance": 0.0},
+        {"applied_contact_x": 1e-6, "applied_contact_force_n": 0.0},
+    ):
+        with pytest.raises(RuntimeError):
+            cell.step(**args)
+        assert physical_bytes(cell) == encoded
 
-    # 1. Trailing bytes rejected
-    corrupted_trailing = valid_bytes + b"\x00"
-    with pytest.raises(ValueError):
-        neuron.import_canonical_bytes(corrupted_trailing)
 
-    # 2. Corrupted CRC rejected
-    corrupted_crc = bytearray(valid_bytes)
-    corrupted_crc[-1] ^= 0xFF
-    with pytest.raises(ValueError):
-        neuron.import_canonical_bytes(bytes(corrupted_crc))
+def test_solver_accuracy_refines_observables_and_refuses_exhausted_budget():
+    results = []
+    for tolerance in (1e-4, 1e-6, 1e-8):
+        cell = ArcLoomNeuron()
+        cell.add_fabric_edge(0, 1, 1, 4.28e-20)
+        result = cell.step(external_current_a=1e-9, relative_tolerance=tolerance)
+        assert result.convergence_error <= tolerance
+        results.append((cell, result))
+    coarse, medium, fine = results
+    assert coarse[1].subintervals < medium[1].subintervals < fine[1].subintervals
+    thermal_voltage = (1.380649e-23 * 300) / float(E)
+    for method in ("membrane_voltage", "receiving_voltage"):
+        a, b, c = [getattr(cell, method)() for cell, _ in results]
+        assert abs(b-c) < abs(a-c)
+        assert abs(b-c) <= 1e-6 * thermal_voltage
+    # The finite work budget is a numerical refusal, not a state clamp.
+    cell = ArcLoomNeuron()
+    cell.add_fabric_edge(0, 1, 1, 4.28e-20)
+    before = physical_bytes(cell)
+    with pytest.raises(RuntimeError, match="numerical work budget exhausted"):
+        cell.step(dt_seconds=0.01, relative_tolerance=1e-12)
+    assert physical_bytes(cell) == before
+    with pytest.raises(RuntimeError, match="No static sub-yield equilibrium"):
+        cell.step(applied_contact_force_n=1.0)
+    assert physical_bytes(cell) == before
 
-    # 3. Non-finite input rejected atomically without mutating state
-    pre_v = neuron.membrane_voltage()
-    with pytest.raises(RuntimeError):
-        neuron.step(applied_contact_x=1.0e-6, external_current_a=float("nan"), dt_seconds=1.0e-4)
-    post_v = neuron.membrane_voltage()
-    assert pre_v == post_v, "Predecessor state must be 100% unmutated after refusal"
+
+def test_fresh_process_restores_the_same_complete_successor():
+    import subprocess
+    import sys
+    import guala_core
+    cell = ArcLoomNeuron()
+    cell.add_fabric_edge(0, 1, 1, 4.28e-20, dim=2, role=1, position=38)
+    cell.step(applied_contact_x=1.15e-6, external_current_a=1e-9)
+    before = physical_bytes(cell)
+    cell.step(applied_contact_force_n=0.0, external_current_a=-2e-10)
+    script = """
+import importlib.util, sys
+spec = importlib.util.spec_from_file_location("guala_core", sys.argv[1])
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+neuron = module.ArcLoomNeuron()
+neuron.import_canonical_bytes(bytes.fromhex(sys.stdin.read()))
+neuron.step(applied_contact_force_n=0.0, external_current_a=-2e-10)
+print(bytes(neuron.export_canonical_bytes()).hex())
+"""
+    result = subprocess.run(
+        [sys.executable, "-I", "-c", script, guala_core.__file__],
+        input=before.hex(), text=True, capture_output=True, timeout=15, check=True)
+    assert bytes.fromhex(result.stdout.strip()) == physical_bytes(cell)
+
+
+def test_recurrent_component_retains_no_per_step_history():
+    cell = ArcLoomNeuron()
+    cell.add_fabric_edge(0, 1, 1, 4.28e-20)
+    size = len(physical_bytes(cell))
+    total = [a+b for a,b in zip(cell.get_reservoirs_in(), cell.get_reservoirs_out())]
+    for index in range(32):
+        result = cell.step(external_current_a=(1 if index % 2 == 0 else -1) * 2e-10)
+        check_energy(result)
+        assert sum(cell.get_integer_charge_endpoints()) == 0
+        assert [a+b for a,b in zip(cell.get_reservoirs_in(), cell.get_reservoirs_out())] == total
+        assert len(physical_bytes(cell)) == size
+    # This is a fixed-size component custody witness, not a lifetime/RSS proof.
+
+
+def test_constrained_gate_boundary_obeys_energy_or_refuses_atomically():
+    cell = ArcLoomNeuron()
+    initial = independent_energy(cell)
+    result = cell.step(external_current_a=-1e-9, dt_seconds=1e-3)
+    assert cell.get_apertures() == [0.0, 0.0, 0.0, 0.1]
+    check_energy(result)
+    delta = float(independent_energy(cell)-initial)
+    assert abs(delta-result.work_input_j+result.heat_dissipated_j) <= (
+        result.numerical_energy_bound_j + result.carrier_energy_bound_j)
+    cell = ArcLoomNeuron()
+    initial_bytes = physical_bytes(cell)
+    # A stronger/longer load is refused; it is not rescued by clipping the
+    # final capacitor voltage, finite chemical reservoirs, or error receipt.
+    with pytest.raises(RuntimeError, match="Atomic refusal"):
+        cell.step(external_current_a=-1e-9, dt_seconds=1e-2)
+    assert physical_bytes(cell) == initial_bytes
