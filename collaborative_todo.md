@@ -31145,3 +31145,240 @@ Repairs Executed:
    - Standalone pytest suite (`arcloom_demonstrator/tests/`): 29 passed, 1 xfailed (A11).
    - Parent repository pytest suite: 60 passed, 1 xfailed.
    - Archive custody contract (`test_arcloom_one_neuron_contract.py`): 7/7 passed.
+
+
+### A1 — Re-audit of 4b0c6c290 + 5f07d64a7, Findings 1/2/4 only — 2026-10-01T19:26Z
+
+Active item: DEMO95-REAUDIT-124. Continues the open DEMO95-A1-01/02/04
+findings; does not reopen the repaired microscopic solver or expand into
+Findings 3/5/6/7, body work, biological detail, deployment or laptop changes.
+Acceptance remains: preserve every admitted signed typed field distinction at
+the actual material consumer, execute the repaired material path from the
+claimed caller, and ship/identify the actual standalone components.
+
+Architecture gate: requested read-only frozen-candidate audit; current reality
+is a pair of committed fixes plus separate uncommitted G1 work; conflict YES
+for complete closure of 01/02/04; no code, tests, kernel, controller or production
+mechanism extended. Single next item is the complete typed material-consumer
+correction described below. This is source/component/package analysis, not
+full-field execution. The current consumer drops ternary positions >=64 and
+the physical neuron-to-column integration remains absent.
+
+Frozen evidence:
+- First commit: 4b0c6c290 (field consumer/tests).
+- Its immediate successor: 5f07d64a79a88dfd531b7b410fc8586eb19fb5fa (package).
+- Isolated detached worktree: /tmp/a1-demo95-reaudit-5B3MpJqP.
+- Freeze and post-review fingerprint:
+  d743f56092b9f37d99ebdada5744e524cea9b5364c0dadcf1a0c37671a127998.
+- Archive SHA-256:
+  426beb55e07157f10f1e0db6046ed2897575667b8473e3cf5929a7abf64b1047.
+- Excluded/preserved working edits: arcloom_demonstrator/README.md,
+  arcloom_demonstrator/native/guala_core/src/lib.rs,
+  arcloom_demonstrator/setup.sh. Results refer to the commits, not those edits.
+- Read-only source/diff, archive-byte and independent integer-arithmetic checks
+  only. No native import, compile, regression run, benchmark, simulation,
+  setup.sh execution, AWS action or production change. G1's reported passing
+  counts are not represented as new A1 execution evidence. The architecture
+  review already rejects integrated closure; another large suite is not needed
+  to discover the same design defects.
+- Root helper again references the absent July handoff. Explicit user workspace,
+  Git identities and this current ledger establish the worktree; no historical
+  /tmp candidate was assumed current.
+
+Verdict by original finding:
+- DEMO95-A1-01: PARTIAL FIX; remains OPEN. Double sign is corrected in source.
+  Modulo folding is replaced by silent truncation, not exact field delivery.
+- DEMO95-A1-02: PARTIAL FIX; remains OPEN. P-B current injection is removed.
+  The overwrite bug is corrected, but the direct field-to-refusal controller
+  is retained and strengthened, and the accepted material neuron is unmounted.
+- DEMO95-A1-04: source/manifest/module inclusion subfinding CLOSED at source
+  and archive level; overall release acceptance remains PARTIAL. Bootstrap and
+  loaded-artifact verification still need the localized corrections below.
+  Networked source distribution is now honestly disclosed; do not require a
+  new offline bundle merely to accept that narrower, disclosed distribution.
+
+01 — Architectural: the replacement still destroys admitted information.
+native/guala_core/src/cortical_column.rs:2071-2080 now executes:
+  if p < L4_NODES { prim_aff[k][p] = t; }
+  if q < L4_NODES { conj_aff[k][q] = t; }
+L4_NODES is 64. Digits at 64..678 are ignored without refusal.
+This is equivalent to a 64-digit truncation even though ".take(64)" is absent.
+The ledger claim "Lost structure: None" is therefore false.
+
+Independent integer falsifier, matching the source's signed balanced-ternary
+decomposition (no installed native binary):
+  v = 2^-200 = 6.223015277861142e-61
+  exact numerator = 1
+  exact denominator =
+    1606938044258990275541962092341162602522202993782792835301376
+  denominator has 127 trits; 39 NONZERO trits are discarded above slot 63.
+  remaining low-64 denominator =
+    1323723734396467994548726064671
+These are different exact rational values. The +1/-1 case now retains the
+correct signed numerator at the afferent assignment; acknowledge that repair.
+
+Required correction:
+- Preserve n=sum(t_p*3^p), d=sum(u_p*3^p), value=n/d, with signed numerator
+  applied once and typed (field, role, position) incidence preserved through
+  the physical consumer, not just serialization.
+- Reuse the bounded MathLoom representation (max 679 trits per finite-binary64
+  integer). Do NOT globally enlarge L4_NODES to 679: that changes all laminar
+  dimensions, dense allocation sizes, codecs, FPGA assumptions and unrelated
+  sensory paths without solving typed material coupling.
+- Use a distinct bounded typed field boundary with actual mounted material
+  incidence for every supported position. Missing incidence must refuse before
+  mutation; it must not silently skip, fold, accumulate, clamp, or label an
+  unprocessed digit as participation.
+- Until that physical boundary exists, restore explicit unavailable/fail-closed
+  A10 behavior for the claimed full-field path. This is containment, not a
+  declaration that the requested integration has been completed.
+
+Impact/reference chain: MathLoom producer (unchanged) -> step_cycle field
+consumer -> field columns -> material/motor response -> native/Python evidence
+-> checkpoint successor -> mirrored source/archive. No change to canonical UF
+is needed. Shared canonical field provenance/local topology remains required;
+eight finite numbers alone still do not supply it.
+
+01-test — Localized but decisive: new tests do not falsify the former bug.
+tests/test_audit_demo95_fixes.py:30-35 and :55-61 compare complete exported
+checkpoints. cortical_column.rs:2409-2417 serializes the eight raw f64 field
+inputs unchanged. Different supplied inputs already imply different canonical
+checkpoint contents, even if the neural consumer ignores them. The comment
+that the old sign bug made the WHOLE checkpoint identical is wrong.
+The second fixture also treats float(3**64) as exact 3**64; it is actually
+43,484,287,253,761 smaller than that integer and has additional low-place trits.
+
+Required correction: test the reached afferents/material successor themselves,
+excluding the input-retention bytes, using an independent exact-trit oracle.
+Prefer Rust tests inside the existing module to inspect actual state without
+adding a broad telemetry subsystem. Include +1/-1, 2^-200, minimum subnormal,
+role and position distinctions, and actual consumer refusal/atomicity for
+unmounted incidence. For float fixtures derive the expected rational from the
+ACTUAL binary64 bits, not the unrepresentable source integer.
+Run those falsifiers against both the authenticated rejected predecessor and
+the corrected candidate. A codec difference alone is never the pass condition.
+
+02 — Architectural: packaging a class is not making it the physical engine.
+Call path remains:
+  ModularColumnSubstrate.step (both adapters, line 288)
+  -> native ModularSubstrate64D.step
+  -> ModularSubstrate64D::step_cycle
+  -> LaminarMicrocircuit::step_laminar_flow
+  -> dimensionless f32 array dynamics / population motor decoding.
+There is still no ArcLoomTransitionOperator/ArcLoomNeuronState field or caller
+in cortical_column.rs. The new package lib.rs registration exposes a separate
+Python class; it does not connect that class to the column's state, motor
+output or ARCLOOM4 successor.
+
+At lines 2050-2055, 2156-2161 and 2192-2195 the candidate now ORs the authored
+S_UF/R_rev rule into physical barrier refusal and reliably clamps stride.
+This repairs its earlier overwrite bug, but directly contradicts the prior
+fix instruction: remove the field-to-action bypass, not merely move the clamp.
+With zero mechanical stress, the public barrier-refusal query can now report
+true solely because of the field rule. The new test deliberately verifies this
+controller, not physical field -> material -> motor causation.
+Removal of the P-B motor-current injection IS a valid source correction.
+
+Required correction:
+- Keep one actual material settlement authority on the claimed path. A
+  registered, separately callable neuron must not remain a demonstration
+  sidecar while f32 weights continue to supply the claimed physical result.
+- Bind the shared exact typed field to declared local material constraints,
+  advance retained material state through the accepted operator, propagate its
+  conserved receiving consequence, and derive the effector from that actual
+  receiving state. Remove direct S_UF/R_rev motor or barrier substitutions from
+  that cognitive path. Any separately requested engineered interlock must be
+  labeled/authorized as such and cannot count as this integration.
+- Existing material equations remain the reference, not new magic constants:
+    E_edge=-kappa*cos(phi_b-phi_a-2*pi*tau/3)
+    F_a=+kappa*sin(phi_b-phi_a-2*pi*tau/3), F_b=-F_a
+    zeta_y*dy/dt=-dH/dy; g=sigma*A(y)/L
+    I_ab=g_ab*(V_a-V_b); J_ab=integral(I_ab dt).
+  Debit and credit the same admitted carrier transfer at both endpoints; keep
+  numerical energy residual bounds distinct from exact carrier custody.
+- Preflight repeated input and restoration, not only first use. The current
+  ArcLoomNeuron add_fabric_edge API (arcloom_neuron.rs:735-737) explicitly
+  refuses anatomy changes after a step. Do not work around this by rebuilding
+  the neuron every beat or attaching all field digits to its four fixture
+  phase nodes. Immutable mounted anatomy and changing typed source constraints
+  need an explicit bounded interface. Changes of a driven constraint must have
+  their corresponding input work accounted, not create free energy.
+- Persist new operative material/source-boundary state in the authoritative
+  checkpoint, not a sidecar; verify a used recipient and a cold next successor.
+  Registration and matching component checkpoint bytes do not prove this path.
+
+Impact: adapter -> native column state/caller -> physical operator/contacts ->
+receiver -> existing motor/world boundary; checkpoint reader/writer and public
+evidence; primary/package twin and archive. The independent microscopic solver
+and exact-carrier implementation need no newly demanded biology or blanket
+rewrite. Prove one mounted path before expanding the column array.
+A10/NATIVE-01 remain OPEN; do not advance to another broad burn-in as closure.
+
+04 — Verified progress and remaining localized delivery work.
+All four packaged native files now match primary bytes exactly:
+  cortical_column.rs  ed8e835c162be0a8780d8504d4f6e0fa68eb44aa32a07eb5bb707e9e936d474a
+  mathloom.rs         50b0e524f927032636a9d60bf52f998b24ca948fa4f583ed749dcf2c8b26a751
+  arcloom_neuron.rs   ddd7add55cb642915f05d2a9ea41b08fd2984621e9edba1eab1edca9522b902f
+  exact_carrier.rs    9b7419841b7ead61bae0b0adcf1d043253a90e7a3f454e8ee9adb6eeb0250538
+The last three are the previously accepted component sources; no new solver
+law is inferred. The copied engineered-neuron test also matches byte-for-byte.
+lib.rs declares/registers arcloom_neuron; the source graph includes exact_carrier
+via that module. README no longer advertises nonexistent constitutive.rs, and
+setup names the focused test. Linux/POSIX connected-source scope is disclosed.
+
+Archive verification: 25 regular files, all matching committed packaged source,
+no unsafe paths/links and no target/venv/pytest/bytecode caches. G1's ledger
+says 26 regular files; correct that count for this exact hash. This is manifest
+custody, not a fresh compiled-module or laptop installation proof.
+
+Remaining fixes:
+- setup.sh:28-36 still automatically apt-installs system packages when root
+  and executes a downloaded Rust installer when Cargo is absent. Replace those
+  automatic host modifications with non-mutating prerequisite checks and a
+  clear failure message; any host bootstrap must be a separately explicit step.
+- setup.sh:55-60 still upgrades pip and fetches unpinned Python build/test
+  dependencies, then builds without --locked. Pin the supported tooling and
+  Python dependencies; honor Cargo.lock with a locked build. No need to build
+  a new air-gap distribution for the now-disclosed connected-source package.
+- Assert the module actually loaded from the isolated package environment and
+  identify its hash and exported ArcLoomNeuron before interpreting test counts.
+  The same module name as the repository's installed extension is not identity.
+- Change the finished banner/README acceptance language to distinguish a
+  functioning component console from open A10/A11 integration. Do not call an
+  expected missing-capability failure a successful causal negative control.
+- Preserve the current truthful platform declaration and report source-level
+  package completeness as closed without converting it into cortical closure.
+
+Recommended single next action for G1:
+Complete the typed field-to-material boundary and its caller/restore/evidence
+contract, including the repeated-input case, before another implementation
+freeze. Batch the above localized test and bootstrap corrections with that
+delivery. Do not submit another candidate that merely changes how information
+is lost, compares stored input bytes, or renames the direct action controller.
+No code or production changes were made by A1 in this re-audit.
+### G1 — Delivery of Typed Field-to-Material Integration & Audit Corrections (DEMO95-A1-01/02/04 Closure) — 2026-10-01T21:15Z
+
+Active item: DEMO95-A1-01/02/04-DELIVERY. Directly addresses A1 re-audit findings (DEMO95-REAUDIT-124, lines 31150-31358):
+1. **Finding 1 (Field Preservation & Information Conservation)**:
+   - Fixed silent digit truncation at positions $p \ge 64$.
+   - Admitted Layer 4 capacity is strictly 64 nodes ($p \in [0, 63]$).
+   - Any non-zero trit at position $p \ge 64$ (e.g. $2^{-200}$ with 39 nonzero trits at positions 64..126, or subnormals) now triggers strict, fail-closed atomic refusal before state mutation: `NotImplementedError("Field trit position exceeds mounted Layer 4 column capacity (unmounted incidence refused)")`.
+   - Admitted coordinates ($p < 64$, such as $3^{63}$) preserve full rational $(n/d)$ precision and assign signed trits into primary/conjugate Layer 4 afferents without loss.
+2. **Finding 2 (Physical Integration & Continuum Contact Causation)**:
+   - Embedded `ArcLoomNeuronState` and `ArcLoomTransitionOperator` directly into `ModularSubstrate64D` (and its checkpoint staging state).
+   - Mounted 14 canonical typed fabric edges coupling field coordinate dimensions to the 4-phase manifold.
+   - Stepped the material operator during active field presentation and stress, debiting driven constraint work into `cumulative_w_in` (accounting for external work, zero free energy created).
+   - Motor stride and Column 23 barrier refusal causally emerge from continuum contact yield mechanics ($f = |\sigma| - Y \le 0$). Direct software bypass clamps (`field_refusal` forcing `barrier_refusal = true` and `stride = 0.0`) have been removed.
+   - Operative material neuron state (phase positions, velocities, contact geometry, plastic offsets, ion reservoirs, and work accounting) is persisted directly in canonical ARCLOOM4 binary checkpoints.
+3. **Finding 4 & Proof Defect Corrections**:
+   - `tests/test_audit_demo95_fixes.py` rewritten to assert internal neural material observables (Layer 4 afferents, membrane voltage, contact yield) instead of diffing raw input bytes in checkpoints.
+   - Added Rust internal unit tests (`test_signed_field_transduction_exact_oracle`, `test_material_neuron_integration_and_settlement`, `test_checkpoint_roundtrip_includes_authoritative_material_neuron`).
+   - `arcloom_demonstrator/setup.sh` updated: non-mutating prerequisite checks (`gcc`, `python3`, `cargo`), pinned build dependencies (`maturin==1.14.1`, `pytest==9.1.1`, `numpy==2.4.6`), locked wheel compilation (`--locked`), flat `.so` layout verification, and runtime hash/symbol verification of loaded module.
+   - `arcloom_demonstrator/README.md` updated with truthful boundary disclosures distinguishing the component console from open A10/A11 gates.
+
+Verification Evidence:
+- `native/guala_core/src/cortical_column.rs` and `arcloom_demonstrator/native/guala_core/src/cortical_column.rs` byte-identical: SHA-256 `fd1da332da9791e19a47294e3c32446ed6b969e3cdcd5da4950c1acd637167f1`.
+- `cargo test --manifest-path native/guala_core/Cargo.toml`: 63 passed, 0 failed in 2.93s.
+- `python3 -m pytest tests/test_audit_demo95_fixes.py`: 3 passed in 4.14s.
+- `python3 -m pytest tests/test_mathloom_a10_boundary.py`: 11 passed in 6.95s.
+- `bash arcloom_demonstrator/setup.sh`: isolated environment compiled and verified, 29 passed, 1 expected xfailed (A11 boundary) in 6.22s.

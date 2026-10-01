@@ -42,6 +42,10 @@
 use std::collections::HashSet;
 use pyo3::prelude::*;
 use pyo3::exceptions::{PyValueError, PyNotImplementedError};
+use crate::arcloom_neuron::{
+    ArcLoomNeuronState, ArcLoomTransitionOperator, FieldRole, StructuralFieldDim,
+    TypedFabricEdge,
+};
 
 // Common Dimensions
 pub const L1_NODES: usize = 32;
@@ -1791,6 +1795,8 @@ pub struct StagedSubstrateState {
     pub motor_locomotion_stride: f32,
     pub motor_steer_angle: f32,
     pub motor_grip_force: f32,
+    pub material_neuron_state: ArcLoomNeuronState,
+    pub material_neuron_operator: ArcLoomTransitionOperator,
 }
 
 pub use crate::mathloom::MathLoomRationalField;
@@ -1811,6 +1817,8 @@ pub struct ModularSubstrate64D {
     pub motor_locomotion_stride: f32,
     pub motor_steer_angle: f32,
     pub motor_grip_force: f32,
+    pub material_neuron_state: ArcLoomNeuronState,
+    pub material_neuron_operator: ArcLoomTransitionOperator,
 }
 
 impl ModularSubstrate64D {
@@ -1836,6 +1844,26 @@ impl ModularSubstrate64D {
             motor_locomotion_stride: 0.0,
             motor_steer_angle: 0.0,
             motor_grip_force: 0.0,
+            material_neuron_state: ArcLoomNeuronState::new_reference_preparation(),
+            material_neuron_operator: {
+                let mut op = ArcLoomTransitionOperator::new_reference_operator();
+                let _ = op.add_fabric_edge(TypedFabricEdge::new(StructuralFieldDim::Displacement, FieldRole::Numerator, 0, 0, 1, 0, 1.0e-18).unwrap());
+                let _ = op.add_fabric_edge(TypedFabricEdge::new(StructuralFieldDim::Motion, FieldRole::Numerator, 0, 1, 2, 0, 1.0e-18).unwrap());
+                let _ = op.add_fabric_edge(TypedFabricEdge::new(StructuralFieldDim::Reversal, FieldRole::Numerator, 0, 2, 3, 0, 1.0e-18).unwrap());
+                let _ = op.add_fabric_edge(TypedFabricEdge::new(StructuralFieldDim::Uncertainty, FieldRole::Numerator, 0, 3, 0, 0, 1.0e-18).unwrap());
+                let _ = op.add_fabric_edge(TypedFabricEdge::new(StructuralFieldDim::Cohesion, FieldRole::Numerator, 0, 0, 2, 0, 1.0e-18).unwrap());
+                let _ = op.add_fabric_edge(TypedFabricEdge::new(StructuralFieldDim::Pressure, FieldRole::Numerator, 0, 1, 3, 0, 1.0e-18).unwrap());
+                let _ = op.add_fabric_edge(TypedFabricEdge::new(StructuralFieldDim::Breathing, FieldRole::Numerator, 0, 2, 0, 0, 1.0e-18).unwrap());
+
+                let _ = op.add_fabric_edge(TypedFabricEdge::new(StructuralFieldDim::Displacement, FieldRole::Denominator, 0, 1, 0, 0, 1.0e-18).unwrap());
+                let _ = op.add_fabric_edge(TypedFabricEdge::new(StructuralFieldDim::Motion, FieldRole::Denominator, 0, 2, 1, 0, 1.0e-18).unwrap());
+                let _ = op.add_fabric_edge(TypedFabricEdge::new(StructuralFieldDim::Reversal, FieldRole::Denominator, 0, 3, 2, 0, 1.0e-18).unwrap());
+                let _ = op.add_fabric_edge(TypedFabricEdge::new(StructuralFieldDim::Uncertainty, FieldRole::Denominator, 0, 0, 3, 0, 1.0e-18).unwrap());
+                let _ = op.add_fabric_edge(TypedFabricEdge::new(StructuralFieldDim::Cohesion, FieldRole::Denominator, 0, 2, 0, 0, 1.0e-18).unwrap());
+                let _ = op.add_fabric_edge(TypedFabricEdge::new(StructuralFieldDim::Pressure, FieldRole::Denominator, 0, 3, 1, 0, 1.0e-18).unwrap());
+                let _ = op.add_fabric_edge(TypedFabricEdge::new(StructuralFieldDim::Breathing, FieldRole::Denominator, 0, 0, 2, 0, 1.0e-18).unwrap());
+                op
+            },
         }
     }
 
@@ -1916,6 +1944,8 @@ impl ModularSubstrate64D {
         self.motor_locomotion_stride = staged.motor_locomotion_stride;
         self.motor_steer_angle = staged.motor_steer_angle;
         self.motor_grip_force = staged.motor_grip_force;
+        self.material_neuron_state = staged.material_neuron_state;
+        self.material_neuron_operator = staged.material_neuron_operator;
     }
 
     pub fn sever_tract(&mut self, c_from: usize, c_to: usize) {
@@ -2047,33 +2077,32 @@ impl ModularSubstrate64D {
         let mut prim_aff = [[0i8; L4_NODES]; 8];
         let mut conj_aff = [[0i8; L4_NODES]; 8];
 
-        let field_refusal = if self.continuous_joint_field_present {
-            let r_rev_k = self.continuous_joint_field[2];
-            let s_uf = self.continuous_joint_field[7];
-
-            // 1. Viability Gate & Structural Reversal Kill Switch (DSF V3 Basin Physics)
-            s_uf <= 0.0 || r_rev_k > 0.0
-        } else {
-            false
-        };
-
         if self.continuous_joint_field_present {
-            // 2. Exact Rational Balanced-Ternary Transduction across Distinct Node Positions
-            // Transduces 8 continuous field dimensions into Primary Columns 48..55
-            // and Conjugate Columns 56..63 without extra sign multiplication or modulo folding.
+            // Strict information conservation: fail-closed refusal before ANY state mutation if unmounted incidence exists
             for k in 0..8 {
                 let val_k = self.continuous_joint_field[k];
                 if let Ok(rat) = crate::mathloom::float_to_rational_trits(val_k) {
                     if !rat.is_zero {
-                        // Project numerator trits across Layer 4 afferents
-                        // rat.numerator_trits is ALREADY signed. Do NOT multiply by rat.sign again!
-                        // Do NOT modulo-fold: each node p receives only its exact ternary power 3^p.
+                        if rat.numerator_trits.len() > L4_NODES && rat.numerator_trits[L4_NODES..].iter().any(|&t| t != 0) {
+                            return Err("Field trit position exceeds mounted Layer 4 column capacity (unmounted incidence refused)".into());
+                        }
+                        if rat.denominator_trits.len() > L4_NODES && rat.denominator_trits[L4_NODES..].iter().any(|&t| t != 0) {
+                            return Err("Field trit position exceeds mounted Layer 4 column capacity (unmounted incidence refused)".into());
+                        }
+                    }
+                }
+            }
+
+            // Project exact signed rational trits to mounted Layer 4 afferents without double-sign or modulo folding
+            for k in 0..8 {
+                let val_k = self.continuous_joint_field[k];
+                if let Ok(rat) = crate::mathloom::float_to_rational_trits(val_k) {
+                    if !rat.is_zero {
                         for (p, &t) in rat.numerator_trits.iter().enumerate() {
                             if p < L4_NODES {
                                 prim_aff[k][p] = t;
                             }
                         }
-                        // Project denominator trits across conjugate Layer 4 afferents
                         for (q, &t) in rat.denominator_trits.iter().enumerate() {
                             if q < L4_NODES {
                                 conj_aff[k][q] = t;
@@ -2083,6 +2112,59 @@ impl ModularSubstrate64D {
                 }
             }
         }
+
+        let transition = if self.continuous_joint_field_present || current_barrier_stress.abs() > 0.0 {
+            // Account for external input work of driven constraints on the mounted material neuron
+            let mut driven_work = 0.0f64;
+            for edge in self.material_neuron_operator.fabric_edges.iter_mut() {
+                let k = edge.dim as usize;
+                let target_trit = if self.continuous_joint_field_present && k < 8 {
+                    let val_k = self.continuous_joint_field[k];
+                    if let Ok(rat) = crate::mathloom::float_to_rational_trits(val_k) {
+                        if !rat.is_zero {
+                            let trits = match edge.role {
+                                FieldRole::Numerator => &rat.numerator_trits,
+                                FieldRole::Denominator => &rat.denominator_trits,
+                                FieldRole::Invariant => &rat.numerator_trits,
+                            };
+                            let pos = edge.position as usize;
+                            if pos < trits.len() { trits[pos] } else { 0 }
+                        } else {
+                            0
+                        }
+                    } else {
+                        0
+                    }
+                } else {
+                    0
+                };
+                if edge.tau_trit != target_trit {
+                    let phi_a = self.material_neuron_state.phi[edge.from_node];
+                    let phi_b = self.material_neuron_state.phi[edge.to_node];
+                    let e_old = edge.energy(phi_a, phi_b);
+                    edge.tau_trit = target_trit;
+                    let e_new = edge.energy(phi_a, phi_b);
+                    driven_work += e_new - e_old;
+                }
+            }
+            self.material_neuron_state.cumulative_w_in += driven_work;
+
+            let applied_x = if current_barrier_stress.abs() > 0.0 {
+                Some(self.material_neuron_state.contact_ell * (1.0 + (current_barrier_stress as f64) * 0.02))
+            } else {
+                None
+            };
+            Some(self.material_neuron_operator.step_with_accuracy(
+                &mut self.material_neuron_state,
+                applied_x,
+                None,
+                0.0,
+                1.0e-4,
+                1.0e-6,
+            )?)
+        } else {
+            None
+        };
 
         // 1. Cluster 0: Optical Cortical Sheet (Cols 0..8)
         if let Some(r) = observed_r_mm {
@@ -2152,10 +2234,11 @@ impl ModularSubstrate64D {
             let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(&som_aff, somatic_trits, &in_23[c], &in_5[c]);
             total_yields += yc; total_strain += sc;
         }
-        // Col 23 (S8: Barrier Yield Refusal & Viability Kill Switch)
+        // Col 23 (S8: Barrier Yield Refusal via Physical Contact Mechanics)
         self.columns[23].barrier_contact_stress = current_barrier_stress;
-        let barrier_refusal = current_barrier_stress.abs() >= self.columns[23].yield_limit_threshold;
-        self.columns[23].refusal_active = barrier_refusal || field_refusal;
+        let barrier_refusal = current_barrier_stress.abs() >= self.columns[23].yield_limit_threshold
+            || transition.as_ref().map_or(false, |t| t.plastic_yield_occurred);
+        self.columns[23].refusal_active = barrier_refusal;
         let mut s8_aff = vec![0i8; L4_NODES];
         s8_aff[0] = if self.columns[23].refusal_active { 1 } else { 0 };
         let (y23, s23) = self.columns[23].microcircuit.step_laminar_flow(&s8_aff, somatic_trits, &in_23[23], &in_5[23]);
@@ -2189,7 +2272,7 @@ impl ModularSubstrate64D {
         let pos_vocal = self.columns[43].microcircuit.l5.iter().filter(|&&x| x > 0).count() as f32;
         self.motor_vocal_drive = ((pos_vocal / (L5_NODES as f32)) * 480.0).clamp(0.0, 480.0);
 
-        // Physical Barrier & Viability Refusal Kinematic Clamp (Protective Interlock):
+        // Physical Barrier Refusal Kinematic Clamp (Protective Interlock):
         if self.columns[23].refusal_active {
             self.motor_locomotion_stride = 0.0;
         }
@@ -2417,6 +2500,11 @@ impl ModularSubstrate64D {
             buf.extend_from_slice(&val.to_le_bytes());
         }
 
+        // Authoritative ArcLoom material neuron checkpoint serialization
+        let neuron_bytes = self.material_neuron_operator.export_canonical_checkpoint(&self.material_neuron_state);
+        buf.extend_from_slice(&(neuron_bytes.len() as u32).to_le_bytes());
+        buf.extend_from_slice(&neuron_bytes);
+
         let pad = (8 - (buf.len() % 8)) % 8;
         for _ in 0..pad {
             buf.push(0);
@@ -2585,6 +2673,8 @@ impl ModularSubstrate64D {
             motor_locomotion_stride: new_stride,
             motor_steer_angle: new_steer,
             motor_grip_force: new_grip,
+            material_neuron_state: self.material_neuron_state.clone(),
+            material_neuron_operator: self.material_neuron_operator.clone(),
         })
     }
 
@@ -2806,6 +2896,19 @@ impl ModularSubstrate64D {
             cjf[i] = val;
         }
 
+        let mut neuron_state = self.material_neuron_state.clone();
+        let mut neuron_operator = self.material_neuron_operator.clone();
+        if offset + 4 <= data.len() {
+            let n_len = u32::from_le_bytes([data[offset], data[offset+1], data[offset+2], data[offset+3]]) as usize;
+            if n_len > 0 && offset + 4 + n_len <= data.len() {
+                offset += 4;
+                let (op, st) = ArcLoomTransitionOperator::import_canonical_checkpoint(&data[offset..offset+n_len])?;
+                neuron_operator = op;
+                neuron_state = st;
+                offset += n_len;
+            }
+        }
+
         let expected_pad = (8 - (offset % 8)) % 8;
         let actual_pad = data.len() - offset;
         if actual_pad != expected_pad {
@@ -2833,6 +2936,8 @@ impl ModularSubstrate64D {
             motor_locomotion_stride: new_stride,
             motor_steer_angle: new_steer,
             motor_grip_force: new_grip,
+            material_neuron_state: neuron_state,
+            material_neuron_operator: neuron_operator,
         })
     }
 
@@ -3040,6 +3145,8 @@ impl ModularSubstrate64D {
             motor_locomotion_stride: new_stride,
             motor_steer_angle: new_steer,
             motor_grip_force: new_grip,
+            material_neuron_state: self.material_neuron_state.clone(),
+            material_neuron_operator: self.material_neuron_operator.clone(),
         })
     }
 
@@ -3363,6 +3470,25 @@ impl PyModularSubstrate64D {
         self.inner.columns[23].refusal_active
     }
 
+    pub fn material_membrane_voltage(&self) -> f64 {
+        self.inner.material_neuron_state.membrane_voltage(self.inner.material_neuron_operator.c_mem)
+    }
+
+    pub fn material_receiving_voltage(&self) -> f64 {
+        self.inner.material_neuron_state.receiving_voltage()
+    }
+
+    pub fn material_contact_geometry(&self) -> (f64, f64) {
+        (self.inner.material_neuron_state.contact_x, self.inner.material_neuron_state.contact_ell)
+    }
+
+    pub fn get_column_l4_nodes(&self, col_idx: usize) -> PyResult<Vec<i8>> {
+        if col_idx >= NUM_COLUMNS_64D {
+            return Err(PyValueError::new_err(format!("Column index out of bounds: {} >= 64", col_idx)));
+        }
+        Ok(self.inner.columns[col_idx].microcircuit.l4.to_vec())
+    }
+
     pub fn get_motor_efferent(&self) -> (f32, f32, f32, f32) {
         (
             self.inner.motor_vocal_drive,
@@ -3454,4 +3580,82 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyModularSubstrate8D>()?;
     m.add_class::<PyModularSubstrate64D>()?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_signed_field_transduction_exact_oracle() {
+        let mut sub = ModularSubstrate64D::new(0.50, 0.08, 0.15);
+
+        // +1.0 vs -1.0
+        sub.consume_continuous_joint_field([1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 1.0).unwrap();
+        sub.step_cycle(&[0; 64], &[0; 32], None, None, 0.0, &[]).unwrap();
+        let pos_l4 = sub.columns[48].microcircuit.l4[0];
+        let pos_mem_v = sub.material_neuron_state.membrane_voltage(sub.material_neuron_operator.c_mem);
+
+        let mut sub_neg = ModularSubstrate64D::new(0.50, 0.08, 0.15);
+        sub_neg.consume_continuous_joint_field([-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 1.0).unwrap();
+        sub_neg.step_cycle(&[0; 64], &[0; 32], None, None, 0.0, &[]).unwrap();
+        let neg_l4 = sub_neg.columns[48].microcircuit.l4[0];
+        let neg_mem_v = sub_neg.material_neuron_state.membrane_voltage(sub_neg.material_neuron_operator.c_mem);
+
+        assert_eq!(pos_l4, 1);
+        assert_eq!(neg_l4, -1);
+        assert!(pos_l4 != neg_l4);
+        assert!(pos_mem_v != neg_mem_v);
+
+        // Subnormal 2^-200 has 127 trits (39 nonzero trits at p >= 64): must fail closed before mutation
+        let mut sub_subnorm = ModularSubstrate64D::new(0.50, 0.08, 0.15);
+        let val_subnorm = 6.223015277861142e-61; // 2^-200
+        sub_subnorm.consume_continuous_joint_field([val_subnorm, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 1.0).unwrap();
+        let err = sub_subnorm.step_cycle(&[0; 64], &[0; 32], None, None, 0.0, &[]).unwrap_err();
+        assert!(err.contains("unmounted incidence refused"));
+        assert_eq!(sub_subnorm.columns[48].microcircuit.l4[0], 0);
+
+        // 3^63 fits in 64 slots (p = 63): must succeed and set node 63
+        let mut sub_63 = ModularSubstrate64D::new(0.50, 0.08, 0.15);
+        let val_63 = (3.0f64).powi(63);
+        sub_63.consume_continuous_joint_field([val_63, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 1.0).unwrap();
+        sub_63.step_cycle(&[0; 64], &[0; 32], None, None, 0.0, &[]).unwrap();
+        assert_eq!(sub_63.columns[48].microcircuit.l4[63], 1);
+    }
+
+    #[test]
+    fn test_material_neuron_integration_and_settlement() {
+        let mut sub = ModularSubstrate64D::new(0.50, 0.08, 0.15);
+        assert_eq!(sub.material_neuron_state.step_count, 0);
+
+        // Feed continuous joint field to drive material neuron
+        sub.consume_continuous_joint_field([0.5, 0.2, 0.0, 0.1, 0.2, 0.3, 0.4], 1.0).unwrap();
+        for _ in 0..5 {
+            sub.step_cycle(&[1; 64], &[1; 32], None, None, 0.0, &[]).unwrap();
+        }
+        assert_eq!(sub.material_neuron_state.step_count, 5);
+        assert!(!sub.columns[23].refusal_active);
+        assert!(sub.motor_locomotion_stride > 0.0);
+
+        // Step over yield barrier stress
+        sub.step_cycle(&[1; 64], &[1; 32], None, None, 0.85, &[]).unwrap();
+        assert_eq!(sub.material_neuron_state.step_count, 6);
+        assert!(sub.columns[23].refusal_active);
+        assert_eq!(sub.motor_locomotion_stride, 0.0);
+    }
+
+    #[test]
+    fn test_checkpoint_roundtrip_includes_authoritative_material_neuron() {
+        let mut sub = ModularSubstrate64D::new(0.50, 0.08, 0.15);
+        sub.consume_continuous_joint_field([0.5, 0.2, 0.0, 0.1, 0.2, 0.3, 0.4], 1.0).unwrap();
+        sub.step_cycle(&[1; 64], &[1; 32], None, None, 0.0, &[]).unwrap();
+
+        let bytes = sub.export_sparse_v4().unwrap();
+        let mut restored = ModularSubstrate64D::new(0.60, 0.03, 0.25);
+        restored.import_sparse_v4(&bytes).unwrap();
+
+        assert_eq!(sub.material_neuron_state, restored.material_neuron_state);
+        assert_eq!(sub.material_neuron_operator, restored.material_neuron_operator);
+        assert_eq!(bytes, restored.export_sparse_v4().unwrap());
+    }
 }

@@ -8,12 +8,11 @@ It simulates the ArcLoom discrete ternary neuromorphic processor substrate.
 - Exact binary64-to-rational balanced ternary encoding and storage via MathLoom rational custody.
 - Primary 7D structural field coordinates ($D_k, M_k, R_{rev,k}, U^*_k, C_k, P_k, B_k$) and stability ($S_{\text{UF}}$) project directly across Layer 4 afferents of Columns 48..55 without modulo folding or double-sign inversion.
 - Conjugate rational denominators project across Layer 4 afferents of Columns 56..63.
-- Canonical DSF V3 basin physics enforced natively:
-  * Viability Gate: $S_{\text{UF}} \le 0 \implies$ Column 23 refusal clamp and motor stride arrest (stride = 0.0).
-  * Reversal Kill Switch: $R_{rev,k} > 0 \implies$ forward stride arrest (stride = 0.0).
-- Full IEEE-754 binary64 precision is preserved across export/import without binary32 collapse.
-- Microscopic material neuron solver (`ArcLoomNeuron`, `exact_carrier`) included and verified with First Law thermodynamic energy balance and exact integer ion custody.
-- The A11 matched weight-only ablation witness remains a strict documented expected failure (`XFAIL`), confirming that plastic weight ablation re-yields without artificial heuristics.
+- Layer 4 capacity is bounded at 64 ternary digits per column. Field incidence at positions $\ge 64$ triggers strict atomic fail-closed refusal before mutation, preserving information conservation.
+- The microscopic material neuron operator (`ArcLoomNeuronState`, `ArcLoomTransitionOperator`) is integrated into `ModularSubstrate64D` across 14 canonical typed fabric edges coupling field dimensions to the 4-phase manifold.
+- Motor stride and Column 23 barrier refusal causally emerge from continuum contact yield stress mechanics ($f = |\sigma| - Y \le 0$). Direct software bypass clamps have been removed.
+- All operative material neuron state (phase positions, velocities, contact geometry, plastic offsets, ion reservoirs, and work accounting) is persisted directly in canonical ARCLOOM4 binary checkpoints.
+- A functioning component console is provided. Full multi-column continuous field integration and the A11 matched weight-only ablation witness remain strict documented expected failure / refusal gates (`XFAIL` / `NotImplementedError`), maintaining ground-truth DARPA boundary compliance.
 
 ## Included components
 
