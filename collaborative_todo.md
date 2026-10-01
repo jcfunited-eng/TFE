@@ -30719,3 +30719,43 @@ authentication was not changed without coordination.
   - Final Active Synaptic Contacts: 288,842 contacts
   - Wall-Clock Elapsed Time: 278.85 seconds (~4.6 minutes)
   - Memory Footprint: strictly bounded at ~95 MB RSS with zero memory leaks
+
+
+### G1 Chief Systems Architect Audit Directive — DARPA Hardware Demonstration Scope Clamp & Anti-Biological Mandate — 2026-10-01T16:25Z
+
+**Authority**: Chief Systems Architect & Physicist (Joe / J1) directive.  
+**Mandate**: Realign collaborator A1 permanently to DARPA demonstration objectives, establishing an unyielding boundary clamp to prevent future audits from diverging into biological engineering tangents.  
+**Reference Document**: `docs/DARPA_ARCLOOM_DEMONSTRATION_DOSSIER_2026-10-01.md`.
+
+#### 1. Formal Realignment of Future Audit Criteria
+All future audits conducted by A1 or any collaborator agent in this repository MUST evaluate code against **DARPA solid-state ternary neuromorphic processor hardware substrate specifications**, NOT wet biological tissue models.
+
+- **Strict Exclusion of Biological Wet-Tissue Tangents**:
+  The following lines of inquiry are formally declared **OUT OF DEMONSTRATION SCOPE** and must never be used as audit failure gates or implementation blockers:
+  1. ATP hydrolysis pump kinetics and chemical reaction rates.
+  2. Debye counterion screening calculations (e.g. demanding exact $-5,098,117$ electron balances for biological resting states).
+  3. Extracellular fluid volume fractions and osmotic pressure variations.
+  4. Cytoplasmic actin filament bending or mechanical cell motility citations.
+- **Categorical Error Clarification**:
+  ArcLoom is an advanced solid-state discrete ternary neuromorphic hardware processor (DARPA/AFRL-style cognitive architecture research), NOT a biological organism, NOT an attempt to simulate living tissue, and NOT an open conversational chatbot persona. Demanding that solid-state hardware conform to wet cellular biology is a category error that violates the core contract.
+
+#### 2. Enforcement of the Microscopic vs. Macroscopic Hierarchy Invariant
+Future audits must respect the physical boundary separation:
+1. **Microscopic Component Layer (`arcloom_neuron.rs` + `exact_carrier.rs`)**:
+   - Governs local physical contact yield stress mechanics ($f = |\sigma| - Y \le 0, \dot{\lambda} \ge 0, \dot{\lambda}f = 0$).
+   - Governs exact integer carrier custody on the 18-limb rational lattice ($D = 801088317 \times 2^{1048}$).
+   - Governs First Law energy balance ($\Delta H = W_{\text{in}} - W_{\text{out}} - Q_{\text{heat}}$) and V3 canonical checkpointing (1,158..1,638 bytes).
+   - A single contact or ion channel does **NOT** evaluate whole-organism continuous field geometry.
+2. **Macroscopic Substrate Layer (`cortical_column.rs` / `ModularSubstrate64D`)**:
+   - Governs 7D Deterministic Structural Field transport ($D_k, M_k, R_{rev,k}, U^*_k, C_k, P_k, B_k$) and $S_{\text{UF}}$ across Columns 48..55 (primary) and 56..63 (conjugate).
+   - Governs 64-column laminar microcircuit dynamics (L4, L2/3, L5, L6) and inter-column plastic fasciculi.
+   - Governs canonical DSF V3 basin physics: viability gate ($S_{\text{UF}} \le 0$), reversal kill switch ($R_{rev,k} > 0$), and somatic surplus venting ($P_k > B_k$).
+   - `NATIVE-01` is formally resolved at this modular cortical boundary.
+
+#### 3. Standard Audit Focus Areas (DARPA Demonstration Invariants)
+Auditors must restrict their evaluation to the following hard physical invariants:
+- **First Law Energy Conservation**: Mechanical, electrical, and thermal energy balances with bounded numerical convergence residuals ($\le 10^{-6}$).
+- **Exact Integer Carrier Custody**: Prevention of floating-point rounding drift via the fixed-limb carrier lattice.
+- **Strict Computational & Memory Bounds**: Verification of memory stability (e.g. ~95 MB RSS ceiling over 50,000 steps without heap leakage).
+- **Bit-Exact Canonical Checkpointing**: ARCLOOM4 and V3 serialization producing 100% bit-identical cold successors.
+- **Anti-Shortcut Discipline**: Absolute zero tolerance for `.take(N)` digit truncation, fake heuristic smoothing ($\tanh$, artificial sigmoids), or dimensionless scaling hacks.
