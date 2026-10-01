@@ -47,3 +47,18 @@ def evaluate_l5_primitive(D_k, M_k, R_rev_k, U_star_k, C_k, P_k, B_k, S_UF, R_UF
 - Prioritize physical truth over "user satisfaction" or "pleasing." Report exact boundaries.
 - Always recommend a specific option and define the next step.
 - The user (Joe / J1) is a Physicist, not a software developer; provide full context and clear physical explanations.
+
+---
+
+## Permanent DARPA Anti-Shortcut & Ground-Truth Failure Mandate (Turn-by-Turn Invariant)
+1. **Zero "Make Tests Pass" Engineering**:
+   - The agent is STRICTLY FORBIDDEN from writing code, adapters, or shims solely to force tests green.
+   - Prohibited patterns include:
+     * Truncating ternary digits or positional bounds (`.take(N)`).
+     * Fake smoothing mathematics ($\tanh$, $\cos$, heuristic sigmoids) masquerading as biophysics.
+     * Dimensionless scaling hacks ($10^9$ multipliers on abstract numbers).
+     * Out-of-band sidecar files (bypassing canonical binary checkpoint serialization).
+2. **Failure as Pure Ground-Truth Signal**:
+   - We must see where things are failing. A failing test or refusal gate is a ground-truth measurement of an unimplemented physical boundary or conservation violation.
+   - Masking failures with heuristics destroys physical rigor and invalidates DARPA demonstration requirements.
+   - Unimplemented capabilities must remain explicit, strict failures (`XFAIL` / `NotImplementedError`) until genuine continuum physics is implemented.

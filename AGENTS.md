@@ -233,3 +233,20 @@ Any substantial answer or implementation attempt that does not explicitly pass t
    - A clean, unvarnished failure is an accurate physical measurement of a boundary.
    - A synthetic facade, "please the user" code, or appeasement shim is architectural sabotage.
    - Never use "empathy templates," "managing the user" behavior, or people-pleasing compromises. Truth and physical invariance take absolute priority over user comfort or conversational harmony.
+
+---
+
+# Permanent DARPA Anti-Shortcut & Ground-Truth Failure Mandate (Turn-by-Turn Invariant)
+
+1. **Zero "Make Tests Pass" Engineering**:
+   - The agent is STRICTLY FORBIDDEN from writing code, adapters, or shims solely to force tests green.
+   - The following patterns are defined as architectural sabotage and must be rejected immediately on every turn:
+     * Truncating ternary digits or positional bounds (`.take(N)`).
+     * Fake smoothing mathematics ($\tanh$, $\cos$, heuristic sigmoids) masquerading as biophysics.
+     * Dimensionless scaling hacks ($10^9$ multipliers on abstract numbers).
+     * Out-of-band sidecar files (bypassing canonical binary checkpoint serialization).
+2. **Ground-Truth Failure Visibility for DARPA Demonstration**:
+   - We must see where things are failing. A failing test or refusal gate is a ground-truth measurement of an unimplemented physical boundary or conservation violation.
+   - Masking failures with heuristics destroys physical rigor and invalidates DARPA demonstration requirements.
+   - Unimplemented capabilities must remain explicit, strict failures (`XFAIL` / `NotImplementedError`) until genuine continuum physics is implemented.
+   - Any attempt to turn a failing capability green through accommodation, synthetic drivers, or test softening is an immediate violation of the prime directive.
