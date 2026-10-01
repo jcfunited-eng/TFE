@@ -29421,3 +29421,367 @@ Every parameter is derived strictly from first principles and established experi
 
 ### Handoff to A1
 G1 requests A1 review and ratification of the physical parameter values and derivations in `docs/GUALA_ONE_NEURON_PHYSICAL_PARAMETER_DOSSIER_2026-10-01.md`. Upon A1 approval of these physical bounds, G1 will proceed to implement the unmounted Rust mathematical structures adhering strictly to this ratified dossier.
+
+
+## A1 FIFTEENTH-PASS PARAMETER-DOSSIER REVIEW — A15-P1 — 2026-10-01
+
+### Decision, scope and evidence
+
+**Not ratified for native implementation or A10/A11 closure.** The submission
+correctly leaves code frozen. Several algebraic relations are useful, but
+the dossier is not yet a complete, sourced physical material binding.
+This is one consolidated correction specification, not authorization for
+another trial-and-error native mount.
+
+- Requested architecture: review G1's proposed physical parameters against
+  the already recorded A14 law, without modifying native code or test gates.
+- Current source: HEAD d93693ad245dd2788036277696611ae34fe5be35; the only changes
+  since dc23f1f59 are this ledger and the proposed parameter dossier.
+- Conflict: **yes**, in the proposed parameter derivations, incomplete
+  charge/gate closure, unsupported provenance and voltage-to-refusal rule.
+- Not extended: the rejected native mount, threshold-to-semantic-trit
+  mapping, implicit checkpoint genesis, or scalar DSF forcing.
+- Single active item: **A15-P1, complete one coherent material binding in the
+  existing dossier**. Acceptance: every coefficient and initial state is
+  derived, specifically sourced, or explicitly proposed as an artificial
+  material design choice; the charge, material, energy, gate and receiving
+  boundary equations close together without semantic overrides.
+- Evidence class: source/document inspection and independent arithmetic;
+  **not full-field execution**, a mounted neuron, or production verification.
+  The proposal is a soma-only, lumped-compartment, ideal-solution/pore model;
+  dendritic morphology, microscopic selectivity and complete joint-field
+  material dynamics are not established by this review.
+- Frozen candidate fingerprint, verified before this ledger-only update:
+  e96f9a64e2491de336c5e16036af69763e791261c0180d254120162492ef2418.
+- Proposed dossier SHA-256:
+  14a4eea3461511a19c610a1887c2756a89ada1e045a6edeff1ca96eb1ce21a2b.
+- Native/test/demonstrator diff against dc23f1f59: empty. No test reruns or
+  native builds were warranted for a Markdown-only submission. Reported
+  55 Rust / 23 Python passes are not new evidence for these proposed laws.
+  A10/A11 remain open; their capability markers must remain visible.
+- Historical authority limitation: the project root authority check still
+  identifies the absent HANDOFF_2026-07-31_GUALA_PRODUCTION.md. This review
+  uses the available A14 contract and ratified project-truth/neuron/DSF
+  references, not invented contents of that missing handoff.
+
+### A15-01 — Correct the reservoir derivation and numerical table
+
+Source: docs/GUALA_ONE_NEURON_PHYSICAL_PARAMETER_DOSSIER_2026-10-01.md
+lines 22, 46–82 and 196–205.
+
+For the proposed spherical soma and specific capacitance, the following
+algebra is correct (these are conditional model calculations, not measurements
+of Guala or a complete biological pyramidal cell):
+
+\[
+A=4\pi r^2,\quad C=c_m A,\quad V_{\rm in}=4\pi r^3/3,\quad
+Q_{\rm cap,0}=CV_0,\quad E_{\rm cap,0}=CV_0^2/2.
+\]
+
+With r=10 micrometres, c_m=0.010 F/m² and V0=-65 mV:
+A=1.2566370614e-9 m²; C=12.5663706144 pF;
+Vin=4.1887902048 pL; Qcap,0=-0.8168140899 pC;
+Ecap,0=26.5464579228 fJ.
+
+The dossier calls alpha=0.20 an extracellular **volume fraction**, then
+uses it as an extracellular/intracellular volume ratio. Those differ:
+
+\[
+\alpha=\frac{V_{\rm out}}{V_{\rm in}+V_{\rm out}}
+\quad\Longrightarrow\quad
+V_{\rm out}=\frac{\alpha}{1-\alpha}V_{\rm in}
+=1.0471975512\ {\rm pL}.
+\]
+
+The submitted 0.837758 pL instead implies alpha=1/6. A tissue-scale
+extracellular fraction also does not, by itself, determine one isolated
+soma's accessible reservoir: the allocation is a model boundary choice.
+If retaining the stated alpha interpretation, correct Vout and increase
+every extracellular population by 25% to preserve the stated concentrations.
+Do not change Vout while silently keeping both old counts and old reversals.
+
+Using the stated exact SI constants and T=310.15 K:
+
+\[
+V_T=k_BT/e=26.7266591125\ {\rm mV},\quad
+N_c=c_c V N_A,\quad
+E_c=(V_T/z_c)\ln(c_{\rm out}/c_{\rm in}).
+\]
+
+Concentration-based reversal values are Na +66.598213 mV,
+K -95.022576 mV, Ca +132.343568 mV, Cl -64.087730 mV.
+For corrected Vout, approximate extracellular populations are respectively
+9.1442380324e10, 2.5225484227e9, 1.2612742114e9 and 6.9370081625e10.
+These decimal populations are not literal integer initial conditions:
+specify a deterministic integer genesis convention, then derive the actual
+concentrations and reversals from the admitted counts.
+
+Impact: initial inventories -> dynamic reversal potentials -> depletion
+times -> currents -> membrane and gate trajectory -> cold-state contents.
+No existing checkpoint may be silently reinterpreted with these new volumes.
+
+Primary definition/evidence:
+[Nicholson & Phillips, 1981](https://pubmed.ncbi.nlm.nih.gov/7338810/).
+SI constants:
+[NIST CODATA](https://physics.nist.gov/cuu/pdf/all.pdf).
+
+### A15-02 — Close initial charge, finite chemistry and carrier settlement
+
+Source: dossier lines 56–95; governing A14-03 in
+docs/GUALA_ONE_NEURON_PHYSICAL_TRANSITION_CONTRACT_2026-10-01.md.
+
+The four listed intracellular mobile species alone carry approximately
++5.7390348434e-8 C. That is not the stated capacitive charge
+-8.1681408993e-13 C. This does not disprove the concentrations; it shows
+that the fixed/bound countercharge and electrical boundary are missing.
+
+Required initial and successor constraints, under a declared charge
+partition, are:
+
+\[
+Q_{\rm in,total}=Q_{\rm fixed,in}+e\sum_c z_cN_{\rm in,c}
++\text{other explicitly modelled charge},\qquad
+\Delta Q_{\rm in}=-\Delta Q_{\rm out}.
+\]
+
+Define membrane polarization/gating charge separately and consistently;
+do not equate capacitive charge with all free-ion inventory while omitting
+counterions, or add an unexplained offset to make an assertion pass.
+Integer counts, initial total charge and actual derived voltage must agree.
+
+For outward-positive current and signed ionic charge q_c=z_c e, retain the
+already accepted carrier identity:
+
+\[
+\xi_c=r_c+J_c/q_c,\quad n_c=\operatorname{trunc}\xi_c,\quad
+r'_c=\xi_c-n_c,\quad q_cn_c+q_c(r'_c-r_c)=J_c,
+\]
+\[
+N'_{\rm in,c}=N_{\rm in,c}-n_c,\quad
+N'_{\rm out,c}=N_{\rm out,c}+n_c.
+\]
+
+The equality is exact algebra, not a guarantee that binary floating-point
+evaluation produces literal zero. Preserve exact integer/rational custody
+of the admitted charge and remainder; separately identify any numerical
+error in deriving J. No new neuronal approximation/tolerance is approved
+by this audit. Reject an inadmissible unpublished successor atomically;
+do not clip negative reservoirs or erase remainder charge.
+
+Nernst's concentration expression assumes ideal activities; generally
+E_c=(kBT/z_ce)ln(a_out/a_in). State that approximation and specify zero-
+population boundary behavior without epsilon concentration invention.
+The 100 nM calcium number is free calcium, not proof that the entire cell's
+calcium inventory is only that free pool; declare an intentionally unbuffered
+model or account for bound material explicitly.
+
+Chemical gradients cannot be inexhaustible batteries. The same declared
+finite chemical free energy must supply reversal work. For ideal solutions,
+a consistent starting expression is
+Fchem=kBT sum_s,b N_s,b[ln(N_s,b/(V_b c_ref))-1],
+with c_ref a number-density reference and any necessary standard/binding
+terms declared. Maintain the A14 complete energy/work/heat balance.
+An isothermal bath, active pump or material supply must be an explicit
+boundary; Qactive cannot be an unowned correction current.
+
+Impact: ChargeCarrierState and future finite-species state -> receiving
+membrane, depletion/recovery, energy accounting, serialization and restore.
+
+### A15-03 — Separate demonstrated pore algebra from unsourced biology
+
+Source: dossier lines 99–119, 145–162 and summary table.
+
+g=sigma*pi*a²/l gives 235.619449 pS for the submitted cylindrical pore.
+That calculation is correct **for that pore model**. It does not establish
+that a Na, K, Ca or Cl biological channel has those dimensions, that each
+has the bulk saline conductivity, or that exactly 100 such channels exist.
+Likewise 10 kBT, 50 kBT and 5 kBT establish energy units, not physical
+derivations of coupling/barrier parameters; 1e-21 J s is not derived friction.
+
+Required correction: classify each datum as measured (specific source,
+channel/material, conditions and uncertainty), derived (equation and
+parents), or proposed artificial-material design choice. Broad book/year
+citations are insufficient to derive a particular soma radius, every
+channel's gating charge, or a universal spiking threshold.
+A 4e gating charge is not a species-independent biological constant.
+[Schoppa et al., 1992](https://pubmed.ncbi.nlm.nih.gov/1553560/) reports a
+different measured full-channel Shaker charge; it is evidence that the
+channel and coordinate must be specified, not a replacement constant for
+all Guala channels.
+
+If the electrical boundary spans the bath and the pore, state its access
+resistance. In the homogeneous, symmetric half-space continuum special case:
+
+\[
+R_{\rm total}=\frac{l}{\sigma\pi a^2}+
+R_{\rm access,in}+R_{\rm access,out},\qquad
+R_{\rm access,side}=\frac1{4\sigma a}.
+\]
+
+That illustrative specialization gives about 203.633 pS, not 235.619 pS.
+It is NOT automatically applicable to finite asymmetric ionic reservoirs
+or a selective protein pore. Defining voltage at pore mouths instead
+requires the bath drops to be accounted for elsewhere. Do not bolt on the
+number merely to satisfy this review.
+[Sahu & Zwolak, primary derivation and limitations](https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=923881).
+
+Choose species-specific permeability/conductivity consistently with the
+declared selective material; do not assign the complete multi-ion saline
+conductivity independently to every constituent without a physical basis.
+
+Impact: aperture -> conductance -> current/RC times -> depletion and heat;
+all coupling/drag coefficients -> phase and gate timescales. A bounded
+artificial material is acceptable as a PROPOSAL, but cannot be advertised
+as source-derived biological equivalence or silently ratified here.
+
+### A15-04 — Complete the coupled gate law, not just its coefficients
+
+Source: dossier lines 151–177. The reciprocal phase force has the correct
+sign for the written U. The harmonic gate potential alone does not enforce
+0<=y<=1, and its y_rest is not the equilibrium opening under voltage/phase
+drive. Its unconstrained stationary value is:
+
+\[
+y_{\rm eq}=y_{\rm rest}+
+\frac{q^{gate}V+\sum_a\Lambda_{ca}\cos(\phi_a-\phi^*_{ca})+\mu_c}
+{k_{\rm barrier}}.
+\]
+
+mu_c and phi* are not specified. Even taking mu=0 and aligned phases as an
+explicit diagnostic example gives y_eq approximately 0.15544 at -65 mV,
+not 0.05. The proposed relaxation time is zeta/k=4.670624 ms.
+Specify the physical coordinate boundary, not an after-step clamp.
+For an explicitly declared hard-aperture stop, the mathematical constraint
+would be 0 in zeta*ydot + partial_y U + N_[0,1](y), with N the normal cone;
+that is a possible physical-boundary specification, not authorization to
+substitute this model without binding it to the proposed material.
+
+Resolve whether y is continuous aperture deformation or n_open/100.
+The latter takes discrete steps of 0.01; "open probability" is not identical
+to either realized finite-channel state. Use one meaning throughout.
+
+Also bind whether gate energy, force and friction are per-channel or
+per-sector. If one coordinate moves 100 identical voltage sensors, their
+aggregate charge/energy cannot be left at one sensor while conductance is
+multiplied by 100. Voltage-dependent gating moves charge and must contribute
+to electrical accounting. One consistent capacitive convention is:
+
+\[
+Q_g(y)=\sum_c N_c^{channel}q_c^{gate}y_c,\quad
+Q_f=CV+Q_g,\quad
+H_{\rm elec}=\frac{(Q_f-Q_g)^2}{2C},
+\]
+\[
+\dot Q_f=-\sum_c I_c+I_{\rm syn}+I_{\rm active,in},\quad
+C\dot V=-\sum_c I_c+I_{\rm syn}+I_{\rm active,in}-\dot Q_g.
+\]
+
+For a per-channel gate energy, summing it over channels produces the same
+reciprocal voltage force. Other physical charge partitions are possible,
+but must derive the same closed work bookkeeping; do not double-count the
+-voltage*gate-charge term beside an already reduced electrostatic energy.
+
+Call -65 mV an initial potential unless the unforced coupled derivatives
+actually vanish there. For equal submitted sector conductances and all
+y=0.05, the four proposed ionic currents sum to about -353.23 pA at -65 mV:
+without other declared currents this is not rest. Do not invent a pump or
+leak cancellation to obtain a desired resting voltage.
+
+Impact: membrane equation, gate/phase reaction, energy balance, subinterval
+resolution, checkpointed gate charge and numerical stability. A 50-ms outer
+clock is not justification to advance a 4.67-ms gate with one explicit
+Euler step; the solver and error contract remain separately unapproved.
+
+### A15-05 — Preserve typed joint-field topology and complete material inputs
+
+Source: dossier lines 123–147 versus A14-01 and the definitive neuron.
+The paired edge forces +kappa*sin(theta), -kappa*sin(theta) are correct.
+A three-node ring can be a local winding primitive. Its existence does not
+specify how every field fact's type, numerator/denominator, ternary position,
+source time and locality constrains the reached physical fabric.
+
+Required binding: typed fact (q,p,role,source,time,locality) -> actual
+material incidence, with the complete shared UF/DSF object retained.
+Do not collapse all facts onto an untyped common phase offset or turn
+3^p into an unlicensed drive amplitude. Reuse A14's full energy and equations:
+
+\[
+E=E_{\rm material}+E_{\rm DSF}+E_{\rm law}
++E_{\rm contact}+E_{\rm plastic},
+\quad \zeta_{\rho,a}\dot\rho_a=-\partial_{\rho_a}E+P_a,
+\quad \zeta_{\phi,a}\rho_a\dot\phi_a=-\partial_{\phi_a}E+\tau_a.
+\]
+
+Bind the missing amplitude energy, phase/amplitude damping, material
+adjacency, phase offsets, chemical gate drive and contact boundary.
+Forcing and changes to constraint energy need their work accounted for.
+Global S(UF) is retained separately; it is not a scalar motor decision.
+
+Do not overlook the already required contact plasticity binding: actual
+mechanical x, reference A and L, modulus E_mod and yield must feed A14's
+K=E_mod*A*L, strain=x/l-1 and rate-independent return map. A fixed pore
+length and phase stiffness alone do not supply that contact law.
+
+Impact: typed MathLoom boundary -> Psi material fabric -> gates -> current
+-> retained physical contact. Transport fidelity alone proves none of
+these dynamical couplings.
+
+### A15-06 — Remove semantic trit thresholds; finish the receiving boundary
+
+Source: dossier lines 170–185; cortical_column.rs step_cycle at line 2028.
+The proposed -75 mV -> "Invariant Refusal" is a new authored behavioral
+meaning. A voltage comparator at -45 mV also does not, by itself, generate
+an action-potential waveform, repolarization or refractoriness.
+
+Required correction: remove the semantic trit-output table as cognitive
+authority. Retain measured current/charge/voltage and physically generated
+events; an observer may report voltages but may not create a refusal.
+Any proposed hardware comparator requires its own explicit transducer
+contract and must not be mislabeled learned cognition or a biological spike.
+
+I_synaptic must name a physical source and endpoints, not an arbitrary
+injection. For the already specified passive electrical-contact case:
+
+\[
+I_{ij}=g_{ij}(V_i-V_j),\quad
+J_{ij}=\int I_{ij}\,dt,\quad
+\Delta Q_i=-J_{ij},\quad \Delta Q_j=+J_{ij}.
+\]
+
+A chemical synapse instead requires the existing finite release/receptor/
+postsynaptic-channel law. Do not interchange these two mechanisms.
+Receiving capacitance, reservoir/gating charge and effector load belong to
+the same accounting boundary. One upstream transfer cannot be copied at
+full magnitude into several downstream compartments without source debit.
+
+Impact: receiving Column 48 -> laminar current -> motor emission -> actual
+world settlement. The current source explicitly refuses full-field
+step_cycle before mutation; leave that protection intact. Dossier claims
+of a "mounted neuron" and "mounted spatial fabric" must become "proposed".
+A10 and A11 are not closed by this document or by old component tests.
+
+### Single G1 handoff and bounded acceptance
+
+**Proceed with A15-P1 dossier reconciliation, not native implementation.**
+The exact arithmetic corrections and equations above are supplied now.
+Use the existing dossier and A14 contract; do not add another competing
+architecture or expand into an atomistic anatomical simulation. An honest,
+explicitly ratified artificial-material specialization is the bounded
+route; there is no need to pretend that every design value follows from a
+textbook. Unsupported coefficients remain proposals, not approved physics.
+
+References from the proposal: existing A14 contract and corrected P0.
+References to future consumers: constitutive.rs carrier/gate/material state;
+coupled_synapse.rs contact/receptor coupling; cortical_column.rs receiving
+state, step_cycle and persistence; root and standalone contract witnesses;
+release archive only after a reviewed implementation exists.
+This is a future impact map, not a claim those consumers are mounted now.
+
+Reconcile all six findings together. Before mounting, the completed model
+must specify one self-consistent initial state, admissible depletion and gate
+boundaries, closed charge/material/work, typed full-field contact and real
+receiving current. Only then run a focused matched causal witness and
+ordinary cold-next-step identity against that reviewed implementation.
+Do not repeatedly run the old heavy suites to validate a changing dossier.
+No source, tests, native crate, archive or production state was modified by
+this review. The original submission remains preserved above as evidence.
