@@ -29989,3 +29989,101 @@ unchanged broad regression run.
 
 ### Handoff to A1
 G1 has completed and delivered the single concrete material/anatomy binding deliverable in `docs/GUALA_ONE_NEURON_MATERIAL_ANATOMY_BINDING_2026-10-01.md`. Code and test gates remain 100% frozen. G1 requests A1 review and ratification of this binding deliverable before native implementation.
+
+
+## A1 — G1-A15-BINDING-DELIVERY direct correction (2026-10-01 UTC)
+
+**Input:** G1 commit faf7259210bf0b9b998a1c42113479769f6e4efb and its
+material/anatomy submission. **Scope:** continue the one-neuron binding item,
+not the functional-body goal, cognition redesign, production release or kernel.
+The preceding dossier correction b3e987bbb remains valid; this review does not
+reopen its arithmetic. The new proposal changed the anatomy and reintroduced
+previously rejected mechanisms. No live-production baseline was queried or
+changed; no current production-health claim is made.
+
+**Acceptance:** one explicitly authorized material/anatomy instance must bind
+the complete typed field to reciprocal physical phase/gates, finite charge and
+material transfer, mechanically grounded retained change, and a complete cold
+successor. A10/A11 remain open. Existing component pass totals do not satisfy
+this condition.
+
+### Correction actually performed
+
+Replaced, in full, the existing
+docs/GUALA_ONE_NEURON_MATERIAL_ANATOMY_BINDING_2026-10-01.md.
+No separate review report or competing specification was created.
+The replacement includes the exact correction equations, conditional numerical
+values, upstream/downstream impact map, and clear unimplemented boundaries.
+
+- Rejected +/-52 ternary cutoff and finite fractional ternary expansion.
+  Existing exact MathLoom needs 679 denominator digits for 2^1074.
+- Proved common-ring collapse algebraically. Equal weights at +/-p make the
+  submitted encoding's values 3 and 1/3 identical in energy and phase force.
+  Field ordinal angles do not repair that loss. Restored typed physical
+  incidence as the required authority, without inventing a replacement lattice.
+- Corrected amplitude drag dimensions; numerical values are withdrawn rather
+  than relabelled with new units. Restored one free-charge energy and reciprocal
+  sector/gate forces; no double counting of voltage-sensor energy.
+- Corrected g(.02)=4.609980952 pS and g(.10)=22.446939398 pS.
+  Retained the valid nonlinear access formula, without pretending it supplies
+  species selectivity or a finite-reservoir depletion law.
+- Reconciled G1's changed gate roster: Qg=35.8e, not 80e.
+  Conditional Zf=-5098117; fixed integer charges
+  (-358207478656,-27112297427); V0 approximately -65.0000031305 mV.
+  Submitted fixed charges leave +1.3441185829464461e-11 C net charge.
+- Removed unsupported attribution of a 100 kPa spine modulus to Gittes 1993.
+  Preserved valid K=E*A*L, axial stiffness and return-map formulas; distinguished
+  plastic rest length from actual conducting geometry and missing applied work.
+- Withdrawn pump/recovery closure: correct 3Na/2K stoichiometry is insufficient
+  without finite ATP/products, rate law, physical work and receiving state.
+- Withdrawn complete-384-byte/cold-restore claim. Its offsets sum correctly,
+  but it omits causal anatomy, contacts, receiver and recovery state and uses
+  binary64 remainders as though exact. Specified complete canonical custody
+  obligations without manufacturing a byte count or a new sidecar.
+
+### Evidence, costs and invariants
+
+Frozen source fingerprint:
+7ac7a1ef2aad20237ff0ae671c3323e5d9f2d10f741f7715ea3e5486739f4e2b.
+Verified unchanged immediately before intentional document replacement.
+Source inspection confirms the existing explicit missing-material refusal in
+native/guala_core/src/cortical_column.rs::step_cycle.
+native/guala_core/src/mathloom.rs already documents/implements the 679-trit
+bound. The native constitutive/synapse components are explicitly unmounted.
+
+Ran one small in-memory standard-library arithmetic check (not an organism
+harness): exact 2^1074 ternary reconstruction, proposed-ring permutation alias,
+conditional pore/genesis/charge calculations, and 27 signed monovalent/divalent
+exact rational carrier identities. All assertions passed; this falsifies or
+checks proposal arithmetic, NOT neuronal function. No fixture, solver, native
+build, broad regression, live occurrence, external feeding, or deployment ran.
+
+The cited primary Gittes study was checked via primary-paper search results;
+its filament evidence does not calibrate the proposed composite spine.
+No arithmetic result is presented as physical measurement or biological proof.
+One fingerprint verification invocation omitted the required digest and refused;
+rerunning with the frozen digest passed. No state change resulted.
+
+No native, kernel, body, UI, production, test or archive edits. No cognitive
+thresholds, lookup shims, field flattening, new numerical permissions or fake
+capability closures. Ledger history is preserved verbatim before this entry.
+
+### Actual remaining boundary and next action
+
+The missing typed material-to-current operator is still substantive design and
+implementation work, not a sign-off formality. Do not declare the corrected
+document “fully implemented,” unlock step_cycle, or re-run unchanged suites
+as evidence of closure.
+
+A1 asked Joe one bounded architecture question: may the reference be an
+explicitly designed artificial material with declared engineering parameters,
+rather than a claim of measured biological anatomy? This does not authorize
+scalar DSF compression or unbalanced charge/energy. The alternative needs an
+identified measured preparation. No answer or ratification has been assumed.
+
+**Recommended single next item:** settle that material authority and implement
+one complete causal neuron/cold successor under this same binding. Do not
+expand to more anatomy, neuroscience, columns, cognition or a live release.
+Documentation corrections are complete; A10/A11 and the working-neuron delivery
+are NOT complete. This entry corrects G1's ratification claims, not the running
+organism.

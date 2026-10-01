@@ -1,172 +1,373 @@
-# GUALA ONE-NEURON MATERIAL AND ANATOMY BINDING SPECIFICATION
-**Concrete Physical Couplings, Species Transport Laws, and Canonical State Representation**
+# Guala one-neuron material/anatomy binding — corrected implementation boundary
 
-**Date:** 2026-10-01 UTC  
-**Governing Authority:** §9 of `docs/GUALA_ONE_NEURON_PHYSICAL_PARAMETER_DOSSIER_2026-10-01.md` and §A14 of `docs/GUALA_ONE_NEURON_PHYSICAL_TRANSITION_CONTRACT_2026-10-01.md`  
-**Target Anatomical Locus:** Primary Column 48 (Prefrontal Sheet), Layer 2/3 Supragranular Associative Microcircuit
+Date: 2026-10-01 UTC. A1 correction of G1 commit faf725921.
+Governing authority: [parameter dossier](GUALA_ONE_NEURON_PHYSICAL_PARAMETER_DOSSIER_2026-10-01.md)
+and [A14 transition contract](GUALA_ONE_NEURON_PHYSICAL_TRANSITION_CONTRACT_2026-10-01.md).
 
----
+**Disposition: the submitted concrete binding is NOT ratified.**
+This revision replaces its incorrect equations, arithmetic and closure claims.
+It is not a mounted neuron, a biological calibration, a complete numerical
+solver or authorization to unlock A10/A11. Native source and capability tests
+remain unchanged. The original proposal remains available in git.
 
-## 1. Typed Reached Fabric Binding
+## 1. Scope and architecture gate
 
-### 1.1 Node Topology and Directed Spatial Ring
-- **Node Ensemble:** $\mathcal{V} = \{v_0, v_1, v_2\}$, $M = 3$ nodes arranged in a cyclic spatial ring.
-- **Oriented Edges:** $e_0 = (v_0 \to v_1)$, $e_1 = (v_1 \to v_2)$, $e_2 = (v_2 \to v_0)$.
-- **Spatial Winding Number Invariant:**
-  $$w = \frac{1}{2\pi} \sum_{a=0}^2 \operatorname{wrap}(\phi_{a+1} - \phi_a) \in \mathbb{Z}, \quad \phi_3 \equiv \phi_0.$$
+Requested architecture: one persistent neuron receiving the unchanged complete
+joint field, exact typed MathLoom constraints, reciprocal physical phase/gate
+coupling, conserved membrane/material transfer, retained physical plasticity,
+and complete ordinary cold restoration.
 
-### 1.2 Typed Incidence Matrix ($E_j$)
-Every canonical structural field fact is preserved without dimensional reduction. For coordinate $q \in \{0: D, 1: M, 2: R_{\text{rev}}, 3: U^*, 4: C, 5: P, 6: B\}$, positional balanced ternary exponent $p \in \{-52, \dots, 52\}$, and digit $\tau_{qp} \in \{-1, 0, +1\}$:
+Current source reality: native MathLoom retains finite binary64 facts exactly;
+ModularSubstrate64D::step_cycle explicitly refuses the missing typed material
+operator. The new binding was a document only. The unchanged native/Python
+tests cannot validate equations that they do not execute.
 
-- **Coordinate Torus Angle:** $\theta_q^* = \frac{2\pi q}{7} \in [0, 2\pi)$.
-- **Directed Edge Difference Angle:**
-  $$\theta_{ab, qp} = \phi_b - \phi_a - \frac{2\pi \tau_{qp}}{3} - \theta_q^*.$$
-- **Coupling Stiffness with Positional Spectral Decay:**
-  $$\kappa_{qp} = \kappa_0 \cdot 3^{-|p|/16}, \quad \kappa_0 = 10 \cdot k_B T \approx 4.282 \times 10^{-20}\,\text{J}.$$
-- **Fact-Constraint Energy:**
-  $$E_{\text{DSF}} = -\sum_{q=0}^6 \sum_p \kappa_{qp} \sum_{a \to b} \cos(\theta_{ab, qp}).$$
-- **Paired Constraint Forces (Newton's Third Law / Zero Net Torque):**
-  $$-\frac{\partial E_{ab, qp}}{\partial \phi_a} = +\kappa_{qp} \sin(\theta_{ab, qp}), \qquad -\frac{\partial E_{ab, qp}}{\partial \phi_b} = -\kappa_{qp} \sin(\theta_{ab, qp}).$$
+Conflict: **yes**. The submitted common ring flattens typed constraints, its
+finite ternary expansion is not the existing exact codec, several coefficients
+lack a material derivation, and its active transport and checkpoint are incomplete.
 
-### 1.3 Amplitude Dynamics and Damping
-Complex amplitude $\psi_a = \sqrt{\rho_a} e^{i \phi_a}$:
-- **Amplitude Rest Energy:** $U_\rho(\rho_a) = \frac{1}{2} k_\rho (\rho_a - \rho_0)^2$, with $\rho_0 = 1.0\,\text{J/m}^3$ and $k_\rho = 100\,k_B T / \rho_0^2$.
-- **Damping Coefficients:** $\zeta_\rho = 1.0 \times 10^{-21}\,\text{J}\cdot\text{s/m}^3$, $\zeta_\phi = 1.0 \times 10^{-21}\,\text{J}\cdot\text{s}$.
-- **Coupled Differential Equations:**
-  $$\zeta_\rho \dot{\rho}_a = -k_\rho(\rho_a - \rho_0), \qquad \zeta_\phi \rho_a \dot{\phi}_a = -\frac{\partial E_{\text{DSF}}}{\partial \phi_a} - \sum_c \frac{\partial U_c}{\partial \phi_a}.$$
-- **Initial Genesis State:** $\rho_a(0) = 1.0$, $\phi_0(0) = 0.0$, $\phi_1(0) = \frac{2\pi}{3}$, $\phi_2(0) = \frac{4\pi}{3}$ ($w = 1$).
+Not extended: the +/-52 cutoff; positional decay; field-name angles; arbitrary
+phase-to-current activation; unfunded pumps; the claimed complete 384-byte
+record; or manufactured passing witnesses.
 
----
+Single next item: establish one complete, explicitly sourced or explicitly
+approved artificial material binding, then implement that same binding through
+the existing one-neuron boundary. Do not ask for another review of unchanged
+legacy test totals.
 
-## 2. Gate & Material Authority (Species Transport and Access Conductance)
+Evaluation here is **reduced component mathematics and source inspection**.
+The proposed lumped soma/pore/contact model omits spatial chemistry and detailed
+morphology. No continuous full joint-field neuronal execution is demonstrated.
 
-### 2.1 Sector Allocation and Aperture-Access Conductance
-The soma contains 4 ion channel sectors with access-resistance corrected continuum conductance:
+## 2. Typed fabric: exact correction and decisive falsification
 
-$$g_{\text{single}, c}(y_c) = \frac{y_c}{R_{p0} + R_{a0} \sqrt{y_c}}, \quad G_c(y_c) = N_c \cdot g_{\text{single}, c}(y_c),$$
-where $R_{p0} = \frac{\ell_c}{\sigma \pi a_0^2} = 4.2441 \times 10^9\,\Omega$, $R_{a0} = \frac{1}{2 \sigma a_0} = 6.6667 \times 10^8\,\Omega$ ($\ell_c = 5.0\,\text{nm}, a_0 = 0.50\,\text{nm}, \sigma = 1.50\,\text{S/m}$).
+The submitted representation used p=-52..52 and one three-node ring for every
+fact, with theta_q=2*pi*q/7 and kappa_qp=kappa0*3^(-abs(p)/16).
+It is rejected for three independent reasons:
 
-| Sector ($c$) | Species | Channel Count ($N_c$) | Resting Aperture ($y_{\text{rest}}$) | Single Pore $g(1)$ | Peak Sector $G_{\text{max}}$ | Single Pore $g(0.05)$ |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **0: Fast Excitatory** | $\text{Na}^+$ | $100$ | $0.05$ | $203.63\,\text{pS}$ | $20.363\,\text{nS}$ | $11.381\,\text{pS}$ |
-| **1: Delayed Rectifier** | $\text{K}^+$ | $100$ | $0.05$ | $203.63\,\text{pS}$ | $20.363\,\text{nS}$ | $11.381\,\text{pS}$ |
-| **2: Calcium / Plateau** | $\text{Ca}^{2+}$ | $20$ | $0.02$ | $203.63\,\text{pS}$ | $4.073\,\text{nS}$ | $4.552\,\text{pS}$ |
-| **3: Passive Leak** | $\text{Cl}^-$ | $50$ | $0.10$ (fixed) | $203.63\,\text{pS}$ | $10.182\,\text{nS}$ | $22.762\,\text{pS}$ |
+- A finite sum of integer trits times powers of three cannot represent 1/2
+  exactly. Its reduced denominator divides a power of three. Numerator and
+  denominator therefore must be retained separately, as MathLoom already does.
+- The smallest positive binary64 value is 1/2^1074. Its denominator needs
+  **679 balanced-ternary digits**, positions 0..678; 52 binary mantissa bits
+  are not a ternary-position bound.
+- For the same q, interchange tau_(q,+1)=1,tau_(q,-1)=0 with
+  tau_(q,+1)=0,tau_(q,-1)=1. The proposed coefficients are equal at +1 and -1.
+  Its entire energy and every phase derivative are identical, although the
+  represented values would be 3 and 1/3. This is an exact alias, not a
+  numerical-tolerance objection.
 
-### 2.2 Gate Potential and Reciprocal Phase Coupling
-For active sectors $c \in \{\text{Na}, \text{K}, \text{Ca}\}$:
-- **Sector Gating Energy:**
-  $$U_c(y_c) = N_c \left[ \frac{1}{2} k_{\text{barrier}} (y_c - y_{\text{rest}, c})^2 - q_c^{\text{gate}} V_m y_c - \sum_{a=0}^2 \Lambda_{ca} y_c \cos(\phi_a - \phi^*_{ca}) - \mu_c y_c \right].$$
-- **Phase Offsets & Coupling Matrix:**
-  - $\text{Na}^+$ coupled to Node 0: $\phi^*_{\text{Na}, 0} = 0.0$, $\Lambda_{\text{Na}, 0} = 5\,k_B T \approx 2.141 \times 10^{-20}\,\text{J}$, $\Lambda_{\text{Na}, 1} = \Lambda_{\text{Na}, 2} = 0$.
-  - $\text{K}^+$ coupled to Node 1: $\phi^*_{\text{K}, 1} = \frac{2\pi}{3}$, $\Lambda_{\text{K}, 1} = 5\,k_B T$, $\Lambda_{\text{K}, 0} = \Lambda_{\text{K}, 2} = 0$.
-  - $\text{Ca}^{2+}$ coupled to Node 2: $\phi^*_{\text{Ca}, 2} = \frac{4\pi}{3}$, $\Lambda_{\text{Ca}, 2} = 5\,k_B T$, $\Lambda_{\text{Ca}, 0} = \Lambda_{\text{Ca}, 1} = 0$.
-- **Gating Dipole Charge:**
-  $q_{\text{Na}}^{\text{gate}} = 4.0\,e_0$, $q_{\text{K}}^{\text{gate}} = 3.0\,e_0$, $q_{\text{Ca}}^{\text{gate}} = 2.0\,e_0$.
-- **Coordinate Boundary Confinement Law:**
-  $$0 \in N_c \zeta_c \dot{y}_c + \frac{\partial U_c}{\partial y_c} + N_{[0, 1]}(y_c).$$
-- **Reciprocal Phase Force:**
-  $$-\frac{\partial U_c}{\partial \phi_a} = -N_c \Lambda_{ca} y_c \sin(\phi_a - \phi^*_{ca}).$$
+More generally, the common-ring energy factors through the weighted phasor
+\[
+ Z=\sum_{q,p}\kappa_{qp}
+       \exp[-i(2\pi\tau_{qp}/3+\theta_q)],\qquad
+ E=-\sum_{a\to b}\operatorname{Re}
+       [\exp(i(\phi_b-\phi_a))Z].
+\]
+Field-name angles do not make this a lossless physical incidence map.
 
----
+**Correction:** use the existing exact rational codec, preserving numeric role,
+field family, numerator/denominator, position, signed-zero evidence, source
+time, locality and shared field reference. For typed fact j, the A14 law is
+\[
+ E_j=-\sum_{(a,b)\in\mathcal E_j}\kappa_{j,ab}
+ \cos(\phi_b-\phi_a-2\pi\tau_j/3).
+\]
+The actual mounted incidence set \(\mathcal E_j\) and material energies
+\(\kappa_{j,ab}\) must be explicit anatomy, not functions of field magnitude,
+field ordinal or digit significance. Positional \(3^p\) remains representation,
+not stiffness. Retain zero digits and type information at the boundary;
+do not silently coalesce distinct constraints.
 
-## 3. Retained Physical Contact Mechanics
+For each admitted physical edge, with theta as its argument:
+\[
+ F_{\phi_a}=+\kappa\sin\theta,\qquad
+ F_{\phi_b}=-\kappa\sin\theta .
+\]
+These paired forces were correct in the submission; keep them. Their zero
+internal sum does not repair a lossy input map.
 
-The physical bridge between soma and dendritic arbor is governed by rate-independent material plasticity:
+Do not invent a fixed number of rings or an all-to-all graph here. DNA/anatomy
+must provide the sparse reached incidence and its size. Keep the complete
+shared UF result once, with each neuron's local perspective and incident
+contacts. Seven scalar fields plus S(UF), alone, are not that complete result.
+S(UF) remains separate, not an eighth neuronal coordinate or an execution gate.
 
-### 3.1 Dimensions and Elastic Stiffness
-- Reference length: $L_{\text{ref}} = 1.0\,\mu\text{m} = 1.0 \times 10^{-6}\,\text{m}$.
-- Reference cross-section: $r_{\text{spine}} = 0.10\,\mu\text{m} \implies A_{\text{ref}} = \pi r_{\text{spine}}^2 = 3.14159 \times 10^{-14}\,\text{m}^2$.
-- Young's modulus: $E_{\text{mod}} = 1.0 \times 10^5\,\text{Pa}$ (Gittes et al., 1993).
-- **Strain-Energy Stiffness [J]:**
-  $$K_\epsilon = E_{\text{mod}} A_{\text{ref}} L_{\text{ref}} = (1.0 \times 10^5) (3.14159 \times 10^{-14}) (1.0 \times 10^{-6}) = 3.14159 \times 10^{-15}\,\text{J}.$$
-- **Axial Spring Constant [N/m]:**
-  $$k_{\text{axial}} = \frac{E_{\text{mod}} A_{\text{ref}}}{L_{\text{ref}}} = 3.14159 \times 10^{-3}\,\text{N/m}.$$
-- **Yield Threshold Energy:**
-  $$Y = K_\epsilon \cdot \epsilon_{\text{yield}} = 3.14159 \times 10^{-15} \times 0.05 = 1.5708 \times 10^{-16}\,\text{J} = 157.08\,\text{aJ}.$$
+## 3. Amplitude units and one reciprocal energy
 
-### 3.2 Plastic Yield Return Map and Conductance Bridge
-For instantaneous displacement $x > 0$:
-- Trial strain: $\epsilon_{\text{tr}} = x / \ell_n - 1$, Trial stress: $\Sigma_{\text{tr}} = K_\epsilon \epsilon_{\text{tr}}$.
-- Yield condition: $f = |\Sigma_{\text{tr}}| - Y \le 0$.
-- Plastic return:
-  $$\ell_{n+1} = \begin{cases}
-  \ell_n & \text{if } |\Sigma_{\text{tr}}| \le Y, \\
-  x / (1 + s Y / K_\epsilon) & \text{if } |\Sigma_{\text{tr}}| > Y, \quad s = \operatorname{sign}(\Sigma_{\text{tr}}).
-  \end{cases}$$
-- Plastic dissipation: $D_{\text{pl}} = \frac{1}{2} K_\epsilon \left[ \epsilon_{\text{tr}}^2 - (Y / K_\epsilon)^2 \right] \ge 0$.
-- Retained electrical conductance:
-  $$g_{\text{contact}}(\ell) = \sigma_{\text{cytoplasm}} \frac{A_{\text{ref}}}{\ell}, \quad \sigma_{\text{cytoplasm}} = 0.50\,\text{S/m} \implies g_{\text{contact}}(L_{\text{ref}}) = 15.708\,\text{nS}.$$
+For the submitted choice [rho]=J/m^3 and energy E in joules:
+\[
+ [k_\rho]=m^6/J,\quad
+ [\zeta_\rho]=m^6\,s/J,\quad [\zeta_\phi]=m^3\,s.
+\]
+These follow from
+\[
+ \zeta_\rho\dot\rho=-\partial_\rho E,\qquad
+ \zeta_\phi\rho\dot\phi=-\partial_\phi E.
+\]
+The submitted J s/m^3 and J s values are dimensionally incompatible.
+**Do not keep their numerical values with new unit labels.** A dimensionless
+rho convention would instead permit drag units J s, but requires an explicitly
+declared material normalization. No such normalization is ratified here.
 
----
+For fixed capacitance and net free compartment charge Qf, use the dossier's
+single closed-system electrical energy:
+\[
+ Q_g=\sum_c m_c q_c^g y_c,\quad
+ V=(Q_f-Q_g)/C,\quad
+ H_{\rm elec}=(Q_f-Q_g)^2/(2C).
+\]
+Define non-electrical single-gate energy
+\[
+ U_{c,\rm nonel}
+ =\tfrac12 k_c(y_c-y_{r,c})^2
+ -\sum_a\Lambda_{ca}y_c\cos(\phi_a-\phi^*_{ca})-\mu_c y_c .
+\]
+Then
+\[
+ H=H_{\rm elec}+E_{\rm fabric}+\sum_c m_cU_{c,\rm nonel}
+   +U_{\rm contact}+F_{\rm chem},
+\]
+\[
+ 0\in m_c\zeta_c\dot y_c+\partial_{y_c}H+N_{[0,1]}(y_c),
+\quad
+ -\partial_{\phi_a}(m_cU_{c,\rm nonel})
+ =-m_c\Lambda_{ca}y_c\sin(\phi_a-\phi^*_{ca}).
+\]
+The voltage force \(m_cq_c^gV\) already follows by differentiating H_elec.
+Do not add -VQg a second time. A prescribed-voltage energy uses a different
+external-work boundary; it is not interchangeable with this closed system.
 
-## 4. Receiving and Chemical Boundary Closure
+Gate populations, charges, offsets, coupling, stiffness, drag and chemical bias
+must refer to one immutable material definition. The dossier's earlier
+four-equal-sector proposal and G1's new heterogeneous proposal are distinct,
+unratified anatomies. Neither is a measured cortical cell; labels such as
+“fast excitatory” or “delayed rectifier” do not establish their dynamics.
 
-### 4.1 Compartment Charge and Capacitance
-- Somatic capacitance: $C_{\text{mem}} = 12.56637\,\text{pF}$.
-- Intracellular volume: $V_{\text{in}} = 4.18879\,\text{pL}$.
-- Extracellular microdomain volume: $V_{\text{out}} = 1.04720\,\text{pL}$ ($\alpha = 0.20$).
-- Fixed countercharges (guaranteeing Debye electroneutrality):
-  $$Q_{\text{fixed, in}} = -57.391165\,\text{nC}, \quad Q_{\text{fixed, out}} = -4.330428\,\text{nC}.$$
-- Free capacitive charge partition:
-  $$Q_g(y) = \sum_c N_c q_c^{\text{gate}} y_c, \quad Q_f = C_{\text{mem}} V_m + Q_g(y).$$
-  Reference integer net charge $Z_f = -5\,098\,073 \implies Q_{f, 0} = Z_f \cdot e_0 \approx -8.16814 \times 10^{-13}\,\text{C}$, yielding nominal $V_0 \approx -65.0000057\,\text{mV}$.
+## 4. Conductance and genesis: corrected conditional numbers
 
-### 4.2 Dynamic Membrane Equation with Gating Current
-$$C_{\text{mem}} \dot{V}_m = -\sum_{c \in \{\text{Na}, \text{K}, \text{Ca}, \text{Cl}\}} G_c(y_c) (V_m - E_c) - \sum_{j} g_{ij} (V_m - V_j) + I_{\text{active, in}} - \dot{Q}_g,$$
-where $\dot{Q}_g = \sum_c N_c q_c^{\text{gate}} \dot{y}_c$, and $E_c = \frac{V_T}{z_c} \ln\left(\frac{N_{\text{out}, c} / V_{\text{out}}}{N_{\text{in}, c} / V_{\text{in}}}\right)$.
+The cylindrical homogeneous-bath reference remains
+\[
+ R_{p0}=\ell/(\sigma\pi a_0^2),\quad R_{a0}=1/(2\sigma a_0),
+\quad g(y)=\frac{y}{R_{p0}+R_{a0}\sqrt y},\quad g(0)=0.
+\]
+At ell=5 nm, a0=0.50 nm, sigma=1.50 S/m:
 
-### 4.3 Stoichiometric Active Metabolic Pump
-To maintain long-term concentration gradients against passive dissipation without artificial leak cancellation:
-- Na/K-ATPase pump rate: $I_{\text{pump}}$ transfers $3\,\text{Na}^+$ outward and $2\,\text{K}^+$ inward per cycle:
-  $$\Delta N_{\text{in, Na}} = -3 \cdot n_{\text{pump}}, \quad \Delta N_{\text{out, Na}} = +3 \cdot n_{\text{pump}},$$
-  $$\Delta N_{\text{in, K}} = +2 \cdot n_{\text{pump}}, \quad \Delta N_{\text{out, K}} = -2 \cdot n_{\text{pump}}.$$
-- Net pump current: $I_{\text{active, in}} = -e_0 \cdot \dot{n}_{\text{pump}}$.
-- Metabolic chemical work consumed: $\dot{W}_{\text{ATP}} = \dot{n}_{\text{pump}} \Delta \mu_{\text{ATP}}$, with $\Delta \mu_{\text{ATP}} = 20\,k_B T \approx 8.56 \times 10^{-20}\,\text{J/cycle}$.
+| Aperture y | Single-pore g(y), pS |
+| ---: | ---: |
+| 0.02 | 4.609980952 |
+| 0.05 | 11.381217721 |
+| 0.10 | 22.446939398 |
+| 1.00 | 203.632872245 |
 
----
+The submitted calcium/chloride numbers were wrong and the column was
+mislabelled g(0.05). Multiply by channel count once for a sector.
+This bulk access-resistance benchmark does not derive ion selectivity,
+subnanometre pore chemistry, unequal-bath access resistance, or a
+depletion-safe species transport law. Do not mount the same saline
+conductivity as four independently calibrated species conductivities.
 
-## 5. Executable Representation & Binary Checkpoint Schema
+For G1's changed counts (Na,K,Ca,Cl)=(100,100,20,50), aperture preparation
+(.05,.05,.02,.10), gate charges (4e,3e,2e,0):
+\[
+ Q_{g,0}=(20+15+0.8)e=35.8e,
+\]
+not the dossier's earlier equal-sector 80e. Keep the distinction explicit.
 
-The canonical binary state record is **384 bytes**, strictly 8-byte aligned, validated by CRC-32:
+With the dossier's literal finite ion inventories, geometry-derived C, and
+Vprep=-65 mV, the conditional compatible integer genesis is
+\[
+ Z_{f,0}=\operatorname{round}_{even}
+ [(CV_{\rm prep}+Q_{g,0})/e]=-5098117,
+\]
+\[
+ Z_{\rm fixed,in}=-358207478656,\qquad
+ Z_{\rm fixed,out}=-27112297427.
+\]
+Hence the approximate fixed charges are -57.39116524267 nC and
+-4.343868943160 nC, and actual V0 is -65.0000031305 mV.
+Use the exact counts and declared executable constant representation, not
+printed rounded voltages as independent state. Reusing old Zf=-5098073 with
+the new gates instead gives approximately -64.9994421430 mV.
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                      ARCLOOM CANONICAL NEURON RECORD (384 B)                │
-├─────────────────────┬────────┬────────┬─────────────────────────────────────┤
-│ Field               │ Offset │ Length │ Description                         │
-├─────────────────────┼────────┼────────┼─────────────────────────────────────┤
-│ magic               │ 0      │ 8 B    │ b"GUA_P1N1"                         │
-│ schema_version      │ 8      │ 4 B    │ u32 = 1                             │
-│ flags               │ 12     │ 4 B    │ u32 = 0                             │
-│ rho [3]             │ 16     │ 24 B   │ 3 × f64 amplitude state             │
-│ phi [3]             │ 40     │ 24 B   │ 3 × f64 spatial ring phase [rad]    │
-│ winding             │ 64     │ 8 B    │ i64 topological spatial winding     │
-│ gate_y [4]          │ 72     │ 32 B   │ 4 × f64 sector aperture fractions   │
-│ gate_ydot [4]       │ 104    │ 32 B   │ 4 × f64 aperture velocities         │
-│ q_free              │ 136    │ 8 B    │ f64 net free capacitive charge [C]  │
-│ c_mem               │ 144    │ 8 B    │ f64 somatic capacitance [F]         │
-│ v_membrane          │ 152    │ 8 B    │ f64 membrane potential [V]          │
-│ q_gating            │ 160    │ 8 B    │ f64 gating displacement charge [C]  │
-│ n_in [4]            │ 168    │ 32 B   │ 4 × u64 intracellular ion counts    │
-│ n_out [4]           │ 200    │ 32 B   │ 4 × u64 extracellular ion counts    │
-│ r_carriers [4]      │ 232    │ 32 B   │ 4 × f64 fractional carrier rem.     │
-│ spine_length        │ 264    │ 8 B    │ f64 current plastic length ℓ [m]    │
-│ spine_disp_x        │ 272    │ 8 B    │ f64 instantaneous mechanical x [m]  │
-│ k_epsilon           │ 280    │ 8 B    │ f64 strain-energy stiffness [J]     │
-│ yield_threshold     │ 288    │ 8 B    │ f64 plastic yield energy Y [J]      │
-│ cum_dissipated      │ 296    │ 8 B    │ f64 cumulative plastic work D_pl [J]│
-│ w_metabolic         │ 304    │ 8 B    │ f64 cumulative ATP work [J]         │
-│ q_joule             │ 312    │ 8 B    │ f64 cumulative thermal heat [J]     │
-│ q_fixed_in          │ 320    │ 8 B    │ f64 fixed intracellular charge [C]  │
-│ q_fixed_out         │ 328    │ 8 B    │ f64 fixed extracellular charge [C]  │
-│ reserved            │ 336    │ 40 B   │ 5 × f64 reserved for contact fanout │
-│ crc32               │ 376    │ 4 B    │ u32 CRC-32 checksum of bytes 0..375 │
-│ pad                 │ 380    │ 4 B    │ 4 bytes zero padding to 384 B       │
-└─────────────────────┴────────┴────────┴─────────────────────────────────────┘
-```
+The submitted rounded fixed charges, combined with the dossier's mobile
+inventories, leave **+1.3441185829464461e-11 C** net charge, not zero.
+Neither the charge balance nor a “Debye electroneutrality” label proves a
+resolved spatial electrostatic model. Fixed charges remain fixed after
+preparation; never adjust them every beat to maintain a desired voltage.
 
-### 5.1 Verification and Exact Serialization Properties
-1. **Machine-Precision Conservation:** Every whole carrier crossing the membrane transfers from $N_{\text{in}}$ to $N_{\text{out}}$ with exact integer custody and remainder update ($|q_c n_c + q_c(r'_c - r_c) - J_c| = 0$).
-2. **Cold Restart Invariant:** $\operatorname{decode}(\operatorname{encode}(S)) \equiv S$ bit-for-bit. Restored states advance identically under subsequent inputs.
-3. **Fail-Closed Gate:** An unmounted state or invalid CRC refuses transition before mutating any substrate, motor, or checkpoint state.
+These calculations repair consistency **conditional on that proposed anatomy**.
+They do not select it over the earlier proposal or authorize its installation.
+
+## 5. Contact and receiving closure: keep the law, remove unsupported claims
+
+For the submitted reference geometry, the dimensional relations are correct:
+\[
+ K_\epsilon=E_{\rm mod}A_{\rm ref}L_{\rm ref}\ [J],\quad
+ k_{\rm axial}=E_{\rm mod}A_{\rm ref}/L_{\rm ref}\ [N/m].
+\]
+If E_mod=100 kPa, r=0.10 micrometres and Lref=1 micrometre, these are
+3.14159e-15 J and 3.14159e-3 N/m. But that material modulus is NOT established
+by the cited Gittes paper for a spine neck. The paper measures filament bending
+rigidity; its actin isotropic estimate is about 2.6 GPa, not 100 kPa.
+Do not replace 100 kPa with 2.6 GPa either: an isolated filament is not a
+composite spine neck.
+[Gittes et al., 1993](https://doi.org/10.1083/jcb.120.4.923).
+
+Likewise, choosing a five-percent yield strain gives Y=0.05 K algebraically;
+it does not derive that yield strain from the material.
+
+Keep the accepted fixed-actual-length return law:
+\[
+ \epsilon_{\rm tr}=x/\ell_n-1,\quad \Sigma_{\rm tr}=K\epsilon_{\rm tr},
+\quad
+ \ell'=
+ \begin{cases}
+ \ell_n,&|\Sigma_{\rm tr}|\le Y,\\
+ x/(1+sY/K),&|\Sigma_{\rm tr}|>Y,\ s=\operatorname{sign}\Sigma_{\rm tr}.
+ \end{cases}
+\]
+On the plastic branch only,
+\[
+ D_{\rm pl}=\tfrac12 K[\epsilon_{\rm tr}^2-(Y/K)^2]\ge0;
+\]
+on the elastic branch D_pl=0. Require x>0, K>0 and 0<Y<K.
+
+What remains missing is a physical source and evolution law for actual length
+x, its applied work, and a constitutive mapping from actual/retained geometry
+to electrical path area and length. In the submitted law, ell is a stress-free
+rest length; it is not automatically the current conducting length.
+The general electrical law is g=sigma*A_actual/L_actual. Equating L_actual
+to ell requires a declared mechanical state, not a relabelling shortcut.
+At the undeformed reference geometry, sigma=0.50 S/m would yield 15.708 nS;
+that conditional arithmetic was correct.
+
+For a reached electrical connection i->j:
+\[
+ I_{ij}=g_{ij}(V_i-V_j),\quad
+ \Delta Q_i=-J_{ij},\quad\Delta Q_j=+J_{ij}.
+\]
+Both endpoints must participate and conserve the transferred quantity.
+The ledger's additional C_spine=1 pF is absent from the binding and lacks a
+receiving geometry/state derivation. Do not introduce it as a silent default.
+
+## 6. Finite transport, recovery and work
+
+Use exact signed carrier custody from A14:
+\[
+ \xi_c=r_c+J_c/(z_ce),\quad n_c=\operatorname{trunc}\xi_c,\quad
+ r'_c=\xi_c-n_c,\quad
+ z_ce[n_c+r'_c-r_c]=J_c.
+\]
+Finite counts settle with equal/opposite endpoints; no negative reservoir,
+oversubscribed fan-out, implicit source or discarded remainder is allowed.
+Numerical error in the integrated current and exact custody of its admitted
+finite value are different obligations. Four f64 remainder slots do not prove
+the exact rational identity.
+
+The Na/K pump's 3-out/2-in stoichiometry was correct. The submission did not
+define a rate, finite ATP/ADP/Pi inventories, reaction remainder or lawful
+electrochemical drive. A cumulative work counter is not a fuel reservoir.
+
+For a future admitted forward extent n:
+\[
+ \Delta(N_{\rm Na,in},N_{\rm Na,out},N_{\rm K,in},N_{\rm K,out})
+ =(-3n,+3n,+2n,-2n),
+\]
+\[
+ \Delta(N_{\rm ATP},N_{\rm ADP},N_{\rm Pi})=(-n,+n,+n),
+\quad\Delta Q_{\rm in}=-ne,\quad\Delta Q_{\rm out}=+ne,
+\]
+\[
+ n\le\min(\lfloor N_{\rm Na,in}/3\rfloor,
+          \lfloor N_{\rm K,out}/2\rfloor,N_{\rm ATP}).
+\]
+This bound is NOT a kinetic law. Finite reactant/product free energy must fund
+the actual electrical/chemical/material energy change and dissipation.
+A fixed 20 kBT/cycle without those inventories does not establish recovery.
+
+Withdraw the claim that the specified pump maintains the gradients. An
+unpowered passive component can relax; it cannot be sold as a complete
+recovering neuron. Retain the explicit unavailable recovery boundary until its
+material binding exists. Do not add a voltage-holding pump or cancellation rule.
+
+All phase-boundary changes, gate motion, contact deformation, chemical transfers
+and external forcing enter the same work balance:
+\[
+ \Delta H_{\rm complete}=W_{\rm in}-W_{\rm out}-Q_{\rm heat,out}.
+\]
+A fixed temperature requires a declared heat boundary. No solver, timestep
+tolerance or approximation for this coupled neuronal system is approved here;
+prior body/optics numerical approvals do not apply to it.
+
+## 7. Complete custody, not a guessed byte budget
+
+The proposed table's offsets do add up to 384 bytes. That arithmetic is not
+the defect. Its content does not cover the complete causal successor:
+
+- No actual typed incidence/anatomy identity and full-field/local-perspective
+  custody; no variable reached fabric or contact topology.
+- No receiving endpoint state or pump/reactant/product/remainder state.
+- Inexact f64 carrier remainder proposed as exact rational custody.
+- Independently stored V, Qg and Qf can disagree; gate velocity and winding
+  are derived for the stated overdamped model unless separately justified.
+- “Reserved” bytes are not implemented fan-out. CRC does not establish
+  physiological validity, field completeness or successor equivalence.
+
+Correction: use one versioned, length-framed canonical state containing each
+independent physical state once, plus bounded immutable-anatomy and shared-field
+references. Restore must resolve those references from the same canonical
+custody, without optional sidecars or silently regenerated anatomy. Recompute
+derived values; reject inconsistent redundant encodings and noncanonical
+padding. Include a solver's causal state if its approved method requires it.
+
+The size is derived from the mounted anatomy and exact numeric representation:
+\[
+ S=S_{\rm framing}+S_{\rm anatomy\ references}
+ +S_{\rm reached\ fabric}+S_{\rm gates}+S_{\rm reservoirs}
+ +S_{\rm contacts}+S_{\rm exact\ remainders}+S_{\rm physical\ boundaries}.
+\]
+Bound each term by admitted material/anatomy, not by elapsed observations.
+No fixed total byte count can be certified before those terms are defined.
+Exact remainder arithmetic must have a derived finite representation bound;
+do not replace it with an unbounded append-only or growing arbitrary-history
+store.
+
+Both codec and transition identities remain required:
+\[
+ decode(encode(S))=S,\quad
+ T(decode(encode(S)),u)=T(S,u).
+\]
+Compute all fallible successor work before atomic publication. Every refusal
+must leave the predecessor unchanged. No automatic genesis on missing mandatory
+state. A10/A11 remain open until these executable obligations are actually met.
+
+## 8. Source impact and bounded completion route
+
+| Incoming authority / evidence | Affected existing source or consumer | Required correction / non-impact |
+| --- | --- | --- |
+| Full UF result and local perspective | native/guala_core/src/cortical_column.rs: consume_continuous_joint_field, step_cycle | Preserve complete shared authority and mount typed material transition; the current eight-value carrier alone is not full local anatomy. Keep refusal until available. |
+| Exact finite canonical field bits | native/guala_core/src/mathloom.rs: MathLoomRationalField | Reuse exact numerator/denominator codec and its derived bound; no +/-52 cutoff or positional force weights. No kernel change. |
+| Mounted material/genesis | Future one-neuron state; current constitutive.rs components | One roster, derived units, one free charge, finite species and reciprocal energy. Existing numerical component is explicitly unmounted, not an exact neuron. |
+| Actual contact geometry and finite chemistry | coupled_synapse.rs and future physical receiving path | Component fixtures do not supply the missing field-to-material law. Do not promote fixture provenance or fixed reversals to production evidence. |
+| Complete successor | cortical_column.rs ordinary persistence path | Same authoritative current state, complete restart, no sidecar or partial 384-byte claim. |
+| Executable causal witness | tests/test_mathloom_a10_boundary.py; tests/test_arcloom_causal_action_witness.py | Preserve strict open markers; test the actual mounted chain and ordinary restore, not manually selected motor outputs. |
+| Accepted artifact only | arcloom_demonstrator/ and its release archive | Do not package a new “complete” release or change live production from this document. |
+
+**What is now corrected:** field-alias explanation and exact representation
+contract; amplitude units; reciprocal energy convention; nonlinear pore
+arithmetic; changed-roster charge accounting; unsupported material attribution;
+plastic-versus-actual geometry distinction; unfunded-pump and incomplete-codec
+claims. No native closure is claimed.
+
+**What cannot be manufactured by an audit:** the actual sparse material
+incidence, sourced coupling/drag/gate material, species-selective transport,
+mechanical loading and receiver, and finite recovery chemistry. The architecture
+supplies their equation forms, not their calibrated values.
+
+The one remaining design decision is the material authority: a deliberately
+designed artificial reference material, explicitly approved as such, or a
+specific measured biological preparation. Neither may be mislabeled as the
+other. With that settled, implement one end-to-end neuron and its complete
+cold successor; do not add more anatomy, cognition, columns or production
+features. Passing legacy suites and another sign-off request are not substitutes.
