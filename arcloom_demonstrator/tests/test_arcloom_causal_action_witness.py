@@ -1,13 +1,10 @@
-"""tests/test_arcloom_causal_action_witness.py
+"""Bounded ArcLoom component witnesses; not full-field or production closure.
 
-Standalone Component Witness Suite for ArcLoom 64D Neuromorphic Substrate.
-Proves component-level architectural properties:
-  1. Causal Motor Efferent Readout & Proposed Kinematic Action (Component Evidence)
-  2. Constitutive Contact Law Parameter Provenance & Plasticity Ablation
-  3. Authentic Predecessor Migration & Strict Fail-Closed ARCLOOM4 Codec
-  4. Exact Field Storage; Full-Field Execution Remains a Strict Expected Failure
-  5. Matched Cold Continuation on Dynamic Changing States
-  6. Spatial Tracking Polar Register Hold under Noise & Occlusion
+A11 separates trained-versus-fresh history dependence from matched weight-only
+ablation. Both populations yield under the directional probe. The matched
+motor-divergence claim remains a strict expected failure, as does the missing
+A10 continuous-field consumer. Passing storage, transport, tract and world
+fixtures do not close either architectural gap.
 """
 
 from __future__ import annotations
@@ -93,56 +90,41 @@ def test_witness_a6_01_silent_motor_zero_invariant_and_canonical_command() -> No
     assert act_receipt_active["is_silent"] is False
 
 
-def test_witness_a6_02_constitutive_conduction_and_unconfounded_tract_severing() -> None:
-    """
-    Component Witness 2:
-    Prove that:
-      1. Calibrated baseline elastic compliance G_ELASTIC_BASELINE = 0.05 and signed synaptic
-         polarization w in [-1.0, 1.0] (effective coupling g_eff = G_ELASTIC_BASELINE + w)
-         govern the reversible and plastic regimes under continuum yield mechanics.
-         Quantum tunneling and Holm contact area analogies are formally withdrawn.
-      2. Super-yield plastic deformation (w > 0) versus sub-yield elastic compliance drives divergent proposed output.
-      3. Causal tract necessity under 100% IDENTICAL inputs:
-         Severing incoming tracts to motor cortex (cols 40..47) halts motor actuation to strictly 0.0.
-         Reconnecting tracts restores motor drive under identical inputs.
-    """
-    sens_train = [1] * 64
-    som_train = [1] * 32
+def test_witness_a6_02_training_history_and_tract_necessity() -> None:
+    """Component history dependence only, not matched plasticity causation.
 
-    # 1. Train intact substrate to induce plastic yield across inter-column fasciculi
+    The trained and fresh populations have different recurrent state as well as
+    different plastic state. The directional probe yields in BOTH populations;
+    it is not a sub-yield elastic readout. Baseline coupling is dimensionless,
+    not a calibrated material conductance. Full-field execution remains absent.
+    """
     sub_intact = ModularColumnSubstrate(
         yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15, columns=64
     )
     for _ in range(10):
-        sub_intact.step(sens_train, som_train)
+        sub_intact.step([1] * 64, [1] * 32)
+    assert sub_intact.active_synapses() > 0
 
-    assert sub_intact.active_synapses() > 0, "Training must induce plastic yield"
-    learned_bytes = sub_intact.export_sparse_bytes()
-
-    # 2. Matched ablated clone at reversible elastic baseline (w = 0)
-    sub_ablated = ModularColumnSubstrate(
+    sub_fresh = ModularColumnSubstrate(
         yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15, columns=64
     )
-    sub_ablated.zero_plastic_weights()
-    assert sub_ablated.active_synapses() == 0, "Ablation must clear learned plastic conductances"
-
-    # Step both with 100% IDENTICAL test inputs
-    sens_test = [-1] * 16 + [0] * 48
-    som_test = [0] * 32
-
+    assert sub_fresh.active_synapses() == 0
+    yield_intact = []
+    yield_fresh = []
     for _ in range(3):
-        sub_intact.step(sens_test, som_test)
-        sub_ablated.step(sens_test, som_test)
+        yi, _ = sub_intact.step([-1] * 16 + [0] * 48, [0] * 32)
+        yf, _ = sub_fresh.step([-1] * 16 + [0] * 48, [0] * 32)
+        yield_intact.append(yi)
+        yield_fresh.append(yf)
 
+    # These receipts explicitly refute the former "elastic baseline" claim.
+    assert all(y > 0 for y in yield_intact)
+    assert all(y > 0 for y in yield_fresh)
+    assert sub_fresh.active_synapses() > 0
     eff_intact = sub_intact.get_motor_efferent()
-    eff_ablated = sub_ablated.get_motor_efferent()
-
-    # Invariant: Intact learned state must alter motor action strictly away from ablated baseline
-    assert eff_intact != eff_ablated, f"Ablation must alter efferents: {eff_intact} == {eff_ablated}"
-    assert eff_intact[1] != eff_ablated[1], (
-        f"Learned plasticity must alter motor stride away from ablated baseline (component evidence): "
-        f"{eff_intact[1]} == {eff_ablated[1]}"
-    )
+    eff_fresh = sub_fresh.get_motor_efferent()
+    assert eff_intact != eff_fresh
+    assert eff_intact[1] != eff_fresh[1]
 
     # 3. Unconfounded Causal Tract Severing Test
     sub_tract_intact = ModularColumnSubstrate(
@@ -184,6 +166,59 @@ def test_witness_a6_02_constitutive_conduction_and_unconfounded_tract_severing()
     eff_reconnected = sub_tract_severed.get_motor_efferent()
     assert eff_reconnected[1] > 0.0, "Reconnecting tracts must restore motor actuation"
 
+
+
+class MatchedPlasticityMotorDivergenceUnavailable(AssertionError):
+    """Only the specific missing matched motor divergence is expected to fail."""
+
+
+@pytest.mark.xfail(
+    strict=True,
+    raises=MatchedPlasticityMotorDivergenceUnavailable,
+    reason="A11: weight-only ablation re-yields; this matched probe has no motor divergence",
+)
+def test_witness_a11_matched_plasticity_motor_divergence() -> None:
+    """Preserve the failed causal claim instead of replacing it with a newborn.
+
+    Identical checkpoint state and inputs; the sole intervention is removal
+    of plastic weights. Plasticity remains enabled and its updates are reported.
+    This is a component-only experiment, not a production learning witness.
+    """
+    intact = ModularColumnSubstrate(
+        yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15, columns=64
+    )
+    for _ in range(10):
+        intact.step([1] * 64, [1] * 32)
+    learned = intact.export_sparse_bytes(version=4)
+    ablated = ModularColumnSubstrate(
+        yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15, columns=64
+    )
+    ablated.import_sparse_bytes(learned)
+    assert ablated.export_sparse_bytes(version=4) == learned
+    before_motor = ablated.get_motor_efferent()
+    before_spatial = ablated.get_spatial_tracking()
+    ablated.zero_plastic_weights()
+    assert ablated.active_synapses() == 0
+    assert ablated.get_motor_efferent() == before_motor
+    assert ablated.get_spatial_tracking() == before_spatial
+
+    yields_intact = []
+    yields_ablated = []
+    motors_intact = []
+    motors_ablated = []
+    for _ in range(3):
+        yi, _ = intact.step([-1] * 16 + [0] * 48, [0] * 32)
+        ya, _ = ablated.step([-1] * 16 + [0] * 48, [0] * 32)
+        yields_intact.append(yi)
+        yields_ablated.append(ya)
+        motors_intact.append(intact.get_motor_efferent())
+        motors_ablated.append(ablated.get_motor_efferent())
+    if motors_intact == motors_ablated:
+        raise MatchedPlasticityMotorDivergenceUnavailable(
+            f"Identical motor trajectories after weight-only ablation: {motors_intact}; "
+            f"intact yields={yields_intact}, ablated yields={yields_ablated}. "
+            "Retained-plasticity motor causation is not established by this probe."
+        )
 
 def test_witness_a6_03_authentic_predecessor_migration_and_strict_codec() -> None:
     """

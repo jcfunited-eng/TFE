@@ -1,77 +1,10 @@
-"""tests/test_arcloom_causal_action_witness.py
+"""Bounded ArcLoom component witnesses; not full-field or production closure.
 
-Standalone Executable Architectural Witness for ArcLoom 64D Neuromorphic Substrate.
-Component witnesses only. A10 rejects full-field closure; its positive field
-case remains a strict expected failure, not a passing architecture claim:
-
-1. Production Motor Conversion & Obstacle Refusal (A9-01):
-   - Motor efferent inspection is a pure read-only proposal (proposed_kinematic_action).
-   - Efferent schema and domain validation: 4-element sequence, finite numbers, declared native physical domains
-     (stride in [0.0, 60.0], steer in [-45.0, 45.0], vocal in [0.0, 480.0], grip in [0.0, 25.0]);
-     malformed, non-finite, or out-of-domain efferents raise ValueError.
-   - Duration validation: strictly positive integer matching canonical BEAT_MICROSECONDS = 250,000 us;
-     booleans, non-integers, non-finite values, and non-canonical intervals raise ValueError.
-   - Silent motor populations produce strictly (0.0, 0.0, 0.0, 0.0) efferents and return None command.
-   - Candidate generation explicitly requires native motor capability (raises AttributeError if absent).
-   - In candidate generation, native silence strictly inhibits locomotion (no fallback step option).
-   - In open space, active native stride prepares and commits successfully, moving body position.
-   - On the same candidate trajectory, lawful physical barrier (room boundary wall) triggers refusal
-     using the EXACT unmodified native efferent tuple (no 100mm substitute), asserting full pose invariance.
-
-2. Constitutive Baseline Provenance & Rate-Independent Return Map (A9-02):
-   - G_ELASTIC_BASELINE = 0.05 represents the dimensionless baseline resting coupling parameter w_0
-     in the discrete ternary lattice model, with signed plastic weights w in [-1.0, 1.0].
-     Truthful disclosure: Macroscopic continuum contact mechanics and microscopic derivation in SI units
-     remain an open research contract; Holm/tunneling claims are formally retracted.
-   - True rate-independent return map projection: trial stress over yield projects directly to |Sigma_{n+1}| = Y
-     (yield function f_{n+1} = 0) with non-negative plastic dissipation D_pl >= 0.
-   - Once plastic equilibrium on the yield surface is reached, repeated identical steps produce zero yield events
-     and identical operative states, eliminating continuous plastic drift on identical inputs.
-   - Super-yield plastic deformation (w > 0) versus sub-yield elastic compliance drives divergent world actions.
-   - Matched intact vs ablated states executed in two actual world instances produce divergent world coordinates.
-   - Incoming tract severing under identical inputs halts motor actuation to strictly 0.0.
-
-3. ARCLOOM4 Codec & Explicit Predecessor Migration (A9-03):
-   - Strict separation of current restore from historical migration at outer Python and native boundaries:
-     from_dict and import_sparse_bytes accept only current ARCLOOM4 format, rejecting historical versions.
-   - Explicit migration via migrate_predecessor_v2 requires authenticated layout metadata ("24B" or "36B"),
-     preventing guessing fallbacks; invalid layouts fail closed with ValueError.
-   - Historical predecessor v3 migration requires explicit layout ("short" or "long"):
-     - ARCLOOM3_SHORT migrates cleanly with continuous_field_present == False.
-     - ARCLOOM3_LONG rejects migration when field_present metadata is None; migrates losslessly when field_present=True.
-     - Truncated long payloads cannot downgrade to short; short payloads cannot pass as long.
-     - Synthetic v3 test payloads are explicitly documented and labeled as synthetic layout test fixtures.
-   - Structurally valid asymmetric severed tract test: payload with severed tract 1->2 (66) without reverse 2->1 (129)
-     fails closed with exact asymmetric topology ValueError, proving complete recipient failure atomicity.
-   - ARCLOOM4 schema preserves explicit field availability (distinguishing present-zero from unavailable).
-   - Checked count arithmetic and bounds prevent integer overflow and runaway allocations.
-
-4. Ratified Exact MathLoom Rational Field Decomposition (A9-04):
-   - Exact MathLoom balanced ternary integer numerator and power-of-two denominator decomposition:
-     decomposes any finite IEEE-754 binary64 float into exact balanced ternary integers N and D.
-   - Exact bit-level reconstruction (f64::from_bits) verified across +0.0, -0.0, subnormals (5e-324),
-     normals (1e-300, 1e-18, 1e100, 1.79e308), and negative values with 100% bitwise fidelity.
-   - 0.5 decomposes to numerator [1] and denominator [-1, 1]; values 0.5, 0.6, 0.9, 1.0, 2.0 produce distinct,
-     faithful balanced ternary sequences, disproving positional collapse.
-   - Primary column (48+2k) and conjugate column (48+2k+1) receive exact numerator and denominator trits.
-   - Controlled field intervention: stepping substrate with Field A vs Field B produces divergent downstream
-     physical strain, proving the continuous field physically drives the downstream mechanical transition.
-   - Capability enforcement: 4D and 8D substrates raise strict NotImplementedError on continuous field calls.
-
-5. Sleep Learned Competence & Paired Cold Continuation (A9-05 & A9-06):
-   - Disclosure: component training-dependent motor response survives this sleep operation; discloses probe-induced plastic updates.
-   - Waking quiet intervals (50 silent beats) in yield equilibrium preserve operative state byte-for-byte.
-   - Sleep consolidation downscales while retaining conditioned motor response (stride > 0) while matched naive control
-     under identical probe produces zero stride, proving post-sleep motor output is demonstrated retained learned competence.
-   - Matched cold continuation on actively changing state: advances BOTH original and cold-restored copies by 1 step
-     under identical stimulus, proving bit-for-bit successor state equivalence across all fields.
-   - Cold world execution: executes both successor commands into two cloned world authorities with
-     identical committed ActionExecutionReceipts (receipt_a == receipt_b, disposition=='applied'),
-     successor poses, active contacts, body parameters, and full observation snapshot equality.
-
-6. Spatial Tracking Getter & Component Evidence:
-   - Verifies stored polar odometry coordinates and exponential trace decay.
-   - Confirms recurrent attractor decoding claim is withdrawn.
+A11 separates trained-versus-fresh history dependence from matched weight-only
+ablation. Both populations yield under the directional probe. The matched
+motor-divergence claim remains a strict expected failure, as does the missing
+A10 continuous-field consumer. Passing storage, transport, tract and world
+fixtures do not close either architectural gap.
 """
 
 from __future__ import annotations
@@ -286,84 +219,70 @@ def test_witness_a6_01_production_motor_conversion_and_world_execution() -> None
     assert her_obs_after.pose == her_obs.pose, "Full pose must remain strictly invariant upon obstacle refusal"
 
 
-def test_witness_a6_02_constitutive_contact_law_and_divergent_world_execution() -> None:
-    """
-    Finding A9-02 Witness:
-    Prove that:
-      1. G_ELASTIC_BASELINE = 0.05 represents the dimensionless baseline resting coupling parameter w_0
-         in the discrete ternary lattice model, with signed plastic weights w in [-1.0, 1.0].
-         Truthful disclosure: Macroscopic continuum contact mechanics and microscopic derivation in SI units
-         remain an open research contract; Holm/tunneling claims are formally retracted.
-      2. True rate-independent return map projection:
-         Under trial stress |Sigma_{tr}| > Y, the stress projects directly to |Sigma_{n+1}| = Y (f_{n+1} = 0)
-         with non-negative dissipation. Once equilibrium on the yield surface is reached, stepping again
-         with identical state and inputs produces zero yield events and identical operative states,
-         eliminating continuous plastic drift on identical inputs.
-      3. Super-yield plastic deformation (w > 0) versus sub-yield elastic compliance drives divergent world actions.
-      4. Matched intact vs ablated states executed in two actual world instances produce divergent world coordinates.
-      5. Incoming tract severing under identical inputs halts motor actuation to strictly 0.0.
-    """
-    sens_train = [1] * 64
-    som_train = [1] * 32
+def test_witness_a6_02_training_history_and_tract_necessity() -> None:
+    """Component history dependence only, not matched plasticity causation.
 
-    # 1. Train intact substrate to induce super-yield plastic deformation (w > 0)
+    The trained and fresh populations have different recurrent state as well as
+    different plastic state. The directional probe yields in BOTH populations;
+    it is not a sub-yield elastic readout. Baseline coupling is dimensionless,
+    not a calibrated material conductance. Full-field execution remains absent.
+    """
     sub_intact = ModularColumnSubstrate(
         yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15, columns=64
     )
     for _ in range(5):
-        sub_intact.step(sens_train, som_train)
+        sub_intact.step([1] * 64, [1] * 32)
+    assert sub_intact.active_synapses() > 0
 
-    assert sub_intact.active_synapses() > 0, "Super-yield training must induce plastic conductances"
-    learned_bytes = sub_intact.export_sparse_bytes(version=4)
+    sub_fresh = ModularColumnSubstrate(
+        yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15, columns=64
+    )
+    assert sub_fresh.active_synapses() == 0
+    yield_intact = []
+    yield_fresh = []
+    for _ in range(3):
+        yi, _ = sub_intact.step([-1] * 16 + [0] * 48, [0] * 32)
+        yf, _ = sub_fresh.step([-1] * 16 + [0] * 48, [0] * 32)
+        yield_intact.append(yi)
+        yield_fresh.append(yf)
 
-    # Rate-independent return map equilibrium stability verification
+    # These receipts explicitly refute the former "elastic baseline" claim.
+    assert all(y > 0 for y in yield_intact)
+    assert all(y > 0 for y in yield_fresh)
+    assert sub_fresh.active_synapses() > 0
+    eff_intact = sub_intact.get_motor_efferent()
+    eff_fresh = sub_fresh.get_motor_efferent()
+    assert eff_intact != eff_fresh
+    assert eff_intact[1] != eff_fresh[1]
+
+    # One fixed-input equilibrium check; not a complete constitutive-law proof.
     sub_return = ModularColumnSubstrate(
         yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15, columns=64
     )
     for _ in range(15):
-        sub_return.step(sens_train, som_train)
+        sub_return.step([1] * 64, [1] * 32)
     w_eq = sub_return.export_sparse_bytes(version=4)
-    y_eq, s_eq = sub_return.step(sens_train, som_train)
+    y_eq, s_eq = sub_return.step([1] * 64, [1] * 32)
     w_after = sub_return.export_sparse_bytes(version=4)
     assert y_eq == 0, f"At plastic yield equilibrium, further identical steps must produce 0 yield events, got {y_eq}"
     assert w_eq == w_after, "Rate-independent return map must eliminate plastic drift on repeated identical steps"
 
-    # 2. Matched ablated clone at reversible elastic baseline (w = 0)
-    sub_ablated = ModularColumnSubstrate(
-        yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15, columns=64
-    )
-    sub_ablated.zero_plastic_weights()
-    assert sub_ablated.active_synapses() == 0, "Ablation must clear learned plastic conductances to reversible baseline"
-
-    # Step both with identical directional test stimulus
-    sens_test = [-1] * 16 + [0] * 48
-    som_test = [0] * 32
-    for _ in range(3):
-        sub_intact.step(sens_test, som_test)
-        sub_ablated.step(sens_test, som_test)
-
-    eff_intact = sub_intact.get_motor_efferent()
-    eff_ablated = sub_ablated.get_motor_efferent()
-
-    assert eff_intact != eff_ablated, f"Ablation must alter efferents: {eff_intact} == {eff_ablated}"
-    assert eff_intact[1] != eff_ablated[1], (
-        f"Learned plasticity must alter motor stride away from ablated baseline: {eff_intact[1]} == {eff_ablated[1]}"
-    )
-
-    # 3. Execute both efferents in two separate cloned world instances
+    # Actual world settlement of the history-dependent comparison.
     world_intact = home_world_authority(identity="1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1")
-    world_ablated = home_world_authority(identity="1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1")
+    world_fresh = home_world_authority(identity="1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1")
 
     snap_in = world_intact.observation_snapshot()
-    snap_ab = world_ablated.observation_snapshot()
+    snap_ab = world_fresh.observation_snapshot()
     her_in = next(b for b in snap_in.bodies if b.body_id == snap_in.self_body_id)
     her_ab = next(b for b in snap_ab.bodies if b.body_id == snap_ab.self_body_id)
 
+    assert her_in.pose == her_ab.pose
+
     cmd_intact = motor_efferent_to_locomotion_command(eff_intact, her_in.pose)
-    cmd_ablated = motor_efferent_to_locomotion_command(eff_ablated, her_ab.pose)
+    cmd_fresh = motor_efferent_to_locomotion_command(eff_fresh, her_ab.pose)
 
     assert cmd_intact is not None
-    assert cmd_ablated is not None
+    assert cmd_fresh is not None
 
     prep_in = world_intact.prepare_port_command(
         port_id=PORT_ID,
@@ -371,23 +290,27 @@ def test_witness_a6_02_constitutive_contact_law_and_divergent_world_execution() 
         causal_intent_receipt_sha256="aa" * 32,
         expected_revision=snap_in.revision,
     )
+    assert not isinstance(prep_in, ActionExecutionReceipt)
     with world_intact.prepared_action_visibility_transaction(prep_in):
-        world_intact.commit_prepared_action(prep_in)
+        receipt_in = world_intact.commit_prepared_action(prep_in)
+    assert receipt_in.disposition == "applied"
 
-    prep_ab = world_ablated.prepare_port_command(
+    prep_ab = world_fresh.prepare_port_command(
         port_id=PORT_ID,
-        command_payload=encode_command(cmd_ablated),
+        command_payload=encode_command(cmd_fresh),
         causal_intent_receipt_sha256="bb" * 32,
         expected_revision=snap_ab.revision,
     )
-    with world_ablated.prepared_action_visibility_transaction(prep_ab):
-        world_ablated.commit_prepared_action(prep_ab)
+    assert not isinstance(prep_ab, ActionExecutionReceipt)
+    with world_fresh.prepared_action_visibility_transaction(prep_ab):
+        receipt_fresh = world_fresh.commit_prepared_action(prep_ab)
+    assert receipt_fresh.disposition == "applied"
 
     her_after_in = next(b for b in world_intact.observation_snapshot().bodies if b.body_id == snap_in.self_body_id)
-    her_after_ab = next(b for b in world_ablated.observation_snapshot().bodies if b.body_id == snap_ab.self_body_id)
+    her_after_ab = next(b for b in world_fresh.observation_snapshot().bodies if b.body_id == snap_ab.self_body_id)
 
     assert her_after_in.pose.position != her_after_ab.pose.position, (
-        f"Plasticity ablation must produce divergent settled world positions: "
+        f"Training-history difference must produce divergent settled world positions: "
         f"{her_after_in.pose.position} vs {her_after_ab.pose.position}"
     )
 
@@ -417,6 +340,59 @@ def test_witness_a6_02_constitutive_contact_law_and_divergent_world_execution() 
         f"Severing motor tracts must arrest motor drive under identical inputs, got {eff_tract_severed}"
     )
 
+
+
+class MatchedPlasticityMotorDivergenceUnavailable(AssertionError):
+    """Only the specific missing matched motor divergence is expected to fail."""
+
+
+@pytest.mark.xfail(
+    strict=True,
+    raises=MatchedPlasticityMotorDivergenceUnavailable,
+    reason="A11: weight-only ablation re-yields; this matched probe has no motor divergence",
+)
+def test_witness_a11_matched_plasticity_motor_divergence() -> None:
+    """Preserve the failed causal claim instead of replacing it with a newborn.
+
+    Identical checkpoint state and inputs; the sole intervention is removal
+    of plastic weights. Plasticity remains enabled and its updates are reported.
+    This is a component-only experiment, not a production learning witness.
+    """
+    intact = ModularColumnSubstrate(
+        yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15, columns=64
+    )
+    for _ in range(5):
+        intact.step([1] * 64, [1] * 32)
+    learned = intact.export_sparse_bytes(version=4)
+    ablated = ModularColumnSubstrate(
+        yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15, columns=64
+    )
+    ablated.import_sparse_bytes(learned)
+    assert ablated.export_sparse_bytes(version=4) == learned
+    before_motor = ablated.get_motor_efferent()
+    before_spatial = ablated.get_spatial_tracking()
+    ablated.zero_plastic_weights()
+    assert ablated.active_synapses() == 0
+    assert ablated.get_motor_efferent() == before_motor
+    assert ablated.get_spatial_tracking() == before_spatial
+
+    yields_intact = []
+    yields_ablated = []
+    motors_intact = []
+    motors_ablated = []
+    for _ in range(3):
+        yi, _ = intact.step([-1] * 16 + [0] * 48, [0] * 32)
+        ya, _ = ablated.step([-1] * 16 + [0] * 48, [0] * 32)
+        yields_intact.append(yi)
+        yields_ablated.append(ya)
+        motors_intact.append(intact.get_motor_efferent())
+        motors_ablated.append(ablated.get_motor_efferent())
+    if motors_intact == motors_ablated:
+        raise MatchedPlasticityMotorDivergenceUnavailable(
+            f"Identical motor trajectories after weight-only ablation: {motors_intact}; "
+            f"intact yields={yields_intact}, ablated yields={yields_ablated}. "
+            "Retained-plasticity motor causation is not established by this probe."
+        )
 
 def test_witness_a6_03_authentic_predecessor_migration_and_strict_codec() -> None:
     """
