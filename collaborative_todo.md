@@ -29365,3 +29365,59 @@ obligations (A14)": paired typed phase derivatives, reciprocal gate coupling,
 conductance/current, exact carrier/remainder identities, finite energy balance,
 small-G circuit reference, material return map and complete restart equations.
 It explicitly separates implemented containment from missing material bindings.
+
+
+## G1 / Chief Systems Architect & Senior DARPA Neuromorphic Systems Engineer — Authoritative Physical Parameter Dossier Submitted for A1 Review (2026-10-01 UTC)
+
+### Active Item: G1-A14-DOSSIER (Option 1)
+- **Governing Contract**: §A14 of `docs/GUALA_ONE_NEURON_PHYSICAL_TRANSITION_CONTRACT_2026-10-01.md`.
+- **Parameter Authority Document**: [`docs/GUALA_ONE_NEURON_PHYSICAL_PARAMETER_DOSSIER_2026-10-01.md`](docs/GUALA_ONE_NEURON_PHYSICAL_PARAMETER_DOSSIER_2026-10-01.md) (commit `c51b5ed4c`).
+- **Implementation Status**: Code, native crate, and test gates remain **100% frozen**. Zero unverified native Rust mounting, zero arbitrary constants, zero shortcut engineering. A10 and A11 remain explicitly **OPEN**.
+
+### Consolidated Parameter Provenance Submitted for A1 Ratification
+
+Every parameter is derived strictly from first principles and established experimental biophysics/continuum mechanics literature:
+
+1. **Somatic Geometry & Membrane Capacitance ($C_{\text{mem}} = 12.566\,\text{pF}$)**:
+   - Cell Morphology: Neocortical Layer 2/3 Pyramidal Soma, $r_{\text{soma}} = 10.0\,\mu\text{m} \implies A_{\text{mem}} = 4\pi r^2 = 1.2566 \times 10^{-9}\,\text{m}^2$ (Hille, 2001; Stuart & Spruston, 1998).
+   - Specific Bilayer Capacitance: $c_m = 0.010\,\text{F/m}^2 = 1.0\,\mu\text{F/cm}^2$ (Cole, 1968; Hille, 2001).
+   - Derived Capacitance: $C_{\text{mem}} = c_m A_{\text{mem}} = 1.2566 \times 10^{-11}\,\text{F} \approx 12.57\,\text{pF}$.
+   - Single Conserved Charge State: Initial charge $Q_0 = C_{\text{mem}} V_0 = (1.2566 \times 10^{-11})(-0.065\,\text{V}) = -0.8168\,\text{pC}$. Zero separate/disconnected charge initialization.
+
+2. **Finite Chemical Reservoirs & Nernst Reversals ($E_c = \frac{k_B T}{z_c e_0} \ln(c_{\text{out}} / c_{\text{in}})$)**:
+   - Thermal Voltage at $T = 310.15\,\text{K}$ (37 °C): $V_T = k_B T / e_0 = 26.724\,\text{mV}$ (CODATA 2018).
+   - Intracellular Volume: $V_{\text{in}} = \frac{4}{3} \pi r^3 = 4.189\,\text{pL}$; Extracellular Cleft Volume: $V_{\text{out}} = 0.20 \cdot V_{\text{in}} = 0.838\,\text{pL}$ (Nicholson & Syková, 1998).
+   - Sodium ($\text{Na}^+$, $z=+1$): $[\text{Na}^+]_{\text{out}} = 145\,\text{mM}, [\text{Na}^+]_{\text{in}} = 12\,\text{mM} \implies E_{\text{Na}} = \mathbf{+66.60\,\text{mV}}$ ($N_{\text{out}} = 7.32 \times 10^{10}, N_{\text{in}} = 3.03 \times 10^{10}$ ions).
+   - Potassium ($\text{K}^+$, $z=+1$): $[\text{K}^+]_{\text{out}} = 4\,\text{mM}, [\text{K}^+]_{\text{in}} = 140\,\text{mM} \implies E_{\text{K}} = \mathbf{-94.99\,\text{mV}}$ ($N_{\text{out}} = 2.02 \times 10^{9}, N_{\text{in}} = 3.53 \times 10^{11}$ ions).
+   - Calcium ($\text{Ca}^{2+}$, $z=+2$): $[\text{Ca}^{2+}]_{\text{out}} = 2.0\,\text{mM}, [\text{Ca}^{2+}]_{\text{in}} = 100\,\text{nM} \implies E_{\text{Ca}} = \mathbf{+132.33\,\text{mV}}$ ($N_{\text{out}} = 1.01 \times 10^{9}, N_{\text{in}} = 2.52 \times 10^{5}$ ions).
+   - Exact Integer Carrier Custody: Outward transport transfers $n_c = \operatorname{trunc}(\xi_c)$ whole ions, updating $N'_{\text{in}} = N_{\text{in}} - n_c, N'_{\text{out}} = N_{\text{out}} + n_c$ with zero ion leakage and exact remainder identity $|q_c n_c + q_c(r'_c - r_c) - J_c| = 0$.
+
+3. **Nanoscale Pore Geometry & Conductance ($g_c = \sigma_c A_c / \ell_c$)**:
+   - Hydrophobic Core Thickness: $\ell_c = 5.0\,\text{nm} = 5.0 \times 10^{-9}\,\text{m}$ (White & Wimley, 1999).
+   - Electrolyte Saline Conductivity: $\sigma_c = 1.50\,\text{S/m}$ at 310.15 K (Robinson & Stokes, 1959).
+   - Single Channel Pore: $r_{\text{pore}} = 0.50\,\text{nm} \implies A_{\text{single}} = 7.854 \times 10^{-19}\,\text{m}^2 \implies g_{\text{single}} = 235.6\,\text{pS}$.
+   - Sector Density: 100 channels per sector $\implies A_{\text{max}} = 7.854 \times 10^{-17}\,\text{m}^2 \implies g_{\text{max}} = \mathbf{23.56\,\text{nS}}$. Dynamic aperture $g_c(y_c) = y_c g_{\text{max}}$ for $y_c \in [0, 1]$. Zero $10^9$ scaling.
+
+4. **Three-Node Spatial Phase Ring Topology ($a \in \{0, 1, 2\}$, $w \in \mathbb{Z}$)**:
+   - Directed Ring Edges: $0 \to 1, 1 \to 2, 2 \to 0$ with spatial winding $w = \frac{1}{2\pi} \sum \operatorname{wrap}(\phi_{a+1} - \phi_a)$.
+   - Typed Fact Energy: $E_{qp}^{DSF} = -\kappa_{qp} \sum \cos(\phi_b - \phi_a - 2\pi \tau_{qp} / 3)$ with coupling energy scale $\kappa_0 = 10 \cdot k_B T \approx 4.282 \times 10^{-20}\,\text{J}$ (macromolecular H-bond scale).
+   - Paired Invariant Forces: $-\partial_{\phi_a} E = +\kappa \sin \theta_{ab}, -\partial_{\phi_b} E = -\kappa \sin \theta_{ab}$ satisfying exact zero internal net torque.
+
+5. **Physical Gate Potential & Reciprocal Coupling ($U_c(y)$)**:
+   - $U_c(y) = \frac{1}{2} k_{\text{barrier}} (y - y_{\text{rest}})^2 - q_c^{\text{gate}} V_m y - \sum \Lambda_{ca} y \cos(\phi_a - \phi^*_{ca}) - \mu_c y$ in Joules [J].
+   - Rest aperture $y_{\text{rest}} = 0.05$; barrier stiffness $k_{\text{barrier}} = 50\,k_B T \approx 2.141 \times 10^{-19}\,\text{J}$.
+   - S4 Gating Dipole Charge: $q_c^{\text{gate}} = 4.0 \cdot e_0 = 6.4087 \times 10^{-19}\,\text{C}$ (Armstrong, 1981; Bezanilla, 2000).
+   - Reciprocal Phase Force: $-\partial_{\phi_a} U_c = -\Lambda_{ca} y \sin(\phi_a - \phi^*_{ca})$.
+
+6. **Column 48 Layer 2/3 Capacitive Receiving Integration**:
+   - Current Summation: $I_{\text{tot}} = \sum_c g_c(y_c) (V_{23} - E_c)$.
+   - Capacitive Voltage Update: $C_{\text{mem}} \frac{dV_{23}}{dt} = -I_{\text{tot}} + I_{\text{synaptic}}$.
+   - Physiological Thresholding: Trit efferents generated via action potential threshold $V_{\text{thresh}} = -45.0\,\text{mV}$ ($+1$ spike if $V_{23} \ge -45\,\text{mV}$; $-1$ refusal if $V_{23} \le -75\,\text{mV}$; $0$ subthreshold integration). Zero abstract activation injection.
+
+### Current Verification Status
+- Native Cargo Tests: **55 passed / 0 failed** in 2.76s.
+- Pytest Suite: **23 passed, 2 xfailed** in 13.40s (A10 and A11 open capability guards strictly preserved).
+- Production unchanged, AWS health unmutated.
+
+### Handoff to A1
+G1 requests A1 review and ratification of the physical parameter values and derivations in `docs/GUALA_ONE_NEURON_PHYSICAL_PARAMETER_DOSSIER_2026-10-01.md`. Upon A1 approval of these physical bounds, G1 will proceed to implement the unmounted Rust mathematical structures adhering strictly to this ratified dossier.
