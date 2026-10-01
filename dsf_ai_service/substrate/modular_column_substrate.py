@@ -140,49 +140,6 @@ class ModularColumnSubstrate:
             raise RuntimeError("Substrate lacks native clear_continuous_joint_field capability")
         self.substrate.clear_continuous_joint_field()
 
-    def step_mounted_canonical_neuron(
-        self,
-        dt: float = 0.001,
-        somatic_trits: Optional[List[int]] = None,
-    ) -> dict:
-        """
-        Step the mounted canonical one-neuron phase-gate transition on Column 48 Layer 2/3.
-        Transduces continuous joint field trits through persistent phase, Krimelack winding,
-        aperture coordinate, pore conductance, ionic current, and exact carrier custody.
-        """
-        if self.num_columns != 64:
-            raise NotImplementedError("Mounted canonical neuron operator requires 64-column cortical array")
-        if not hasattr(self.substrate, "step_mounted_canonical_neuron"):
-            raise RuntimeError("Substrate lacks native step_mounted_canonical_neuron capability")
-        return self.substrate.step_mounted_canonical_neuron(float(dt), somatic_trits)
-
-    def get_mounted_neuron_state(self) -> dict:
-        """
-        Retrieve instantaneous persistent physical state of the mounted canonical neuron:
-        Returns: {phase, amplitude, winding, gate_coordinate, conductance, membrane_voltage, stored_energy}.
-        """
-        if self.num_columns != 64:
-            raise NotImplementedError("Mounted canonical neuron operator requires 64-column cortical array")
-        if not hasattr(self.substrate, "get_mounted_neuron_state"):
-            raise RuntimeError("Substrate lacks native get_mounted_neuron_state capability")
-        return self.substrate.get_mounted_neuron_state()
-
-    def export_mounted_neuron_bytes(self) -> bytes:
-        """Serialize mounted canonical neuron to exact 148-byte fail-closed binary record."""
-        if self.num_columns != 64:
-            raise NotImplementedError("Mounted canonical neuron operator requires 64-column cortical array")
-        if not hasattr(self.substrate, "export_mounted_neuron_bytes"):
-            raise RuntimeError("Substrate lacks native export_mounted_neuron_bytes capability")
-        return bytes(self.substrate.export_mounted_neuron_bytes())
-
-    def import_mounted_neuron_bytes(self, raw: bytes) -> None:
-        """Restore mounted canonical neuron from 148-byte binary record with CRC-32 validation."""
-        if self.num_columns != 64:
-            raise NotImplementedError("Mounted canonical neuron operator requires 64-column cortical array")
-        if not hasattr(self.substrate, "import_mounted_neuron_bytes"):
-            raise RuntimeError("Substrate lacks native import_mounted_neuron_bytes capability")
-        self.substrate.import_mounted_neuron_bytes(list(raw))
-
     @classmethod
     def float_to_rational_trits(cls, val: float) -> Tuple[List[int], List[int], int, bool]:
         """Decompose IEEE-754 binary64 float into exact integer numerator and denominator balanced ternary trits."""

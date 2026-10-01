@@ -1,16 +1,14 @@
-//! Constitutive Physical-Law Operators for Guala Substrate (Stage P1-A)
+//! Unmounted constitutive components for Guala (Stage P1-A).
 //!
-//! Implementation under existing `native/guala_core` boundary adhering to:
-//! - Canonical neuron physics (N_i) and unit-bearing physical state
-//! - Signed carrier transport and exact remainder custody (§5)
-//! - Finite receptor kinetics with closed stoichiometric invariants (§6)
-//! - Rate-independent mechanical plasticity with canonical strain return map (§7)
-//! - Work-conjugate energy accounting and finite capacitor difference (§8)
-//! - Lossless state continuation serialization/restoration (§9, §10)
-//! - Canonical one-neuron phase -> gate -> conductance transition operator (§5, §10)
+//! The carrier helper uses binary64 charge/remainder arithmetic with an explicit
+//! numerical residual. Whole-carrier reservoir counts are exact checked
+//! integers. This is NOT the ratified exact complete-neuron transition.
+//! Local receptor, mechanical-return and continuation fixtures do not certify
+//! joint-field transduction, biological calibration or organism cognition.
+//! No constitutive component here is mounted by the cortical runtime.
 //!
-//! UNMOUNTED: No import into live decision selection, no Python physical solver,
-//! no production dependency or task update.
+//! Governing requirements: GUALA_P0_LOCAL_LEARNING_A1_CORRECTED_2026-09-27.md.
+//! A13 removes the rejected single-phase/dimensionless-current mount.
 
 use std::fmt;
 
@@ -99,7 +97,7 @@ impl fmt::Display for ConstitutiveError {
 impl std::error::Error for ConstitutiveError {}
 
 // ---------------------------------------------------------------------------
-// 1. Signed Carrier Transport and Exact Remainder Custody (§5)
+// 1. Numerical Carrier Transport and Checked Integer Reservoir Custody
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, PartialEq)]
@@ -138,30 +136,39 @@ impl ChargeCarrierState {
         source_reservoir: u64,
         dest_reservoir: u64,
     ) -> Result<Self, ConstitutiveError> {
-        if !c_mem.is_finite() || c_mem <= 0.0 {
-            return Err(ConstitutiveError::InvalidDomain(format!(
-                "c_mem must be positive and finite, got {}",
-                c_mem
-            )));
-        }
-        if !q_membrane.is_finite() {
+        let state = Self {
+            q_membrane, c_mem, remainder, source_reservoir, dest_reservoir,
+        };
+        state.validate_numeric_state()?;
+        Ok(state)
+    }
+
+    // This existing binary64 component is UNMOUNTED. Its numerical residual is
+    // observable, not a certificate of exact rational physical charge custody.
+    fn validate_numeric_state(&self) -> Result<(), ConstitutiveError> {
+        if !self.c_mem.is_finite() || self.c_mem <= 0.0 {
             return Err(ConstitutiveError::InvalidDomain(
-                "q_membrane must be finite".to_string(),
+                "c_mem must be positive and finite".to_string(),
             ));
         }
-        if !remainder.is_finite() || remainder.abs() >= 1.0 {
-            return Err(ConstitutiveError::InvalidDomain(format!(
-                "remainder must be in (-1.0, 1.0), got {}",
-                remainder
-            )));
+        if !self.q_membrane.is_finite()
+            || !self.remainder.is_finite()
+            || self.remainder.abs() >= 1.0
+        {
+            return Err(ConstitutiveError::InvalidDomain(
+                "charge must be finite and remainder must be in (-1, 1)".to_string(),
+            ));
         }
-        Ok(Self {
-            q_membrane,
-            c_mem,
-            remainder,
-            source_reservoir,
-            dest_reservoir,
-        })
+        if !(2.0 * self.c_mem).is_finite()
+            || !(self.q_membrane * self.q_membrane).is_finite()
+            || !self.voltage().is_finite()
+            || !self.stored_energy().is_finite()
+        {
+            return Err(ConstitutiveError::InvalidDomain(
+                "derived voltage and stored energy must be representable".to_string(),
+            ));
+        }
+        Ok(())
     }
 
     /// Derived membrane potential V = Q / C_mem in Volts [V].
@@ -170,92 +177,100 @@ impl ChargeCarrierState {
         self.q_membrane / self.c_mem
     }
 
-    /// Stored capacitor electrical energy E_cap = Q^2 / (2 * C_mem) in Joules [J].
+    /// Binary64 capacitor energy Q^2 / (2*C_mem), in Joules [J].
     #[inline]
     pub fn stored_energy(&self) -> f64 {
         (self.q_membrane * self.q_membrane) / (2.0 * self.c_mem)
     }
 
-    /// Exact carrier transport settlement under continuous charge integral J_c [C].
+    /// Bounded numerical carrier settlement for this UNMOUNTED component.
     ///
-    /// Preserves exact carrier settlement (§5):
-    ///   q_c = valence * e_0
-    ///   z_c = r_c + J_c / q_c
-    ///   n_c = trunc(z_c)
-    ///   r'_c = z_c - n_c
-    /// Exact conservation identity:
-    ///   q_c * n_c + q_c * (r'_c - r_c) = J_c
+    /// Integer reservoir transfers are exact and equal/opposite. Continuous
+    /// charge/remainder arithmetic remains binary64; identity_residual reports
+    /// its error, not exact rational conservation. q_active is a supplied
+    /// boundary charge, not a mounted pump or an invented source of ions.
+    /// All fallible work is staged before publishing any state member.
     pub fn settle_transport(
         &mut self,
         current_integral_jc: f64,
         valence: i32,
         q_active: f64,
     ) -> Result<CarrierTransportResult, ConstitutiveError> {
+        self.validate_numeric_state()?;
         if valence == 0 {
             return Err(ConstitutiveError::ZeroValence);
         }
-        if !current_integral_jc.is_finite() {
+        if !current_integral_jc.is_finite() || !q_active.is_finite() {
             return Err(ConstitutiveError::InvalidDomain(
-                "current_integral_jc must be finite".to_string(),
-            ));
-        }
-        if !q_active.is_finite() {
-            return Err(ConstitutiveError::InvalidDomain(
-                "q_active must be finite".to_string(),
+                "current integral and active charge must be finite".to_string(),
             ));
         }
 
         let q_c = (valence as f64) * ELEMENTARY_CHARGE;
-        let delta_carriers_continuous = current_integral_jc / q_c;
-        let z_c = self.remainder + delta_carriers_continuous;
+        let z_c = self.remainder + current_integral_jc / q_c;
+        // Adjacent integers cease to be distinguishable at 2^53 in binary64.
+        // This is a representation boundary, not a physiological threshold.
+        let exact_integer_boundary = (1_u64 << f64::MANTISSA_DIGITS) as f64;
+        if !z_c.is_finite() || z_c.abs() >= exact_integer_boundary {
+            return Err(ConstitutiveError::InvalidDomain(
+                "carrier quotient exceeds exact binary64 integer range".to_string(),
+            ));
+        }
         let n_c = z_c.trunc() as i64;
-        let r_c_prime = z_c - (n_c as f64);
-
-        // Exact identity residual check: q_c * n_c + q_c * (r'_c - r_c) == J_c
-        let reconstructed_jc = q_c * (n_c as f64) + q_c * (r_c_prime - self.remainder);
+        let r_c_prime = z_c - n_c as f64;
+        let reconstructed_jc = q_c * n_c as f64 + q_c * (r_c_prime - self.remainder);
         let identity_residual = (reconstructed_jc - current_integral_jc).abs();
 
-        // Finite reservoir accounting (no negative populations allowed)
-        if n_c > 0 {
+        let (source, destination) = if n_c > 0 {
             let required = n_c as u64;
-            if self.source_reservoir < required {
-                return Err(ConstitutiveError::ExhaustedReservoir {
+            let source = self.source_reservoir.checked_sub(required).ok_or_else(|| {
+                ConstitutiveError::ExhaustedReservoir {
                     required,
                     available: self.source_reservoir,
                     reservoir_name: "source".to_string(),
-                });
-            }
-            self.source_reservoir -= required;
-            self.dest_reservoir = self.dest_reservoir.saturating_add(required);
+                }
+            })?;
+            let destination = self.dest_reservoir.checked_add(required).ok_or_else(|| {
+                ConstitutiveError::InvalidDomain("destination carrier population overflow".to_string())
+            })?;
+            (source, destination)
         } else if n_c < 0 {
-            let required = (-n_c) as u64;
-            if self.dest_reservoir < required {
-                return Err(ConstitutiveError::ExhaustedReservoir {
+            let required = n_c.unsigned_abs();
+            let destination = self.dest_reservoir.checked_sub(required).ok_or_else(|| {
+                ConstitutiveError::ExhaustedReservoir {
                     required,
                     available: self.dest_reservoir,
                     reservoir_name: "destination".to_string(),
-                });
-            }
-            self.dest_reservoir -= required;
-            self.source_reservoir = self.source_reservoir.saturating_add(required);
+                }
+            })?;
+            let source = self.source_reservoir.checked_add(required).ok_or_else(|| {
+                ConstitutiveError::InvalidDomain("source carrier population overflow".to_string())
+            })?;
+            (source, destination)
+        } else {
+            (self.source_reservoir, self.dest_reservoir)
+        };
+
+        let q_new = self.q_membrane - q_c * n_c as f64 - q_active;
+        let delta_q = q_new - self.q_membrane;
+        let delta_e_cap =
+            (q_new * q_new - self.q_membrane * self.q_membrane) / (2.0 * self.c_mem);
+        let staged = Self::new(q_new, self.c_mem, r_c_prime, source, destination)?;
+        if !delta_q.is_finite() || !delta_e_cap.is_finite() || !identity_residual.is_finite() {
+            return Err(ConstitutiveError::InvalidDomain(
+                "carrier settlement produced an unrepresentable receipt".to_string(),
+            ));
         }
 
-        // Membrane charge and capacitor energy update
-        let q_old = self.q_membrane;
-        let q_new = q_old - q_c * (n_c as f64) - q_active;
-        let delta_q = q_new - q_old;
-        let delta_e_cap = (q_new * q_new - q_old * q_old) / (2.0 * self.c_mem);
-
-        self.q_membrane = q_new;
-        self.remainder = r_c_prime;
-
-        Ok(CarrierTransportResult {
+        let receipt = CarrierTransportResult {
             carriers_transported: n_c,
             new_remainder: r_c_prime,
             delta_q_membrane: delta_q,
             delta_e_cap,
             identity_residual,
-        })
+        };
+        *self = staged;
+        Ok(receipt)
     }
 }
 
@@ -934,480 +949,6 @@ impl ConstitutiveState {
 }
 
 // ---------------------------------------------------------------------------
-// 6. Canonical One-Neuron Phase -> Gate -> Conductance Transition (§5, §10)
-// ---------------------------------------------------------------------------
-
-/// Configuration parameters for a canonical one-neuron phase-to-material transition.
-///
-/// Units and physical derivations:
-/// - `kappa_base`: Material phase coupling energy scale [J] (> 0).
-/// - `phase_damping_gamma`: Effective phase damping coefficient [J * s / rad] (> 0).
-/// - `sigma_conductivity`: Pore material electrical conductivity [S / m] (> 0).
-/// - `a_max_aperture`: Maximum open pore aperture area [m^2] (> 0).
-/// - `ell_pore_length`: Transmembrane pore channel length [m] (> 0).
-/// - `tau_gate_relax`: Characteristic gate coordinate mechanical relaxation time [s] (> 0).
-/// - `reversal_potential`: Nernst equilibrium reversal potential E_c [V].
-/// - `valence`: Discrete carrier charge valence (e.g. +1 for Na+/K+, +2 for Ca2+, -1 for Cl-).
-#[derive(Debug, Clone, PartialEq)]
-pub struct NeuronPhaseGateConfig {
-    pub kappa_base: f64,
-    pub phase_damping_gamma: f64,
-    pub sigma_conductivity: f64,
-    pub a_max_aperture: f64,
-    pub ell_pore_length: f64,
-    pub tau_gate_relax: f64,
-    pub reversal_potential: f64,
-    pub valence: i32,
-}
-
-impl NeuronPhaseGateConfig {
-    pub fn new(
-        kappa_base: f64,
-        phase_damping_gamma: f64,
-        sigma_conductivity: f64,
-        a_max_aperture: f64,
-        ell_pore_length: f64,
-        tau_gate_relax: f64,
-        reversal_potential: f64,
-        valence: i32,
-    ) -> Result<Self, ConstitutiveError> {
-        if !kappa_base.is_finite() || kappa_base <= 0.0 {
-            return Err(ConstitutiveError::InvalidDomain(format!(
-                "kappa_base must be positive and finite, got {}",
-                kappa_base
-            )));
-        }
-        if !phase_damping_gamma.is_finite() || phase_damping_gamma <= 0.0 {
-            return Err(ConstitutiveError::InvalidDomain(format!(
-                "phase_damping_gamma must be positive and finite, got {}",
-                phase_damping_gamma
-            )));
-        }
-        if !sigma_conductivity.is_finite() || sigma_conductivity <= 0.0 {
-            return Err(ConstitutiveError::InvalidDomain(format!(
-                "sigma_conductivity must be positive and finite, got {}",
-                sigma_conductivity
-            )));
-        }
-        if !a_max_aperture.is_finite() || a_max_aperture <= 0.0 {
-            return Err(ConstitutiveError::InvalidDomain(format!(
-                "a_max_aperture must be positive and finite, got {}",
-                a_max_aperture
-            )));
-        }
-        if !ell_pore_length.is_finite() || ell_pore_length <= 0.0 {
-            return Err(ConstitutiveError::InvalidDomain(format!(
-                "ell_pore_length must be positive and finite, got {}",
-                ell_pore_length
-            )));
-        }
-        if !tau_gate_relax.is_finite() || tau_gate_relax <= 0.0 {
-            return Err(ConstitutiveError::InvalidDomain(format!(
-                "tau_gate_relax must be positive and finite, got {}",
-                tau_gate_relax
-            )));
-        }
-        if !reversal_potential.is_finite() {
-            return Err(ConstitutiveError::InvalidDomain(
-                "reversal_potential must be finite".to_string(),
-            ));
-        }
-        if valence == 0 {
-            return Err(ConstitutiveError::ZeroValence);
-        }
-        Ok(Self {
-            kappa_base,
-            phase_damping_gamma,
-            sigma_conductivity,
-            a_max_aperture,
-            ell_pore_length,
-            tau_gate_relax,
-            reversal_potential,
-            valence,
-        })
-    }
-
-    /// Peak open-pore conductance g_max = sigma * A_max / ell [S].
-    #[inline]
-    pub fn max_conductance(&self) -> f64 {
-        self.sigma_conductivity * self.a_max_aperture / self.ell_pore_length
-    }
-}
-
-/// Normalizes phase angle to [-pi, pi) and returns the integer winding delta.
-#[inline]
-pub fn normalize_phase_and_winding(mut phi: f64) -> (f64, i64) {
-    let pi = std::f64::consts::PI;
-    let two_pi = 2.0 * pi;
-    let mut winding = 0i64;
-
-    if phi >= pi {
-        let k = ((phi + pi) / two_pi).floor() as i64;
-        phi -= (k as f64) * two_pi;
-        winding += k;
-    } else if phi < -pi {
-        let k = ((-phi + pi) / two_pi).floor() as i64;
-        phi += (k as f64) * two_pi;
-        winding -= k;
-    }
-    while phi >= pi {
-        phi -= two_pi;
-        winding += 1;
-    }
-    while phi < -pi {
-        phi += two_pi;
-        winding -= 1;
-    }
-    (phi, winding)
-}
-
-/// Detailed receipt from a single physical interval step of NeuronPhaseGateTransition.
-#[derive(Debug, Clone, PartialEq)]
-pub struct NeuronTransitionStepReceipt {
-    /// Net phase gradient force exerted by MathLoom constraints [J / rad].
-    pub phase_force: f64,
-    /// Phase displacement Delta phi over the step [rad].
-    pub delta_phase: f64,
-    /// Total phase potential energy from MathLoom constraints [J].
-    pub phase_constraint_energy: f64,
-    /// New persistent phase angle phi in [-pi, pi) [rad].
-    pub final_phase: f64,
-    /// New persistent Krimelack winding count K.
-    pub final_winding: i64,
-    /// New gate aperture coordinate y_c in [0.0, 1.0].
-    pub gate_coordinate: f64,
-    /// Instantaneous pore conductance g_c in Siemens [S].
-    pub conductance: f64,
-    /// Instantaneous ionic current I_c in Amperes [A].
-    pub ionic_current: f64,
-    /// Integrated charge transferred J_c = I_c * dt in Coulombs [C].
-    pub charge_transferred_coulombs: f64,
-    /// Carrier transport and remainder custody result.
-    pub carrier_transport: CarrierTransportResult,
-    /// Membrane potential V_m = Q_m / C_mem in Volts [V].
-    pub membrane_voltage: f64,
-    /// Finite capacitor stored energy change Delta E_cap [J].
-    pub delta_e_cap: f64,
-}
-
-/// Canonical One-Neuron Phase -> Gate -> Conductance Physical Transition Operator.
-///
-/// Implements the ratified chain (§§5-10):
-/// 1. Exact positional MathLoom balanced ternary constraints tau(q, p) in {-1, 0, 1}
-/// 2. Persistent Psi amplitude/phase (rho, phi) and Krimelack winding K
-/// 3. Dimensionless gate coordinate y_c in [0, 1] under physical potential
-/// 4. Pore aperture A_c(y_c) = A_max * y_c and material conductance g_c = sigma_c * A_c / ell_c
-/// 5. Nernst driving force (V_m - E_c) and ionic pore current I_c = g_c * (V_m - E_c)
-/// 6. Finite carrier transfer J_c = int I_c dt with exact signed remainder custody and conservation
-#[derive(Debug, Clone, PartialEq)]
-pub struct NeuronPhaseGateTransition {
-    pub config: NeuronPhaseGateConfig,
-    /// Persistent phase angle phi in radians [-pi, pi).
-    pub phase: f64,
-    /// Persistent amplitude rho (>= 0).
-    pub amplitude: f64,
-    /// Persistent Krimelack topological winding count K (signed integer).
-    pub winding: i64,
-    /// Dimensionless gate aperture coordinate y_c in [0.0, 1.0].
-    pub gate_coordinate: f64,
-    /// Postsynaptic electrical charge and carrier custody state.
-    pub carrier: ChargeCarrierState,
-}
-
-/// Magic bytes identifying Guala Neuron Gate Component Record.
-pub const NEURON_GATE_MAGIC: &[u8; 8] = b"GUALA_NG";
-pub const NEURON_GATE_SCHEMA_VERSION: u32 = 1;
-/// Fixed serialized size in bytes (8 magic + 4 version + 132 payload + 4 crc = 148 bytes).
-pub const NEURON_GATE_SERIALIZED_SIZE: usize = 148;
-
-impl NeuronPhaseGateTransition {
-    pub fn new(
-        config: NeuronPhaseGateConfig,
-        phase: f64,
-        amplitude: f64,
-        winding: i64,
-        gate_coordinate: f64,
-        carrier: ChargeCarrierState,
-    ) -> Result<Self, ConstitutiveError> {
-        if !phase.is_finite() {
-            return Err(ConstitutiveError::InvalidDomain("phase must be finite".to_string()));
-        }
-        if !amplitude.is_finite() || amplitude < 0.0 {
-            return Err(ConstitutiveError::InvalidDomain("amplitude must be non-negative and finite".to_string()));
-        }
-        if !gate_coordinate.is_finite() || !(0.0..=1.0).contains(&gate_coordinate) {
-            return Err(ConstitutiveError::InvalidDomain(format!(
-                "gate_coordinate must be in [0.0, 1.0], got {}", gate_coordinate
-            )));
-        }
-        let (norm_phi, extra_w) = normalize_phase_and_winding(phase);
-        Ok(Self {
-            config,
-            phase: norm_phi,
-            amplitude,
-            winding: winding + extra_w,
-            gate_coordinate,
-            carrier,
-        })
-    }
-
-    /// Instantaneous pore aperture area A_c = A_max * y_c [m^2].
-    #[inline]
-    pub fn aperture_area(&self) -> f64 {
-        self.config.a_max_aperture * self.gate_coordinate
-    }
-
-    /// Instantaneous pore conductance g_c = sigma * A_c / ell [S].
-    #[inline]
-    pub fn conductance(&self) -> f64 {
-        self.config.sigma_conductivity * self.aperture_area() / self.config.ell_pore_length
-    }
-
-    /// Advances the single-neuron phase-to-material transition over physical time interval dt [s].
-    ///
-    /// Preserves exact sequence:
-    /// 1. Evaluates phase constraint potential and gradient force across all supplied MathLoom trits:
-    ///    E_qp = -kappa_base * cos(phi - 2*pi*tau/3)
-    ///    F_qp = -dE/dphi = -kappa_base * sin(phi - 2*pi*tau/3)
-    /// 2. Integrates persistent phase:
-    ///    dphi = (F_total / gamma) * dt
-    ///    phi_{n+1} = phi_n + dphi
-    ///    Updates topological winding K when wrapping past [-pi, pi).
-    /// 3. Relaxes gate aperture coordinate:
-    ///    y_target = 0.5 * (1 + cos(phi_{n+1})) in [0, 1]
-    ///    y_{n+1} = y_n + (dt / tau_gate) * (y_target - y_n)
-    /// 4. Computes aperture area A_c = A_max * y_c and conductance g_c = sigma * A_c / ell.
-    /// 5. Computes ionic current I_c = g_c * (V_m - E_c) and charge transfer J_c = I_c * dt.
-    /// 6. Settles discrete carrier transport with exact remainder custody and capacitor energy update.
-    pub fn advance_step(
-        &mut self,
-        mathloom_trits: &[i8],
-        dt: f64,
-    ) -> Result<NeuronTransitionStepReceipt, ConstitutiveError> {
-        if dt <= 0.0 || !dt.is_finite() {
-            return Err(ConstitutiveError::InvalidTimeStep(dt));
-        }
-
-        // 1. MathLoom positional constraint force and energy summation
-        let mut total_force = 0.0f64;
-        let mut total_constraint_energy = 0.0f64;
-        let two_pi_over_three = 2.0 * std::f64::consts::PI / 3.0;
-
-        for &trit in mathloom_trits {
-            if trit < -1 || trit > 1 {
-                return Err(ConstitutiveError::InvalidDomain(format!(
-                    "MathLoom trit must be in {{-1, 0, 1}}, got {}", trit
-                )));
-            }
-            let phase_offset = (trit as f64) * two_pi_over_three;
-            let phase_diff = self.phase - phase_offset;
-            total_constraint_energy += -self.config.kappa_base * phase_diff.cos();
-            total_force += -self.config.kappa_base * phase_diff.sin();
-        }
-
-        // 2. Persistent phase & Krimelack winding evolution
-        let delta_phi = (total_force / self.config.phase_damping_gamma) * dt;
-        let unnormalized_phi = self.phase + delta_phi;
-        let (new_phi, delta_w) = normalize_phase_and_winding(unnormalized_phi);
-
-        // 3. Gate aperture coordinate relaxation
-        let y_target = (0.5 * (1.0 + new_phi.cos())).clamp(0.0, 1.0);
-        let alpha = (dt / self.config.tau_gate_relax).clamp(0.0, 1.0);
-        let new_y = (self.gate_coordinate + alpha * (y_target - self.gate_coordinate)).clamp(0.0, 1.0);
-
-        // 4. Physical aperture and material pore conductance
-        let aperture_area = self.config.a_max_aperture * new_y;
-        let g_c = self.config.sigma_conductivity * aperture_area / self.config.ell_pore_length;
-
-        // 5. Nernst driving force and ionic current
-        let v_m = self.carrier.voltage();
-        let driving_potential = v_m - self.config.reversal_potential;
-        let i_c = g_c * driving_potential;
-        let j_c = i_c * dt;
-
-        // 6. Signed carrier settlement with remainder custody (stage carrier update for strict atomicity)
-        let mut carrier_staged = self.carrier.clone();
-        let transport_res = carrier_staged.settle_transport(j_c, self.config.valence, 0.0)?;
-        let delta_e_cap = transport_res.delta_e_cap;
-
-        // Commit state upon successful carrier settlement
-        self.phase = new_phi;
-        self.winding += delta_w;
-        self.gate_coordinate = new_y;
-        self.carrier = carrier_staged;
-
-        Ok(NeuronTransitionStepReceipt {
-            phase_force: total_force,
-            delta_phase: delta_phi,
-            phase_constraint_energy: total_constraint_energy,
-            final_phase: self.phase,
-            final_winding: self.winding,
-            gate_coordinate: self.gate_coordinate,
-            conductance: g_c,
-            ionic_current: i_c,
-            charge_transferred_coulombs: j_c,
-            carrier_transport: transport_res,
-            membrane_voltage: self.carrier.voltage(),
-            delta_e_cap,
-        })
-    }
-
-    /// Serializes entire one-neuron phase-gate transition state to a fixed 148-byte record.
-    pub fn serialize(&self) -> [u8; NEURON_GATE_SERIALIZED_SIZE] {
-        let mut buf = [0u8; NEURON_GATE_SERIALIZED_SIZE];
-        buf[0..8].copy_from_slice(NEURON_GATE_MAGIC);
-        buf[8..12].copy_from_slice(&NEURON_GATE_SCHEMA_VERSION.to_le_bytes());
-
-        let mut offset = 12;
-
-        // Config (60 bytes)
-        buf[offset..offset + 8].copy_from_slice(&self.config.kappa_base.to_le_bytes());
-        offset += 8;
-        buf[offset..offset + 8].copy_from_slice(&self.config.phase_damping_gamma.to_le_bytes());
-        offset += 8;
-        buf[offset..offset + 8].copy_from_slice(&self.config.sigma_conductivity.to_le_bytes());
-        offset += 8;
-        buf[offset..offset + 8].copy_from_slice(&self.config.a_max_aperture.to_le_bytes());
-        offset += 8;
-        buf[offset..offset + 8].copy_from_slice(&self.config.ell_pore_length.to_le_bytes());
-        offset += 8;
-        buf[offset..offset + 8].copy_from_slice(&self.config.tau_gate_relax.to_le_bytes());
-        offset += 8;
-        buf[offset..offset + 8].copy_from_slice(&self.config.reversal_potential.to_le_bytes());
-        offset += 8;
-        buf[offset..offset + 4].copy_from_slice(&self.config.valence.to_le_bytes());
-        offset += 4;
-
-        // State (32 bytes)
-        buf[offset..offset + 8].copy_from_slice(&self.phase.to_le_bytes());
-        offset += 8;
-        buf[offset..offset + 8].copy_from_slice(&self.amplitude.to_le_bytes());
-        offset += 8;
-        buf[offset..offset + 8].copy_from_slice(&self.winding.to_le_bytes());
-        offset += 8;
-        buf[offset..offset + 8].copy_from_slice(&self.gate_coordinate.to_le_bytes());
-        offset += 8;
-
-        // Carrier (40 bytes)
-        buf[offset..offset + 8].copy_from_slice(&self.carrier.q_membrane.to_le_bytes());
-        offset += 8;
-        buf[offset..offset + 8].copy_from_slice(&self.carrier.c_mem.to_le_bytes());
-        offset += 8;
-        buf[offset..offset + 8].copy_from_slice(&self.carrier.remainder.to_le_bytes());
-        offset += 8;
-        buf[offset..offset + 8].copy_from_slice(&self.carrier.source_reservoir.to_le_bytes());
-        offset += 8;
-        buf[offset..offset + 8].copy_from_slice(&self.carrier.dest_reservoir.to_le_bytes());
-        offset += 8;
-
-        // CRC-32 checksum (144 bytes payload)
-        let checksum = compute_crc32(&buf[0..offset]);
-        buf[offset..offset + 4].copy_from_slice(&checksum.to_le_bytes());
-
-        buf
-    }
-
-    /// Deserializes exact binary record into NeuronPhaseGateTransition.
-    pub fn deserialize(bytes: &[u8]) -> Result<Self, ConstitutiveError> {
-        if bytes.len() != NEURON_GATE_SERIALIZED_SIZE {
-            return Err(ConstitutiveError::TruncatedData {
-                expected: NEURON_GATE_SERIALIZED_SIZE,
-                actual: bytes.len(),
-            });
-        }
-
-        if &bytes[0..8] != NEURON_GATE_MAGIC {
-            return Err(ConstitutiveError::CorruptData(
-                "Invalid neuron gate magic bytes".to_string(),
-            ));
-        }
-
-        let version = u32::from_le_bytes(bytes[8..12].try_into().unwrap());
-        if version != NEURON_GATE_SCHEMA_VERSION {
-            return Err(ConstitutiveError::CorruptData(format!(
-                "Unsupported schema version: expected {}, got {}",
-                NEURON_GATE_SCHEMA_VERSION, version
-            )));
-        }
-
-        let stored_checksum = u32::from_le_bytes(bytes[144..148].try_into().unwrap());
-        let computed_checksum = compute_crc32(&bytes[0..144]);
-        if stored_checksum != computed_checksum {
-            return Err(ConstitutiveError::InvalidChecksum {
-                expected: stored_checksum,
-                computed: computed_checksum,
-            });
-        }
-
-        let mut offset = 12;
-
-        let kappa_base = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-        offset += 8;
-        let phase_damping_gamma = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-        offset += 8;
-        let sigma_conductivity = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-        offset += 8;
-        let a_max_aperture = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-        offset += 8;
-        let ell_pore_length = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-        offset += 8;
-        let tau_gate_relax = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-        offset += 8;
-        let reversal_potential = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-        offset += 8;
-        let valence = i32::from_le_bytes(bytes[offset..offset + 4].try_into().unwrap());
-        offset += 4;
-
-        let config = NeuronPhaseGateConfig::new(
-            kappa_base,
-            phase_damping_gamma,
-            sigma_conductivity,
-            a_max_aperture,
-            ell_pore_length,
-            tau_gate_relax,
-            reversal_potential,
-            valence,
-        )?;
-
-        let phase = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-        offset += 8;
-        let amplitude = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-        offset += 8;
-        let winding = i64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-        offset += 8;
-        let gate_coordinate = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-        offset += 8;
-
-        let q_membrane = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-        offset += 8;
-        let c_mem = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-        offset += 8;
-        let remainder = f64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-        offset += 8;
-        let source_reservoir = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-        offset += 8;
-        let dest_reservoir = u64::from_le_bytes(bytes[offset..offset + 8].try_into().unwrap());
-
-        let carrier = ChargeCarrierState::new(
-            q_membrane,
-            c_mem,
-            remainder,
-            source_reservoir,
-            dest_reservoir,
-        )?;
-
-        NeuronPhaseGateTransition::new(
-            config,
-            phase,
-            amplitude,
-            winding,
-            gate_coordinate,
-            carrier,
-        )
-    }
-}
-
-// ---------------------------------------------------------------------------
 // Pure CRC-32 (IEEE 802.3 standard polynomial 0xEDB88320)
 // ---------------------------------------------------------------------------
 
@@ -1695,210 +1236,86 @@ mod tests {
         assert_eq!(rec2.step_kinetics(0.0), Err(ConstitutiveError::InvalidTimeStep(0.0)));
         assert_eq!(rec2.step_kinetics(-0.01), Err(ConstitutiveError::InvalidTimeStep(-0.01)));
     }
+}
 
-    #[test]
-    fn test_neuron_phase_gate_complete_trit_participation() {
-        let config = NeuronPhaseGateConfig::new(
-            1.0e-18, // kappa_base: 1.0 aJ
-            1.0e-17, // phase_damping_gamma: 10.0 aJ * s / rad
-            1.5,     // sigma_conductivity: 1.5 S / m
-            1.0e-16, // a_max_aperture: 100 nm^2
-            1.0e-8,  // ell_pore_length: 10 nm
-            0.005,   // tau_gate_relax: 5 ms
-            0.0,     // reversal_potential: 0 mV
-            1,       // valence: +1
-        ).unwrap();
+#[cfg(test)]
+mod a13_carrier_safety {
+    use super::*;
 
-        // Ample reservoir: 100 million carriers
-        let carrier = ChargeCarrierState::new(-7.0e-12, 100.0e-12, 0.0, 100_000_000, 100_000_000).unwrap();
-        let mut neuron = NeuronPhaseGateTransition::new(config, 0.0, 1.0, 0, 0.5, carrier).unwrap();
-
-        // 1. Balanced ternary digit participation: test tau = +1
-        // At phi = 0, phase_offset = 2*pi/3. force = -kappa * sin(0 - 2*pi/3) = kappa * sin(2*pi/3) > 0.
-        let receipt_pos = neuron.advance_step(&[1], 0.001).unwrap();
-        assert!(receipt_pos.phase_force > 0.0, "tau=+1 must exert positive phase force, got {}", receipt_pos.phase_force);
-        assert!(receipt_pos.delta_phase > 0.0);
-        assert!(receipt_pos.conductance > 0.0);
-
-        // 2. Test tau = -1
-        let mut neuron_neg = neuron.clone();
-        neuron_neg.phase = 0.0;
-        let receipt_neg = neuron_neg.advance_step(&[-1], 0.001).unwrap();
-        assert!(receipt_neg.phase_force < 0.0, "tau=-1 must exert negative phase force, got {}", receipt_neg.phase_force);
-        assert!(receipt_neg.delta_phase < 0.0);
-
-        // 3. Test tau = 0
-        let mut neuron_zero = neuron.clone();
-        neuron_zero.phase = 0.0;
-        let receipt_zero = neuron_zero.advance_step(&[0], 0.001).unwrap();
-        assert_eq!(receipt_zero.phase_force, 0.0, "tau=0 at phi=0 must exert zero force");
-        assert_eq!(receipt_zero.delta_phase, 0.0);
-
-        // 4. Invalid trit rejected
-        assert!(neuron.advance_step(&[2], 0.001).is_err());
-        assert!(neuron.advance_step(&[-2], 0.001).is_err());
+    fn unchanged(a: &ChargeCarrierState, b: &ChargeCarrierState) {
+        assert_eq!(a.q_membrane.to_bits(), b.q_membrane.to_bits());
+        assert_eq!(a.c_mem.to_bits(), b.c_mem.to_bits());
+        assert_eq!(a.remainder.to_bits(), b.remainder.to_bits());
+        assert_eq!(a.source_reservoir, b.source_reservoir);
+        assert_eq!(a.dest_reservoir, b.dest_reservoir);
     }
 
     #[test]
-    fn test_neuron_phase_gate_persistent_phase_and_winding() {
-        let config = NeuronPhaseGateConfig::new(
-            1.0e-17,
-            1.0e-18, // low damping
-            1.0,
-            1.0e-16,
-            1.0e-8,
-            0.001,
-            0.0,
-            1,
-        ).unwrap();
-
-        let carrier = ChargeCarrierState::new(0.0, 100.0e-12, 0.0, 100_000_000, 100_000_000).unwrap();
-        // Start near positive boundary (phi = 3.1)
-        let mut neuron = NeuronPhaseGateTransition::new(config, 3.1, 1.0, 0, 0.5, carrier).unwrap();
-
-        // Driving trit -1 exerts positive force at phi = 3.1: -kappa * sin(3.1 - (-2*pi/3)) = -kappa * sin(5.19) > 0
-        let initial_winding = neuron.winding;
-        let receipt = neuron.advance_step(&[-1], 0.01).unwrap();
-
-        // Phase wraps past pi into [-pi, 0) and winding increments
-        assert!(receipt.final_phase >= -std::f64::consts::PI && receipt.final_phase < std::f64::consts::PI);
-        assert_eq!(receipt.final_winding, initial_winding + 1, "Winding must increment upon wrapping pi");
-        assert_eq!(neuron.winding, initial_winding + 1);
+    fn endpoint_overflow_refuses_both_directions_without_losing_carriers() {
+        for (source, destination, direction) in [(1, u64::MAX, 1.0), (u64::MAX, 1, -1.0)] {
+            let mut state = ChargeCarrierState::new(0.0, 1.0, 0.0, source, destination).unwrap();
+            let before = state.clone();
+            assert!(state.settle_transport(direction * ELEMENTARY_CHARGE, 1, 0.0).is_err());
+            unchanged(&state, &before);
+        }
     }
 
     #[test]
-    fn test_neuron_phase_gate_aperture_and_conductance_scaling() {
-        let config = NeuronPhaseGateConfig::new(
-            1.0e-18,
-            1.0e-17,
-            2.0,     // 2.0 S/m
-            1.0e-16, // 1.0e-16 m^2
-            1.0e-8,  // 1.0e-8 m
-            0.001,
-            0.0,
-            1,
-        ).unwrap();
-
-        // Theoretical g_max = 2.0 * 1.0e-16 / 1.0e-8 = 2.0e-8 S (20 nS)
-        assert!((config.max_conductance() - 2.0e-8).abs() < 1e-15);
-
-        let carrier = ChargeCarrierState::new(0.0, 100.0e-12, 0.0, 10_000, 10_000).unwrap();
-        let neuron_half = NeuronPhaseGateTransition::new(config.clone(), 0.0, 1.0, 0, 0.5, carrier.clone()).unwrap();
-        assert!((neuron_half.conductance() - 1.0e-8).abs() < 1e-15, "Half gate must give half conductance");
-
-        let neuron_full = NeuronPhaseGateTransition::new(config, 0.0, 1.0, 0, 1.0, carrier).unwrap();
-        assert!((neuron_full.conductance() - 2.0e-8).abs() < 1e-15, "Full gate must give peak conductance");
+    fn excessive_quotients_refuse_before_cast_or_mutation() {
+        let boundary = (1_u64 << f64::MANTISSA_DIGITS) as f64;
+        for integral in [
+            f64::MAX, -f64::MAX,
+            boundary * ELEMENTARY_CHARGE, -boundary * ELEMENTARY_CHARGE,
+            f64::NAN, f64::INFINITY,
+        ] {
+            let mut state = ChargeCarrierState::new(0.0, 1.0, 0.0, u64::MAX, u64::MAX).unwrap();
+            let before = state.clone();
+            assert!(state.settle_transport(integral, 1, 0.0).is_err());
+            unchanged(&state, &before);
+        }
     }
 
     #[test]
-    fn test_neuron_phase_gate_carrier_remainder_custody() {
-        let config = NeuronPhaseGateConfig::new(
-            1.0e-18,
-            1.0e-17,
-            1.0,
-            1.0e-16,
-            1.0e-8,
-            0.001,
-            -0.070, // -70 mV reversal potential
-            1,      // +1 valence
-        ).unwrap();
-
-        // Initial membrane at 0.0 V, so driving potential = 0 - (-0.070) = +0.070 V
-        let carrier = ChargeCarrierState::new(0.0, 100.0e-12, 0.0, 100_000_000, 100_000_000).unwrap();
-        let mut neuron = NeuronPhaseGateTransition::new(config, 0.0, 1.0, 0, 1.0, carrier).unwrap();
-
-        let receipt = neuron.advance_step(&[], 0.001).unwrap();
-        assert!(receipt.carrier_transport.identity_residual < 1e-25, "Carrier identity residual must be < 1e-25");
-        assert!(receipt.charge_transferred_coulombs != 0.0);
+    fn nonfinite_successor_cannot_partially_debit_reservoir() {
+        let mut state = ChargeCarrierState::new(0.0, 1.0, 0.0, 10, 10).unwrap();
+        let before = state.clone();
+        assert!(state.settle_transport(ELEMENTARY_CHARGE, 1, f64::MAX).is_err());
+        unchanged(&state, &before);
     }
 
     #[test]
-    fn test_neuron_phase_gate_energy_dissipation_zero_input() {
-        let config = NeuronPhaseGateConfig::new(
-            1.0e-18,
-            1.0e-17,
-            1.0,
-            1.0e-16,
-            1.0e-8,
-            0.001,
-            0.0, // 0.0 V reversal potential
-            1,
-        ).unwrap();
-
-        // Charged membrane discharging through passive conductance
-        let carrier = ChargeCarrierState::new(-5.0e-12, 100.0e-12, 0.0, 100_000_000, 100_000_000).unwrap();
-        let mut neuron = NeuronPhaseGateTransition::new(config, 0.0, 1.0, 0, 1.0, carrier).unwrap();
-
-        let e_init = neuron.carrier.stored_energy();
-        let receipt = neuron.advance_step(&[], 0.001).unwrap();
-        let e_final = neuron.carrier.stored_energy();
-
-        assert_eq!(receipt.phase_force, 0.0, "Zero input must produce zero phase force");
-        assert_eq!(receipt.delta_phase, 0.0, "Zero input must produce zero phase displacement");
-        assert!(receipt.delta_e_cap <= 0.0, "Stored capacitor energy must decrease upon passive discharge");
-        assert!(e_final <= e_init, "Energy must be non-increasing: E_final {} <= E_init {}", e_final, e_init);
+    fn exhausted_or_invalid_retained_state_refuses_atomically() {
+        for integral in [ELEMENTARY_CHARGE, -ELEMENTARY_CHARGE] {
+            let mut state = ChargeCarrierState::new(0.0, 1.0, 0.25, 0, 0).unwrap();
+            // Ensure both directions request a complete carrier.
+            let integral = integral * 2.0;
+            let before = state.clone();
+            assert!(state.settle_transport(integral, 1, 0.0).is_err());
+            unchanged(&state, &before);
+        }
+        let valid = ChargeCarrierState::new(0.0, 1.0, 0.0, 10, 10).unwrap();
+        let mut invalid = valid.clone();
+        invalid.remainder = f64::NAN;
+        let before = invalid.clone();
+        assert!(invalid.settle_transport(0.0, 1, 0.0).is_err());
+        unchanged(&invalid, &before);
+        assert!(ChargeCarrierState::new(f64::MAX, 1.0, 0.0, 10, 10).is_err());
     }
 
     #[test]
-    fn test_neuron_phase_gate_reservoir_exhaustion_atomicity() {
-        let config = NeuronPhaseGateConfig::new(
-            1.0e-18,
-            1.0e-17,
-            1.0,
-            1.0e-16,
-            1.0e-8,
-            0.001,
-            -0.5, // large reversal potential forcing massive carrier demand
-            1,
-        ).unwrap();
-
-        // Only 1 carrier in source reservoir
-        let carrier = ChargeCarrierState::new(0.0, 100.0e-12, 0.0, 1, 0).unwrap();
-        let mut neuron = NeuronPhaseGateTransition::new(config, 0.0, 1.0, 0, 1.0, carrier).unwrap();
-
-        let before_carrier = neuron.carrier.clone();
-        let before_phase = neuron.phase;
-        let before_winding = neuron.winding;
-        let before_gate = neuron.gate_coordinate;
-
-        let err = neuron.advance_step(&[], 0.01);
-        assert!(matches!(err, Err(ConstitutiveError::ExhaustedReservoir { .. })));
-
-        // Verify failure atomicity: zero state mutation
-        assert_eq!(neuron.carrier, before_carrier);
-        assert_eq!(neuron.phase, before_phase);
-        assert_eq!(neuron.winding, before_winding);
-        assert_eq!(neuron.gate_coordinate, before_gate);
-    }
-
-    #[test]
-    fn test_neuron_phase_gate_lossless_continuation_and_determinism() {
-        let config = NeuronPhaseGateConfig::new(
-            1.2e-18,
-            1.5e-17,
-            1.8,
-            1.2e-16,
-            1.1e-8,
-            0.002,
-            -0.065,
-            1,
-        ).unwrap();
-
-        let carrier = ChargeCarrierState::new(-3.2e-12, 100.0e-12, 0.1234, 80_000_000, 20_000_000).unwrap();
-        let neuron_orig = NeuronPhaseGateTransition::new(config, 0.456, 1.0, 3, 0.75, carrier).unwrap();
-
-        let bytes = neuron_orig.serialize();
-        assert_eq!(bytes.len(), NEURON_GATE_SERIALIZED_SIZE);
-
-        let neuron_restored = NeuronPhaseGateTransition::deserialize(&bytes).unwrap();
-        assert_eq!(neuron_orig, neuron_restored, "Restored neuron must match original bit-exact");
-
-        let mut a = neuron_orig;
-        let mut b = neuron_restored;
-        let receipt_a = a.advance_step(&[1, -1, 0], 0.001).unwrap();
-        let receipt_b = b.advance_step(&[1, -1, 0], 0.001).unwrap();
-
-        assert_eq!(receipt_a, receipt_b, "Subsequent step outputs must be 100% bit-identical");
-        assert_eq!(a, b, "Successor states must be 100% bit-identical");
+    fn accepted_transfer_has_exact_equal_opposite_integer_endpoints() {
+        for valence in [-2, -1, 1, 2] {
+            for direction in [-1.0, 1.0] {
+                let mut state = ChargeCarrierState::new(0.0, 1.0, 0.0, 50, 60).unwrap();
+                let before = state.clone();
+                let integral = direction * f64::from(valence) * ELEMENTARY_CHARGE;
+                let result = state.settle_transport(integral, valence, 0.0).unwrap();
+                let n = i128::from(result.carriers_transported);
+                assert_eq!(i128::from(state.source_reservoir), i128::from(before.source_reservoir) - n);
+                assert_eq!(i128::from(state.dest_reservoir), i128::from(before.dest_reservoir) + n);
+                assert_eq!(u128::from(state.source_reservoir) + u128::from(state.dest_reservoir), 110);
+                assert!(result.identity_residual.is_finite());
+            }
+        }
     }
 }

@@ -28863,3 +28863,279 @@ projection, altered test stimulus or long counter-based burn-in.
 - Root Pytest Suite (`test_arcloom_one_neuron_contract.py` + `test_mathloom_a10_boundary.py` + `test_arcloom_causal_action_witness.py`): **23 passed, 2 xfailed** in 14.04s.
 - Standalone Demonstrator Suite (`arcloom_demonstrator/tests`): **18 passed, 2 xfailed** in 2.81s.
 - Total: **41 pytest passed, 4 xfailed**, 0 regressions.
+
+## A1 / A13-CORRECTION — thirteenth-pass architectural rejection and repair (2026-10-01 UTC)
+
+Active item: A13-CORRECTION. Joe requested the audit and then explicitly
+directed A1 to fix every finding. Implementation owner: A1. This continues
+A10-01 / A9-04; it does not reopen A12's accepted component containment as
+cognition. Candidate reviewed: 16c20d1bbfad94e902ceb815059c09bf67461c86
+and its constitutive predecessor d089718c4. Source freeze:
+e549d6bd85a3a726848a9c9cfc5ac0dee32b683b5251e82435efad68621244b4.
+Accepted source baseline: e378c9296; live baseline is NOT inferred from Git.
+
+Acceptance for this repair: remove the rejected one-phase mount and every
+new wrapper/codec route that can invoke it; preserve the accepted ordinary
+component successor and checkpoint format; restore source/archive agreement;
+replace misleading proof claims with falsifiers. This is containment and
+evidence repair, NOT successful continuous full-field transduction. Actual
+A10 closure remains contingent on the ratified typed physical law and a
+same-body source-to-world-to-sensory-return/cold-successor witness.
+
+Architecture gate: full typed joint-field phase/gate/material causality was
+requested. The candidate instead concatenates digits, applies them to one
+phase, injects nanoamps into a dimensionless accumulator, and omits new state
+from the ordinary checkpoint. Conflict: YES, architectural. Do not extend
+that mount, scalar phase constraint, invented defaults, or private partial
+restore. Next item: retire the rejected candidate to the accepted executable
+boundary, add decisive no-resurrection checks, and correct its contract.
+Evaluation here is source/component containment, not a full-field run; full
+typed topology/locality/positional physics and coupled material dynamics were
+not evaluated by the supplied witnesses.
+
+### Findings and upstream/downstream impact map (reviewed before edits)
+
+A13-01 — FIELD REDUCTION (architectural):
+consume_continuous_joint_field -> cortical_column.rs:
+step_mounted_canonical_neuron -> float_to_rational_trits -> concatenated
+numerator_trits/denominator_trits -> constitutive.rs:advance_step(&[i8]).
+Field family, position, numerator/denominator identity, topology and locality
+do not reach the consumer. Signed numerator digits DO retain numeric sign;
+the earlier chat statement about sign loss is corrected. Swapping a lone
+nonzero D or M fact produces the identical flattened digit stream. Keeping
+every digit is not keeping its typed significance. The single-phase sum is
+a trit histogram in real arithmetic, not the ratified local oscillator fabric.
+Fix: remove this consumer/mount, preserve the exact typed codec; no new scalar
+replacement. Future mounting must retain (fact, numerator/denominator,
+position, topology/locality/time) into each actual phase constraint, with
+global S_UF separate. A13 regression demonstrates the counterexample and
+refuses the rejected API on source and loaded native type.
+
+A13-02 — PHYSICAL LAW / DIMENSIONS (architectural):
+advance_step -> clamped explicit Euler gate -> fixed reversal source ->
+I(old)*dt -> carrier -> I*1e9 -> v_23[0] -> step_laminar_flow ->
+apply_inter_column_plasticity. The recipient is a dimensionless activation
+accumulator, not an SI charge/capacitance compartment. Amplitude is retained
+but does not participate. Temporal scalar phase wraps are not the specified
+typed spatial winding. Updating only column 48 then plasticity over other
+columns does not prove reached-frontier propagation. Default constants are
+not ratified by naming biological materials; the cited P0 contract expressly
+withdraws universal 100pF/-70mV mounting defaults. Fix: remove the invented
+phase/gate and current-to-activation bridge. Reuse the existing canonical
+energy/typed-lattice specification only with actual mounted material
+bindings; no parameter tuning, output gain, fake ring or renamed lookup.
+
+A13-03 — ENERGY AND NUMERICAL SAFETY (architectural):
+fixed E_c with changing V means zero trits does not imply capacitor energy
+decrease: dE_cap/dt = -g*V*(V-E_c) is positive for 0<V<E_c.
+The complete energy balance must include the chemical/reversal source.
+Explicit Euler for E_c=0 gives V_next=(1-g*dt/C)*V and is passive only for
+0<=g*dt/C<=2; unrestricted positive finite dt does not establish that bound.
+Clamping dt/tau changes the gate law; it does not prove exact integration.
+normalize_phase_and_winding accepts finite 1e308, saturates a float-to-i64
+quotient, then repeatedly subtracts 2*pi without changing the binary64 value:
+an unbounded loop. Signed winding addition can overflow. Fix: remove the
+rejected numerical operator, including the normalizer and its codec. A future
+solver must derive its admissible numerical domain, account all work, and
+refuse overflow atomically before publication, not clamp the physics.
+
+A13-04 — ORDINARY RESTORE LOSS (architectural):
+constructor.mounted_neuron -> alternate step mutates it plus column48 ->
+export_sparse_v4 / StagedSubstrateState / commit_staged_state omit it.
+A fresh restore silently constructs genesis for this state; importing into a
+used recipient leaves the recipient's unrelated previous neuron in place.
+The separate 148-byte export omits the column/contact state changed by the
+same step, so receipt equality is not coupled successor equality.
+PyO3 additionally casts i64 winding/carrier counts to f64, losing integers
+above 2^53. Fix: remove the alternate owner and partial checkpoint APIs.
+Retain the accepted complete component v4 checkpoint unchanged. Any future
+neuron mount must enter that single atomic state/restore path with exact
+integer FFI types and explicit predecessor migration; no sidecar restore.
+
+A13-05 — CALLER / PACKAGE REACHABILITY (architectural):
+only new tests call the alternate mount; the ordinary organism clock does
+not. Ordinary .step still refuses continuous fields. Standalone Python
+advertises four methods absent from its native source, while the release
+archive still contains the A12 adapter. Green standalone tests never call
+the new mount. Fix: retire all four methods from both adapters and native
+PyO3; compare every archive regular file to the corrected source, and prove
+the loaded extension is built from exactly that source. No production change
+or cognition certification is warranted from this component correction.
+
+A13-06 — CONTRACT AND EVIDENCE (architectural):
+new contract says 1pF/1e8 carriers; the mount uses 100pF/two 1e11 reservoirs.
+Its 32-byte carrier block omits the second u64 (actual block 40 bytes).
+The "zero input" test supplies S_UF=1; the "isolated intervention" changes all
+seven fields; the completeness test checks only nonzero force. None proves
+the advertised capability. Fix: replace the contract with corrected authority,
+one concrete missing-material handoff, honest status and the impact map.
+Replace the seven positive surrogate tests with rejection/custody falsifiers.
+Prior successful surrogate reports remain historical and are superseded here.
+
+Additional inherited boundary exposed, NOT certified by this repair:
+ChargeCarrierState::settle_transport predates both rejected commits and
+uses saturating reservoir addition, unchecked float-to-i64 conversion and
+binary64 remainder arithmetic. It is also called by unmounted
+coupled_synapse.rs / persistence_prediction.rs. Restoring A12 does NOT make
+that old helper exact or production-qualified. It must not be used to mount
+A10 until overflow, equal/opposite custody, exact arithmetic and atomicity
+are corrected together. No claim that the entire constitutive crate is
+certified will be made. Its independent callers and their staged-state
+requirements must not be silently expanded into this rejected-mount repair.
+
+### Authorized repair boundary and unchanged state
+
+Full-file replacements only:
+native/guala_core/src/constitutive.rs and cortical_column.rs restored to
+e378c9296; both modular_column_substrate.py adapters restored to that baseline;
+the rejected one-neuron contract and test file replaced. Historical candidate
+source remains recoverable in d089718c4/16c20d1bb. Shared ledger keeps every
+predecessor byte. L0-L4, actual production, functional body, caregiver,
+world, ordinary current-format migration and unrelated owners remain untouched.
+
+Translation review: no new physics or state added; no partial codec survives;
+constructor, PyO3 and both Python adapters return to the same accepted surface.
+Ordinary component serialization remains byte-identical. Positive A10 physical
+acceptance remains unavailable; no copied-body or production behavior is claimed.
+The existing A10 and A11 capability XFAILs must remain open, not converted to pass.
+
+Applicable recurrence checks: RF-001 exact PYTHONPATH; RF-003/036 native source
+and loaded binary provenance; RF-004/010 ordinary cold successor not private
+receipt equality; RF-005/020 typed participation and runtime reachability;
+RF-013/026 no unrelated formatting; RF-017 all native/FFI/wrapper consumers;
+RF-022 no hidden schema reinterpretation; RF-024/031 actual nonzero selected
+tests; RF-067 complete ledger preservation; RF-069 source/archive parity.
+No full-organism burn-in, fresh genesis control, cloud build, or deployment.
+
+Waste disposition: rejected path rebuilt one Vec of all binary64 digits per
+call, scanned inter-column plasticity after a one-column step, and added
+148 untracked ordinary-checkpoint bytes per 64-column object. CPU timing was
+not measured because source rejection precedes benchmarking; removed rather
+than optimized. Exact deletion and ordinary successor are the falsifiers.
+Known command issue: asking git show for the new test at e378c9296 returned
+128 because it did not exist then; no behavioral test failed and no files
+changed. Root authority script returns65 for absent historical
+HANDOFF_2026-07-31_GUALA_PRODUCTION.md; this is not waived as production readiness.
+
+Verification and final disposition will be appended below after the focused
+checks; the pre-edit plan is not a success receipt.
+
+### A13-03 bounded carrier safety correction authorized inside this repair
+
+Source census is complete: settle_transport is called by the removed mount,
+unmounted coupled_synapse::advance_afferent_step, unmounted
+NeuronalCompartment::{step_leak,inject_current}, and their Rust unit fixtures.
+No new PyO3, Python, live-clock or codec mount is introduced. These other
+components are not certified or redesigned. The old binary64 carrier helper
+will receive one localized safety correction: checked endpoint arithmetic,
+representable integer transfer bounds derived from binary64 precision, finite
+successor validation, and staging before any mutation. This removes confirmed
+overflow/partial-publication defects without changing the nominal formula or
+claiming exact rational charge custody. Its numerical residual remains explicit;
+full exact material physics is still a prerequisite to mounting A10.
+
+Acceptance: native tests exercise both signs, both destination overflow
+directions, reservoir exhaustion, excessive/overflowed quotient, nonfinite
+successor energy, invalid retained state, and byte-identical failure; valid
+integer reservoir totals remain equal and opposite. This changes constitutive.rs
+relative to e378c9296, so the prior binary cannot certify the new native helper:
+build the candidate once locally after source review. No live deployment.
+Full-file replacements are used; an initial Delete+Add same-path apply_patch
+was rejected without changes, then the supported complete Update form was used.
+
+### A13 correction verification — completed source repair, capability still OPEN
+
+All unsafe new mount routes are removed from the executable source. The
+candidate design is rejected, not certified. The earlier inherited-carrier
+finding was additionally corrected for overflow, invalid-state admission and
+partial mutation; it remains an unmounted numerical helper, not exact
+rational neuron physics. No new sidecar checkpoint, production migration,
+L0-L4 change, body change, material calibration or cognitive workaround.
+
+Corrected source freeze used for native and Python verification:
+041b6e9e6fb6a5e4f15894237891792696073aa803fb2e0381c4df03bb9b0bfb.
+Verified unchanged before/after the test stage. This results-only ledger
+append deliberately changes the final worktree fingerprint, not tested code.
+
+- Native crate: 55 passed, 0 failed; test execution 0.64s. New carrier
+  assertions cover both endpoint-overflow directions, invalid retained
+  state, excessive/nonfinite quotient, nonfinite successor and signed
+  equal/opposite integer transfers. Existing unmounted caller tests pass;
+  their names do not certify their biological or production claims.
+- The exact five new carrier falsifiers compiled against e378c9296's carrier
+  module: 1 passed, 4 FAILED as intended (endpoint saturation, invalid state,
+  unsafe quotient and nonfinite successor). This was a tiny local component
+  check, not execution of the rejected one-phase design.
+- Fresh isolated native wheel, not the globally installed G1 extension:
+  /tmp/guala-a1-a13-jHP19r/dist/guala_core-0.1.0-cp311-cp311-linux_x86_64.whl
+  SHA-256 6e6763286a40380c284f24971050a8314acc79812ad9b4dd0817078cd9f49345.
+- Loaded candidate binary:
+  /tmp/guala-a1-a13-jHP19r/python/guala_core/guala_core.cpython-311-x86_64-linux-gnu.so
+  SHA-256 412ce89ce3fe516818547c29327dceb35c219a82a41647b5a63934c07c22beb2.
+  Retired alternate mount API is absent from that native class and both
+  Python adapters.
+- One Python run of test_arcloom_one_neuron_contract.py,
+  test_mathloom_a10_boundary.py and test_arcloom_causal_action_witness.py:
+  21 passed, 2 xfailed in 10.73s; measured child wall11.293s,
+  peak RSS713,688KiB. XFAILs remain actual OPEN A10 and A11 capabilities.
+  No test count is being used as a full-physics or cognition certificate.
+- Ordinary component parity across the accepted A12 binary and corrected
+  candidate, same two synthetic inputs: both 738,400 bytes, SHA-256
+  fef33560411bc6ed3e13bd35cbdecc9bca254f97eccee19a8df3a0d307702d0c.
+  This is component regression proof, not a copied mature organism witness.
+- Complete ordinary v4 restore into an already-used recipient and its next
+  interval pass; private 148-byte mount restoration is retired.
+- Archive unchanged, source-agreement test passes:
+  b30f4a2fa69c2d2ebbef103835cbf9e984016bf4f9783971b2b20561abb9e39f.
+  No redundant archive rebuild or separate full standalone run was needed:
+  the standalone source has returned exactly to its accepted A12 payload.
+  The numerical constitutive module is not in that component-only archive.
+- Corrected constitutive source SHA-256:
+  eec3672132b51e8f20d91cd73e75eabacf551e350e9a0617f5b5a3f377199db4.
+- Cortical source SHA-256, identical to accepted A12:
+  ffcb71c072628c133f6d860aeb4d9f3a5219fc13fac4f969d66347bbea3237c7.
+- Both adapters SHA-256, identical to accepted A12:
+  af224d3b197adf98fcbc997be6434b584ee871822e3292f69836c17cdcf4686a.
+- git diff --check passes. No L0-L4, organism, body, world, caregiver,
+  production bootstrap or production state change.
+
+Read-only production envelope: at03:45:46Z and03:54:46Z, us-east-1,
+tfe-web-cluster / dsf-ai-service-lb, desired/running1/1 pending0,
+task9d10d8236b3548798328d3de3278a648, definition1579, RUNNING/HEALTHY,
+image sha256:2f0f1f3d6bf369086eeec751768d3b775b3bc8ca6641d77505ad16932c6dacf7.
+CPU minute averages03:40–03:50UTC:50.72–51.18%; maximum51.68%.
+Memory averages03:40–03:50UTC:4.656–4.663%; maximum4.663%.
+CPU/memory/refusal/storage alarms OK. guala-clock-stalled is ALARM, but its
+reason and update concern September8 (14:15:41Z), not this candidate.
+It was not cleared or treated as current cognition evidence. No organism
+identity/generation or native clock behavior was probed; service health is
+not a new organism acceptance certificate. No live writer was modified.
+
+Command corrections disclosed: an optional /usr/bin/time wrapper was absent
+(exit127) AFTER wheel installation and provenance checks but BEFORE pytest
+started. Replaced only the observer with Python resource/subprocess; no
+behavioral suite was rerun. A read command ended1 on an unmatched rg pattern
+after successfully printing the requested sources. One large reference output
+was truncated; its omitted RF-045 row was reread. No failed source/build/test
+was hidden, assertions weakened, or physics tuned for a green result.
+The native crate retains its pre-existing unused-variable warning in
+ternary_lattice.rs; no unrelated formatting or warning cleanup.
+
+### Handoff to G1 — one next item, not another audit loop
+
+Integrate this source repair and preserve A10/A11 OPEN status. Do not reload
+the globally installed rejected extension or treat a stale binary as the
+corrected candidate; use the exact reviewed build or rebuild this commit.
+The corrected contract now specifies the one remaining material-binding
+boundary and all incoming/outgoing state obligations. It is not approval to
+choose biological-looking constants, tune a scalar phase function, or add
+nanoamps to dimensionless activation. Finish the actual typed local
+phase/gate/material operator with explicit physical sources and exact
+carrier representation before mounting. No new large burn-in or production
+cutover is authorized by component checks. A10 closure has NOT been delivered.
+
+Completion custody: all 2,597,339 pre-audit ledger bytes are preserved exactly
+(SHA-256 b09ff37d15881cdabafa451a08fff123db2222426d95912face1a4c8de526dfc).
+Generic Slack notice verified at2026-10-01T03:56:19Z:
+status=slack_sent, channel=#general. Source repair is ready for integration;
+this notice does not claim full A10 completion or production deployment.
