@@ -159,3 +159,15 @@ late filers (96–130 days since filing), all days 59.9 +1.63  42.4 −0.60  39.
 Physics: exposure from the field (phase, polarity, temperature); selection from the particle's
 scheduled cycle (charge before a known release) and its own displacement (restoring force).
 Costs, slippage, capital slots, survivorship: not yet. Nothing deployed.
+
+## 2026-10-01 — first live FIELD-R1 pass, and the old-law cohort cleared on Joe's word
+First pass (09:45 ET, field as of 09-30: charging & quiet, priority 2, not bear, 653 eligible): 13 orders,
+10 filled — CMC, LEN, LEN.B, APOG, PRGS, EBF, GBX, STZ, LNN, SNX (dsl 90–93, closest to report first) —
+FDS, MSM, CNXC unfilled. ~2.5 % of equity each. Exit FIELD-X1 ≈ Oct 14–15. LEN/LEN.B = one filer in two
+slots (one-filer-one-slot rule to add).
+Cash guards verified live: bridge cash = min(cash, buying_power) (margin 4x never used); daily snapshot
+budget with invested cap; per-order re-check. Account: equity $95,685, cash $9,886 before clearing.
+Joe: "Go ahead and close the 27 old law positions." 12:53 ET: 25 sold at market (CWAN, HTBK broker-inactive,
+cannot be sold), `exit_reason = manual_reset_joseph_20261001_old_law` (reset convention, no cooling-off;
+under FIELD-R1 re-entry needs the eligible list anyway). Realized −$993.39. After: equity $95,974,
+cash $68,987. The book now runs one law: the ten FIELD-R1 positions plus the two frozen names.
