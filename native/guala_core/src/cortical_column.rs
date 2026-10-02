@@ -2040,6 +2040,13 @@ impl ModularSubstrate64D {
         if self.continuous_joint_field_present {
             return Err("Full-field transition unavailable: typed Psi/Krimelack material operator is not implemented; truncated trit afferents are prohibited".to_string());
         }
+        // Static formant triples are not mounted auditory receptor evidence.
+        // The removed min(f / 5, 63) encoder collapsed all eight curriculum
+        // verbs into identical afferents. Refuse before ANY state mutation;
+        // do not substitute new bins, semantic labels or a motor-answer table.
+        if !acoustic_formants.is_empty() {
+            return Err("Formant-profile stimulation is unavailable: use mounted time-aligned acoustic receptor evidence; lossy frequency bins and word profiles are prohibited".to_string());
+        }
         let mut total_yields = 0usize;
         let mut total_strain = 0.0f32;
 
@@ -2089,13 +2096,13 @@ impl ModularSubstrate64D {
             total_yields += yc; total_strain += sc;
         }
 
-        // 2. Cluster 1: Acoustic Cochlear Sheet (Cols 8..16)
+        // 2. Component-only discrete afferents (Cols 8..16).
+        // This explicit trit fixture boundary is not a PCM/cochlear transducer.
+        // Absence/zero in its auditory slots stays absent/zero; no named
+        // frequency profile or other sensory lane supplies missing sound.
         for (i, c) in (8..16).enumerate() {
             let mut a_aff = vec![0i8; L4_NODES];
-            if i < acoustic_formants.len() && acoustic_formants[i] > 10.0 {
-                let bin = ((acoustic_formants[i] / 5.0) as usize).min(63);
-                a_aff[bin] = 1;
-            } else if 16 + i < sensory_trits.len() {
+            if 16 + i < sensory_trits.len() {
                 a_aff[0] = sensory_trits[16 + i];
             }
             let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(&a_aff, somatic_trits, &in_23[c], &in_5[c]);

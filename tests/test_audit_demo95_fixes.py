@@ -31,7 +31,9 @@ def test_exact_evidence_and_full_byte_refusal_before_and_after_cold_restore():
 
 def test_used_recipient_restores_identical_complete_component_successor():
     source = ModularSubstrate64D()
-    source.step([1] * 64, [1] * 32, 1200.0, 45000, 0.0, [220.0])
+    # Explicit discrete component stimulus; named-formant input is retired.
+    # Its atomic rejection is proved separately in test_arcloom_acoustic_boundary.
+    source.step([1] * 64, [1] * 32, 1200.0, 45000, 0.0, [])
     before = snapshot(source)
     receiver = ModularSubstrate64D(0.5, 0.08, 0.15)
     for _ in range(3):

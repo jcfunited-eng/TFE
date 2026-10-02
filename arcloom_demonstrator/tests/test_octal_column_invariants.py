@@ -315,14 +315,13 @@ def test_modular_substrate_64d_barrier_refusal_and_motor() -> None:
 
 
 def test_modular_substrate_64d_plasticity_and_sleep_consolidation() -> None:
-    """Verify continuum von Mises plasticity and nocturnal consolidation across 64 columns."""
+    """Verify discrete coupling/downscaling and codec only, not physiological sleep or learning."""
     sub64 = ModularSubstrate64D(yield_threshold=0.40, plastic_rate=0.05, activation_threshold=0.20)
     sensory = [1] * 64
     somatic = [0] * 32
-    formants = [220.0, 800.0, 1500.0]
 
     for _ in range(15):
-        sub64.step(sensory, somatic, observed_r_mm=300.0, observed_theta_mdeg=8000, barrier_stress=0.0, acoustic_formants=formants)
+        sub64.step(sensory, somatic, observed_r_mm=300.0, observed_theta_mdeg=8000, barrier_stress=0.0, acoustic_formants=[])
 
     active_pre = sub64.active_synapses()
     assert active_pre > 1000

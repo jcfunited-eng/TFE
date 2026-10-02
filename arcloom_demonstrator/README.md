@@ -58,3 +58,16 @@ No ECS, S3, CloudFront, live state, or deployment operations occur here.
 Console controls: b = optical blindout, a = acoustic stimulus,
 c = contact input, s = component downscaling routine, q = quit.
 These are authored component probes, not autonomous learning evidence.
+
+## Acoustic boundary correction (2026-10-02)
+
+The 64-column component refuses every nonempty named/formant-profile input
+before changing state. The removed frequency-bin mapping erased distinctions
+between the eight synthetic curriculum verbs. Existing explicit discrete-trit
+probes remain component tests, not hearing or language learning.
+
+The 64-column console's formant control and old formant benchmark therefore
+refuse rather than silently simulate hearing; no replacement receptor law is
+claimed. The separate synthetic 64D hardening daemon is retired. Its generated
+weights must not be imported as Guala's lived command knowledge. A10/A11 and
+spoken-command learning remain unavailable, not passed capabilities.

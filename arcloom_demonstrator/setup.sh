@@ -28,7 +28,7 @@ if [ "${#wheels[@]}" -ne 1 ]; then
 fi
 "$PYTHON" -I -m pip install --no-cache-dir --no-deps --force-reinstall "${wheels[0]}"
 "$PYTHON" -I verify_install.py "${wheels[0]}"
-"$PYTHON" -I -m pytest -q -p no:cacheprovider tests/test_octal_column_invariants.py tests/test_arcloom_causal_action_witness.py tests/test_arcloom_engineered_neuron.py tests/test_audit_demo95_fixes.py
+"$PYTHON" -I -m pytest -q -p no:cacheprovider tests/test_octal_column_invariants.py tests/test_arcloom_causal_action_witness.py tests/test_arcloom_engineered_neuron.py tests/test_audit_demo95_fixes.py tests/test_arcloom_acoustic_boundary.py
 echo "COMPONENT package verified. A10/A11 remain OPEN, not passed capabilities."
 echo "Full-field transition refuses. No production deployment was performed."
 echo "Console: .venv/bin/python run_demonstrator.py"
