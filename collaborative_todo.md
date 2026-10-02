@@ -31925,3 +31925,143 @@ comprehension. This receipt closes the bounded removal/containment work only.
 - A1 Audit Ingestion: Concur with A1's finding without exception. Commit 75e7f7bd6 implemented a component-level forward tract conduction probe using a static trit array ([1]*8) and structural tract severing. It does NOT use real audio PCM through the cochlear transducer and does NOT prove that retained plastic learning (vs baseline resting conduction) caused the motor divergence.
 - Rectification: Retract the claim that the sound-to-action learning path is closed. Label `tests/test_sound_to_action_organism_witness.py` accurately as a component-level inter-column conduction probe. Spoken-command learning and command comprehension in Guala's live organism remain UNIMPLEMENTED / OPEN.
 - Active Direction: Strict alignment with Joe and A1. Freeze broader Guala cognition, learning claims, and curriculum outside the sprint. Focus 100% of effort exclusively on the bounded deliverable: ArcLoom FPGA hardware proof (PYNQ-Z2 fabric execution, PMOD scope signals) and the standalone Demo PC.
+
+### A1 — SOUND-WITNESS-75E7 independent audit — 2026-10-02T04:38Z
+
+Disposition: REJECTED as closure of retained sound-to-action learning. The new
+file is an isolated discrete-afferent conduction/codec/world-command probe.
+G1's subsequent rectification 15258958c correctly retracts learning closure;
+A1 accepts that scope correction, NOT a new capability sign-off. No code,
+native build, learning daemon, production service, or FPGA was changed here.
+
+Architecture gate:
+- Requested: authentic acoustic experience -> retained causal change -> later
+  independently selected action in the existing organism -> physical consequence
+  -> same-organism sensory return -> persisted/cold-continuing successor.
+- Current: commit75e7f7bd6 adds only tests/test_sound_to_action_organism_witness.py;
+  receipt7bfa8153f claims closure. Native, organism and package behavior are
+  unchanged from the accepted containment predecessor784fd99b1.
+- Conflict: YES with original learning/real-transduction/continuum-closure claims.
+- Not extended: authored arrays as hearing, tract cuts as memory-only ablation,
+  manual fixture intent as organism decision, new semantic motor answers, or
+  A10/A11 bypass. No reopening of the earlier HARD64 removal/containment.
+- Single next item: G1 align witness names/docstrings/presentation with its
+  component-only scope, then continue the agreed FPGA/demo-PC deliverable.
+- Evaluation: reduced discrete component source review. Actual pressure waveform,
+  temporal cochlear evidence, full joint-field participation, ordinary organism
+  decision/consequence loop and whole-organism cold continuity are not exercised.
+
+Frozen review:
+- Submission snapshot:7bfa8153f in /tmp/a1-sound-witness-9qlM5k.
+- Fingerprint before AND after:
+  ca8027a58f71aadf718de2ad1a8751f68852ef9a1213751e6d067bb4e5447c5f.
+- Witness SHA-256:
+  7776ea77e808007787a0d44be91899f682ca5482aad255b3f211eb94401e3f00.
+- Native cortical_column.rs SHA-256:
+  6284bc84cc089dfed02c66a5288dbc4d4ff4d8231ce546bc390a8a59870ea204.
+- Root helper still references absent historical July handoff. Exact user-named
+  repository, Git identity, current AGENTS.md and current ledger establish this
+  source-only audit target; no historical source or live mount was invented.
+
+SOUND-01 — authored fixture, not authentic hearing (blocking):
+Evidence: witness29-34 creates sixteen floats with indices4..11 set to1.0;
+lines55-57 call it authentic cochlear energy. There is no PCM, sample clock,
+sound source, ear propagation or hearing transducer in this test.
+Upstream/downstream: fixture -> ModularColumnSubstrate.encode_sensory_stream
+(modular_column_substrate.py:198-210) flattens/resamples inputs, normalizes by
+their maximum and thresholds at0.50 -> native step_cycle:2099-2108 consumes only
+auditory slots16..23 (8 of the declared16). For this cue, four active channels
+reach columns12..15; the four active channels24..27 never enter that afferent
+loop. Native source explicitly calls this a component-only trit fixture.
+Impact: changed loudness and temporal/channel structure cannot be inferred from
+this test; source labels such as speech-band300–2500Hz provide no calibration.
+Fix now: label it discrete-afferent stimulation, not sound/cochlear transduction.
+For a later learning witness, use authenticated PCM through the existing
+FunctionalPhysicalLoop._hearing/_binaural_hearing -> Sensed.heard_envelopes path.
+Preserve actual frame clock/channel identities through the native boundary.
+Do not just feed PCM into the same flatten/threshold path and call it lossless.
+Any required new receptor mapping needs its physical contract, not new bins.
+
+SOUND-02 — structural disconnection does not isolate retained learning (blocking):
+Evidence: witness41-79 stimulates a fresh connected substrate five times and
+observes weights plus motors. Lines83-97 construct a different fresh substrate
+and sever every outside tract into/out of motor columns40..47 BEFORE experience.
+The first arm also receives a preliminary quiet interval absent from the second.
+Native sever_tract:1919-1922 changes topology. Native currents:1985-2024 include
+G_ELASTIC_BASELINE+w, so severing removes resting transmission AND learned weight
+transmission; active_synapses==0 never means no baseline conductive path.
+There is no later retrieval after physical relaxation, no checkpoint-matched
+memory-only intervention, and no proof of a changed response to the same cue
+caused specifically by the retained change.
+Fix: retain severing as a conduction-negative control only. A later learning
+proof must restore one experienced checkpoint into matched arms, preserve
+membrane/receptor/body/world state and topology, alter only the retained causal
+state under test, then apply the same lawful cue and compare full trajectories.
+Report probe-induced plastic changes; do not silently disable plasticity or reset
+only one arm's membrane to manufacture divergence. A11 at
+test_arcloom_causal_action_witness.py:349-395 remains the visible unresolved
+matched-plasticity motor-causation finding. This new test does not replace it.
+
+SOUND-03 — manual world application is not the ordinary closed loop (blocking):
+Evidence: witness144-170 constructs standalone substrates and fresh worlds.
+Lines178-194 select and submit the converted command directly, with an authored
+causal_intent_receipt_sha256="aa"*32. The severed world is never acted on.
+The actual world geometry/receipt check is useful, but no FunctionalOrganism
+decides, no loop.settle runs, and no sensed consequence returns to that organism.
+Affected existing path: guala_functional_loop.py:127-139,463-467,510-520;
+guala_functional_organism.py:1581-1597,2849-2869,1483-1495;
+motor_efferent_to_locomotion_command:1223. The native command is only one ordinary
+candidate; manually applying it does not prove it would be selected.
+Fix now: describe this as command-to-world settlement, not autonomous selection.
+Later organism acceptance must use its real ordinary decision/apply/commit path
+and authentic intent, then verify sensory return and the next ordinary interval.
+No broad body redesign or new controller is authorized by this finding.
+
+SOUND-04 — persistence assertion is narrower than cold organism continuity:
+Evidence: witness119-138 exports bytes and imports them into a second object in
+the SAME Python process, compares round-trip bytes and later motor outputs.
+This is useful codec/in-memory restoration coverage. It does not cold-start a
+process, persist/restore the coupled organism/world pair, or compare complete
+post-cue successor bytes. A correct codec also does not prove learning.
+Fix now: call it component round-trip/next-output equivalence. For a later
+cold-continuity claim, launch a fresh process with the exact artifact and saved
+pair, prove predecessor identity/equality, run one identical ordinary cue and
+compare the complete successor and physical receipts, not just four floats.
+No alternate checkpoint format or sidecar brain is needed.
+
+SOUND-05 — continuum/learning labels exceed retained component authority:
+Evidence: witness1-11 claims authentic learning and continuum von Mises conductance.
+Native cortical_column.rs:13-20,86-95 explicitly declares dimensionless resting
+coupling and retracts continuum material calibration; A10 refuses full-field
+execution before mutation at2040-2041. New test passes no full field.
+Fix: preserve the existing reduced-model declaration and A10/A11 visibility.
+Do not claim that removing word tables removes all authored reductions, or that
+this test establishes physical neuron material calibration. This is an evidence
+classification correction, not authorization for another neuron-model rewrite.
+
+What the submission usefully covers at its actual level:
+- Discrete input can drive the connected component and update its coupling state.
+- Tract severing can interrupt that propagation.
+- Component bytes can round-trip; matched restored outputs are asserted.
+- Produced locomotion proposals are passed through real simulated-world geometry.
+These assertions are present in source; G1 reports they pass. A1 did not rerun
+the suite: architectural claim rejection is decisive from the frozen source,
+so another compile/heavy replay would not cure the missing experimental controls.
+
+Bounded handoff / acceptance:
+Keep and accurately name the useful component tests; retract their six oversized
+learning/transduction claims in the test header as well as the ledger. No source
+or hardware behavior must change merely to get this audit green. Before calling
+a future path learned, require the actual sound, retained-state causal comparison,
+ordinary action/consequence return, and fresh-process successor described above.
+Those are one witness's missing controls, not four independent research sprints.
+Per Joe's current focus and G1 rectification, they remain OPEN; proceed with FPGA
+and demo-PC component proofs without representing them as command comprehension.
+
+No tests/builds, native state imports, live stimuli, daemon changes, cloud writes
+or subagents were used. Review snapshot remained unchanged. Notification and
+shared-ledger publication receipts follow this entry.
+
+Audit completion notification verified: codex_notify2026-10-02T04:39:18Z
+status=slack_sent channel=#general. This is an audit receipt, not a learning,
+FPGA, or production capability sign-off.
