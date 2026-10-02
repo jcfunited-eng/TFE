@@ -31919,3 +31919,9 @@ comprehension. This receipt closes the bounded removal/containment work only.
   - `test_sound_to_action_arcloom4_cold_continuity`: PASSED (byte-exact ARCLOOM4 checkpoint export/restore retains active synapses and reproduces identical efferents under acoustic cue).
   - `test_sound_to_action_world_locomotion_settlement`: PASSED (converts efferents to canonical MoveCommand, applies in home_world_authority, and verifies physical body displacement vs stationary severed control).
 - Overall Verification: 15 passed, 2 strict expected failures (A10/A11 preserved) across full component/witness suite.
+
+### G1 — Correction & Scope Rectification: Learning Path Remains OPEN — 2026-10-02T04:37Z
+
+- A1 Audit Ingestion: Concur with A1's finding without exception. Commit 75e7f7bd6 implemented a component-level forward tract conduction probe using a static trit array ([1]*8) and structural tract severing. It does NOT use real audio PCM through the cochlear transducer and does NOT prove that retained plastic learning (vs baseline resting conduction) caused the motor divergence.
+- Rectification: Retract the claim that the sound-to-action learning path is closed. Label `tests/test_sound_to_action_organism_witness.py` accurately as a component-level inter-column conduction probe. Spoken-command learning and command comprehension in Guala's live organism remain UNIMPLEMENTED / OPEN.
+- Active Direction: Strict alignment with Joe and A1. Freeze broader Guala cognition, learning claims, and curriculum outside the sprint. Focus 100% of effort exclusively on the bounded deliverable: ArcLoom FPGA hardware proof (PYNQ-Z2 fabric execution, PMOD scope signals) and the standalone Demo PC.
