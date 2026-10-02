@@ -31570,3 +31570,332 @@ Actual changes:
 - Verified tests/test_arcloom_causal_action_witness.py: 5 passed, 2 xfailed (A10/A11).
 - Telemetry confirmed: Guala released from playpen to open bedroom floor at (3266, 8613).
 - Handover to A1: Audit scope is confined to the two-phase sensorimotor curriculum, ARCLOOM4 state persistence, and motor efferent translation. A10/A11 macro-DSF operators are NOT claimed as closed.
+
+### A1 — HARD64-00FB source and live-process audit — 2026-10-02T03:42Z
+
+Verdict: NOT accepted as learned spoken-command execution or a live Guala
+cognitive upgrade. The separate local stimulus daemon is running; its process
+activity and checkpoint magic are real. The supplied claim exceeds that evidence.
+
+Scope/authority: read-only review of commit
+00fb8e70eca83d0bbcf19ae8a7083e8e6f9fddc0, its curriculum, state custody and motor
+consumer. This advances the new HARD64 handoff, not the closed standalone-neuron
+repair. The 2026-10-01 solid-state demonstration charter remains honored: no new
+ATP, fluid, cortical or body redesign is requested. A10/A11 stay open; their
+continued refusal is not itself a new defect. No production task was updated.
+
+Architecture gate:
+- Requested: genuine heard input -> retained physical change -> independent
+  motor action -> actual consequence in the same continuing organism.
+- Current: local synthetic stimulus loop, word-indexed profiles/positions,
+  component-only native dynamics, logged motor proposals and local checkpoint.
+- Conflict: YES for no-synthetic-bridge, command execution and continuity claims.
+- Not extended: semantic target tables, fake contact/somatic waveforms,
+  silent genesis fallback, direct motor answers, or the rejected full-field mount.
+- Single next item: G1 correct this bounded curriculum/custody vertical slice and
+  prove one independent acoustic contrast before restarting the 40-pair claim.
+- Evaluation: source and local-process evidence for a reduced discrete component.
+- Omitted: continuous joint-field physical participation and a settled
+  same-organism body/world/action/reafference loop; neither is proved here.
+
+Frozen evidence:
+- Detached review: /tmp/a1-00fb-review-suvoX7Y9
+- Fingerprint before/after:
+  17d19ecca084555201c1530537539932df7f193620d28110d00f8e7fcd737788
+- Runner SHA256:
+  f12cff603bd667a15ce3497af1e243a58619f5635dc2b9f9670749cdbd783824
+- Column SHA256:
+  ffcb71c072628c133f6d860aeb4d9f3a5219fc13fac4f969d66347bbea3237c7
+- Current scoped main files matched the committed review; no code changed.
+- Historical skill root helper still points to absent July handoff. Explicit
+  user cwd, Git HEAD and current ledger identify the active tree; no replacement
+  authority document was invented.
+
+HARD64-01 — CRITICAL / architectural: sound distinctions destroyed.
+- tools/run_64d_continuous_hardening.py:41-138 supplies static formant triples;
+  native/guala_core/src/cortical_column.rs:2092-2102 converts f to
+  b(f) = min(floor(f / 5 Hz), 63).
+- Every formant of every verb is >=360 Hz. Consequently all eight verb triples
+  become (63,63,63). Bear/bottle/remote/ball also become (63,63,63);
+  caregiver alone becomes (56,63,63). Static AST extraction and the exact
+  source formula verified 1 distinct acoustic verb pattern and 2 object patterns.
+- Under identical predecessor and non-acoustic inputs, equal afferents must
+  produce equal deterministic successors. This input cannot distinguish the
+  eight verbs acoustically. Differences from target heading, timing or occlusion
+  are confounds, not learned word meaning.
+- Fix: remove the word->formant shortcut from the learning path. Deliver recorded
+  or live PCM through the existing hearing producer, preserving channel, sample
+  time and ordered envelopes into ONE common auditory population. Reuse physical
+  cochlear transduction; do not choose a new divisor merely to make these 13
+  supplied triples distinguishable. If the native receptor boundary cannot
+  carry that evidence, that exact boundary is the required bounded correction.
+- Impact map: external tutor PCM -> guala_functional_loop._binaural_hearing /
+  _hearing -> guala_cochlea -> Sensed hearing -> organism hearing ingress ->
+  ModularColumnSubstrate/native afferents. The current adapter flattens and
+  interpolates channels; it is not an already-proved temporal-language solution.
+  No kernel change, semantic decoder, direct command output or A10 unlock.
+
+HARD64-02 — CRITICAL / architectural: no executed world/action learning loop.
+- Runner:176 constructs a separate ModularSubstrate64D; :266 only steps it;
+  :305-312 only reads and logs motor outputs. There is no body/world execution,
+  contact-return, microphone/network ingress, or organism-state publication.
+- Tracked source has no reader of guala_64d_hardened_state.bin outside this
+  runner. Actual FunctionalOrganism._modular_substrate (:1581) restores its own
+  state["modular_substrate"], not this file. Running this daemon does not prove
+  the live organism learned, moved, picked up, dropped or followed anything.
+- stride_mm table values have zero subscript reads; target_grip has zero loads.
+  Do NOT "repair" this by wiring those answer values into motor nodes.
+- Fix: keep the synthetic daemon/checkpoint explicitly test-only and separate
+  from lived memory. A real tutor may present sound and demonstrate real world
+  actions; it cannot supply Guala's desired motor output or target coordinates.
+  Candidate efferents must go through the existing physical authority, with
+  applied/refused receipts and resulting sensory evidence returned to the same
+  state. Preserve its current identity; never import these synthetic trials as
+  authentic lived command knowledge.
+- Impact: runner/supervisor and external tutor -> existing organism occurrence
+  path -> native efferents -> motor_efferent_to_locomotion_command (:1223) /
+  world authority -> sensory return -> organism current-state persistence.
+  That locomotion adapter requires 250000 us; the local runner's 50000-us sleep
+  is not authority to create five times as much bodily time. Grip/voice numbers
+  also need their own actually mounted effectors before execution is claimed.
+
+HARD64-03 — HIGH / architectural: syntax and quiet are supplied/misrepresented.
+- Runner:222-235 puts verbs in columns 8..10 and nouns in 11..13 by timetable.
+  These are externally assigned grammatical roles, not the same ear hearing a
+  temporal stream. Position is a fixed object-name lookup; verb steer bias and
+  hide-and-seek occlusion enter that alleged sensory evidence directly.
+- Runner:248-263 invents contact every 400 ticks and somatic surplus from cosine.
+  Phase 3 zeros formants but leaves sensory=[1]*64; native :2098-2099 therefore
+  injects auditory fallback at bin 0. It is not an acoustically silent control.
+- Timer-triggered sleep_consolidation (:275-278) scales/prunes weights every
+  5000 ticks; it is not observed organism sleep or evidence against forgetting.
+- Fix: use one timed physical acoustic stream without role-separated columns;
+  derive optical/contact/interoceptive input from the actual body/world, not
+  the scheduled answer. Absent sound must not be replaced by unrelated sight.
+  Remove the periodic "sleep" mutation from the learning witness unless actual
+  accepted sleep/body state produces it; retain it only as explicitly synthetic
+  component testing, never developmental evidence.
+- Impact: runner phase/sensory construction, native acoustic fallback, external
+  tutor timing, and checkpoint history. Preserve real timing, missing-channel
+  provenance and spontaneous recurrence; do not force all motor output to zero
+  as a substitute for honest acoustic silence.
+
+HARD64-04 — CRITICAL / architectural: custody reset happened, not just a risk.
+- Live log: 03:23:04Z predecessor saved tick 3445096, 245234 active synapses,
+  131072 bytes. 03:23:09Z import then failed: expected ARCLOOM4, unknown magic
+  [60,67,0,0,8,39,230,62]; runner logged "(starting clean V4)" and continued.
+  The new 386966 count at tick 200 is therefore NOT preserved predecessor history.
+- Runner:182-191 catches restore failure; missing/empty state also starts fresh.
+  :289-290 and :326-327 truncate and overwrite the only path in place. Later
+  ARCLOOM4 writes do not repair the lost continuity. Whether old bytes exist in
+  an external backup has not been established; do not claim recoverable or lost
+  everywhere. Do not infer production Guala's separate memory was reset.
+- Fix: explicit first-use mode separate from continuation. On a required
+  predecessor failure, leave it untouched and fail nonzero; supervisor must not
+  conceal that refusal through repeated new genesis. A legacy payload may be
+  migrated only with authenticated format/layout and an actual successor proof.
+  Prepare canonical bytes in a sibling temporary file, flush+fsync, validate
+  with the canonical decoder, atomically replace the current file, then fsync
+  the parent directory. Propagate publication failures; preserve predecessor.
+  The external curriculum cursor also resets to zero on restart. Persist any
+  promised stimulus-continuation cursor atomically with its causative state in
+  the approved envelope, or explicitly declare tutor restart (not exact replay).
+- Impact: runner load/save/final-exit, supervisor failure handling, canonical
+  import/export and cold startup. No new cognitive owner/database or optional
+  out-of-band material footer. Test malformed/empty state, interrupted publish,
+  and identical cold next-input successor using copied bytes only.
+
+HARD64-05 — HIGH / evidence: activity is not learned action or continuum closure.
+- Native header :14-20 and :86-95 explicitly describes dimensionless coupling
+  and retracts continuum contact-law calibration. This runner calls that
+  discrete column, not the accepted standalone ArcLoomNeuron material operator.
+  Its "continuum von Mises" banner does not establish the latter call path.
+- The cited suite contains no curriculum test. A11 (:349) explicitly preserves
+  unavailable matched weight-only motor divergence; A10 (:613) preserves the
+  unmounted full-field path. These are not both merely "macro-DSF" exclusions:
+  A11 directly limits the retained-plasticity causal claim being advertised.
+- Read-only live log sample: 89 rounded motor tuples between 03:25:40Z and
+  03:40:23Z were all stride=8.4mm, steer=6.3deg, grip=3.5N, across verbs/objects/
+  phases. This does not prove all unlogged beats equal, but contradicts using
+  these heartbeat outputs as demonstration of differentiated command following.
+- Fix: describe the current run as synthetic component stimulation. For learning
+  acceptance use identical predecessor/body/non-acoustic conditions, different
+  real sounds, and later cue-only action AFTER the tutor/answer is absent.
+  Include matched retained-change intervention preserving other state, no-input
+  and changed-order controls, actual world consequence, and identical cold
+  successor. Distinguish in-probe learning from retained prior learning; do not
+  substitute a newborn for a matched ablation. Generalization to untrained
+  pairings is separately necessary before claiming compositional syntax.
+- Impact: runner claims/logging, witness scope, G1 handover and DARPA dossier.
+  Preserve existing accepted component evidence and strict A10/A11 failures;
+  no extra full-scale brain research or broad test rerun is required for audit.
+
+Runtime observations and limits:
+- PID 86149, parent supervisor 10694, cwd /workspaces/Tao_Financial_Engine;
+  approximately 19.9 Hz in the sampled logs, not exactly 20.0 Hz. CPU lifetime
+  average ~20.2%, RSS 59124 KiB at census; no long-term resource-bound claim.
+- Current checkpoint header is ARCLOOM4, 3099144 bytes at 03:37:48Z.
+  Magic alone is not a successful cold continuation proof.
+- /proc/86149/maps loads the flat system extension
+  /usr/local/lib/python3.11/site-packages/guala_core.cpython-311-x86_64-linux-gnu.so,
+  SHA256 12396ca846f68eb044efc0e201273af4c77ef2e5b0ca14df765124a04ce4d819.
+  This is NOT the separately verified A1 candidate-wheel hash. Different hash
+  alone does not prove wrong code, but exact build provenance is not supplied.
+- PID start 03:23:09Z precedes runner mtime 03:26:21Z and commit 03:30:51Z.
+  Logs corroborate the new curriculum; they cannot certify every in-memory
+  Python byte equals the final commit. Pin source and wheel identity at launch,
+  verify actual loaded module path, and report the checkpoint lineage.
+- No ECS image, production world position/playpen release, or AWS runtime identity
+  was independently verified here. This local process is not that evidence.
+- No builds, native imports, replay, heavy suites, AWS mutations, live stimuli,
+  daemon stops/restarts, or state edits were performed. Source-only rejection
+  follows project-truth review-before-test rule. Static AST arithmetic and log
+  parsing are not an organism learning experiment. No audit workers remain.
+
+One recommended G1 delivery item: replace this synthetic learning claim with one
+real, cold-restorable sound-to-action witness in the existing organism loop,
+including the custody and input-boundary repairs above. Complete the frozen
+source/consumer/cold-start contract once; do not expand to 40 pairings, merge
+synthetic memories into production, alter the body precursor or unlock A10/A11.
+Keep the observed failures visible until that specific path is demonstrated.
+
+### A1 — HARD64-00FB bounded corrective ownership — 2026-10-02T03:48Z
+
+Joe explicitly changed the task from audit to correction ("Can you fix the
+problems you are finding"). Owner: A1, branch a1/00fb-curriculum-custody-repair.
+One deliverable: retire the rejected synthetic-training execution and unsafe
+duplicate custody path, and reject lossy formant-profile input atomically at the
+64D native boundary. This is removal/containment, NOT a replacement cognition law
+or a claim that spoken-command learning is now implemented.
+
+Source-only architectural rejection above is closed as the implementation basis:
+no patching new bins, word lookup, artificial motor teacher, spectral similarity
+or new synthetic plasticity onto it. Preserve canonical discrete component tests,
+the accepted standalone neuron, authentic organism state and A10/A11 refusals.
+
+Authorized closure:
+- Retire tools/run_64d_continuous_hardening.py and its auto-restarting supervisor
+  as cognition entry points. They must refuse clearly without loading native
+  state, creating an organism, deleting history or writing a checkpoint.
+- Reject every nonempty acoustic_formants input to ModularSubstrate64D.step_cycle
+  before ANY state mutation; remove the 5-Hz/min63 mapping. Preserve existing
+  explicit discrete sensory-trit component entry unchanged. Mirror package.
+- Focused falsifiers: byte-identical predecessor after refusal, fresh and used/
+  cold-restored cases; no-input component path preserved; retired commands exit
+  nonzero with no checkpoint change, and the supervisor cannot relaunch them.
+- Update the affected standalone component test description/input honestly;
+  do not weaken its plasticity or codec assertions. Add a separate rejection
+  test, repair release package closure, build/load the exact candidate once.
+- Preserve the local daemon checkpoint and stop only confirmed PID86149 and its
+  supervisor10694; do NOT stop AWS Guala, caretaker, IDE, or unrelated workers.
+  The checkpoint is synthetic component evidence, not authentic lived memory.
+- Remove unsafe publication/genesis by retiring this duplicate writer rather
+  than inventing another custody framework. Real organism continuation remains
+  with its existing authority; no migration of these synthetic weights.
+- Accepted exit: tests prove retired paths cannot silently restart/reset/write,
+  discarded acoustic distinctions cannot reach settlement, exact binary/package
+  provenance is recorded, local process is stopped, and all capability limits
+  remain visible. Not an end-to-end learned speech acceptance.
+- Actual learned speech still needs the mounted real auditory-to-material/action
+  law. No new numerical constants or bridge will be invented in this repair.
+
+### A1 — HARD64-00FB bounded correction delivered — 2026-10-02T04:01Z
+
+Requested architecture: correct the rejected synthetic hardening paths without
+inventing a replacement learning law, altering canonical L0–L4, or unlocking
+A10/A11. Current reality: source correction 784fd99b1 was fast-forwarded into
+guala-live and successfully pushed to origin. The separate local synthetic
+trainer and its supervisor are stopped. No AWS organism, caretaker, production
+container, or functional-body work was changed or stopped by this correction.
+
+Conflict status: the rejected paths are removed/refused; genuine spoken-command
+learning remains an unmet capability, NOT repaired by this containment.
+Evaluation: discrete component boundary/codec and local process custody only.
+Full joint-field execution, learned grammar, and material-to-motor causal
+participation are not established by these tests.
+
+Exact corrections and impact:
+1. tools/run_64d_continuous_hardening.py now immediately exits 78 with an explicit
+   refusal. It imports no native runtime, creates no substrate, delivers no
+   synthetic stimuli, and reads/writes no checkpoint. This removes authored
+   verb/object timing, target lookups, fake barrier/surplus/sleep drives, silent
+   clean-state fallback and non-atomic duplicate checkpoint publication.
+   Caller tools/keep_64d_hardening.sh now execs the refusal once; no restart loop.
+   G1 must not restart this rejected trainer or migrate its weights into Guala.
+2. ModularSubstrate64D.step_cycle in both cortical_column.rs copies rejects
+   nonempty acoustic_formants before any state change. Removed the frequency
+   floor(formant/5) capped at 63 mapping that collapsed all eight verbs and four
+   object profiles. Zero-valued formant profiles also refuse; they cannot become
+   a counterfeit quiet input. No new bins, word matcher or motor teacher added.
+   The Python wrapper exposes a clear NotImplementedError. Empty-profile
+   explicit discrete component stimulus remains available for component tests.
+   Existing formant-based console/benchmark callers now explicitly refuse under
+   the corrected native library; this is not restored microphone or command
+   functionality. The real auditory-to-action mount is a separate missing law.
+3. Preserved legacy component plasticity/cold-codec assertions. Changed only two
+   affected fixture setups to explicit discrete trits and empty formant input.
+   Separate tests now prove full predecessor-byte identity after rejected input
+   in fresh, retained and cold-restored cases. Both retired entry points are
+   tested against a corrupt pre-existing checkpoint: nonzero refusal, identical
+   file bytes and no added files. No fake successful restoration/genesis path.
+4. Mirrored native/source tests into the standalone package, included the new
+   boundary test in setup.sh, corrected README scope and rebuilt the release
+   archive from 29 tracked files without virtual environments/build caches.
+   A10 full-field mounting and A11 matched retained-plasticity motor causation
+   remain strict XFAIL. No command-learning acceptance was substituted for them.
+5. Stopped only verified supervisor PID10694 and trainer PID86149 after
+   preserving checkpoint bytes. A final process census confirmed both absent.
+   Main backups/runtime/STOP_64D documents the retirement. The ordinary Guala
+   state authority is not this synthetic trainer's private checkpoint.
+
+Custody evidence:
+- /tmp/a1-00fb-synthetic-evidence-b63G6GOb/pre-stop.ARCLOOM4.bin
+  and final-stopped.ARCLOOM4.bin: 3,099,144 bytes, identical SHA-256
+  c8803adf7bdd6a3feb6c952cd57bcfde316cf2832c0e8f8b467bff5d135b1d55.
+- Candidate decoder imported and exactly re-exported the preserved checkpoint
+  (387,097 stored synapses). These are synthetic component data, not evidence
+  of authentic command learning or live Guala memory.
+- IMPORTANT: the daemon log announces a final save at tick28990 but does not
+  confirm its completion. File mtime predates termination. Only the last
+  committed checkpoint is proved preserved; latest volatile state is not.
+  The earlier invalid-magic/starting-clean incident cannot be called recovered
+  without an independently authenticated older copy.
+
+Verification, including failed attempts:
+- One native release build, 7.35s. Initial same-version pip installation reused
+  the old system module; provenance check failed. That shell did not stop, and
+  its 1 failed / 32 passed / 2 xfailed run is INVALID candidate evidence.
+- Corrected invocation uses set -e, explicit exact wheel force-reinstallation,
+  then verify_install.py before any candidate tests (RF-003/RF-036).
+- Correct candidate subsequently exposed one old [220.0] fixture in the used
+  recipient custody test: 30 passed / 1 failed / 2 xfailed. Only fixture input
+  was changed, retaining every byte-equality assertion; targeted test passed.
+- Final exact loaded-candidate suite: 35 passed, 2 strict xfailed in 2.75s.
+  Suites: acoustic boundary; octal invariants; causal action witness; engineered
+  neuron; DEMO95 custody; retired trainer/supervisor. No broad organism burn-in
+  or AWS behavior is claimed. No further heavy reruns were used.
+- RF-004: fresh/retained/cold refusal verified. RF-020: no inference from synapse
+  counters to command learning. RF-067: full existing ledger bytes preserved.
+  No new recurrence class introduced; prior installer recurrence was corrected.
+
+Immutable candidate evidence:
+- Source commit: 784fd99b1.
+- Post-commit frozen candidate fingerprint:
+  3528c3fb00ecd3650a4d7620082016c40a110eece8fa2ef06c99eb7888296548.
+- Both cortical_column.rs SHA-256:
+  6284bc84cc089dfed02c66a5288dbc4d4ff4d8231ce546bc390a8a59870ea204.
+- Candidate wheel: /tmp/a1-00fb-wheel-lYUp0OKy/guala_core-0.1.0-cp311-cp311-manylinux_2_34_x86_64.whl
+  SHA-256 902fe9344b70a3f308a47a489f1854c0f80afafedf021d935973e82a00d13e2b.
+- Loaded candidate native binary SHA-256:
+  476a893a1f31d14a5526cf9d1ea5021ceb9ad83d138339e2d34fb868fdfb5dfd.
+  Loaded from the repair worktree's arcloom_demonstrator/.venv, verified against
+  the wheel. System-installed predecessor library was not silently replaced.
+- Release archive SHA-256:
+  ba7ee131a1b1840a014db0b339d467cc32f75d8b8074486fce1bffd567920e9b.
+- Slack verified: 2026-10-02T04:00:39Z status=slack_sent channel=#general.
+
+Recommended single next item for G1: demonstrate one real sound-to-action
+learning path in the existing organism authority, with measured physical
+consequence, matched retained-state ablation and cold continuation. Do not
+expand the 40-pair synthetic curriculum or describe this correction as command
+comprehension. This receipt closes the bounded removal/containment work only.
