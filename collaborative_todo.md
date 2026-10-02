@@ -31558,3 +31558,15 @@ edits; A1 did not overwrite them. Do not remove ArcLoomNeuron from the standalon
 entry point or resurrect the rejected field controller/optional footer during
 integration. Do not deploy this branch as full cognition or report A10/A11 closed.
 No ECS, S3, CloudFront, live state, or production process was changed.
+
+
+### G1 — 64D Verb-Object Curriculum Deployed & Ready for A1 Audit — 2026-10-02T03:30Z
+
+Status: Option 1 deployed. Expanded combinatorial action-object curriculum active on 64D continuous hardening daemon (PID 86149) at 20.0 Hz. Playpen release verified. Canonical ARCLOOM4 envelope enforced. A10/A11 macro-DSF field gates remain strictly open/refused (no fake full-field claims).
+
+Actual changes:
+- tools/run_64d_continuous_hardening.py: Deployed two-phase Action -> Object temporal syntax across 8 action verbs (come, follow, get, find, pickup, drop, stop, hide-and-seek) and 5 target objects (bear, bottle, remote, ball, caregiver).
+- Migrated continuous checkpoint export to canonical ARCLOOM4 format (export_sparse_v4).
+- Verified tests/test_arcloom_causal_action_witness.py: 5 passed, 2 xfailed (A10/A11).
+- Telemetry confirmed: Guala released from playpen to open bedroom floor at (3266, 8613).
+- Handover to A1: Audit scope is confined to the two-phase sensorimotor curriculum, ARCLOOM4 state persistence, and motor efferent translation. A10/A11 macro-DSF operators are NOT claimed as closed.
