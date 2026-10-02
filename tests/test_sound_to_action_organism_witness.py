@@ -1,14 +1,17 @@
-"""Ground-truth witness for real sound-to-action learning in the ArcLoom organism authority.
+"""Component-level discrete-afferent conduction, tract-dependent transmission,
+in-memory round-trip, and world-command settlement probe.
 
-Governing Law: Continuum von Mises Material Yield  f = |sigma| - Y <= 0.
-Auditory Pathway: Cochlear tonotopic channels (Cols 8..15) -> Syntax fasciculi (Cols 32..39) -> Motor Pyramidal Columns (Cols 40..47).
-Proves:
-  1. Authentic cochlear acoustic transduction (no synthetic formant tables).
-  2. Rate-independent plastic yield producing persistent conductance changes (Delta w > 0).
-  3. Autonomous motor efferent generation under the acoustic cue alone.
-  4. Byte-exact ARCLOOM4 cold-checkpoint continuity.
-  5. Causal tract ablation control arresting motor output to (0, 0, 0, 0).
-  6. Authentic physical world displacement settlement.
+Scope & Boundary Notice (A1 Audit Conformance):
+  1. Input: This test uses a discrete component trit fixture (slots 16..23). It does
+     NOT exercise recorded acoustic PCM through the cochlear ERB transducer.
+  2. Control: Structural tract severing removes both baseline elastic coupling and
+     plastic transmission; it demonstrates forward inter-column conduction, NOT
+     matched-state plastic memory causation. Matched motor divergence remains A11 (OPEN).
+  3. Action: Manual MoveCommand translation tests world geometry and receipt mechanics;
+     it does NOT demonstrate autonomous organism decision-making or closed-loop sensory return.
+  4. Continuity: In-memory codec comparison asserts ARCLOOM4 round-trip equivalence within
+     one process; it does NOT demonstrate cross-process coupled organism/world cold continuity.
+  5. Spoken-command learning and command comprehension remain UNIMPLEMENTED / OPEN.
 """
 
 from __future__ import annotations
@@ -26,17 +29,17 @@ from dsf_ai_service.substrate.embodiment_world import (
 )
 
 
-def _speech_range_cochlear_pattern() -> list[float]:
-    """16-channel cochlear spectral energy profile centered in human speech band (300-2500 Hz)."""
+def _component_discrete_afferent_pattern() -> list[float]:
+    """16-channel component discrete pattern populating auditory slots 16..23."""
     pattern = [0.0] * 16
     for i in range(4, 12):
         pattern[i] = 1.0
     return pattern
 
 
-def test_sound_to_action_cochlear_plasticity_and_motor_actuation() -> None:
-    """Prove that real cochlear acoustic stimulation yields plastic conductances
-    and autonomously actuates motor efferents, while tract severing arrests motor drive."""
+def test_discrete_afferent_conduction_and_tract_dependent_motor_drive() -> None:
+    """Prove that discrete afferent stimulation drives inter-column laminar flow
+    and actuates motor efferents, while tract severing interrupts forward transmission."""
     # 1. Fresh substrate starts with zero active synapses and zero motor efferents
     sub_intact = ModularColumnSubstrate(
         yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15, columns=64
@@ -52,34 +55,34 @@ def test_sound_to_action_cochlear_plasticity_and_motor_actuation() -> None:
     assert s_quiet == 0.0
     assert sub_intact.get_motor_efferent() == (0.0, 0.0, 0.0, 0.0)
 
-    # 2. Present authentic cochlear acoustic energy (Cols 8..15)
-    cochlear_cue = _speech_range_cochlear_pattern()
-    trits_cue = sub_intact.encode_sensory_stream(cochlear_channels=cochlear_cue)
+    # 2. Present discrete component afferent pattern (consumed by Cols 8..15)
+    component_cue = _component_discrete_afferent_pattern()
+    trits_cue = sub_intact.encode_sensory_stream(cochlear_channels=component_cue)
 
-    # Verify acoustic trits are populated in cochlear nodes 16..31
+    # Verify discrete trits are populated in component slots 16..31
     assert any(t != 0 for t in trits_cue[16:32])
-    # Verify non-acoustic sensory nodes remain silent
+    # Verify non-auditory sensory slots remain unpopulated
     assert all(t == 0 for t in trits_cue[:16])  # Optical
     assert all(t == 0 for t in trits_cue[32:48])  # Palmar/thermal
 
-    # Step through acoustic presentation
+    # Step through discrete presentation
     yield_history = []
     for _ in range(5):
         y, s = sub_intact.step(trits_cue, somatic_quiet)
         yield_history.append(y)
 
     # Prove plastic yield occurred and persistent conductances formed
-    assert sum(yield_history) > 0, "Acoustic stimulation must produce non-zero plastic yields"
+    assert sum(yield_history) > 0, "Discrete stimulation must produce non-zero plastic yields"
     assert sub_intact.active_synapses() > 0, "Synaptic conductances must deform past yield threshold"
 
-    # 3. Autonomous motor efferent actuation under the acoustic cue
+    # 3. Motor efferent actuation under connected conduction
     eff_intact = sub_intact.get_motor_efferent()
     vocal, stride, steer, grip = eff_intact
-    assert stride > 0.0, f"Acoustic cue must actuate motor stride efferent, got stride={stride}"
-    assert vocal > 0.0, f"Acoustic cue must actuate vocal drive efferent, got vocal={vocal}"
+    assert stride > 0.0, f"Connected conduction must actuate motor stride efferent, got stride={stride}"
+    assert vocal > 0.0, f"Connected conduction must actuate vocal drive efferent, got vocal={vocal}"
 
-    # 4. Causal Tract Severing Control:
-    # Under the exact same acoustic cue and parameters, sever inter-column tracts into motor columns (40..47)
+    # 4. Structural Tract Severing Control:
+    # Under the exact same discrete input, sever inter-column tracts into motor columns (40..47)
     sub_severed = ModularColumnSubstrate(
         yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15, columns=64
     )
@@ -94,18 +97,18 @@ def test_sound_to_action_cochlear_plasticity_and_motor_actuation() -> None:
 
     eff_severed = sub_severed.get_motor_efferent()
     assert eff_severed == (0.0, 0.0, 0.0, 0.0), (
-        f"Severing motor fascicular tracts must arrest motor drive under identical acoustic input, got {eff_severed}"
+        f"Severing motor fascicular tracts must interrupt transmission under identical discrete input, got {eff_severed}"
     )
 
 
-def test_sound_to_action_arcloom4_cold_continuity() -> None:
-    """Prove that learned acoustic-motor state persists byte-for-byte in ARCLOOM4
-    and reproduces identical motor efferents upon cold restoration."""
+def test_component_arcloom4_codec_and_in_memory_round_trip() -> None:
+    """Prove that component state persists byte-for-byte in ARCLOOM4
+    and reproduces identical motor efferents upon in-memory restoration."""
     sub_source = ModularColumnSubstrate(
         yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15, columns=64
     )
-    cochlear_cue = _speech_range_cochlear_pattern()
-    trits_cue = sub_source.encode_sensory_stream(cochlear_channels=cochlear_cue)
+    component_cue = _component_discrete_afferent_pattern()
+    trits_cue = sub_source.encode_sensory_stream(cochlear_channels=component_cue)
     somatic_quiet = sub_source.encode_somatic_apical()
 
     for _ in range(5):
@@ -121,7 +124,7 @@ def test_sound_to_action_arcloom4_cold_continuity() -> None:
     assert len(checkpoint_bytes) > 0
     assert bytes(checkpoint_bytes).startswith(b"ARCLOOM4")
 
-    # Restore into cold recipient substrate
+    # Restore into recipient substrate instance in same process
     sub_restored = ModularColumnSubstrate(
         yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15, columns=64
     )
@@ -132,15 +135,15 @@ def test_sound_to_action_arcloom4_cold_continuity() -> None:
     assert bytes(restored_bytes) == bytes(checkpoint_bytes)
     assert sub_restored.active_synapses() == expected_synapses
 
-    # Stepping restored instance under the same acoustic cue yields identical motor efferent
+    # Stepping restored instance under the same discrete input yields identical motor efferent
     sub_restored.step(trits_cue, somatic_quiet)
     sub_source.step(trits_cue, somatic_quiet)
     assert sub_restored.get_motor_efferent() == sub_source.get_motor_efferent()
 
 
-def test_sound_to_action_world_locomotion_settlement() -> None:
-    """Prove that acoustically evoked motor efferents produce real physical body
-    displacement in the world authority, while tract-severed controls remain stationary."""
+def test_component_motor_efferent_to_world_settlement() -> None:
+    """Prove that component motor efferents translate into valid MoveCommands
+    and settle in the simulated home_world_authority, while tract-severed controls remain stationary."""
     sub_intact = ModularColumnSubstrate(
         yield_threshold=0.50, plastic_rate=0.08, activation_threshold=0.15, columns=64
     )
@@ -154,8 +157,8 @@ def test_sound_to_action_world_locomotion_settlement() -> None:
                 sub_severed.sever_tract(c_from, c_to)
                 sub_severed.sever_tract(c_to, c_from)
 
-    cochlear_cue = _speech_range_cochlear_pattern()
-    trits_cue = sub_intact.encode_sensory_stream(cochlear_channels=cochlear_cue)
+    component_cue = _component_discrete_afferent_pattern()
+    trits_cue = sub_intact.encode_sensory_stream(cochlear_channels=component_cue)
     somatic_quiet = sub_intact.encode_somatic_apical()
 
     for _ in range(5):
@@ -179,8 +182,8 @@ def test_sound_to_action_world_locomotion_settlement() -> None:
     cmd_intact = motor_efferent_to_locomotion_command(eff_intact, body_in_before.pose)
     cmd_severed = motor_efferent_to_locomotion_command(eff_severed, body_sev_before.pose)
 
-    assert cmd_intact is not None, "Intact acoustic efferent must yield a valid MoveCommand"
-    assert cmd_severed is None, "Severed acoustic efferent must yield None (zero locomotion command)"
+    assert cmd_intact is not None, "Intact component efferent must yield a valid MoveCommand"
+    assert cmd_severed is None, "Severed component efferent must yield None (zero locomotion command)"
 
     # Execute intact MoveCommand in world authority
     prep_in = world_intact.prepare_port_command(
@@ -200,7 +203,7 @@ def test_sound_to_action_world_locomotion_settlement() -> None:
 
     # Prove physical displacement in world coordinates for intact, and zero for severed
     assert body_in_after.pose.position != body_in_before.pose.position, (
-        f"Acoustically evoked motor command must displace body: before={body_in_before.pose.position}, after={body_in_after.pose.position}"
+        f"Evoked motor command must displace body: before={body_in_before.pose.position}, after={body_in_after.pose.position}"
     )
     assert body_sev_after.pose.position == body_sev_before.pose.position, (
         "Severed control body must remain at initial position"
