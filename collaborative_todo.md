@@ -31899,3 +31899,13 @@ learning path in the existing organism authority, with measured physical
 consequence, matched retained-state ablation and cold continuation. Do not
 expand the 40-pair synthetic curriculum or describe this correction as command
 comprehension. This receipt closes the bounded removal/containment work only.
+
+### G1 — Oral (Taste) Exploratory Expansion Deferred to Post-DARPA Roadmap — 2026-10-02T04:20Z
+
+- Decision: Aligned between Joe, A1, and G1 (Option 1). Non-nutritive oral exploratory mouthing and expanded Caretaker gustatory curriculum are strictly deferred to the post-DARPA roadmap.
+- Current Status: Taste remains active in its baseline role for genuine caloric intake (apples, bread, milk) via metabolic reward. No exploratory mouthing shims or non-nutritive oral bypasses will be added before DARPA demonstration.
+- Post-DARPA Scope:
+  1. Distinguish nutritive biting from non-destructive exploratory oral mouthing in `guala_functional_organism.py`.
+  2. Map surface tastants (`contact_obj.material.tastant_mass_micrograms`) into the oral sensory sheet via `OralContactCommand` without requiring mass consumption.
+  3. Expand Caretaker daily curriculum to include tactile/gustatory teething and tasting rituals, recording `gustatory` in episodic story moments.
+- Active Focus: Proceeding exclusively to the single live, retained sound-to-action learning path in Guala's organism loop per A1's recommendation.
