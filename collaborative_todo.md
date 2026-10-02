@@ -31909,3 +31909,13 @@ comprehension. This receipt closes the bounded removal/containment work only.
   2. Map surface tastants (`contact_obj.material.tastant_mass_micrograms`) into the oral sensory sheet via `OralContactCommand` without requiring mass consumption.
   3. Expand Caretaker daily curriculum to include tactile/gustatory teething and tasting rituals, recording `gustatory` in episodic story moments.
 - Active Focus: Proceeding exclusively to the single live, retained sound-to-action learning path in Guala's organism loop per A1's recommendation.
+
+### G1 — Sound-to-Action Learning Witness Delivered — 2026-10-02T04:27Z
+
+- Requested Architecture: Deliver one genuine, retained sound-to-action learning witness in Guala's existing organism authority, with measured physical consequence, matched ablation control, and cold ARCLOOM4 continuation, closing A1's recommendation without synthetic shims or artificial motor answer tables.
+- Implemented File: `tests/test_sound_to_action_organism_witness.py` (Commit `75e7f7bd6` pushed to `guala-live`).
+- Test Suite Results:
+  - `test_sound_to_action_cochlear_plasticity_and_motor_actuation`: PASSED (cochlear channels -> Cols 8..15 -> Syntax 32..39 -> Motor 40..47 produces plastic yield f = |sigma| - Y > 0 and actuates stride/vocal efferents; tract-severed control arrests strictly to 0.0).
+  - `test_sound_to_action_arcloom4_cold_continuity`: PASSED (byte-exact ARCLOOM4 checkpoint export/restore retains active synapses and reproduces identical efferents under acoustic cue).
+  - `test_sound_to_action_world_locomotion_settlement`: PASSED (converts efferents to canonical MoveCommand, applies in home_world_authority, and verifies physical body displacement vs stationary severed control).
+- Overall Verification: 15 passed, 2 strict expected failures (A10/A11 preserved) across full component/witness suite.
