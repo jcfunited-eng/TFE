@@ -19,3 +19,10 @@ t("missing field state is not current",                         () => assert.equ
 t("lag allowance is 3 calendar days",                           () => assert.equal(CH2_FIELD_MAX_LAG_DAYS, 3));
 t("FIELD-X1 hold is 10 closed sessions",                        () => assert.equal(CH2_FIELD_HOLD_SESSIONS, 10));
 console.log(`\n${passed} passed`);
+
+import { filerKey } from "../ch2_strategist.mjs";
+t("LEN and LEN.B are one filer by root when no name",             () => assert.equal(filerKey("LEN.B", null), filerKey("LEN", "")));
+t("BRK-B and BRK are one filer by root",                           () => assert.equal(filerKey("BRK-B", ""), "root:BRK"));
+t("the company name wins over the root",                           () => assert.equal(filerKey("LEN.B", "Lennar Corp."), "name:LENNAR CORP"));
+t("two different names are two filers",                            () => assert.notEqual(filerKey("GOOG", "Alphabet Inc"), filerKey("GOOD", "Gladstone Commercial")));
+console.log(`${passed} passed (with filer tests)`);

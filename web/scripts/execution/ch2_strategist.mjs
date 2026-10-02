@@ -181,6 +181,16 @@ async function fetchFieldEligible(asOf) {
   return out;
 }
 
+// One filer, one slot (FIELD-R1, 2026-10-02): LEN and LEN.B are one company
+// reporting once; the reporting cycle is the filer's, not the share class's.
+// The filer key is the company name when the symbol table has it, else the
+// ticker's root before a share-class suffix (LEN.B → LEN, BRK-B → BRK).
+export function filerKey(ticker, companyName) {
+  const name = String(companyName ?? "").trim().toUpperCase().replace(/[^A-Z0-9]+/g, " ").trim();
+  if (name) return "name:" + name;
+  return "root:" + String(ticker ?? "").trim().toUpperCase().split(/[.\-]/)[0];
+}
+
 // The signal a FIELD-R1 entry carries: the tuple fields for the ledger
 // (recorded, not decided on), the field state, and the name's cycle position.
 function parseFieldSignal(row, elig, field) {
@@ -200,6 +210,7 @@ function parseFieldSignal(row, elig, field) {
     s_uf: toFloat(snap.S_UF ?? snap.s_uf), d_k: toFloat(snap.D_k ?? snap.d_k), bar_count: barCount,
     b_k: toFloat(snap.B_k ?? snap.b_k), f_n: toFloat(snap.F_n ?? snap.f_n),
     sector: String(row.sector ?? "Unknown").trim(), spy_dk: null,
+    filer: filerKey(ticker, row.company_name),
     v3_basin: basin,
     entry_law: "FIELD-R1",
     field: { as_of: field.as_of, priority: field.priority, rules: field.rules, bear: field.bear, phase: field.phase, polarity20: field.polarity20,
@@ -215,10 +226,12 @@ async function fetchCandidateRows(runId) {
        r.ticker,
        r.run_id,
        r.snapshot_row_json,
-       COALESCE(f.sector, 'Unknown') AS sector
+       COALESCE(f.sector, 'Unknown') AS sector,
+       COALESCE(s.company_name, '') AS company_name
      FROM runtime_decisions_latest r
      LEFT JOIN runtime_metrics_latest m ON m.ticker = r.ticker
      LEFT JOIN l5_fundamentals_normalized f ON f.ticker = r.ticker
+     LEFT JOIN runtime_symbols s ON s.ticker = r.ticker
      WHERE r.run_id = $1
        AND r.ticker != 'SPY'
        AND CAST(NULLIF(r.snapshot_row_json->>'bar_count', '') AS INTEGER) > $2
@@ -440,6 +453,11 @@ export async function getCh2Signals() {
 
   // Exclude tickers that already have open positions
   const openTickers = await fetchOpenPositionTickers();
+  const openFilerNames = new Map();
+  try {
+    const q = await pool.query(`SELECT ticker, company_name FROM runtime_symbols WHERE ticker = ANY($1)`, [[...openTickers]]);
+    for (const r of q.rows) openFilerNames.set(String(r.ticker).trim().toUpperCase(), r.company_name);
+  } catch {}
   const deduped = signals.filter(s => {
     if (openTickers.has(s.ticker)) {
       console.log(`[CH2-STRATEGIST]   ${s.ticker} — SKIPPED (open position exists)`);
@@ -453,11 +471,21 @@ export async function getCh2Signals() {
   // sorted the old basin list is retired with it (FIELD-R1 is the governance).
   deduped.sort((a, b) => (a.priority - b.priority) || ((b.cycle?.dsl ?? 0) - (a.cycle?.dsl ?? 0)));
 
-  console.log(`[CH2-STRATEGIST] ${rows.length} candidates → ${signals.length} in the field's eligible list → ${deduped.length} after dedup (FIELD-R1, priority ${field.priority})`);
+  // One filer, one slot: the first (best-ordered) share class of a company wins;
+  // a company already held under another class is not bought again.
+  const heldFilers = new Set();
+  for (const t of openTickers) heldFilers.add(filerKey(t, openFilerNames.get(t)));
+  const oneFiler = [];
   for (const s of deduped) {
+    if (heldFilers.has(s.filer)) { console.log(`[CH2-STRATEGIST]   ${s.ticker} — SKIPPED (same filer as a held or earlier pick: ${s.filer})`); continue; }
+    heldFilers.add(s.filer); oneFiler.push(s);
+  }
+
+  console.log(`[CH2-STRATEGIST] ${rows.length} candidates → ${signals.length} in the field's eligible list → ${deduped.length} after dedup → ${oneFiler.length} one-filer-one-slot (FIELD-R1, priority ${field.priority})`);
+  for (const s of oneFiler) {
     console.log(`[CH2-STRATEGIST]   ${s.ticker} | dsl=${s.cycle.dsl} | age=${s.cycle.age} | priority=${s.priority} | acc(recorded)=${s.v3_basin ? s.v3_basin.accumulate_basin.toFixed(4) : "n/a"} | sector=${s.sector}`);
   }
-  return deduped;
+  return oneFiler;
 }
 
 export async function closeCh2StrategistPool() {
