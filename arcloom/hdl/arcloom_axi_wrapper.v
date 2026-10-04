@@ -1,5 +1,5 @@
 // ============================================================
-// ArcLoom AXI-Lite Wrapper — 16 Registers
+// ArcLoom AXI-Lite Wrapper — 64-word address space; MathLoom ABI ML v1
 // ============================================================
 //
 // ADDR_WIDTH=8 (256 bytes, 64 registers).
@@ -9,18 +9,23 @@
 //   0x00: [11:0] sensor ADC (software), [16] valid pulse
 //   0x04: [23:0] mathloom A operand (12-trit BT)
 //   0x08: [23:0] mathloom B operand (triggers result latch)
-//   0x0C: [5:0] cam_edge, [11:6] cam_motion, [16] div trigger
-//   0x10: [0] krimelack clear, [1] krimelack commit request
+//   0x0C: [16] division trigger
+//   0x10: [2] motor enable, [1] krimelack commit request
 //
 // READ:
 //   0x00: Decision + flags
 //   0x04: Loom state [31:0]
-//   0x08: MathLoom ADD: [23:0] sum, [25:24] carry, [28] eq, [29] gt, [30] lt
+//   0x08: MathLoom ADD: [23:0] sum, [25:24] carry, [29] eq, [30] gt, [31] lt
 //   0x0C: MathLoom MUL/DIV (muxed by div_result_ready)
 //         MUL: [31:0] product low 32 bits
 //         DIV: [23:0] quotient, [24] div_by_zero, [25] done
-//   0x10: DIV remainder [23:0] + cycle count [31:24]
-//   0x14: MUL product high [15:0] + loom_state[47:32]
+//   0x10: DIV remainder [23:0] + legacy cycle count LOW 8 bits [31:24]
+//   0x74: Complete division cycle count [18:0]
+//   0x78: MathLoom ABI identity: 0x4D4C0001 (ML, version 1)
+//   0x7C: Dedicated DIV status [0] ready, [1] zero divisor, [2] pending
+//         Never poll the muxed product/quotient word for readiness.
+// Full-word AXI writes only: partial strobes return SLVERR without mutation.
+//   0x14: MUL product high [15:0]
 //   0x18: Camera line features [31:0]
 //   0x1C: Left/Right sensor raw ADC [31:0]
 //   0x20: Krimelack status [31:0]
@@ -113,16 +118,18 @@ module arcloom_axi_wrapper #(
     output wire        motor_bin2
 );
 
-    reg  axi_awready, axi_wready, axi_bvalid;
-    reg  axi_arready, axi_rvalid;
-    reg  [C_S_AXI_ADDR_WIDTH-1:0] axi_awaddr, axi_araddr;
+    reg axi_bvalid, axi_rvalid, axi_write_error;
+    reg aw_pending, w_pending;
+    reg [C_S_AXI_ADDR_WIDTH-1:0] axi_awaddr;
+    reg [31:0] axi_wdata;
+    reg [3:0] axi_wstrb;
     reg  [C_S_AXI_DATA_WIDTH-1:0] axi_rdata;
 
-    assign S_AXI_AWREADY = axi_awready;
-    assign S_AXI_WREADY  = axi_wready;
-    assign S_AXI_BRESP   = 2'b00;
+    assign S_AXI_AWREADY = !aw_pending && !axi_bvalid;
+    assign S_AXI_WREADY  = !w_pending && !axi_bvalid;
+    assign S_AXI_BRESP   = axi_write_error ? 2'b10 : 2'b00;
     assign S_AXI_BVALID  = axi_bvalid;
-    assign S_AXI_ARREADY = axi_arready;
+    assign S_AXI_ARREADY = !axi_rvalid;
     assign S_AXI_RDATA   = axi_rdata;
     assign S_AXI_RRESP   = 2'b00;
     assign S_AXI_RVALID  = axi_rvalid;
@@ -248,7 +255,8 @@ module arcloom_axi_wrapper #(
 
     // ---- All 3 sensors pass raw ADC to arcloom_top ----
     // BSIL-BT conversion happens inside arcloom_top (3× arcloom_bsil_bt)
-    // No threshold conversion in the wrapper — full gradient preserved.
+    // The legacy BSIL encoder uses baseline subtraction and 8-trit saturation;
+    // this path is NOT a lossless full-field DSF interface.
 
     arcloom_top arcloom_inst (
         .clk(S_AXI_ACLK), .rst_n(S_AXI_ARESETN),
@@ -306,11 +314,12 @@ module arcloom_axi_wrapper #(
     reg         div_start;
     wire [23:0] div_quotient, div_remainder;
     wire        div_done, div_by_zero;
-    wire [17:0] div_cycles;
+    wire [18:0] div_cycles;
     reg  [23:0] div_quot_r, div_rem_r;
     reg         div_dbz_r;
-    reg  [17:0] div_cyc_r;
+    reg  [18:0] div_cyc_r;
     reg         div_result_ready;
+    reg         div_pending;
 
     arcloom_mathloom_div div_inst (
         .clk(S_AXI_ACLK), .rst_n(S_AXI_ARESETN),
@@ -324,8 +333,11 @@ module arcloom_axi_wrapper #(
     // ---- Write channel ----
     always @(posedge S_AXI_ACLK) begin
         if (!S_AXI_ARESETN) begin
-            axi_awready      <= 1'b0;
-            axi_wready       <= 1'b0;
+            aw_pending       <= 1'b0;
+            w_pending        <= 1'b0;
+            axi_write_error  <= 1'b0;
+            axi_wdata        <= 0;
+            axi_wstrb        <= 0;
             axi_bvalid       <= 1'b0;
             axi_awaddr       <= 0;
             sw_sensor_adc    <= 12'd0;
@@ -366,8 +378,9 @@ module arcloom_axi_wrapper #(
             div_quot_r       <= 24'd0;
             div_rem_r        <= 24'd0;
             div_dbz_r        <= 1'b0;
-            div_cyc_r        <= 18'd0;
+            div_cyc_r        <= 19'd0;
             div_result_ready <= 1'b0;
+            div_pending      <= 1'b0;
         end else begin
             if (sw_valid_stretch != 3'd0)
                 sw_valid_stretch <= sw_valid_stretch - 3'd1;
@@ -395,76 +408,95 @@ module arcloom_axi_wrapper #(
                 div_dbz_r        <= div_by_zero;
                 div_cyc_r        <= div_cycles;
                 div_result_ready <= 1'b1;
+                div_pending      <= 1'b0;
             end
 
-            if (~axi_awready && S_AXI_AWVALID && S_AXI_WVALID) begin
-                axi_awready <= 1'b1;
-                axi_awaddr  <= S_AXI_AWADDR;
-            end else
-                axi_awready <= 1'b0;
-
-            if (~axi_wready && S_AXI_AWVALID && S_AXI_WVALID) begin
-                axi_wready <= 1'b1;
-                case (S_AXI_AWADDR[7:2])
+            // AW and W are independent AXI channels. Capture each exactly once.
+            if (S_AXI_AWVALID && S_AXI_AWREADY) begin
+                aw_pending <= 1'b1;
+                axi_awaddr <= S_AXI_AWADDR;
+            end
+            if (S_AXI_WVALID && S_AXI_WREADY) begin
+                w_pending <= 1'b1;
+                axi_wdata <= S_AXI_WDATA;
+                axi_wstrb <= S_AXI_WSTRB;
+            end
+            if (axi_bvalid && S_AXI_BREADY)
+                axi_bvalid <= 1'b0;
+            if (aw_pending && w_pending && !axi_bvalid) begin
+                aw_pending <= 1'b0;
+                w_pending <= 1'b0;
+                axi_bvalid <= 1'b1;
+                axi_write_error <= (axi_wstrb != 4'hf);
+                if (axi_wstrb == 4'hf) case (axi_awaddr[7:2])
                     6'd0: begin  // 0x00: sensor
-                        sw_sensor_adc <= S_AXI_WDATA[11:0];
-                        if (S_AXI_WDATA[16])
+                        sw_sensor_adc <= axi_wdata[11:0];
+                        if (axi_wdata[16])
                             sw_valid_stretch <= 3'd4;
                     end
                     6'd1: begin  // 0x04: mathloom A (24-bit)
-                        mathloom_a <= S_AXI_WDATA[23:0];
+                        if (!div_pending) begin
+                            mathloom_a <= axi_wdata[23:0];
+                            div_result_ready <= 1'b0;
+                        end else axi_write_error <= 1'b1;
                     end
                     6'd2: begin  // 0x08: mathloom B (24-bit) + latch
-                        mathloom_b <= S_AXI_WDATA[23:0];
-                        div_result_ready <= 1'b0;
+                        if (!div_pending) begin
+                            mathloom_b <= axi_wdata[23:0];
+                            div_result_ready <= 1'b0;
+                        end else axi_write_error <= 1'b1;
                     end
                     6'd3: begin  // 0x0C: division trigger
-                        if (S_AXI_WDATA[16])
+                        if (axi_wdata[16] && !div_pending) begin
                             div_start <= 1'b1;
+                            div_pending <= 1'b1;
+                            div_result_ready <= 1'b0;
+                            div_dbz_r <= 1'b0;
+                            div_cyc_r <= 0;
+                        end else if (axi_wdata[16]) axi_write_error <= 1'b1;
                     end
                     6'd4: begin  // 0x10: motor enable [2], krimelack commit [1]
-                        motor_enable <= S_AXI_WDATA[2];
-                        sw_krim_commit <= S_AXI_WDATA[1];
+                        motor_enable <= axi_wdata[2];
+                        sw_krim_commit <= axi_wdata[1];
                     end
                     6'd5: begin  // 0x14: familiarity override [7:0], enable [8]
-                        sw_familiarity <= S_AXI_WDATA[7:0];
-                        sw_fam_enable  <= S_AXI_WDATA[8];
+                        sw_familiarity <= axi_wdata[7:0];
+                        sw_fam_enable  <= axi_wdata[8];
                     end
-                    6'd16: target_motif_0 <= S_AXI_WDATA;          // 0x40
-                    6'd17: target_motif_1 <= S_AXI_WDATA;          // 0x44
-                    6'd18: target_motif_2 <= S_AXI_WDATA;          // 0x48
-                    6'd19: target_motif_3 <= S_AXI_WDATA;          // 0x4C
-                    6'd20: target_motif_4 <= S_AXI_WDATA;          // 0x50
-                    6'd21: target_motif_5 <= S_AXI_WDATA;          // 0x54
+                    6'd16: target_motif_0 <= axi_wdata;          // 0x40
+                    6'd17: target_motif_1 <= axi_wdata;          // 0x44
+                    6'd18: target_motif_2 <= axi_wdata;          // 0x48
+                    6'd19: target_motif_3 <= axi_wdata;          // 0x4C
+                    6'd20: target_motif_4 <= axi_wdata;          // 0x50
+                    6'd21: target_motif_5 <= axi_wdata;          // 0x54
                     6'd22: begin                                    // 0x58
-                        target_motif_6 <= S_AXI_WDATA[17:0];
+                        target_motif_6 <= axi_wdata[17:0];
                     end
                     6'd23: begin  // 0x5C: snapshot trigger [0], read addr [12:2]
-                        snapshot_trigger <= S_AXI_WDATA[0];
-                        snapshot_rd_addr <= S_AXI_WDATA[12:2];
+                        snapshot_trigger <= axi_wdata[0];
+                        snapshot_rd_addr <= axi_wdata[12:2];
                     end
                     6'd26: begin  // 0x68: I2C monitor read address [9:0]
-                        i2c_mon_rd_addr <= S_AXI_WDATA[9:0];
+                        i2c_mon_rd_addr <= axi_wdata[9:0];
                     end
                     6'd25: begin  // 0x64: I2C camera write {trigger[24], data[23:16], addr[15:0]}
-                        i2c_reg_addr      <= S_AXI_WDATA[15:0];
-                        i2c_reg_data      <= S_AXI_WDATA[23:16];
-                        i2c_write_trigger <= S_AXI_WDATA[24];
+                        i2c_reg_addr      <= axi_wdata[15:0];
+                        i2c_reg_data      <= axi_wdata[23:16];
+                        i2c_write_trigger <= axi_wdata[24];
                     end
                     6'd15: begin  // 0x3C: camera baselines {density, u, edge, y}
-                        cam_bl_y       <= S_AXI_WDATA[7:0];
-                        cam_bl_edge    <= S_AXI_WDATA[15:8];
-                        cam_bl_u       <= S_AXI_WDATA[23:16];
-                        cam_bl_density <= S_AXI_WDATA[31:24];
+                        cam_bl_y       <= axi_wdata[7:0];
+                        cam_bl_edge    <= axi_wdata[15:8];
+                        cam_bl_u       <= axi_wdata[23:16];
+                        cam_bl_density <= axi_wdata[31:24];
                     end
                     6'd28: begin  // 0x70: I2C read request {addr[15:0]}
-                        i2c_reg_addr     <= S_AXI_WDATA[15:0];
+                        i2c_reg_addr     <= axi_wdata[15:0];
                         i2c_read_trigger <= 1'b1;
                         i2c_read_done    <= 1'b0;  // clear done flag
                     end
                 endcase
-            end else
-                axi_wready <= 1'b0;
+            end
 
             // Latch MathLoom results every cycle
             ml_sum_r     <= ml_sum_w;
@@ -474,30 +506,18 @@ module arcloom_axi_wrapper #(
             ml_gt_r      <= ml_gt_w;
             ml_lt_r      <= ml_lt_w;
 
-            if (axi_awready && S_AXI_AWVALID && axi_wready && S_AXI_WVALID && ~axi_bvalid)
-                axi_bvalid <= 1'b1;
-            else if (S_AXI_BREADY && axi_bvalid)
-                axi_bvalid <= 1'b0;
         end
     end
 
     // ---- Read channel ----
     always @(posedge S_AXI_ACLK) begin
         if (!S_AXI_ARESETN) begin
-            axi_arready <= 1'b0;
             axi_rvalid  <= 1'b0;
             axi_rdata   <= 0;
-            axi_araddr  <= 0;
         end else begin
-            if (~axi_arready && S_AXI_ARVALID) begin
-                axi_arready <= 1'b1;
-                axi_araddr  <= S_AXI_ARADDR;
-            end else
-                axi_arready <= 1'b0;
-
-            if (axi_arready && S_AXI_ARVALID && ~axi_rvalid) begin
+            if (S_AXI_ARVALID && S_AXI_ARREADY) begin
                 axi_rvalid <= 1'b1;
-                case (axi_araddr[7:2])
+                case (S_AXI_ARADDR[7:2])
                     // 0x00: Decision + status
                     6'd0: axi_rdata <= {18'd0,
                                         dsf_R_rev, dsf_D, dsf_valid,
@@ -590,6 +610,9 @@ module arcloom_axi_wrapper #(
                     // 0x70: I2C read result {done[9], busy[8], data[7:0]}
                     6'd28: axi_rdata <= {22'd0, i2c_read_done, i2c_rt_busy, i2c_read_result};
 
+                    6'd29: axi_rdata <= {13'd0, div_cyc_r};
+                    6'd30: axi_rdata <= 32'h4D4C0001;
+                    6'd31: axi_rdata <= {29'd0, div_pending, div_dbz_r, div_result_ready};
                     default: axi_rdata <= 32'd0;
                 endcase
             end else if (axi_rvalid && S_AXI_RREADY)
@@ -619,8 +642,8 @@ module arcloom_axi_wrapper #(
     // ---- Motor control ----
     // Steer: 01=+1 (turn right), 10=-1 (turn left), 00=straight
     // Speed follows front distance polarity: close→+1→reverse, far→-1→forward
-    // No latch — decision goes directly to motors. Stability comes from
-    // correct feedback gain, not clock sampling.
+    // These decisions are registered on S_AXI_ACLK above. Only the final
+    // Boolean motor-enable gate is combinational; the end-to-end path is clocked.
     //
     // Motor A = left wheel, Motor B = right wheel
     // AIN1=fwd, AIN2=rev for motor A

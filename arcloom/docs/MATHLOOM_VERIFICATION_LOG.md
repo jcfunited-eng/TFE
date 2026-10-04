@@ -1,82 +1,44 @@
-# ArcLoom MathLoom — Hardware Verification Log
+# ArcLoom MathLoom — Verification Evidence
 
-## Purpose
-This document records every MathLoom module, when it was tested, and the results.
-This proves systematic verification, not one-off demos.
+## Current disposition (A1, 2026-10-04)
 
----
+**Source repairs verified in RTL simulation; corrected silicon NOT verified.**
+The Oct 4 G1 delivery recorded three additions, three comparisons, three positive
+divisions and one zero-divisor observation. It did not prove the full signed
+12-trit domain, multiplication, clocklessness, zero power, or computational
+universality. A1 reproduced failures in the delivered RTL and repaired the
+bounded arithmetic/transport path. See [audit and impact report](PYNQ_G1_AUDIT_2026-10-04.md).
 
-## Modules
+Local evidence:
+- Actual predecessor RTL: 3,256 failed assertions in the new component witness.
+- Corrected actual RTL: 26,322 checks passed (small exhaustive operand grid,
+  selected full-width boundaries, signed division, zero divisor, counter bounds).
+- Actual wrapper/controller/arithmetic integration: 436 checks passed.
+- Host transport: 13 tests passed; scripted MMIO is transport-only evidence.
+- No new synthesis, routed timing, bitstream, physical loading or scope evidence.
+- Canonical trit input domain is 00/01/10; malformed 11 is not certified.
 
-### 1. arcloom_mathloom_alu.v — Add, Multiply, Compare
-- **Created:** April 18, 2026
-- **Tests on silicon:** 19,683 (6,561 add + 6,561 multiply + 6,561 compare)
-- **Failures:** 0
-- **Tested on:** PYNQ-Z2 (XC7Z020), Vivado 2024.1
-- **Test method:** Python loop over all 81×81 BT-4 input combinations via AXI register writes
-- **Status:** PROVEN ON SILICON
+## Historical reports (preserved as reports, not re-ratified)
 
-### 2. arcloom_mathloom_div.v — Folding Division
-- **Created:** April 26, 2026
-- **Simulation tests:** 34 cases, 0 errors (Python behavioral model)
-- **Hardware tests:** 18 cases, 0 errors (PYNQ-Z2, April 26, 2026)
-- **Method:** Iterative field reduction — subtract denominator from accumulator until residual < denominator
-- **Origin:** Joseph Forrester's structural field insight: "division is the point where you begin adding the other way"
-- **Status:** PROVEN ON SILICON
+| Date | Reported operation/platform | Reported count | Evidence limitation |
+|---|---|---:|---|
+| 2026-04-18 | Add on PYNQ-Z2 | 6,561 | 81 × 81 four-trit subset, not exhaustive 12-trit domain |
+| 2026-04-18 | Multiply on PYNQ-Z2 | 6,561 | Same restricted input subset |
+| 2026-04-18 | Compare on PYNQ-Z2 | 6,561 | Same restricted input subset |
+| 2026-04-19 | Division, Python behavioral simulation | 41,430 | Not execution of Verilog or silicon |
+| 2026-04-26 | Division, Python behavioral simulation | 34 | Not execution of Verilog or silicon |
+| 2026-04-26 | Division on PYNQ-Z2 | 18 | Raw receipt and bitstream identity not established in this audit |
 
-### 3. arcloom_bt_adder.v (in arcloom_mathloom.v) — Balanced Ternary Adder
-- **Part of:** arcloom_mathloom_alu.v
-- **Tested as part of:** ALU add verification (6,561 tests)
-- **Status:** PROVEN ON SILICON
+Reported historic platform: XC7Z020 / Vivado 2024.1. No assertion is made that
+the board's current bitstream was produced from today's source or those tools.
 
-### 4. arcloom_trit_neg.v (in arcloom_mathloom.v) — Trit Negation
-- **Part of:** ALU and division
-- **Tested as part of:** ALU and subtraction operations
-- **Status:** PROVEN ON SILICON
+The previous statement “Add + Multiply + Divide = any numerical function”
+was not a proof and is withdrawn. Fixed-width tested arithmetic does not establish
+universal computation, continuous DSF cognition, or full hardware correctness.
 
-### 5. arcloom_bt_compare.v (in arcloom_mathloom.v) — Balanced Ternary Comparator
-- **Part of:** arcloom_mathloom_alu.v and arcloom_mathloom_div.v
-- **Tested as part of:** ALU compare verification (6,561 tests)
-- **Status:** PROVEN ON SILICON
+## Acceptance rule
 
----
-
-## Computational Completeness Argument
-
-| Primitive | Module | Silicon Status | Tests |
-|-----------|--------|---------------|-------|
-| Addition | arcloom_bt_adder | PROVEN | 6,561 |
-| Subtraction | adder + trit_neg | PROVEN | (implicit in add) |
-| Multiplication | arcloom_mathloom_alu | PROVEN | 6,561 |
-| Comparison | arcloom_bt_compare | PROVEN | 6,561 |
-| Division | arcloom_mathloom_div | **PROVEN** | 18 (silicon) + 34 (sim) |
-
-**COMPUTATIONAL COMPLETENESS PROVEN ON SILICON — April 26, 2026.**
-Add + Multiply + Divide = any numerical function. Demonstrated, not claimed.
-
----
-
-## Test Procedure Template
-
-For any new MathLoom module:
-
-1. Write Python behavioral simulation
-2. Test ALL valid input combinations (or representative subset)
-3. Record: module name, test count, failure count, date
-4. Build bitstream, deploy to PYNQ
-5. Run same tests via AXI registers on hardware
-6. Record: same metrics, "PROVEN ON SILICON" or "FAILED"
-7. Update this log
-
----
-
-## Full Verification History
-
-| Date | Module | Platform | Tests | Errors | Status |
-|------|--------|----------|-------|--------|--------|
-| 2026-04-18 | ALU (add) | PYNQ-Z2 | 6,561 | 0 | PROVEN |
-| 2026-04-18 | ALU (multiply) | PYNQ-Z2 | 6,561 | 0 | PROVEN |
-| 2026-04-18 | ALU (compare) | PYNQ-Z2 | 6,561 | 0 | PROVEN |
-| 2026-04-19 | Folding division | Python sim | 41,430 | 0 | SIM ONLY |
-| 2026-04-26 | Folding division | Python sim | 34 | 0 | SIM VERIFIED |
-| 2026-04-26 | Folding division | PYNQ-Z2 | 18 | 0 | **PROVEN ON SILICON** |
+A hardware receipt must bind the executed test, source revision, bit/hwh hashes,
+board identity, exact input domain, raw outputs and pass/fail results. Report
+behavioral simulation, actual RTL simulation, synthesis/timing, and physical
+measurements separately. A known failing or unsupported case remains visible.

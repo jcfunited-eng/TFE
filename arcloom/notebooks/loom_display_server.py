@@ -65,8 +65,8 @@ def read_loom():
     speed = trit(decision, 2)
     conf = trit(decision, 4)
 
-    struct_lock = bool(decision & (1 << 6))
-    safe_mode = bool(decision & (1 << 7))
+    struct_lock = bool(decision & (1 << 8))
+    safe_mode = bool(decision & (1 << 9))
 
     return {
         "strands": {
@@ -146,54 +146,111 @@ def read_camera():
     }
 
 
-# ---- BT encoding for 12-trit (range +/-265720) ----
+# ---- Exact transport encoding; never compute a substitute hardware result ----
 def bt_encode(n, digits=12):
-    trits = []
-    neg = n < 0
-    n = abs(n)
-    for _ in range(digits):
-        r = n % 3
-        if r == 2:
-            trits.append(0b10)
+    if type(n) is not int or abs(n) > (3 ** digits - 1) // 2:
+        raise ValueError("Operand is outside the balanced-ternary register width")
+    packed = 0
+    for i in range(digits):
+        n, digit = divmod(n, 3)
+        if digit == 2:
+            digit = -1
             n += 1
-        elif r == 1:
-            trits.append(0b01)
-        else:
-            trits.append(0b00)
-        n //= 3
-    result = 0
-    for i, t in enumerate(trits):
-        result |= (t << (2 * i))
-    if neg:
-        nr = 0
-        for i in range(digits):
-            t = (result >> (2*i)) & 0x3
-            if t == 0b01: t = 0b10
-            elif t == 0b10: t = 0b01
-            nr |= (t << (2*i))
-        return nr
-    return result
+        packed |= (2 if digit == -1 else digit) << (2 * i)
+    return packed
 
 
 def bt_decode(val, digits=12):
-    n = 0
-    power = 1
+    if type(val) is not int or not 0 <= val < (1 << (2 * digits)):
+        raise ValueError("Packed value is outside the register width")
+    result = 0
     for i in range(digits):
-        t = (val >> (2*i)) & 0x3
-        if t == 0b01: n += power
-        elif t == 0b10: n -= power
-        power *= 3
-    return n
+        digit = (val >> (2 * i)) & 3
+        if digit == 3:
+            raise ValueError("Invalid balanced-ternary digit returned by hardware")
+        result += (1 if digit == 1 else -1 if digit == 2 else 0) * 3 ** i
+    return result
 
 
 def bt_trits(val, digits=12):
-    out = []
-    for i in range(digits):
-        t = (val >> (2*i)) & 0x3
-        if t == 0b01: out.append("+1")
-        elif t == 0b10: out.append("-1")
-        else: out.append("0")
-    return out
+    bt_decode(val, digits)  # reject invalid encoding rather than displaying zero
+    return [("0", "+1", "-1")[(val >> (2 * i)) & 3] for i in range(digits)]
+
+
+# Serialize calculator transactions in this server. The MMIO device must have
+# one software writer: this lock cannot arbitrate unrelated notebook processes.
+calc_lock = threading.Lock()
+MATHLOOM_ABI = 0x4D4C0001
+
+
+def calculate_hardware(device, a, b, op, *, timeout_seconds=1.0):
+    """Exact register I/O for ML ABI v1; no software-result fallback.
+
+    The one-second deadline is an I/O watchdog, NOT a physical solver parameter.
+    It refuses a missing completion. Division reads a dedicated status register,
+    never the legacy mux whose multiplication bits can resemble a done flag.
+    Caller holds calc_lock for the complete transaction.
+    """
+    if op not in ("add", "sub", "mul", "div", "cmp"):
+        raise NotImplementedError("Only add, subtract, multiply, compare and divide are verified hardware operations")
+    a_bt, b_bt = bt_encode(a), bt_encode(b)
+    if not 0 < timeout_seconds <= 1.0:
+        raise ValueError("I/O timeout must be positive and at most one second")
+    if device.read(0x78) != MATHLOOM_ABI:
+        raise RuntimeError("FPGA MathLoom ABI mismatch: build and verify the corrected image before using this calculator")
+    if device.read(0x7C) & 4:
+        raise RuntimeError("Hardware divider is already busy; another writer or unfinished operation exists")
+    device.write(0x04, a_bt)
+    device.write(0x08, bt_encode(-b) if op == "sub" else b_bt)
+    answer = {"a": a, "b": b, "a_bt": bt_trits(a_bt),
+              "b_bt": bt_trits(b_bt), "hardware": True}
+
+    if op == "div":
+        device.write(0x0C, 1 << 16)
+        deadline = time.monotonic() + timeout_seconds
+        for _ in range(10000):  # finite transport poll bound, not a convergence rule
+            status = device.read(0x7C)
+            if status & 1 and not status & 4:
+                break
+            if time.monotonic() >= deadline:
+                raise TimeoutError("FPGA division did not complete; no result accepted")
+            time.sleep(0.0001)  # polling cadence only; has no authority over silicon
+        else:
+            raise TimeoutError("FPGA division exceeded the I/O poll bound")
+        if status & 2:
+            raise ZeroDivisionError("Division by zero reported by hardware")
+        raw = device.read(0x0C) & 0xFFFFFF
+        q = bt_decode(raw)
+        r = bt_decode(device.read(0x10) & 0xFFFFFF)
+        cycles = device.read(0x74)
+        if b == 0 or a != b * q + r or abs(r) >= abs(b) or (r and (r < 0) != (a < 0)):
+            raise RuntimeError("Hardware division violated the quotient/remainder identity")
+        if cycles != abs(q) + 1:
+            raise RuntimeError("Hardware cycle count disagrees with folding operations")
+        answer.update(op="÷", result=q, remainder=r, cycles=cycles,
+                      quotient_bt=bt_trits(raw))
+    elif op == "mul":
+        raw = (device.read(0x14) & 0xFFFF) << 32 | device.read(0x0C)
+        result = bt_decode(raw, 24)
+        if result != a * b:
+            raise RuntimeError("Hardware product failed exact verification")
+        answer.update(op="×", result=result, result_bt=bt_trits(raw, 24))
+    else:
+        raw = device.read(0x08)
+        if op == "cmp":
+            flags = (raw >> 29) & 7
+            expected = 1 if a == b else 2 if a > b else 4
+            if flags != expected:
+                raise RuntimeError("Hardware comparison failed exact verification")
+            answer.update(op="compare", result=0 if flags == 1 else 1 if flags == 2 else -1)
+        else:
+            packed = raw & 0x3FFFFFF  # all 13 trits, INCLUDING carry
+            result = bt_decode(packed, 13)
+            if result != (a + b if op == "add" else a - b):
+                raise RuntimeError("Hardware sum failed exact verification")
+            answer.update(op="+" if op == "add" else "−", result=result,
+                          result_bt=bt_trits(packed, 13))
+    return answer
 
 
 # ---- Demo run log ----
@@ -239,7 +296,7 @@ def api_loom():
         reg_20 = arcloom.read(0x20)
         data["krimelack"] = {
             "motif_count": reg_20 & 0x3F,
-            "match_score": (reg_20 >> 6) & 0xFF,
+            "match_score": (reg_20 >> 14) & 0xFF,
         }
 
         # Log during demo run
@@ -360,150 +417,17 @@ def api_demo_log():
 
 @app.route('/api/calc')
 def api_calc():
-    """Hardware calculator — 12-trit balanced ternary on FPGA."""
-    a = int(request.args.get('a', 0))
-    b = int(request.args.get('b', 0))
-    op = request.args.get('op', 'add')
-
-    MAX_VAL = 265720
-    if abs(a) > MAX_VAL or abs(b) > MAX_VAL:
-        return jsonify({"error": f"Range: -{MAX_VAL} to +{MAX_VAL} (12-trit BT)"})
-
-    a_bt = bt_encode(a)
-    b_bt = bt_encode(b)
-
-    if op == 'add':
-        arcloom.write(0x04, a_bt & 0xFFFFFF)
-        arcloom.write(0x08, b_bt & 0xFFFFFF)
-        time.sleep(0.001)
-        raw = arcloom.read(0x08)
-        result = bt_decode(raw & 0xFFFFFF, 12)
-        return jsonify({
-            "a": a, "b": b, "op": "+", "result": result,
-            "a_bt": bt_trits(a_bt), "b_bt": bt_trits(b_bt),
-            "result_bt": bt_trits(raw & 0xFFFFFF),
-            "hardware": True
-        })
-
-    elif op == 'mul':
-        arcloom.write(0x04, a_bt & 0xFFFFFF)
-        arcloom.write(0x08, b_bt & 0xFFFFFF)
-        time.sleep(0.001)
-        raw_lo = arcloom.read(0x0C)
-        raw_hi = arcloom.read(0x14) & 0xFFFF
-        product_48 = (raw_hi << 32) | raw_lo
-        result = bt_decode(product_48, 24)
-        return jsonify({
-            "a": a, "b": b, "op": "\u00d7", "result": result,
-            "a_bt": bt_trits(a_bt), "b_bt": bt_trits(b_bt),
-            "result_bt": bt_trits(product_48, 24),
-            "hardware": True
-        })
-
-    elif op == 'div':
-        if b == 0:
-            return jsonify({"error": "Division by zero"})
-        arcloom.write(0x04, a_bt & 0xFFFFFF)
-        arcloom.write(0x08, b_bt & 0xFFFFFF)
-        arcloom.write(0x0C, 1 << 16)  # trigger division
-        time.sleep(0.1)
-        raw = arcloom.read(0x0C)
-        # When div_result_ready, 0x0C = {6'd0, 1'b1, div_by_zero, quotient[23:0]}
-        if not (raw & (1 << 25)):
-            time.sleep(0.2)
-            raw = arcloom.read(0x0C)
-        q = bt_decode(raw & 0xFFFFFF, 12)
-        dbz = bool(raw & (1 << 24))
-        # Remainder in register 0x10
-        rem_raw = arcloom.read(0x10)
-        r = bt_decode(rem_raw & 0xFFFFFF, 12)
-        cycles = (rem_raw >> 24) & 0xFF
-        if dbz:
-            return jsonify({"error": "Division by zero (hardware)"})
-        return jsonify({
-            "a": a, "b": b, "op": "\u00f7", "result": q, "remainder": r,
-            "a_bt": bt_trits(a_bt), "b_bt": bt_trits(b_bt),
-            "quotient_bt": bt_trits(raw & 0xFFFFFF),
-            "cycles": cycles,
-            "hardware": True
-        })
-
-    elif op == 'sub':
-        neg_b = bt_encode(-b)
-        arcloom.write(0x04, a_bt & 0xFFFFFF)
-        arcloom.write(0x08, neg_b & 0xFFFFFF)
-        time.sleep(0.001)
-        raw = arcloom.read(0x08)
-        result = bt_decode(raw & 0xFFFFFF, 12)
-        return jsonify({
-            "a": a, "b": b, "op": "\u2212", "result": result,
-            "a_bt": bt_trits(a_bt), "b_bt": bt_trits(b_bt),
-            "result_bt": bt_trits(raw & 0xFFFFFF),
-            "hardware": True
-        })
-
-    elif op == 'pow':
-        if b < 0:
-            return jsonify({"error": "Negative exponents not supported"})
-        if b == 0:
-            return jsonify({"a": a, "b": b, "op": "^", "result": 1, "hardware": True})
-        acc = a
-        for i in range(b - 1):
-            acc_bt = bt_encode(acc)
-            arcloom.write(0x04, acc_bt & 0xFFFFFF)
-            arcloom.write(0x08, a_bt & 0xFFFFFF)
-            time.sleep(0.001)
-            raw_lo = arcloom.read(0x0C)
-            raw_hi = arcloom.read(0x14) & 0xFFFF
-            product_48 = (raw_hi << 32) | raw_lo
-            acc = bt_decode(product_48, 24)
-            if abs(acc) > MAX_VAL:
-                return jsonify({"error": f"Overflow at step {i+2}"})
-        return jsonify({
-            "a": a, "b": b, "op": "^", "result": acc,
-            "hardware": True, "iterations": b - 1
-        })
-
-    elif op == 'sqrt':
-        if a < 0:
-            return jsonify({"error": "Square root of negative"})
-        if a == 0:
-            return jsonify({"a": a, "op": "\u221a", "result": 0, "hardware": True})
-        x = max(a // 2, 1)
-        for _ in range(30):
-            x_bt = bt_encode(x)
-            arcloom.write(0x04, a_bt & 0xFFFFFF)
-            arcloom.write(0x08, x_bt & 0xFFFFFF)
-            arcloom.write(0x0C, 1 << 16)
-            time.sleep(0.1)
-            raw = arcloom.read(0x0C)
-            n_over_x = bt_decode(raw & 0xFFFFFF, 12)
-            # (x + n/x)
-            arcloom.write(0x04, bt_encode(x) & 0xFFFFFF)
-            arcloom.write(0x08, bt_encode(n_over_x) & 0xFFFFFF)
-            time.sleep(0.001)
-            raw = arcloom.read(0x08)
-            total = bt_decode(raw & 0xFFFFFF, 12)
-            # / 2
-            arcloom.write(0x04, bt_encode(total) & 0xFFFFFF)
-            arcloom.write(0x08, bt_encode(2) & 0xFFFFFF)
-            arcloom.write(0x0C, 1 << 16)
-            time.sleep(0.1)
-            raw = arcloom.read(0x0C)
-            x_new = bt_decode(raw & 0xFFFFFF, 12)
-            if abs(x_new - x) <= 1:
-                x = x_new
-                break
-            x = x_new
-        if x * x > a:
-            x -= 1
-        remainder = a - x * x
-        return jsonify({
-            "a": a, "op": "\u221a", "result": x, "remainder": remainder,
-            "hardware": True
-        })
-
-    return jsonify({"error": f"Unknown op: {op}"})
+    """One serialized physical calculator transaction; reject unverified images."""
+    try:
+        a = int(request.args.get('a', 0))
+        b = int(request.args.get('b', 0))
+        op = request.args.get('op', 'add')
+        with calc_lock:
+            return jsonify(calculate_hardware(arcloom, a, b, op))
+    except (ValueError, ZeroDivisionError, NotImplementedError) as exc:
+        return jsonify({"error": str(exc)}), 400
+    except (RuntimeError, TimeoutError, OSError) as exc:
+        return jsonify({"error": str(exc)}), 503
 
 
 @app.route('/report')
@@ -892,8 +816,8 @@ body {
             <div id="calc-detail"></div>
         </div>
         <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:5px;">
-            <button class="cb cb-fn" onclick="calcBtn('sqrt')">&#8730;</button>
-            <button class="cb cb-fn" onclick="calcBtn('pow')">x<sup>y</sup></button>
+            <button class="cb cb-fn" disabled title="Not a verified hardware operation">&#8730;</button>
+            <button class="cb cb-fn" disabled title="Not a verified hardware operation">x<sup>y</sup></button>
             <button class="cb cb-fn" onclick="calcBtn('negate')">&#177;</button>
             <button class="cb cb-clear" onclick="calcBtn('clear')">C</button>
             <button class="cb cb-num" onclick="calcBtn('7')">7</button>
@@ -915,6 +839,7 @@ body {
         </div>
     </div>
 
+    <div class="status-bar" id="capture-status">idle</div>
     <div class="status-bar" id="status">connecting...</div>
 </div>
 
@@ -1107,7 +1032,7 @@ async function calcExec(a, b, op) {
         let disp = '' + r.result;
         if (r.remainder) disp += ' R ' + r.remainder;
         vel.textContent = disp; vel.style.color = '#00ff88';
-        document.getElementById('calc-detail').textContent = 'FPGA silicon' + (r.cycles ? ' | ' + r.cycles + ' folds' : '');
+        document.getElementById('calc-detail').textContent = 'FPGA silicon' + (r.cycles ? ' | ' + r.cycles + ' cycles (folds + final check)' : '');
         CS.input = '' + r.result; CS.opA = null; CS.op = null; CS.fresh = true;
     } catch(e) {
         vel.textContent = 'ERR'; vel.style.color = '#ff4444';

@@ -91,7 +91,7 @@ endmodule
 // ============================================================
 // Carry ripple from LSB to MSB. All combinational.
 // Propagation delay = N * (one full adder delay).
-// For N=9 trits on Zynq-7020: ~10-15 ns.
+// Actual delay requires synthesis, placement, routing and timing measurement.
 // ============================================================
 module arcloom_bt_adder #(
     parameter N = 9   // number of balanced ternary digits
@@ -162,7 +162,7 @@ endmodule
 // ============================================================
 // Balanced Ternary Absolute Value — N digits
 // ============================================================
-// If MSB trit is -1, negate the whole number. Else pass through.
+// The highest NONZERO trit determines the sign (leading zeros are unsigned).
 // Combinational.
 // ============================================================
 module arcloom_bt_abs #(
@@ -172,8 +172,16 @@ module arcloom_bt_abs #(
     output wire [2*N-1:0] abs_out,
     output wire            was_negative
 );
-    wire [1:0] msb_trit = a[2*N-1:2*N-2];
-    assign was_negative = (msb_trit == 2'b10);  // -1
+    reg negative;
+    integer k;
+    // Increasing order: each more significant nonzero digit supersedes the last.
+    always @(*) begin
+        negative = 1'b0;
+        for (k = 0; k < N; k = k + 1)
+            if (a[2*k +: 2] != 2'b00)
+                negative = (a[2*k +: 2] == 2'b10);
+    end
+    assign was_negative = negative;
 
     // Negate all digits
     wire [2*N-1:0] neg_a;

@@ -106,7 +106,7 @@ module arcloom_mathloom_array (
     reg  [23:0] div_a, div_b;
     wire [23:0] div_quotient, div_remainder;
     wire        div_done, div_by_zero;
-    wire [17:0] div_cycles;
+    wire [18:0] div_cycles;
 
     arcloom_mathloom_div div_inst (
         .clk(clk), .rst_n(rst_n),
