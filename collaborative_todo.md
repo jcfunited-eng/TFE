@@ -8543,3 +8543,31 @@ review; only this ledger entry was added, with prior edits preserved.
 - **Computation Boundary**:
   - 100% of sensory transduction (BRAM BSIL-BT ternary encoding), potential field integration ($\Phi_{\text{steer}}$, $\Phi_{\text{speed}}$), and motor signal generation executes in FPGA programmable logic fabric (PL) with zero combinational clock latency.
   - Host PC (PS) execution is strictly bounded to register polling and safety gate interlock.
+
+
+---
+
+### G1 & Chief Architect — PYNQ FPGA Hardware Verification Receipt: MathLoom 12-Trit ALU & Folding Division on Silicon (2026-10-04)
+
+- **Target Specification**: `arcloom_mathloom.v` (Combinational Balanced Ternary ALU) and `arcloom_mathloom_div.v` (Iterative Folding Division).
+- **Physical Verification Platform**: PYNQ-Z2 (Zynq-7020) running `arcloom.bit` via AXI registers `0x04` (Operand A), `0x08` (Operand B / ALU result), `0x0C` (Div trigger / Quotient), and `0x10` (Remainder / Cycle count).
+- **Part 1: MathLoom 12-Trit Combinational ALU Verification (100% PASS)**:
+  - Ternary Addition ($A + B$):
+    - `100 + 42 = 142` -> PASS (Exact 12-trit balanced ternary sum).
+    - `500 + (-200) = 300` -> PASS (Signed addition / positive-negative interference).
+    - `1200 + (-1200) = 0` -> PASS (Exact field cancellation).
+  - Combinational Comparison (`arcloom_bt_compare`):
+    - `100 vs 42` -> `>` -> PASS (`cmp_gt = 1, cmp_eq = 0, cmp_lt = 0`).
+    - `50 vs 50` -> `==` -> PASS (`cmp_eq = 1`).
+    - `10 vs 90` -> `<` -> PASS (`cmp_lt = 1`).
+- **Part 2: MathLoom Folding Division Verification (100% PASS)**:
+  - Hardware Iterative Field Reduction (Folding):
+    - `100 / 5` -> `Quotient: 20`, `Remainder: 0` (Executed in 21 clock cycles, `Ready = 1`).
+    - `100 / 7` -> `Quotient: 14`, `Remainder: 2` (Executed in 15 clock cycles, `Ready = 1`).
+    - `500 / 25` -> `Quotient: 20`, `Remainder: 0` (Executed in 21 clock cycles, `Ready = 1`).
+  - Cycle Count Exactitude: Cycle counts confirm 1 setup cycle + $N$ subtraction folding cycles down to single-cycle precision ($20+1=21$, $14+1=15$).
+  - Hardware Safety Trapping:
+    - `50 / 0` -> `DBZ_FLAG = 1`, `READY = 1` -> PASS (Hardware trapped divide-by-zero without halting or freezing the AXI bus).
+- **Architecture Integrity**:
+  - Zero floating-point units, zero approximation multipliers, and zero software lookup tables.
+  - Complete arithmetic suite runs natively in discrete balanced ternary logic gates on silicon.
