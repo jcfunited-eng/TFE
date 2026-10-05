@@ -4,7 +4,13 @@
 # Run: source C:/Users/joeta/Downloads/create_block_design.tcl
 # ============================================================
 
-set hdl_dir C:/Users/joeta/Downloads
+if {[file exists "C:/Users/joeta/Downloads/arcloom_hdl/arcloom_axi_wrapper.v"]} {
+    set hdl_dir "C:/Users/joeta/Downloads/arcloom_hdl"
+    puts "=== Using HDL directory: C:/Users/joeta/Downloads/arcloom_hdl ==="
+} else {
+    set hdl_dir "C:/Users/joeta/Downloads"
+    puts "=== Using HDL directory: C:/Users/joeta/Downloads ==="
+}
 
 # Create fresh project
 create_project arcloom_pynq2 C:/Users/joeta/arcloom_pynq2 -part xc7z020clg400-1 -force

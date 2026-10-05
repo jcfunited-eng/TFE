@@ -185,3 +185,44 @@ Must NOT have `/etc/init.d/arcloom` present. WiFi password in `/etc/wpa_supplica
 - Sharp sensor on Arduino AR0
 - Battery pack: 4xAA Energizer lithium (~6.9V)
 - DRV8835: wired but non-functional (set aside)
+
+---
+
+## Session: October 5, 2026 (A1 RTL Arithmetic Repair & Clean Vivado 2024.1 Bitstream Build)
+
+42. **Verified Hardware Bitstream Generation from Clean Verilog Sources (Commit 667e24929)**:
+    - Repaired 12-trit balanced ternary signed folding division (`arcloom_mathloom_div.v` magnitude folding and quotient/remainder signs).
+    - Repaired balanced ternary absolute value and sign detection to check highest non-zero trit (`arcloom_mathloom.v`).
+    - Widened division cycle counter to 19 bits (`0x74` readback).
+    - Preserved addition carry across full 13 trits and added dedicated status/ABI register `0x78` (`0x4D4C0001`).
+    - Successfully built fresh project in Vivado 2024.1 via `create_block_design.tcl`.
+    - Prior working hardware backup locked on board:
+      - `arcloom_WORKING_BACKUP.bit`: `62c3cd2d2dbbcf88e835ddcbfe6d7473048c104985e1c59b3f75baf047a44e58`
+      - `arcloom_WORKING_BACKUP.hwh`: `38b6cf6ccae3cf6f9530d606f069f65073947a7b7313015c8451f9498ea348bb`
+    - Newly uploaded candidate bitstream hashes verified on board:
+      - `arcloom.bit`: `1672b17a1892ccf4826381e0a15b0eb89743d9f58544769e8f0c7f28df3eaa59`
+      - `arcloom.hwh`: `84f2b286c8eff02e045c54d9261834440526b9ea71b7a9b6a99fd7e605bf810b`
+43. **Candidate Bitstream Re-synthesis & Board Receipt with Repaired RTL (October 5, 2026 11:57 AM Build)**:
+    - Root cause of `-20 / 3` anomaly resolved: previous candidate bitstream was built from stale June 14 zip archive that contained un-repaired divider.
+    - Verified clean repackaging of `arcloom_hdl.zip` (sha256 `1c1c2808...`) matching commit `667e24929` sources 1:1, verified via 26,322 simulation checks.
+    - Full clean Vivado 2024.1 synthesis, implementation, and bitstream generation completed at 11:57 AM.
+    - Fresh hardware candidate uploaded to board at `/home/xilinx/jupyter_notebooks/ArcLoom/` and confirmed via on-board sha256sum:
+      - `arcloom.bit`: `c0cf9c3179affe9177ab96ec5282c0c88d49dd73ee8d39c13771ae90c6151691`
+      - `arcloom.hwh`: `ff4f8150b901f1f9600bd307bafd7ff78ac9750d94e72608deab4b0fde316561`
+44. **Physical Hardware Verification of Repaired MathLoom Arithmetic in Silicon (October 5, 2026)**:
+    - Root cause of stale synthesis fully resolved: `Downloads/arcloom_hdl` files were moved to `Downloads/`, and Vivado 2024.1 re-synthesized the genuine October 4 sources into `arcloom_bd_wrapper.bit`.
+    - Hardware ABI verification on PYNQ-Z2 silicon:
+      - Register `0x78` returned `0x4D4C0001` (MathLoom ABI v1 ratified in hardware).
+    - Physical silicon division execution on negative operand (`-20 / 3`):
+      - Status register `0x7C`: `0x1` (done asserted, busy deasserted, dbz deasserted).
+      - Quotient register `0x0C`: `0x2000024` -> decoded balanced-ternary quotient `q = -6`.
+      - Remainder register `0x10`: `0x7000009` -> decoded balanced-ternary remainder `r = -2`.
+      - Cycle counter register `0x74`: `7` cycles (exact folding bound: `|-6| + 1 = 7`).
+      - Identity verified in silicon: `A = B * q + r` -> `-20 = 3 * (-6) + (-2)`, with `|r| < |B|` and `sign(r) == sign(A)`.
+    - Cryptographic receipt of verified working bitstream on PYNQ board:
+      - `arcloom.bit`: `265d13cc53cbb562422faf5e2528593641375f0b090488bc3a1c76448519a954`
+      - `arcloom.hwh`: `3d04622a6d966e1c9d02a31200362f0d1a08d3e951e5263e28518f8cff805c32`
+    - Live iPad / browser web display server verification (`http://10.0.0.167:5000`):
+      - `loom_display_server.py` (SHA-256 `7feea5aabd84a254b9584250f41afe435924304b0f863d456e81554249d987aa`) active on board.
+      - User entered `-20 ÷ 3 =`: rendered `-6 R -2` with subtitle `FPGA silicon | 7 cycles (folds + final check)`.
+      - Non-hardware operations (`sqrt` and `pow`) confirmed locked out and disabled.

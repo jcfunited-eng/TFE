@@ -42,3 +42,27 @@ A hardware receipt must bind the executed test, source revision, bit/hwh hashes,
 board identity, exact input domain, raw outputs and pass/fail results. Report
 behavioral simulation, actual RTL simulation, synthesis/timing, and physical
 measurements separately. A known failing or unsupported case remains visible.
+
+## Silicon Hardware Receipt (2026-10-05, PYNQ-Z2 Physical Board)
+
+**Corrected silicon verified in physical hardware on PYNQ-Z2 (XC7Z020-1CLG400C).**
+Fresh synthesis and implementation conducted via Xilinx Vivado 2024.1 from verified Verilog sources (commit `667e24929`). Candidate bitstream and hardware handoff loaded into fabric and tested via direct memory-mapped register reads and writes over AXI.
+
+- **Hardware ABI Identity**: Register `0x78` readback = `0x4D4C0001` (MathLoom ABI v1 ratified in physical silicon).
+- **Physical Signed Division Test**: Numerator $A = -20$, Denominator $B = 3$.
+  - Register `0x04` write: `0x99` (balanced-ternary $-20$).
+  - Register `0x08` write: `0x04` (balanced-ternary $+3$).
+  - Register `0x0C` write: `0x10000` (assert bit 16 division trigger).
+  - Register `0x7C` readback (status): `0x1` (done asserted, div_by_zero = 0, busy = 0).
+  - Register `0x0C` readback (quotient): `0x2000024` -> decoded balanced ternary: $q = -6$.
+  - Register `0x10` readback (remainder): `0x7000009` -> decoded balanced ternary: $r = -2$.
+  - Register `0x74` readback (cycles): `7` cycles (exact folding terminal count: $|-6| + 1 = 7$).
+  - Exact Euclidean division identity verified in silicon: $-20 = 3 \times (-6) + (-2)$, with $|-2| < |3|$ and $\text{sgn}(-2) = \text{sgn}(-20)$.
+- **Cryptographic Hardware Proof**:
+  - `arcloom.bit` SHA-256: `265d13cc53cbb562422faf5e2528593641375f0b090488bc3a1c76448519a954`
+  - `arcloom.hwh` SHA-256: `3d04622a6d966e1c9d02a31200362f0d1a08d3e951e5263e28518f8cff805c32`
+- **Live End-to-End Web Display Verification (iPad / Browser)**:
+  - Display server running live at `http://10.0.0.167:5000` from `loom_display_server.py` (SHA-256 `7feea5aa...`).
+  - Web UI calculation of `-20 ÷ 3 =` directly renders `-6 R -2`.
+  - Detailed telemetry readout: `FPGA silicon | 7 cycles (folds + final check)`.
+  - Non-verified hardware operations (`sqrt` and `pow`) locked out and disabled in UI.
