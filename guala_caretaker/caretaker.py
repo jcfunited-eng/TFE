@@ -82,6 +82,8 @@ MEAL_DELIVERY_CYCLE = ("apple-delivery", "bread-delivery", "milk-delivery")
 DIURNAL_CYCLE_TICKS = 113_600
 PLAYPEN_CHALLENGE_TICKS = 14_200
 LADDER_CHALLENGE_TICKS = 14_200
+REFRIGERATOR_CHALLENGE_TICKS = 14_200
+MILK_TABLE_CHALLENGE_TICKS = 14_200
 CORE_MICROGRAMS = 2_000
 TACTILE_OBJECTS = ("cup", "stacking-rings", "play-ball", "toy-bear")
 
@@ -209,14 +211,27 @@ def card_focal_base64(png_path: str) -> str | None:
 
 
 def wav_blocks(path: str) -> list[bytes]:
-    w = wave.open(path)
-    if (w.getframerate(), w.getnchannels(), w.getsampwidth()) != (16000, 1, 2):
-        raise ValueError(f"{path}: not 16kHz mono s16")
-    raw = w.readframes(w.getnframes())
-    blocks = []
-    for i in range(0, len(raw) - 7999, 8000):
-        blocks.append(raw[i:i + 8000])
-    return blocks or [raw.ljust(8000, b"\0")]
+    """Play all recorded samples; only confirmed EOF is followed by silence.
+
+    Each returned block spans250ms. The final block preserves the recording's
+    exact sample duration, then carries zero pressure to that interval's end.
+    An exact multiple has no extra block; an empty file retains one quiet block.
+    """
+    with wave.open(path, "rb") as source:
+        if (source.getframerate(), source.getnchannels(), source.getsampwidth()) != (16000, 1, 2):
+            raise ValueError(f"{path}: not 16kHz mono s16")
+        frames = source.getnframes()
+        # Reading one frame beyond the declared whole frames exposes an odd
+        # data-byte tail, which wave.getnframes() otherwise rounds down.
+        raw = source.readframes(frames + 1)
+    if len(raw) % 2:
+        raise ValueError(f"{path}: PCM ends inside a signed16 sample")
+    if len(raw) != frames * 2:
+        raise ValueError(f"{path}: PCM bytes differ from the declared frame count")
+    if not raw:
+        return [b"\0" * 8000]
+    return [raw[offset:offset + 8000].ljust(8000, b"\0")
+            for offset in range(0, len(raw), 8000)]
 
 
 def _sha256(path: str) -> str:
@@ -1193,6 +1208,60 @@ def maybe_ladder_challenge(o: dict, st: dict) -> None:
             json.dump(st, f)
 
 
+def maybe_refrigerator_challenge(o: dict, st: dict) -> None:
+    """During AFTERNOON_CHALLENGE: Caregiver approaches the refrigerator at (700, 2000)
+    in the kitchen, demonstrating opening and bread-slice retrieval affordances."""
+    if asleep(o) or is_seated_in_high_chair(o) or st.get("seated_for_meal"):
+        return
+    epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
+    if epoch != "AFTERNOON_CHALLENGE":
+        return
+    tick = int(o.get("live_tick") or 0)
+    if st.get("refrigerator_next_tick") is not None and tick < int(st["refrigerator_next_tick"]):
+        return
+    st["refrigerator_next_tick"] = tick + REFRIGERATOR_CHALLENGE_TICKS
+    res = present_food("refrigerator-challenge")
+    if res is not None:
+        pres = _extract_presentation(res)
+        presented = pres.get("presented", False)
+        if presented:
+            impact_pcm = material_impact_pcm("wood", intensity=0.85)
+            sing_block(impact_pcm)
+            record_story_moment(st, "visual", "tactile", "proprioceptive")
+            log(f"challenge: refrigerator cold-storage opening affordance challenge presented at tick {tick} — steps={len(pres.get('steps') or [])}")
+        else:
+            log(f"challenge: refrigerator affordance challenge refused at tick {tick} — steps={len(pres.get('steps') or [])}")
+        with open(STATE, "w") as f:
+            json.dump(st, f)
+
+
+def maybe_milk_table_challenge(o: dict, st: dict) -> None:
+    """During AFTERNOON_CHALLENGE: Caregiver approaches the dining table at (8400, 2500),
+    demonstrating reaching tabletop milk bottle affordance."""
+    if asleep(o) or is_seated_in_high_chair(o) or st.get("seated_for_meal"):
+        return
+    epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
+    if epoch != "AFTERNOON_CHALLENGE":
+        return
+    tick = int(o.get("live_tick") or 0)
+    if st.get("milk_table_next_tick") is not None and tick < int(st["milk_table_next_tick"]):
+        return
+    st["milk_table_next_tick"] = tick + MILK_TABLE_CHALLENGE_TICKS
+    res = present_food("milk-table-challenge")
+    if res is not None:
+        pres = _extract_presentation(res)
+        presented = pres.get("presented", False)
+        if presented:
+            impact_pcm = material_impact_pcm("ceramic", intensity=0.85)
+            sing_block(impact_pcm)
+            record_story_moment(st, "visual", "tactile", "proprioceptive")
+            log(f"challenge: dining table reaching affordance challenge presented at tick {tick} — steps={len(pres.get('steps') or [])}")
+        else:
+            log(f"challenge: dining table affordance challenge refused at tick {tick} — steps={len(pres.get('steps') or [])}")
+        with open(STATE, "w") as f:
+            json.dump(st, f)
+
+
 def is_seated_in_high_chair(o: dict) -> bool:
     """Physical verification: True when Guala's body coordinates sit within the high-chair seating disc."""
     emb = (o.get("last_occurrence") or {}).get("embodiment") or {}
@@ -1314,9 +1383,17 @@ def maybe_feed(o: dict, st: dict) -> None:
                 json.dump(st, f)
             return
 
-    # 4. Child is NOT in high chair: check interval and hunger eligibility
+    # 4. Child is NOT in high chair: check interval, demand syntax, and hunger eligibility
     # Hunger takes biological precedence over non-essential activities.
-    if tick < (st.get("meal_tick") or 0) + MEAL_TICKS:
+    lo = o.get("last_occurrence") or {}
+    said = lo.get("said")
+    vocal_demand = said in ("pah0", "lah0") or (isinstance(said, str) and ("pah" in said or "lah" in said))
+    if vocal_demand and hungry:
+        log(f"demand: recognized domestic demand syntax '{said}' under metabolic hunger deficit ({deficit[0]}/{deficit[1]}); prioritizing immediate meal presentation")
+        st["meal_retry"] = True
+        st["meal_retry_tick"] = 0
+
+    if tick < (st.get("meal_tick") or 0) + MEAL_TICKS and not (vocal_demand and hungry):
         retry_active = bool(st.get("meal_retry"))
         retry_tick = int(st.get("meal_retry_tick") or 0)
         if not retry_active and hungry:
@@ -1660,6 +1737,8 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                     maybe_stroll(o, st)
                     maybe_playpen_challenge(o, st)
                     maybe_ladder_challenge(o, st)
+                    maybe_refrigerator_challenge(o, st)
+                    maybe_milk_table_challenge(o, st)
                     maybe_read(o, st)
                     maybe_music(o, st)
                     maybe_patrol_and_accompany(o, st)

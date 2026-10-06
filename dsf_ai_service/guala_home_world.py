@@ -384,7 +384,6 @@ HOME_SHAPES = {
     "desk":             ((1_200,   600,   750),      0,     0),
     "desk-chair":       ((  400,   400,   850),      0,     0),
     "wall-art-shapes":  ((   40,   560,   760),      0, 1_300),   # framed pictures flat on the west wall
-    "wall-art-weather": ((   40,   560,   760),      0, 1_300),
     # kitchen
     "kitchen-counter":  ((  700,   700,   900),      0,     0),
     "pantry":           ((  490,   490, 1_800),      0,     0),
@@ -395,15 +394,11 @@ HOME_SHAPES = {
     "dining-table":     ((1_200,   700,   750),      0,     0),
     "dining-chair":     ((  360,   360,   850),      0,     0),
     "dining-chair-south": ((360,   360,   850),      0,     0),
-    "sideboard":        ((  800,   400,   850),      0,     0),
     # daddy's room
-    "daddys-armchair":  ((  630,   630,   800),      0,     0),
     "daddys-desk":      ((  560,   560,   750),      0,     0),
     "daddys-chair":     ((  360,   360,   850),      0,     0),
-    "daddys-book":      ((  160,   120,    40),      0,     0),
     # library
     "shelf-a":          ((  700,   300, 1_800),      0,     0),
-    "shelf-b":          ((  700,   300, 1_800),      0,     0),
     "book":             ((  190,   140,    40),      0,     0),
     "book-peter-rabbit": ((  190,   140,    40),      0,     0),
     "book-wind-willows": ((  190,   140,    40),      0,     0),
@@ -416,8 +411,6 @@ HOME_SHAPES = {
     "radio":            ((  200,   120,   150),      0,     0),
     # the wc's room
     "bath-tub":         ((1_000,   600,   550),      0,     0),
-    "wash-basin":       ((  420,   420,   850),      0,     0),
-    "bath-mat":         ((  490,   490,    20),      0,     0),
     "bath-towel":       ((  280,   280,    40),      0,     0),
     # backyard
     "sandbox":          ((1_550, 1_550,   200),      0,     0),
@@ -438,7 +431,7 @@ HOME_SHAPES = {
 
 # Boxes wear their paint flat (a sofa, a table, a tub: one material, its faces told
 # apart by the light) except the things whose declared pattern is the point of them.
-PATTERNED_BOXES = ("wall-art-shapes", "wall-art-weather", "television", "book", "daddys-book", "book-peter-rabbit", "book-wind-willows", "book-aesops-fables", "book-mother-goose")
+PATTERNED_BOXES = ("wall-art-shapes", "television", "book", "book-peter-rabbit", "book-wind-willows", "book-aesops-fables", "book-mother-goose")
 
 
 # Things built of parts:
@@ -545,19 +538,14 @@ HOME_PARTS = {
                  *(_P("cylinder", sx, sy, 100, 60, 60, 200, _WOOD) for sx in (-700, 700) for sy in (-420, 420))),
     "sofa":     (_P("box", 0, 0, 250, 1_700, 800, 500), _P("box", 0, -300, 650, 1_700, 200, 300),
                  _P("box", -800, 0, 350, 100, 800, 700), _P("box", 800, 0, 350, 100, 800, 700)),
-    "daddys-armchair": (_P("box", 0, 0, 250, 630, 630, 500), _P("box", 0, -240, 600, 630, 150, 300),
-                        _P("box", -270, 0, 350, 90, 630, 700), _P("box", 270, 0, 350, 90, 630, 700)),
     "television": (_P("box", 0, 0, 550, 1_000, 60, 600, _DARK), _P("box", 0, 0, 125, 400, 400, 250, _WOOD)),   # screen on a stand
     "shelf-a":  (_P("box", -330, 0, 900, 40, 300, 1_800), _P("box", 330, 0, 900, 40, 300, 1_800),
-                 *(_P("box", 0, 0, z, 700, 300, 30) for z in (300, 750, 1_200, 1_650))),
-    "shelf-b":  (_P("box", -330, 0, 900, 40, 300, 1_800), _P("box", 330, 0, 900, 40, 300, 1_800),
                  *(_P("box", 0, 0, z, 700, 300, 30) for z in (300, 750, 1_200, 1_650))),
     "refrigerator": (_P("box", 0, 0, 900, 630, 630, 1_800), _P("box", 0, -330, 1_000, 30, 30, 500, _DARK)),   # a handle
     "stove":    (_P("box", 0, 0, 450, 560, 560, 900), *(_P("cylinder", sx, sy, 905, 160, 160, 10, _DARK) for sx in (-140, 140) for sy in (-140, 140))),
     "kitchen-counter": (_P("box", 0, 0, 450, 700, 700, 900),),
     "pantry":   (_P("box", 0, 0, 900, 490, 490, 1_800), _P("box", 0, -250, 1_000, 20, 20, 300, _DARK)),
     "bath-tub": (_P("box", 0, 0, 275, 1_000, 600, 550), _P("box", 0, 0, 560, 800, 400, 20, _DARK)),          # the water's dark top
-    "wash-basin": (_P("cylinder", 0, 0, 350, 120, 120, 700), _P("cylinder", 0, 0, 800, 420, 420, 100)),
     "tree-oak": (_P("cylinder", 0, 0, 900, 240, 240, 1_800, _WOOD), _P("sphere", 0, 0, 2_400, 1_200, paint=_FOLIAGE_OAK)),
     "tree-pine": (_P("cylinder", 0, 0, 800, 200, 200, 1_600, _WOOD), _P("sphere", 0, 0, 2_000, 900, paint=_FOLIAGE_PINE), _P("sphere", 0, 0, 2_700, 600, paint=_FOLIAGE_PINE)),
     "tree-apple": (_P("cylinder", 0, 0, 700, 200, 200, 1_400, _WOOD), _P("sphere", 0, 0, 1_800, 1_000, paint=_FOLIAGE_APPLE),
@@ -580,7 +568,6 @@ HOME_LAMP_HEIGHTS = {
     "daddys-lamp":    750,     # the reading lamp on the desk
     "bath-lamp":    1_400,     # the vanity light
     "lamp":         1_300,     # the library's floor lamp
-    "glow-stars":   2_300,     # on the ceiling above her bed
 }
 
 HOME_DEPARTED = ("art-arch", "art-circle", "berries", "bread", "carrot", "cheese", "kitchen-cabinet", "milk", "plate")
@@ -966,14 +953,14 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
     ]
     # (id, absolute x, y, radius, mass, reflectance) — clearances are
     # pre-checked against every neighbouring radius and wall.
-    # Exactly 59 items total: guarantees 4 slots of headroom below 64 ceiling.
+    # Fresh-world counts are tested separately from the sensory aperture.
+    # Restoring a lived world does not prune its objects to this template.
     furniture = (
         # --- 1. KITCHEN (12 items) ---
         ("pantry",            700,    600, 350, 25_000, (320_000, 280_000, 250_000, 220_000, 200_000, 180_000)),
         ("refrigerator",      700,  2_000, 450, 60_000, (900_000, 900_000, 900_000, 900_000, 900_000, 900_000)),
         ("kitchen-counter", 1_000,  4_500, 500, 40_000, (180_000, 180_000, 180_000, 180_000, 180_000, 180_000)),
         ("pan",             1_800,  4_600, 130,    900, (50_000,   50_000,  50_000,  50_000,  50_000,  50_000)),
-        ("pot",             2_200,  4_600, 140,  1_200, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
         ("stove",           1_600,    600, 400, 45_000, (50_000,   50_000,  50_000,  50_000,  50_000,  50_000)),
         ("bowl",            2_400,    600, 150,    700, (920_000, 920_000, 920_000, 920_000, 920_000, 920_000)),
         ("cup",             4_800,    600, 100,    300, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
@@ -981,30 +968,25 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         ("table",           3_500,  2_500, 600, 28_000, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
         ("kitchen-lamp",    1_000,  3_500, 180,  2_500, (900_000, 850_000, 750_000, 600_000, 500_000, 450_000)),
         ("high-chair",       3_500,  1_500, 350,  8_000, (820_000, 780_000, 700_000, 620_000, 560_000, 520_000)),
-        ("bread-slice",      4_800,  3_800,  60,     60, (750_000, 550_000, 350_000, 220_000, 150_000, 100_000)),
+        ("bread-slice",      1_300,  2_000,  60,     60, (750_000, 550_000, 350_000, 220_000, 150_000, 100_000)),
 
-        # --- 2. DINING ROOM (5 items) ---
+        # --- 2. DINING ROOM (4 items) ---
         ("dining-table",       9_500, 2_500, 700, 35_000, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
         ("dining-chair",       9_500, 3_600, 260,  6_000, (50_000,   50_000,  50_000,  50_000,  50_000,  50_000)),
-        ("sideboard",         11_300, 4_200, 450, 38_000, (220_000, 180_000, 150_000, 130_000, 120_000, 110_000)),
         ("dining-lamp",       11_400,   800, 220,  4_000, (900_000, 850_000, 750_000, 600_000, 500_000, 450_000)),
         ("bottle-milk",       8_000,  3_500,  50,    250, (920_000, 920_000, 920_000, 900_000, 880_000, 850_000)),
 
-        # --- 3. DADDY'S ROOM (5 items) ---
+        # --- 3. DADDY'S ROOM (3 items) ---
         ("daddys-desk",       13_800, 4_300, 400, 36_000, (160_000, 120_000, 100_000,  80_000,  70_000,  60_000)),
         ("daddys-chair",      13_800, 3_400, 260,  8_000, (80_000,   60_000,  50_000,  50_000,  50_000,  50_000)),
-        ("daddys-book",       14_600, 4_300, 120,    900, (850_000, 850_000, 850_000, 850_000, 850_000, 850_000)),
         ("daddys-lamp",       15_300, 3_500, 160,  2_500, (880_000, 850_000, 780_000, 700_000, 650_000, 620_000)),
-        ("daddys-armchair",   13_000, 1_000, 450, 22_000, (120_000,  90_000,  80_000,  70_000,  60_000,  50_000)),
 
-        # --- 4. WC'S ROOM (5 items) ---
+        # --- 4. WC'S ROOM (3 items) ---
         ("bath-tub",          18_600, 4_100, 600, 55_000, (950_000, 950_000, 950_000, 950_000, 950_000, 950_000)),
-        ("wash-basin",        17_000, 4_400, 300, 22_000, (920_000, 920_000, 920_000, 920_000, 920_000, 920_000)),
         ("bath-lamp",         17_000, 3_200, 150,  1_800, (850_000, 800_000, 700_000, 550_000, 450_000, 400_000)),
         ("bath-towel",        17_000, 3_700, 200,    800, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
-        ("bath-mat",          18_600, 3_000, 350,  1_500, (80_000,   80_000,  80_000,  80_000,  80_000,  80_000)),
 
-        # --- 5. HER ROOM (15 items) ---
+        # --- 5. HER ROOM (13 items) ---
         ("bed",                  900, 9_100, 900, 40_000, (850_000, 850_000, 850_000, 850_000, 850_000, 850_000)),
         ("pillow",               900, 9_100, 260,  1_200, (920_000, 920_000, 920_000, 920_000, 920_000, 920_000)),
         ("blanket",              900, 8_500, 300,    900, (120_000, 120_000, 120_000, 120_000, 120_000, 120_000)),
@@ -1014,16 +996,13 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         ("desk-chair",         3_800, 5_700, 320,  6_000, (50_000,   50_000,  50_000,  50_000,  50_000,  50_000)),
         ("curtains",           2_800, 9_750, 250, 15_000, (920_000, 880_000, 820_000, 780_000, 740_000, 700_000)),
         ("wall-art-shapes",      320, 6_500, 310, 10_000, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
-        ("wall-art-weather",     320, 7_500, 310, 10_000, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
-        ("glow-stars",         2_200, 9_700, 120,    300, (940_000, 930_000, 700_000, 400_000, 300_000, 260_000)),
         ("playpen",            4_200, 8_800, 450, 15_000, (840_000, 800_000, 720_000, 640_000, 580_000, 540_000)),
         ("stacking-rings",       750, 5_600, 140,    600, (920_000, 300_000, 150_000, 650_000, 800_000, 850_000)),
         ("toy-blocks",         1_020, 5_600, 120,    480, (880_000, 820_000, 400_000, 250_000, 200_000, 180_000)),
         ("play-ball",          1_250, 5_600,  90,    200, (950_000, 920_000, 200_000, 120_000, 100_000,  80_000)),
 
-        # --- 6. LIBRARY (4 items) ---
+        # --- 6. LIBRARY (3 items) ---
         ("shelf-a",           10_000, 9_500, 400, 30_000, (180_000, 180_000, 180_000, 180_000, 180_000, 180_000)),
-        ("shelf-b",           12_500, 9_500, 400, 30_000, (180_000, 180_000, 180_000, 180_000, 180_000, 180_000)),
         ("book",              12_000, 7_500, 140,    900, (850_000, 850_000, 850_000, 850_000, 850_000, 850_000)),
         ("lamp",              13_500, 5_400, 180,  2_200, (880_000, 850_000, 780_000, 700_000, 650_000, 620_000)),
 
@@ -1052,8 +1031,8 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
     digestible_mass_of = {
         "apple": 140_000,
         "garden-apple": 140_000,
-        "bread-slice": 50_000,
-        "bottle-milk": 20_000,
+        "bread-slice": 100_000,
+        "bottle-milk": 100_000,
         "bowl": 30_000,
     }
     material_of = {
@@ -1075,22 +1054,17 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         "dining-table":       ((0, 0, 0, 800, 50, 0, 0, 0),    (0, 0, 0, 1_500, 0),        294_000, 40_000, 40, 20_000),
         "dining-chair":       ((0, 0, 0, 200, 400, 0, 0, 0),   (0, 0, 0, 1_500, 0),        294_000, 300_000, 40, 26_000),
         "dining-chair-south": ((0, 0, 0, 200, 400, 0, 0, 0),   (0, 0, 0, 1_500, 0),        294_000, 300_000, 40, 26_000),
-        "sideboard":          ((0, 0, 0, 750, 50, 0, 0, 0),    (0, 0, 0, 1_400, 0),        294_000, 35_000, 30, 18_000),
         "dining-lamp":        ((0, 0, 0, 0, 20, 0, 260, 0),    (0, 0, 0, 400, 0),          310_000, 20_000, 10, 2_000),
 
         # Daddy's Room
         "daddys-desk":        ((0, 0, 0, 900, 50, 0, 0, 0),    (0, 0, 0, 1_500, 0),        294_000, 30_000, 25, 15_000),
         "daddys-chair":       ((0, 0, 0, 100, 600, 0, 0, 0),   (0, 0, 0, 1_000, 0),        294_000, 550_000, 50, 25_000),
-        "daddys-book":        ((0, 0, 0, 60, 40, 1_200, 0, 0), (0, 0, 0, 2_000, 0),        294_000, 60_000, 60, 18_000),
         "daddys-lamp":        ((0, 0, 0, 0, 10, 0, 200, 0),    (0, 0, 0, 300, 0),          312_000, 15_000, 8, 2_000),
-        "daddys-armchair":    ((0, 0, 0, 80, 1_400, 0, 0, 0),  (0, 200, 0, 700, 0),        294_000, 720_000, 380, 45_000),
 
         # WC's Room
         "bath-tub":           ((0, 0, 0, 0, 0, 0, 0, 150),     (0, 0, 0, 100, 0),          291_000, 5_000, 2, 15_000),
-        "wash-basin":         ((0, 0, 0, 0, 0, 0, 0, 150),     (0, 0, 0, 100, 0),          291_000, 5_000, 2, 20_000),
         "bath-lamp":          ((0, 0, 0, 0, 20, 0, 260, 0),    (0, 0, 0, 400, 0),          310_000, 20_000, 10, 2_000),
         "bath-towel":         ((0, 0, 0, 0, 800, 0, 0, 400),   (0, 0, 0, 500, 0),          294_000, 850_000, 350, 45_000),
-        "bath-mat":           ((0, 0, 0, 0, 1_200, 0, 0, 100), (0, 0, 0, 500, 0),          294_000, 750_000, 500, 60_000),
 
         # Her Room
         "bed":                ((0, 0, 0, 0, 900, 0, 0, 120),   (0, 300, 0, 800, 0),        294_000, 600_000, 200, 55_000),
@@ -1102,8 +1076,6 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         "desk-chair":         ((0, 0, 0, 200, 400, 0, 0, 0),   (0, 0, 0, 1_500, 0),        294_000, 300_000, 40, 26_000),
         "curtains":           ((0, 0, 0, 0, 700, 0, 0, 100),   (0, 0, 0, 600, 0),          293_000, 800_000, 120, 45_000),
         "wall-art-shapes":    ((0, 0, 0, 30, 20, 700, 0, 0),   (0, 0, 0, 1_800, 0),        294_000, 60_000, 50, 18_000),
-        "wall-art-weather":   ((0, 0, 0, 30, 20, 700, 0, 0),   (0, 0, 0, 1_800, 0),        294_000, 60_000, 50, 18_000),
-        "glow-stars":         ((0, 0, 0, 0, 10, 0, 120, 0),    (0, 0, 0, 900, 0),          294_000, 30_000, 10, 3_000),
         "playpen":            ((0, 0, 0, 500, 300, 0, 0, 0),   (0, 0, 0, 1_200, 0),        294_000, 180_000, 35, 20_000),
         "stacking-rings":     ((0, 0, 0, 0, 100, 0, 0, 0),     (0, 0, 0, 500, 0),          294_000, 250_000, 15, 10_000),
         "toy-blocks":         ((0, 0, 0, 800, 100, 0, 0, 0),   (0, 0, 0, 800, 0),          294_000, 200_000, 20, 12_000),
@@ -1111,7 +1083,6 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
 
         # Library
         "shelf-a":            ((0, 0, 0, 900, 70, 300, 0, 0),  (0, 0, 0, 1_500, 0),        294_000, 40_000, 45, 20_000),
-        "shelf-b":            ((0, 0, 0, 900, 70, 300, 0, 0),  (0, 0, 0, 1_500, 0),        294_000, 40_000, 45, 20_000),
         "book":               ((0, 0, 0, 40, 30, 900, 0, 0),   (0, 0, 0, 2_000, 0),        294_000, 60_000, 60, 18_000),
         "book-peter-rabbit":  ((0, 0, 0, 40, 30, 900, 0, 0),   (0, 0, 0, 2_000, 0),        294_000, 60_000, 60, 18_000),
         "book-wind-willows":  ((0, 0, 0, 40, 30, 900, 0, 0),   (0, 0, 0, 2_000, 0),        294_000, 60_000, 60, 18_000),
@@ -1138,8 +1109,8 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         "tree-apple":         ((0, 0, 0, 2_200, 0, 0, 0, 0),    (0, 0, 0, 1_800, 0),        288_000, 30_000, 700, 140_000),
         "garden-apple":       ((4_200, 0, 0, 0, 0, 0, 0, 0),   (140_000, 200, 26_000, 900, 300), 292_000, 120_000, 15, 850_000),
         "garden-ladder":      ((0, 0, 0, 800, 50, 0, 0, 0),    (0, 0, 0, 1_500, 0),        294_000, 40_000, 45, 15_000),
-        "bread-slice":        ((1_200, 100, 100, 0, 0, 0, 0, 800), (200, 800, 100, 0, 500), 294_000, 350_000, 40, 400_000),
-        "bottle-milk":        ((0, 200, 500, 0, 0, 0, 0, 100), (0, 0, 200, 0, 3_000), 288_000, 80_000, 10, 850_000),
+        "bread-slice":        ((1_200, 100, 100, 0, 0, 0, 0, 800), (200, 800, 100, 0, 500), 294_000, 350_000, 40, 100_000),
+        "bottle-milk":        ((0, 200, 500, 0, 0, 0, 0, 100), (0, 0, 1_000, 0, 19_000), 288_000, 80_000, 10, 100_000),
         "tv-remote":          ((0, 0, 0, 0, 50, 0, 250, 0),    (0, 0, 0, 200, 0),          294_000, 60_000, 120, 2_000),
         "stroller-carriage":  ((0, 0, 0, 0, 0, 0, 0, 50),     (0, 0, 0, 300, 0),          294_000, 150_000, 25, 25_000),
         "garden-flowers":     ((0, 0, 0, 100, 150, 0, 0, 0),    (0, 0, 0, 1_500, 0),        291_000, 180_000, 30, 200_000),
@@ -1151,7 +1122,6 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
     reservoir_seconds = 864_000
     emission_of = {
         "lamp":            (900_000, 850_000, 750_000, 600_000, 500_000, 450_000),
-        "glow-stars":      (120_000, 120_000, 100_000, 50_000, 20_000, 10_000),
         "daddys-lamp":     (900_000, 850_000, 750_000, 600_000, 500_000, 450_000),
         "dining-lamp":     (900_000, 850_000, 750_000, 600_000, 500_000, 450_000),
         "kitchen-lamp":    (900_000, 850_000, 750_000, 600_000, 500_000, 450_000),
@@ -1161,7 +1131,6 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
     shapes_of = {
         "desk": ("box", (1_200, 600, 750), 0, 0),
         "wall-art-shapes": ("box", (50, 600, 760), 0, 1_300),
-        "wall-art-weather": ("box", (50, 600, 760), 0, 1_300),
         "curtains": ("sphere", (), 0, 1_200),
         "pillow": ("sphere", (), 0, 350),
         "blanket": ("sphere", (), 0, 350),
@@ -1843,9 +1812,11 @@ def nocturnal_house_tidying(authority: Any) -> None:
 
     1. Resets the television broadcast back to Channel 0 (Boring static & 60 Hz hum).
     2. Tidies tv-remote, stroller-carriage, and garden fauna perches.
-    3. Reshelves unheld library books to shelf-a and shelf-b within child reach for wakeful selection.
-    4. Clears stray floor apples and preserves objects currently held by Guala or caretaker.
+    3. Reshelves unheld library books to shelf-a within child reach for wakeful selection.
+    4. Clears only exhausted floor food and preserves remaining or busy material.
     """
+    from dsf_ai_service.guala_caretaker_hand import _is_core
+
     with _world_thermal_transaction(authority):
         broadcast = get_tv_broadcast(authority)
         old_ch = broadcast.channel
@@ -1901,24 +1872,16 @@ def nocturnal_house_tidying(authority: Any) -> None:
                         else:
                             updated.append(obj)
                     elif (obj.object_id.startswith("apple") or obj.object_id.startswith("bread") or obj.object_id == "bottle-milk") and obj.position is not None:
-                        # Clear stray abandoned floor depleted foods/empty containers during nocturnal house tidying
-                        if obj.object_id in busy_object_ids:
+                        # A floor item leaves only after its oral material is exactly exhausted.
+                        if obj.object_id in busy_object_ids or not _is_core(obj):
                             updated.append(obj)
-                        else:
-                            mat = obj.material
-                            tastant = sum(mat.tastant_mass_micrograms) if (mat and hasattr(mat, "tastant_mass_micrograms")) else 0
-                            dig = getattr(mat, "digestible_mass_micrograms", 0) if mat else 0
-                            if tastant > 10 or dig > 10:
-                                updated.append(obj)
-                            else:
-                                continue
                     else:
                         updated.append(obj)
                 # Ensure nourishing food is restocked in the pantry / kitchen / dining during nocturnal reset
                 _regions, _portals, declared_templates = _home_rooms_and_things()
                 template_map = {item.object_id: item for item in declared_templates}
                 current_ids = {obj.object_id for obj in updated}
-                for food_id in ("apple", "bread-slice", "bottle-milk"):
+                for food_id in ("apple", "bread-slice", "bottle-milk", "garden-apple"):
                     if food_id not in current_ids and food_id not in busy_object_ids and food_id in template_map:
                         updated.append(template_map[food_id])
                 remaining_ids = {obj.object_id for obj in updated}
@@ -2420,7 +2383,6 @@ HER_ROOM_LAYOUT = {
     "desk-chair": PositionMM(3800, 5700, 0),
     "curtains": PositionMM(2800, 9750, 0),
     "wall-art-shapes": PositionMM(320, 6500, 0),
-    "wall-art-weather": PositionMM(320, 7500, 0),
     "playpen": PositionMM(4200, 8800, 0),
     "night-light": PositionMM(500, 8600, 0),
     "toy-chest": PositionMM(1000, 5600, 0),
@@ -2443,7 +2405,6 @@ HER_ROOM_ELEVATIONS = {
     "blanket": 350,
     "curtains": 1200,
     "wall-art-shapes": 1300,
-    "wall-art-weather": 1300,
     "stacking-rings": 450,
     "toy-blocks": 450,
     "play-ball": 450,
@@ -2451,7 +2412,6 @@ HER_ROOM_ELEVATIONS = {
 HER_ROOM_MASSES = {
     "curtains": 15_000,
     "wall-art-shapes": 10_000,
-    "wall-art-weather": 10_000,
     "playpen": 15_000,
     "toy-chest": 8_000,
     "toy-blocks": 480,
@@ -2534,53 +2494,70 @@ def renovate_her_room_layout(authority: Any) -> bool:
         return True
 
 
-def replenish_home_food(authority: Any) -> list[str]:
-    """Ensure nourishing food is physically available in the home:
-    checks whether apple, bread-slice, or bottle-milk are absent or depleted.
-    If depleted or absent (and not held or in active contact), replaces them with fresh declared items.
-    Returns list of replenished object IDs.
+def replenish_home_food(authority: Any) -> dict[str, Any]:
+    """Admit externally supplied food into the world, never into cognition.
+
+    The world's declared nutrient-bearing objects define the supply inventory,
+    including the backyard apple. This is external provisioning, not ingestion
+    or autonomous food finding. Exhaustion means zero digestible mass; taste
+    residue is not nutrition. Existing nonempty, held or contacted objects stay
+    unchanged. The coupled transaction restores the predecessor on any failure.
     """
     with _world_thermal_transaction(authority):
         if not (hasattr(authority, "_state") and hasattr(authority._state, "world")):
-            return []
+            return {}
         cur_world = authority._state.world
         from dataclasses import replace
         _regions, _portals, declared_templates = _home_rooms_and_things()
-        template_map = {item.object_id: item for item in declared_templates}
+        food_templates = tuple(
+            item for item in declared_templates
+            if item.material is not None and item.material.digestible_mass_micrograms > 0
+        )
+        busy_object_ids = {
+            obj.object_id
+            for obj in cur_world.objects if obj.held_by_body_id is not None
+        }
+        for body in cur_world.bodies:
+            if body.held_object_id is not None:
+                busy_object_ids.add(body.held_object_id)
+            if body.active_contact is not None:
+                busy_object_ids.add(body.active_contact.object_id)
 
-        busy_object_ids = set()
-        for b in cur_world.bodies:
-            if b.held_object_id is not None:
-                busy_object_ids.add(b.held_object_id)
-            if b.active_contact is not None:
-                busy_object_ids.add(b.active_contact.object_id)
-        for obj in cur_world.objects:
-            if obj.held_by_body_id is not None:
-                busy_object_ids.add(obj.object_id)
-
-        updated = []
-        replenished = []
-        for obj in cur_world.objects:
-            if (
-                obj.object_id in ("apple", "bread-slice", "bottle-milk")
-                and obj.object_id not in busy_object_ids
-            ):
-                mat = obj.material
-                tastant = sum(mat.tastant_mass_micrograms) if (mat and hasattr(mat, "tastant_mass_micrograms")) else 0
-                dig = getattr(mat, "digestible_mass_micrograms", 0) if mat else 0
-                if tastant <= 10 and dig <= 10:
-                    fresh_item = template_map.get(obj.object_id)
-                    if fresh_item is not None:
-                        updated.append(fresh_item)
-                        replenished.append(obj.object_id)
+        current = {obj.object_id: obj for obj in cur_world.objects}
+        replacements = {}
+        supplied = []
+        for fresh in food_templates:
+            food_id = fresh.object_id
+            obj = current.get(food_id)
+            if food_id in busy_object_ids:
+                if obj is None:
+                    raise ValueError("food custody references a missing object")
+                continue
+            if obj is not None:
+                if obj.material is None:
+                    raise ValueError("declared food has no physical material")
+                if obj.material.digestible_mass_micrograms > 0:
                     continue
-            updated.append(obj)
-        current_ids = {obj.object_id for obj in updated}
-        for food_id in ("apple", "bread-slice", "bottle-milk"):
-            if food_id not in current_ids and food_id in template_map:
-                updated.append(template_map[food_id])
-                replenished.append(food_id)
-        if replenished:
+            replacements[food_id] = fresh
+            supplied.append({
+                "object_id": food_id,
+                "digestible_mass_micrograms": fresh.material.digestible_mass_micrograms,
+            })
+        receipt = {
+            "schema": "guala.external_food_provision.v1",
+            "status": "applied" if replacements else "unchanged",
+            "revision_before": cur_world.revision,
+            "revision_after": cur_world.revision,
+            "replenished": list(replacements),
+            "supplied": supplied,
+            "external_digestible_mass_micrograms": sum(
+                item["digestible_mass_micrograms"] for item in supplied
+            ),
+        }
+        if replacements:
+            updated = [replacements.get(obj.object_id, obj) for obj in cur_world.objects]
+            updated.extend(obj for obj_id, obj in replacements.items() if obj_id not in current)
             new_world = replace(cur_world, revision=cur_world.revision + 1, objects=tuple(updated))
             _commit_world_successor(authority, new_world)
-        return replenished
+            receipt["revision_after"] = new_world.revision
+        return receipt

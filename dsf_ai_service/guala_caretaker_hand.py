@@ -219,31 +219,28 @@ def in_doorway(snapshot: Any, spot: PositionMM, region_id: str, clearance_mm: in
 
 
 MAX_DOMESTIC_OBJECTS = 64
-EDIBLE_MASS_THRESHOLD_MICROGRAMS = 2_000
 
 
-def _is_core(her: Any, item: Any) -> bool:
-    if item.material is None:
-        return True
-    edible_ug = sum(item.material.tastant_mass_micrograms)
-    if edible_ug < EDIBLE_MASS_THRESHOLD_MICROGRAMS:
-        return True
-    return nothing_left_to_bite(her, item)
+def _is_core(item: Any) -> bool:
+    """Only known zero oral material is exhausted; missing material is unknown."""
+
+    material = item.material
+    return (
+        material is not None
+        and material.digestible_mass_micrograms == 0
+        and not any(material.tastant_mass_micrograms)
+    )
 
 
 def _is_stray_apple(her: Any, item: Any) -> bool:
     is_food_kind = item.object_id.startswith("apple") or item.object_id.startswith("bread") or item.object_id == "bottle-milk"
     if not is_food_kind or item.position is None or item.held_by_body_id is not None:
         return False
-    if _is_core(her, item):
-        return True
-    if item.object_id.startswith("apple") and _distance_mm(her.pose.position, item.position) > her.reach_mm:
-        return True
-    return False
+    return _is_core(item)
 
 
 def core_in_a_doorway(snapshot: Any, her: Any) -> Any | None:
-    """A thing with nothing left to bite or stray apple lying in a doorway's approach, if any."""
+    """An exhausted floor apple in a doorway's approach, if any."""
 
     for item in snapshot.objects:
         if item.position is None or not item.object_id.startswith("apple") or not _is_stray_apple(her, item):
@@ -255,19 +252,18 @@ def core_in_a_doorway(snapshot: Any, her: Any) -> Any | None:
 
 
 def stray_core(snapshot: Any, her: Any, near: PositionMM | None = None) -> Any | None:
-    """Any eaten core or abandoned stray apple lying on the floor: within reach of ``near`` first, then
-    doorway approaches, then the rest."""
+    """An exhausted floor item: near the caregiver first, then doorway approaches,
+    then the rest. Remaining oral material is never classified as abandoned."""
 
     cores = [item for item in snapshot.objects if _is_stray_apple(her, item)]
     if near is not None:
-        close = [item for item in cores if _is_core(her, item) and _distance_mm(near, item.position) <= 800]
+        close = [item for item in cores if _distance_mm(near, item.position) <= 800]
         if close:
             return min(close, key=lambda item: _distance_mm(near, item.position))
     in_door = core_in_a_doorway(snapshot, her)
     if in_door is not None:
         return in_door
-    only_cores = [item for item in cores if _is_core(her, item)]
-    return min(only_cores, key=lambda item: item.object_id) if only_cores else None
+    return min(cores, key=lambda item: item.object_id) if cores else None
 
 
 def withdraw(world: Any) -> dict[str, object] | None:
@@ -278,7 +274,7 @@ def withdraw(world: Any) -> dict[str, object] | None:
     it home next time. Returns the record of the world's steps, or None when
     there is nothing to do. Presents, withdraws and tidies; never moves her."""
 
-    snapshot = world.observation_snapshot()
+    snapshot = world.canonical_observation_snapshot()
     her = next(body for body in snapshot.bodies if body.body_id == snapshot.self_body_id)
     others = tuple(body for body in snapshot.bodies if body.body_id != snapshot.self_body_id)
     if len(others) != 1:
@@ -309,8 +305,8 @@ def withdraw(world: Any) -> dict[str, object] | None:
         record["home"] = hand.move(CAREGIVER_HOME_MM, _heading_toward(CAREGIVER_HOME_MM, her.pose.position))
         held_id = person.held_object_id
         if record["home"] and held_id is not None:
-            held = next((item for item in world.observation_snapshot().objects if item.object_id == held_id), None)
-            if held is not None and (held_id == "apple-core" or ((held_id.startswith("apple") or held_id.startswith("bread") or held_id == "bottle-milk") and _is_core(person, held))):
+            held = next((item for item in world.canonical_observation_snapshot().objects if item.object_id == held_id), None)
+            if held is not None and (held_id.startswith("apple") or held_id.startswith("bread") or held_id == "bottle-milk") and _is_core(held):
                 # An eaten core or stray discarded core goes out at the world's boundary: the bin.
                 world.admit_authored_departure(held_id)
                 record["binned"] = held_id
@@ -322,8 +318,11 @@ def withdraw(world: Any) -> dict[str, object] | None:
 
 
 def nothing_left_to_bite(body: Any, item: Any) -> bool:
-    """True when the world's own bite law can take no matter off ``item`` at
-    her mouth: every tastant channel is below one bite's geometric share."""
+    """True for supported oral contact only when both material pools are zero.
+
+    The world's existing bite transfers at least one unit from each positive
+    taste channel and positive digestible stock; a rounded share is not empty.
+    """
 
     geometry = body.receptor_geometry
     if item.material is None or geometry is None:
@@ -339,11 +338,7 @@ def nothing_left_to_bite(body: Any, item: Any) -> bool:
     )
     if patch is None:
         return False
-    cross_section = item.radius_mm * item.radius_mm
-    return all(
-        min(mass, (mass * patch) // max(1, cross_section)) == 0
-        for mass in item.material.tastant_mass_micrograms
-    )
+    return _is_core(item)
 
 
 class _Bounded(Exception):
@@ -461,7 +456,9 @@ class _Hand:
         self.last_contacts: tuple[Any, ...] = ()
 
     def snapshot(self) -> Any:
-        return self.world.observation_snapshot()
+        # This external caregiver resolves the physical inventory; Guala keeps
+        # the separately mounted sensory horizon on observation_snapshot().
+        return self.world.canonical_observation_snapshot()
 
     def bodies(self, snapshot: Any) -> tuple[Any, Any]:
         her = next(body for body in snapshot.bodies if body.body_id == snapshot.self_body_id)
@@ -820,24 +817,20 @@ def deliver_thing(world: Any, template_id: str) -> str | None:
     """A thing the home declares but this world does not yet hold (the radio,
     for a world that predates it) enters at the world's boundary beside the
     caregiver's home spot, as groceries do. Returns its identity, the one it
-    already has when the world holds it, or None when the world refused."""
+    already has when the world holds it, or None when the world refused.
+    Existing bread or milk is replaced only when its known oral stocks are zero;
+    a custody refusal remains the world's explicit failure.
+    """
 
     from dsf_ai_service.guala_home_world import _home_rooms_and_things
     from dsf_ai_service.substrate.embodiment_world import EmbodiedObject
 
-    snapshot = world.observation_snapshot()
+    snapshot = world.canonical_observation_snapshot()
     existing = next((item for item in snapshot.objects if item.object_id == template_id), None)
     if existing is not None:
-        mat = existing.material
-        digestible_mass = mat.digestible_mass_micrograms if (mat and hasattr(mat, "digestible_mass_micrograms")) else 0
-        edible_tastant = sum(mat.tastant_mass_micrograms) if (mat and hasattr(mat, "tastant_mass_micrograms")) else getattr(existing, "tastant_remaining_micrograms", 0)
-        if template_id not in ("bread-slice", "bottle-milk") or (digestible_mass > 0 and edible_tastant > 10):
+        if template_id not in ("bread-slice", "bottle-milk") or not _is_core(existing):
             return template_id
-        if existing.held_by_body_id != snapshot.self_body_id:
-            try:
-                world.admit_authored_departure(template_id)
-            except Exception:
-                pass
+        world.admit_authored_departure(template_id)
     _regions, _portals, declared = _home_rooms_and_things()
     template = next((item for item in declared if item.object_id == template_id), None)
     if template is None:
@@ -873,7 +866,7 @@ def deliver_apple(world: Any) -> str | None:
 
     _regions, _portals, declared = _home_rooms_and_things()
     template = next(item for item in declared if item.object_id == "apple")
-    snapshot = world.observation_snapshot()
+    snapshot = world.canonical_observation_snapshot()
     taken = {item.object_id for item in snapshot.objects}
     index = 1
     while f"apple-{index}" in taken:
@@ -928,7 +921,7 @@ def make_bed(world: Any) -> dict[str, object]:
 
     record: dict[str, object] = {"object_id": BEDTIME_ID, "presented": False, "took_away": None, "delivered": None,
                                  "made": [], "schema": "guala.caregiver_presentation.v1", "steps": []}
-    snapshot = world.observation_snapshot()
+    snapshot = world.canonical_observation_snapshot()
     bed = next((item for item in snapshot.objects if item.object_id == BED_ID and item.position is not None), None)
     if bed is None:
         return record
@@ -1125,7 +1118,7 @@ def clean_up_house(world: Any) -> dict[str, object]:
                 is_food_kind = item.object_id.startswith("apple") or item.object_id.startswith("bread") or item.object_id == "bottle-milk"
                 if not is_food_kind:
                     continue
-                if not _is_core(her, item):
+                if not _is_core(item):
                     continue
                 if _distance_mm(her.pose.position, item.position) <= her.reach_mm:
                     continue
@@ -1184,6 +1177,10 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
         return playpen_challenge(world)
     if object_id == "ladder-challenge":
         return ladder_challenge(world)
+    if object_id == "refrigerator-challenge":
+        return refrigerator_challenge(world)
+    if object_id == "milk-table-challenge":
+        return milk_table_challenge(world)
     if object_id == "high-chair-meal":
         return place_in_high_chair(world)
     if object_id == "high-chair-release":
@@ -1244,7 +1241,7 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
         outcome["object_id"] = object_id
         reading = bool(outcome.get("presented"))
         if not reading:
-            snapshot = world.observation_snapshot()
+            snapshot = world.canonical_observation_snapshot()
             her = next(body for body in snapshot.bodies if body.body_id == snapshot.self_body_id)
             book = next((item for item in snapshot.objects if item.object_id == book_id), None)
             if book is not None:
@@ -1287,7 +1284,6 @@ __all__ = (
     "CLEANUP_ID",
     "DELIVERY_ID",
     "DELIVER_IDS",
-    "EDIBLE_MASS_THRESHOLD_MICROGRAMS",
     "MAX_DOMESTIC_OBJECTS",
     "clean_up_house",
     "make_bed",
@@ -1312,6 +1308,8 @@ __all__ = (
     "joint_clean_up",
     "ladder_challenge",
     "playpen_challenge",
+    "refrigerator_challenge",
+    "milk_table_challenge",
     "stroller_excursion",
     "escort_to_room",
     "park_stroller_library",
@@ -1336,7 +1334,7 @@ def playpen_challenge(world: Any) -> dict[str, object]:
     """The playpen morning challenge:
     Caregiver sets down interactive toy inside playpen at (2050, 6700),
     creating physical impedance that drives teleological vocal signaling. Returns presentation record."""
-    snapshot = world.observation_snapshot()
+    snapshot = world.canonical_observation_snapshot()
     her = next((b for b in snapshot.bodies if b.body_id == snapshot.self_body_id), None)
     if her is None:
         return {"object_id": "playpen-challenge", "presented": False, "steps": []}
@@ -1385,6 +1383,92 @@ def ladder_challenge(world: Any) -> dict[str, object]:
     applied = any(s.get("reason") == "applied" and s.get("operation") == "ladder_demonstration" for s in steps)
     return {
         "object_id": "ladder-challenge",
+        "presented": applied,
+        "schema": "guala.caregiver_presentation.v1",
+        "steps": steps,
+    }
+
+
+def refrigerator_challenge(world: Any) -> dict[str, object]:
+    """The kitchen cold-storage affordance challenge:
+    Caregiver approaches the refrigerator at (700, 2000) and bread-slice,
+    demonstrating the opening and food-retrieval affordances. Returns presentation record."""
+    hand = _Hand(world, "refrigerator-challenge")
+    steps = []
+    try:
+        snapshot = hand.snapshot()
+        her, person = hand.bodies(snapshot)
+        fridge = next((o for o in snapshot.objects if o.object_id == "refrigerator"), None)
+        if fridge is None or fridge.position is None:
+            steps.append({"operation": "refrigerator_demonstration", "reason": "refrigerator_not_found", "to": None})
+            return {
+                "object_id": "refrigerator-challenge",
+                "presented": False,
+                "schema": "guala.caregiver_presentation.v1",
+                "steps": steps,
+            }
+        hand.walk_to_region("kitchen")
+        bread_pos = PositionMM(1300, 2000, 60)
+        approached = hand.stand_before(fridge.position, distance_mm=750, face=bread_pos)
+        if approached:
+            snapshot = hand.snapshot()
+            _her, person = hand.bodies(snapshot)
+            heading = _heading_toward(person.pose.position, bread_pos)
+            turned = hand.move(person.pose.position, heading=heading)
+            reason = "applied" if turned else "turn_refused"
+            steps.extend(hand.steps)
+            steps.append({"operation": "refrigerator_demonstration", "reason": reason, "fixture": "refrigerator", "target": "bread-slice"})
+        else:
+            steps.extend(hand.steps)
+            steps.append({"operation": "refrigerator_demonstration", "reason": "approach_refused", "fixture": "refrigerator"})
+    except Exception as e:
+        steps.append({"operation": "refrigerator_demonstration", "reason": str(e), "fixture": "refrigerator"})
+    applied = any(s.get("reason") == "applied" and s.get("operation") == "refrigerator_demonstration" for s in steps)
+    return {
+        "object_id": "refrigerator-challenge",
+        "presented": applied,
+        "schema": "guala.caregiver_presentation.v1",
+        "steps": steps,
+    }
+
+
+def milk_table_challenge(world: Any) -> dict[str, object]:
+    """The dining table reaching affordance challenge:
+    Caregiver approaches the dining table and bottle-milk at (8000, 3500),
+    demonstrating the tabletop reaching affordance. Returns presentation record."""
+    hand = _Hand(world, "milk-table-challenge")
+    steps = []
+    try:
+        snapshot = hand.snapshot()
+        her, person = hand.bodies(snapshot)
+        table = next((o for o in snapshot.objects if o.object_id == "dining-table"), None)
+        if table is None or table.position is None:
+            steps.append({"operation": "milk_table_demonstration", "reason": "table_not_found", "to": None})
+            return {
+                "object_id": "milk-table-challenge",
+                "presented": False,
+                "schema": "guala.caregiver_presentation.v1",
+                "steps": steps,
+            }
+        hand.walk_to_region("dining")
+        milk_pos = PositionMM(8000, 3500, 50)
+        approached = hand.stand_before(table.position, distance_mm=950, face=milk_pos)
+        if approached:
+            snapshot = hand.snapshot()
+            _her, person = hand.bodies(snapshot)
+            heading = _heading_toward(person.pose.position, milk_pos)
+            turned = hand.move(person.pose.position, heading=heading)
+            reason = "applied" if turned else "turn_refused"
+            steps.extend(hand.steps)
+            steps.append({"operation": "milk_table_demonstration", "reason": reason, "fixture": "dining-table", "target": "bottle-milk"})
+        else:
+            steps.extend(hand.steps)
+            steps.append({"operation": "milk_table_demonstration", "reason": "approach_refused", "fixture": "dining-table"})
+    except Exception as e:
+        steps.append({"operation": "milk_table_demonstration", "reason": str(e), "fixture": "dining-table"})
+    applied = any(s.get("reason") == "applied" and s.get("operation") == "milk_table_demonstration" for s in steps)
+    return {
+        "object_id": "milk-table-challenge",
         "presented": applied,
         "schema": "guala.caregiver_presentation.v1",
         "steps": steps,

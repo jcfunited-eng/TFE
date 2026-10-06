@@ -220,11 +220,8 @@ def _restore_production_actor() -> LeanOrganismActor:
     # native neuron envelope is succeeded here, once, by a functional body at
     # the same identity and tick; the native envelope stays as the retained
     # predecessor generation and is never read for cognition again.
-    converted = not restored.body.startswith(FUNCTIONAL_MAGIC)
-    runtime = (
-        FunctionalOrganism.genesis(identity=current.identity, organism_tick=current.organism_tick)
-        if converted else FunctionalOrganism.restore(restored.body)
-    )
+    converted = False
+    runtime = FunctionalOrganism.restore(restored.body)
     if runtime.identity != current.identity or runtime.live_organism_tick != current.organism_tick:
         raise RuntimeError("restored organism identity/tick differs from paired CURRENT")
     current_body = runtime.encoded()
@@ -235,14 +232,7 @@ def _restore_production_actor() -> LeanOrganismActor:
         # and home renovation are separate authorized operations, not startup.
         migrate_physical_return=False,
     )
-    from dsf_ai_service.guala_home_world import replenish_home_food
-    replenished = replenish_home_food(world)
-    if replenished:
-        for fid in replenished:
-            if fid in runtime._state.get("conserved_objects", {}):
-                runtime._state["conserved_objects"][fid]["currently_depleted"] = False
-                runtime._state["conserved_objects"][fid]["is_food"] = True
-        current_body = runtime.encoded()
+
     current_world = bytes(world.encoded_snapshot())
     # One startup-only receipt of the validated bytes actually read. It precedes
     # any migration publication and never participates in cognition or identity.
@@ -256,8 +246,10 @@ def _restore_production_actor() -> LeanOrganismActor:
         "world_bytes": current.world_bytes,
         "functional_conversion": converted,
     }, sort_keys=True, separators=(",", ":")), flush=True)
+    if current_world != restored.world:
+        raise RuntimeError("home-world restore changed canonical bytes")
     pointer = restored.pointer
-    if current_body != restored.body or current_world != restored.world:
+    if current_body != restored.body:
         pointer = store.publish(
             identity=current.identity,
             organism_tick=current.organism_tick,

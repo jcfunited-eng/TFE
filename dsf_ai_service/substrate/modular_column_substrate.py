@@ -154,8 +154,6 @@ class ModularColumnSubstrate:
         is_zero: bool,
     ) -> float:
         """Reconstruct exact IEEE-754 binary64 float from MathLoom rational balanced ternary representation."""
-        # A transport boundary must not turn malformed data into different,
-        # apparently valid evidence (for example 1.9 -> 1 or "false" -> True).
         num = list(num_trits)
         den = list(den_trits)
         if any(type(t) is not int for t in num + den):
@@ -171,6 +169,7 @@ class ModularColumnSubstrate:
         palmar_contact: float = 0.0,
         thermal_gradient_mk: float = 0.0,
         dsf_vector: Optional[Tuple[float, ...] | Sequence[float]] = None,
+        audio_pcm: Optional[bytes] = None,
     ) -> List[int]:
         """
         Encode multimodal inputs into 64 discrete ternary trits for Column 0 Layer 4 afferents:
@@ -179,6 +178,12 @@ class ModularColumnSubstrate:
           - Nodes 32..47: Palmar skin contact pressure & thermal contrast (16 trits)
           - Nodes 48..63: DSF kernel invariants (D_k, M_k, R_rev, U*, C_k, P_k, B_k, S_UF) (16 trits)
         """
+        if audio_pcm is not None:
+            raise NotImplementedError(
+                "Continuous PCM requires a stateful, sample-clock-preserving cochlear "
+                "mount; frame averaging and channel resampling are not grounded speech"
+            )
+
         trits = [0] * L4_AFFERENT_NODES
 
         # 1. Optical luminance field (Nodes 0..15)
@@ -505,16 +510,18 @@ class ModularColumnSubstrate:
             raise ValueError(f"Unknown or unsupported ArcLoom magic header: {magic}")
 
     def migrate_predecessor_v2(self, raw: bytes, layout: str) -> None:
-        """Explicitly migrate an ARCLOOM2 predecessor payload into this substrate with required layout metadata."""
-        if not hasattr(self.substrate, "migrate_predecessor_v2"):
-            raise NotImplementedError("Underlying native substrate does not support migrate_predecessor_v2")
-        self.substrate.migrate_predecessor_v2(raw, layout=layout)
+        """Explicit authenticated one-time migration of ARCLOOM2 predecessor binary."""
+        if hasattr(self.substrate, "migrate_predecessor_v2"):
+            self.substrate.migrate_predecessor_v2(raw, layout=layout)
+        else:
+            raise NotImplementedError("Substrate lacks native migrate_predecessor_v2")
 
     def migrate_predecessor_v3(self, raw: bytes, layout: str, field_present: Optional[bool] = None) -> None:
-        """Explicitly migrate an ARCLOOM3 predecessor payload into this substrate with required layout metadata."""
-        if not hasattr(self.substrate, "migrate_predecessor_v3"):
-            raise NotImplementedError("Underlying native substrate does not support migrate_predecessor_v3")
-        self.substrate.migrate_predecessor_v3(raw, layout=layout, field_present=field_present)
+        """Explicit authenticated one-time migration of ARCLOOM3 predecessor binary."""
+        if hasattr(self.substrate, "migrate_predecessor_v3"):
+            self.substrate.migrate_predecessor_v3(raw, layout=layout, field_present=field_present)
+        else:
+            raise NotImplementedError("Substrate lacks native migrate_predecessor_v3")
 
     def to_dict(self) -> dict:
         """Serialize substrate configuration and sparse conductances for persistent body storage."""
@@ -544,7 +551,7 @@ class ModularColumnSubstrate:
         if fmt != "ARCLOOM4":
             raise ValueError(
                 f"from_dict only accepts current format ARCLOOM4, got '{fmt}'. "
-                "Predecessor checkpoints must be migrated explicitly via migrate_predecessor_dict()."
+                "Historical predecessor formats must be migrated explicitly via migrate_predecessor_dict()."
             )
 
         num_cols = force_columns if force_columns is not None else int(data.get("num_columns", 64))
@@ -555,6 +562,12 @@ class ModularColumnSubstrate:
             columns=num_cols,
         )
         raw = bytes.fromhex(sparse_hex.strip())
+        if not raw.startswith(b"ARCLOOM4"):
+            magic = raw[:8] if len(raw) >= 8 else b""
+            raise ValueError(
+                f"Historical predecessor format detected ({magic!r}): from_dict strictly requires current format ARCLOOM4. "
+                "Historical predecessor formats must be migrated explicitly via migrate_predecessor_dict()."
+            )
         sub.import_sparse_bytes(raw, version=4)
         return sub
 
@@ -575,11 +588,13 @@ class ModularColumnSubstrate:
             raise ValueError("missing or empty sparse_hex payload: cannot migrate without valid state payload")
 
         raw = bytes.fromhex(sparse_hex.strip())
-        fmt = str(data.get("format", "")).strip()
-        if not fmt and len(raw) >= 8:
-            magic = raw[:8]
-            if magic in (b"ARCLOOM2", b"ARCLOOM3"):
-                fmt = magic.decode("ascii", errors="replace")
+        magic = raw[:8] if len(raw) >= 8 else b""
+        if magic == b"ARCLOOM2":
+            fmt = "ARCLOOM2"
+        elif magic == b"ARCLOOM3":
+            fmt = "ARCLOOM3"
+        else:
+            fmt = str(data.get("format", "")).strip()
 
         if fmt not in ("ARCLOOM2", "ARCLOOM3"):
             raise ValueError(f"migrate_predecessor_dict requires predecessor format ARCLOOM2 or ARCLOOM3, got '{fmt}'")

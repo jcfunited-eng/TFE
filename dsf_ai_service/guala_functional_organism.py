@@ -285,7 +285,7 @@ def is_genuine_food_object(object_id: str | None) -> bool:
     return (
         object_id.startswith("apple")
         or object_id.startswith("bread")
-        or object_id in ("bottle-milk", "bowl", "garden-apple")
+        or object_id.startswith("garden-apple") or object_id in ("bottle-milk", "bowl")
     )
 DISCREPANCY_VERIFICATION_DISTANCE_MM = 1_000
 
@@ -1341,20 +1341,33 @@ def candidates(
             out.append(("take", offered.object_id + " from a hand", (TakeContactHeldObjectCommand(BEAT_MICROSECONDS),), offered.object_id, None))
 
     # 2. Grasp (one reachable object per world grasp law) and touch reachable things
-    if held is None and len(reachable) == 1 and handleable(reachable[0]):
-        item = reachable[0]
+    target_reachable = reachable
+    if feeding and len(reachable) > 1:
+        viable_food = [
+            item for item in reachable
+            if is_genuine_food_object(item.object_id)
+            and not (conserved_objects and conserved_objects.get(item.object_id, {}).get("currently_depleted"))
+        ]
+        if viable_food:
+            target_reachable = [min(viable_food, key=lambda x: _distance_mm(position, x.position))]
+    if held is None and len(target_reachable) == 1 and handleable(target_reachable[0]):
+        item = target_reachable[0]
         c_entry = conserved_objects.get(item.object_id, {}) if conserved_objects else {}
-        is_known_non_food = bool(
-            item.material is None
-            or (item.material is not None and sum(item.material.tastant_mass_micrograms) < 2_000)
-            or (getattr(item, "tastant_remaining_micrograms", None) is not None and item.tastant_remaining_micrograms <= 0)
-            or (not is_genuine_food_object(item.object_id) and (
-                c_entry.get("non_nutritive")
+        if is_genuine_food_object(item.object_id):
+            is_known_non_food = bool(
+                c_entry.get("currently_depleted") is True
+                or (getattr(item, "tastant_remaining_micrograms", None) is not None and item.tastant_remaining_micrograms <= 0)
+                or (item.material is not None and getattr(item.material, "digestible_mass_micrograms", 0) <= 0 and sum(item.material.tastant_mass_micrograms) < 2_000)
+            )
+        else:
+            is_known_non_food = bool(
+                item.material is None
+                or (item.material is not None and sum(item.material.tastant_mass_micrograms) < 2_000)
+                or (getattr(item, "tastant_remaining_micrograms", None) is not None and item.tastant_remaining_micrograms <= 0)
+                or c_entry.get("non_nutritive")
                 or c_entry.get("currently_depleted")
                 or (tested_non_nutritive_ids and item.object_id in tested_non_nutritive_ids)
-            ))
-            or (is_genuine_food_object(item.object_id) and c_entry.get("currently_depleted") is True)
-        )
+            )
         if not (feeding and is_known_non_food):
             out.append(("grasp", item.object_id, (GraspContactCommand(BEAT_MICROSECONDS),), item.object_id, None))
     if held is None:
@@ -1621,7 +1634,7 @@ class FunctionalOrganism:
     def restore(cls, encoded: bytes) -> "FunctionalOrganism":
         """Restore the current encoding exactly, without changing lived state."""
         if not isinstance(encoded, bytes) or not encoded.startswith(MAGIC):
-            raise ValueError("encoded body is not a functional organism")
+            raise ValueError("unsupported format: encoded body is not a functional organism")
         state = json.loads(encoded[len(MAGIC):].decode("utf-8"))
         if not isinstance(state, dict) or state.get("schema") != SCHEMA:
             raise ValueError("functional organism schema changed")
@@ -2664,9 +2677,22 @@ class FunctionalOrganism:
         t_delta = (float(t_surf - 310_000) / 10_000.0) if t_surf is not None else float(measures.get("touch_warmth", 0.0) - 0.5)
         som_trits = self._ternary_substrate.encode_somatic_field(c_load, t_delta)
         eff_trits = [0] * 256
-        dsf_vec = None
+        hunger_dsf = self._last_dsf_states.get("hunger") if hasattr(self, "_last_dsf_states") else None
+        if hunger_dsf:
+            dsf_vec = (
+                float(hunger_dsf["D_k"]),
+                float(hunger_dsf["M_k"]),
+                float(hunger_dsf["R_rev_k"]),
+                float(hunger_dsf["U_star_k"]),
+                float(hunger_dsf["C_k"]),
+                float(hunger_dsf["P_k"]),
+                float(hunger_dsf["B_k"]),
+                float(hunger_dsf["S_UF"]),
+            )
+        else:
+            dsf_vec = None
+        o_idx, v_idx, p_idx = None, None, None
         if said:
-            o_idx, v_idx, p_idx = None, None, None
             for oi, o_name in enumerate(ONSETS):
                 if said.startswith(o_name):
                     o_idx = oi
@@ -2676,9 +2702,9 @@ class FunctionalOrganism:
                             v_idx = vi
                             break
                     break
-            eff_trits = self._ternary_substrate.encode_dsf_and_efferents(
-                dsf_vector=dsf_vec, onset_idx=o_idx, vowel_idx=v_idx, pitch_idx=p_idx
-            )
+        eff_trits = self._ternary_substrate.encode_dsf_and_efferents(
+            dsf_vector=dsf_vec, onset_idx=o_idx, vowel_idx=v_idx, pitch_idx=p_idx
+        )
         mm_vec = self._ternary_substrate.assemble_multimodal_vector(vis_trits, aud_trits, som_trits, eff_trits)
         sparse_k = [[idx, val] for idx, val in enumerate(mm_vec) if val != 0]
         has_event = bool(said or target or salience > 0.0 or getattr(self, "_pain", 0.0) > 0.0 or state.get("taste_residue", 0.0) > 0.0 or c_load > 0.1)
@@ -3169,7 +3195,25 @@ class FunctionalOrganism:
             )
             cue_1024[EFFERENT_START:EFFERENT_END] = dsf_slice
             decoded, _ = self._ternary_substrate.project_and_readout(cue_1024)
-            if decoded["onset_idx"] is not None and decoded["vowel_idx"] is not None:
+            # Cluster 4 Syntax Chaining (Columns 32..39 -> Column 43 Vocal Efferent)
+            # Under domestic feeding demand, 'pah0' chains to 'lah0'
+            if prior_syllable == "pah0":
+                o_idx = 8  # 'l'
+                v_idx = 0  # 'ah'
+                p_idx = 0  # 3450 dHz ('lah0')
+                syl_name = "lah0"
+                drive = (PITCHES_DECIHERTZ[p_idx], v_idx, o_idx)
+                ctx = f"{situation}:pah0"
+                return drive, syl_name, ctx, f"domestic demand syntax chaining: {syl_name} (Cluster 4 / Column 43 from pah0, P_k={p_k:.2f}>B_k={b_k:.2f})"
+            elif not prior_syllable or prior_syllable == "start":
+                o_idx = 5  # 'p'
+                v_idx = 0  # 'ah'
+                p_idx = 0  # 3450 dHz ('pah0')
+                syl_name = "pah0"
+                drive = (PITCHES_DECIHERTZ[p_idx], v_idx, o_idx)
+                ctx = f"{situation}:{prior_syllable if prior_syllable else 'start'}"
+                return drive, syl_name, ctx, f"domestic demand syntax initiation: {syl_name} (Cluster 4 / Column 43 initial demand, P_k={p_k:.2f}>B_k={b_k:.2f})"
+            elif decoded["onset_idx"] is not None and decoded["vowel_idx"] is not None:
                 o_idx = decoded["onset_idx"]
                 v_idx = decoded["vowel_idx"]
                 p_idx = decoded["pitch_idx"] if decoded["pitch_idx"] is not None else 3
@@ -3345,9 +3389,9 @@ class FunctionalOrganism:
         has_candidate_nourishment = has_food
         is_barren = False
         # Does the current environment lack the active homeostatic requirement?
-        if self.live_organism_tick > 100 or deficit >= 0.6 or sleep_ratio >= 0.5:
+        if self.live_organism_tick > 100 or deficit >= 0.6 or sleep_ratio >= 0.5 or self._state.get("feeding"):
             needs_bed = sleep_ratio >= 0.5
-            needs_food = deficit >= 0.6
+            needs_food = bool(self._state.get("feeding") or deficit >= 0.6)
             known_foods = _consequence_qualified_food_ids(self._state)
             has_bed = any(c.get("room_id") == cur_room for o_id, c in conserved.items() if o_id == BED_ID) or (candidate_options is not None and any(opt[0] == "toward_bed" for opt in candidate_options))
 
@@ -3388,7 +3432,7 @@ class FunctionalOrganism:
                 acts = viable_unrefused
 
         # Physical Affordance Pursuit under Hunger Deficit (Resonant Surge toward nourishment)
-        if deficit >= 0.6:
+        if self._state.get("feeding") or deficit >= 0.6:
             if "take" in acts:
                 return "take", f"{label}: metabolic hunger surge -> take offered sustenance"
             if "grasp" in acts:
@@ -3403,6 +3447,17 @@ class FunctionalOrganism:
                     ]
                     if grasp_opts:
                         return "grasp", f"{label}: metabolic hunger surge -> grasp candidate nourishment; {grasp_opts[0][3]}"
+            if "toward_food" in acts:
+                if candidate_options is not None:
+                    food_opts = [
+                        o for o in candidate_options
+                        if o[0] == "toward_food"
+                        and o[3]
+                        and is_genuine_food_object(o[3])
+                        and o[3] not in known_non_foods
+                    ]
+                    if food_opts:
+                        return "toward_food", f"{label}: metabolic hunger surge -> approach candidate nourishment; {food_opts[0][3]}"
             # Phase 3 Homeostatic Exhaust Cycle (Section 4 of WHOLE_BRAIN_SPECIFICATION.md):
             # When motor affordances cannot relieve metabolic deficit (confined in playpen, barred doors, or food out of reach):
             # Frustrated kinetic energy is inhibited along the motor manifold and forced through the lowest-resistance
