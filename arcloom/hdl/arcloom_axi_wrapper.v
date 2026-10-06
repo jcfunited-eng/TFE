@@ -129,13 +129,6 @@ module arcloom_axi_wrapper #(
     wire [11:0] sensor_adc_in = (sw_valid_stretch != 0) ? sw_sensor_adc : hw_adc;
     wire sensor_valid_in = (sw_valid_stretch != 0) || hw_sensor_valid;
 
-    always @(posedge S_AXI_ACLK) begin
-        if (!S_AXI_ARESETN)
-            sw_valid_stretch <= 3'd0;
-        else if (sw_valid_stretch != 0)
-            sw_valid_stretch <= sw_valid_stretch - 3'd1;
-    end
-
     // ---- ArcLoom Core Signals ----
     wire [1:0]  decision_steer_w, decision_speed_w, decision_conf_w;
     wire        structural_lock_w, dsf_safe_mode_w, dsf_valid_w;
@@ -290,26 +283,7 @@ module arcloom_axi_wrapper #(
         .cycle_count(div_cycles)
     );
 
-    // Division latch
-    always @(posedge S_AXI_ACLK) begin
-        if (!S_AXI_ARESETN) begin
-            div_quot_r       <= 24'd0;
-            div_rem_r        <= 24'd0;
-            div_dbz_r        <= 1'b0;
-            div_cyc_r        <= 19'd0;
-            div_result_ready <= 1'b0;
-            div_pending      <= 1'b0;
-        end else if (div_done && div_pending) begin
-            div_quot_r       <= div_quotient;
-            div_rem_r        <= div_remainder;
-            div_dbz_r        <= div_by_zero;
-            div_cyc_r        <= div_cycles;
-            div_result_ready <= 1'b1;
-            div_pending      <= 1'b0;
-        end
-    end
-
-    // ---- AXI Write channel ----
+    // ---- AXI Write channel, MathLoom control & stretch state (Single Clocked Process) ----
     always @(posedge S_AXI_ACLK) begin
         if (!S_AXI_ARESETN) begin
             axi_bvalid        <= 1'b0;
@@ -317,6 +291,7 @@ module arcloom_axi_wrapper #(
             w_pending         <= 1'b0;
             axi_write_error   <= 1'b0;
             sw_sensor_adc     <= 12'd0;
+            sw_valid_stretch  <= 3'd0;
             motor_enable      <= 1'b0;
             sw_krim_commit    <= 1'b0;
             sw_familiarity    <= 8'd0;
@@ -324,11 +299,40 @@ module arcloom_axi_wrapper #(
             mathloom_a        <= 24'd0;
             mathloom_b        <= 24'd0;
             div_start         <= 1'b0;
+            div_quot_r        <= 24'd0;
+            div_rem_r         <= 24'd0;
+            div_dbz_r         <= 1'b0;
+            div_cyc_r         <= 19'd0;
+            div_result_ready  <= 1'b0;
+            div_pending       <= 1'b0;
             sensor_bl_front   <= 12'd0;
             sensor_bl_left    <= 12'd0;
             sensor_bl_right   <= 12'd0;
+            axi_awaddr        <= {C_S_AXI_ADDR_WIDTH{1'b0}};
+            axi_wdata         <= 32'd0;
+            axi_wstrb         <= 4'd0;
+            ml_sum_r          <= 24'd0;
+            ml_carry_r        <= 2'd0;
+            ml_product_r      <= 48'd0;
+            ml_eq_r           <= 1'b0;
+            ml_gt_r           <= 1'b0;
+            ml_lt_r           <= 1'b0;
         end else begin
             div_start <= 1'b0;
+
+            // Software sensor valid stretch decrement
+            if (sw_valid_stretch != 3'd0)
+                sw_valid_stretch <= sw_valid_stretch - 3'd1;
+
+            // Division completion latch
+            if (div_done && div_pending) begin
+                div_quot_r       <= div_quotient;
+                div_rem_r        <= div_remainder;
+                div_dbz_r        <= div_by_zero;
+                div_cyc_r        <= div_cycles;
+                div_result_ready <= 1'b1;
+                div_pending      <= 1'b0;
+            end
 
             if (S_AXI_AWVALID && S_AXI_AWREADY) begin
                 axi_awaddr <= S_AXI_AWADDR;
@@ -373,7 +377,7 @@ module arcloom_axi_wrapper #(
                             div_pending      <= 1'b1;
                             div_result_ready <= 1'b0;
                             div_dbz_r        <= 1'b0;
-                            div_cyc_r        <= 0;
+                            div_cyc_r        <= 19'd0;
                         end else if (axi_wdata[16]) axi_write_error <= 1'b1;
                     end
                     6'd4: begin  // 0x10: motor enable [2], krim commit [1]
