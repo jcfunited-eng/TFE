@@ -151,13 +151,30 @@ export function shouldCh3StallExit(entryFilledAt, plPct, nowMs = Date.now()) {
 // zero resting orders and only the -10%-from-entry floor ($6.66) beneath it.
 // 2026-08-13: engage lowered 0.25 -> 0.20 on Joe's explicit order ("anything
 // that goes over 20% ... stop profit gain loss rule"); giveback unchanged.
+// 2026-10-06: giveback 1/3 -> 1/4 on Joe's explicit order (APOG at +20%:
+// "I would want it to sell before it would drop to 15% ... always strive to
+// make 15%"). A +20% peak now locks +15%; +40% locks +30%. The lock also
+// covers FIELD-R1 positions (it previously skipped them) and is carried by
+// the standing broker stop, raised each cycle (ch2RaisedStop), so it holds
+// overnight and through any sentinel outage. Rule: JOE (numbers), wiring: MINE.
 export const PROFIT_PROTECT_ENGAGE   = 0.20;
-export const PROFIT_PROTECT_GIVEBACK = 1 / 3;
+export const PROFIT_PROTECT_GIVEBACK = 1 / 4;
+// The standing stop a CH2 position should carry: the -20% brake, lifted to
+// the profit-lock floor once armed. Returns the new stop price when it is
+// above the current one by at least a cent (stops only ever move UP), else null.
+export function ch2RaisedStop(entryPrice, peakPrice, currentStop) {
+  if (!Number.isFinite(entryPrice) || entryPrice <= 0) return null;
+  const floor = profitProtectFloor(entryPrice, peakPrice);
+  if (floor === null) return null;
+  const desired = Math.round(Math.max(entryPrice * 0.80, floor) * 100) / 100;
+  const cur = Number.isFinite(currentStop) ? currentStop : 0;
+  return desired >= cur + 0.01 ? desired : null;
+}
 export function profitProtectFloor(entryPrice, peakPrice) {
   if (!Number.isFinite(entryPrice) || !Number.isFinite(peakPrice)) return null;
   if (entryPrice <= 0 || peakPrice <= entryPrice) return null;
   const peakGain = peakPrice / entryPrice - 1;
-  if (peakGain < PROFIT_PROTECT_ENGAGE) return null;
+  if (peakGain < PROFIT_PROTECT_ENGAGE - 1e-9) return null; // +20% on the dot arms (float-safe)
   return entryPrice * (1 + peakGain * (1 - PROFIT_PROTECT_GIVEBACK));
 }
 
@@ -394,7 +411,7 @@ async function marketSell(ticker, qty, base) {
 async function rearmOvernightProtection(positions, base) {
   let openOrders;
   try {
-    openOrders = await alpacaGet("/v2/orders?status=open&limit=500", base);
+    openOrders = await alpacaGet("/v2/orders?status=open&limit=500&nested=true", base);
     if (!Array.isArray(openOrders)) throw new Error("open_orders_invalid");
   } catch (err) {
     console.warn(`[REARM] Open-orders fetch failed — skipping pass (${err.message})`);
@@ -405,12 +422,47 @@ async function rearmOvernightProtection(positions, base) {
       .filter(o => String(o?.side ?? "").toLowerCase() === "sell")
       .map(o => String(o?.symbol ?? "").trim().toUpperCase())
   );
+  // Standing sell-stops by symbol: plain stops and OCO stop legs.
+  const standingStops = new Map();
+  for (const o of openOrders) {
+    for (const leg of [o, ...(Array.isArray(o?.legs) ? o.legs : [])]) {
+      if (String(leg?.side ?? "").toLowerCase() !== "sell") continue;
+      if (!["stop", "stop_limit"].includes(String(leg?.type ?? ""))) continue;
+      if (!["new", "accepted", "held"].includes(String(leg?.status ?? ""))) continue;
+      const sym = String(leg?.symbol ?? "").trim().toUpperCase();
+      if (!standingStops.has(sym)) standingStops.set(sym, []);
+      standingStops.get(sym).push(leg);
+    }
+  }
   const round2 = v => Math.round(v * 100) / 100;
   for (const pos of positions) {
     if (String(pos.signal_class ?? "").toUpperCase() !== "CH2") continue;
     if (pos.status !== "filled") continue;
     const ticker = String(pos.ticker).trim().toUpperCase();
-    if (hasOpenSell.has(ticker)) continue;
+    if (hasOpenSell.has(ticker)) {
+      // PROFIT LOCK at the broker (Joe 2026-10-06): raise the standing stop
+      // to the lock floor once armed. Stops only move up; one stop per name.
+      const stops = standingStops.get(ticker) ?? [];
+      if (stops.length !== 1) continue;
+      try {
+        const ap = await alpacaGet(`/v2/positions/${encodeURIComponent(ticker)}`, base);
+        const entry = parseFloat(ap?.avg_entry_price ?? "0");
+        const peak = Math.max(
+          parseFloat(pos.rationale_json?.peak_price ?? "") || 0,
+          parseFloat(ap?.current_price ?? "0") || 0,
+        );
+        const cur = parseFloat(stops[0].stop_price ?? "0");
+        const next = ch2RaisedStop(entry, peak, cur);
+        const price = parseFloat(ap?.current_price ?? "0");
+        if (next !== null && price > next) {
+          await alpacaPatch(`/v2/orders/${stops[0].id}`, { stop_price: String(next) }, base);
+          console.log(`[REARM] ${ticker} PROFIT LOCK stop raised $${cur} → $${next} | entry=$${entry} peak=$${peak.toFixed(2)}`);
+        }
+      } catch (err) {
+        console.warn(`[REARM] ${ticker} profit-lock raise failed: ${err.message}`);
+      }
+      continue;
+    }
     let ap;
     try {
       ap = await alpacaGet(`/v2/positions/${encodeURIComponent(ticker)}`, base);
@@ -1331,12 +1383,37 @@ export async function runSentinel() {
       const currentSUf = isFinite(fields.s_uf) ? fields.s_uf : null;
       const currentDk  = isFinite(fields.d_k)  ? fields.d_k  : null;
 
+      // ── PROFIT PROTECT: free-fall guard (engages only above +20%) ────
+      // Runs BEFORE the FIELD-R1 branch so new-law positions are locked too
+      // (Joe 2026-10-06: a +20% winner must not slide below +15%).
+      if (livePosEntry !== null && livePosPrice !== null) {
+        const peakStored = parseFloat(pos.rationale_json?.peak_price ?? "") || 0;
+        const peakNow = Math.max(peakStored, livePosPrice);
+        if (peakNow > peakStored) {
+          const nextRationale = { ...(pos.rationale_json ?? {}), peak_price: peakNow };
+          await pool.query(
+            `UPDATE personal_trade_ledger SET rationale_json = $1 WHERE id = $2`,
+            [JSON.stringify(nextRationale), pos.id]
+          ).catch(() => {});
+        }
+        const floor = profitProtectFloor(livePosEntry, peakNow);
+        if (floor !== null && livePosPrice <= floor && isMarketHoursForExitF()) {
+          console.log(
+            `[SENTINEL] CH2 ${pos.ticker} PROFIT PROTECT | peak=${peakNow.toFixed(2)} ` +
+            `floor=${floor.toFixed(2)} price=${livePosPrice.toFixed(2)} ` +
+            `(P&L=${currentPnlPct?.toFixed(1) ?? "?"}%) — banking the win`
+          );
+          await killPosition(pos, "ch2_profit_protect", ALPACA_BASE);
+          continue;
+        }
+      }
+
       // ── FIELD-X1 (Claude 2026-09-30): positions opened under FIELD-R1 ──
       // The law the position was opened under is in its rationale. Its exit
       // is the close of the 10th closed session after entry — the hold the
       // book was measured on (docs/CH2_CANON_KERNEL_FULL_BAR_20260930.md) —
-      // plus the -20% brake above (EXIT-F). The old kernel's exits (profit
-      // protect, dead clock, 90-day wall, basin break, verdict sheet) do not
+      // plus the -20% brake above (EXIT-F) and the profit lock above. The old
+      // kernel's other exits (dead clock, 90-day wall, basin break, verdict sheet) do not
       // apply to it: one law per position. Sessions are counted from
       // daily_bars, closed sessions only; a missing history never sells.
       if (String(pos.rationale_json?.entry_law ?? "") === "FIELD-R1") {
@@ -1361,29 +1438,6 @@ export async function runSentinel() {
           console.log(`[SENTINEL] CH2 ${pos.ticker} FIELD-X1 error: ${fx.message} — holding`);
         }
         continue;
-      }
-
-      // ── PROFIT PROTECT: free-fall guard (engages only above +20%) ────
-      if (livePosEntry !== null && livePosPrice !== null) {
-        const peakStored = parseFloat(pos.rationale_json?.peak_price ?? "") || 0;
-        const peakNow = Math.max(peakStored, livePosPrice);
-        if (peakNow > peakStored) {
-          const nextRationale = { ...(pos.rationale_json ?? {}), peak_price: peakNow };
-          await pool.query(
-            `UPDATE personal_trade_ledger SET rationale_json = $1 WHERE id = $2`,
-            [JSON.stringify(nextRationale), pos.id]
-          ).catch(() => {});
-        }
-        const floor = profitProtectFloor(livePosEntry, peakNow);
-        if (floor !== null && livePosPrice <= floor && isMarketHoursForExitF()) {
-          console.log(
-            `[SENTINEL] CH2 ${pos.ticker} PROFIT PROTECT | peak=${peakNow.toFixed(2)} ` +
-            `floor=${floor.toFixed(2)} price=${livePosPrice.toFixed(2)} ` +
-            `(P&L=${currentPnlPct?.toFixed(1) ?? "?"}%) — banking the win`
-          );
-          await killPosition(pos, "ch2_profit_protect", ALPACA_BASE);
-          continue;
-        }
       }
 
       // EXIT-A REMOVED. S_UF >= 0.75 trigger had no derivation. Capped winners
