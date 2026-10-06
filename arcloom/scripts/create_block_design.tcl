@@ -2,8 +2,11 @@
 # ArcLoom PYNQ Block Design — 3 Sensors + 12-Trit Math (Camera-Free)
 # ============================================================
 # Run in Vivado Tcl Console:
-#   source C:/Users/joeta/Downloads/create_block_design.tcl
+#   source C:/Users/joeta/Downloads/arcloom_hdl/create_block_design.tcl
 # ============================================================
+
+# Close any currently open project before creating fresh project
+catch {close_project}
 
 if {[file exists "C:/Users/joeta/Downloads/arcloom_hdl/arcloom_axi_wrapper.v"]} {
     set hdl_dir "C:/Users/joeta/Downloads/arcloom_hdl"
