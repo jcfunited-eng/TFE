@@ -98,6 +98,30 @@ def read_sensors():
     }
 
 
+def read_dsf():
+    """Read Universal Field (L0-L4) structural metrics from silicon."""
+    decision = arcloom.read(0x00)
+    p_raw = arcloom.read(0x24)
+    b_raw = arcloom.read(0x2C)
+    m_raw = arcloom.read(0x38)
+    u_raw = arcloom.read(0x3C)
+    c_raw = arcloom.read(0x58)
+
+    m_signed = m_raw if m_raw < 0x80000000 else m_raw - 0x100000000
+
+    return {
+        "valid": bool(decision & (1 << 10)),
+        "D": TRIT_NAMES.get((decision >> 11) & 0x3, "null"),
+        "M": round(m_signed / 65536.0, 4),
+        "R_rev": bool(decision & (1 << 13)),
+        "U_star": round(u_raw / 65536.0, 4),
+        "C": c_raw & 0xF,
+        "P": round(p_raw / 65536.0, 4),
+        "B": round(b_raw / 65536.0, 4),
+        "safe_mode": bool(decision & (1 << 9)),
+    }
+
+
 # ---- Exact transport encoding; never compute a substitute hardware result ----
 def bt_encode(n, digits=12):
     if type(n) is not int or abs(n) > (3 ** digits - 1) // 2:
@@ -210,6 +234,7 @@ def api_loom():
         data = read_loom()
         sensors = read_sensors()
         data["sensors"] = sensors
+        data["dsf"] = read_dsf()
         reg_20 = arcloom.read(0x20)
         data["krimelack"] = {
             "motif_count": reg_20 & 0x3F,
@@ -239,42 +264,45 @@ def api_motor():
     """Enable/disable motors. POST with {"enable": true/false}"""
     global demo_logging, demo_log
     try:
-        body = request.get_json(force=True)
-        if body.get("enable"):
-            arcloom.write(0x10, 0x04)  # motor_enable bit 2
+        req = request.get_json(force=True)
+        enable = bool(req.get('enable', False))
+        reg_10 = 0x04 if enable else 0x00
+        arcloom.write(0x10, reg_10)
+
+        if enable:
             demo_log = []
             demo_logging = True
         else:
-            arcloom.write(0x10, 0x00)  # motor disable
             demo_logging = False
-        return jsonify({"motor_on": body.get("enable", False)})
+
+        return jsonify({"success": True, "motor_enable": enable, "samples": len(demo_log)})
     except Exception as e:
         return jsonify({"error": str(e)})
 
 
 @app.route('/api/demo_log')
 def api_demo_log():
-    """Return the demo run telemetry log."""
-    return jsonify({"entries": len(demo_log), "log": demo_log[-500:]})
+    """Return the demo run telemetry log for post-run reporting."""
+    return jsonify({"samples": len(demo_log), "log": demo_log})
 
 
 @app.route('/api/calc')
 def api_calc():
-    """One serialized physical calculator transaction on MathLoom silicon."""
+    """Hardware MathLoom arithmetic. GET ?a=X&b=Y&op=add|sub|mul|div|cmp"""
     try:
         a = int(request.args.get('a', 0))
         b = int(request.args.get('b', 0))
         op = request.args.get('op', 'add')
         with calc_lock:
-            return jsonify(calculate_hardware(arcloom, a, b, op))
-    except (ValueError, ZeroDivisionError, NotImplementedError) as exc:
-        return jsonify({"error": str(exc)}), 400
-    except (RuntimeError, TimeoutError, OSError) as exc:
-        return jsonify({"error": str(exc)}), 503
+            result = calculate_hardware(arcloom, a, b, op)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 
 @app.route('/report')
 def report():
+    """Full-page interactive post-run telemetry report with charts."""
     return Response(REPORT_HTML, mimetype='text/html')
 
 
@@ -348,51 +376,61 @@ async function loadReport() {
     document.getElementById('summary').innerHTML = `
         <div class="stat"><div class="stat-val">${log.length}</div><div class="stat-label">Samples</div></div>
         <div class="stat"><div class="stat-val">${dur}s</div><div class="stat-label">Duration</div></div>
+        <div class="stat"><div class="stat-val">${(log.length/dur).toFixed(1)}</div><div class="stat-label">Hz</div></div>
+        <div class="stat"><div class="stat-val" style="color:#00ff88;">FPGA</div><div class="stat-label">Silicon Core</div></div>
     `;
 
+    // Sensor chart
     const canvas = document.getElementById('sensorChart');
     const ctx = canvas.getContext('2d');
-    canvas.width = canvas.clientWidth * 2;
-    canvas.height = 360;
+    canvas.width = canvas.parentElement.clientWidth - 24;
     const W = canvas.width, H = canvas.height;
-    const maxADC = 4095;
-    const pad = {l:50, r:10, t:10, b:25};
-    const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+    const pad = { top: 10, right: 10, bottom: 20, left: 40 };
+    const pW = W - pad.left - pad.right;
+    const pH = H - pad.top - pad.bottom;
 
-    ctx.strokeStyle = '#222'; ctx.lineWidth = 1;
-    for (let v = 0; v <= 4000; v += 1000) {
-        const y = pad.t + ch - (v / maxADC) * ch;
-        ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
-        ctx.fillStyle = '#444'; ctx.font = '18px monospace';
-        ctx.fillText(v, 4, y + 5);
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = '#222';
+    ctx.lineWidth = 1;
+    for (let v = 0; v <= 4095; v += 1000) {
+        const y = pad.top + pH - (v / 4095) * pH;
+        ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
+        ctx.fillStyle = '#555'; ctx.font = '9px monospace';
+        ctx.fillText(v, 5, y + 3);
     }
 
-    function drawLine(data, color) {
-        ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath();
-        data.forEach((v, i) => {
-            const x = pad.l + (i / (data.length - 1)) * cw;
-            const y = pad.t + ch - (v / maxADC) * ch;
-            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    function plotLine(key, color) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        log.forEach((pt, i) => {
+            const x = pad.left + (i / (log.length - 1)) * pW;
+            const y = pad.top + pH - (pt[key] / 4095) * pH;
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
         });
         ctx.stroke();
     }
-    drawLine(log.map(r => r.front), '#00ff88');
-    drawLine(log.map(r => r.left), '#4488ff');
-    drawLine(log.map(r => r.right), '#ff8844');
+    plotLine('front', '#00ff88');
+    plotLine('left', '#4488ff');
+    plotLine('right', '#ff8844');
 
-    ctx.font = '20px monospace';
-    ctx.fillStyle = '#00ff88'; ctx.fillText('Front (A0)', pad.l + 10, pad.t + 20);
-    ctx.fillStyle = '#4488ff'; ctx.fillText('Left (A1)', pad.l + 150, pad.t + 20);
-    ctx.fillStyle = '#ff8844'; ctx.fillText('Right (A2)', pad.l + 270, pad.t + 20);
-
+    // Decision table
     const tbody = document.getElementById('logBody');
-    log.forEach((r, i) => {
-        const tr = document.createElement('tr');
-        const elapsed = (r.t - log[0].t).toFixed(1);
-        const fmtTrit = (v) => v === '+1' ? '<span class="pos">+1</span>' : v === '-1' ? '<span class="neg">-1</span>' : '<span class="nul">0</span>';
-        tr.innerHTML = `<td>${i+1}</td><td>${elapsed}s</td><td>${r.front}</td><td>${r.left}</td><td>${r.right}</td><td>${fmtTrit(r.speed)}</td><td>${fmtTrit(r.steer)}</td><td>${fmtTrit(r.confidence)}</td>`;
-        tbody.appendChild(tr);
-    });
+    const tritClass = t => t === '+1' ? 'pos' : t === '-1' ? 'neg' : 'nul';
+    tbody.innerHTML = log.map((pt, i) => `
+        <tr>
+            <td>${i+1}</td>
+            <td>${(pt.t - log[0].t).toFixed(2)}s</td>
+            <td>${pt.front}</td>
+            <td>${pt.left}</td>
+            <td>${pt.right}</td>
+            <td class="${tritClass(pt.speed)}">${pt.speed}</td>
+            <td class="${tritClass(pt.steer)}">${pt.steer}</td>
+            <td class="${tritClass(pt.confidence)}">${pt.confidence}</td>
+        </tr>
+    `).join('');
 }
 loadReport();
 </script>
@@ -567,6 +605,23 @@ body {
     <!-- LOOM STATE -->
     <div class="loom-grid" id="loom-grid"></div>
 
+    <!-- DSF KERNEL L0-L4 TELEMETRY -->
+    <div class="sensor-panel" id="dsf-panel" style="margin: 8px 0;">
+        <div style="font-size:0.7em; color:#00ff88; font-weight:bold; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em;">
+            DSF-AI L0–L4 Kernel Telemetry (Silicon)
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:0.65em; color:#aaa; flex-wrap:wrap; gap:8px;">
+            <span>D: <b id="dsf-d" style="color:#00ff88;">--</b></span>
+            <span>M: <b id="dsf-m">0.00</b></span>
+            <span>R<sub>rev</sub>: <b id="dsf-rrev">0</b></span>
+            <span>U*: <b id="dsf-ustar">0.00</b></span>
+            <span>C: <b id="dsf-c">0</b></span>
+            <span>P: <b id="dsf-p">0.00</b></span>
+            <span>B: <b id="dsf-b">0.00</b></span>
+            <span>SafeMode: <b id="dsf-safe" style="color:#00ff88;">OFF</b></span>
+        </div>
+    </div>
+
     <!-- DECISION OUTPUT -->
     <div class="output-panel">
         <div class="output-item">
@@ -649,24 +704,20 @@ const STRAND_LABELS = {
 };
 const TRIT_CLASS = {1:'pos', 2:'neg', 0:'null', 3:'inv'};
 
-const grid = document.getElementById('loom-grid');
-STRAND_ORDER.forEach(name => {
-    const row = document.createElement('div');
-    row.className = 'strand-row'; row.id = 'strand-' + name;
-    const label = document.createElement('div');
-    label.className = 'strand-label'; label.textContent = STRAND_LABELS[name];
-    row.appendChild(label);
-    const trits = document.createElement('div');
-    trits.className = 'trits';
-    for (let i = 0; i < 3; i++) {
-        const t = document.createElement('div');
-        t.className = 'trit null'; t.id = 'trit-' + name + '-' + i; t.textContent = '0';
-        trits.appendChild(t);
-    }
-    row.appendChild(trits);
-    grid.appendChild(row);
-});
+function buildLoomGrid() {
+    const grid = document.getElementById('loom-grid');
+    grid.innerHTML = STRAND_ORDER.map(name => `
+        <div class="strand-row" id="strand-${name}">
+            <span class="strand-label">${STRAND_LABELS[name]}</span>
+            <div class="trits">
+                ${[0,1,2].map(i => `<div class="trit null" id="trit-${name}-${i}">0</div>`).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+buildLoomGrid();
 
+// ---- Live polling ----
 async function poll() {
     try {
         const resp = await fetch('/api/loom');
@@ -717,6 +768,20 @@ async function poll() {
         const mstat = document.getElementById('motor-status');
         mstat.textContent = s.motor_on ? 'MOTORS ON' : 'MOTORS OFF';
         mstat.style.color = s.motor_on ? '#00ff88' : '#ff4444';
+
+        // DSF Kernel Telemetry
+        if (data.dsf) {
+            document.getElementById('dsf-d').textContent = data.dsf.D;
+            document.getElementById('dsf-m').textContent = data.dsf.M;
+            document.getElementById('dsf-rrev').textContent = data.dsf.R_rev ? '1' : '0';
+            document.getElementById('dsf-ustar').textContent = data.dsf.U_star;
+            document.getElementById('dsf-c').textContent = data.dsf.C;
+            document.getElementById('dsf-p').textContent = data.dsf.P;
+            document.getElementById('dsf-b').textContent = data.dsf.B;
+            const safeEl = document.getElementById('dsf-safe');
+            safeEl.textContent = data.dsf.safe_mode ? 'ACTIVE' : 'OFF';
+            safeEl.style.color = data.dsf.safe_mode ? '#ff4444' : '#00ff88';
+        }
 
         document.getElementById('status').textContent =
             'LIVE | ' + new Date().toLocaleTimeString();

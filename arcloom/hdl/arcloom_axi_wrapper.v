@@ -4,8 +4,9 @@
 //
 // Pure Physical Hardware Substrate Interface
 //
-// AXI4-Lite slave interface to ArcLoom ternary neuromorphic core
-// and MathLoom 12-trit balanced ternary arithmetic unit.
+// AXI4-Lite slave interface to ArcLoom ternary neuromorphic core,
+// MathLoom 12-trit balanced ternary arithmetic unit, and
+// Universal Field (L0-L4) structural kernel pipeline.
 //
 // Address map (word-addressed via S_AXI_AWADDR[7:2]):
 //   0x00: Decision + Status [31:0]
@@ -18,10 +19,15 @@
 //         Write: familiarity override [7:0], enable [8]
 //   0x1C: Left/Right sensor raw ADC [31:0]
 //   0x20: Krimelack status + target match [31:0]
+//   0x24: L4 DSF Pressure P_k [31:0] (Q16.16 fixed point)
 //   0x28: Front sensor raw ADC + motor_enable status [31:0]
+//   0x2C: L4 DSF Breathing B_k [31:0] (Q16.16 fixed point)
 //   0x30: Hardware distance baselines: Front [11:0], Left [27:16]
 //   0x34: Hardware distance baseline: Right [11:0]
+//   0x38: L4 DSF Momentum M_k [31:0] (signed 32-bit)
+//   0x3C: L4 DSF Adjusted Uncertainty U*_k [31:0] (Q16.16 fixed point)
 //   0x40-0x54: Full 81-trit loom_state (6 registers, 162 bits)
+//   0x58: L4 DSF Mosaic Divergence C_k [3:0]
 //   0x74: Division cycle count [18:0]
 //   0x78: MathLoom ABI identifier (0x4D4C0001)
 //   0x7C: Division status {div_pending[2], div_dbz[1], div_ready[0]}
@@ -134,7 +140,12 @@ module arcloom_axi_wrapper #(
     wire [1:0]  decision_steer_w, decision_speed_w, decision_conf_w;
     wire        structural_lock_w, dsf_safe_mode_w, dsf_valid_w;
     wire [1:0]  dsf_D_w;
+    wire signed [31:0] dsf_M_w;
     wire        dsf_R_rev_w;
+    wire [31:0] dsf_U_star_w;
+    wire [3:0]  dsf_C_w;
+    wire [31:0] dsf_P_w;
+    wire [31:0] dsf_B_w;
     wire [161:0] loom_state_w;
     wire [6:0]  n_effective_w;
     wire [7:0]  omega_w;
@@ -149,7 +160,12 @@ module arcloom_axi_wrapper #(
     reg [1:0]  decision_steer, decision_speed, decision_conf;
     reg        structural_lock, dsf_safe_mode, dsf_valid;
     reg [1:0]  dsf_D;
+    reg signed [31:0] dsf_M;
     reg        dsf_R_rev;
+    reg [31:0] dsf_U_star;
+    reg [3:0]  dsf_C;
+    reg [31:0] dsf_P;
+    reg [31:0] dsf_B;
     reg [6:0]  n_effective;
     reg [7:0]  omega;
     reg [5:0]  krim_count;
@@ -178,25 +194,30 @@ module arcloom_axi_wrapper #(
     end
 
     always @(posedge S_AXI_ACLK) begin
-        decision_steer  <= decision_steer_w;
-        decision_speed  <= decision_speed_w;
-        decision_conf   <= decision_conf_w;
-        structural_lock <= structural_lock_w;
-        dsf_safe_mode   <= dsf_safe_mode_w;
-        dsf_valid       <= dsf_valid_w;
-        dsf_D           <= dsf_D_w;
-        dsf_R_rev       <= dsf_R_rev_w;
-        n_effective     <= n_effective_w;
-        omega           <= omega_w;
-        krim_count      <= krim_count_w;
-        krim_score      <= krim_score_w;
-        krim_recall     <= krim_recall_w;
-        krim_commit_ok  <= krim_commit_ok_w;
-        krim_commit_rej <= krim_commit_rej_w;
+        decision_steer    <= decision_steer_w;
+        decision_speed    <= decision_speed_w;
+        decision_conf     <= decision_conf_w;
+        structural_lock   <= structural_lock_w;
+        dsf_safe_mode     <= dsf_safe_mode_w;
+        dsf_valid         <= dsf_valid_w;
+        dsf_D             <= dsf_D_w;
+        dsf_M             <= dsf_M_w;
+        dsf_R_rev         <= dsf_R_rev_w;
+        dsf_U_star        <= dsf_U_star_w;
+        dsf_C             <= dsf_C_w;
+        dsf_P             <= dsf_P_w;
+        dsf_B             <= dsf_B_w;
+        n_effective       <= n_effective_w;
+        omega             <= omega_w;
+        krim_count        <= krim_count_w;
+        krim_score        <= krim_score_w;
+        krim_recall       <= krim_recall_w;
+        krim_commit_ok    <= krim_commit_ok_w;
+        krim_commit_rej   <= krim_commit_rej_w;
         debug_steer_field <= debug_steer_field_w;
     end
 
-    // ---- ArcLoom Top Instance (Pure 9-Strand Kinematics) ----
+    // ---- ArcLoom Top Instance (Pure 9-Strand Kinematics + L0-L4 Kernel) ----
     arcloom_top arcloom_inst (
         .clk(S_AXI_ACLK), .rst_n(S_AXI_ARESETN),
         .sensor_adc_front(sensor_adc_in),
@@ -219,7 +240,12 @@ module arcloom_axi_wrapper #(
         .dsf_safe_mode(dsf_safe_mode_w),
         .dsf_valid(dsf_valid_w),
         .dsf_D(dsf_D_w),
+        .dsf_M(dsf_M_w),
         .dsf_R_rev(dsf_R_rev_w),
+        .dsf_U_star(dsf_U_star_w),
+        .dsf_C(dsf_C_w),
+        .dsf_P(dsf_P_w),
+        .dsf_B(dsf_B_w),
         .loom_state(loom_state_w),
         .n_effective(n_effective_w),
         .omega(omega_w),
@@ -423,14 +449,26 @@ module arcloom_axi_wrapper #(
                                         krim_commit_ok, krim_commit_rej,
                                         4'd0, krim_count};
 
+                    // 0x24: L4 DSF Pressure P_k (16.16 fixed point)
+                    6'd9: axi_rdata <= dsf_P;
+
                     // 0x28: Front sensor raw ADC + motor_enable status
                     6'd10: axi_rdata <= {19'd0, motor_enable, live_adc};
+
+                    // 0x2C: L4 DSF Breathing B_k (16.16 fixed point)
+                    6'd11: axi_rdata <= dsf_B;
 
                     // 0x30: Hardware distance baselines readback: Left [27:16], Front [11:0]
                     6'd12: axi_rdata <= {4'd0, sensor_bl_left, 4'd0, sensor_bl_front};
 
                     // 0x34: Hardware distance baseline readback: Right [11:0]
                     6'd13: axi_rdata <= {20'd0, sensor_bl_right};
+
+                    // 0x38: L4 DSF Momentum M_k (signed 32-bit)
+                    6'd14: axi_rdata <= dsf_M;
+
+                    // 0x3C: L4 DSF Adjusted Uncertainty U*_k (16.16 fixed point)
+                    6'd15: axi_rdata <= dsf_U_star;
 
                     // 0x40-0x54: Full 81-trit loom_state (6 registers)
                     6'd16: axi_rdata <= loom_state_r[0];
@@ -439,6 +477,9 @@ module arcloom_axi_wrapper #(
                     6'd19: axi_rdata <= loom_state_r[3];
                     6'd20: axi_rdata <= loom_state_r[4];
                     6'd21: axi_rdata <= loom_state_r[5];
+
+                    // 0x58: L4 DSF Mosaic Divergence C_k (4-bit)
+                    6'd22: axi_rdata <= {28'd0, dsf_C};
 
                     // 0x74: Division cycle count
                     6'd29: axi_rdata <= {13'd0, div_cyc_r};

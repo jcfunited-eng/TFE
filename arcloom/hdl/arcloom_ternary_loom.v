@@ -201,7 +201,7 @@ endmodule
 
 
 // ============================================================
-// ArcLoom Top Module — SPPU + Krimelack + L6 (Camera-Free)
+// ArcLoom Top Module — SPPU + L0-L4 Kernel + Krimelack + L6 (Camera-Free)
 // ============================================================
 module arcloom_top (
     input  wire        clk,
@@ -237,7 +237,12 @@ module arcloom_top (
     output wire        dsf_safe_mode,
     output wire        dsf_valid,
     output wire [1:0]  dsf_D,
+    output wire signed [31:0] dsf_M,
     output wire        dsf_R_rev,
+    output wire [31:0] dsf_U_star,
+    output wire [3:0]  dsf_C,
+    output wire [31:0] dsf_P,
+    output wire [31:0] dsf_B,
 
     // Monitor outputs (via AXI)
     // 81 trits = 162 bits: 9 input strands × 8 trits + 6 settling + 3 decision
@@ -257,11 +262,55 @@ module arcloom_top (
     output wire signed [31:0] debug_steer_field
 );
 
-    // DSF compatibility outputs (standby defaults)
-    assign dsf_safe_mode = 1'b0;
-    assign dsf_valid = 1'b0;
-    assign dsf_D = 2'b00;
-    assign dsf_R_rev = 1'b0;
+    // ================================================================
+    // Universal Field (L0-L4) Pipeline: Physical Structural Kernel
+    // Dimensionalizes raw temporal sensor stream into continuum geometry
+    // Maps 12-bit ADC [0..4095] to canonical Q16.16 fixed-point [0.0..1.0)
+    // ================================================================
+    wire [31:0] F_norm = {16'd0, sensor_adc_front, 4'd0};
+
+    wire        dsf_valid_w;
+    wire [1:0]  dsf_D_w;
+    wire signed [31:0] dsf_M_w;
+    wire        dsf_R_rev_w;
+    wire [31:0] dsf_U_star_w;
+    wire [3:0]  dsf_C_w;
+    wire [31:0] dsf_P_w;
+    wire [31:0] dsf_B_w;
+    wire        dsf_safe_mode_w;
+
+    arcloom_uf_pipeline uf_pipeline_inst (
+        .clk(clk),
+        .rst_n(rst_n),
+        .valid_in(sensor_valid_front),
+        .F_norm_in(F_norm),
+        .dsf_valid(dsf_valid_w),
+        .dsf_D(dsf_D_w),
+        .dsf_M(dsf_M_w),
+        .dsf_R_rev(dsf_R_rev_w),
+        .dsf_U_star(dsf_U_star_w),
+        .dsf_C(dsf_C_w),
+        .dsf_P(dsf_P_w),
+        .dsf_B(dsf_B_w),
+        .dsf_safe_mode(dsf_safe_mode_w),
+        .l0_valid(),
+        .l0_dF(),
+        .l0_sigma(),
+        .l0_kappa(),
+        .l0_N(),
+        .l0_boundary(),
+        .l0_D_t()
+    );
+
+    assign dsf_valid     = dsf_valid_w;
+    assign dsf_D         = dsf_D_w;
+    assign dsf_M         = dsf_M_w;
+    assign dsf_R_rev     = dsf_R_rev_w;
+    assign dsf_U_star    = dsf_U_star_w;
+    assign dsf_C         = dsf_C_w;
+    assign dsf_P         = dsf_P_w;
+    assign dsf_B         = dsf_B_w;
+    assign dsf_safe_mode = dsf_safe_mode_w;
 
     // ================================================================
     // BSIL-BT: Full Balanced Ternary Sensor Encoding (3 sensors)
@@ -362,19 +411,19 @@ module arcloom_top (
     // ================================================================
     // Krimelack: Structural Memory (CLOCKED)
     // 81 trits × 2 bits = 162 bits width
+    // Gated by genuine L0-L4 uncertainty U* and SafeMode
     // ================================================================
     wire [161:0] recalled_motif;
-    wire [31:0] u_star_from_l6 = {15'd0, n_effective, 10'd0};
-    wire [31:0] resonance_from_l6 = {16'd0, omega, 8'd0};
+    wire [31:0]  resonance_from_l6 = {16'd0, omega, 8'd0};
 
     arcloom_krimelack #(.TRIT_WIDTH(162), .DEPTH(32), .ADDR_BITS(5)) krimelack_inst (
         .clk(clk), .rst_n(rst_n),
         .commit_request(structural_lock),
         .force_commit(sw_krim_commit),
         .state_in(loom_state),
-        .u_star(u_star_from_l6),
+        .u_star(dsf_U_star_w),
         .resonance(resonance_from_l6),
-        .safe_mode(1'b0),
+        .safe_mode(dsf_safe_mode_w),
         .query(loom_state),
         .best_match(recalled_motif),
         .match_score(krimelack_score),
