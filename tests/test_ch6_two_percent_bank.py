@@ -60,3 +60,28 @@ def test_old_peak_does_not_dump_a_position_now_below_two(monkeypatch):
 
 def test_constants():
     assert h.SWEEP_PCT == 2.0 and h.GIVEBACK_PP == 1.0
+
+
+# ── 2026-10-06 second fix: early cuts retired (replay receipt in the tool) ──
+def test_early_cuts_retired():
+    assert h.QUIET_CUT_ENABLED is False
+    assert h.SOUND_STRUCTURE_HOLDING_CUT_ENABLED is False
+
+
+def test_sound_structure_no_longer_cuts_a_held_short(monkeypatch, tmp_path):
+    import pandas as pd
+    import tools.ch_entry_reading as er
+    dates = pd.date_range("2022-01-03", periods=900, freq="B")
+    market = pd.DataFrame({"Date": dates, "Symbol": "TST", "Close": 100.0, "Volume": 1e6})
+    book = {"positions": {"TST": {"side": -1, "entry_px": 100.0}}}
+    monkeypatch.setattr(h, "load_market", lambda: (market, list(dates), dates[-1]))
+    monkeypatch.setattr(er, "READINGS_DIR", tmp_path)
+    monkeypatch.setattr(er, "_file_sheet", lambda path, sheet: None)
+    marked, clean = h.govern(book)
+    assert marked == 0 and clean
+    assert "rules_cut_pending" not in book["positions"]["TST"]
+
+
+def test_anomaly_cut_still_fires(monkeypatch):
+    # a short 20% against entry is still cut at once
+    assert _run(monkeypatch, [120.5]) == ("ANOMALY-CUT", -20.5)

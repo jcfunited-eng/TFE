@@ -1,0 +1,810 @@
+[
+ {
+  "symbol": "EFC",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-08-26T13:42:58.197854+00:00",
+  "actual_pnl": 0.52,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "AUPH",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-08-27T13:44:45.437098+00:00",
+  "actual_pnl": -15.75,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "KMDA",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-08-27T13:44:45.437098+00:00",
+  "actual_pnl": -18.96,
+  "hold_ret_pct": -0.6082725060827121,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "ASAN",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-01T23:05:36.977728+00:00",
+  "actual_pnl": -135.16,
+  "hold_ret_pct": -5.037513397642022,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "CRMD",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-01T23:05:36.977728+00:00",
+  "actual_pnl": -1.59,
+  "hold_ret_pct": -1.0739856801909289,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "FF",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-01T23:05:36.977728+00:00",
+  "actual_pnl": -123.13,
+  "hold_ret_pct": -1.5325670498084305,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "OPRX",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-01T23:05:36.977728+00:00",
+  "actual_pnl": -64.99,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "SSL",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-01T23:05:36.977728+00:00",
+  "actual_pnl": -268.06,
+  "hold_ret_pct": -12.711111111111109,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "MOVE",
+  "reason": "ANOMALY-CUT",
+  "exit_at": "2026-09-02T13:36:08.622339+00:00",
+  "actual_pnl": -577.22,
+  "hold_ret_pct": -36.2037037037037,
+  "hold_exit": "stop-gap"
+ },
+ {
+  "symbol": "AMRN",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-10T02:55:34.735642+00:00",
+  "actual_pnl": -121.04,
+  "hold_ret_pct": 2.851033499643611,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "ASPN",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-10T02:55:34.735642+00:00",
+  "actual_pnl": -20.83,
+  "hold_ret_pct": 1.244813278008309,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "JILL",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-10T02:55:34.735642+00:00",
+  "actual_pnl": -339.09,
+  "hold_ret_pct": 2.0439448134900284,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "UTZ",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-10T02:55:34.735642+00:00",
+  "actual_pnl": -2.2,
+  "hold_ret_pct": 0.0,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "NRC",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-10T03:22:38.353342+00:00",
+  "actual_pnl": -101.43,
+  "hold_ret_pct": -5.299653293709759,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "AB",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-09-10T13:43:09.046811+00:00",
+  "actual_pnl": 3.11,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "BTU",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-09-10T13:43:09.046811+00:00",
+  "actual_pnl": 11.16,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "DB",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-09-10T13:43:09.046811+00:00",
+  "actual_pnl": -6.8,
+  "hold_ret_pct": 2.8592556075918254,
+  "hold_exit": "bank-gap"
+ },
+ {
+  "symbol": "CUZ",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-09-11T16:04:41.823062+00:00",
+  "actual_pnl": -21.33,
+  "hold_ret_pct": -1.5798922800718052,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "AI",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-15T16:14:12.473674+00:00",
+  "actual_pnl": -214.55,
+  "hold_ret_pct": -4.7619047619047645,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "ALTG",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-15T16:14:12.473674+00:00",
+  "actual_pnl": -98.58,
+  "hold_ret_pct": -5.6896551724137945,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "AMSF",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-15T16:14:12.473674+00:00",
+  "actual_pnl": -37.45,
+  "hold_ret_pct": 0.30309153364315733,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "ARCT",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-15T16:14:12.473674+00:00",
+  "actual_pnl": -355.92,
+  "hold_ret_pct": -20.0,
+  "hold_exit": "stop"
+ },
+ {
+  "symbol": "ASAN",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-15T16:14:12.473674+00:00",
+  "actual_pnl": -471.3,
+  "hold_ret_pct": -20.0,
+  "hold_exit": "stop"
+ },
+ {
+  "symbol": "BCBP",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-15T16:14:12.473674+00:00",
+  "actual_pnl": -32.5,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "BILI",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-15T16:14:12.473674+00:00",
+  "actual_pnl": -45.87,
+  "hold_ret_pct": 2.1015195602974415,
+  "hold_exit": "bank-gap"
+ },
+ {
+  "symbol": "CLW",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-15T16:14:12.473674+00:00",
+  "actual_pnl": -177.29,
+  "hold_ret_pct": -7.252298263534228,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "CNXC",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-15T16:14:12.473674+00:00",
+  "actual_pnl": -237.34,
+  "hold_ret_pct": -6.003366373667478,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "COLM",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-15T16:14:12.473674+00:00",
+  "actual_pnl": -92.64,
+  "hold_ret_pct": -2.6079136690647404,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "CPRI",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-15T16:14:12.473674+00:00",
+  "actual_pnl": -298.08,
+  "hold_ret_pct": -20.0,
+  "hold_exit": "stop"
+ },
+ {
+  "symbol": "DEO",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-15T16:14:12.473674+00:00",
+  "actual_pnl": -72.93,
+  "hold_ret_pct": -0.9310986964618215,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "CLBK",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-17T01:39:14.708865+00:00",
+  "actual_pnl": -8.26,
+  "hold_ret_pct": -1.0498687664042081,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "AQN",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-17T21:16:15.123780+00:00",
+  "actual_pnl": -18.01,
+  "hold_ret_pct": -0.09354536950420755,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "BUSE",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-09-18T13:42:40.184247+00:00",
+  "actual_pnl": 2.42,
+  "hold_ret_pct": -0.5177885418406586,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "MGM",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-09-18T13:42:40.184247+00:00",
+  "actual_pnl": 1.3,
+  "hold_ret_pct": 10.586061246040138,
+  "hold_exit": "bank-gap"
+ },
+ {
+  "symbol": "NE",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-09-18T13:42:40.184247+00:00",
+  "actual_pnl": -2.7,
+  "hold_ret_pct": 2.0144861928474436,
+  "hold_exit": "bank-gap"
+ },
+ {
+  "symbol": "BHFAO",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-18T21:17:12.008557+00:00",
+  "actual_pnl": -41.59,
+  "hold_ret_pct": -0.2135231316725933,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "ALRM",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-09-23T15:21:35.524174+00:00",
+  "actual_pnl": -12.1,
+  "hold_ret_pct": -2.2910798122065708,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "ARLP",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-09-23T15:21:35.524174+00:00",
+  "actual_pnl": -6.6,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "BANR",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-09-23T15:21:35.524174+00:00",
+  "actual_pnl": 44.99,
+  "hold_ret_pct": 2.4515393386545026,
+  "hold_exit": "bank-gap"
+ },
+ {
+  "symbol": "COLM",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-09-23T15:21:35.524174+00:00",
+  "actual_pnl": -67.37,
+  "hold_ret_pct": -1.5425297487880123,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "DAKT",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-09-23T15:21:35.524174+00:00",
+  "actual_pnl": -43.06,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "ANGO",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-23T21:45:46.980851+00:00",
+  "actual_pnl": -41.01,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "ATNI",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-23T21:45:46.980851+00:00",
+  "actual_pnl": -35.85,
+  "hold_ret_pct": 0.48678720445062784,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "CNXC",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-23T21:51:10.835198+00:00",
+  "actual_pnl": -193.83,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "CRBP",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-23T21:51:10.835198+00:00",
+  "actual_pnl": -181.51,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "CRK",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-23T21:51:10.835198+00:00",
+  "actual_pnl": -104.85,
+  "hold_ret_pct": -1.5873015873015879,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "DEO",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-23T21:51:10.835198+00:00",
+  "actual_pnl": -7.68,
+  "hold_ret_pct": -1.8859138533178,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "EGBN",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-23T21:51:10.835198+00:00",
+  "actual_pnl": -28.82,
+  "hold_ret_pct": -2.5512037369744913,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "HLF",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-23T21:56:29.965543+00:00",
+  "actual_pnl": -87.59,
+  "hold_ret_pct": -8.283002588438316,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "HUN",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-23T21:56:29.965543+00:00",
+  "actual_pnl": -15.39,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "IART",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-23T21:56:29.965543+00:00",
+  "actual_pnl": -103.46,
+  "hold_ret_pct": -8.042895442359256,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "KRUS",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-23T22:01:50.062504+00:00",
+  "actual_pnl": -213.97,
+  "hold_ret_pct": -13.605839416058386,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "AB",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-09-24T13:40:43.770228+00:00",
+  "actual_pnl": 18.02,
+  "hold_ret_pct": 2.0949720670391065,
+  "hold_exit": "bank-gap"
+ },
+ {
+  "symbol": "ARCO",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-09-24T13:40:43.770228+00:00",
+  "actual_pnl": -3.01,
+  "hold_ret_pct": 2.096010818120343,
+  "hold_exit": "bank-gap"
+ },
+ {
+  "symbol": "COGT",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-09-24T13:40:43.770228+00:00",
+  "actual_pnl": -10.91,
+  "hold_ret_pct": -2.0678513731825543,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "ALGT",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-25T23:55:23.959602+00:00",
+  "actual_pnl": -34.19,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "ARCT",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-25T23:55:23.959602+00:00",
+  "actual_pnl": -47.13,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "INGN",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-25T23:55:23.959602+00:00",
+  "actual_pnl": -153.57,
+  "hold_ret_pct": -4.687500000000004,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "ARLP",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-09-28T13:45:30.254310+00:00",
+  "actual_pnl": 8.48,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "BUSE",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-09-28T13:45:30.254310+00:00",
+  "actual_pnl": -38.9,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "CFFN",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-09-28T13:45:30.254310+00:00",
+  "actual_pnl": 6.67,
+  "hold_ret_pct": 2.4221453287197123,
+  "hold_exit": "bank-gap"
+ },
+ {
+  "symbol": "ADPT",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-29T21:25:39.758208+00:00",
+  "actual_pnl": -79.9,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "AEO",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-29T21:25:39.758208+00:00",
+  "actual_pnl": -356.41,
+  "hold_ret_pct": -13.161209068010063,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "AUPH",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-29T21:25:39.758208+00:00",
+  "actual_pnl": -23.01,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "BFS",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-29T21:25:39.758208+00:00",
+  "actual_pnl": -59.19,
+  "hold_ret_pct": -1.4379969548299805,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "CHCT",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-29T21:30:58.629524+00:00",
+  "actual_pnl": -36.39,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "CMPR",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-29T21:30:58.629524+00:00",
+  "actual_pnl": -49.4,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "COLD",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-29T21:30:58.629524+00:00",
+  "actual_pnl": -33.78,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "ARCO",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-09-30T13:41:33.231550+00:00",
+  "actual_pnl": 5.7,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "ACAD",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-30T21:15:46.107821+00:00",
+  "actual_pnl": -3.25,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "ALKT",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-30T21:15:46.107821+00:00",
+  "actual_pnl": -45.78,
+  "hold_ret_pct": -5.20446096654276,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "AMN",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-30T21:15:46.107821+00:00",
+  "actual_pnl": -96.42,
+  "hold_ret_pct": -6.628075253256169,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "AMSF",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-30T21:15:46.107821+00:00",
+  "actual_pnl": -30.28,
+  "hold_ret_pct": 0.34246575342465024,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "AMWL",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-30T21:15:46.107821+00:00",
+  "actual_pnl": -102.93,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "APPN",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-30T21:21:06.337743+00:00",
+  "actual_pnl": -102.84,
+  "hold_ret_pct": -12.780401416765047,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "BSY",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-30T21:21:06.337743+00:00",
+  "actual_pnl": -121.93,
+  "hold_ret_pct": -14.009186351706035,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "CGEM",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-09-30T21:21:06.337743+00:00",
+  "actual_pnl": -134.76,
+  "hold_ret_pct": -10.089224433768008,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "ARLP",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-10-01T13:41:19.538590+00:00",
+  "actual_pnl": 25.17,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "BUSE",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-10-01T13:41:19.538590+00:00",
+  "actual_pnl": 42.88,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "CNX",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-10-01T13:41:19.538590+00:00",
+  "actual_pnl": -5.39,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "BALY",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-10-01T21:23:40.617252+00:00",
+  "actual_pnl": -55.28,
+  "hold_ret_pct": 2.0,
+  "hold_exit": "bank"
+ },
+ {
+  "symbol": "BFAM",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-10-01T21:23:40.617252+00:00",
+  "actual_pnl": -12.45,
+  "hold_ret_pct": 0.5113108149984699,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "BLKB",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-10-01T21:23:40.617252+00:00",
+  "actual_pnl": -35.07,
+  "hold_ret_pct": -3.1681753215817183,
+  "hold_exit": "time"
+ },
+ {
+  "symbol": "AB",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-10-02T13:52:50.374867+00:00",
+  "actual_pnl": -16.93,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "BMI",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-10-02T13:52:50.374867+00:00",
+  "actual_pnl": -104.49,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "BXC",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-10-02T13:52:50.374867+00:00",
+  "actual_pnl": -192.06,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "CFFN",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-10-02T13:52:50.374867+00:00",
+  "actual_pnl": -68.71,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "CCOI",
+  "reason": "ANOMALY-CUT",
+  "exit_at": "2026-10-02T18:34:56.263762+00:00",
+  "actual_pnl": -501.89,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "ASUR",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-10-02T21:15:25.449424+00:00",
+  "actual_pnl": -35.66,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "BFS",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-10-02T21:15:25.449424+00:00",
+  "actual_pnl": -14.66,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "CLB",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-10-02T21:20:42.179289+00:00",
+  "actual_pnl": -78.88,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "AB",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-10-05T13:45:36.507221+00:00",
+  "actual_pnl": 2.59,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "BMI",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-10-05T13:45:36.507221+00:00",
+  "actual_pnl": -12.29,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "AAT",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-10-05T21:13:05.506184+00:00",
+  "actual_pnl": -12.05,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "ACAD",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-10-05T21:13:05.506184+00:00",
+  "actual_pnl": -16.52,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "ADNT",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-10-05T21:13:05.506184+00:00",
+  "actual_pnl": -73.04,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "AHCO",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-10-05T21:13:05.506184+00:00",
+  "actual_pnl": -45.82,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "ALLT",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-10-05T21:13:05.506184+00:00",
+  "actual_pnl": -25.67,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "BAND",
+  "reason": "QUIET-CUT (fall never began)",
+  "exit_at": "2026-10-05T21:18:24.902475+00:00",
+  "actual_pnl": -139.07,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "BXC",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-10-06T13:41:04.557149+00:00",
+  "actual_pnl": -111.63,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ },
+ {
+  "symbol": "COGT",
+  "reason": "RULES-CUT sound-structure",
+  "exit_at": "2026-10-06T13:41:04.557149+00:00",
+  "actual_pnl": 13.66,
+  "hold_ret_pct": null,
+  "hold_exit": "open-window"
+ }
+]

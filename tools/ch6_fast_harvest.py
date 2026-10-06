@@ -74,6 +74,13 @@ SWEEP_PCT = 2.0     # Joseph's fast-cash law: end-of-day bank at 2%+
                     # and with dozens of positions working, cash binds.
                     
 GIVEBACK_PP = 1.0
+# Retired 2026-10-06 (Joseph: "do the fixes for ch6 too"). Replay of every
+# cut in the book against holding under CH6's own exits (+2% bank, 20% stop,
+# 5-session time): quiet cuts cost $1,267-1,541, sound-structure cuts cost
+# $942-949, both halves of the record. Receipt:
+# artifacts/ch4_uf/ch6_cut_replay_20261006.json (+ _strict_ variant).
+QUIET_CUT_ENABLED = False
+SOUND_STRUCTURE_HOLDING_CUT_ENABLED = False
 ANOMALY_STOP_PCT = 20.0
 HOLD_SESSIONS = 5
 # Joe 2026-09-23: the entry moves to the CLOSE of the spike day. Receipt in
@@ -309,7 +316,7 @@ def settle_completed_closes(
         if gain <= -ANOMALY_STOP_PCT:
             close_position(book, symbol, position, mark, "ANOMALY-CUT", now)
             settled += 1
-        elif age >= 2 and gain <= 0 and _fall_never_began(symbol,
+        elif QUIET_CUT_ENABLED and age >= 2 and gain <= 0 and _fall_never_began(symbol,
                 str(position.get("entry_date", "")), latest_s):
             # QUIET-CUT (armed 2026-09-01, receipts 2026-08-28: cuts
             # losses ~20% per losing trade in BOTH halves of the year).
@@ -806,7 +813,8 @@ def govern(book: dict[str, object]) -> tuple[int, bool]:
         reason = None
         if crush >= 1000:
             reason = "RULES-CUT suicide-pill-ban"
-        elif life_years >= 2 and price >= 0.5 * peak and crush < 4:
+        elif (SOUND_STRUCTURE_HOLDING_CUT_ENABLED and life_years >= 2
+              and price >= 0.5 * peak and crush < 4):
             reason = "RULES-CUT sound-structure"
         sheet[symbol] = {"symbol": symbol,
                          "verdict": "CUT" if reason else "HOLD",
