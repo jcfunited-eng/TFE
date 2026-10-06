@@ -161,7 +161,6 @@ puts "============================================"
 # Disable power optimization steps that hang on wide memory
 set_property STEPS.POWER_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
 set_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
-set_property STEPS.OPT_DESIGN.ARGS.DIRECTIVE {NoBramPowerOpt} [get_runs impl_1]
 
 # Run implementation
 launch_runs impl_1 -jobs 10
