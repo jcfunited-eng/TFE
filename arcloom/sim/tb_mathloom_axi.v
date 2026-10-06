@@ -24,15 +24,7 @@ module tb_mathloom_axi;
     .hw_sensor_data(16'b0),.hw_sensor_valid(1'b0),
     .hw_sensor_data_left(16'b0),.hw_sensor_valid_left(1'b0),
     .hw_sensor_data_right(16'b0),.hw_sensor_valid_right(1'b0),
-    .cam_line_y_mean(8'b0),.cam_line_y_min(8'b0),.cam_line_y_max(8'b0),
-    .cam_line_edge_count(8'b0),.cam_line_u_mean(8'b0),.cam_line_v_mean(8'b0),
-    .cam_line_number(9'b0),.cam_line_valid(1'b0),.cam_frame_active(1'b0),.cam_frame_count(8'b0),
-    .cam_frame_y_upper(8'b0),.cam_frame_y_lower(8'b0),.cam_frame_edge_upper(8'b0),
-    .cam_frame_edge_lower(8'b0),.cam_frame_u_upper(8'b0),.cam_frame_u_lower(8'b0),.cam_frame_density(8'b0),
-    .i2c_mon_data_in(32'b0),.i2c_mon_count_in(10'b0),.i2c_mon_overflow_in(1'b0),
-    .snapshot_done_ext(1'b0),.snapshot_busy_ext(1'b0),.snapshot_data_ext(32'b0),
-    .i2c_rt_busy(1'b0),.i2c_rt_done(1'b0),.i2c_rt_read_data(8'b0),.i2c_rt_read_valid(1'b0),
-    .cam_xclk_fb(1'b0),.motor_ain1(m1),.motor_ain2(m2),.motor_bin1(m3),.motor_bin2(m4));
+    .motor_ain1(m1),.motor_ain2(m2),.motor_bin1(m3),.motor_bin2(m4));
 
   function [23:0] encode;
     input integer x;

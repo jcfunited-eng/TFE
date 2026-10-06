@@ -1,7 +1,8 @@
 # ============================================================
-# ArcLoom PYNQ Block Design — 3 Sensors + Camera + 12-Trit Math
+# ArcLoom PYNQ Block Design — 3 Sensors + 12-Trit Math (Camera-Free)
 # ============================================================
-# Run: source C:/Users/joeta/Downloads/create_block_design.tcl
+# Run in Vivado Tcl Console:
+#   source C:/Users/joeta/Downloads/create_block_design.tcl
 # ============================================================
 
 if {[file exists "C:/Users/joeta/Downloads/arcloom_hdl/arcloom_axi_wrapper.v"]} {
@@ -31,7 +32,6 @@ apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 \
     -config {make_external "FIXED_IO, DDR" Master "Disable" Slave "Disable"} \
     [get_bd_cells ps7]
 
-
 # Add ArcLoom wrapper (ADDR_WIDTH=8 for 64 registers)
 create_bd_cell -type module -reference arcloom_axi_wrapper arcloom_0
 set_property CONFIG.C_S_AXI_ADDR_WIDTH 8 [get_bd_cells arcloom_0]
@@ -41,15 +41,15 @@ set_property CONFIG.C_S_AXI_ADDR_WIDTH 8 [get_bd_cells arcloom_0]
 # ============================================================
 create_bd_cell -type module -reference arcloom_xadc_reader xadc_0
 
-# Wire XADC front sensor → AXI wrapper
+# Wire XADC front sensor -> AXI wrapper
 connect_bd_net [get_bd_pins xadc_0/adc_data]  [get_bd_pins arcloom_0/hw_sensor_data]
 connect_bd_net [get_bd_pins xadc_0/adc_valid] [get_bd_pins arcloom_0/hw_sensor_valid]
 
-# Wire XADC left sensor → AXI wrapper
+# Wire XADC left sensor -> AXI wrapper
 connect_bd_net [get_bd_pins xadc_0/adc_data_left]  [get_bd_pins arcloom_0/hw_sensor_data_left]
 connect_bd_net [get_bd_pins xadc_0/adc_valid_left] [get_bd_pins arcloom_0/hw_sensor_valid_left]
 
-# Wire XADC right sensor → AXI wrapper
+# Wire XADC right sensor -> AXI wrapper
 connect_bd_net [get_bd_pins xadc_0/adc_data_right]  [get_bd_pins arcloom_0/hw_sensor_data_right]
 connect_bd_net [get_bd_pins xadc_0/adc_valid_right] [get_bd_pins arcloom_0/hw_sensor_valid_right]
 
@@ -77,74 +77,6 @@ connect_bd_net [get_bd_ports vauxp6] [get_bd_pins xadc_0/vauxp6]
 connect_bd_net [get_bd_ports vauxn6] [get_bd_pins xadc_0/vauxn6]
 
 # ============================================================
-# Camera — cam_clk_0 (25MHz divider) + DVP capture
-# ============================================================
-
-# Camera clock generator — divides FCLK_CLK0 by 2 to get 25MHz
-create_bd_cell -type module -reference arcloom_cam_clkgen cam_clk_0
-connect_bd_net [get_bd_pins cam_clk_0/clk]   [get_bd_pins ps7/FCLK_CLK0]
-connect_bd_net [get_bd_pins cam_clk_0/rst_n] [get_bd_pins ps7/FCLK_RESET0_N]
-
-# Route clock to AR13 AND feed back into arcloom_0 to prevent trimming
-create_bd_port -dir O cam_xclk
-connect_bd_net [get_bd_pins cam_clk_0/xclk_out] [get_bd_ports cam_xclk]
-connect_bd_net [get_bd_pins cam_clk_0/xclk_out] [get_bd_pins arcloom_0/cam_xclk_fb]
-
-# DVP capture module
-create_bd_cell -type module -reference arcloom_cam_dvp cam_dvp_0
-connect_bd_net [get_bd_pins cam_dvp_0/clk]   [get_bd_pins ps7/FCLK_CLK0]
-connect_bd_net [get_bd_pins cam_dvp_0/rst_n] [get_bd_pins ps7/FCLK_RESET0_N]
-
-# DVP camera inputs from Arduino header
-create_bd_port -dir I cam_pclk
-create_bd_port -dir I cam_vsync
-create_bd_port -dir I cam_href
-create_bd_port -dir I -from 7 -to 0 cam_pixel_data
-connect_bd_net [get_bd_ports cam_pclk]       [get_bd_pins cam_dvp_0/pclk]
-connect_bd_net [get_bd_ports cam_vsync]      [get_bd_pins cam_dvp_0/vsync]
-connect_bd_net [get_bd_ports cam_href]       [get_bd_pins cam_dvp_0/href]
-connect_bd_net [get_bd_ports cam_pixel_data] [get_bd_pins cam_dvp_0/pixel_data]
-
-# Snapshot buffer — standalone module, shares DVP signals with cam_dvp_0
-create_bd_cell -type module -reference arcloom_cam_snapshot snapshot_0
-connect_bd_net [get_bd_pins snapshot_0/clk]   [get_bd_pins ps7/FCLK_CLK0]
-connect_bd_net [get_bd_pins snapshot_0/rst_n] [get_bd_pins ps7/FCLK_RESET0_N]
-
-# DVP inputs to snapshot (same external ports as cam_dvp_0)
-connect_bd_net [get_bd_ports cam_pclk]       [get_bd_pins snapshot_0/pclk]
-connect_bd_net [get_bd_ports cam_vsync]      [get_bd_pins snapshot_0/vsync]
-connect_bd_net [get_bd_ports cam_href]       [get_bd_pins snapshot_0/href]
-connect_bd_net [get_bd_ports cam_pixel_data] [get_bd_pins snapshot_0/pixel_data]
-
-# Snapshot control: trigger and read_addr from AXI wrapper, data/status back
-connect_bd_net [get_bd_pins arcloom_0/snapshot_trigger_out] [get_bd_pins snapshot_0/snapshot_trigger]
-connect_bd_net [get_bd_pins arcloom_0/snapshot_rd_addr_out] [get_bd_pins snapshot_0/read_addr]
-connect_bd_net [get_bd_pins snapshot_0/snapshot_done]       [get_bd_pins arcloom_0/snapshot_done_ext]
-connect_bd_net [get_bd_pins snapshot_0/snapshot_busy]       [get_bd_pins arcloom_0/snapshot_busy_ext]
-connect_bd_net [get_bd_pins snapshot_0/read_data]           [get_bd_pins arcloom_0/snapshot_data_ext]
-
-# Wire DVP outputs → AXI wrapper camera inputs
-connect_bd_net [get_bd_pins cam_dvp_0/line_y_mean]     [get_bd_pins arcloom_0/cam_line_y_mean]
-connect_bd_net [get_bd_pins cam_dvp_0/line_y_min]      [get_bd_pins arcloom_0/cam_line_y_min]
-connect_bd_net [get_bd_pins cam_dvp_0/line_y_max]      [get_bd_pins arcloom_0/cam_line_y_max]
-connect_bd_net [get_bd_pins cam_dvp_0/line_edge_count] [get_bd_pins arcloom_0/cam_line_edge_count]
-connect_bd_net [get_bd_pins cam_dvp_0/line_u_mean]     [get_bd_pins arcloom_0/cam_line_u_mean]
-connect_bd_net [get_bd_pins cam_dvp_0/line_v_mean]     [get_bd_pins arcloom_0/cam_line_v_mean]
-connect_bd_net [get_bd_pins cam_dvp_0/line_number]     [get_bd_pins arcloom_0/cam_line_number]
-connect_bd_net [get_bd_pins cam_dvp_0/line_valid]      [get_bd_pins arcloom_0/cam_line_valid]
-connect_bd_net [get_bd_pins cam_dvp_0/frame_active]    [get_bd_pins arcloom_0/cam_frame_active]
-connect_bd_net [get_bd_pins cam_dvp_0/frame_count]     [get_bd_pins arcloom_0/cam_frame_count]
-
-# Frame-level features — owl trick (upper/lower split) + density
-connect_bd_net [get_bd_pins cam_dvp_0/frame_y_upper]     [get_bd_pins arcloom_0/cam_frame_y_upper]
-connect_bd_net [get_bd_pins cam_dvp_0/frame_y_lower]     [get_bd_pins arcloom_0/cam_frame_y_lower]
-connect_bd_net [get_bd_pins cam_dvp_0/frame_edge_upper]  [get_bd_pins arcloom_0/cam_frame_edge_upper]
-connect_bd_net [get_bd_pins cam_dvp_0/frame_edge_lower]  [get_bd_pins arcloom_0/cam_frame_edge_lower]
-connect_bd_net [get_bd_pins cam_dvp_0/frame_u_upper]     [get_bd_pins arcloom_0/cam_frame_u_upper]
-connect_bd_net [get_bd_pins cam_dvp_0/frame_u_lower]     [get_bd_pins arcloom_0/cam_frame_u_lower]
-connect_bd_net [get_bd_pins cam_dvp_0/frame_density]     [get_bd_pins arcloom_0/cam_frame_density]
-
-# ============================================================
 # AXI bus — arcloom_0 first (creates interconnect)
 # ============================================================
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 \
@@ -152,59 +84,6 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 \
               Master {/ps7/M_AXI_GP0} Slave {/arcloom_0/S_AXI} \
               ddr_seg {Auto} intc_ip {New AXI Interconnect} master_apm {0}} \
     [get_bd_intf_pins arcloom_0/S_AXI]
-
-# ============================================================
-# Camera I2C — standalone Verilog master with IOBUF
-# Auto-inits OV5640 on reset (QVGA YUV422 DVP mode)
-# No AXI IIC IP needed — runs independently
-# ============================================================
-create_bd_cell -type module -reference arcloom_cam_i2c_iobuf cam_i2c_0
-connect_bd_net [get_bd_pins cam_i2c_0/clk]   [get_bd_pins ps7/FCLK_CLK0]
-connect_bd_net [get_bd_pins cam_i2c_0/rst_n] [get_bd_pins ps7/FCLK_RESET0_N]
-
-# SDA = inout (open-drain with IOBUF inside module)
-create_bd_port -dir IO cam_sda
-connect_bd_net [get_bd_pins cam_i2c_0/cam_sda] [get_bd_ports cam_sda]
-
-# SCL = output (push-pull, single master)
-create_bd_port -dir O cam_scl
-connect_bd_net [get_bd_pins cam_i2c_0/cam_scl] [get_bd_ports cam_scl]
-
-# I2C monitor read port: cam_i2c_0 → AXI wrapper
-connect_bd_net [get_bd_pins arcloom_0/i2c_mon_addr_out]     [get_bd_pins cam_i2c_0/mon_rd_addr]
-connect_bd_net [get_bd_pins cam_i2c_0/mon_rd_data]          [get_bd_pins arcloom_0/i2c_mon_data_in]
-connect_bd_net [get_bd_pins cam_i2c_0/mon_write_count]      [get_bd_pins arcloom_0/i2c_mon_count_in]
-connect_bd_net [get_bd_pins cam_i2c_0/mon_overflow]         [get_bd_pins arcloom_0/i2c_mon_overflow_in]
-
-# Runtime I2C control: AXI wrapper → cam_i2c_0
-connect_bd_net [get_bd_pins arcloom_0/i2c_rt_addr]  [get_bd_pins cam_i2c_0/rt_reg_addr]
-connect_bd_net [get_bd_pins arcloom_0/i2c_rt_data]  [get_bd_pins cam_i2c_0/rt_reg_data]
-connect_bd_net [get_bd_pins arcloom_0/i2c_rt_write] [get_bd_pins cam_i2c_0/rt_write]
-connect_bd_net [get_bd_pins arcloom_0/i2c_rt_read]  [get_bd_pins cam_i2c_0/rt_read]
-connect_bd_net [get_bd_pins cam_i2c_0/rt_busy]      [get_bd_pins arcloom_0/i2c_rt_busy]
-connect_bd_net [get_bd_pins cam_i2c_0/rt_done]      [get_bd_pins arcloom_0/i2c_rt_done]
-connect_bd_net [get_bd_pins cam_i2c_0/rt_read_data]  [get_bd_pins arcloom_0/i2c_rt_read_data]
-connect_bd_net [get_bd_pins cam_i2c_0/rt_read_valid] [get_bd_pins arcloom_0/i2c_rt_read_valid]
-
-# ---- Validate I2C port connections ----
-puts ""
-puts "============================================"
-puts " I2C PORT VALIDATION"
-puts "============================================"
-set i2c_pins [get_bd_pins cam_i2c_0/*]
-puts " cam_i2c_0 ports: [llength $i2c_pins]"
-foreach p $i2c_pins { puts "   $p" }
-puts ""
-set rt_pins [get_bd_pins cam_i2c_0/rt_*]
-puts " Runtime I2C pins found: [llength $rt_pins]"
-foreach p $rt_pins { puts "   $p" }
-if {[llength $rt_pins] < 5} {
-    puts " WARNING: Expected 5 runtime I2C pins, found [llength $rt_pins]"
-    puts " Runtime I2C control will NOT work in this build!"
-} else {
-    puts " All 5 runtime I2C pins present - OK"
-}
-puts "============================================"
 
 # ============================================================
 # Motor drive — Pmod A
@@ -250,61 +129,6 @@ puts $xdc_fh "## A2 = VAUX6 (right) — K14/J14"
 puts $xdc_fh "set_property PACKAGE_PIN K14 \[get_ports vauxp6\]"
 puts $xdc_fh "set_property PACKAGE_PIN J14 \[get_ports vauxn6\]"
 
-puts $xdc_fh ""
-puts $xdc_fh "## ============================================"
-puts $xdc_fh "## Camera — OV5640 DVP on Arduino Header"
-puts $xdc_fh "## ============================================"
-puts $xdc_fh "## From PYNQ-Z2 master XDC Arduino digital pins"
-puts $xdc_fh "## AR2-AR9 = pixel data D2-D9"
-puts $xdc_fh "## AR10 = VSYNC, AR11 = HREF, AR12 = PCLK"
-puts $xdc_fh "## AR13 = XCLK output (25MHz)"
-
-# Arduino digital pin package pins from master XDC
-# AR0=T14, AR1=U12, AR2=U13, AR3=V13, AR4=V15, AR5=T15
-# AR6=R16, AR7=U17, AR8=V17, AR9=V18, AR10=T16, AR11=R17
-# AR12=P18, AR13=N17
-puts $xdc_fh ""
-puts $xdc_fh "## Pixel data bus D\[7:0\] → AR2-AR9"
-puts $xdc_fh "set_property PACKAGE_PIN U13 \[get_ports {cam_pixel_data\[0\]}\]"
-puts $xdc_fh "set_property IOSTANDARD LVCMOS33 \[get_ports {cam_pixel_data\[0\]}\]"
-puts $xdc_fh "set_property PACKAGE_PIN V13 \[get_ports {cam_pixel_data\[1\]}\]"
-puts $xdc_fh "set_property IOSTANDARD LVCMOS33 \[get_ports {cam_pixel_data\[1\]}\]"
-puts $xdc_fh "set_property PACKAGE_PIN V15 \[get_ports {cam_pixel_data\[2\]}\]"
-puts $xdc_fh "set_property IOSTANDARD LVCMOS33 \[get_ports {cam_pixel_data\[2\]}\]"
-puts $xdc_fh "set_property PACKAGE_PIN T15 \[get_ports {cam_pixel_data\[3\]}\]"
-puts $xdc_fh "set_property IOSTANDARD LVCMOS33 \[get_ports {cam_pixel_data\[3\]}\]"
-puts $xdc_fh "set_property PACKAGE_PIN R16 \[get_ports {cam_pixel_data\[4\]}\]"
-puts $xdc_fh "set_property IOSTANDARD LVCMOS33 \[get_ports {cam_pixel_data\[4\]}\]"
-puts $xdc_fh "set_property PACKAGE_PIN U17 \[get_ports {cam_pixel_data\[5\]}\]"
-puts $xdc_fh "set_property IOSTANDARD LVCMOS33 \[get_ports {cam_pixel_data\[5\]}\]"
-puts $xdc_fh "set_property PACKAGE_PIN V17 \[get_ports {cam_pixel_data\[6\]}\]"
-puts $xdc_fh "set_property IOSTANDARD LVCMOS33 \[get_ports {cam_pixel_data\[6\]}\]"
-puts $xdc_fh "set_property PACKAGE_PIN V18 \[get_ports {cam_pixel_data\[7\]}\]"
-puts $xdc_fh "set_property IOSTANDARD LVCMOS33 \[get_ports {cam_pixel_data\[7\]}\]"
-
-puts $xdc_fh ""
-puts $xdc_fh "## VSYNC = AR10, HREF = AR11, PCLK = AR12"
-puts $xdc_fh "set_property PACKAGE_PIN T16 \[get_ports cam_vsync\]"
-puts $xdc_fh "set_property IOSTANDARD LVCMOS33 \[get_ports cam_vsync\]"
-puts $xdc_fh "set_property PACKAGE_PIN R17 \[get_ports cam_href\]"
-puts $xdc_fh "set_property IOSTANDARD LVCMOS33 \[get_ports cam_href\]"
-puts $xdc_fh "set_property PACKAGE_PIN P18 \[get_ports cam_pclk\]"
-puts $xdc_fh "set_property IOSTANDARD LVCMOS33 \[get_ports cam_pclk\]"
-
-puts $xdc_fh ""
-puts $xdc_fh "## XCLK output = AR13 (25MHz clock to camera)"
-puts $xdc_fh "set_property PACKAGE_PIN N17 \[get_ports cam_xclk\]"
-puts $xdc_fh "set_property IOSTANDARD LVCMOS33 \[get_ports cam_xclk\]"
-
-puts $xdc_fh ""
-puts $xdc_fh "## I2C — Arduino header SDA/SCL (Verilog I2C master)"
-puts $xdc_fh "set_property PACKAGE_PIN P16 \[get_ports cam_sda\]"
-puts $xdc_fh "set_property IOSTANDARD LVCMOS33 \[get_ports cam_sda\]"
-puts $xdc_fh "set_property PULLUP true \[get_ports cam_sda\]"
-puts $xdc_fh "set_property PACKAGE_PIN P15 \[get_ports cam_scl\]"
-puts $xdc_fh "set_property IOSTANDARD LVCMOS33 \[get_ports cam_scl\]"
-puts $xdc_fh "set_property PULLUP true \[get_ports cam_scl\]"
-
 close $xdc_fh
 add_files -fileset constrs_1 $xdc_file
 
@@ -319,8 +143,7 @@ add_files -norecurse [glob C:/Users/joeta/arcloom_pynq2/arcloom_pynq2.gen/source
 set_property top arcloom_bd_wrapper [current_fileset]
 update_compile_order -fileset sources_1
 
-# Raise pwropt fanin/fanout limit — wider SPPU (64 inputs × 9 fields)
-# exceeds the default ratio. This prevents the HACOOException in opt_design.
+# Raise pwropt fanin/fanout limit
 set_param pwropt.maxFaninFanoutToNetRatio 10000
 
 # Synthesize
@@ -332,17 +155,16 @@ puts "============================================"
 puts " Synthesis complete. Starting implementation..."
 puts "============================================"
 
-# Disable ALL power optimization — wide Krimelack (210-bit × 32 entries)
-# causes power analysis to hang for hours on the PYNQ-Z2.
+# Disable power optimization steps that hang on wide memory
 set_property STEPS.POWER_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
 set_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
 set_property STEPS.OPT_DESIGN.ARGS.DIRECTIVE {NoBramPowerOpt} [get_runs impl_1]
 
-# Run implementation (without -to_step so disabled steps stay disabled)
+# Run implementation
 launch_runs impl_1 -jobs 10
 wait_on_run impl_1
 
-# Then generate bitstream
+# Generate bitstream
 launch_runs impl_1 -to_step write_bitstream -jobs 10
 wait_on_run impl_1
 

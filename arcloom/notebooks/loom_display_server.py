@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-ArcLoom Live Display + Demo Control Server
-Serves real-time FPGA state to iPad/laptop with RUN/END demo buttons.
+ArcLoom Live Display + Demo Control Server (Camera-Free Hardware Substrate)
+Serves real-time FPGA state to iPad/laptop with RUN/END demo buttons and hardware telemetry.
 
 Usage:
   Run in a Jupyter cell:
@@ -22,41 +22,24 @@ app = Flask(__name__)
 
 ol = Overlay("/home/xilinx/jupyter_notebooks/ArcLoom/arcloom.bit")
 arcloom = ol.arcloom_0
-MMIO_SIZE = 0x100  # 256 bytes for wider AXI address space
-
-# ---- Auto-calibrate camera baselines from room ----
-# Read current room values and write them as baselines.
-# This makes "room = silence" so only deviations from room
-# produce non-null trits. DSF-AI blade function, running locally.
-import time as _init_time
-_init_time.sleep(2)  # let camera stabilize after overlay load
-_room_34 = arcloom.read(0x34)
-_room_38 = arcloom.read(0x38)
-_bl_y = ((_room_34 & 0xFF) + ((_room_34 >> 8) & 0xFF)) // 2
-_bl_edge = (((_room_34 >> 16) & 0xFF) + ((_room_34 >> 24) & 0xFF)) // 2
-_bl_u = ((_room_38 & 0xFF) + ((_room_38 >> 8) & 0xFF)) // 2
-_bl_density = (_room_38 >> 24) & 0xFF
-# Pack and write: register 0x3C = {density, u, edge, y}
-arcloom.write(0x3C, (_bl_density << 24) | (_bl_u << 16) | (_bl_edge << 8) | _bl_y)
-print(f"Camera baselines set: Y={_bl_y}, Edge={_bl_edge}, U={_bl_u}, Density={_bl_density}")
+MMIO_SIZE = 0x100
 
 TRIT_NAMES = {0: "null", 1: "+1", 2: "-1", 3: "INV"}
 TRIT_COLORS = {0: "#555555", 1: "#00ff88", 2: "#ff4444", 3: "#ff00ff"}
 
 
 def read_loom():
-    """Read loom state from FPGA — 8-trit architecture."""
+    """Read loom state from FPGA — 9-strand balanced ternary architecture."""
     decision = arcloom.read(0x00)
     loom_lo = arcloom.read(0x04)
 
     def trit(val, bit):
         return (val >> bit) & 0x3
 
-    # New layout: loom_state[31:0] =
+    # Silicon layout: loom_state[31:0] =
     #   [5:0]   = decision (3 trits: steer, speed, conf)
     #   [11:6]  = context (3 trits)
     #   [17:12] = momentum (3 trits)
-    #   [31:18] = start of right_dist (7 trits visible in 32-bit read)
     dcsn = [trit(loom_lo, 0), trit(loom_lo, 2), trit(loom_lo, 4)]
     ctx  = [trit(loom_lo, 6), trit(loom_lo, 8), trit(loom_lo, 10)]
     mmtm = [trit(loom_lo, 12), trit(loom_lo, 14), trit(loom_lo, 16)]
@@ -70,9 +53,9 @@ def read_loom():
 
     return {
         "strands": {
-            "context":      {"trits": ctx,   "labels": [TRIT_NAMES[t] for t in ctx],   "colors": [TRIT_COLORS[t] for t in ctx]},
-            "momentum":     {"trits": mmtm,  "labels": [TRIT_NAMES[t] for t in mmtm],  "colors": [TRIT_COLORS[t] for t in mmtm]},
-            "decision":     {"trits": dcsn,  "labels": [TRIT_NAMES[t] for t in dcsn],  "colors": [TRIT_COLORS[t] for t in dcsn]},
+            "context":  {"trits": ctx,   "labels": [TRIT_NAMES[t] for t in ctx],   "colors": [TRIT_COLORS[t] for t in ctx]},
+            "momentum": {"trits": mmtm,  "labels": [TRIT_NAMES[t] for t in mmtm],  "colors": [TRIT_COLORS[t] for t in mmtm]},
+            "decision": {"trits": dcsn,  "labels": [TRIT_NAMES[t] for t in dcsn],  "colors": [TRIT_COLORS[t] for t in dcsn]},
         },
         "output": {
             "steer": TRIT_NAMES[steer],
@@ -90,7 +73,7 @@ def read_loom():
 
 
 def read_sensors():
-    """Read raw sensor ADC values and status."""
+    """Read raw sensor ADC values and status directly from silicon registers."""
     reg_28 = arcloom.read(0x28)
     front_adc = reg_28 & 0xFFF
     motor_on = bool(reg_28 & (1 << 12))
@@ -104,10 +87,6 @@ def read_sensors():
     krim_score = (reg_20 >> 14) & 0xFF
     target_match = (reg_20 >> 24) & 0xFF
 
-    reg_24 = arcloom.read(0x24)
-    cam_frame_active = bool(reg_24 & (1 << 17))
-    cam_frame_count = (reg_24 >> 9) & 0xFF
-
     return {
         "front": front_adc,
         "left": left_adc,
@@ -116,33 +95,6 @@ def read_sensors():
         "krim_score": krim_score,
         "motif_count": motif_count,
         "target_match": target_match,
-        "cam_active": cam_frame_active,
-        "cam_frames": cam_frame_count,
-    }
-
-
-def read_camera():
-    """Read camera features from registers 0x18, 0x30, 0x34, 0x38."""
-    reg_18 = arcloom.read(0x18)
-    reg_30 = arcloom.read(0x30)
-    reg_34 = arcloom.read(0x34)
-    reg_38 = arcloom.read(0x38)
-    return {
-        # Per-line (last scanline)
-        "y_mean": reg_18 & 0xFF,
-        "y_min": (reg_18 >> 8) & 0xFF,
-        "y_max": (reg_18 >> 16) & 0xFF,
-        "edge_count": (reg_18 >> 24) & 0xFF,
-        "u_mean": reg_30 & 0xFF,
-        "v_mean": (reg_30 >> 8) & 0xFF,
-        # Frame-level (owl trick — upper/lower)
-        "y_upper": reg_34 & 0xFF,
-        "y_lower": (reg_34 >> 8) & 0xFF,
-        "edge_upper": (reg_34 >> 16) & 0xFF,
-        "edge_lower": (reg_34 >> 24) & 0xFF,
-        "u_upper": reg_38 & 0xFF,
-        "u_lower": (reg_38 >> 8) & 0xFF,
-        "density": (reg_38 >> 24) & 0xFF,
     }
 
 
@@ -173,24 +125,16 @@ def bt_decode(val, digits=12):
 
 
 def bt_trits(val, digits=12):
-    bt_decode(val, digits)  # reject invalid encoding rather than displaying zero
+    bt_decode(val, digits)
     return [("0", "+1", "-1")[(val >> (2 * i)) & 3] for i in range(digits)]
 
 
-# Serialize calculator transactions in this server. The MMIO device must have
-# one software writer: this lock cannot arbitrate unrelated notebook processes.
 calc_lock = threading.Lock()
 MATHLOOM_ABI = 0x4D4C0001
 
 
 def calculate_hardware(device, a, b, op, *, timeout_seconds=1.0):
-    """Exact register I/O for ML ABI v1; no software-result fallback.
-
-    The one-second deadline is an I/O watchdog, NOT a physical solver parameter.
-    It refuses a missing completion. Division reads a dedicated status register,
-    never the legacy mux whose multiplication bits can resemble a done flag.
-    Caller holds calc_lock for the complete transaction.
-    """
+    """Exact register I/O for ML ABI v1; no software-result fallback."""
     if op not in ("add", "sub", "mul", "div", "cmp"):
         raise NotImplementedError("Only add, subtract, multiply, compare and divide are verified hardware operations")
     a_bt, b_bt = bt_encode(a), bt_encode(b)
@@ -208,13 +152,13 @@ def calculate_hardware(device, a, b, op, *, timeout_seconds=1.0):
     if op == "div":
         device.write(0x0C, 1 << 16)
         deadline = time.monotonic() + timeout_seconds
-        for _ in range(10000):  # finite transport poll bound, not a convergence rule
+        for _ in range(10000):
             status = device.read(0x7C)
             if status & 1 and not status & 4:
                 break
             if time.monotonic() >= deadline:
                 raise TimeoutError("FPGA division did not complete; no result accepted")
-            time.sleep(0.0001)  # polling cadence only; has no authority over silicon
+            time.sleep(0.0001)
         else:
             raise TimeoutError("FPGA division exceeded the I/O poll bound")
         if status & 2:
@@ -244,7 +188,7 @@ def calculate_hardware(device, a, b, op, *, timeout_seconds=1.0):
                 raise RuntimeError("Hardware comparison failed exact verification")
             answer.update(op="compare", result=0 if flags == 1 else 1 if flags == 2 else -1)
         else:
-            packed = raw & 0x3FFFFFF  # all 13 trits, INCLUDING carry
+            packed = raw & 0x3FFFFFF
             result = bt_decode(packed, 13)
             if result != (a + b if op == "add" else a - b):
                 raise RuntimeError("Hardware sum failed exact verification")
@@ -253,14 +197,10 @@ def calculate_hardware(device, a, b, op, *, timeout_seconds=1.0):
     return answer
 
 
-# ---- Demo run log ----
+# ---- Demo run telemetry log ----
 demo_log = []
 demo_logging = False
 
-# ---- Camera capture log (for hw-derive turntable CSV) ----
-capture_log = []
-capture_active = False
-capture_orientation = "lying"
 
 # ---- API routes ----
 
@@ -268,126 +208,28 @@ capture_orientation = "lying"
 def api_loom():
     try:
         data = read_loom()
-        data["sensors"] = read_sensors()
-        cam = read_camera()
-        data["camera"] = cam
-        data["capture_active"] = capture_active
-        data["capture_samples"] = len(capture_log)
-        data["capture_orientation"] = capture_orientation
-
-        # During turntable capture: record camera data AND
-        # trigger Krimelack commit so the SPPU stores the motif.
-        # The loom state includes camera strands — the motif IS
-        # the structural signature of what the camera sees.
-        if capture_active:
-            # Trigger Krimelack commit via AXI (bit 1 of register 0x10)
-            # Motors are off during capture, so just write bit 1
-            arcloom.write(0x10, 0x02)
-
-            capture_log.append({
-                "sample": len(capture_log) + 1,
-                "orientation": capture_orientation,
-                "y_mean": cam["y_mean"],
-                "edge_count": cam["edge_count"],
-                "u_mean": cam["u_mean"],
-            })
-
-        # Krimelack status for display
+        sensors = read_sensors()
+        data["sensors"] = sensors
         reg_20 = arcloom.read(0x20)
         data["krimelack"] = {
             "motif_count": reg_20 & 0x3F,
             "match_score": (reg_20 >> 14) & 0xFF,
         }
 
-        # Log during demo run
+        # Real-time telemetry during demo run
         if demo_logging:
-            import time as _t
             demo_log.append({
-                "t": _t.time(),
-                "front": data["sensors"]["front"],
-                "left": data["sensors"]["left"],
-                "right": data["sensors"]["right"],
+                "t": time.time(),
+                "front": sensors["front"],
+                "left": sensors["left"],
+                "right": sensors["right"],
                 "steer": data["output"]["steer"],
                 "speed": data["output"]["speed"],
-                "motor": data["sensors"]["motor_on"],
-                "y_mean": cam["y_mean"],
-                "edge": cam["edge_count"],
+                "confidence": data["output"]["confidence"],
+                "motor": sensors["motor_on"],
             })
 
         return jsonify(data)
-    except Exception as e:
-        return jsonify({"error": str(e)})
-
-
-@app.route('/api/capture', methods=['POST'])
-def api_capture():
-    """Start/stop turntable camera capture for hw-derive CSV."""
-    global capture_active, capture_log, capture_orientation
-    try:
-        body = request.get_json(force=True)
-        action = body.get("action", "")
-        if action == "start":
-            capture_log = []
-            capture_orientation = body.get("orientation", "lying")
-            capture_active = True
-            return jsonify({"capturing": True, "samples": 0})
-        elif action == "orientation":
-            capture_orientation = body.get("orientation", "standing")
-            return jsonify({"capturing": capture_active, "orientation": capture_orientation})
-        elif action == "stop":
-            capture_active = False
-            return jsonify({"capturing": False, "samples": len(capture_log)})
-        elif action == "clear":
-            capture_active = False
-            capture_log = []
-            return jsonify({"capturing": False, "samples": 0})
-        return jsonify({"error": "action must be start, stop, orientation, or clear"})
-    except Exception as e:
-        return jsonify({"error": str(e)})
-
-
-@app.route('/api/capture_csv')
-def api_capture_csv():
-    """Download capture log as CSV for hw-derive."""
-    if not capture_log:
-        return Response("No capture data", mimetype='text/plain')
-    lines = ["sample, orientation, y_mean, edge_count, u_mean"]
-    for r in capture_log:
-        lines.append(f"{r['sample']}, {r['orientation']}, {r['y_mean']}, {r['edge_count']}, {r['u_mean']}")
-    csv_text = "\n".join(lines)
-    return Response(csv_text, mimetype='text/csv',
-                    headers={"Content-Disposition": "attachment; filename=turntable_capture.csv"})
-
-
-@app.route('/api/set_target', methods=['POST'])
-def api_set_target():
-    """Capture current loom state as the hunt target.
-    Reads loom_state[47:0] and writes it to target_motif registers.
-    This is the blade function: Python reads the structural state
-    and configures the razor's target register."""
-    try:
-        body = request.get_json(force=True)
-        action = body.get("action", "capture")
-        if action == "capture":
-            # Multi-slot capture: force-commit 8 motifs to Krimelack
-            # target partition (slots 0-7). Rotate/move object during
-            # capture to span structural variation.
-            # Krimelack target_match_score computes best-of-8 automatically.
-            import time as _t
-            n_slots = 8
-            for s in range(n_slots):
-                arcloom.write(0x10, 0x02)  # force_commit
-                _t.sleep(0.5)
-            return jsonify({"target_set": True, "slots": n_slots})
-        elif action == "clear":
-            # Clear target: force-commit 8 null-ish motifs
-            # Point camera at empty room first, then clear
-            import time as _t
-            for s in range(8):
-                arcloom.write(0x10, 0x02)
-                _t.sleep(0.1)
-            return jsonify({"target_set": False})
-        return jsonify({"error": "action must be capture or clear"})
     except Exception as e:
         return jsonify({"error": str(e)})
 
@@ -399,25 +241,26 @@ def api_motor():
     try:
         body = request.get_json(force=True)
         if body.get("enable"):
-            arcloom.write(0x10, 0x04)
+            arcloom.write(0x10, 0x04)  # motor_enable bit 2
             demo_log = []
             demo_logging = True
         else:
-            arcloom.write(0x10, 0x00)
+            arcloom.write(0x10, 0x00)  # motor disable
             demo_logging = False
         return jsonify({"motor_on": body.get("enable", False)})
     except Exception as e:
         return jsonify({"error": str(e)})
 
+
 @app.route('/api/demo_log')
 def api_demo_log():
-    """Return the demo run log."""
+    """Return the demo run telemetry log."""
     return jsonify({"entries": len(demo_log), "log": demo_log[-500:]})
 
 
 @app.route('/api/calc')
 def api_calc():
-    """One serialized physical calculator transaction; reject unverified images."""
+    """One serialized physical calculator transaction on MathLoom silicon."""
     try:
         a = int(request.args.get('a', 0))
         b = int(request.args.get('b', 0))
@@ -445,7 +288,7 @@ REPORT_HTML = r"""<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ArcLoom Demo Report</title>
+<title>ArcLoom Demo Telemetry Report</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: #0a0a0a; color: #e0e0e0; font-family: 'Menlo', 'Courier New', monospace; padding: 16px; }
@@ -463,27 +306,24 @@ th { background: #1a1a1a; color: #00ff88; padding: 6px 8px; text-align: left; bo
 td { padding: 5px 8px; border-bottom: 1px solid #1a1a1a; }
 tr:hover { background: #111; }
 .pos { color: #00ff88; } .neg { color: #ff4444; } .nul { color: #555; }
-.bad { background: #331a1a; }
-.no-data { text-align: center; padding: 40px; color: #444; font-size: 1.2em; }
-.correct { color: #00ff88; } .wrong { color: #ff4444; font-weight: bold; }
 </style>
 </head>
 <body>
-<h1>ArcLoom Demo Report</h1>
+<h1>ArcLoom Demo Telemetry Report</h1>
 <div class="subtitle" id="subtitle">loading...</div>
 
 <div class="summary" id="summary"></div>
 
 <div class="chart-box">
-    <div class="chart-title">SENSOR TRACES</div>
+    <div class="chart-title">DISTANCE SENSOR TRACES (ANALOG VOLTAGE COUNTS)</div>
     <canvas id="sensorChart" height="180"></canvas>
 </div>
 
 <div class="chart-box">
-    <div class="chart-title">DECISION LOG</div>
+    <div class="chart-title">SILICON DECISION LOG</div>
     <div style="max-height: 400px; overflow-y: auto;">
         <table id="logTable">
-            <thead><tr><th>#</th><th>Time</th><th>Front</th><th>Left</th><th>Right</th><th>Speed</th><th>Steer</th><th>Y</th><th>Edge</th></tr></thead>
+            <thead><tr><th>#</th><th>Time</th><th>Front</th><th>Left</th><th>Right</th><th>Speed</th><th>Steer</th><th>Conf</th></tr></thead>
             <tbody id="logBody"></tbody>
         </table>
     </div>
@@ -510,7 +350,6 @@ async function loadReport() {
         <div class="stat"><div class="stat-val">${dur}s</div><div class="stat-label">Duration</div></div>
     `;
 
-    // Sensor chart
     const canvas = document.getElementById('sensorChart');
     const ctx = canvas.getContext('2d');
     canvas.width = canvas.clientWidth * 2;
@@ -520,7 +359,6 @@ async function loadReport() {
     const pad = {l:50, r:10, t:10, b:25};
     const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
 
-    // Grid
     ctx.strokeStyle = '#222'; ctx.lineWidth = 1;
     for (let v = 0; v <= 4000; v += 1000) {
         const y = pad.t + ch - (v / maxADC) * ch;
@@ -542,22 +380,17 @@ async function loadReport() {
     drawLine(log.map(r => r.left), '#4488ff');
     drawLine(log.map(r => r.right), '#ff8844');
 
-    // Legend
     ctx.font = '20px monospace';
-    ctx.fillStyle = '#00ff88'; ctx.fillText('Front', pad.l + 10, pad.t + 20);
-    ctx.fillStyle = '#4488ff'; ctx.fillText('Left', pad.l + 90, pad.t + 20);
-    ctx.fillStyle = '#ff8844'; ctx.fillText('Right', pad.l + 160, pad.t + 20);
+    ctx.fillStyle = '#00ff88'; ctx.fillText('Front (A0)', pad.l + 10, pad.t + 20);
+    ctx.fillStyle = '#4488ff'; ctx.fillText('Left (A1)', pad.l + 150, pad.t + 20);
+    ctx.fillStyle = '#ff8844'; ctx.fillText('Right (A2)', pad.l + 270, pad.t + 20);
 
-    // Table
     const tbody = document.getElementById('logBody');
     log.forEach((r, i) => {
         const tr = document.createElement('tr');
         const elapsed = (r.t - log[0].t).toFixed(1);
         const fmtTrit = (v) => v === '+1' ? '<span class="pos">+1</span>' : v === '-1' ? '<span class="neg">-1</span>' : '<span class="nul">0</span>';
-
-        const yCol = r.y_mean !== undefined ? r.y_mean : '';
-        const eCol = r.edge !== undefined ? r.edge : '';
-        tr.innerHTML = `<td>${i+1}</td><td>${elapsed}s</td><td>${r.front}</td><td>${r.left}</td><td>${r.right}</td><td>${fmtTrit(r.speed)}</td><td>${fmtTrit(r.steer)}</td><td>${yCol}</td><td>${eCol}</td>`;
+        tr.innerHTML = `<td>${i+1}</td><td>${elapsed}s</td><td>${r.front}</td><td>${r.left}</td><td>${r.right}</td><td>${fmtTrit(r.speed)}</td><td>${fmtTrit(r.steer)}</td><td>${fmtTrit(r.confidence)}</td>`;
         tbody.appendChild(tr);
     });
 }
@@ -689,6 +522,8 @@ body {
 .cb-clear { background: #331a1a; color: #ff4444; }
 
 .status-bar { text-align: center; font-size: 0.55em; color: #333; padding: 8px; }
+.report-link { text-align: center; margin: 10px 0; }
+.report-link a { color: #00ff88; text-decoration: none; font-size: 0.75em; border: 1px solid #00ff88; padding: 6px 12px; border-radius: 6px; }
 
 </style>
 </head>
@@ -726,65 +561,6 @@ body {
             <span>Familiarity: <b id="val-fam">0</b></span>
             <span>Motifs: <b id="val-motifs">0</b></span>
             <span id="motor-status" style="color:#ff4444;">MOTORS OFF</span>
-        </div>
-    </div>
-
-    <!-- CAMERA — 12-strand vision (owl trick: upper/lower + density) -->
-    <div class="sensor-panel" id="cam-panel">
-        <div style="margin-bottom:8px;">
-            <span style="font-size:0.75em; color:#aa88ff; font-weight:bold;">CAMERA &mdash; 7 STRANDS</span>
-        </div>
-        <div class="sensor-row">
-            <span class="sensor-label">Y Upper</span>
-            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-yupper" style="width:0%;background:#aa88ff;"></div></div>
-            <span class="sensor-val" id="val-yupper">0</span>
-        </div>
-        <div class="sensor-row">
-            <span class="sensor-label">Y Lower</span>
-            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-ylower" style="width:0%;background:#8866dd;"></div></div>
-            <span class="sensor-val" id="val-ylower">0</span>
-        </div>
-        <div class="sensor-row">
-            <span class="sensor-label">Edge Up</span>
-            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-edgeupper" style="width:0%;background:#ff88ff;"></div></div>
-            <span class="sensor-val" id="val-edgeupper">0</span>
-        </div>
-        <div class="sensor-row">
-            <span class="sensor-label">Edge Low</span>
-            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-edgelower" style="width:0%;background:#dd66dd;"></div></div>
-            <span class="sensor-val" id="val-edgelower">0</span>
-        </div>
-        <div class="sensor-row">
-            <span class="sensor-label">U Upper</span>
-            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-uupper" style="width:0%;background:#88aaff;"></div></div>
-            <span class="sensor-val" id="val-uupper">0</span>
-        </div>
-        <div class="sensor-row">
-            <span class="sensor-label">U Lower</span>
-            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-ulower" style="width:0%;background:#6688dd;"></div></div>
-            <span class="sensor-val" id="val-ulower">0</span>
-        </div>
-        <div class="sensor-row">
-            <span class="sensor-label">Density</span>
-            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-density" style="width:0%;background:#ffaa44;"></div></div>
-            <span class="sensor-val" id="val-density">0</span>
-        </div>
-    </div>
-
-    <!-- TARGET HUNT — capture target motif + show match score -->
-    <div class="sensor-panel" id="target-panel">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <span style="font-size:0.75em; color:#ff4488; font-weight:bold;">TARGET</span>
-            <span id="target-score" style="font-size:1.2em; font-weight:bold; color:#555;">0</span>
-        </div>
-        <div class="sensor-row">
-            <span class="sensor-label">Match</span>
-            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-target" style="width:0%;background:#ff4488;"></div></div>
-            <span class="sensor-val" id="val-target">0</span>
-        </div>
-        <div style="display:flex; gap:8px; margin-top:8px;">
-            <button class="demo-btn" onclick="captureTarget()" style="flex:1; padding:12px 0; font-size:1em; background:#ff4488; color:#fff;">CAPTURE TARGET</button>
-            <button class="demo-btn" onclick="clearTarget()" style="flex:0.5; padding:12px 0; font-size:0.8em; background:#331122; color:#ff4488;">CLEAR</button>
         </div>
     </div>
 
@@ -839,7 +615,10 @@ body {
         </div>
     </div>
 
-    <div class="status-bar" id="capture-status">idle</div>
+    <div class="report-link">
+        <a href="/report" target="_blank">View Post-Run Telemetry Report &rarr;</a>
+    </div>
+
     <div class="status-bar" id="status">connecting...</div>
 </div>
 
@@ -859,28 +638,6 @@ async function endDemo() {
     demoRunning = false;
     document.getElementById('btn-run').classList.remove('active');
     document.getElementById('btn-end').classList.add('disabled');
-}
-
-// ---- Turntable capture ----
-async function startCapture(orientation) {
-    await fetch('/api/capture', {method:'POST', body:JSON.stringify({action:'start', orientation: orientation})});
-}
-async function stopCapture() {
-    await fetch('/api/capture', {method:'POST', body:JSON.stringify({action:'stop'})});
-}
-async function clearCapture() {
-    await fetch('/api/capture', {method:'POST', body:JSON.stringify({action:'clear'})});
-}
-function downloadCSV() {
-    window.open('/api/capture_csv', '_blank');
-}
-
-// ---- Target capture ----
-async function captureTarget() {
-    await fetch('/api/set_target', {method:'POST', body:JSON.stringify({action:'capture'})});
-}
-async function clearTarget() {
-    await fetch('/api/set_target', {method:'POST', body:JSON.stringify({action:'clear'})});
 }
 
 // ---- Loom display ----
@@ -957,45 +714,9 @@ async function poll() {
         document.getElementById('val-fam').textContent = s.krim_score || 0;
         document.getElementById('val-motifs').textContent = s.motif_count;
 
-        // Target match score
-        const tms = s.target_match || 0;
-        const tmPct = Math.min(100, (tms / 24) * 100);
-        document.getElementById('bar-target').style.width = tmPct + '%';
-        document.getElementById('val-target').textContent = tms;
-        document.getElementById('target-score').textContent = tms;
-        document.getElementById('target-score').style.color = tms > 12 ? '#ff4488' : '#555';
-
         const mstat = document.getElementById('motor-status');
         mstat.textContent = s.motor_on ? 'MOTORS ON' : 'MOTORS OFF';
         mstat.style.color = s.motor_on ? '#00ff88' : '#ff4444';
-
-        // Camera frame features (owl trick)
-        const cam = data.camera || {};
-        function camBar(id, val) {
-            const pct = Math.min(100, (val / 255) * 100);
-            document.getElementById('bar-' + id).style.width = pct + '%';
-            document.getElementById('val-' + id).textContent = val;
-        }
-        camBar('yupper', cam.y_upper || 0);
-        camBar('ylower', cam.y_lower || 0);
-        camBar('edgeupper', cam.edge_upper || 0);
-        camBar('edgelower', cam.edge_lower || 0);
-        camBar('uupper', cam.u_upper || 0);
-        camBar('ulower', cam.u_lower || 0);
-        camBar('density', cam.density || 0);
-
-        // Capture status
-        const capStat = document.getElementById('capture-status');
-        if (data.capture_active) {
-            capStat.textContent = data.capture_orientation + ' | ' + data.capture_samples + ' samples';
-            capStat.style.color = '#ffaa44';
-        } else if (data.capture_samples > 0) {
-            capStat.textContent = data.capture_samples + ' samples ready';
-            capStat.style.color = '#888';
-        } else {
-            capStat.textContent = 'idle';
-            capStat.style.color = '#666';
-        }
 
         document.getElementById('status').textContent =
             'LIVE | ' + new Date().toLocaleTimeString();
@@ -1005,7 +726,7 @@ async function poll() {
     }
 }
 
-setInterval(poll, 500);  // 2Hz — prevent AXI bus crash from combinational output glitches
+setInterval(poll, 500);  // 2Hz sampling cadence
 poll();
 
 // ---- Calculator ----
@@ -1049,8 +770,7 @@ function calcBtn(key) {
     if (key === 'back') { if (CS.fresh) return; CS.input = CS.input.length > 1 ? CS.input.slice(0,-1) : '0'; calcUpdate(); return; }
     if (key === 'negate') { CS.input = '' + (-(parseInt(CS.input)||0)); calcUpdate(); return; }
     if (key === 'clear') { CS = {input:'0', opA:null, op:null, fresh:true}; document.getElementById('calc-detail').textContent=''; document.getElementById('calc-value').style.color='#00ff88'; calcUpdate(); return; }
-    if (key === 'sqrt') { let a = Math.abs(parseInt(CS.input)||0); document.getElementById('calc-expr').textContent = '\u221a'+a; calcExec(a, 0, 'sqrt'); return; }
-    if (key === 'add' || key === 'sub' || key === 'mul' || key === 'div' || key === 'pow') {
+    if (key === 'add' || key === 'sub' || key === 'mul' || key === 'div') {
         CS.opA = parseInt(CS.input) || 0; CS.op = key; CS.fresh = true; calcUpdate(); return;
     }
     if (key === 'eq') {
