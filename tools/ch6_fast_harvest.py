@@ -21,8 +21,8 @@ is cut at the first available mark. A book does not hold what it cannot
 read. Transient read errors never cut.
 
 An open short is anomaly-cut at the first observed mark 20% or more against
-entry. A winner arms at +5%, tracks its best observed gain, and harvests after
-giving back more than one percentage point. The end-of-day sweep banks any
+entry. A winner arms at +2% (Joseph 2026-10-06), tracks its best observed
+gain, and harvests when it falls to max(+2%, best - 1 point). The end-of-day sweep banks any
 position at +2% or better (Joseph's fast-cash law, 2026-08-19). The
 completed-close five-session backstop is shared with CH3. Marks and daily gaps can cross trigger levels; 20% is a
 trigger, not a guaranteed realized-loss ceiling — the realized bound per
@@ -67,7 +67,7 @@ MAX_ENTRIES_PER_NIGHT = 30
 SLICE_FLOOR_USD = 2_000.0
 START_DATE = "2026-08-07"
 CASH0 = 100_000.0
-HARVEST_PCT = 5.0   # intraday arm level (trail unchanged)
+HARVEST_PCT = 5.0   # RETIRED 2026-10-06: intraday arm is now SWEEP_PCT (Joseph)
 SWEEP_PCT = 2.0     # Joseph's fast-cash law: end-of-day bank at 2%+
                     # — switched ON per the filed coupled decision
                     # (ch6_fast_cash_laws.json): it pays when cash binds,
@@ -1037,11 +1037,20 @@ def evaluate_live_marks(action: str) -> None:
 
         if gain > float(position.get("peak_gain_pct", 0.0)):
             position["peak_gain_pct"] = round(gain, 3)
-        if not position.get("armed") and gain >= HARVEST_PCT:
+        # Joseph 2026-10-06: "sell if over 2% (fast cash grab) — it is not
+        # too early." The intraday arm drops from +5% to the +2% bank level:
+        # once a short shows +2%, it is never allowed to finish below +2%.
+        # Floor = max(+2%, peak - 1 point), so a run past +3% still trails
+        # one point behind its best, exactly as before. Receipt: since the
+        # 09-23 entry fix, 12 positions touched +2%..+4% and were then cut
+        # or timed out at -$640 total; banked at +2% they were +$599.
+        if not position.get("armed") and gain >= SWEEP_PCT:
             position["armed"] = True
             print(f"  ARMED {symbol} at {gain:+.2f}%")
-        if position.get("armed") and float(position["peak_gain_pct"]) - gain > GIVEBACK_PP:
-            close_position(book, symbol, position, price, "HARVEST", now)
+        if position.get("armed"):
+            floor = max(SWEEP_PCT, float(position["peak_gain_pct"]) - GIVEBACK_PP)
+            if gain <= floor + 1e-9:  # on the floor banks (float-safe)
+                close_position(book, symbol, position, price, "HARVEST", now)
 
     # governance AFTER the mark checks: the first poll of the day must
     # never leave positions unwatched while whole-life reads grind;
