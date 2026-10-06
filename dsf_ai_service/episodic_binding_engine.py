@@ -187,6 +187,7 @@ def consecutive_motor_trials(predecessor: Any, successor: Any) -> bool:
         and int(predecessor.get("intake", 0)) == 0
         and predecessor["end_tick"] == successor["start_tick"]
         and predecessor["post"] == successor["pre"]
+        and predecessor.get("target") == successor.get("target")
     )
 
 
@@ -363,7 +364,23 @@ def find_supported_continuation(
             visited.add(trial_key)
             if trial.get("refusal") is not None:
                 break
-            if (trial["pre"] == current_sensory_key
+            pre_match = (trial["pre"] == current_sensory_key)
+            if not pre_match and current_sensory_key and trial.get("pre"):
+                try:
+                    tk = json.loads(trial["pre"])
+                    ck = json.loads(current_sensory_key)
+                    if (
+                        len(tk) == 5 and len(ck) == 5
+                        and tk[0] == ck[0]
+                        and tk[2] == ck[2]
+                        and tk[3] == ck[3]
+                        and tk[4] == ck[4]
+                        and (tk[1] == ck[1] or tk[1] is None or ck[1] is None)
+                    ):
+                        pre_match = True
+                except Exception:
+                    pass
+            if (pre_match
                     and trial.get("observed_subject") == trial["target"]
                     and trial.get("observed_subject") is not None):
                 supported.add(trial["action"])
@@ -405,4 +422,3 @@ def find_supported_continuation(
         if candidate not in viable:
             viable.append(candidate)
     return viable[0] if len(viable) == 1 else None
-

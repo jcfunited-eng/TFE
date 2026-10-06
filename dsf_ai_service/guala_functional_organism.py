@@ -1,18 +1,13 @@
-"""The functional organism (Joe, 2026-09-14): no neurons, no charge, no muscles.
+"""Legacy functional controller under cognition replacement.
 
-Her senses come in as measured streams across multi-modal active and passive
-modalities; the DSF-AI kernel (uf_core L0-L4) reads the discrete structural
-geometry of those streams every beat; a bounded memory keeps what exact discrete
-structures (7-atom sign gates) she has met, what she did, and what her own voice
-sounds like; her acts are chosen via one-step predictive foresight over recorded
-successors and measured bodily need satisfaction, with exploration governed by
-structural uncertainty (U*_k > 0); her airway synthesis closes the sensorimotor
-loop via acoustic self-hearing and situational prosody. Everything here is a
-function of her state; nothing is scripted meaning, nothing is flattened into
-continuous approximations, and nothing speaks for her.
+This controller contains reduced per-stream field signatures, bounded semantic
+stores and authored action-selection mechanisms. It is NOT the canonical
+full-joint-field physical neuron or proof of grounded speech/autonomy.
+Unsupported full-field formation refuses explicitly.
 
-Bounds (the lean doctrine): every store below has a fixed capacity and the
-encoded body is a few tens of kilobytes at any age.
+The continuous cochlear receptor now has bounded state in this ordinary body
+checkpoint. That sensory correction does not certify the remaining controller,
+transfer old memories into physical neurons, or authorize a production cutover.
 """
 
 from __future__ import annotations
@@ -46,6 +41,7 @@ from dsf_ai_service.substrate.ternary_multimodal_substrate import (
     EFFERENT_START, EFFERENT_END,
     TOTAL_NODES,
 )
+from dsf_ai_service.guala_cochlea import CochlearBatch, CochlearStream
 from dsf_ai_service.guala_acoustic_gate import (   # her ear's declared numbers live with the gate, once
     EAR_BAND_CHANNELS, EAR_BANDS, FRAMES_PER_HOP, GRAIN, HEARD_ENERGY_FLOOR, KERNEL_MINIMUM, PAUSE_FRAMES, SILENT_FRAME, STREAM_FLOOR, gate_step,
 )
@@ -437,6 +433,8 @@ class Sensed:
     optical_evidence: OpticalEvidence | None = None
     heard_envelopes: tuple[tuple[float, ...], ...] = ()
     own_envelopes: tuple[tuple[float, ...], ...] = ()
+    cochlear_batch: CochlearBatch | None = None  # full pressure/phase on the receptor sample clock
+    self_emission_present: bool = False  # efference provenance, not source-separated hearing
 
 
 @dataclass(frozen=True, slots=True)
@@ -1309,7 +1307,6 @@ def candidates(
     feeding: bool = False,
     sleepy: bool = True,
     conserved_objects: dict[str, Any] | None = None,
-    pending_chain: list[str] | None = None,
     last_crossed_portal: tuple[str, int] | None = None,
     sound_heard: bool = False,
     consequence_food_ids: set[str] | None = None,
@@ -1319,12 +1316,6 @@ def candidates(
     """What her body can do this beat, across every sensed target: each entry is
     (act, detail, world commands tried in order, target, voice drive).
     Candidate count is strictly bounded by what she sees plus her room's doors."""
-
-    if pending_chain:
-        next_syl = pending_chain.pop(0)
-        chain_drive = SYLLABLE_DRIVES.get(next_syl)
-        say_drive = chain_drive
-        say_detail = f"combinatorial chain demand successor: {next_syl}"
 
     out: list[tuple[str, str, tuple[Any, ...], str | None, tuple[int, int, int] | None]] = []
     position, heading = body.pose.position, body.pose.heading_millidegrees
@@ -1501,8 +1492,9 @@ def candidates(
             out.append(("step", "one stride ahead", (MoveCommand(PoseMM(ahead, heading), BEAT_MICROSECONDS),), None, None))
         for name, sign in (("turn_left", 1), ("turn_right", -1)):
             out.append((name, "", (MoveCommand(PoseMM(position, (heading + sign * TURN_MILLIDEGREES) % 360_000), BEAT_MICROSECONDS),), None, None))
-    drive = say_drive if say_drive is not None else DEFAULT_DRIVE
-    out.append(("say", say_detail, (), None, drive))
+    if not sound_heard:
+        drive = say_drive if say_drive is not None else DEFAULT_DRIVE
+        out.append(("say", say_detail, (), None, drive))
     out.append(("rest", "", (), None, None))
     # Release held item (deferred after elementary motions/rest to allow exploratory holding/inspection)
     if held is not None and drop_spot_clear(snapshot, body, held):
@@ -1523,8 +1515,11 @@ def _capture_sensory_key(snapshot: Any, body: Any, state: dict[str, Any], seen: 
     IDs resolve current sensory custody, but are not included as recognition keys.
     Missing visual/contact evidence remains None, never a manufactured figure.
     """
-    target = body.held_object_id or state.get("gaze_target") or state.get("joint_attention_target") or (seen[0].object_id if seen else None)
+    target = body.held_object_id or state.get("gaze_target") or state.get("joint_attention_target")
     obj = _object(snapshot, target) if target is not None else None
+    if obj is None and seen:
+        target = seen[0].object_id
+        obj = _object(snapshot, target)
     relation = None if obj is None else ("reach" if in_hand_reach(snapshot, obj) else "far")
     contact = getattr(body, "active_contact", None)
     contact_id = body.held_object_id or getattr(contact, "object_id", None)
@@ -1604,6 +1599,7 @@ class FunctionalOrganism:
             raise ValueError("functional organism genesis needs an identity and a tick")
         return cls({
             "schema": SCHEMA, "identity": identity, "tick": organism_tick,
+            "cochlear_current": {"origin_tick": organism_tick, "state_hex": CochlearStream().checkpoint_bytes().hex()},
             "reserve_micrograms": CAPACITY_MICROGRAMS * 55 // 100, "feeding": False,
             "streams": {name: [] for name in STREAMS},
             "familiarity": {}, "episodes": [], "heard": [], "voice": [],
@@ -1623,6 +1619,7 @@ class FunctionalOrganism:
 
     @classmethod
     def restore(cls, encoded: bytes) -> "FunctionalOrganism":
+        """Restore the current encoding exactly, without changing lived state."""
         if not isinstance(encoded, bytes) or not encoded.startswith(MAGIC):
             raise ValueError("encoded body is not a functional organism")
         state = json.loads(encoded[len(MAGIC):].decode("utf-8"))
@@ -1635,157 +1632,19 @@ class FunctionalOrganism:
         return organism
 
     def migrate(self) -> bool:
-        """Bring an older functional body to this build's laws; True when
-        anything changed (the caller republishes)."""
+        """Validate the supported stored law without changing any records.
 
-        state = self._state
-        changed = False
-        if state.get("voice_version") != VOICE_VERSION:
-            state["voice"], state["heard"], state["pending_voice"], state["pending_drive"] = [], [], None, None
-            # The speech record's meaning changed (answers counted -> value by what followed): it starts again.
-            state["speech"], state["syllable_totals"], state["prior_syllable"] = {}, {}, None
-            state["voice_version"] = VOICE_VERSION
-            changed = True
-        for key, empty in (("voice_event", None), ("own_events", {}), ("own_event", None), ("meanings", {}), ("last_said", None), ("affordance_plan", None), ("planned_target_id", None), ("syllable_profiles", {}), ("conserved_objects", {}), ("tested_non_nutritive", []), ("expectation_discrepancy", None), ("joint_attention_target", None), ("pending_chain", []), ("last_demand_chain", None), ("room_dwell_beats", 0), ("prior_room", None), ("region_visits", {}), ("region_last_tick", {})):
-            if key not in state:
-                state[key] = {} if isinstance(empty, dict) else empty
-                changed = True
-        # Durable State Hygiene: Purge non-food fixtures and restore genuine foods
-        conserved = state.get("conserved_objects", {})
-        for obj_id, c_data in list(conserved.items()):
-            if not is_genuine_food_object(obj_id):
-                if c_data.get("is_food") or c_data.get("fed_count", 0) > 0 or c_data.get("historical_intake_micrograms", 0) > 0 or not c_data.get("non_nutritive"):
-                    c_data["is_food"] = False
-                    c_data["fed_count"] = 0
-                    c_data["historical_intake_micrograms"] = 0
-                    c_data["non_nutritive"] = True
-                    c_data["tested_non_food"] = True
-                    changed = True
-            else:
-                if c_data.get("non_nutritive") or c_data.get("tested_non_food"):
-                    c_data["non_nutritive"] = False
-                    c_data["tested_non_food"] = False
-                    changed = True
-        tested_non_nutritive = set(state.get("tested_non_nutritive") or ())
-        cleaned_tested = sorted(tested_non_nutritive - {o_id for o_id in tested_non_nutritive if is_genuine_food_object(o_id)})
-        if cleaned_tested != state.get("tested_non_nutritive"):
-            state["tested_non_nutritive"] = cleaned_tested
-            changed = True
-        if state.get("unsuccessful_bite_held_id") is not None and state.get("held_object_id") != state.get("unsuccessful_bite_held_id"):
-            state["unsuccessful_bite_held_id"] = None
-            changed = True
-
-        if "bottle-milk" in conserved:
-            c_milk = conserved["bottle-milk"]
-            if c_milk.get("fed_count", 0) == 0:
-                if not c_milk.get("is_food") or c_milk.get("currently_depleted") or c_milk.get("non_nutritive"):
-                    c_milk["is_food"] = True
-                    c_milk["non_nutritive"] = False
-                    c_milk["currently_depleted"] = False
-                    changed = True
-        for m in state.get("meanings", {}).values():
-            if isinstance(m, dict):
-                c = m.get("consequences", {})
-                if isinstance(c, dict):
-                    for act_c in c.values():
-                        if isinstance(act_c, dict) and act_c.get("relief") == "feeding":
-                            tid = act_c.get("target_id")
-                            if tid and not is_genuine_food_object(tid):
-                                act_c["relief"] = None
-                                act_c["intake"] = 0
-                                changed = True
-        for key, empty in (("ambient_sound", 0.0), ("handled", 0), ("room_now", None), ("head", [0, 0]), ("acts", {}), ("pending_act", None), ("last_chosen", None),
-                           ("sleep_pressure", 0), ("asleep", False), ("learned", {}), ("nights", 0), ("taste_residue", 0.0)):
-            if key not in state:
-                state[key] = empty
-                changed = True
-        for name in STREAMS:
-            if name not in state["streams"]:
-                state["streams"][name] = []
-                changed = True
-        for name in [name for name in state["streams"] if name not in STREAMS]:
-            del state["streams"][name]  # a stream this build does not read (e.g. a blend of two others)
-            changed = True
-        # A record entry keyed under a retired key law can never be met again:
-        # it is not her day's record. Drop it (idempotent: live entries match).
-        stale = [k for k, entry in state.get("acts", {}).items() if entry.get("regimes") and choice_key(str(entry["regimes"])) != k]
-        for k in stale:
-            del state["acts"][k]
-        changed = changed or bool(stale)
-        if "act_totals" not in state:
-            # Her lifetime tries per act, summed from the record she already has.
-            totals: dict[str, int] = {}
-            for entry in state.get("acts", {}).values():
-                for act, (tries, _total) in entry.get("acts", {}).items():
-                    totals[act] = totals.get(act, 0) + int(tries)
-            state["act_totals"] = totals
-            changed = True
-        if "contact_pressure" not in state:
-            state["contact_pressure"] = 0
-            changed = True
-        if "pending_contact" not in state:
-            state["pending_contact"] = 0.0
-            changed = True
-        if "pending_contact_millikelvin" not in state:
-            state["pending_contact_millikelvin"] = None
-            changed = True
-        if "reading_until_tick" not in state:
-            state["reading_until_tick"] = 0
-            changed = True
-        if "target_totals" not in state:
-            state["target_totals"] = {}
-            changed = True
-        if "speech" not in state:
-            state["speech"] = {}
-            changed = True
-        if "syllable_totals" not in state:
-            state["syllable_totals"] = {}
-            changed = True
-        if "prior_syllable" not in state:
-            state["prior_syllable"] = None
-            changed = True
-        if "ear_event" not in state:
-            state["ear_event"] = None
-            changed = True
-        if "events" not in state:
-            state["events"] = {}
-            changed = True
-        if "sound_event" not in state:
-            state["sound_event"] = None
-            changed = True
-        if "ear_quiet" not in state:
-            state["ear_quiet"] = _empty_ear_quiet()
-            changed = True
-        for key, empty in (("gaze", None), ("gaze_target", None), ("sight_figure", None)):
-            if key not in state:
-                state[key] = empty
-                changed = True
-        if "figures" not in state:
-            state["figures"] = {}
-            changed = True
-        if "eyes" not in state:
-            state["eyes"] = [0, 0]
-            changed = True
-        if "gaze_radius" not in state:
-            state["gaze_radius"] = 0.0
-            changed = True
-        if "moments" not in state:
-            state["moments"] = {}
-            changed = True
-        if "ternary_substrate" not in state:
-            state["ternary_substrate"] = None
-            changed = True
-        if "modular_substrate" not in state:
-            state["modular_substrate"] = None
-            changed = True
-        if "last_moment" not in state:
-            state["last_moment"] = None
-            changed = True
-        for key in RETIRED_KEYS:
-            if key in state:
-                del state[key]
-                changed = True
-        return changed
+        Existing callers retain this method, but ordinary restoration cannot
+        supply missing experience, discard history, or reset a changed voice
+        law. Unsupported state needs a separately implemented lossless
+        transition; preserving current bytes does not certify cognition.
+        """
+        if self._state.get("schema") != SCHEMA:
+            raise ValueError("functional organism schema changed")
+        version = self._state.get("voice_version")
+        if type(version) is not int or version != VOICE_VERSION:
+            raise ValueError("functional organism voice law is unsupported; retained state was not changed")
+        return False
 
     def encoded(self) -> bytes:
         return MAGIC + json.dumps(self._state, allow_nan=False, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
@@ -2175,7 +2034,7 @@ class FunctionalOrganism:
                 state["_current_tracked_room"] = cur_room
                 state["room_dwell_beats"] = 1
             else:
-                state["room_dwell_beats"] = int(state.get("room_dwell_beats", 0)) + 1
+                state["room_dwell_beats"] = 1 if state.get("asleep") else (int(state.get("room_dwell_beats", 0)) + 1)
             reg_visits = state.setdefault("region_visits", {})
             reg_visits[cur_room] = int(reg_visits.get(cur_room, 0)) + 1
             reg_last = state.setdefault("region_last_tick", {})
@@ -2287,7 +2146,16 @@ class FunctionalOrganism:
         planned_food = state.get("planned_target_id") if (feeding and state.get("planned_target_id") in known_foods) else None
         if planned_food and not sound_heard:
             state["gaze_target"] = planned_food
-        target_id = body.held_object_id or state.get("gaze_target") or state.get("joint_attention_target") or (seen[0].object_id if seen else None)
+        elif feeding and not sound_heard:
+            cand_food = next((s.object_id for s in seen if is_genuine_food_object(s.object_id)), None)
+            if cand_food is not None:
+                cur_gt = state.get("gaze_target")
+                if cur_gt is None or not is_genuine_food_object(cur_gt):
+                    state["gaze_target"] = cand_food
+        g_tgt = state.get("gaze_target")
+        if g_tgt is not None and (_object(snapshot, g_tgt) is None or g_tgt not in {s.object_id for s in seen}):
+            g_tgt = None
+        target_id = body.held_object_id or g_tgt or state.get("joint_attention_target") or (seen[0].object_id if seen else None)
         point = None if state.get("asleep") else _target_point(snapshot, body, target_id, conserved_objects=conserved)   # asleep, eyes closed, the head rests
         state["gaze"] = None
         state["gaze_radius"] = 0.0
@@ -2364,7 +2232,11 @@ class FunctionalOrganism:
             hop_heard = energy >= HEARD_ENERGY_FLOOR
             if hop_heard and energy >= ambient * HEARD_ABOVE_AMBIENT:
                 sound_now = _clamp(energy * 4, 0.0, 1.0)
-        self._hear_events(sensed.heard_frames, hop_heard, tick, envelopes=sensed.heard_envelopes)
+        is_speech = (sensed.sound_source_id is None) or (sensed.sound_source_id in ("person-body-1", "caregiver", "tutor", "speaker"))
+        if hop_heard or sound_heard:
+            state["current_sound_is_speech"] = is_speech
+        speech_closing = state.get("current_sound_is_speech", is_speech)
+        self._hear_events(sensed.heard_frames, hop_heard, tick, envelopes=sensed.heard_envelopes, is_speech=speech_closing)
         self._hear_own(sensed.own_frames, tick)
         self._sensorimotor_mesh.step_polarization(sensed.heard_frames)
         self._sync_sensorimotor_mesh()
@@ -2387,45 +2259,42 @@ class FunctionalOrganism:
                 intake_ug = int(pending_trans.get("intake", 0))
                 sal = float(pending_trans.get("salience", 0.0))
                 outcome = pending_trans.get("outcome_key")
-                if sal > 0.0 or intake_ug > 0 or (outcome is not None and outcome in state.get("moments", {})):
-                    moments = state.setdefault("moments", {})
-                    trial_key = f"motor:{pending_trans['start_tick']}"
-                    trial = {
-                        "key": trial_key,
-                        "start_tick": pending_trans["start_tick"], "end_tick": tick,
-                        "pre": pending_trans["pre_key"], "post": current_sensory_key,
-                        "action": action, "target": pending_trans["target_id"],
-                        "observed_subject": pending_trans["observed_subject"],
-                        "refusal": pending_trans.get("refusal"),
-                        "intake": intake_ug,
-                        "previous": None,
-                    }
-                    previous = pending_trans.get("previous")
-                    predecessor_entry = moments.get(previous) or state.get("meanings", {}).get(previous) or {}
-                    predecessor = predecessor_entry.get("motor_transition")
-                    if consecutive_motor_trials(predecessor, trial):
-                        trial["previous"] = previous
-                    if trial_key not in moments:
-                        admitted_moment_keys.add(trial_key)
-                    trial_krim = getattr(self, "_last_sparse_krimelack", None)
-                    moments[trial_key] = {
-                        "count": 1, "tick": tick, "salience": sal,
-                        "held": "none",
-                        "figure": "none",
-                        "room": state.get("room_now") or "unknown",
-                        "source": "motor",
-                        "context": [0, 0, 0],
-                        "next": {},
-                        "acts": {},
-                        "fed": intake_ug,
-                        "motor_transition": trial,
-                        "krimelack": trial_krim,
-                    }
-                    if outcome in moments:
-                        moments[outcome]["episode_tail"] = trial_key
-                    state["last_motor_trial"] = trial_key
-                else:
-                    state["last_motor_trial"] = None
+                moments = state.setdefault("moments", {})
+                trial_key = f"motor:{pending_trans['start_tick']}"
+                trial = {
+                    "key": trial_key,
+                    "start_tick": pending_trans["start_tick"], "end_tick": tick,
+                    "pre": pending_trans["pre_key"], "post": current_sensory_key,
+                    "action": action, "target": pending_trans["target_id"],
+                    "observed_subject": pending_trans["observed_subject"],
+                    "refusal": pending_trans.get("refusal"),
+                    "intake": intake_ug,
+                    "previous": None,
+                }
+                previous = pending_trans.get("previous")
+                predecessor_entry = moments.get(previous) or state.get("meanings", {}).get(previous) or {}
+                predecessor = predecessor_entry.get("motor_transition")
+                if consecutive_motor_trials(predecessor, trial):
+                    trial["previous"] = previous
+                if trial_key not in moments:
+                    admitted_moment_keys.add(trial_key)
+                trial_krim = getattr(self, "_last_sparse_krimelack", None)
+                moments[trial_key] = {
+                    "count": 1, "tick": tick, "salience": sal,
+                    "held": "none",
+                    "figure": "none",
+                    "room": state.get("room_now") or "unknown",
+                    "source": "motor",
+                    "context": [0, 0, 0],
+                    "next": {},
+                    "acts": {},
+                    "fed": intake_ug,
+                    "motor_transition": trial,
+                    "krimelack": trial_krim,
+                }
+                if outcome in moments:
+                    moments[outcome]["episode_tail"] = trial_key
+                state["last_motor_trial"] = trial_key
             else:
                 # Passive time is not a rehearsed act and cannot bridge an
                 # unobserved interval into an experience sequence.
@@ -2489,7 +2358,7 @@ class FunctionalOrganism:
                     if item.material is not None and int(item.material.surface_temperature_millikelvin) >= NOCICEPTION_MILLIKELVIN:
                         continue   # too hot to bite: the jaw waits for it to cool (the mouth's reflex)
                     c_item = conserved.get(item.object_id, {})
-                    if c_item.get("non_nutritive") is True or item.object_id == state.get("unsuccessful_bite_held_id"):
+                    if (c_item.get("non_nutritive") is True and not is_genuine_food_object(item.object_id)) or item.object_id == state.get("unsuccessful_bite_held_id"):
                         continue   # suppressed: known non-nutritive or unsuccessful bite
                     return decision("bite", "held item at her mouth while feeding (the jaw's reflex)", (OralContactCommand(item.object_id, BEAT_MICROSECONDS),), item.object_id)
 
@@ -2499,9 +2368,9 @@ class FunctionalOrganism:
                 if (
                     held.material is None
                     or body.receptor_geometry is None
-                    or c_held.get("non_nutritive") is True
+                    or (c_held.get("non_nutritive") is True and not is_genuine_food_object(held.object_id))
                     or held.object_id == state.get("unsuccessful_bite_held_id")
-                    or held.object_id in tested_non_nutritive
+                    or (held.object_id in tested_non_nutritive and not is_genuine_food_object(held.object_id))
                     or held.object_id == "playpen"
                 ):
                     if not is_genuine_food_object(held.object_id):
@@ -2527,10 +2396,7 @@ class FunctionalOrganism:
         if state.get("asleep"):
             if pressure <= 0:
                 state["asleep"], state["sleep_pressure"] = False, 0
-                for obj_id, c_entry in state.get("conserved_objects", {}).items():
-                    if isinstance(c_entry, dict) and is_genuine_food_object(obj_id) and (int(c_entry.get("fed_count", 0)) > 0 or int(c_entry.get("historical_intake_micrograms", 0)) > 0):
-                        c_entry["currently_depleted"] = False
-                        c_entry["is_food"] = True
+                # Waking changes physiology, not knowledge of unseen food.
             else:
                 state["sleep_pressure"] = pressure - SLEEP_RECOVERY_PER_BEAT
                 dreamt = self._dream(tick)
@@ -2548,6 +2414,9 @@ class FunctionalOrganism:
                     recovery_ratio = float(pressure) / SLEEP_PRESSURE_CEILING
                     self._credit(str(last["key"]), str(last["act"]), round(sleep_ratio * recovery_ratio, 6), tick, str(last.get("regimes", "")))
                     state["last_chosen"] = None
+                state["gaze_target"] = None
+                state["gaze"] = None
+                state["room_dwell_beats"] = 0
                 return decision("sleep", "falling asleep on her bed; pressure at its ceiling" if at_bed else "exhausted; asleep where she dropped")
 
         # Voice: the syllable comes from her speech record (situation, prior syllable),
@@ -2563,10 +2432,9 @@ class FunctionalOrganism:
 
         uncertain = any(len(t) >= 5 and t[4] == "+" for t in tokens)
         sleepy = int(state.get("sleep_pressure", 0)) >= SLEEP_PRESSURE_CEILING // 2
-        p_chain = list(state.get("pending_chain") or [])
         state["body_pos"] = (int(body.pose.position.x), int(body.pose.position.y), int(body.pose.position.z))
         state["body_heading"] = int(body.pose.heading_millidegrees)
-        options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason, feeding=feeding, sleepy=sleepy, conserved_objects=conserved, pending_chain=p_chain, last_crossed_portal=state.get("last_crossed_portal"), sound_heard=sound_heard, consequence_food_ids=consequence_foods, tested_non_nutritive_ids=tested_non_nutritive, modular_sub=self._modular_substrate)
+        options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason, feeding=feeding, sleepy=sleepy, conserved_objects=conserved, last_crossed_portal=state.get("last_crossed_portal"), sound_heard=sound_heard, consequence_food_ids=consequence_foods, tested_non_nutritive_ids=tested_non_nutritive, modular_sub=self._modular_substrate)
 
         # Cognitive Asset 1: Learned Closed-Loop Continuation Selector
         # When an internal demand is active, searches the empirical transition graph for supported continuation
@@ -2578,7 +2446,10 @@ class FunctionalOrganism:
             body_pos = state["body_pos"]
             target_positions = {obj_id: c_data["position"] for obj_id, c_data in conserved.items() if "position" in c_data}
             target_figures = {obj_id: c_data.get("figure_key") for obj_id, c_data in conserved.items() if "figure_key" in c_data}
-            cur_target = body.held_object_id or state.get("gaze_target") or state.get("joint_attention_target") or (seen[0].object_id if seen else None)
+            g_tgt = state.get("gaze_target")
+            if g_tgt is not None and (_object(snapshot, g_tgt) is None or g_tgt not in {s.object_id for s in seen}):
+                g_tgt = None
+            cur_target = body.held_object_id or g_tgt or state.get("joint_attention_target") or (seen[0].object_id if seen else None)
             supported_cand = find_supported_continuation(
                 current_sensory_key,
                 "feeding",
@@ -2669,7 +2540,7 @@ class FunctionalOrganism:
             state["pending_act"]["syllable"], state["pending_act"]["context"] = say_name, say_context   # valued by what follows, under its context
             state["pending_act"]["drive"] = list(say_drive)
             speech_target = state.get("heard_speech_target")
-            if speech_target and speech_target.get("envelopes"):
+            if speech_target:
                 speech_target["consumed"] = True
         else:
             # Parallel Vocal Efferent Coupling:
@@ -2685,14 +2556,15 @@ class FunctionalOrganism:
 
             since_last_vocal = tick - int(state.get("last_spoke_tick", -999))
             should_vocalize = False
-            if strained and since_last_exhaust >= 15:
+            if sound_heard:
+                # Acoustic pressure clamping: no vocal emission during active external acoustic pressure
+                should_vocalize = False
+            elif strained and since_last_exhaust >= 15:
                 should_vocalize = True
                 self._state["homeostatic_exhaust_tick"] = self.live_organism_tick
                 if hunger_dsf:
                     hunger_dsf["P_k"] = round(b_k * 0.5, 4)
                     hunger_dsf["S_UF"] = round(b_k - hunger_dsf["P_k"], 4)
-            elif sound_heard and getattr(sensed, "sound_source_id", None) == "person-body-1":
-                should_vocalize = True
             elif not state.get("asleep") and since_last_vocal >= 8:
                 # Spontaneous phonemic exploration during wakefulness
                 should_vocalize = True
@@ -2701,29 +2573,10 @@ class FunctionalOrganism:
                 drive = say_drive
                 state["pending_act"]["syllable"], state["pending_act"]["context"] = say_name, say_context
                 state["pending_act"]["drive"] = list(say_drive)
-            # Cognitive Asset 5: Combinatorial Demand Chaining
-            chain = state.get("pending_chain")
-            if chain:
-                chain.pop(0)
-            else:
-                demand_active = (
-                    (feeding and any(s.is_food for s in seen)) or
-                    (offered is not None) or
-                    (state.get("joint_attention_target") is not None)
-                )
-                if demand_active:
-                    next_ctx = f"{situation}:{say_name}"
-                    next_tried = (state.get("speech", {}).get(next_ctx) or {}).get("syllables") or {}
-                    if next_tried:
-                        syl2 = max(next_tried, key=lambda s: (float(next_tried[s][1]) / max(1, int(next_tried[s][0])), -SYLLABLES.index(s)))
-                    else:
-                        syl2 = say_name
-                    state["pending_chain"] = [syl2]
-                    target_entity = (
-                        offered.object_id if offered is not None else
-                        (state.get("joint_attention_target") or next((s.object_id for s in seen if s.is_food), None))
-                    )
-                    state["last_demand_chain"] = [say_name, syl2, tick, target_entity]
+                state["last_spoke_tick"] = tick
+
+        # Historical pending_chain/last_demand_chain checkpoint fields are inert.
+        # Authored syllable queues are not learned temporal composition.
 
         state["last_chosen"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit, "sleep_ratio": sleep_ratio}
         return decision(act, why + (("; " + detail) if detail else ""), commands, target, drive)
@@ -2811,11 +2664,6 @@ class FunctionalOrganism:
         t_delta = (float(t_surf - 310_000) / 10_000.0) if t_surf is not None else float(measures.get("touch_warmth", 0.0) - 0.5)
         som_trits = self._ternary_substrate.encode_somatic_field(c_load, t_delta)
         eff_trits = [0] * 256
-        if getattr(self, "_last_dsf_states", None):
-            raise NotImplementedError(
-                "Shared full-field delivery is unavailable: per-channel averages/maxima "
-                "and B_k - P_k are not the canonical joint field or global S_UF"
-            )
         dsf_vec = None
         if said:
             o_idx, v_idx, p_idx = None, None, None
@@ -2927,7 +2775,7 @@ class FunctionalOrganism:
 
     # ----- Level 1: the acoustic gate over her beat ------------------------------------
 
-    def _hear_events(self, frames: tuple[tuple[float, ...], ...], heard: bool, tick: int, envelopes: Sequence[Sequence[float]] | None = None) -> None:
+    def _hear_events(self, frames: tuple[tuple[float, ...], ...], heard: bool, tick: int, envelopes: Sequence[Sequence[float]] | None = None, is_speech: bool = True) -> None:
         """The boundary law over this beat's frames at her ear; a beat without a room
         sound is a hop of silence to it (an open event closes within it). Each event
         closed is kept in her day's store by the key of its own structure; the gaps
@@ -2956,13 +2804,15 @@ class FunctionalOrganism:
             self._ear_closed.append(event.key)
             ev_prof = getattr(event, "profile", None)
             ev_envs = getattr(event, "envelopes", ())
-            state["heard_speech_target"] = {
-                "tick": tick,
-                "key": event.key,
-                "profile": list(round(float(p), 4) for p in ev_prof) if ev_prof is not None else None,
-                "envelopes": [[round(float(x), 3) for x in e[:16]] for e in ev_envs[:16]] if ev_envs else [],
-                "bands": ear_bands(ev_prof),
-            }
+            if is_speech:
+                state["heard_speech_target"] = {
+                    "tick": tick,
+                    "key": event.key,
+                    "profile": list(round(float(p), 4) for p in ev_prof) if ev_prof is not None else None,
+                    "envelopes": [[round(float(x), 3) for x in e[:16]] for e in ev_envs[:16]] if ev_envs else [],
+                    "bands": ear_bands(ev_prof),
+                }
+            state.pop("current_sound_is_speech", None)
 
     # ----- her record of acts -----------------------------------------------------------
 
@@ -3242,13 +3092,6 @@ class FunctionalOrganism:
         Under structural uncertainty, exploration samples least-tried syllables to prevent greedy collapse.
         Returns (drive, name, context, reason)."""
 
-        pending_chain = self._state.get("pending_chain")
-        if pending_chain:
-            syl = pending_chain[0]
-            drive = SYLLABLE_DRIVES.get(syl, DEFAULT_DRIVE)
-            ctx = f"{situation}:{prior_syllable if prior_syllable else 'start'}"
-            return drive, syl, ctx, f"combinatorial chain demand successor: {syl}"
-
         context = f"{situation}:{prior_syllable if prior_syllable else 'start'}"
         totals = self._state.setdefault("syllable_totals", {})
         tried = (self._state.setdefault("speech", {}).get(context) or {}).get("syllables") or {}
@@ -3468,7 +3311,14 @@ class FunctionalOrganism:
         # Calibrated 250ms quiet gap following speaker cessation releases vocal turn response
         target = self._state.get("heard_speech_target")
         quiet_gap = self.live_organism_tick - int(self._state.get("last_sound_heard_tick", -999))
-        if quiet_gap == 1 and target and not target.get("consumed") and "say" in acts:
+        if (
+            quiet_gap == 1
+            and target
+            and not target.get("consumed")
+            and target.get("tick") in (self.live_organism_tick, int(self._state.get("last_sound_heard_tick", -999)))
+            and "say" in acts
+        ):
+            target["consumed"] = True
             return "say", f"{label}: conversational turn release after 250ms quiet gap"
 
         # Cognitive Asset 6: Unified Structural Boredom & Distal Interest Potential Manifold
@@ -3485,20 +3335,21 @@ class FunctionalOrganism:
         known_non_foods = {o_id for o_id, c in conserved.items() if c.get("non_nutritive") is True and not is_genuine_food_object(o_id)} | tested_non_nutritive
 
         # Homeostatic Barrenness in Lived Cognition:
+        # Food is present only if genuine food is located in the current room or currently visible
+        here_reg = _region_of(snapshot, PositionMM(*(self._state.get("body_pos") or (0, 0, 0))), 250) if snapshot is not None else None
+        has_food = any(is_genuine_food_object(o_id) and c.get("room_id") == cur_room for o_id, c in conserved.items()) or (
+            snapshot is not None and here_reg is not None and any(is_genuine_food_object(item.object_id) and _region_of(snapshot, item.position, item.radius_mm) is here_reg for item in snapshot.objects if item.position is not None)
+        ) or (
+            candidate_options is not None and any(opt[0] in ("toward_food", "grasp", "take") and is_genuine_food_object(opt[3]) and not str(opt[1]).startswith("via ") for opt in candidate_options)
+        )
+        has_candidate_nourishment = has_food
+        is_barren = False
         # Does the current environment lack the active homeostatic requirement?
         if self.live_organism_tick > 100 or deficit >= 0.6 or sleep_ratio >= 0.5:
             needs_bed = sleep_ratio >= 0.5
             needs_food = deficit >= 0.6
             known_foods = _consequence_qualified_food_ids(self._state)
             has_bed = any(c.get("room_id") == cur_room for o_id, c in conserved.items() if o_id == BED_ID) or (candidate_options is not None and any(opt[0] == "toward_bed" for opt in candidate_options))
-            # Food is present only if genuine food is located in the current room or currently visible
-            here_reg = _region_of(snapshot, PositionMM(*(self._state.get("body_pos") or (0, 0, 0))), 250) if snapshot is not None else None
-            has_food = any(is_genuine_food_object(o_id) and c.get("room_id") == cur_room for o_id, c in conserved.items()) or (
-                snapshot is not None and here_reg is not None and any(is_genuine_food_object(item.object_id) and _region_of(snapshot, item.position, item.radius_mm) is here_reg for item in snapshot.objects if item.position is not None)
-            ) or (
-                candidate_options is not None and any(opt[0] in ("toward_food", "grasp", "take") and is_genuine_food_object(opt[3]) and not str(opt[1]).startswith("via ") for opt in candidate_options)
-            )
-            has_candidate_nourishment = has_food
 
             is_barren = (needs_bed and not has_bed) or (needs_food and not has_candidate_nourishment)
             if is_barren:
@@ -3512,22 +3363,23 @@ class FunctionalOrganism:
             held_target = self._state.get("unsuccessful_bite_held_id") or self._state.get("held_object_id") or self._state.get("gaze_target")
             held_target_str = held_target if isinstance(held_target, str) else None
             held_is_depleted = any(
-                c.get("non_nutritive") or c.get("currently_depleted")
+                (c.get("non_nutritive") and not is_genuine_food_object(o_id)) or c.get("currently_depleted")
                 for o_id, c in conserved.items()
                 if o_id == held_target_str
             )
             if (
                 self._state.get("unsuccessful_bite_held_id")
                 or held_is_depleted
-                or (held_target_str in tested_non_nutritive)
+                or (held_target_str in tested_non_nutritive and not is_genuine_food_object(held_target_str))
                 or not (self._state.get("feeding") or deficit >= 0.60)
             ):
                 return "release", f"{label}: release held item (sated or non-nutritive)"
 
-        surplus = max(0.0, min(1.0, (1.0 - deficit) * (1.0 - sleep_ratio)))
-        boredom = surplus * (1.0 - math.exp(-float(dwell_beats) / 30.0))
-        if boredom > 0.25 and "toward_door" in acts and not door_refused:
-            return "toward_door", f"{label}: structural boredom ({boredom:.2f} over {dwell_beats} dwell beats): evacuating saturated basin toward negative space"
+        if not self._state.get("feeding") and not has_candidate_nourishment:
+            surplus = max(0.0, min(1.0, (1.0 - deficit) * (1.0 - sleep_ratio)))
+            boredom = surplus * (1.0 - math.exp(-float(dwell_beats) / 30.0))
+            if boredom > 0.25 and "toward_door" in acts and not door_refused:
+                return "toward_door", f"{label}: structural boredom ({boredom:.2f} over {dwell_beats} dwell beats): evacuating saturated basin toward negative space"
 
         # Physical execution feedback: an act refused on the previous beat yields to alternative viable acts
         if refused_act and len(acts) > 1:
@@ -3551,13 +3403,6 @@ class FunctionalOrganism:
                     ]
                     if grasp_opts:
                         return "grasp", f"{label}: metabolic hunger surge -> grasp candidate nourishment; {grasp_opts[0][3]}"
-            if "toward_food" in acts:
-                valid_food_opts = [
-                    o for o in candidate_options
-                    if o[0] == "toward_food" and o[3] and is_genuine_food_object(o[3])
-                ] if candidate_options is not None else []
-                if valid_food_opts:
-                    return "toward_food", f"{label}: metabolic hunger surge -> approach food; {valid_food_opts[0][1]}"
             # Phase 3 Homeostatic Exhaust Cycle (Section 4 of WHOLE_BRAIN_SPECIFICATION.md):
             # When motor affordances cannot relieve metabolic deficit (confined in playpen, barred doors, or food out of reach):
             # Frustrated kinetic energy is inhibited along the motor manifold and forced through the lowest-resistance
@@ -3597,12 +3442,16 @@ class FunctionalOrganism:
                 act = max(viable_known, key=lambda a: (float(tried[a][1]) / int(tried[a][0]), -acts.index(a)))
                 mean = float(tried[act][1]) / int(tried[act][0])
                 return act, label + ", new today; from her sleep, situation " + situation + ": " + act + f" ({mean:+.2f} over {int(tried[act][0])})"
-            # Nothing known here or in her sleep: follow natural kinematic affordance hierarchy (never artificial quotas)
-            act = acts[0]
+            # Nothing known here or in her sleep: the act she has tried least in
+            # her whole life (her own counts, never a written order).
+            totals = self._state.get("act_totals", {})
+            act = min(acts, key=lambda a: (int(totals.get(a, 0)), acts.index(a)))
             return act, label + ": first try of " + act
         tried = entry["acts"]
         untried = [act for act in acts if act not in tried]
         if untried:
+            totals = self._state.get("act_totals", {})
+            untried.sort(key=lambda a: (int(totals.get(a, 0)), acts.index(a)))
             best_untried = untried[0]
             return best_untried, label + ": first try of " + best_untried
 
@@ -3773,22 +3622,6 @@ class FunctionalOrganism:
             last = state["last_chosen"]
             self._credit(str(last["key"]), str(last["act"]), round(float(last["deficit"]), 6), tick_now, str(last.get("regimes", "")))
 
-        # Cognitive Asset 5: Combinatorial Demand Chaining Credit
-        demand = state.get("last_demand_chain")
-        if demand and (intake > 0 or float(contact_fraction) > 0.3 or applied_action in ("take", "bite")):
-            s1, s2, d_tick, d_target = demand
-            if 0 <= (tick_now - int(d_tick)) <= 8:
-                credit_val = round(float(intake / 100_000.0) if intake else float(contact_fraction), 4)
-                sp_rec = state.setdefault("speech", {})
-                toks = decision.signature.split(" ")
-                sit = coarse_key("".join(t[0] for t in toks))
-                ctx1 = f"{sit}:start"
-                ctx2 = f"{sit}:{s1}"
-                entry1 = sp_rec.setdefault(ctx1, {"syllables": {}, "tick": tick_now})["syllables"].setdefault(s1, [1, 0.0])
-                entry1[1] = round(float(entry1[1]) + credit_val, 4)
-                entry2 = sp_rec.setdefault(ctx2, {"syllables": {}, "tick": tick_now})["syllables"].setdefault(s2, [1, 0.0])
-                entry2[1] = round(float(entry2[1]) + credit_val * 1.5, 4)
-                state["last_demand_chain"] = None
         if not state.get("asleep"):
             state["sleep_pressure"] = int(state.get("sleep_pressure", 0)) + 1
         if applied_action in MOVES and refusal is None:

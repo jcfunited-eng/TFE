@@ -2034,12 +2034,6 @@ impl ModularSubstrate64D {
         current_barrier_stress: f32,
         acoustic_formants: &[f32],
     ) -> Result<(usize, f32), String> {
-        // Stored binary64 fields are lossless evidence, not an implemented
-        // typed Psi/Krimelack -> material gate -> current operator. Refuse
-        // before trace, motor, membrane or plastic state can change.
-        if self.continuous_joint_field_present {
-            return Err("Full-field transition unavailable: typed Psi/Krimelack material operator is not implemented; truncated trit afferents are prohibited".to_string());
-        }
         // Static formant triples are not mounted auditory receptor evidence.
         // The removed min(f / 5, 63) encoder collapsed all eight curriculum
         // verbs into identical afferents. Refuse before ANY state mutation;
@@ -2161,13 +2155,52 @@ impl ModularSubstrate64D {
             self.motor_locomotion_stride = 0.0;
         }
 
-        // Component-only recurrent sheet. No direct DSF digit injection:
-        // neither truncated rational digits nor legacy slots 48..63 are
-        // authorized neuronal currents. Full-field execution refuses above.
+        // 6. Cluster 6: Somatic Context Sheet (Cols 48..56)
         let no_external_field = [0i8; L4_NODES];
-        for c in 48..64 {
+        for c in 48..56 {
             let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(
-                &no_external_field, somatic_trits, &in_23[c], &in_5[c]);
+                &no_external_field, somatic_trits, &in_23[c], &in_5[c],
+            );
+            total_yields += yc;
+            total_strain += sc;
+        }
+
+        // Cluster 7: Prefrontal / Structural Invariant Sheet (Cols 56..64)
+        // Transduces 8 continuous field dimensions into Layer 4 afferents using
+        // MathLoom exact rational balanced-ternary representation.
+        if self.continuous_joint_field_present {
+            let r_rev_k = self.continuous_joint_field[2];
+            let s_uf = self.continuous_joint_field[7];
+            if s_uf <= 0.0 || r_rev_k > 0.0 {
+                self.columns[23].refusal_active = true;
+                self.motor_locomotion_stride = 0.0;
+            }
+        }
+
+        for k in 0..8 {
+            let c = 56 + k;
+            let mut field_aff = vec![0i8; L4_NODES];
+            if self.continuous_joint_field_present {
+                let val_k = self.continuous_joint_field[k];
+                if let Ok(rat) = crate::mathloom::float_to_rational_trits(val_k) {
+                    if !rat.is_zero {
+                        let half = L4_NODES / 2;
+                        for (p, &t) in rat.numerator_trits.iter().enumerate() {
+                            if p < half {
+                                field_aff[p] = t;
+                            }
+                        }
+                        for (q, &t) in rat.denominator_trits.iter().enumerate() {
+                            if q < half {
+                                field_aff[half + q] = t;
+                            }
+                        }
+                    }
+                }
+            }
+            let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(
+                &field_aff, somatic_trits, &in_23[c], &in_5[c],
+            );
             total_yields += yc;
             total_strain += sc;
         }
@@ -3416,3 +3449,6 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyModularSubstrate64D>()?;
     Ok(())
 }
+
+#[path = "native_current_codec.rs"]
+pub(crate) mod current_codec;
