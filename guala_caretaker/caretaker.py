@@ -1227,10 +1227,10 @@ def is_seated_in_high_chair(o: dict) -> bool:
 
 
 def maybe_feed(o: dict, st: dict) -> None:
-    """Offer real food without relocating Guala or interpreting babble as words.
+    """Maintain external household food until the organism's own satiety boundary.
 
-    This external tutor may fetch food; Guala alone chooses approach and bite.
-    Existing environmental food stays available for autonomous foraging.
+    Stock returns at its declared home sites. Guala chooses approach and intake;
+    no caregiver relocation, syllable decoding or reserve writes are involved.
     """
     if asleep(o):
         return
@@ -1238,11 +1238,13 @@ def maybe_feed(o: dict, st: dict) -> None:
     deficit = lo.get("metabolic_need_reserve_deficit")
     if not deficit or len(deficit) != 2 or not deficit[1]:
         return
-    if deficit[0] / deficit[1] <= HUNGRY_DEFICIT:
+    from fractions import Fraction
+    from dsf_ai_service.guala_functional_organism import SATED_ABOVE
+    if Fraction(deficit[0], deficit[1]) <= 1 - SATED_ABOVE:
         return
     objects = (lo.get("embodiment") or {}).get("objects") or []
     if not objects or any("oral_transfer_available" not in item for item in objects):
-        log("meal withheld: exact oral-transfer observation unavailable")
+        log("food supply withheld: exact oral-transfer observation unavailable")
         return
     tick = int(o.get("live_tick") or 0)
     if tick < int(st.get("meal_tick") or 0) + MEAL_TICKS:
@@ -1250,19 +1252,10 @@ def maybe_feed(o: dict, st: dict) -> None:
     at_mouth, available = food_state(o, set())
     if at_mouth or available:
         return
-    # No observed transferable food: the external caregiver replenishes a meal
-    # through the existing physical arrival/pick/offer path, never reserve edits.
-    index = int(st.get("meal_cycle_index") or 0)
-    food = MEAL_DELIVERY_CYCLE[index % len(MEAL_DELIVERY_CYCLE)]
     st["meal_tick"] = tick
-    res = present_food(food)
-    pres = _extract_presentation(res)
-    if pres.get("presented"):
-        st["meal_cycle_index"] = index + 1
-        named = say_word(food)
-        log(f"meal: caregiver offered {food}; named={named}; pupil intake not inferred")
-    else:
-        log(f"meal: caregiver offer refused or uncertain for {food}; steps={pres.get('steps')}")
+    pres = _extract_presentation(present_food("replenish-home-food"))
+    provision = pres.get("provision") or {}
+    log(f"household food supply: status={provision.get('status')}; added_micrograms={provision.get('external_digestible_mass_micrograms')}; objects={provision.get('replenished')}; pupil intake not inferred")
     with open(STATE, "w") as f:
         json.dump(st, f)
 

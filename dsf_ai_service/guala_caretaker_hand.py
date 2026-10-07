@@ -1160,6 +1160,12 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
 
     if not isinstance(object_id, str) or not object_id:
         raise ValueError("presented food needs an object identity")
+    if object_id == "replenish-home-food":
+        from dsf_ai_service.guala_home_world import replenish_home_food
+        provision = replenish_home_food(world)
+        return {"object_id": object_id, "presented": provision["status"] == "applied",
+                "schema": "guala.caregiver_presentation.v1", "provision": provision,
+                "steps": [{"operation": "external_food_provision", "reason": provision["status"]}]}
     if object_id == CLEANUP_ID:
         return clean_up_house(world)
     if object_id in TOUCH_IDS:
