@@ -22,7 +22,22 @@ run_close_pass() {
     CH4_HERD_EXPORT=artifacts/ch4_uf/herd_state_live.parquet \
     python tools/ch4_uf_spectrum_herd.py || return
   python tools/ch4_herd_kgate_live.py || return
-  python tools/ch3_reveal_fade.py || return
+  # CH3 has no same-day guard of its own: on a catch-up rerun after a pass
+  # that died past this step, running it again would double its positions.
+  if python - <<'PY'
+import json, sys, pandas as pd
+latest = str(pd.read_parquet("ch4_live_store.parquet", columns=["Date"])["Date"].max())[:10]
+try:
+    days = json.load(open("artifacts/vtvr_observer/ch3_shadow_log.json")).get("days", {})
+except FileNotFoundError:
+    days = {}
+sys.exit(0 if latest in days else 1)
+PY
+  then
+    echo "[spring-runner] ch3 reveal-fade already ran for the store's latest close — skipped"
+  else
+    python tools/ch3_reveal_fade.py || return
+  fi
   python tools/ch4_spring_page.py artifacts/vtvr_observer/ch4_page.html || return
   python tools/ch3_shadow_page.py artifacts/vtvr_observer/ch3_shadow_page.html || return
   python tools/ch6_perception_nightly.py || return
@@ -44,6 +59,29 @@ if [[ -f .env ]]; then
 fi
 set +a
 echo "[spring-runner] started $(date -u +%FT%TZ) pid $$"
+# CATCH-UP (Claude 2026-10-07): a container restart in the middle of the
+# close pass (10-06 21:44Z: killed during the population backfill) left the
+# herd state unpublished, and the revived runner only ever tried again in the
+# next evening's 21:10 window — CH6 refused every entry for a day. Now the
+# date of each successful pass is stamped; whenever the market is closed
+# (outside 13:00-21:10 UTC) and the stamp is older than the last weekday
+# close pass that was due, the pass runs at once.
+STAMP=artifacts/vtvr_observer/.spring_last_pass
+pass_overdue() {
+  [ -f "$STAMP" ] || return 1
+  python3 - "$(cat "$STAMP")" <<'PY'
+import sys, datetime as dt
+now = dt.datetime.now(dt.timezone.utc)
+if 13 <= now.hour < 21 or (now.hour == 21 and now.minute < 25):
+    sys.exit(1)                      # market hours / the regular window
+d = now.date()
+if not (d.weekday() < 5 and (now.hour, now.minute) >= (21, 25)):
+    d -= dt.timedelta(days=1)
+while d.weekday() >= 5:
+    d -= dt.timedelta(days=1)
+sys.exit(0 if sys.argv[1] < d.isoformat() else 1)
+PY
+}
 while true; do
   date -u +%FT%TZ > artifacts/vtvr_observer/.hb_spring_runner
   now_h=$(date -u +%H)
@@ -55,10 +93,21 @@ while true; do
     echo "[spring-runner] close pass $(date -u +%FT%TZ)"
     if run_close_pass >> artifacts/vtvr_observer/spring_passes.log 2>&1; then
       echo "[spring-runner] close pass succeeded $(date -u +%FT%TZ)"
+      date -u +%F > "$STAMP"
       sleep 3600 9>&-
     else
       status=$?
       echo "[spring-runner] close pass FAILED status=$status; downstream work refused" \
+        | tee -a artifacts/vtvr_observer/spring_passes.log
+    fi
+  fi
+  if pass_overdue; then
+    echo "[spring-runner] CATCH-UP close pass $(date -u +%FT%TZ) (last good pass $(cat "$STAMP"))"
+    if run_close_pass >> artifacts/vtvr_observer/spring_passes.log 2>&1; then
+      echo "[spring-runner] catch-up pass succeeded $(date -u +%FT%TZ)"
+      date -u +%F > "$STAMP"
+    else
+      echo "[spring-runner] catch-up pass FAILED status=$?; retry next cycle" \
         | tee -a artifacts/vtvr_observer/spring_passes.log
     fi
   fi
