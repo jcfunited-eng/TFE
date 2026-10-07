@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
-# Keeps the caretaker alive: every minute, if no caretaker holds its lock and no STOP
-# file asks it to stop, start one. A cutover's minutes of 503s no longer leave her uncared for.
-cd "$(dirname "$0")"
-while true; do
-  if [ ! -e STOP ] && flock -n .lock true 2>/dev/null; then
-    echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) keep_caretaker: no caretaker holds the lock; starting one" >> caretaker.log
-    nohup python3 caretaker.py >> caretaker.out 2>&1 &
-    sleep 5
+# One supervisor and one caretaker. File existence never means a held lock.
+set -eu
+cd "$(dirname "$0")/.."
+exec 9>guala_caretaker/.supervisor.lock
+flock -n 9 || exit 0
+while [ ! -e guala_caretaker/STOP ]; do
+  if flock -n guala_caretaker/.lock true; then
+    # Foreground child: supervise its real lifetime; exclude supervisor lock FD.
+    python3 -m guala_caretaker.caretaker 9>&- >>guala_caretaker/caretaker.out 2>&1 || {
+      printf '%s caretaker exited with failure; retained state will be retried\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >>guala_caretaker/caretaker.out
+    }
   fi
-  sleep 60
+  [ -e guala_caretaker/STOP ] || sleep 20
 done

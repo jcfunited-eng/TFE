@@ -1613,24 +1613,18 @@ def place_in_playpen(world: Any) -> dict[str, object]:
 
 
 def domestic_patrol(world: Any, target_room: str | None = None) -> dict[str, object]:
-    """Caregiver circulates domestically across rooms, providing ongoing domestic presence
-    and inspecting spaces without standing still like a statue."""
+    """Move the caregiver through validated portals; report actual arrival."""
     hand = _Hand(world, "domestic-patrol")
-    steps = []
+    dest_room = target_room or ("library" if hand.snapshot().room_id != "library" else "tv-room")
+    arrived = False
     try:
-        snapshot = hand.snapshot()
-        dest_room = target_room or ("library" if snapshot.room_id != "library" else "tv-room")
-        hand.walk_to_region(dest_room)
-        steps.append({"operation": "patrol", "room": dest_room, "reason": "applied"})
-    except Exception as e:
-        steps.append({"operation": "patrol", "reason": str(e)})
-    applied = any(s.get("reason") == "applied" for s in steps)
-    return {
-        "object_id": "domestic-patrol",
-        "presented": applied,
-        "schema": "guala.caregiver_presentation.v1",
-        "steps": steps,
-    }
+        arrived = hand.walk_to_region(dest_room)
+    except _Bounded:
+        hand.steps.append({"operation": "patrol", "reason": "physical_step_bound"})
+    hand.steps.append({"operation": "patrol", "room": dest_room,
+                       "reason": "applied" if arrived else "route_refused"})
+    return {"object_id": "domestic-patrol", "presented": arrived,
+            "schema": "guala.caregiver_presentation.v1", "steps": hand.steps}
 
 
 def release_from_playpen(world: Any) -> dict[str, object]:
@@ -1886,48 +1880,30 @@ def stroller_excursion(world: Any) -> dict[str, object]:
 
 
 def escort_to_room(world: Any, dest_room: str) -> dict[str, object]:
-    """Caregiver approaches Guala, delivers reassuring hand-holding contact,
-    and walks through the doorway into dest_room, scaffolding Guala's movement
-    and establishing multi-room attractor basins."""
+    """Invite by contact and the caregiver's own validated doorway movement.
+
+    Guala follows only through subsequent organism-owned actions. A caregiver
+    arrival is never reported as a relocation or arrival of the pupil.
+    """
     hand = _Hand(world, f"escort-{dest_room}")
-    steps = []
+    arrived = False
     try:
-        snapshot = hand.snapshot()
-        her, person = hand.bodies(snapshot)
+        her, _person = hand.bodies(hand.snapshot())
         if hand.reach_her(her):
-            steps.extend(hand.steps)
-            touch_her(world, "touch-hold-hand")
-            walked = hand.walk_to_region(dest_room)
-            steps.extend(hand.steps)
-            if walked:
-                snapshot_after = hand.snapshot()
-                _her_after, person_after = hand.bodies(snapshot_after)
-                target_child_pos = PositionMM(person_after.pose.position.x - 400, person_after.pose.position.y, 0)
-                target_child_pose = PoseMM(target_child_pos, person_after.pose.heading_millidegrees)
-                world.admit_authored_body_transport(her.body_id, target_child_pose)
-                steps.append({"operation": "escort_accompaniment", "reason": "applied", "room": dest_room, "to": [target_child_pos.x, target_child_pos.y]})
-            return {
-                "object_id": f"escort-{dest_room}",
-                "presented": walked,
-                "schema": "guala.caregiver_presentation.v1",
-                "steps": steps,
-            }
-        else:
-            steps.extend(hand.steps)
-            return {
-                "object_id": f"escort-{dest_room}",
-                "presented": False,
-                "schema": "guala.caregiver_presentation.v1",
-                "steps": steps,
-            }
-    except Exception as e:
-        steps.append({"operation": "escort", "reason": str(e), "to": None})
-        return {
-            "object_id": f"escort-{dest_room}",
-            "presented": False,
-            "schema": "guala.caregiver_presentation.v1",
-            "steps": steps,
-        }
+            contact = touch_her(world, "touch-hold-hand")
+            hand.steps.extend(contact.get("steps") or [])
+            arrived = hand.walk_to_region(dest_room)
+    except _Bounded:
+        hand.steps.append({"operation": "escort", "reason": "physical_step_bound", "to": None})
+    snapshot = hand.snapshot()
+    her, person = hand.bodies(snapshot)
+    region = _region_of(snapshot, her.pose.position, her.radius_mm)
+    child_arrived = region is not None and region.region_id == dest_room
+    hand.steps.append({"operation": "caregiver_lead", "reason": "applied" if arrived else "route_refused",
+                       "room": dest_room, "to": [person.pose.position.x, person.pose.position.y]})
+    return {"object_id": f"escort-{dest_room}", "presented": arrived,
+            "child_arrived": child_arrived,
+            "schema": "guala.caregiver_presentation.v1", "steps": hand.steps}
 
 
 def park_stroller_library(world: Any) -> dict[str, object]:

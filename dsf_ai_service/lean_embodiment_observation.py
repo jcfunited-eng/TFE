@@ -81,6 +81,9 @@ def lean_embodiment_observation(
             "unit": unit,
         })
 
+    from .guala_caretaker_hand import nothing_left_to_bite
+    self_body = next(item for item in bodies if item.body_id == snapshot.self_body_id)
+
     return {
         "authority_receipt_sha256": snapshot.authority_receipt_sha256,
         "bodies": [
@@ -114,6 +117,8 @@ def lean_embodiment_observation(
                 # channels in micrograms, exactly as the world holds them; None
                 # for things with no edible material. The caregiver reads this
                 # to present food that is food (2026-09-14).
+                "digestible_mass_micrograms": None if item.material is None else item.material.digestible_mass_micrograms,
+                "oral_transfer_available": not nothing_left_to_bite(self_body, item),
                 "tastant_remaining_micrograms": (
                     None
                     if item.material is None

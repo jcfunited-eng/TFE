@@ -157,33 +157,40 @@ def _convert_word(source: str, pcm_path: str) -> None:
 
 
 def block_count(pcm_path: str) -> int:
-    """Total whole acoustic blocks in a pcm file without loading it into memory."""
-    try:
-        return os.path.getsize(pcm_path) // BLOCK_BYTES
-    except OSError:
-        return 0
+    """Include the final complete signed16 samples, even below one interval."""
+    size = os.path.getsize(pcm_path)
+    if size % 2:
+        raise ValueError(f"{pcm_path}: PCM ends inside a signed16 sample")
+    return (size + BLOCK_BYTES - 1) // BLOCK_BYTES
 
 
 def read_block(pcm_path: str, block_index: int) -> bytes | None:
-    """Read one specific acoustic block directly by byte offset."""
-    offset = block_index * BLOCK_BYTES
-    try:
-        with open(pcm_path, "rb") as source:
-            source.seek(offset)
-            data = source.read(BLOCK_BYTES)
-            if len(data) == BLOCK_BYTES:
-                return data
-            return None
-    except OSError:
+    """Read one interval; pad only a confirmed, complete final PCM fragment."""
+    if type(block_index) is not int or block_index < 0:
+        raise ValueError("audio block index must be a nonnegative integer")
+    count = block_count(pcm_path)
+    if block_index >= count:
         return None
+    with open(pcm_path, "rb") as source:
+        size = os.fstat(source.fileno()).st_size
+        source.seek(block_index * BLOCK_BYTES)
+        data = source.read(BLOCK_BYTES)
+    expected = min(BLOCK_BYTES, size - block_index * BLOCK_BYTES)
+    if len(data) != expected or not data or len(data) % 2:
+        raise ValueError(f"{pcm_path}: PCM changed or ended inside a signed16 sample")
+    return data.ljust(BLOCK_BYTES, b"\0")
 
 
 def blocks(pcm_path: str) -> list[bytes]:
-    """The chapter as beats of sound, whole blocks only."""
-
-    with open(pcm_path, "rb") as source:
-        raw = source.read()
-    return [raw[i:i + BLOCK_BYTES] for i in range(0, len(raw) - BLOCK_BYTES + 1, BLOCK_BYTES)]
+    """Preserve every sample of the finite recording, including its tail."""
+    count = block_count(pcm_path)
+    result = []
+    for index in range(count):
+        block = read_block(pcm_path, index)
+        if block is None:
+            raise ValueError(f"{pcm_path}: PCM changed during interval reading")
+        result.append(block)
+    return result
 
 
 # Music: public-domain recordings kept by the Internet Archive (Musopen's
