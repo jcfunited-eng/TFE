@@ -45,6 +45,16 @@ from dsf_ai_service.substrate.body_surface_contact import (
 from dsf_ai_service.substrate.exact_lattice_rotation import (
     rotate_lattice_offset,
 )
+from dsf_ai_service.substrate.compound_motor_material import (
+    CompoundMotorCommand, CompoundMotorConsequence, MotorContactState,
+    MotorSample, MotorSampleConsequence, MOTOR_QUANTUM_US,
+)
+from dsf_ai_service.substrate.compound_motor_material import MAX_MOTOR_COMMAND_BYTES
+from dsf_ai_service.substrate.compound_motor_material import MAX_MOTOR_SAMPLES
+from dsf_ai_service.substrate.world_material_transport import MaterialTransportState
+from dsf_ai_service.substrate.environment_boundary import SolarAcquisition
+
+
 
 
 PORT_ID = "guala.embodiment.w1"
@@ -1466,6 +1476,7 @@ class EmbodiedBody:
     held_object_id: str | None = None
     receptor_geometry: BodyReceptorGeometry | None = None
     active_contact: BodyContactState | None = None
+    motor_contact: MotorContactState | None = None
 
     def verify(self) -> None:
         _identifier(self.body_id, "body id")
@@ -1478,26 +1489,28 @@ class EmbodiedBody:
             self.receptor_geometry.verify()
         if self.active_contact is not None:
             self.active_contact.verify()
+        if self.motor_contact is not None:
+            if not isinstance(self.motor_contact, MotorContactState):
+                raise ValueError("motor contact owner changed type")
+            self.motor_contact.verify()
+            supported = bool(self.motor_contact.attachment_mask or self.motor_contact.predecessor_attachment)
+            if supported != (self.held_object_id is not None):
+                raise ValueError("functional hand support differs from reciprocal custody")
 
     def as_record(self) -> dict[str, object]:
         self.verify()
-        return {
+        result = {
             "body_id": self.body_id,
             "held_object_id": self.held_object_id,
             "pose": self.pose.as_record(),
             "radius_mm": self.radius_mm,
             "reach_mm": self.reach_mm,
-            "active_contact": (
-                self.active_contact.as_record()
-                if self.active_contact is not None
-                else None
-            ),
-            "receptor_geometry": (
-                self.receptor_geometry.as_record()
-                if self.receptor_geometry is not None
-                else None
-            ),
+            "active_contact": self.active_contact.as_record() if self.active_contact is not None else None,
+            "receptor_geometry": self.receptor_geometry.as_record() if self.receptor_geometry is not None else None,
         }
+        if self.motor_contact is not None:
+            result["motor_contact"] = self.motor_contact.as_record()
+        return result
 
 
 # A box whose bottom is above the walking layer (a framed picture, a high shelf's
@@ -1891,9 +1904,16 @@ EmbodimentCommand = (
     | BodySurfaceContactCommand
     | AdvancePhysicalTimeCommand
 )
+EmbodimentCommand = EmbodimentCommand | CompoundMotorCommand
+
 
 
 def command_record(command: EmbodimentCommand) -> dict[str, object]:
+    if isinstance(command, CompoundMotorCommand):
+        command.verify()
+        return {"schema": COMMAND_SCHEMA, "operation": "compound_motor",
+                "source_millisecond": command.source_millisecond,
+                "samples": [sample.as_row() for sample in command.samples]}
     if isinstance(command, MoveCommand):
         command.target_pose.verify()
         return {
@@ -2079,6 +2099,9 @@ def encode_command(command: EmbodimentCommand) -> bytes:
 def _command_elapsed_nanoseconds(
     command: EmbodimentCommand,
 ) -> int:
+    if isinstance(command, CompoundMotorCommand):
+        command.verify()
+        return command.duration_microseconds * 1_000
     if isinstance(
         command,
         (
@@ -2143,6 +2166,18 @@ def decode_command(payload: bytes, *, max_command_bytes: int = DEFAULT_MAX_COMMA
     if not isinstance(decoded, Mapping) or decoded.get("schema") != COMMAND_SCHEMA:
         raise ValueError("embodiment command schema changed")
     operation = decoded.get("operation")
+    if operation == "compound_motor":
+        if set(decoded) != {"schema", "operation", "source_millisecond", "samples"}:
+            raise ValueError("compound motor command fields changed")
+        rows = decoded.get("samples")
+        if not isinstance(rows, list) or not 1 <= len(rows) <= 250:
+            raise ValueError("compound motor command sample boundary changed")
+        compound = CompoundMotorCommand(decoded.get("source_millisecond"), tuple(MotorSample.from_row(row) for row in rows))
+        compound.verify()
+        if encode_command(compound) != payload:
+            raise ValueError("compound motor command is not canonical")
+        return compound
+
     if operation == "move" and set(decoded) == {
         "duration_microseconds", "operation", "schema", "target_pose"
     }:
@@ -2382,9 +2417,14 @@ class _WorldState:
     self_body_id: str
     bodies: tuple[EmbodiedBody, ...]
     objects: tuple[EmbodiedObject, ...]
+    material_transport: MaterialTransportState | None = None
+    solar_acquisition: SolarAcquisition | None = None
+
 
     def as_record(self) -> dict[str, object]:
         return {
+            **({"material_transport": self.material_transport.as_record()} if self.material_transport is not None else {}),
+            **({"solar_acquisition": self.solar_acquisition.as_record()} if self.solar_acquisition is not None else {}),
             "bodies": [item.as_record() for item in self.bodies],
             "objects": [item.as_record() for item in self.objects],
             "revision": self.revision,
@@ -2397,6 +2437,8 @@ class _WorldState:
 
     def _canonical_record(self) -> dict[str, object]:
         return {
+            **({"material_transport": self.material_transport.as_record()} if self.material_transport is not None else {}),
+            **({"solar_acquisition": self.solar_acquisition.as_record()} if self.solar_acquisition is not None else {}),
             "bodies": [item.as_record() for item in self.bodies],
             "objects": [item._canonical_record() for item in self.objects],
             "revision": self.revision,
@@ -2421,9 +2463,14 @@ class ObservationSnapshot:
     state_sha256: str
     authority_hmac_sha256: str
     authority_receipt_sha256: str
+    material_transport: MaterialTransportState | None = None
+    solar_acquisition: SolarAcquisition | None = None
+
 
     def unsigned_record(self) -> dict[str, object]:
         return {
+            **({"material_transport": self.material_transport.as_record()} if self.material_transport is not None else {}),
+            **({"solar_acquisition": self.solar_acquisition.as_record()} if self.solar_acquisition is not None else {}),
             "bodies": [item.as_record() for item in self.bodies],
             "objects": [item.as_record() for item in self.objects],
             "revision": self.revision,
@@ -2445,6 +2492,8 @@ class ObservationSnapshot:
 
     def _canonical_unsigned_record(self) -> dict[str, object]:
         return {
+            **({"material_transport": self.material_transport.as_record()} if self.material_transport is not None else {}),
+            **({"solar_acquisition": self.solar_acquisition.as_record()} if self.solar_acquisition is not None else {}),
             "bodies": [item.as_record() for item in self.bodies],
             "objects": [item._canonical_record() for item in self.objects],
             "revision": self.revision,
@@ -2483,9 +2532,12 @@ class ActionExecutionReceipt:
     after: ObservationSnapshot
     authority_hmac_sha256: str
     authority_receipt_sha256: str
+    motor_consequence: CompoundMotorConsequence | None = None
+
 
     def unsigned_record(self) -> dict[str, object]:
         return {
+            **({"motor_consequence": self.motor_consequence.as_record()} if self.motor_consequence is not None else {}),
             "actor_body_id": self.actor_body_id,
             "after": self.after.as_record(),
             "before": self.before.as_record(),
@@ -2510,6 +2562,7 @@ class ActionExecutionReceipt:
 
     def _canonical_unsigned_record(self) -> dict[str, object]:
         return {
+            **({"motor_consequence": self.motor_consequence.as_record()} if self.motor_consequence is not None else {}),
             "actor_body_id": self.actor_body_id,
             "after": self.after._canonical_record(),
             "before": self.before._canonical_record(),
@@ -2555,6 +2608,37 @@ class PreparedActionExecution:
     _candidate_state: _AuthorityState = field(repr=False)
     _construction_authority: object = field(repr=False)
     body_surface_contacts: tuple[PreparedBodySurfaceContact, ...] = ()
+
+
+_COMPOUND_PREFIX_AUTHORITY = object()
+
+
+@dataclass(frozen=True, slots=True)
+class EnvironmentBoundary:
+    _owner: object = field(repr=False)
+    _prior_state: _AuthorityState = field(repr=False)
+    _world: _WorldState = field(repr=False)
+    acquisition: SolarAcquisition
+    _construction_authority: object = field(repr=False)
+
+
+@dataclass(frozen=True, slots=True)
+class CompoundMotorPrefix:
+    port_id: str
+    actor_body_id: str
+    command: CompoundMotorCommand
+    consequence: CompoundMotorConsequence
+    _prior_state: _AuthorityState = field(repr=False)
+    _world: _WorldState = field(repr=False)
+    _owner: object = field(repr=False)
+    _construction_authority: object = field(repr=False)
+    predecessor: CompoundMotorPrefix | None = field(repr=False)
+    source_millisecond: int
+    sample_count: int
+    transferred_digestible_micrograms: int
+    environment_boundary: EnvironmentBoundary = field(repr=False)
+
+
 
 
 @dataclass(frozen=True, slots=True)
@@ -2749,6 +2833,20 @@ def _derived_contact_patch_square_mm(
         max(1, overlap),
     )
     return patch_radius * patch_radius
+
+
+def _positive_contact_patch_square_mm(
+    *, receptor_position: PositionMM, receptor_radius_mm: int,
+    object_position: PositionMM, object_radius_mm: int,
+) -> int | None:
+    """New work requires strict interior area; old point-contact bytes stay readable."""
+    distance_squared = _distance_squared(receptor_position, object_position)
+    combined = receptor_radius_mm + object_radius_mm
+    if distance_squared >= combined * combined:
+        return None
+    overlap = combined - isqrt(distance_squared)
+    return min(receptor_radius_mm, object_radius_mm, overlap) ** 2
+
 
 
 def _floor_discs_overlap(left: PositionMM, left_radius: int, right: PositionMM, right_radius: int) -> bool:
@@ -2998,33 +3096,17 @@ def _contact_from(value: object) -> BodyContactState:
 
 
 def _body_from(value: object) -> EmbodiedBody:
-    expected = {
-        "active_contact",
-        "body_id",
-        "held_object_id",
-        "pose",
-        "radius_mm",
-        "reach_mm",
-        "receptor_geometry",
-    }
-    if not isinstance(value, Mapping) or set(value) != expected:
+    expected = {"active_contact", "body_id", "held_object_id", "pose", "radius_mm", "reach_mm", "receptor_geometry"}
+    if not isinstance(value, Mapping) or set(value) not in (expected, expected | {"motor_contact"}):
         raise ValueError("body fields changed")
-    receptor = value.get("receptor_geometry")
-    contact = value.get("active_contact")
+    receptor, contact = value.get("receptor_geometry"), value.get("active_contact")
     result = EmbodiedBody(
-        body_id=value.get("body_id"),
-        held_object_id=value.get("held_object_id"),
-        pose=_pose_from(value.get("pose"), "body pose"),
-        radius_mm=value.get("radius_mm"),
+        body_id=value.get("body_id"), held_object_id=value.get("held_object_id"),
+        pose=_pose_from(value.get("pose"), "body pose"), radius_mm=value.get("radius_mm"),
         reach_mm=value.get("reach_mm"),
-        receptor_geometry=(
-            _receptor_geometry_from(receptor)
-            if receptor is not None
-            else None
-        ),
-        active_contact=(
-            _contact_from(contact) if contact is not None else None
-        ),
+        receptor_geometry=_receptor_geometry_from(receptor) if receptor is not None else None,
+        active_contact=_contact_from(contact) if contact is not None else None,
+        motor_contact=MotorContactState.from_record(value["motor_contact"]) if "motor_contact" in value else None,
     )
     result.verify()
     if result.as_record() != dict(value):
@@ -3704,6 +3786,7 @@ class EmbodimentWorldAuthority:
         solar_coupling: SolarCoupling | None = None,
         departed_object_ids: tuple[str, ...] = (),
         screen_broadcasts: Sequence[ScreenBroadcast] = (),
+        commission_fractional_transport: bool = False,
     ) -> None:
         self._key = _authority_key(authority_key)
         # Twelve places and sixteen doors bound the renovated home; the
@@ -3733,7 +3816,7 @@ class EmbodimentWorldAuthority:
             max_command_bytes,
             "command byte capacity",
             minimum=64,
-            maximum=DEFAULT_MAX_COMMAND_BYTES,
+            maximum=MAX_MOTOR_COMMAND_BYTES,
         )
         self._max_encoded_state_bytes = _bounded_integer(
             max_encoded_state_bytes,
@@ -3934,6 +4017,11 @@ class EmbodimentWorldAuthority:
             bodies=embodied_bodies,
             objects=tuple(sorted(objects, key=lambda item: item.object_id)),
         )
+        if type(commission_fractional_transport) is not bool:
+            raise ValueError("fractional transport commissioning must be explicit boolean")
+        if commission_fractional_transport:
+            world = replace(world, material_transport=MaterialTransportState.commission(world))
+
         self._declared_topology_sha256 = self._topology_sha256(
             physical_regions,
             physical_portals,
@@ -4256,6 +4344,7 @@ class EmbodimentWorldAuthority:
                 bodies=bodies,
                 objects=tuple(entry for entry in world.objects if entry.object_id != object_id),
             )
+            candidate_world = self._reconcile_material_custody(candidate_world)
             self._validate_world(candidate_world)
             observation = self._observation_for(candidate_world)
             candidate = _AuthorityState(
@@ -4306,6 +4395,7 @@ class EmbodimentWorldAuthority:
                     )
                 ),
             )
+            candidate_world = self._reconcile_material_custody(candidate_world)
             self._validate_world(candidate_world)
             observation = self._observation_for(candidate_world)
             candidate = _AuthorityState(
@@ -4373,6 +4463,7 @@ class EmbodimentWorldAuthority:
                     room_id=region.region_id,
                     room_bounds=region.bounds,
                 )
+            candidate_world = self._reconcile_material_custody(candidate_world)
             self._validate_world(candidate_world)
             observation = self._observation_for(candidate_world)
             candidate = _AuthorityState(
@@ -4689,6 +4780,8 @@ class EmbodimentWorldAuthority:
                     sorted(migrated_objects, key=lambda item: item.object_id)
                 ),
             )
+            if prior.world.material_transport is not None:
+                raise ValueError("commissioned air requires explicit lossless topology preparation; legacy renovation resets air")
             self._validate_world(migrated_world)
             resulting_observation = self._observation_for(migrated_world)
             prior_encoded = self._encoded_state_for(prior)
@@ -4869,6 +4962,7 @@ class EmbodimentWorldAuthority:
                 portals=tuple(portals),
                 objects=tuple(objects),
             )
+            migrated_world = self._reconcile_material_custody(migrated_world)
             self._validate_world(migrated_world)
             resulting_observation = self._observation_for(migrated_world)
             prior_encoded = self._encoded_state_for(prior)
@@ -5103,9 +5197,7 @@ class EmbodimentWorldAuthority:
         return tuple(totals)
 
     def _advance_material_time(
-        self,
-        world: _WorldState,
-        duration_nanoseconds: int,
+        self, world: _WorldState, duration_nanoseconds: int, *, settle_external: bool = True,
     ) -> _WorldState:
         duration = _bounded_integer(
             duration_nanoseconds,
@@ -5113,6 +5205,15 @@ class EmbodimentWorldAuthority:
             minimum=MIN_MATERIAL_ACTION_DURATION_US * 1_000,
             maximum=MAX_MATERIAL_ACTION_DURATION_US * 1_000,
         )
+        if settle_external and world.solar_acquisition is not None:
+            raise ValueError(
+                "retained source-time acquisition requires the chronological environment boundary"
+            )
+        if world.material_transport is not None:
+            result = world.material_transport.advance(world, duration, self._region_containing)
+            if settle_external:
+                result = self._settle_solar_illumination(result)
+            return result
         before_totals = self._odorant_totals(world)
         regions = list(world.regions)
         objects = list(world.objects)
@@ -5260,7 +5361,8 @@ class EmbodimentWorldAuthority:
             raise AssertionError(
                 "odorant transport violated exact mass conservation"
             )
-        result = self._settle_solar_illumination(result)
+        if settle_external:
+            result = self._settle_solar_illumination(result)
         return result
 
     def solar_sun(self) -> tuple[float, float, float, int] | None:
@@ -5271,11 +5373,13 @@ class EmbodimentWorldAuthority:
         coupling = self._solar_coupling
         if coupling is None:
             return None
+        if self._state.world.solar_acquisition is not None:
+            return coupling.sun_vector(self._state.world.solar_acquisition.second_of_day)
         override = os.environ.get("GUALA_SOLAR_UTC_OVERRIDE", "").strip()
         second_of_day = (int(override) if override else int(time.time())) % 86_400
         return coupling.sun_vector(second_of_day)
 
-    def _settle_solar_illumination(self, world: _WorldState) -> _WorldState:
+    def _settle_solar_illumination(self, world: _WorldState, *, acquisition: SolarAcquisition | None = None) -> _WorldState:
         """Write the real sun's current light into the declared places.
 
         Runs inside each committed action's own transaction: outdoor
@@ -5288,11 +5392,11 @@ class EmbodimentWorldAuthority:
         coupling = self._solar_coupling
         if coupling is None and not self._screen_broadcasts:
             return world
-        override = os.environ.get("GUALA_SOLAR_UTC_OVERRIDE", "").strip()
-        if override:
-            second_of_day = int(override) % 86_400
+        if acquisition is not None:
+            second_of_day = acquisition.second_of_day
         else:
-            second_of_day = int(time.time()) % 86_400
+            override = os.environ.get("GUALA_SOLAR_UTC_OVERRIDE", "").strip()
+            second_of_day = (int(override) if override else int(time.time())) % 86_400
         if self._screen_broadcasts:
             emissions = {
                 broadcast.object_id: broadcast.emission_at(second_of_day)
@@ -5342,6 +5446,10 @@ class EmbodimentWorldAuthority:
         return replace(world, regions=tuple(regions))
 
     def _validate_world(self, world: _WorldState) -> None:
+        if world.material_transport is not None:
+            world.material_transport.verify_world(world)
+        if world.solar_acquisition is not None:
+            world.solar_acquisition.verify()
         _bounded_integer(world.revision, "world revision", minimum=0, maximum=MAX_REVISION)
         self._validate_physical_topology(world.regions, world.portals)
         region_by_id = {item.region_id: item for item in world.regions}
@@ -5561,7 +5669,7 @@ class EmbodimentWorldAuthority:
             state_sha256=state_sha,
             authority_hmac_sha256=signature,
             authority_receipt_sha256=receipt,
-        )
+        material_transport=world.material_transport, solar_acquisition=world.solar_acquisition,)
 
     def observation_snapshot(self) -> ObservationSnapshot:
         with self._lock:
@@ -5602,19 +5710,12 @@ class EmbodimentWorldAuthority:
             return matches[0]
 
     def _execution_receipt(
-        self,
-        *,
-        port_id: str,
-        actor_body_id: str | None,
-        causal_intent_receipt_sha256: str,
-        command_sha256: str,
-        expected_revision: int,
-        disposition: str,
-        reason: str,
-        elapsed_nanoseconds: int,
-        lifecycle: tuple[str, ...],
-        before: ObservationSnapshot,
-        after: ObservationSnapshot,
+        self, *, port_id: str, actor_body_id: str | None,
+        causal_intent_receipt_sha256: str, command_sha256: str,
+        expected_revision: int, disposition: str, reason: str,
+        elapsed_nanoseconds: int, lifecycle: tuple[str, ...],
+        before: ObservationSnapshot, after: ObservationSnapshot,
+        motor_consequence: CompoundMotorConsequence | None = None,
     ) -> ActionExecutionReceipt:
         elapsed = _bounded_integer(
             elapsed_nanoseconds,
@@ -5637,6 +5738,10 @@ class EmbodimentWorldAuthority:
             "reason": reason,
             "schema": EXECUTION_SCHEMA,
         }
+        if motor_consequence is not None:
+            if elapsed != len(motor_consequence.samples) * MOTOR_QUANTUM_US * 1_000:
+                raise ValueError("motor receipt lost its exact elapsed clock")
+            unsigned["motor_consequence"] = motor_consequence.as_record()
         signature = _sign(self._key, EXECUTION_DOMAIN, unsigned)
         receipt = _digest({"authority_hmac_sha256": signature, "payload": unsigned})
         return ActionExecutionReceipt(
@@ -5654,7 +5759,7 @@ class EmbodimentWorldAuthority:
             after=after,
             authority_hmac_sha256=signature,
             authority_receipt_sha256=receipt,
-        )
+        motor_consequence=motor_consequence,)
 
     def _reject(
         self,
@@ -5855,20 +5960,396 @@ class EmbodimentWorldAuthority:
             )
         return tuple(prepared)
 
+    def _settle_compound_motor_prefix(
+        self, world: _WorldState, actor_body_id: str,
+        command: CompoundMotorCommand,
+    ) -> tuple[_WorldState, CompoundMotorConsequence]:
+        """Pure private settlement: consume only this prefix's new millisecond rows."""
+        if world.material_transport is None:
+            raise ValueError("compound motor interval requires fractional transport commissioning")
+        command.verify()
+        body_index = next((index for index, body in enumerate(world.bodies)
+                           if body.body_id == actor_body_id), None)
+        if body_index is None:
+            raise ValueError("compound motor actor has no world body")
+        state = world.bodies[body_index].motor_contact
+        if state is None:
+            raise ValueError("compound motor body requires explicit commissioning")
+        if state.source_millisecond != command.source_millisecond:
+            raise ValueError("compound motor prefix left its exact source clock")
+        consequences = []
+        current = world
+        for offset, sample in enumerate(command.samples):
+            before_body = current.bodies[body_index]
+            prior = before_body.motor_contact
+            assert prior is not None
+            # One pure geometric root transition. No material clock is advanced
+            # by contact/custody substeps; it advances once below for this row.
+            target = PoseMM(
+                PositionMM(before_body.pose.position.x + sample.delta_x_mm,
+                           before_body.pose.position.y + sample.delta_y_mm,
+                           before_body.pose.position.z),
+                (before_body.pose.heading_millidegrees + sample.delta_yaw_millidegrees) % 360_000,
+            )
+            target.verify()
+            candidate, root_reason = self._transition_geometry(
+                current, actor_body_id, MoveCommand(target, MOTOR_QUANTUM_US))
+            if candidate is not None:
+                current = candidate
+            body = current.bodies[body_index]
+            mask = prior.attachment_mask
+            predecessor_attachment = prior.predecessor_attachment
+            closing = 0
+            opening = 0
+            for bit, old, new in ((1, prior.left_grip_micrometres, sample.left_grip_micrometres),
+                                  (2, prior.right_grip_micrometres, sample.right_grip_micrometres)):
+                if new < old:
+                    closing |= bit
+                elif new > old:
+                    opening |= bit
+            hand_reason = "unchanged"
+            if closing:
+                if body.held_object_id is None:
+                    grasped, hand_reason = self._transition_geometry(
+                        current, actor_body_id, GraspContactCommand(MOTOR_QUANTUM_US))
+                    if grasped is not None:
+                        current = grasped
+                        body = current.bodies[body_index]
+                        mask |= closing
+                else:
+                    # Existing own-held geometry puts this ONE held object at
+                    # the touched receptor. No diameter inference or hand history.
+                    held = next(item for item in current.objects if item.object_id == body.held_object_id)
+                    geometry = body.receptor_geometry
+                    receptor = None if geometry is None else _receptor_position(body, geometry.touch_offset_mm)
+                    patch = (None if receptor is None or geometry is None else
+                             _positive_contact_patch_square_mm(
+                                 receptor_position=receptor,
+                                 receptor_radius_mm=geometry.touch_radius_mm,
+                                 object_position=receptor, object_radius_mm=held.radius_mm))
+                    if patch is None or held.position is not None or held.held_by_body_id != actor_body_id:
+                        hand_reason = "held_attachment_contact_unavailable"
+                    else:
+                        mask |= closing
+                        hand_reason = "predecessor_handoff" if predecessor_attachment else "attached"
+                        predecessor_attachment = False
+            # Apply both known grip changes together to the same functional load.
+            proposed_mask = mask & ~opening
+            if opening:
+                if predecessor_attachment:
+                    hand_reason = "unbound_predecessor_attachment"
+                elif body.held_object_id is None:
+                    hand_reason = "opening_without_attachment"
+                elif proposed_mask:
+                    mask = proposed_mask
+                    if hand_reason == "unchanged":
+                        hand_reason = "detached_supported"
+                elif mask:
+                    released, release_reason = self._transition_geometry(
+                        current, actor_body_id, ReleaseHeldObjectCommand(MOTOR_QUANTUM_US))
+                    if released is not None:
+                        current = released
+                        body = current.bodies[body_index]
+                        mask = 0
+                        hand_reason = "released"
+                    else:
+                        # The existing functional world support cannot disappear
+                        # if the only lawful placement is obstructed.
+                        hand_reason = release_reason
+            body = current.bodies[body_index]
+            # Resolve the current oral target only from reciprocal custody.
+            if body.held_object_id is not None:
+                target_id = body.held_object_id
+                offers = (target_id,)
+            else:
+                offers = tuple(other.held_object_id for other in current.bodies
+                               if other.body_id != actor_body_id and other.held_object_id is not None)
+                valid_offers = []
+                for offered in offers:
+                    probe, _ = self._transition_geometry(
+                        current, actor_body_id, OralContactCommand(offered, MOTOR_QUANTUM_US),
+                        transfer_oral_mass=False)
+                    if probe is not None:
+                        valid_offers.append(offered)
+                offers = tuple(valid_offers)
+                target_id = offers[0] if len(offers) == 1 else None
+            oral_object_id = prior.oral_object_id
+            oral_armed = prior.oral_armed
+            oral_reason = "contact_absent" if not offers else "contact_ambiguous"
+            transferred = 0
+            dissolved = (0,) * TASTANT_CHANNELS
+            patch = 0
+            if target_id is None:
+                oral_object_id = None
+                oral_armed = True
+                bodies = list(current.bodies)
+                bodies[body_index] = replace(bodies[body_index], active_contact=None)
+                current = replace(current, bodies=tuple(bodies))
+            else:
+                probe, oral_reason = self._transition_geometry(
+                    current, actor_body_id, OralContactCommand(target_id, MOTOR_QUANTUM_US),
+                    transfer_oral_mass=False)
+                if probe is None:
+                    oral_object_id = None
+                    oral_armed = True
+                    bodies = list(current.bodies)
+                    bodies[body_index] = replace(bodies[body_index], active_contact=None)
+                    current = replace(current, bodies=tuple(bodies))
+                else:
+                    if oral_object_id != target_id or sample.jaw_micrometres > prior.jaw_micrometres:
+                        oral_armed = True
+                    oral_object_id = target_id
+                    closes = sample.jaw_micrometres < prior.jaw_micrometres
+                    if closes and oral_armed:
+                        bitten, oral_reason = self._transition_geometry(
+                            current, actor_body_id, OralContactCommand(target_id, MOTOR_QUANTUM_US))
+                        if bitten is None:
+                            raise RuntimeError("oral geometry changed inside a pure endpoint")
+                        current = bitten
+                        oral_armed = False
+                        contact = current.bodies[body_index].active_contact
+                        assert contact is not None
+                        transferred = contact.transferred_digestible_micrograms
+                        dissolved = contact.dissolved_tastant_micrograms or ((0,) * TASTANT_CHANNELS)
+                        oral_reason = "closing_contact"
+                    else:
+                        current = probe
+                        oral_reason = "opening_contact" if sample.jaw_micrometres > prior.jaw_micrometres else "continuous_contact"
+                    contact = current.bodies[body_index].active_contact
+                    assert contact is not None
+                    patch = contact.contact_patch_square_mm
+            next_state = MotorContactState(
+                sample.left_grip_micrometres, sample.right_grip_micrometres,
+                sample.jaw_micrometres, mask, predecessor_attachment,
+                oral_object_id, oral_armed, command.source_millisecond + offset + 1)
+            next_state.verify()
+            bodies = list(current.bodies)
+            bodies[body_index] = replace(bodies[body_index], motor_contact=next_state)
+            current = replace(current, bodies=tuple(bodies))
+            current = self._advance_material_time(current, MOTOR_QUANTUM_US * 1_000, settle_external=False,)
+            current.bodies[body_index].verify()
+            after_body = current.bodies[body_index]
+            actual_yaw = sample.delta_yaw_millidegrees if root_reason == "applied" else 0
+            consequence = MotorSampleConsequence(
+                current.room_id,
+                (after_body.pose.position.x - before_body.pose.position.x,
+                 after_body.pose.position.y - before_body.pose.position.y, actual_yaw),
+                root_reason, hand_reason,
+                (sample.left_grip_micrometres, sample.right_grip_micrometres, sample.jaw_micrometres),
+                mask, predecessor_attachment, oral_object_id, oral_armed,
+                oral_reason, patch, transferred, dissolved)
+            consequence.as_record()
+            consequences.append(consequence)
+        result = CompoundMotorConsequence(command.source_millisecond, tuple(consequences))
+        result.as_record()
+        return current, result
+
+    def prepare_environment_boundary(
+        self, *, source_millisecond: int, acquisition: SolarAcquisition | None = None,
+    ) -> EnvironmentBoundary:
+        """Acquire T0 once, before retina/body settlement; no public elapsed action."""
+        with self._lock:
+            self._require_public_visibility_locked()
+            if self._prepared_action_execution is not None:
+                raise RuntimeError("world already has a prepared publication")
+            if self._state.world.material_transport is None:
+                raise ValueError("compound environment requires explicit transport commissioning")
+            _bounded_integer(source_millisecond, "environment source clock", minimum=0, maximum=MAX_REVISION)
+            if acquisition is None:
+                override = os.environ.get("GUALA_SOLAR_UTC_OVERRIDE", "").strip()
+                acquisition = SolarAcquisition(
+                    int(override) if override else int(time.time()), source_millisecond, bool(override))
+            if not isinstance(acquisition, SolarAcquisition):
+                raise ValueError("environment acquisition is not typed")
+            acquisition.verify()
+            if acquisition.source_millisecond != source_millisecond:
+                raise ValueError("environment acquisition changed its source boundary")
+            world = replace(self._state.world, solar_acquisition=acquisition)
+            world = self._settle_solar_illumination(world, acquisition=acquisition)
+            return EnvironmentBoundary(self, self._state, world, acquisition, _COMPOUND_PREFIX_AUTHORITY)
+
+    def _require_environment_boundary(self, boundary: EnvironmentBoundary) -> None:
+        if (not isinstance(boundary, EnvironmentBoundary)
+                or boundary._owner is not self or boundary._prior_state is not self._state
+                or boundary._construction_authority is not _COMPOUND_PREFIX_AUTHORITY):
+            raise ValueError("environment boundary changed predecessor custody")
+
+    def observe_environment_boundary(self, boundary: EnvironmentBoundary) -> _WorldState:
+        with self._lock:
+            self._require_environment_boundary(boundary)
+            return boundary._world
+
+    def environment_boundary_sun(self, boundary: EnvironmentBoundary):
+        with self._lock:
+            self._require_environment_boundary(boundary)
+            return (None if self._solar_coupling is None else
+                    self._solar_coupling.sun_vector(boundary.acquisition.second_of_day))
+
+    @staticmethod
+    def _reconcile_material_custody(world: _WorldState) -> _WorldState:
+        if world.material_transport is None:
+            return world
+        return replace(world, material_transport=world.material_transport.reconcile(world))
+
+    def prepare_motor_prefix(
+        self, *, port_id: str, command: CompoundMotorCommand,
+        predecessor: CompoundMotorPrefix | None = None,
+        environment_boundary: EnvironmentBoundary | None = None,
+    ) -> CompoundMotorPrefix:
+        """Append only new private time; prefixes share immutable prior segments."""
+        command.verify()
+        with self._lock:
+            self._require_public_visibility_locked()
+            if self._prepared_action_execution is not None:
+                raise RuntimeError("a publication preparation already exists")
+            if predecessor is None:
+                if environment_boundary is None:
+                    raise ValueError("initial compound prefix requires its T0 environment acquisition")
+                self._require_environment_boundary(environment_boundary)
+                if environment_boundary.acquisition.source_millisecond != command.source_millisecond:
+                    raise ValueError("initial environment and motor clocks differ")
+                actors = {port.port_id: port.actor_body_id for port in self._actor_ports}
+                actor = actors.get(port_id)
+                if actor is None:
+                    raise ValueError("compound motor prefix requires a body port")
+                prior_state = self._state
+                before = environment_boundary._world
+                origin = command.source_millisecond
+                count = 0
+                intake = 0
+            else:
+                if environment_boundary is not None and environment_boundary is not predecessor.environment_boundary:
+                    raise ValueError("appended prefix changed its held environmental sample")
+                environment_boundary = predecessor.environment_boundary
+                self._require_motor_prefix(predecessor)
+                if predecessor.port_id != port_id:
+                    raise ValueError("compound prefix changed its body port")
+                actor = predecessor.actor_body_id
+                prior_state = predecessor._prior_state
+                before = predecessor._world
+                origin = predecessor.source_millisecond
+                count = predecessor.sample_count
+                intake = predecessor.transferred_digestible_micrograms
+                if command.source_millisecond != origin + count:
+                    raise ValueError("appended motor prefix is not contiguous")
+            count += len(command.samples)
+            if count > MAX_MOTOR_SAMPLES:
+                raise ValueError("compound motor prefix exceeds its250ms boundary")
+            successor, consequence = self._settle_compound_motor_prefix(before, actor, command)
+            intake += consequence.transferred_digestible_micrograms
+            _bounded_integer(intake, "prefix digestive transfer", minimum=0, maximum=MAX_MATERIAL_MASS)
+            return CompoundMotorPrefix(port_id, actor, command, consequence,
+                prior_state, successor, self, _COMPOUND_PREFIX_AUTHORITY,
+                predecessor, origin, count, intake, environment_boundary=environment_boundary,)
+
+
+
+    def _require_motor_prefix(self, prefix: CompoundMotorPrefix) -> None:
+        """Trusted in-process custody, not an external serialized capability."""
+        if (not isinstance(prefix, CompoundMotorPrefix)
+                or prefix._construction_authority is not _COMPOUND_PREFIX_AUTHORITY
+                or prefix._owner is not self or prefix._prior_state is not self._state):
+            raise ValueError("compound motor prefix changed predecessor custody")
+
+    def _assemble_motor_prefix(self, prefix: CompoundMotorPrefix):
+        """Linear final assembly only; no earlier physical segment is repeated."""
+        self._require_motor_prefix(prefix)
+        chain = []
+        current = prefix
+        while current is not None:
+            chain.append(current)
+            current = current.predecessor
+        samples = []
+        consequences = []
+        for segment in reversed(chain):
+            samples.extend(segment.command.samples)
+            consequences.extend(segment.consequence.samples)
+        command = CompoundMotorCommand(prefix.source_millisecond, tuple(samples))
+        consequence = CompoundMotorConsequence(prefix.source_millisecond, tuple(consequences))
+        command.verify()
+        consequence.as_record()
+        if (len(samples) != prefix.sample_count
+                or consequence.transferred_digestible_micrograms != prefix.transferred_digestible_micrograms):
+            raise ValueError("assembled motor prefix lost its retained physical totals")
+        return command, consequence
+
+    def complete_motor_command(self, prefix: CompoundMotorPrefix) -> CompoundMotorCommand:
+        with self._lock:
+            command, _ = self._assemble_motor_prefix(prefix)
+            return command
+
+    def observe_motor_prefix(self, prefix: CompoundMotorPrefix) -> _WorldState:
+        """Read the private immutable physical state without a public snapshot/HMAC."""
+        with self._lock:
+            self._require_motor_prefix(prefix)
+            return prefix._world
+
     def _transition(
-        self,
-        world: _WorldState,
-        actor_body_id: str | None,
+        self, world: _WorldState, actor_body_id: str | None,
         command: EmbodimentCommand,
     ) -> tuple[_WorldState | None, str]:
+        """One ordinary clock; reconcile only actual external custody changes."""
+        if isinstance(command, CompoundMotorCommand):
+            if actor_body_id is None:
+                raise ValueError("compound motor interval requires a body")
+            successor, _ = self._settle_compound_motor_prefix(world, actor_body_id, command)
+            return successor, "applied"
+        successor, reason = self._transition_external_custody(world, actor_body_id, command)
+        if successor is None:
+            return None, reason
+        return self._advance_material_time(successor, _command_elapsed_nanoseconds(command)), reason
+
+    def _transition_external_custody(
+        self, world: _WorldState, actor_body_id: str | None,
+        command: EmbodimentCommand,
+    ) -> tuple[_WorldState | None, str]:
+        """Pure external geometry and support reconciliation, without elapsed time."""
+        actor = next((body for body in world.bodies if body.body_id == actor_body_id), None)
+        if actor is not None and actor.motor_contact is not None and isinstance(
+            command, (MoveCommand, PickCommand, GraspContactCommand,
+                      ReleaseHeldObjectCommand, TakeContactHeldObjectCommand,
+                      PlaceCommand, OralContactCommand),
+        ):
+            return None, "commissioned_motor_requires_compound_command"
+        successor, reason = self._transition_geometry(world, actor_body_id, command)
+        if successor is None:
+            return None, reason
+        bodies = list(successor.bodies)
+        for index, (before, after) in enumerate(zip(world.bodies, bodies, strict=True)):
+            state = after.motor_contact
+            if state is None:
+                continue
+            if before.body_id != after.body_id:
+                raise RuntimeError("physical custody changed body ordering")
+            if before.held_object_id != after.held_object_id:
+                # An actual other body's transfer has no historical left/right
+                # attribution. A removed load removes its actual constraints.
+                state = replace(state, attachment_mask=0,
+                                predecessor_attachment=after.held_object_id is not None)
+            if state.oral_object_id is not None:
+                contact, _ = self._transition_geometry(
+                    successor, after.body_id,
+                    OralContactCommand(state.oral_object_id, MOTOR_QUANTUM_US),
+                    transfer_oral_mass=False)
+                if contact is None:
+                    state = replace(state, oral_object_id=None, oral_armed=True)
+            if state != after.motor_contact:
+                bodies[index] = replace(after, motor_contact=state)
+                bodies[index].verify()
+        successor = replace(successor, bodies=tuple(bodies))
+        return successor, reason
+
+
+    def _transition_geometry(
+        self, world: _WorldState, actor_body_id: str | None,
+        command: EmbodimentCommand, *, transfer_oral_mass: bool = True,
+    ) -> tuple[_WorldState | None, str]:
+        """Pure geometry/custody substep; the caller owns physical elapsed time."""
         if (
             actor_body_id is None
             and isinstance(command, AdvancePhysicalTimeCommand)
         ):
-            return self._advance_material_time(
-                world,
-                command.duration_microseconds * 1_000,
-            ), "applied"
+            return world, "applied"
         if actor_body_id is None:
             raise ValueError("a body command requires an actor body")
         bodies = list(world.bodies)
@@ -5888,10 +6369,7 @@ class EmbodimentWorldAuthority:
             return max(value.radius_mm, by_id[value.held_object_id][1].radius_mm)
 
         if isinstance(command, BodySurfaceContactCommand):
-            return self._advance_material_time(
-                replace(world, bodies=tuple(bodies)),
-                command.duration_microseconds * 1_000,
-            ), "applied"
+            return replace(world, bodies=tuple(bodies)), "applied"
 
         if isinstance(
             command,
@@ -5975,7 +6453,7 @@ class EmbodimentWorldAuthority:
                 if item.position is not None
                 else receptor_position
             )
-            patch = _derived_contact_patch_square_mm(
+            patch = _positive_contact_patch_square_mm(
                 receptor_position=receptor_position,
                 receptor_radius_mm=receptor_radius,
                 object_position=object_position,
@@ -5995,29 +6473,17 @@ class EmbodimentWorldAuthority:
             eaten_objects = list(world.objects)
             dissolved_mouthful: tuple[int, ...] = ()
             transferred_digestible: int = 0
-            if isinstance(command, OralContactCommand) and item.material is not None:
+            if isinstance(command, OralContactCommand) and item.material is not None and transfer_oral_mass:
                 cross_section = item.radius_mm * item.radius_mm
-                total_tastant = sum(item.material.tastant_mass_micrograms)
-                dig_mass = getattr(item.material, "digestible_mass_micrograms", 0)
-                crumb_scale = (total_tastant <= 100 and dig_mass <= 100)
-                bitten = tuple(
-                    0 if crumb_scale else (mass - min(mass, max(1, (mass * patch) // max(1, cross_section))) if mass > 0 else 0)
-                    for mass in item.material.tastant_mass_micrograms
-                )
-                dissolved_mouthful = tuple(
-                    before - after
-                    for before, after in zip(
-                        item.material.tastant_mass_micrograms, bitten
-                    )
-                )
+                bitten = tuple(mass - (mass * patch) // cross_section
+                               for mass in item.material.tastant_mass_micrograms)
+                dissolved_mouthful = tuple(before - after for before, after in
+                                          zip(item.material.tastant_mass_micrograms, bitten, strict=True))
                 if not any(dissolved_mouthful):
                     dissolved_mouthful = ()
-                if dig_mass > 0:
-                    dig_bite = dig_mass if crumb_scale else max(1, (dig_mass * patch) // max(1, cross_section))
-                    bitten_dig = dig_mass - min(dig_mass, dig_bite)
-                else:
-                    bitten_dig = 0
-                transferred_digestible = dig_mass - bitten_dig
+                dig_mass = item.material.digestible_mass_micrograms
+                transferred_digestible = (dig_mass * patch) // cross_section
+                bitten_dig = dig_mass - transferred_digestible
                 if bitten != item.material.tastant_mass_micrograms or bitten_dig != dig_mass:
                     object_index = next(
                         index
@@ -6033,10 +6499,7 @@ class EmbodimentWorldAuthority:
                         ),
                     )
                     item = eaten_objects[object_index]
-            advanced = self._advance_material_time(
-                replace(world, bodies=tuple(bodies), objects=tuple(eaten_objects)),
-                command.duration_microseconds * 1_000,
-            )
+            advanced = replace(world, bodies=tuple(bodies), objects=tuple(eaten_objects))
             advanced_bodies = list(advanced.bodies)
             advanced_body = advanced_bodies[body_index]
             advanced_bodies[body_index] = replace(
@@ -6062,10 +6525,7 @@ class EmbodimentWorldAuthority:
             ), "applied"
 
         if isinstance(command, AdvancePhysicalTimeCommand):
-            return self._advance_material_time(
-                replace(world, bodies=tuple(bodies)),
-                command.duration_microseconds * 1_000,
-            ), "applied"
+            return replace(world, bodies=tuple(bodies)), "applied"
 
         if isinstance(command, MoveCommand):
             target = command.target_pose
@@ -6169,10 +6629,7 @@ class EmbodimentWorldAuthority:
                     room_id=target_region.region_id,
                     room_bounds=target_region.bounds,
                 )
-            return self._advance_material_time(
-                changed,
-                command.duration_microseconds * 1_000,
-            ), "applied"
+            return changed, "applied"
 
         if isinstance(command, PickCommand):
             found = by_id.get(command.object_id)
@@ -6219,6 +6676,7 @@ class EmbodimentWorldAuthority:
                 if (
                     other.object_id != item.object_id
                     and other.position is not None
+                    and not _is_bed(other)  # inverse of placing an object on a support surface
                     and self._region_containing(
                         world.regions,
                         other.position,
@@ -6242,14 +6700,11 @@ class EmbodimentWorldAuthority:
             bodies[body_index] = replace(
                 body, held_object_id=item.object_id
             )
-            return self._advance_material_time(
-                replace(
+            return replace(
                     world,
                     bodies=tuple(bodies),
                     objects=tuple(objects),
-                ),
-                command.duration_microseconds * 1_000,
-            ), "applied"
+                ), "applied"
 
         if isinstance(command, GraspContactCommand):
             geometry = body.receptor_geometry
@@ -6265,7 +6720,7 @@ class EmbodimentWorldAuthority:
                 item
                 for item in objects
                 if item.position is not None
-                and _derived_contact_patch_square_mm(
+                and _positive_contact_patch_square_mm(
                     receptor_position=receptor_position,
                     receptor_radius_mm=geometry.touch_radius_mm,
                     object_position=item.position,
@@ -6277,7 +6732,7 @@ class EmbodimentWorldAuthority:
                 return None, "grasp_contact_absent"
             if len(contacted) != 1:
                 return None, "grasp_contact_ambiguous"
-            return self._transition(
+            return self._transition_geometry(
                 world,
                 actor_body_id,
                 PickCommand(
@@ -6309,7 +6764,7 @@ class EmbodimentWorldAuthority:
                 0,
                 body.pose.heading_millidegrees,
             )
-            return self._transition(
+            return self._transition_geometry(
                 world,
                 actor_body_id,
                 PlaceCommand(
@@ -6421,14 +6876,11 @@ class EmbodimentWorldAuthority:
                     else holder.active_contact
                 ),
             )
-            return self._advance_material_time(
-                replace(
+            return replace(
                     world,
                     bodies=tuple(bodies),
                     objects=tuple(objects),
-                ),
-                command.duration_microseconds * 1_000,
-            ), "applied"
+                ), "applied"
 
         if isinstance(command, AdvanceContactOpticalSurfaceCommand):
             if body.held_object_id is not None:
@@ -6447,7 +6899,7 @@ class EmbodimentWorldAuthority:
                 for index, item in enumerate(objects)
                 if item.position is not None
                 and (
-                    patch := _derived_contact_patch_square_mm(
+                    patch := _positive_contact_patch_square_mm(
                         receptor_position=receptor_position,
                         receptor_radius_mm=geometry.touch_radius_mm,
                         object_position=item.position,
@@ -6492,14 +6944,11 @@ class EmbodimentWorldAuthority:
                     duration_microseconds=command.duration_microseconds,
                 ),
             )
-            return self._advance_material_time(
-                replace(
+            return replace(
                     world,
                     bodies=tuple(bodies),
                     objects=tuple(objects),
-                ),
-                command.duration_microseconds * 1_000,
-            ), "applied"
+                ), "applied"
 
         if isinstance(command, PlaceCommand):
             found = by_id.get(command.object_id)
@@ -6620,7 +7069,7 @@ class EmbodimentWorldAuthority:
                         if candidate.position is not None
                         and candidate.material is not None
                         and (
-                            patch := _derived_contact_patch_square_mm(
+                            patch := _positive_contact_patch_square_mm(
                                 receptor_position=receptor_position,
                                 receptor_radius_mm=geometry.touch_radius_mm,
                                 object_position=candidate.position,
@@ -6648,23 +7097,15 @@ class EmbodimentWorldAuthority:
                             duration_microseconds=command.duration_microseconds,
                         ),
                     )
-            return self._advance_material_time(
-                replace(
+            return replace(
                     world,
                     bodies=tuple(bodies),
                     objects=tuple(objects),
-                ),
-                command.duration_microseconds * 1_000,
-            ), "applied"
+                ), "applied"
 
         if isinstance(command, VocalizeCommand):
             command_record(command)
-            return self._advance_material_time(
-                replace(world, bodies=tuple(bodies)),
-                command.sample_count
-                * 1_000_000_000
-                // VOCAL_SAMPLE_RATE_HZ,
-            ), "applied"
+            return replace(world, bodies=tuple(bodies)), "applied"
 
         raise ValueError("unsupported embodiment command type")
 
@@ -6680,12 +7121,10 @@ class EmbodimentWorldAuthority:
         self._state = candidate
 
     def prepare_port_command(
-        self,
-        *,
-        port_id: str,
-        command_payload: bytes,
-        causal_intent_receipt_sha256: str,
-        expected_revision: int,
+        self, *, port_id: str, command_payload: bytes,
+        causal_intent_receipt_sha256: str, expected_revision: int,
+        motor_prefix: CompoundMotorPrefix | None = None,
+        environment_boundary: EnvironmentBoundary | None = None,
     ) -> PreparedActionExecution | ActionExecutionReceipt:
         """Prepare one opaque command without changing live physical state.
 
@@ -6802,9 +7241,29 @@ class EmbodimentWorldAuthority:
                         lifecycle=lifecycle + ("geometry_rejected",),
                         before=before,
                     )
-            transitioned, reason = self._transition(
-                before_state.world, actor_body_id, command
-            )
+            motor_consequence = None
+            if isinstance(command, CompoundMotorCommand):
+                if actor_body_id is None:
+                    raise ValueError("compound motor command has no body port")
+                if motor_prefix is None:
+                    if environment_boundary is None:
+                        raise ValueError("compound command requires its actual T0 environment boundary")
+                    self._require_environment_boundary(environment_boundary)
+                    if environment_boundary.acquisition.source_millisecond != command.source_millisecond:
+                        raise ValueError("compound environment clock changed")
+                    transitioned, motor_consequence = self._settle_compound_motor_prefix(environment_boundary._world, actor_body_id, command)
+                else:
+                    self._require_motor_prefix(motor_prefix)
+                    actual_command, motor_consequence = self._assemble_motor_prefix(motor_prefix)
+                    if (motor_prefix.port_id != port or motor_prefix.actor_body_id != actor_body_id
+                            or actual_command != command):
+                        raise ValueError("prepared motor command differs from its actual prefix")
+                    transitioned = motor_prefix._world
+                reason = "applied"
+            else:
+                if motor_prefix is not None:
+                    raise ValueError("a motor prefix cannot authorize another command")
+                transitioned, reason = self._transition(before_state.world, actor_body_id, command)
             if transitioned is None:
                 return self._reject(
                     port_id=port,
@@ -6850,7 +7309,7 @@ class EmbodimentWorldAuthority:
                 lifecycle=lifecycle + (consequence_lifecycle, "applied"),
                 before=before,
                 after=after,
-            )
+            motor_consequence=motor_consequence,)
             # Applied body receipts are transaction authorities, not material
             # world state.  The next ordinary environment boundary retires
             # the bounded observation tail after every committed body action;
@@ -7197,13 +7656,17 @@ class EmbodimentWorldAuthority:
             self_body_id=observation.self_body_id,
             bodies=observation.bodies,
             objects=observation.objects,
-        )
+        material_transport=observation.material_transport, solar_acquisition=observation.solar_acquisition,)
         self._validate_world(world)
         expected = self._observation_for(world)
         if expected != observation:
             raise ValueError("observation authentication changed")
 
     def _verify_execution(self, receipt: ActionExecutionReceipt) -> None:
+        if receipt.motor_consequence is not None:
+            receipt.motor_consequence.as_record()
+            if receipt.elapsed_nanoseconds != len(receipt.motor_consequence.samples) * MOTOR_QUANTUM_US * 1_000:
+                raise ValueError("motor execution receipt elapsed time changed")
         if receipt.disposition != "applied" or receipt.reason != "applied":
             raise ValueError("retained execution must be applied")
         if receipt.lifecycle[-2:] not in (
@@ -7420,6 +7883,8 @@ class EmbodimentWorldAuthority:
         catalog: Mapping[str, ObjectOpticalSurface],
     ) -> dict[str, object]:
         return {
+            **({"material_transport": world.material_transport.as_record()} if world.material_transport is not None else {}),
+            **({"solar_acquisition": world.solar_acquisition.as_record()} if world.solar_acquisition is not None else {}),
             "bodies": [item.as_record() for item in world.bodies],
             "objects": [
                 self._compact_object_record(item, catalog)
@@ -7604,7 +8069,7 @@ class EmbodimentWorldAuthority:
             "self_body_id",
             "state_sha256",
         }
-        if not isinstance(value, Mapping) or set(value) != expected or value.get("schema") != OBSERVATION_SCHEMA:
+        if not isinstance(value, Mapping) or not expected.issubset(set(value)) or not set(value).issubset(expected | {"material_transport", "solar_acquisition"}) or value.get("schema") != OBSERVATION_SCHEMA:
             raise ValueError("observation record fields changed")
         raw_objects = value.get("objects")
         raw_bodies = value.get("bodies")
@@ -7628,7 +8093,7 @@ class EmbodimentWorldAuthority:
             state_sha256=_sha256_identity(value.get("state_sha256"), "observation state identity"),
             authority_hmac_sha256=_sha256_identity(value.get("authority_hmac_sha256"), "observation HMAC"),
             authority_receipt_sha256=_sha256_identity(value.get("authority_receipt_sha256"), "observation receipt"),
-        )
+        material_transport=MaterialTransportState.from_record(value["material_transport"]) if "material_transport" in value else None, solar_acquisition=SolarAcquisition.from_record(value["solar_acquisition"]) if "solar_acquisition" in value else None,)
         if result.as_record() != dict(value):
             raise ValueError("observation record is not canonical")
         self._verify_observation(result)
@@ -7652,7 +8117,7 @@ class EmbodimentWorldAuthority:
             "reason",
             "schema",
         }
-        if not isinstance(value, Mapping) or set(value) != expected or value.get("schema") != EXECUTION_SCHEMA:
+        if not isinstance(value, Mapping) or set(value) not in (expected, expected | {"motor_consequence"}) or value.get("schema") != EXECUTION_SCHEMA:
             raise ValueError("execution record fields changed")
         lifecycle = value.get("lifecycle")
         if not isinstance(lifecycle, list) or not lifecycle or any(not isinstance(item, str) for item in lifecycle):
@@ -7683,7 +8148,7 @@ class EmbodimentWorldAuthority:
             after=self._observation_from_record(value.get("after")),
             authority_hmac_sha256=_sha256_identity(value.get("authority_hmac_sha256"), "execution HMAC"),
             authority_receipt_sha256=_sha256_identity(value.get("authority_receipt_sha256"), "execution receipt"),
-        )
+        motor_consequence=CompoundMotorConsequence.from_record(value["motor_consequence"]) if "motor_consequence" in value else None,)
         if result.as_record() != dict(value):
             raise ValueError("execution record is not canonical")
         self._verify_execution(result)
@@ -7784,7 +8249,7 @@ class EmbodimentWorldAuthority:
         }
         if (
             not isinstance(value, Mapping)
-            or set(value) != expected
+            or not expected.issubset(set(value)) or not set(value).issubset(expected | {"material_transport", "solar_acquisition"})
             or value.get("schema") != OBSERVATION_SCHEMA
         ):
             raise ValueError("compact observation record changed")
@@ -7814,7 +8279,7 @@ class EmbodimentWorldAuthority:
             state_sha256=_sha256_identity(value.get("state_sha256"), "observation state identity"),
             authority_hmac_sha256=_sha256_identity(value.get("authority_hmac_sha256"), "observation HMAC"),
             authority_receipt_sha256=_sha256_identity(value.get("authority_receipt_sha256"), "observation receipt"),
-        )
+        material_transport=MaterialTransportState.from_record(value["material_transport"]) if "material_transport" in value else None, solar_acquisition=SolarAcquisition.from_record(value["solar_acquisition"]) if "solar_acquisition" in value else None,)
         self._verify_observation(result)
         canonical = self._compact_observation_record(result, self._catalog_with_looks(catalog, result.regions))
         stored = dict(value)
@@ -7836,7 +8301,7 @@ class EmbodimentWorldAuthority:
             "elapsed_nanoseconds", "expected_revision", "lifecycle", "observed_revision",
             "port_id", "reason", "schema",
         }
-        if not isinstance(value, Mapping) or set(value) != expected or value.get("schema") != EXECUTION_SCHEMA:
+        if not isinstance(value, Mapping) or set(value) not in (expected, expected | {"motor_consequence"}) or value.get("schema") != EXECUTION_SCHEMA:
             raise ValueError("compact execution record changed")
         lifecycle = value.get("lifecycle")
         if not isinstance(lifecycle, list) or not lifecycle or any(not isinstance(item, str) for item in lifecycle):
@@ -7867,7 +8332,7 @@ class EmbodimentWorldAuthority:
             after=after,
             authority_hmac_sha256=_sha256_identity(value.get("authority_hmac_sha256"), "execution HMAC"),
             authority_receipt_sha256=_sha256_identity(value.get("authority_receipt_sha256"), "execution receipt"),
-        )
+        motor_consequence=CompoundMotorConsequence.from_record(value["motor_consequence"]) if "motor_consequence" in value else None,)
         self._verify_execution(result)
         canonical = self._compact_execution_record(result, self._catalog_with_looks(catalog, result.before.regions + result.after.regions))
         stored = dict(value)
@@ -7894,7 +8359,7 @@ class EmbodimentWorldAuthority:
             "bodies", "objects", "portals", "regions", "revision",
             "room_bounds", "room_id", "self_body_id"
         }
-        if not isinstance(value, Mapping) or set(value) != expected:
+        if not isinstance(value, Mapping) or not expected.issubset(set(value)) or not set(value).issubset(expected | {"material_transport", "solar_acquisition"}):
             raise ValueError("compact world state fields changed")
         raw_objects = value.get("objects")
         raw_bodies = value.get("bodies")
@@ -7919,7 +8384,7 @@ class EmbodimentWorldAuthority:
             self_body_id=_identifier(value.get("self_body_id"), "self body id"),
             bodies=tuple(_body_from(item) for item in raw_bodies),
             objects=objects,
-        )
+        material_transport=MaterialTransportState.from_record(value["material_transport"]) if "material_transport" in value else None, solar_acquisition=SolarAcquisition.from_record(value["solar_acquisition"]) if "solar_acquisition" in value else None,)
         self._validate_world(world)
         canonical = self._compact_world_record(world, self._catalog_with_looks(catalog, world.regions))
         stored = dict(value)
@@ -7935,7 +8400,7 @@ class EmbodimentWorldAuthority:
             "bodies", "objects", "portals", "regions", "revision",
             "room_bounds", "room_id", "self_body_id"
         }
-        if not isinstance(value, Mapping) or set(value) != expected:
+        if not isinstance(value, Mapping) or not expected.issubset(set(value)) or not set(value).issubset(expected | {"material_transport", "solar_acquisition"}):
             raise ValueError("world state fields changed")
         raw_objects = value.get("objects")
         raw_bodies = value.get("bodies")
@@ -7956,7 +8421,7 @@ class EmbodimentWorldAuthority:
             self_body_id=_identifier(value.get("self_body_id"), "self body id"),
             bodies=tuple(_body_from(item) for item in raw_bodies),
             objects=tuple(_object_from(item) for item in raw_objects),
-        )
+        material_transport=MaterialTransportState.from_record(value["material_transport"]) if "material_transport" in value else None, solar_acquisition=SolarAcquisition.from_record(value["solar_acquisition"]) if "solar_acquisition" in value else None,)
         self._validate_world(world)
         if world.as_record() != dict(value):
             raise ValueError("world state is not canonical")

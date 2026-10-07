@@ -7,6 +7,8 @@ from pathlib import Path
 import boto3
 import deploy_guala_retention_release as release
 
+ITEM='item1'
+EXTRA_FILES=()
 ROOT=Path(__file__).resolve().parents[1]
 BASE='418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:8c2589d3b4a5583255a65aadb6f34deb4f394fa1a66e0d9fdaf0889926ff8451'
 OLD_DEFINITION='arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1586'
@@ -23,7 +25,7 @@ def main():
  os.chdir(ROOT);a.evidence=a.evidence.resolve();commit=a.commit
  assert boto3.client('sts',region_name=release.REGION,config=release.CONFIG).get_caller_identity()['Account']==release.ACCOUNT
  assert shutil.which('docker') and shutil.which('git')
- paths=(*PRODUCTION,*OPERATORS,'tools/deploy_guala_item1.py','tools/deploy_guala_retention_release.py','tests/test_guala_food_depletion.py')
+ paths=(*PRODUCTION,*OPERATORS,'tools/deploy_guala_item1.py','tools/deploy_guala_retention_release.py','tests/test_guala_food_depletion.py')+EXTRA_FILES
  hashes={}
  for path in paths:
   raw=(ROOT/path).read_bytes();assert subprocess.check_output(['git','show',commit+':'+path])==raw,path
@@ -46,18 +48,18 @@ def main():
  env={e['name']:e['value'] for e in td['containerDefinitions'][0]['environment']}
  assert env['GUALA_PAIRED_ROOT']=='/app/guala/paired-current-gen2' and env['GUALA_MAX_WORLD_BYTES']=='16777216'
  ob=release.observation();assert ob['available'] and not any(ob[k] for k in ('checkpoint_error','cleanup_error','durability_blocked'))
- release.emit('item1_plan_verified',commit=commit,base=BASE,files=hashes,source=old['taskArn'],observation=ob,
+ release.emit(ITEM+'_plan_verified',commit=commit,base=BASE,files=hashes,source=old['taskArn'],observation=ob,
               operator_command=['python3','/opt/guala_item1_release_operator.py','rehearse'],ui_changed=False)
  if not a.execute:return
- folder=a.evidence/'release';folder.mkdir();release.journal=folder/'receipt.jsonl';release.emit('item1_release_start',commit=commit)
- context=Path(tempfile.mkdtemp(prefix='guala-item1-build-'))
+ folder=a.evidence/'release';folder.mkdir();release.journal=folder/'receipt.jsonl';release.emit(ITEM+'_release_start',commit=commit)
+ context=Path(tempfile.mkdtemp(prefix='guala-'+ITEM+'-build-'))
  dockerfile=['FROM '+BASE,'ARG RELEASE_COMMIT','ENV GIT_SHA=${RELEASE_COMMIT}']
  for path in PRODUCTION:
   dest=context/path;dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ROOT/path,dest);dockerfile.append('COPY '+path+' /app/'+path)
  for path,name in OPERATORS.items():
   shutil.copy2(ROOT/path,context/name);dockerfile.append('COPY '+name+' /opt/'+name)
  (context/'Dockerfile').write_text('\n'.join(dockerfile)+'\n')
- tag=release.REPOSITORY+':a1-item1-'+commit[:12]
+ tag=release.REPOSITORY+':a1-'+ITEM+'-'+commit[:12]
  with (folder/'build.log').open('w') as log:
   subprocess.run(['docker','build','--build-arg','RELEASE_COMMIT='+commit,'-t',tag,str(context)],stdout=log,stderr=subprocess.STDOUT,check=True,timeout=600)
  release.emit('image_built',tag=tag)

@@ -64,6 +64,7 @@ from dsf_ai_service.episodic_binding_engine import (
 )
 from dsf_ai_service.guala_voice import ONSETS, PITCHES_DECIHERTZ, VOWELS, syllable_pcm as airway_syllable_pcm
 from dsf_ai_service.substrate.embodiment_world import (
+    PickCommand,
     BodySurfaceActuation, BodySurfaceContactCommand,
     GraspContactCommand, MoveCommand, OralContactCommand, PoseMM, PositionMM,
     ReleaseHeldObjectCommand, TakeContactHeldObjectCommand, TouchContactCommand, _derived_contact_patch_square_mm, _receptor_position,
@@ -1338,7 +1339,7 @@ def candidates(
         item = target_reachable[0]
         is_known_non_food = not is_genuine_food_object(item, body)
         if not (feeding and is_known_non_food):
-            out.append(("grasp", item.object_id, (GraspContactCommand(BEAT_MICROSECONDS),), item.object_id, None))
+            out.append(("grasp", item.object_id, (PickCommand(item.object_id, BEAT_MICROSECONDS),), item.object_id, None))
     if held is None:
         for item in reachable:
             if item.material is not None:
