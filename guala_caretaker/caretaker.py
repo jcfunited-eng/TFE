@@ -1227,35 +1227,20 @@ def is_seated_in_high_chair(o: dict) -> bool:
 
 
 def maybe_feed(o: dict, st: dict) -> None:
-    """Maintain external household food until the organism's own satiety boundary.
+    """Maintain household food and remove spent stock at the existing cadence.
 
-    Stock returns at its declared home sites. Guala chooses approach and intake;
-    no caregiver relocation, syllable decoding or reserve writes are involved.
+    Upkeep runs independently of pupil hunger and other available food. The
+    world preserves usable/held objects; Guala owns approach and intake.
     """
     if asleep(o):
-        return
-    lo = o.get("last_occurrence") or {}
-    deficit = lo.get("metabolic_need_reserve_deficit")
-    if not deficit or len(deficit) != 2 or not deficit[1]:
-        return
-    from fractions import Fraction
-    from dsf_ai_service.guala_functional_organism import SATED_ABOVE
-    if Fraction(deficit[0], deficit[1]) <= 1 - SATED_ABOVE:
-        return
-    objects = (lo.get("embodiment") or {}).get("objects") or []
-    if not objects or any("oral_transfer_available" not in item for item in objects):
-        log("food supply withheld: exact oral-transfer observation unavailable")
         return
     tick = int(o.get("live_tick") or 0)
     if tick < int(st.get("meal_tick") or 0) + MEAL_TICKS:
         return
-    at_mouth, available = food_state(o, set())
-    if at_mouth or available:
-        return
     st["meal_tick"] = tick
     pres = _extract_presentation(present_food("replenish-home-food"))
     provision = pres.get("provision") or {}
-    log(f"household food supply: status={provision.get('status')}; added_micrograms={provision.get('external_digestible_mass_micrograms')}; objects={provision.get('replenished')}; pupil intake not inferred")
+    log(f"household food upkeep: status={provision.get('status')}; added_micrograms={provision.get('external_digestible_mass_micrograms')}; exported_micrograms={provision.get('external_removed_digestible_mass_micrograms')}; objects={provision.get('replenished')}; deferred={provision.get('deferred')}; pupil intake not inferred")
     with open(STATE, "w") as f:
         json.dump(st, f)
 

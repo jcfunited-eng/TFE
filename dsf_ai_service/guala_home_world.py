@@ -2495,67 +2495,117 @@ def renovate_her_room_layout(authority: Any) -> bool:
 
 
 def replenish_home_food(authority: Any) -> dict[str, Any]:
-    """Admit externally supplied food into the world, never into cognition.
+    """Export exhausted stock and renew food at a different declared home site.
 
-    The world's declared nutrient-bearing objects define the supply inventory,
-    including the backyard apple. This is external provisioning, not ingestion
-    or autonomous food finding. Exhaustion means zero digestible mass; taste
-    residue is not nutrition. Existing nonempty, held or contacted objects stay
-    unchanged. The coupled transaction restores the predecessor on any failure.
+    Oral mechanics determine whether positive matter can yield another bite.
+    Supply/disposal is external household work, never pupil ingestion. The
+    alternate locations are authored world geometry, not cognitive targets.
     """
+    if not (hasattr(authority, "_state") and hasattr(authority._state, "world")):
+        raise TypeError("food supply requires a world authority")
+    from dsf_ai_service.guala_caretaker_hand import nothing_left_to_bite, _is_stray_apple
+    from dsf_ai_service.substrate.embodiment_world import (
+        PositionMM, _floor_discs_overlap, _receptor_position,
+    )
+    from dataclasses import replace
+    # Second household serving positions; the backyard site stays by its tree.
+    alternate_sites = {
+        "bowl": PositionMM(2400, 1500, 0),
+        "apple": PositionMM(5650, 2000, 0),
+        "bread-slice": PositionMM(1300, 3000, 0),
+        "bottle-milk": PositionMM(8000, 1500, 0),
+        "garden-apple": PositionMM(14700, 14800, 0),
+    }
     with _world_thermal_transaction(authority):
-        if not (hasattr(authority, "_state") and hasattr(authority._state, "world")):
-            return {}
         cur_world = authority._state.world
-        from dataclasses import replace
-        _regions, _portals, declared_templates = _home_rooms_and_things()
-        food_templates = tuple(
-            item for item in declared_templates
-            if item.material is not None and item.material.digestible_mass_micrograms > 0
-        )
-        busy_object_ids = {
-            obj.object_id
-            for obj in cur_world.objects if obj.held_by_body_id is not None
-        }
+        pupil = next(body for body in cur_world.bodies if body.body_id == cur_world.self_body_id)
+        geometry = pupil.receptor_geometry
+        if geometry is None or _receptor_position(pupil, geometry.oral_offset_mm) is None:
+            raise ValueError("food disposal requires resolved pupil oral geometry")
+        _regions, _portals, templates = _home_rooms_and_things()
+        food_templates = tuple(item for item in templates
+                               if item.material is not None and item.material.digestible_mass_micrograms > 0)
+        busy = {obj.object_id for obj in cur_world.objects if obj.held_by_body_id is not None}
         for body in cur_world.bodies:
             if body.held_object_id is not None:
-                busy_object_ids.add(body.held_object_id)
+                busy.add(body.held_object_id)
             if body.active_contact is not None:
-                busy_object_ids.add(body.active_contact.object_id)
-
+                busy.add(body.active_contact.object_id)
         current = {obj.object_id: obj for obj in cur_world.objects}
-        replacements = {}
-        supplied = []
+        remnants = {obj.object_id for obj in cur_world.objects
+                    if obj.object_id not in busy and obj.material is not None
+                    and ((obj.material.digestible_mass_micrograms > 0
+                          and nothing_left_to_bite(pupil, obj)) or _is_stray_apple(pupil, obj))}
+        eligible = []
         for fresh in food_templates:
             food_id = fresh.object_id
             obj = current.get(food_id)
-            if food_id in busy_object_ids:
+            if food_id in busy:
                 if obj is None:
                     raise ValueError("food custody references a missing object")
                 continue
             if obj is not None:
                 if obj.material is None:
                     raise ValueError("declared food has no physical material")
-                if obj.material.digestible_mass_micrograms > 0:
+                if obj.material.digestible_mass_micrograms > 0 and food_id not in remnants:
                     continue
-            replacements[food_id] = fresh
-            supplied.append({
-                "object_id": food_id,
-                "digestible_mass_micrograms": fresh.material.digestible_mass_micrograms,
-            })
+                remnants.add(food_id)
+            eligible.append(fresh)
+        # Check exact room containment and physical footprints. If both declared
+        # sites are occupied, dispose of spent stock and report deferred supply.
+        retained = [obj for obj in cur_world.objects if obj.object_id not in remnants]
+        replacements = {}
+        supplied = []
+        deferred = []
+        for fresh in eligible:
+            old = current.get(fresh.object_id)
+            region = next(region for region in cur_world.regions
+                          if region.bounds.contains_floor_disc(fresh.position, fresh.radius_mm))
+            position = None
+            for site in (fresh.position, alternate_sites[fresh.object_id]):
+                if old is not None and old.position is not None and _floor_discs_overlap(
+                        site, fresh.radius_mm, old.position, old.radius_mm):
+                    continue
+                if not region.bounds.contains_floor_disc(site, fresh.radius_mm):
+                    raise ValueError("declared replacement food site is outside its room")
+                if any(obj.position is not None and _floor_discs_overlap(
+                        site, fresh.radius_mm, obj.position, obj.radius_mm)
+                       for obj in (*retained, *replacements.values())):
+                    continue
+                if any(_floor_discs_overlap(site, fresh.radius_mm, body.pose.position,
+                        max(body.radius_mm, current[body.held_object_id].radius_mm)
+                        if body.held_object_id is not None else body.radius_mm)
+                       for body in cur_world.bodies):
+                    continue
+                position = site
+                break
+            if position is None:
+                deferred.append({"object_id": fresh.object_id, "reason": "replacement_sites_occupied"})
+                continue
+            replacements[fresh.object_id] = replace(fresh, position=position)
+            supplied.append({"object_id": fresh.object_id,
+                             "digestible_mass_micrograms": fresh.material.digestible_mass_micrograms,
+                             "position": position.as_record(),
+                             "previous_position": old.position.as_record() if old is not None and old.position is not None else None})
+        exported = [{"object_id": obj.object_id,
+                     "digestible_mass_micrograms": obj.material.digestible_mass_micrograms,
+                     "tastant_mass_micrograms": list(obj.material.tastant_mass_micrograms)}
+                    for obj in cur_world.objects if obj.object_id in remnants]
         receipt = {
             "schema": "guala.external_food_provision.v1",
-            "status": "applied" if replacements else "unchanged",
+            "status": "applied" if replacements or remnants else "unchanged",
             "revision_before": cur_world.revision,
             "revision_after": cur_world.revision,
             "replenished": list(replacements),
             "supplied": supplied,
-            "external_digestible_mass_micrograms": sum(
-                item["digestible_mass_micrograms"] for item in supplied
-            ),
+            "deferred": deferred,
+            "external_digestible_mass_micrograms": sum(item["digestible_mass_micrograms"] for item in supplied),
+            "exported_remnants": exported,
+            "external_removed_digestible_mass_micrograms": sum(item["digestible_mass_micrograms"] for item in exported),
         }
-        if replacements:
-            updated = [replacements.get(obj.object_id, obj) for obj in cur_world.objects]
+        if replacements or remnants:
+            updated = [replacements.get(obj.object_id, obj) for obj in cur_world.objects
+                       if obj.object_id not in remnants or obj.object_id in replacements]
             updated.extend(obj for obj_id, obj in replacements.items() if obj_id not in current)
             new_world = replace(cur_world, revision=cur_world.revision + 1, objects=tuple(updated))
             _commit_world_successor(authority, new_world)
