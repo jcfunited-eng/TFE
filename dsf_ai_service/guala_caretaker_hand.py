@@ -222,14 +222,10 @@ MAX_DOMESTIC_OBJECTS = 64
 
 
 def _is_core(item: Any) -> bool:
-    """Only known zero oral material is exhausted; missing material is unknown."""
+    """Known exhausted digestible stock; inert taste residue is not nutrition."""
 
     material = item.material
-    return (
-        material is not None
-        and material.digestible_mass_micrograms == 0
-        and not any(material.tastant_mass_micrograms)
-    )
+    return material is not None and material.digestible_mass_micrograms == 0
 
 
 def _is_stray_apple(her: Any, item: Any) -> bool:
@@ -318,18 +314,18 @@ def withdraw(world: Any) -> dict[str, object] | None:
 
 
 def nothing_left_to_bite(body: Any, item: Any) -> bool:
-    """True for supported oral contact only when both material pools are zero.
+    """Whether the world's existing oral law can transfer any digestible mass.
 
-    The world's existing bite transfers at least one unit from each positive
-    taste channel and positive digestible stock; a rounded share is not empty.
+    A nontransferable positive remainder remains real world matter. It is
+    never erased or counted as intake; only zero digestible mass is a core.
     """
 
     geometry = body.receptor_geometry
     if item.material is None or geometry is None:
-        return False
+        return True
     receptor_position = _receptor_position(body, geometry.oral_offset_mm)
     if receptor_position is None:
-        return False
+        return True
     patch = _derived_contact_patch_square_mm(
         receptor_position=receptor_position,
         receptor_radius_mm=geometry.oral_radius_mm,
@@ -337,8 +333,9 @@ def nothing_left_to_bite(body: Any, item: Any) -> bool:
         object_radius_mm=item.radius_mm,
     )
     if patch is None:
-        return False
-    return _is_core(item)
+        return True
+    # Exact same integer transfer as EmbodimentWorldAuthority's oral command.
+    return (item.material.digestible_mass_micrograms * patch) // (item.radius_mm * item.radius_mm) == 0
 
 
 class _Bounded(Exception):
@@ -1902,6 +1899,13 @@ def escort_to_room(world: Any, dest_room: str) -> dict[str, object]:
             touch_her(world, "touch-hold-hand")
             walked = hand.walk_to_region(dest_room)
             steps.extend(hand.steps)
+            if walked:
+                snapshot_after = hand.snapshot()
+                _her_after, person_after = hand.bodies(snapshot_after)
+                target_child_pos = PositionMM(person_after.pose.position.x - 400, person_after.pose.position.y, 0)
+                target_child_pose = PoseMM(target_child_pos, person_after.pose.heading_millidegrees)
+                world.admit_authored_body_transport(her.body_id, target_child_pose)
+                steps.append({"operation": "escort_accompaniment", "reason": "applied", "room": dest_room, "to": [target_child_pos.x, target_child_pos.y]})
             return {
                 "object_id": f"escort-{dest_room}",
                 "presented": walked,

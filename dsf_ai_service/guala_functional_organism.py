@@ -276,16 +276,13 @@ NON_FOOD_OBJECT_IDS = set(PERMANENCE_FIXTURES) | {
     "daddys-armchair", "shelf-a", "shelf-b", "glow-stars", "desk-chair",
 }
 
-def is_genuine_food_object(object_id: str | None) -> bool:
-    """Physical Material Invariant: verifies whether an object possesses genuine caloric/digestible sustenance."""
-    if not object_id or not isinstance(object_id, str):
-        return False
-    if object_id in NON_FOOD_OBJECT_IDS or object_id in PERMANENCE_FIXTURES:
-        return False
+def is_genuine_food_object(item: Any, body: Any | None = None) -> bool:
+    """Material eligibility; with a body, require a transferable ordinary bite."""
+    material = getattr(item, "material", None)
     return (
-        object_id.startswith("apple")
-        or object_id.startswith("bread")
-        or object_id.startswith("garden-apple") or object_id in ("bottle-milk", "bowl")
+        material is not None
+        and material.digestible_mass_micrograms > 0
+        and (body is None or not nothing_left_to_bite(body, item))
     )
 DISCREPANCY_VERIFICATION_DISTANCE_MM = 1_000
 
@@ -479,7 +476,7 @@ def things_in_sight(snapshot: Any, known_food_ids: set[str] | None = None) -> tu
         bearing = _heading_toward(body.pose.position, item.position)
         if abs(_bearing_offset(body.pose.heading_millidegrees, bearing)) > FIELD_OF_VIEW_MILLIDEGREES:
             continue
-        is_f = is_genuine_food_object(item.object_id)
+        is_f = is_genuine_food_object(item, body)
         seen.append(SeenThing(item.object_id, item.position, item.radius_mm, distance, bearing, is_f))
     return tuple(sorted(seen, key=lambda thing: (thing.distance_mm, thing.object_id)))
 
@@ -1194,7 +1191,7 @@ def _consequence_grounded_food_ids(state: dict[str, Any]) -> set[str]:
                         intake = act_c.get("intake", 0)
                         if isinstance(intake, (int, float)) and intake > 0:
                             tid = act_c.get("target_id")
-                            if tid and is_genuine_food_object(tid):
+                            if tid and isinstance(tid, str):
                                 foods.add(tid)
     return foods
 
@@ -1205,8 +1202,6 @@ def _consequence_qualified_food_ids(state: dict[str, Any]) -> set[str]:
     tested_non_nutritive = set(state.get("tested_non_nutritive") or ())
     known_foods = set()
     for obj_id, c_data in state.get("conserved_objects", {}).items():
-        if not is_genuine_food_object(obj_id):
-            continue
         if obj_id in tested_non_nutritive or c_data.get("non_nutritive") is True:
             continue
         has_nourished = (
@@ -1327,17 +1322,7 @@ def candidates(
 
     # 1. Take from hand
     if held is None and offered is not None and handleable_held(offered):
-        is_depleted = bool(
-            (conserved_objects and conserved_objects.get(offered.object_id, {}).get("currently_depleted"))
-            or (offered.material is not None and sum(offered.material.tastant_mass_micrograms) < 2_000)
-            or (getattr(offered, "tastant_remaining_micrograms", None) is not None and offered.tastant_remaining_micrograms <= 0)
-        )
-        is_non_nutritive = bool(
-            (conserved_objects and conserved_objects.get(offered.object_id, {}).get("non_nutritive"))
-            or (tested_non_nutritive_ids and offered.object_id in tested_non_nutritive_ids)
-            or (not is_genuine_food_object(offered.object_id))
-        )
-        if not (feeding and (is_depleted or is_non_nutritive)):
+        if not feeding or is_genuine_food_object(offered, body):
             out.append(("take", offered.object_id + " from a hand", (TakeContactHeldObjectCommand(BEAT_MICROSECONDS),), offered.object_id, None))
 
     # 2. Grasp (one reachable object per world grasp law) and touch reachable things
@@ -1345,29 +1330,13 @@ def candidates(
     if feeding and len(reachable) > 1:
         viable_food = [
             item for item in reachable
-            if is_genuine_food_object(item.object_id)
-            and not (conserved_objects and conserved_objects.get(item.object_id, {}).get("currently_depleted"))
+            if is_genuine_food_object(item, body)
         ]
         if viable_food:
             target_reachable = [min(viable_food, key=lambda x: _distance_mm(position, x.position))]
     if held is None and len(target_reachable) == 1 and handleable(target_reachable[0]):
         item = target_reachable[0]
-        c_entry = conserved_objects.get(item.object_id, {}) if conserved_objects else {}
-        if is_genuine_food_object(item.object_id):
-            is_known_non_food = bool(
-                c_entry.get("currently_depleted") is True
-                or (getattr(item, "tastant_remaining_micrograms", None) is not None and item.tastant_remaining_micrograms <= 0)
-                or (item.material is not None and getattr(item.material, "digestible_mass_micrograms", 0) <= 0 and sum(item.material.tastant_mass_micrograms) < 2_000)
-            )
-        else:
-            is_known_non_food = bool(
-                item.material is None
-                or (item.material is not None and sum(item.material.tastant_mass_micrograms) < 2_000)
-                or (getattr(item, "tastant_remaining_micrograms", None) is not None and item.tastant_remaining_micrograms <= 0)
-                or c_entry.get("non_nutritive")
-                or c_entry.get("currently_depleted")
-                or (tested_non_nutritive_ids and item.object_id in tested_non_nutritive_ids)
-            )
+        is_known_non_food = not is_genuine_food_object(item, body)
         if not (feeding and is_known_non_food):
             out.append(("grasp", item.object_id, (GraspContactCommand(BEAT_MICROSECONDS),), item.object_id, None))
     if held is None:
@@ -1381,7 +1350,7 @@ def candidates(
 
     # 4. Toward every sensed food target, nearest first (the least strides to reach)
     if held is None and not in_high_chair:
-        food = sorted((thing for thing in seen if thing.is_food and is_genuine_food_object(thing.object_id)),
+        food = sorted((thing for thing in seen if thing.is_food and is_genuine_food_object(_object(snapshot, thing.object_id), body)),
                       key=lambda thing: (thing.distance_mm, thing.object_id))
         for item in food:
             stop = body.radius_mm + item.radius_mm + STOP_MARGIN_MM
@@ -1389,32 +1358,38 @@ def candidates(
                 out.append(("toward_food", item.object_id, move_commands_toward(snapshot, item.position, stop), item.object_id, None))
 
         # 4b. Cognitive Asset 4: Toward occluded / conserved food targets not currently in retinal sight (under metabolic drive)
-        if feeding and conserved_objects:
+        if feeding and not in_high_chair:
+            known_food_sources = {}
+            if conserved_objects:
+                for obj_id, c_entry in conserved_objects.items():
+                    if is_genuine_food_object(_object(snapshot, obj_id), body):
+                        if c_entry.get("position") is not None:
+                            known_food_sources[obj_id] = (PositionMM(*c_entry["position"]), int(c_entry.get("radius_mm", 100)))
+            for item in snapshot.objects:
+                if item.position is not None and is_genuine_food_object(item, body):
+                    if item.object_id not in known_food_sources:
+                        known_food_sources[item.object_id] = (item.position, int(item.radius_mm))
+
             conserved_food = []
-            for obj_id, c_entry in conserved_objects.items():
-                if not is_genuine_food_object(obj_id):
+            for obj_id, (pos, rad) in known_food_sources.items():
+                if obj_id in seen_food_ids:
                     continue
-                has_nourished = int(c_entry.get("fed_count", 0)) > 0 or int(c_entry.get("historical_intake_micrograms", 0)) > 0 or (consequence_food_ids is not None and obj_id in consequence_food_ids)
-                is_viable = has_nourished and not c_entry.get("currently_depleted", False)
-                if is_viable and obj_id not in seen_food_ids:
-                    snap_obj = _object(snapshot, obj_id)
-                    if snap_obj is not None:
-                        pos = PositionMM(*c_entry["position"])
-                        dist = _distance_mm(body.pose.position, pos)
-                        stop = body.radius_mm + int(c_entry.get("radius_mm", 100)) + STOP_MARGIN_MM
-                        if dist > stop + ARRIVAL_MM:
-                            food_reg = _region_of(snapshot, pos, 100)
-                            if here is not None and food_reg is not None and here.region_id != food_reg.region_id:
-                                route = _portal_route(snapshot, here.region_id, food_reg.region_id)
-                                if route:
-                                    first_portal = route[0]
-                                    commands = _door_motor_commands(snapshot, first_portal, here.region_id)
-                                    if commands:
-                                        conserved_food.append((dist, obj_id, f"via {first_portal.portal_id} toward {obj_id} (conserved)", commands))
-                                # Physical Invariant: When the target lies across room boundaries,
-                                # never fall through to direct Euclidean movement through solid walls!
-                                continue
-                            conserved_food.append((dist, obj_id, f"{obj_id} (conserved)", move_commands_toward(snapshot, pos, stop)))
+                dist = _distance_mm(body.pose.position, pos)
+                stop = body.radius_mm + rad + STOP_MARGIN_MM
+                if dist > stop + ARRIVAL_MM:
+                    food_reg = _region_of(snapshot, pos, rad)
+                    if here is not None and food_reg is not None and here.region_id != food_reg.region_id:
+                        route = _portal_route(snapshot, here.region_id, food_reg.region_id)
+                        if route:
+                            first_portal = route[0]
+                            commands = _door_motor_commands(snapshot, first_portal, here.region_id)
+                            if commands:
+                                conserved_food.append((dist, obj_id, f"via {first_portal.portal_id} toward {obj_id} (conserved)", commands))
+                        continue
+                    commands = move_commands_toward(snapshot, pos, stop)
+                    if commands:
+                        conserved_food.append((dist, obj_id, f"{obj_id} (conserved)", commands))
+
             conserved_food.sort(key=lambda x: (x[0], x[1]))
             for dist, obj_id, detail, cmds in conserved_food[:2]:
                 out.append(("toward_food", detail, cmds, obj_id, None))
@@ -2074,7 +2049,7 @@ class FunctionalOrganism:
                     "last_seen_tick": tick,
                     "confidence": 1.0,
                 })
-                if not is_genuine_food_object(thing.object_id) or thing.object_id in tested_non_nutritive or entry.get("non_nutritive") is True:
+                if not is_genuine_food_object(_object(snapshot, thing.object_id), body) or thing.object_id in tested_non_nutritive or entry.get("non_nutritive") is True:
                     entry["non_nutritive"] = True
                     entry["is_food"] = False
                     entry["tested_non_food"] = True
@@ -2095,7 +2070,7 @@ class FunctionalOrganism:
         # 3. Expectation Discrepancy & Verification (Invariant Violation Detection)
         seen_ids = {th.object_id for th in seen}
         for obj_id, c_entry in list(conserved.items()):
-            if c_entry.get("is_fixture") or obj_id == body.held_object_id:
+            if c_entry.get("is_fixture") or obj_id == body.held_object_id or "position" not in c_entry:
                 continue
             c_pos = PositionMM(*c_entry["position"])
             dist_to_conserved = _distance_mm(body.pose.position, c_pos)
@@ -2160,10 +2135,10 @@ class FunctionalOrganism:
         if planned_food and not sound_heard:
             state["gaze_target"] = planned_food
         elif feeding and not sound_heard:
-            cand_food = next((s.object_id for s in seen if is_genuine_food_object(s.object_id)), None)
+            cand_food = next((s.object_id for s in seen if is_genuine_food_object(_object(snapshot, s.object_id), body)), None)
             if cand_food is not None:
                 cur_gt = state.get("gaze_target")
-                if cur_gt is None or not is_genuine_food_object(cur_gt):
+                if cur_gt is None or not is_genuine_food_object(_object(snapshot, cur_gt), body):
                     state["gaze_target"] = cand_food
         g_tgt = state.get("gaze_target")
         if g_tgt is not None and (_object(snapshot, g_tgt) is None or g_tgt not in {s.object_id for s in seen}):
@@ -2366,12 +2341,12 @@ class FunctionalOrganism:
 
             for item in (held, offered):
                 if item is not None:
-                    if item.material is None or body.receptor_geometry is None:
+                    if not is_genuine_food_object(item, body):
                         continue   # cannot bite without material or oral receptors
                     if item.material is not None and int(item.material.surface_temperature_millikelvin) >= NOCICEPTION_MILLIKELVIN:
                         continue   # too hot to bite: the jaw waits for it to cool (the mouth's reflex)
                     c_item = conserved.get(item.object_id, {})
-                    if (c_item.get("non_nutritive") is True and not is_genuine_food_object(item.object_id)) or item.object_id == state.get("unsuccessful_bite_held_id"):
+                    if (c_item.get("non_nutritive") is True and not is_genuine_food_object(item, body)) or item.object_id == state.get("unsuccessful_bite_held_id"):
                         continue   # suppressed: known non-nutritive or unsuccessful bite
                     return decision("bite", "held item at her mouth while feeding (the jaw's reflex)", (OralContactCommand(item.object_id, BEAT_MICROSECONDS),), item.object_id)
 
@@ -2380,13 +2355,14 @@ class FunctionalOrganism:
                 c_held = conserved.get(held.object_id, {})
                 if (
                     held.material is None
+                    or not is_genuine_food_object(held, body)
                     or body.receptor_geometry is None
-                    or (c_held.get("non_nutritive") is True and not is_genuine_food_object(held.object_id))
+                    or (c_held.get("non_nutritive") is True and not is_genuine_food_object(held, body))
                     or held.object_id == state.get("unsuccessful_bite_held_id")
-                    or (held.object_id in tested_non_nutritive and not is_genuine_food_object(held.object_id))
+                    or (held.object_id in tested_non_nutritive and not is_genuine_food_object(held, body))
                     or held.object_id == "playpen"
                 ):
-                    if not is_genuine_food_object(held.object_id):
+                    if not is_genuine_food_object(held, body):
                         tested_set = set(state.get("tested_non_nutritive") or ())
                         tested_set.add(held.object_id)
                         state["tested_non_nutritive"] = sorted(tested_set)
@@ -3272,6 +3248,7 @@ class FunctionalOrganism:
         otherwise the best by one-step predictive foresight); when the day's
         record has nothing for this structure, from what her sleep kept for
         this situation; else the first act in the declared order."""
+        body = _self_body(snapshot) if snapshot is not None else None
 
         label = "structure " + key[:6]
 
@@ -3375,16 +3352,16 @@ class FunctionalOrganism:
         refused_act = last_ref[0] if (last_ref and (self.live_organism_tick - int(last_ref[2])) <= 2) else None
         door_refused = (refused_act == "toward_door")
 
-        tested_non_nutritive = {o_id for o_id in (self._state.get("tested_non_nutritive") or ()) if not is_genuine_food_object(o_id)}
-        known_non_foods = {o_id for o_id, c in conserved.items() if c.get("non_nutritive") is True and not is_genuine_food_object(o_id)} | tested_non_nutritive
+        tested_non_nutritive = {o_id for o_id in (self._state.get("tested_non_nutritive") or ()) if not is_genuine_food_object((_object(snapshot, o_id) if snapshot is not None else None), body)}
+        known_non_foods = {o_id for o_id, c in conserved.items() if c.get("non_nutritive") is True and not is_genuine_food_object((_object(snapshot, o_id) if snapshot is not None else None), body)} | tested_non_nutritive
 
         # Homeostatic Barrenness in Lived Cognition:
         # Food is present only if genuine food is located in the current room or currently visible
         here_reg = _region_of(snapshot, PositionMM(*(self._state.get("body_pos") or (0, 0, 0))), 250) if snapshot is not None else None
-        has_food = any(is_genuine_food_object(o_id) and c.get("room_id") == cur_room for o_id, c in conserved.items()) or (
-            snapshot is not None and here_reg is not None and any(is_genuine_food_object(item.object_id) and _region_of(snapshot, item.position, item.radius_mm) is here_reg for item in snapshot.objects if item.position is not None)
+        has_food = any(is_genuine_food_object((_object(snapshot, o_id) if snapshot is not None else None), body) and c.get("room_id") == cur_room for o_id, c in conserved.items()) or (
+            snapshot is not None and here_reg is not None and any(is_genuine_food_object(item, body) and _region_of(snapshot, item.position, item.radius_mm) is here_reg for item in snapshot.objects if item.position is not None)
         ) or (
-            candidate_options is not None and any(opt[0] in ("toward_food", "grasp", "take") and is_genuine_food_object(opt[3]) and not str(opt[1]).startswith("via ") for opt in candidate_options)
+            candidate_options is not None and any(opt[0] in ("toward_food", "grasp", "take") and is_genuine_food_object((_object(snapshot, opt[3]) if snapshot is not None else None), body) and not str(opt[1]).startswith("via ") for opt in candidate_options)
         )
         has_candidate_nourishment = has_food
         is_barren = False
@@ -3407,14 +3384,14 @@ class FunctionalOrganism:
             held_target = self._state.get("unsuccessful_bite_held_id") or self._state.get("held_object_id") or self._state.get("gaze_target")
             held_target_str = held_target if isinstance(held_target, str) else None
             held_is_depleted = any(
-                (c.get("non_nutritive") and not is_genuine_food_object(o_id)) or c.get("currently_depleted")
+                (c.get("non_nutritive") and not is_genuine_food_object((_object(snapshot, o_id) if snapshot is not None else None), body)) or c.get("currently_depleted")
                 for o_id, c in conserved.items()
                 if o_id == held_target_str
             )
             if (
                 self._state.get("unsuccessful_bite_held_id")
                 or held_is_depleted
-                or (held_target_str in tested_non_nutritive and not is_genuine_food_object(held_target_str))
+                or (held_target_str in tested_non_nutritive and not is_genuine_food_object((_object(snapshot, held_target_str) if snapshot is not None else None), body))
                 or not (self._state.get("feeding") or deficit >= 0.60)
             ):
                 return "release", f"{label}: release held item (sated or non-nutritive)"
@@ -3441,7 +3418,7 @@ class FunctionalOrganism:
                         o for o in candidate_options
                         if o[0] == "grasp"
                         and o[3]
-                        and is_genuine_food_object(o[3])
+                        and is_genuine_food_object((_object(snapshot, o[3]) if snapshot is not None else None), body)
                         and o[3] not in known_non_foods
                         and (snapshot is not None and handleable(_object(snapshot, o[3])))
                     ]
@@ -3453,7 +3430,7 @@ class FunctionalOrganism:
                         o for o in candidate_options
                         if o[0] == "toward_food"
                         and o[3]
-                        and is_genuine_food_object(o[3])
+                        and is_genuine_food_object((_object(snapshot, o[3]) if snapshot is not None else None), body)
                         and o[3] not in known_non_foods
                     ]
                     if food_opts:
@@ -3555,7 +3532,7 @@ class FunctionalOrganism:
             if decision.target_object_id and decision.target_object_id in state.get("conserved_objects", {}):
                 state["conserved_objects"][decision.target_object_id]["position"] = tuple(state.get("body_pos") or (0, 0, 0))
                 state["conserved_objects"][decision.target_object_id]["room_id"] = state.get("room_now")
-                if ("barrier inhibition" in decision.reason or "non-nutritive" in decision.reason) and not is_genuine_food_object(decision.target_object_id):
+                if "barrier inhibition" in decision.reason or "non-nutritive" in decision.reason:
                     state["conserved_objects"][decision.target_object_id]["non_nutritive"] = True
                     state["conserved_objects"][decision.target_object_id]["is_food"] = False
                     tested_set = set(state.get("tested_non_nutritive") or ())
@@ -3574,7 +3551,7 @@ class FunctionalOrganism:
             state["meals_micrograms"] += intake
             state["bites"] += 1
             state["taste_residue"] = min(1.0, float(state.get("taste_residue", 0.0)) + intake / 100_000.0)
-            if decision.target_object_id and is_genuine_food_object(decision.target_object_id):
+            if decision.target_object_id:
                 state["unsuccessful_bite_held_id"] = None
                 tested_set = set(state.get("tested_non_nutritive") or ())
                 tested_set.discard(decision.target_object_id)
@@ -3622,7 +3599,7 @@ class FunctionalOrganism:
                 "last_seen_tick": tick_now,
                 "confidence": 1.0,
             })
-            if is_genuine_food_object(decision.target_object_id):
+            if int(entry.get("historical_intake_micrograms", 0)) > 0 or int(entry.get("fed_count", 0)) > 0:
                 entry["currently_depleted"] = True
             else:
                 tested_set = set(state.get("tested_non_nutritive") or ())
