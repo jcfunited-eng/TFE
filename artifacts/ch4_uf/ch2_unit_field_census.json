@@ -1,0 +1,139 @@
+{
+ "declared": "Declared 2026-10-08 before running (MINE). Does the kernel's reading differ\nbefore rises and before falls once price actually reaches it?\nFIELD: move-unit field (tools/ch2_field_units.move_unit_field), own resolution\ntau_D (c=3.77, trailing 252 median), canon kernel untouched.\nSAMPLE: 150 pool names, seed 7, >= 1000 bars. TRADEABLE at the reading day\n(causal): close >= $5 and 20-day median dollar volume >= $2M.\nTRADE: reading on day t (known at close t) -> buy close t, sell close t+10.\nREPORT: base rate; by D_k (-1/0/+1); by sign of M_k; by URF_k tercile; by\nB_k at floor vs above. Win rate, mean 10-day return, n \u2014 both halves\n(<= 2023, >= 2024). PASS (declared): some reading separates rises from falls by\n>= 3 points of win rate vs base in BOTH halves with n >= 300 each.\nOUTPUT artifacts/ch4_uf/ch2_unit_field_census.json",
+ "n": 20146,
+ "H1": {
+  "base": {
+   "n": 13551,
+   "wr": 51.4,
+   "mean": 0.56
+  },
+  "D_k": {
+   "-1": {
+    "n": 5764,
+    "wr": 54.3,
+    "mean": 1.36
+   },
+   "0": {
+    "n": 1668,
+    "wr": 46.3,
+    "mean": 0.93
+   },
+   "1": {
+    "n": 6119,
+    "wr": 50.0,
+    "mean": -0.29
+   }
+  },
+  "M_sign": {
+   "-1.0": {
+    "n": 7636,
+    "wr": 51.6,
+    "mean": 0.46
+   },
+   "0.0": {
+    "n": 210,
+    "wr": 42.9,
+    "mean": 0.33
+   },
+   "1.0": {
+    "n": 5705,
+    "wr": 51.3,
+    "mean": 0.7
+   }
+  },
+  "URF_t": {
+   "lo": {
+    "n": 4517,
+    "wr": 49.1,
+    "mean": 0.83
+   },
+   "mid": {
+    "n": 4517,
+    "wr": 51.5,
+    "mean": 0.26
+   },
+   "hi": {
+    "n": 4517,
+    "wr": 53.4,
+    "mean": 0.6
+   }
+  },
+  "B_floor": {
+   "False": {
+    "n": 2416,
+    "wr": 49.2,
+    "mean": -0.17
+   },
+   "True": {
+    "n": 11135,
+    "wr": 51.8,
+    "mean": 0.72
+   }
+  }
+ },
+ "H2": {
+  "base": {
+   "n": 6595,
+   "wr": 56.2,
+   "mean": 1.09
+  },
+  "D_k": {
+   "-1": {
+    "n": 2419,
+    "wr": 55.7,
+    "mean": 1.05
+   },
+   "0": {
+    "n": 1208,
+    "wr": 52.5,
+    "mean": 0.25
+   },
+   "1": {
+    "n": 2968,
+    "wr": 58.1,
+    "mean": 1.47
+   }
+  },
+  "M_sign": {
+   "-1.0": {
+    "n": 3842,
+    "wr": 56.7,
+    "mean": 1.23
+   },
+   "1.0": {
+    "n": 2753,
+    "wr": 55.4,
+    "mean": 0.9
+   }
+  },
+  "URF_t": {
+   "lo": {
+    "n": 2199,
+    "wr": 52.4,
+    "mean": 0.31
+   },
+   "mid": {
+    "n": 2198,
+    "wr": 59.3,
+    "mean": 1.96
+   },
+   "hi": {
+    "n": 2198,
+    "wr": 56.8,
+    "mean": 1.0
+   }
+  },
+  "B_floor": {
+   "False": {
+    "n": 18,
+    "wr": 27.8,
+    "mean": -6.87
+   },
+   "True": {
+    "n": 6577,
+    "wr": 56.3,
+    "mean": 1.11
+   }
+  }
+ }
+}
