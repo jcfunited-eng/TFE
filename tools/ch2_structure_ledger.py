@@ -20,12 +20,14 @@ should be at least 50 bar ... physics first, not quant."
             hit rate, vs the null (always predict the more common direction that year).
 OUTPUT artifacts/ch4_uf/ch2_structure_ledger.json
 RUN 1 (10-08) VOID: median gate length 1 bar (q98 resolution clusters); predictions not reported.
+RUN 2 (10-08, declared before running): field = path_unit_field(L=100) (Joe: scale >= 50 bars),
+resolution = own (HIS: 3.77 x own trailing median D); everything else unchanged.
 """
 import sys, json, numpy as np, pandas as pd
 from collections import defaultdict
 sys.path.insert(0, "tools"); sys.path.insert(0, ".")
 from canon_kernel_causal import readings
-from ch2_field_units import move_unit_field, check_feed, FeedError
+from ch2_field_units import path_unit_field, check_feed, FeedError
 from ch2_canon_census import tradeable_flags
 
 def own_D(F):
@@ -42,14 +44,12 @@ cnt = pool.groupby("Symbol").size(); names = sorted(cnt[cnt >= 1000].index)
 events = []; refused = {}; glen = []
 for i, s in enumerate(names):
     d = pool[pool.Symbol == s].sort_values("Date").reset_index(drop=True)
-    F = move_unit_field(d); ok = np.isfinite(F).all(axis=1)
+    F = path_unit_field(d, 100); ok = np.isfinite(F).all(axis=1)
     d = d[ok].reset_index(drop=True); F = F[ok]
     if len(F) < 400: continue
     try: check_feed(F)
     except FeedError as e: refused[s] = str(e); continue
-    D = own_D(F)
-    tau = pd.Series(D).shift(1).rolling(252, min_periods=100).quantile(0.98).values
-    r = readings(F, tau_D=tau)
+    r = readings(F, tau_D="own")
     if len(r) < 4: continue
     try: check_feed(F, r)
     except FeedError as e: refused[s] = str(e); continue
@@ -87,4 +87,4 @@ for y, g in ev.groupby("year"):
                           "mean_ret_when_pred_up": round(float(h[h.pred > 0].ret.mean()) * 100, 2) if (h.pred > 0).any() else None,
                           "mean_ret_when_pred_down": round(float(h[h.pred < 0].ret.mean()) * 100, 2) if (h.pred < 0).any() else None}
 print(json.dumps({k: v for k, v in res.items() if k != "declared"}, indent=1))
-json.dump(res, open("artifacts/ch4_uf/ch2_structure_ledger.json", "w"), indent=1)
+json.dump(res, open("artifacts/ch4_uf/ch2_structure_ledger_run2.json", "w"), indent=1)

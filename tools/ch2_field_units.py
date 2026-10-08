@@ -54,3 +54,19 @@ def check_feed(F: np.ndarray, r: pd.DataFrame | None = None, max_share: float = 
             top = r[c].round(6).value_counts(normalize=True).iloc[0]
             if top > max_pinned:
                 raise FeedError(f"{c} sits on one value on {top:.0%} of readings — the kernel is not seeing the data")
+
+
+def path_unit_field(df: pd.DataFrame, L: int = 100) -> np.ndarray:
+    """Joe 10-08: "your scale is off — it should be at least 50 bar." Each
+    channel in units of its OWN movement over L bars (trailing 252-bar median of
+    the L-bar sum of |daily change|, shift 1, causal). The kernel's sigma is
+    quadratic in the field, so on a 1-bar unit it outweighs the daily move and
+    boundaries cluster (median gate 1 bar); at L >= 50 the daily move drives D,
+    gates run ~30 bars and C_k / regime / B_k move (HRB, outcome-blind).
+    L = 100 chosen over 50 on structure health only (50: median gate 2)."""
+    out = []
+    for x in [df.Open, df.High, df.Low, df.Close, df.Volume]:
+        x = x.astype(float)
+        s = x.diff().abs().rolling(L).sum().shift(1).rolling(252, min_periods=60).median()
+        out.append(x / s)
+    return np.column_stack(out)
