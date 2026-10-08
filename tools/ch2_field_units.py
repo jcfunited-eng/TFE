@@ -26,3 +26,25 @@ def move_unit_field(df: pd.DataFrame) -> np.ndarray:
         s = x.diff().abs().shift(1).rolling(252, min_periods=20).median()
         out.append(x / s)
     return np.column_stack(out)
+
+
+class FeedError(RuntimeError):
+    """The kernel is being fed wrong — refuse to produce results."""
+
+
+def check_feed(F: np.ndarray, r: pd.DataFrame | None = None, max_share: float = 0.60,
+               max_pinned: float = 0.95, outputs=("D_k", "M_k", "URF_k")) -> None:
+    """Joe's rule (10-08, after a year of it): no variance is impossible; if it
+    appears, the FEED is wrong. Refuse when one channel carries more than
+    max_share of the typical daily displacement, or when a direction/motion
+    output sits on one value on more than max_pinned of readings."""
+    F = F[np.isfinite(F).all(axis=1)]
+    dF = np.abs(np.diff(F, axis=0))
+    share = np.median(dF / np.maximum(dF.sum(axis=1, keepdims=True), 1e-12), axis=0)
+    if share.max() > max_share:
+        raise FeedError(f"channel {int(share.argmax())} carries {share.max():.0%} of the daily move — mixed units in the field")
+    if r is not None and len(r):
+        for c in outputs:
+            top = r[c].round(6).value_counts(normalize=True).iloc[0]
+            if top > max_pinned:
+                raise FeedError(f"{c} sits on one value on {top:.0%} of readings — the kernel is not seeing the data")
