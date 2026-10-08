@@ -41,6 +41,7 @@
 import pg from "pg";
 import { readFileSync } from "fs";
 import { computeV3Basin } from "./v3_basin.mjs";
+import { createHash } from "node:crypto";
 
 const pool = new pg.Pool({
   host:     process.env.PGHOST,
@@ -175,10 +176,23 @@ async function fetchFieldState() {
 }
 
 async function fetchFieldEligible(asOf) {
-  const res = await pool.query(`SELECT ticker, dsl, age, priority FROM ch2_field_eligible WHERE as_of = $1::date`, [asOf]);
+  const res = await pool.query(`SELECT ticker, dsl, age, priority, energy FROM ch2_field_eligible WHERE as_of = $1::date`, [asOf]);
   const out = new Map();
-  for (const r of res.rows) out.set(String(r.ticker).trim().toUpperCase(), { dsl: toInt(r.dsl), age: toInt(r.age), priority: toInt(r.priority) });
+  for (const r of res.rows) out.set(String(r.ticker).trim().toUpperCase(), { dsl: toInt(r.dsl), age: toInt(r.age), priority: toInt(r.priority), energy: toInt(r.energy) });
   return out;
+}
+
+// FIELD-R2 ordering (2026-10-08). Exported for tests.
+export function fieldR2Key(ticker, asOf) {
+  return createHash("sha256").update(`${String(ticker).toUpperCase()}|${asOf}`).digest("hex");
+}
+export function fieldR2Compare(a, b, asOf) {
+  const pa = a.priority ?? 9, pb = b.priority ?? 9;
+  if (pa !== pb) return pa - pb;
+  const ea = a.energy === 1 ? 0 : 1, eb = b.energy === 1 ? 0 : 1;
+  if (ea !== eb) return ea - eb;
+  const ka = fieldR2Key(a.ticker, asOf), kb = fieldR2Key(b.ticker, asOf);
+  return ka < kb ? -1 : ka > kb ? 1 : 0;
 }
 
 // One filer, one slot (FIELD-R1, 2026-10-02): LEN and LEN.B are one company
@@ -212,10 +226,12 @@ function parseFieldSignal(row, elig, field) {
     sector: String(row.sector ?? "Unknown").trim(), spy_dk: null,
     filer: filerKey(ticker, row.company_name),
     v3_basin: basin,
-    entry_law: "FIELD-R1",
+    entry_law: "FIELD-R1",          // exits (FIELD-X1, profit lock) key on this label
+    pick_law: "FIELD-R2",           // 2026-10-08: energy-first pick, filing window retired
     field: { as_of: field.as_of, priority: field.priority, rules: field.rules, bear: field.bear, phase: field.phase, polarity20: field.polarity20,
              slow120: field.slow120, temperature: field.temperature, releasing: field.releasing },
     cycle: { dsl: elig.dsl, age: elig.age },
+    energy: elig.energy ?? null,
     priority: elig.priority,
   };
 }
@@ -466,10 +482,12 @@ export async function getCh2Signals() {
     return true;
   });
 
-  // Order: the field's priority first (epic 0 > down-release 1 > charging 2),
-  // then the name closest to its report. The epoch/sector governance that
-  // sorted the old basin list is retired with it (FIELD-R1 is the governance).
-  deduped.sort((a, b) => (a.priority - b.priority) || ((b.cycle?.dsl ?? 0) - (a.cycle?.dsl ?? 0)));
+  // Order (FIELD-R2, Claude 2026-10-08): the field's priority first (epic 0 >
+  // down-release 1 > charging 2), then the stock's own ENERGY — names whose latest
+  // kernel structure reads D_k = +1 first — then a fixed pseudo-random order seeded by
+  // ticker and the field's as-of date (the book's random fill, made deterministic).
+  // Replaces "closest to its report" (the filing window added nothing on the book).
+  deduped.sort((a, b) => fieldR2Compare(a, b, field.as_of));
 
   // One filer, one slot: the first (best-ordered) share class of a company wins;
   // a company already held under another class is not bought again.
@@ -483,7 +501,7 @@ export async function getCh2Signals() {
 
   console.log(`[CH2-STRATEGIST] ${rows.length} candidates → ${signals.length} in the field's eligible list → ${deduped.length} after dedup → ${oneFiler.length} one-filer-one-slot (FIELD-R1, priority ${field.priority})`);
   for (const s of oneFiler) {
-    console.log(`[CH2-STRATEGIST]   ${s.ticker} | dsl=${s.cycle.dsl} | age=${s.cycle.age} | priority=${s.priority} | acc(recorded)=${s.v3_basin ? s.v3_basin.accumulate_basin.toFixed(4) : "n/a"} | sector=${s.sector}`);
+    console.log(`[CH2-STRATEGIST]   ${s.ticker} | energy=${s.energy} | dsl=${s.cycle.dsl} | age=${s.cycle.age} | priority=${s.priority} | acc(recorded)=${s.v3_basin ? s.v3_basin.accumulate_basin.toFixed(4) : "n/a"} | sector=${s.sector}`);
   }
   return oneFiler;
 }

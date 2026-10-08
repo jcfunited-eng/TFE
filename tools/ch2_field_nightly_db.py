@@ -67,6 +67,7 @@ def ensure_tables(conn):
         cur.execute("""CREATE TABLE IF NOT EXISTS ch2_field_state (as_of DATE PRIMARY KEY, state JSONB NOT NULL, computed_at TIMESTAMPTZ NOT NULL DEFAULT NOW())""")
         cur.execute("""CREATE TABLE IF NOT EXISTS ch2_field_eligible (as_of DATE NOT NULL, ticker TEXT NOT NULL, dsl INTEGER, age INTEGER, priority INTEGER NOT NULL,
                        PRIMARY KEY (as_of, ticker))""")
+        cur.execute("ALTER TABLE ch2_field_eligible ADD COLUMN IF NOT EXISTS energy INTEGER")
         cur.execute("""CREATE TABLE IF NOT EXISTS ch2_filings (ticker TEXT NOT NULL, filing_date DATE NOT NULL, period_end DATE, timeframe TEXT, PRIMARY KEY (ticker, filing_date))""")
     conn.commit()
 
@@ -173,6 +174,38 @@ def band_trailing(x, lo=0.2, hi=0.8):
     return pd.Series(np.where(x >= q_hi, "HI", np.where(x <= q_lo, "LO", "MID")), index=x.index).where(q_hi.notna())
 
 
+# ---------------------------------------------------------------- the stock's own energy (FIELD-R2, 2026-10-08)
+# One kernel per ticker on the whole bar (Joe: "all inputs are per ticker through 1
+# kernel"), each channel in units of its own 100-bar movement (Joe: "scale ... at least 50
+# bar"; tools/ch2_field_units.path_unit_field), own resolution 3.77 x trailing median D
+# (HIS), relevance psi_r on the close channel (standalone_truth_kernel.py). Returns D_k of
+# the latest structure known at the last close (gate ending t_b known at close t_b+1), or
+# None when the feed is unreadable (mixed units / clustering / pinned outputs).
+# Book receipt: tools/ch2_book_sim_energy.py / _release.py / _blind.py (energy-first beat
+# random-fill in every run, +4..+7 pts over 2022-26).
+def energy_of(A):
+    X = pd.DataFrame(A, columns=["O", "H", "L", "C", "V"])
+    s = X.diff().abs().rolling(100).sum().shift(1).rolling(252, min_periods=60).median()
+    F = (X / s).to_numpy(np.float64); ok = np.isfinite(F).all(axis=1)
+    if ok.sum() < 300: return None
+    F = F[np.argmax(ok):]
+    if not np.isfinite(F).all(): return None
+    n = len(F)
+    dF = np.zeros_like(F); dF[1:] = F[1:] - F[:-1]
+    Fd = pd.DataFrame(F); sig = sum(Fd[c].rolling(W, min_periods=1).var(ddof=0) for c in Fd.columns).values
+    kap = np.zeros(n); kap[1:-1] = np.linalg.norm(F[2:] - 2 * F[1:-1] + F[:-2], axis=1)
+    D = np.linalg.norm(dF, axis=1) + sig + kap
+    tau = pd.Series(D).shift(1).rolling(252, min_periods=20).median().values * 3.77
+    cc = pd.Series(F[:, 3]); rr = np.where(cc > cc.rolling(10, min_periods=1).mean(), 1.0, 0.5)
+    r = readings(F, tau, r=rr)
+    if len(r) < 3: return None
+    g = np.diff(r.t.values); cover = g[g >= 5].sum() / max(g.sum(), 1)
+    share = np.median(np.abs(dF[1:]) / np.maximum(np.abs(dF[1:]).sum(axis=1, keepdims=True), 1e-12), axis=0)
+    if cover < 0.80 or share.max() > 0.60 or r.D_k.value_counts(normalize=True).iloc[0] > 0.95: return None
+    known = r[r.t.values + 1 <= n - 1]
+    return int(known.D_k.iloc[-1]) if len(known) else None
+
+
 # ---------------------------------------------------------------- the field
 def l0_arrays(A):
     """A: (n, 5) float64 O,H,L,C,V. Returns sigma, D on the price 4-vector, and rel (volume relevance)."""
@@ -219,7 +252,7 @@ def compute(bars: dict, filings: pd.DataFrame, asof: pd.Timestamp):
     # ---- particle readings at the herd resolution; per-day accumulators for the field ----
     n_trad = np.zeros(nd); n_rel = np.zeros(nd); n_stor = np.zeros(nd); relup_num = np.zeros(nd); relup_den = np.zeros(nd)
     EN = np.full((nd, len(syms)), np.nan, np.float32)
-    today = {}
+    today = {}; today_bars = {}
     ia = di[np.datetime64(asof.date())]
     for j, sym in enumerate(syms):
         if sym == "SPY": continue
@@ -239,6 +272,7 @@ def compute(bars: dict, filings: pd.DataFrame, asof: pd.Timestamp):
         rr = ii[trad & known]; np.add.at(relup_den, rr, 1); np.add.at(relup_num, rr, up_prev[trad & known])
         if ii[-1] == ia:
             today[sym] = (int(age[-1]), bool(trad[-1]))
+            if trad[-1]: today_bars[sym] = A
     fs = pd.DataFrame(index=pd.to_datetime(dates))
     fs["n"] = n_trad; fs["releasing"] = np.where(n_trad > 0, n_rel / np.maximum(n_trad, 1), np.nan); fs["storing"] = np.where(n_trad > 0, n_stor / np.maximum(n_trad, 1), np.nan)
     fs["rel_up"] = np.where(relup_den > 0, relup_num / np.maximum(relup_den, 1), np.nan); fs["temperature"] = np.nanmedian(EN, axis=1)
@@ -268,9 +302,16 @@ def compute(bars: dict, filings: pd.DataFrame, asof: pd.Timestamp):
     for sym, (age, trad) in today.items():
         if not trad: continue
         lf = last_f.get(sym); dsl = int((asof - lf).days) if lf is not None and not pd.isna(lf) else None
-        if dsl is None or not (61 <= dsl <= 95): continue
-        rows.append((sym, dsl, age, int(tdy.priority)))
-    elig = pd.DataFrame(rows, columns=["symbol", "dsl", "age", "priority"]).sort_values("dsl", ascending=False)
+        # FIELD-R2 (Claude 2026-10-08, on Joe's "as long as it's a positive move go for it"):
+        # the 61-95-day filing window is retired — on the decade book it added nothing over
+        # any tradeable name (+59.8 vs +60.2 %, tools/ch2_book_sim_gated.py); the pick is
+        # the stock's own energy instead. dsl stays on the row for the record.
+        try:
+            en = energy_of(today_bars[sym]) if sym in today_bars else None
+        except Exception:
+            en = None
+        rows.append((sym, dsl, age, int(tdy.priority), en))
+    elig = pd.DataFrame(rows, columns=["symbol", "dsl", "age", "priority", "energy"])
     state = {"asof": str(asof.date()), "field_long": bool(tdy.field_long), "priority": int(tdy.priority), "bear": bool(tdy.bear),
              "slow120": None if pd.isna(tdy.slow120) else round(float(tdy.slow120), 4), "phase": str(tdy.phase), "polarity20": str(tdy.polarity20),
              "releasing": round(float(tdy.releasing), 4), "releasing_band": str(tdy.releasing_band), "rel_up": None if pd.isna(tdy.rel_up) else round(float(tdy.rel_up), 3),
@@ -278,7 +319,8 @@ def compute(bars: dict, filings: pd.DataFrame, asof: pd.Timestamp):
              "epic_day": bool(tdy.epic_day), "epic_window": bool(tdy.epic_window),
              "rules": {"epic": bool(tdy.c_epic), "down_release": bool(tdy.c_d2), "charging_quiet": bool(tdy.c_p8)},
              "eligible_names": int(len(elig)), "tradeable_names": int(sum(1 for _, (_, t) in today.items() if t)), "pool_names": len(syms) - 1,
-             "bars_first": str(dates[0]), "filings_names": int(last_f.shape[0]), "law": "FIELD-R1", "seconds": round(time.time() - t0, 1)}
+             "bars_first": str(dates[0]), "filings_names": int(last_f.shape[0]), "law": "FIELD-R2",
+             "energy_up_names": int((elig.energy == 1).sum()) if len(elig) else 0, "energy_read_names": int(elig.energy.notna().sum()) if len(elig) else 0, "seconds": round(time.time() - t0, 1)}
     return state, elig
 
 
@@ -307,8 +349,9 @@ def main():
         cur.execute("DELETE FROM ch2_field_eligible WHERE as_of = %s", (asof.date(),))
         if len(elig):
             import psycopg2.extras
-            psycopg2.extras.execute_values(cur, "INSERT INTO ch2_field_eligible (as_of, ticker, dsl, age, priority) VALUES %s",
-                                           [(asof.date(), r.symbol, int(r.dsl), int(r.age), int(r.priority)) for r in elig.itertuples()])
+            psycopg2.extras.execute_values(cur, "INSERT INTO ch2_field_eligible (as_of, ticker, dsl, age, priority, energy) VALUES %s",
+                                           [(asof.date(), r.symbol, None if pd.isna(r.dsl) else int(r.dsl), int(r.age), int(r.priority),
+                                             None if pd.isna(r.energy) else int(r.energy)) for r in elig.itertuples()])
     conn.commit(); conn.close()
     print(f"[field-db] wrote ch2_field_state[{asof.date()}] and {len(elig)} eligible rows", flush=True)
 
