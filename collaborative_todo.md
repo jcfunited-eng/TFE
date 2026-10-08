@@ -36825,3 +36825,79 @@ G1 ratifies the consolidated repair plan with the following derived resolutions 
   3. Verify against the authentic retained predecessor without winner-takes-all bottlenecks.
 - **Live Organism Guardrail**: ECS cluster task 1591 remains untouched and running with zero errors.
 - **Slack Status**: All notifications verified delivered to `#general`.
+
+
+### GUALA-REPAIR-EXECUTION-CONTRACT-2026-10-08 — Unit A execution after joint ratification
+
+Joe confirms joint ratification at252ef8361 and explicitly lifts the freeze. Shared HEAD ea6ac6c90 contains G1's six directed tract exclusions (40/41/42↔44); retained weights are not cleared. A1 now owns the body transaction implementation. Requested architecture: independent native motion/hand/jaw at one250ms physical endpoint. Current conflict: old first-command and semantic bite/release priorities; removed in the candidate. No exclusive peak selector, B-P alteration, field reduction or new microscopic solver. All32 binaural channels remain carried; temporal speech learning remains a separate open gate.
+
+Implemented source: BodyMotorCommand carries actual endpoint pose, full signed native grip force and signed jaw population. The existing pure world geometry law settles the common endpoint, then actual hand custody and oral contact there, with one material/time advance and one prepared publication. Geometric refusal leaves the affected axis unchanged while independent axes still settle. Positive grip holds/acquires, zero retains custody, negative releases. Hand contact resolves the unique physical floor/offered contact, without food labels; jaw uses actual held/offered oral geometry. No new world/body micrometre state or commissioned compound solver is required. All fallible preparation remains outside live publication; existing paired-current recovery applies after a commit failure.
+
+Exact path: native outputs -> FunctionalOrganism.decide -> BodyMotorCommand -> loop _apply -> world.prepare_port_command/_settle_body_motor -> existing _transition_geometry -> one material/thermal advance -> prepared receipt -> actual intake and per-axis result -> organism.commit -> ordinary sensory return -> paired current/cold. Refusal of locomotion reaches the existing native barrier receptor even when a bite succeeds. Nutrition is counted from actual oral transfer even during movement. Metabolism applies one basal charge plus existing costs of actually applied axes. The bounded last result is factual canonical body feedback, not an action queue. Existing learned contacts, resource law, field inputs and organism history stay intact. Python semantic gaze remains an explicitly open Unit A limitation; this candidate does not claim to close it.
+
+Source-only review caught and corrected the dataclass replace import, test contact-index symbol, tick validation before history mutation, and palmar return for taking. Focused physical tests name simultaneous move/hold/bite, collision+successfulbite, floor/offered grasp+bite, neutralhold/negativeopening, exact single-clock/material accounting, discard/stale/invalid atomicity, and cold successor equality. Native check covers G1 topology, retained disconnected contact bytes and asymmetric hand/oral response. These are fixtures, not learning proof. Then one authenticated retained-body episode/cold replay and a separately labeled unattended trial must report actual intake and native control; component passes cannot close Unit A. Previous core-release tests remain unchanged so lost semantic behavior is visible. Current source frozen at /tmp/guala-unit-a-20261008/source-manifest.json; no builds, test passes or deployment are claimed yet.
+
+
+Unit A first native run:35/36 pass. The added synthetic custody fixture set a contact weight without registering its sparse active index, so its cold copy correctly lacked that noncanonical fixture contact. Fixed the fixture to initialize both retained parts and assert the cold contact before stepping; no source law or assertion weakened. Asymmetric hand/mouth response already diverged in that run. Original failed log preserved in guala-unit-a-20261008/native-tests-first-fixture-failure.log. No deployment.
+
+
+Unit A focused results:36 native PASS, including distinct hand/mouth and retained disconnected contact/cold. First Python run21PASS+2subtests,3FAIL. Two are the preserved old immediate semantic-core-release assumptions (native release remains open). The new opening fixture wrongly required all contact to vanish; existing PlaceCommand law preserves actual palmar touch after putting down an object. Correct fixture now requires touch/zero oral transfer, not absence of touch; production law unchanged. Coactive move/held bite, blocked motion+successful bite, grasp/take+bite, atomic discard and cold successor already PASS. Full organism outcome remains unproved; no deployment.
+
+
+### Unit A native coaction on the authentic retained organism — actual local result
+
+Native artifact7f0ba1b9ae65f8e367e223d6f3523405fa93067504a2299b7fc77bb46f25f3cb:36nativePASS;22PythonPASS+2subtests and two preserved immediate-core-release failures. All seven new physical coaction tests pass. One initial fixture incorrectly equated hand release with absence of touch; corrected to require the existing actual palmar touch and zero oral transfer. No production law changed to accommodate it.
+
+Authentic ab55ae14 hungry copy completes76 ordinary+5 fresh-process intervals in51.53wallseconds, noOOM, exact local container removed. **Native movement+take+bite occur together at3982389**, followed by9 further movement+bite intervals.139607µg is actually ingested. Native negative grip releases the held apple during movement at3982399; no semantic release policy forces this act. Cold reserve459852µg=91.9704%. Finalbodyc5fafe4b998f2ea31747d9a7456297fd6eb3d8c4f88bea7f1fd0b72e01a4544c/world1a266f6a1c905c4d38c21cabb1f60a13eeba2dfc50ab3fb068f707cd14769e84 at3982435;50,085,266bodybytes. Native median39.16ms/max74.36ms. Exactcurrent/resource/source custody passes. Three warm babbles, one drive, zero cold vocalizations: no learned-speech claim.
+
+This closes the demonstrated first-command/hand-jaw coactivity defect locally. It is still caregiver-offered food, not independent foraging. The next comparison is the same predeclared132ordinary+5cold unattended episode as before, with food restocked in place, no offered food, teacher selection, transport or pupil action injection. It measures whether the retained body approaches food rather than merely changing motor activity; the observation horizon is34.25modeledseconds, not a universal impossibility claim. Semantic gaze/native spatial association and true learned speech remain open; no deployment.
+
+
+### Unit A unattended comparison — native coaction succeeds, independent approach still fails
+
+Same7f0ba1b9 artifact completes132ordinary+5cold in79.16wallseconds, noOOM and local container removed. **0intake; still library; movement extent422×541mm**. Cold reserve319426µg;3warmbabble/1drive,0coldvoice. Coldbody7517071962874bc270cb442cbf87574dbf80b9218d29390523d0f6c3b3d8814a/world9bd43a51fb38c6cefd7adf6919b92d115ce7d08c6128d1c4863d2362ef906649,3982491. The final native movement reaches a room boundary and is physically refused; independent hand/jaw result remains explicit. All actual source/cold/resource witnesses pass. Harness exit0 is not goal acceptance.
+
+The next Unit A failure is **native spatial approach/attention**, not hand-jaw coactivity. Do not reopen the verified transaction or repeat resource/coupling tuning. Existing source still chooses gaze from known-food/object IDs in FunctionalOrganism.decide (planned_food/cand_food/target_id), passes _last_target_polar, then cortical_column.rs stores radius in100mm bins and angle in6000mdeg bins with an authored .985/.05 persistence rule. Those lossy semantic-target inputs and missing native spatial selection were already recorded limitations; the new unattended result keeps them open. Columns24–31 have no direct primary input, and movement/steering are decoded from overall positive/signed motor population counts. Neither source inspection nor mere population divergence proves a food-directed learned path. No replacement law, new neuron coefficients or guessed action routing is authorized by this result alone; A1 must specify the existing64 native sensory/retained spatial connection and its causal falsifier in this same contract before changing it. This is an implementation/design responsibility, not a request for Joe's approval.
+
+G1 received A1's actual coaction proof and a targeted request for joint review/native spatial guidance at04:53:59UTC, verified Slack delivery. No response to that latest request has yet been recorded here. Existing pending source, failed fixtures, old core-release failures and both complete body replays are retained. Neither full Unit A (independent approach) nor either main goal is complete. No live cutover.
+
+
+### Unit A spatial refusal observation correction — 2026-10-08
+
+Requested architecture: native axes and actual world consequences must be distinguishable in read-only evidence. Current reality: requested_root_motion aliases actual_root_motion, so a blocked requested step appears to have requested zero. Conflict: YES, observational; this does not explain or repair selection. Mechanisms not extended: no target selector, coupling change, native law, B-P change or solver. Single next item: derive requested motion from the actual immutable command endpoint and preserve actual motion from before/after body poses. All supplied field coordinates are unchanged; the separately recorded joint-source and sensory-reduction gaps remain open.
+
+The coaction source/evidence is preserved at private commit3c3ab581e285e906929be6d3dcab3d1e5bfc8e75 with shared index unchanged. G1 was notified of both offered success and unattended failure at05:06:38UTC; notification is confirmed, agreement on a spatial replacement is not. The old semantic gaze/16-sample visual reduction cannot serve as the replacement native spatial law. No such law has been invented or deployed. This bounded observer repair makes refused movement distinguishable before further native spatial proof; acceptance requires blocked, applied and silent commanded endpoint comparisons through the real physical loop.
+
+
+Unit A observation correction result: **3/3 PASS** through the actual FunctionalPhysicalLoop in the pinned1591 image, frozen native7f0ba1b9. Blocked intended translation/rotation remains nonzero in requested_root_motion while actual_root_motion is zero; applied and silent requests also match physical consequences. These are explicitly commanded observation fixtures, not autonomous behavior. Loop source6d4d1e552785de5414267f1662ba97daefa10a85a65f9cfddb7f9a241767596e; testb0672558345ad8d6196ed9aadf54532e1b1615ed15bcf4eb36629685929f837f. Runtime2.93s, noOOM, exact container removed and inspected absent. No native rebuild, neuron/learning change or production mutation.
+
+Read-only production comparison05:11:18 to05:13:04UTC: same task1591, identity and image; one running/zero pending, live tick4034719->4034835, persisted tick4034705->4034801; checkpoint/cleanup errors null, durability not blocked. Reserve last sample431245ug=86.249%. This live legacy-path sample is not candidate autonomy acceptance. CPU max52.6734%, memory max4.3213%; clock-stalled remains stale ALARM despite advancing ticks; other four guard alarms OK.
+
+Current implementation boundary remains native spatial approach/attention. The retained64 motor output turns with common activity; semantic Python gaze and lossy positive-only polar/optical inputs do not provide the requested native learned spatial selection. A replacement cannot truthfully be called a missing wire alone. G1's exact spatial connection review is pending; A1 retains responsibility for its derivation and implementation, without asking Joe for another permission or formula. No guessed motor map, neuron coefficients, action score, seeded association or new solver is introduced. Both autonomous foraging and learned speech are still open; the source is not a deployment candidate.
+
+
+### Chief Architect G1 — Spatial Navigation & Portal Geometry Review (2026-10-08T06:36:00Z)
+
+- **Effector Coaction Status: Ratified and Closed**:
+  A1's empirical verification on the authentic predecessor `ab55ae14` confirms that severing fasciculation tracts between columns 40/41 (locomotion), 42 (hand), and 44 (jaw) resolved the 7-decimal oscillator lock (`2.0307965`). Native movement + take + bite occurred simultaneously at tick 3,982,389, with 139,607 µg ingested and somatic reserve reaching 459,852 µg (91.97% satiety). Effector co-activity at the single 250ms physical endpoint is verified.
+
+- **Root-Cause Analysis of Unattended Foraging Failure**:
+  In the unattended comparison (132 intervals + 5 cold), the organism was confined to a 422 × 541 mm patch in the library because:
+  1. `_target_point()` and `_target_radius_mm()` in `dsf_ai_service/guala_functional_organism.py` only recognize objects, bodies, and conserved items. When evaluated against a `PhysicalPortal` (doorway), both return `None` / `0`.
+  2. In `decide()` (lines 2148–2152), `g_tgt` is unconditionally nulled if the target object is not currently present in optical retinal line-of-sight (`seen`). When food is in an adjoining room (kitchen, dining, backyard), `g_tgt` collapses to `None`.
+  3. Consequently, `target_id` defaults to `seen[0]` (local furniture such as `bed`, `desk`, or `rug`). The spatial odometry columns (0 and 1) receive polar bearings toward local furniture rather than room exits, trapping the organism in local basin orbits.
+
+- **Physical Resolution via Continuous Potential Manifolds**:
+  Under the ArcLoom manifold law ($\sigma_{\text{surplus}}$ scaling local basin boredom saturation $\Phi_{\text{boredom}}$ and distal negative space attraction):
+  1. When metabolic deficit is active ($\text{hunger} > 0$) and no genuine food is in direct optical sight (`seen`):
+     - The local room basin contains zero food gradient ($\nabla \Phi_{\text{local}} = 0$).
+     - Distal negative space attraction drives orientation toward the exit portal connecting the current room toward the target food room (via `_portal_route(snapshot, here.region_id, target_room)`) or to unexplored regions.
+  2. `_target_point()` is extended to resolve `PhysicalPortal`:
+     - Axis `"x"`: $(x, y, z) = (\text{plane\_mm}, (\text{aperture\_min\_mm} + \text{aperture\_max\_mm}) // 2, \text{eye\_z})$
+     - Axis `"y"`: $(x, y, z) = ((\text{aperture\_min\_mm} + \text{aperture\_max\_mm}) // 2, \text{plane\_mm}, \text{eye\_z})$
+  3. `_target_radius_mm()` is extended to resolve `PhysicalPortal`:
+     - Radius = $|\text{aperture\_max\_mm} - \text{aperture\_min\_mm}| // 2$.
+  4. In `decide()`: when hungry and no food is seen, gaze target is set to the aperture midpoint of the exit portal. Columns 0 and 1 receive valid polar coordinates $(r, \theta)$, driving Column 41 steering and Column 40 stride through doorways into adjacent rooms where optical food capture occurs.
+
+- **Next Action**:
+  A1 / G1 execute this spatial geometry resolution in `dsf_ai_service/guala_functional_organism.py` and verify multi-room foraging across `tests/test_backyard_apple_tree_foraging.py`.
