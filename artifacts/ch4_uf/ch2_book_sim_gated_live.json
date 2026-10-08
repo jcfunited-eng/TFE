@@ -1,0 +1,209 @@
+{
+ "declared": "CH2 gated book \u2014 the 09-30 result (+68% 2022-26) recovered from the session that ran\nit inline (never filed), plus the EXACT LIVE LAW beside it (added 10-08, declared before\nrunning). Same book machinery as tools/ch2_book_sim.py (hold 10 sessions, 0.20% cost).\nARMS:\n  G1P   gate1 with slot priority (the 09-30 +68% arm): field rules epic | down-release |\n        charging&quiet, not polarity UP; slow120 < 0.5 -> epics only; ANY tradeable name;\n        slot priority epic > down-release > charging&quiet. 50 slots x $2,000.\n  LIVE  what CH2 runs (tools/ch2_field_nightly_db.py + strategist): same gate, PLUS the\n        filing filter (61-95 days since last filing, not late 96-130, not 0-3 post),\n        names taken closest-to-report first (dsl descending); 40 slots x $2,500 (~2.5%).\n  LIVE_NOFILE  LIVE without the filing filter (G1P's set, live's slot size).\nExits NOT modelled: live's -20% brake and +20%->+15% profit lock (both only trim tails).\nOUTPUT artifacts/ch4_uf/ch2_book_sim_gated_live.json",
+ "spy": {
+  "2021": 28.79,
+  "2022": -19.95,
+  "2023": 24.81,
+  "2024": 24.0,
+  "2025": 16.64,
+  "2026": 12.28
+ },
+ "G1P": {
+  "2022": {
+   "trades": 400,
+   "win_rate": 0.5525,
+   "gross_pnl": 10869.0,
+   "net_pnl": 9269.0,
+   "return_on_100k_pct": 9.27,
+   "max_drawdown_usd": -3633.0,
+   "spy_buy_hold_pct": -19.95
+  },
+  "2023": {
+   "trades": 200,
+   "win_rate": 0.58,
+   "gross_pnl": 7369.0,
+   "net_pnl": 6569.0,
+   "return_on_100k_pct": 6.57,
+   "max_drawdown_usd": -4802.0,
+   "spy_buy_hold_pct": 24.81
+  },
+  "2024": {
+   "trades": 450,
+   "win_rate": 0.6133,
+   "gross_pnl": 18038.0,
+   "net_pnl": 16238.0,
+   "return_on_100k_pct": 16.24,
+   "max_drawdown_usd": -2051.0,
+   "spy_buy_hold_pct": 24.0
+  },
+  "2025": {
+   "trades": 350,
+   "win_rate": 0.7,
+   "gross_pnl": 22966.0,
+   "net_pnl": 21566.0,
+   "return_on_100k_pct": 21.57,
+   "max_drawdown_usd": -3223.0,
+   "spy_buy_hold_pct": 16.64
+  },
+  "2026": {
+   "trades": 250,
+   "win_rate": 0.52,
+   "gross_pnl": 15310.0,
+   "net_pnl": 14310.0,
+   "return_on_100k_pct": 14.31,
+   "max_drawdown_usd": -7886.0,
+   "spy_buy_hold_pct": 12.28
+  }
+ },
+ "LIVE": {
+  "2022": {
+   "trades": 320,
+   "win_rate": 0.525,
+   "gross_pnl": 5079.0,
+   "net_pnl": 3479.0,
+   "return_on_100k_pct": 3.48,
+   "max_drawdown_usd": -7107.0,
+   "spy_buy_hold_pct": -19.95
+  },
+  "2023": {
+   "trades": 160,
+   "win_rate": 0.6,
+   "gross_pnl": 6446.0,
+   "net_pnl": 5646.0,
+   "return_on_100k_pct": 5.65,
+   "max_drawdown_usd": -3635.0,
+   "spy_buy_hold_pct": 24.81
+  },
+  "2024": {
+   "trades": 360,
+   "win_rate": 0.5833,
+   "gross_pnl": 13517.0,
+   "net_pnl": 11717.0,
+   "return_on_100k_pct": 11.72,
+   "max_drawdown_usd": -4930.0,
+   "spy_buy_hold_pct": 24.0
+  },
+  "2025": {
+   "trades": 280,
+   "win_rate": 0.6393,
+   "gross_pnl": 22709.0,
+   "net_pnl": 21309.0,
+   "return_on_100k_pct": 21.31,
+   "max_drawdown_usd": -5627.0,
+   "spy_buy_hold_pct": 16.64
+  },
+  "2026": {
+   "trades": 200,
+   "win_rate": 0.58,
+   "gross_pnl": 16423.0,
+   "net_pnl": 15423.0,
+   "return_on_100k_pct": 15.42,
+   "max_drawdown_usd": -7098.0,
+   "spy_buy_hold_pct": 12.28
+  }
+ },
+ "LIVE_NOFILE": {
+  "2022": {
+   "trades": 320,
+   "win_rate": 0.5594,
+   "gross_pnl": 12193.0,
+   "net_pnl": 10593.0,
+   "return_on_100k_pct": 10.59,
+   "max_drawdown_usd": -3697.0,
+   "spy_buy_hold_pct": -19.95
+  },
+  "2023": {
+   "trades": 160,
+   "win_rate": 0.5687,
+   "gross_pnl": 6245.0,
+   "net_pnl": 5445.0,
+   "return_on_100k_pct": 5.45,
+   "max_drawdown_usd": -4592.0,
+   "spy_buy_hold_pct": 24.81
+  },
+  "2024": {
+   "trades": 360,
+   "win_rate": 0.6,
+   "gross_pnl": 17691.0,
+   "net_pnl": 15891.0,
+   "return_on_100k_pct": 15.89,
+   "max_drawdown_usd": -2046.0,
+   "spy_buy_hold_pct": 24.0
+  },
+  "2025": {
+   "trades": 280,
+   "win_rate": 0.7107,
+   "gross_pnl": 22644.0,
+   "net_pnl": 21244.0,
+   "return_on_100k_pct": 21.24,
+   "max_drawdown_usd": -3547.0,
+   "spy_buy_hold_pct": 16.64
+  },
+  "2026": {
+   "trades": 200,
+   "win_rate": 0.53,
+   "gross_pnl": 12068.0,
+   "net_pnl": 11068.0,
+   "return_on_100k_pct": 11.07,
+   "max_drawdown_usd": -7858.0,
+   "spy_buy_hold_pct": 12.28
+  }
+ },
+ "ANY_NAME random 50": {
+  "per_year_mean": {
+   "2022": 7.6975,
+   "2023": 5.28875,
+   "2024": 14.10125,
+   "2025": 25.11625,
+   "2026": 8.004999999999999
+  },
+  "totals_by_seed": [
+   71.27,
+   55.120000000000005,
+   65.86999999999999,
+   55.1,
+   63.730000000000004,
+   57.13,
+   53.12,
+   60.33
+  ]
+ },
+ "ANY_NAME random 40": {
+  "per_year_mean": {
+   "2022": 7.9087499999999995,
+   "2023": 5.50375,
+   "2024": 13.835,
+   "2025": 24.22,
+   "2026": 8.42625
+  },
+  "totals_by_seed": [
+   70.94000000000001,
+   53.68,
+   66.29,
+   54.38,
+   64.11999999999999,
+   59.370000000000005,
+   52.53,
+   57.84
+  ]
+ },
+ "LIVE_FILING random 40": {
+  "per_year_mean": {
+   "2022": 3.8175,
+   "2023": 5.62625,
+   "2024": 16.21875,
+   "2025": 23.49125,
+   "2026": 10.6325
+  },
+  "totals_by_seed": [
+   60.230000000000004,
+   58.51,
+   64.84,
+   52.29,
+   53.18,
+   69.53999999999999,
+   66.49000000000001,
+   53.21
+  ]
+ }
+}
