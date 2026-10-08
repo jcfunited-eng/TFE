@@ -22,6 +22,9 @@ OUTPUT artifacts/ch4_uf/ch2_structure_ledger.json
 RUN 1 (10-08) VOID: median gate length 1 bar (q98 resolution clusters); predictions not reported.
 RUN 2 (10-08, declared before running): field = path_unit_field(L=100) (Joe: scale >= 50 bars),
 resolution = own (HIS: 3.77 x own trailing median D); everything else unchanged.
+RUN 2 first pass refused 1,734 names on a WRONG health check (median piece length; events
+make 1-bar pieces by construction). Check corrected to time coverage >= 80% in 5+ bar
+structures (outcome-blind); rerun = run 2b.
 """
 import sys, json, numpy as np, pandas as pd
 from collections import defaultdict
@@ -87,4 +90,4 @@ for y, g in ev.groupby("year"):
                           "mean_ret_when_pred_up": round(float(h[h.pred > 0].ret.mean()) * 100, 2) if (h.pred > 0).any() else None,
                           "mean_ret_when_pred_down": round(float(h[h.pred < 0].ret.mean()) * 100, 2) if (h.pred < 0).any() else None}
 print(json.dumps({k: v for k, v in res.items() if k != "declared"}, indent=1))
-json.dump(res, open("artifacts/ch4_uf/ch2_structure_ledger_run2.json", "w"), indent=1)
+json.dump(res, open("artifacts/ch4_uf/ch2_structure_ledger_run2b.json", "w"), indent=1)

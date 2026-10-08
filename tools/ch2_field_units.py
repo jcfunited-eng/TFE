@@ -33,7 +33,7 @@ class FeedError(RuntimeError):
 
 
 def check_feed(F: np.ndarray, r: pd.DataFrame | None = None, max_share: float = 0.60,
-               max_pinned: float = 0.95, outputs=("D_k", "M_k", "URF_k"), min_gate_bars: int = 5) -> None:
+               max_pinned: float = 0.95, outputs=("D_k", "M_k", "URF_k", "C_k", "regime"), min_gate_bars: int = 5, min_cover: float = 0.80) -> None:
     """Joe's rule (10-08, after a year of it): no variance is impossible; if it
     appears, the FEED is wrong. Refuse when one channel carries more than
     max_share of the typical daily displacement, or when a direction/motion
@@ -47,9 +47,14 @@ def check_feed(F: np.ndarray, r: pd.DataFrame | None = None, max_share: float = 
         # 2026-10-08: a q98 own-resolution run scored 174k "gates" whose median
         # length was ONE bar — boundaries cluster while the 20-bar variance stays
         # high. A structure must have length to be read as structure.
+        # Corrected the same day: each sharp move gives 2-3 consecutive
+        # boundaries (the curvature term spans t-1..t+1), so 1-bar pieces sit
+        # around every event and the MEDIAN piece is 1 bar even on healthy
+        # stocks. Health = share of TIME inside structures >= min_gate_bars.
         g = np.diff(r["t"].values)
-        if np.median(g) < min_gate_bars:
-            raise FeedError(f"median gate is {np.median(g):.0f} bar(s) — boundaries are clustering, no structure to read")
+        cover = g[g >= min_gate_bars].sum() / max(g.sum(), 1)
+        if cover < min_cover:
+            raise FeedError(f"only {cover:.0%} of bars sit in structures of {min_gate_bars}+ bars — boundaries are clustering, no structure to read")
         for c in outputs:
             top = r[c].round(6).value_counts(normalize=True).iloc[0]
             if top > max_pinned:
