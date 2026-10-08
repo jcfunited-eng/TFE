@@ -19,8 +19,21 @@ for s, d in pd.read_parquet(POOL).groupby("Symbol"):
         r = readings(F, tau_D="own", r=rr); check_feed(F, r)
     except FeedError:
         continue
-    col = np.full(len(F), np.nan)
+    col = np.full(len(F), np.nan); known = np.zeros(len(F), bool)
     for t_b, dk in zip(r.t.values.astype(int), r.D_k.values):
-        if t_b + 1 < len(F): col[t_b + 1] = dk
-    parts.append(pd.DataFrame({"symbol": s, "date": d.Date.astype(str).str[:10], "D_k_live": pd.Series(col).ffill().values}))
-pd.concat(parts).dropna().to_parquet(OUT); print("wrote", OUT)
+        if t_b + 1 < len(F): col[t_b + 1] = dk; known[t_b + 1] = True
+    # release exit (10-08): for a buy at close t, the first close >= t+1 at which a NEW
+    # structure boundary is known (the release), capped at t+10 sessions
+    c = d.Close.values.astype(float); n = len(c); nxt = np.full(n, -1)
+    j = -1
+    for t in range(n - 1, -1, -1):
+        nxt[t] = j
+        if known[t]: j = t
+    cols = {}
+    for cap in (10, 30):
+        ex = np.array([min(nxt[t], t + cap) if nxt[t] > t else t + cap for t in range(n)])
+        ok2 = ex < n
+        cols[f"r_rel{cap}"] = np.where(ok2, c[np.minimum(ex, n - 1)] / c - 1, np.nan)
+        cols[f"h_rel{cap}"] = np.where(ok2, ex - np.arange(n), np.nan)
+    parts.append(pd.DataFrame({"symbol": s, "date": d.Date.astype(str).str[:10], "D_k_live": pd.Series(col).ffill().values, **cols}))
+pd.concat(parts).dropna(subset=["D_k_live"]).to_parquet(OUT); print("wrote", OUT)

@@ -1,0 +1,55 @@
+{
+ "declared": "Energy pick on the BLIND 1,500 \u2014 declared 2026-10-08 before running. Same field gate\n(market-wide daily state from the studied run), the blind names as the tradeable universe:\ntradeable_flags on the day, >= 252 bars, r10 = close t+10 / close t - 1. Arms: random vs\nenergy (D_k = +1 first), 8 seeds, 40 x $2,500, hold 10, 0.20 % cost. PASS (declared): energy\nbeats random in total AND in >= 4 of 5 years (2022-2026).\nOUTPUT artifacts/ch4_uf/ch2_book_sim_blind.json",
+ "spy": {
+  "2021": 28.79,
+  "2022": -19.95,
+  "2023": 24.81,
+  "2024": 24.0,
+  "2025": 16.64,
+  "2026": 12.28
+ },
+ "random": {
+  "per_year_mean": {
+   "2022": 4.92625,
+   "2023": 2.71375,
+   "2024": 3.65875,
+   "2025": 14.325,
+   "2026": 2.73
+  },
+  "totals_by_seed": [
+   22.75,
+   33.11,
+   31.909999999999997,
+   31.68,
+   26.55,
+   27.049999999999997,
+   29.68,
+   24.1
+  ]
+ },
+ "energy": {
+  "per_year_mean": {
+   "2022": 6.7925,
+   "2023": 2.69,
+   "2024": 3.33125,
+   "2025": 16.42375,
+   "2026": 3.1125
+  },
+  "totals_by_seed": [
+   27.479999999999997,
+   33.02,
+   38.19,
+   33.169999999999995,
+   32.39,
+   32.589999999999996,
+   35.2,
+   26.76
+  ]
+ },
+ "verdict": {
+  "energy_beats_random_years": "3/5",
+  "total_energy": 32.349999999999994,
+  "total_random": 28.35375,
+  "pass": false
+ }
+}
