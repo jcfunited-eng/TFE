@@ -41,7 +41,7 @@ def check_feed(F: np.ndarray, r: pd.DataFrame | None = None, max_share: float = 
     F = F[np.isfinite(F).all(axis=1)]
     dF = np.abs(np.diff(F, axis=0))
     share = np.median(dF / np.maximum(dF.sum(axis=1, keepdims=True), 1e-12), axis=0)
-    if share.max() > max_share:
+    if F.shape[1] > 1 and share.max() > max_share:
         raise FeedError(f"channel {int(share.argmax())} carries {share.max():.0%} of the daily move — mixed units in the field")
     if r is not None and len(r) > 2:
         # 2026-10-08: a q98 own-resolution run scored 174k "gates" whose median
