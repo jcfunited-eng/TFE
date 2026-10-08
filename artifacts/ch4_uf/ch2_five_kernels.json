@@ -1,0 +1,68 @@
+{
+ "declared": "Five kernels per stock \u2014 declared 2026-10-08 before running (MINE, Joe: \"you know\nwhat we are trying to achieve\"). The kernel (standalone_truth_kernel.py) reads ONE\nseries; the bar has five. Each of Open, High, Low, Close, Volume gets its own kernel:\npath_unit_field L=100 channel, own resolution (3.77 x own trailing median D, HIS),\nrelevance psi_r on its own series (the file's rule), canon kernel untouched. Feed check\nper channel (time coverage + pinned outputs); a stock is read only if all five pass.\nJOINT STATE on day t: each channel's latest closed-gate reading known at close t (gate\nending t_b is known at close t_b+1) -> (D_k of O,H,L,C,V). Sampled every 5th session.\nOUTCOME: close t -> close t+20 (the structure scale); RISE > +10 %, FALL < -10 %.\nSELECTION on studied H1 (<= 2021) only: joint D_k patterns with n >= 300 whose rise share\namong large moves is >= base + 5 pts (UP set) or <= base - 5 pts (DOWN set).\nTEST, no reselection: studied H2 (>= 2022) and the blind 1,500 (all years, and each half).\nPASS: UP set rise share >= base + 3 and DOWN set <= base - 3 in studied H2 AND blind.\nOUTPUT artifacts/ch4_uf/ch2_five_kernels.json + rows parquet.",
+ "selection_base": 57.0,
+ "UP": {},
+ "DOWN": {},
+ "tests": {
+  "studied H1 (selection)": {
+   "base": 57.0,
+   "large_moves": 94556,
+   "UP": [
+    null,
+    0
+   ],
+   "DOWN": [
+    null,
+    0
+   ]
+  },
+  "studied H2 (test)": {
+   "base": 53.7,
+   "large_moves": 149926,
+   "UP": [
+    null,
+    0
+   ],
+   "DOWN": [
+    null,
+    0
+   ]
+  },
+  "blind all (test)": {
+   "base": 50.7,
+   "large_moves": 25549,
+   "UP": [
+    null,
+    0
+   ],
+   "DOWN": [
+    null,
+    0
+   ]
+  },
+  "blind H1 (test)": {
+   "base": 52.0,
+   "large_moves": 12031,
+   "UP": [
+    null,
+    0
+   ],
+   "DOWN": [
+    null,
+    0
+   ]
+  },
+  "blind H2 (test)": {
+   "base": 49.6,
+   "large_moves": 13518,
+   "UP": [
+    null,
+    0
+   ],
+   "DOWN": [
+    null,
+    0
+   ]
+  }
+ }
+}
