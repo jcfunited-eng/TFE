@@ -40,7 +40,9 @@ for c, g in cellE.groupby("cell"):
 bands = pd.concat(bands); bands = bands[bands.eband_v >= 0]
 key = herd.merge(bands, on=["cell", "date"], how="inner")[["sym", "date", "eband_v", "gband"]]
 res = {"declared": __doc__, "member_days": int(len(m))}
-for name, path in (("studied", "artifacts/ch4_uf/ch2_flare_region_rows.parquet"), ("blind", "artifacts/ch4_uf/ch2_flare_region_rows_blind.parquet")):
+import os
+RS = os.environ.get("ROWS_SUFFIX", "")
+for name, path in (("studied", f"artifacts/ch4_uf/ch2_flare_region_rows{RS}.parquet"), ("blind", f"artifacts/ch4_uf/ch2_flare_region_rows{RS}_blind.parquet")):
     ev = pd.read_parquet(path).drop(columns=["eband"]).merge(key.drop(columns=["gband"]), on=["sym", "date"], how="inner")
     ev["year"] = ev.date.str[:4]
     out = {"structures": int(len(ev)), "years": {}}
@@ -55,4 +57,4 @@ for name, path in (("studied", "artifacts/ch4_uf/ch2_flare_region_rows.parquet")
     res[name] = out
     print(name, out["structures"], "BUILD", out["build_years"], "EXHAUSTED", out["exhausted_years"])
     for y, v in out["years"].items(): print("  ", y, v)
-json.dump(res, open("artifacts/ch4_uf/ch2_region_energy_valid.json", "w"), indent=1)
+json.dump(res, open(f"artifacts/ch4_uf/ch2_region_energy_valid{RS}.json", "w"), indent=1)

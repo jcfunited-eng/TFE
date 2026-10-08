@@ -30,7 +30,12 @@ for s in names:
     F = path_unit_field(d, 100); ok = np.isfinite(F).all(axis=1); d = d[ok].reset_index(drop=True); F = F[ok]
     if len(F) < 400: continue
     try:
-        r = readings(F, tau_D="own"); check_feed(F, r)
+        rr = None
+        if os.environ.get("FLARE_RELEVANCE") == "psi_r":
+            # the original file's relevance (standalone_truth_kernel.psi_r, W_r=10):
+            # 1.0 if the latest value is above its 10-bar mean, else 0.5 — on the close channel
+            cc = pd.Series(F[:, 3]); rr = np.where(cc > cc.rolling(10, min_periods=1).mean(), 1.0, 0.5)
+        r = readings(F, tau_D="own", r=rr); check_feed(F, r)
     except FeedError: continue
     tf = tradeable_flags(d).tradeable.values; c = d.Close.values
     dk = d.Date.dt.strftime("%Y%m%d").values; tb = r.t.values.astype(int)
