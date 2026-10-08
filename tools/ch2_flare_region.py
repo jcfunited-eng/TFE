@@ -20,7 +20,9 @@ from ch2_canon_census import tradeable_flags
 herd = pd.read_parquet("artifacts/ch4_uf/herd_state_live.parquet")
 herd["key"] = herd.sym.astype(str) + "|" + herd.date.astype(str)
 hmap = dict(zip(herd.key, zip(herd.eband, herd.gband)))
-pool = pd.read_parquet("artifacts/ch2_life/ohlcv_pool.parquet")
+import os
+POOL = os.environ.get("FLARE_POOL", "artifacts/ch2_life/ohlcv_pool.parquet"); SUF = os.environ.get("FLARE_SUFFIX", "")
+pool = pd.read_parquet(POOL)
 cnt = pool.groupby("Symbol").size(); names = sorted(cnt[cnt >= 1000].index)
 rows = []
 for s in names:
@@ -38,8 +40,8 @@ for s in names:
         st = hmap.get(f"{s}|{dk[a]}")
         if st is None: continue
         mv = c[b] / c[a] - 1
-        rows.append((dk[a], st[0], st[1], float(r.iloc[k].D_k), mv))
-df = pd.DataFrame(rows, columns=["date", "eband", "gband", "D_k", "mv"])
+        rows.append((dk[a], s, st[0], st[1], float(r.iloc[k].D_k), mv, int(b - a)))
+df = pd.DataFrame(rows, columns=["date", "sym", "eband", "gband", "D_k", "mv", "bars"])
 df["half"] = np.where(df.date <= "20231231", "H1", "H2")
 df["flare"] = df.mv.abs() > 0.10; df["rise"] = df.mv > 0.10
 res = {"declared": __doc__, "structures": len(df)}
@@ -52,4 +54,5 @@ for h, g in df.groupby("half"):
               "region": {f"E{e}G{gg}": cell(x) for (e, gg), x in g.groupby(["eband", "gband"])},
               "region_x_own_Dk": {f"E{e}G{gg}|D{'+' if dpos else '0-'}": cell(x) for (e, gg, dpos), x in g.assign(dpos=g.D_k > 0).groupby(["eband", "gband", "dpos"])}}
 print(json.dumps({k: v for k, v in res.items() if k != "declared"}, indent=1))
-json.dump(res, open("artifacts/ch4_uf/ch2_flare_region.json", "w"), indent=1)
+json.dump(res, open(f"artifacts/ch4_uf/ch2_flare_region{SUF}.json", "w"), indent=1)
+df.to_parquet(f"artifacts/ch4_uf/ch2_flare_region_rows{SUF}.parquet")
