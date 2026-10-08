@@ -1,0 +1,152 @@
+{
+ "declared": "CH2 book sim, HEDGED arms \u2014 declared 2026-10-08 before running (Joe: \"is there\nanything we could do to fix it\"). Same book, eligibility, slot rule and costs as\ntools/ch2_book_sim.py (B2: F2 set, most-fallen-first, 20 x $5k, 10 sessions,\n0.20% round trip). Hedge cost +0.05% per trade (declared).\n  H1  B2 trade return minus SPY's return over the same 10 sessions\n  H2  B2 trade return minus the equal-weight average 10-session return of every\n      in-pool tradeable name that day (the small-company market CH2 swims in)\nReport per year on $100k next to unhedged B2 and SPY buy-and-hold. Filed either way.\nOUTPUT: artifacts/ch4_uf/ch2_book_sim_hedged.json",
+ "spy_buy_hold_pct": {
+  "2021": 28.79,
+  "2022": -19.95,
+  "2023": 24.81,
+  "2024": 24.0,
+  "2025": 16.64,
+  "2026": 12.28
+ },
+ "B2 unhedged": {
+  "2022": {
+   "trades": 300,
+   "win_rate": 0.4467,
+   "gross_pnl": -15245.0,
+   "net_pnl": -18245.0,
+   "return_on_100k_pct": -18.25,
+   "max_drawdown_usd": -29334.0,
+   "spy_buy_hold_pct": -19.95
+  },
+  "2023": {
+   "trades": 120,
+   "win_rate": 0.6,
+   "gross_pnl": 13312.0,
+   "net_pnl": 12112.0,
+   "return_on_100k_pct": 12.11,
+   "max_drawdown_usd": -4072.0,
+   "spy_buy_hold_pct": 24.81
+  },
+  "2024": {
+   "trades": 180,
+   "win_rate": 0.5944,
+   "gross_pnl": 18719.0,
+   "net_pnl": 16919.0,
+   "return_on_100k_pct": 16.92,
+   "max_drawdown_usd": -13197.0,
+   "spy_buy_hold_pct": 24.0
+  },
+  "2025": {
+   "trades": 180,
+   "win_rate": 0.5889,
+   "gross_pnl": 15784.0,
+   "net_pnl": 13984.0,
+   "return_on_100k_pct": 13.98,
+   "max_drawdown_usd": -11538.0,
+   "spy_buy_hold_pct": 16.64
+  },
+  "2026": {
+   "trades": 100,
+   "win_rate": 0.64,
+   "gross_pnl": 24084.0,
+   "net_pnl": 23084.0,
+   "return_on_100k_pct": 23.08,
+   "max_drawdown_usd": -6828.0,
+   "spy_buy_hold_pct": 12.28
+  }
+ },
+ "H1 minus SPY": {
+  "2022": {
+   "trades": 300,
+   "win_rate": 0.4467,
+   "gross_pnl": -8789.0,
+   "net_pnl": -12539.0,
+   "return_on_100k_pct": -12.54,
+   "max_drawdown_usd": -20865.0,
+   "spy_buy_hold_pct": -19.95
+  },
+  "2023": {
+   "trades": 120,
+   "win_rate": 0.5167,
+   "gross_pnl": 3949.0,
+   "net_pnl": 2449.0,
+   "return_on_100k_pct": 2.45,
+   "max_drawdown_usd": -5384.0,
+   "spy_buy_hold_pct": 24.81
+  },
+  "2024": {
+   "trades": 180,
+   "win_rate": 0.4556,
+   "gross_pnl": -1346.0,
+   "net_pnl": -3596.0,
+   "return_on_100k_pct": -3.6,
+   "max_drawdown_usd": -15493.0,
+   "spy_buy_hold_pct": 24.0
+  },
+  "2025": {
+   "trades": 180,
+   "win_rate": 0.4944,
+   "gross_pnl": 405.0,
+   "net_pnl": -1845.0,
+   "return_on_100k_pct": -1.85,
+   "max_drawdown_usd": -10092.0,
+   "spy_buy_hold_pct": 16.64
+  },
+  "2026": {
+   "trades": 100,
+   "win_rate": 0.46,
+   "gross_pnl": 12127.0,
+   "net_pnl": 10877.0,
+   "return_on_100k_pct": 10.88,
+   "max_drawdown_usd": -3857.0,
+   "spy_buy_hold_pct": 12.28
+  }
+ },
+ "H2 minus small-company pool": {
+  "2022": {
+   "trades": 300,
+   "win_rate": 0.4533,
+   "gross_pnl": -10601.0,
+   "net_pnl": -14351.0,
+   "return_on_100k_pct": -14.35,
+   "max_drawdown_usd": -20286.0,
+   "spy_buy_hold_pct": -19.95
+  },
+  "2023": {
+   "trades": 120,
+   "win_rate": 0.5083,
+   "gross_pnl": 5731.0,
+   "net_pnl": 4231.0,
+   "return_on_100k_pct": 4.23,
+   "max_drawdown_usd": -4964.0,
+   "spy_buy_hold_pct": 24.81
+  },
+  "2024": {
+   "trades": 180,
+   "win_rate": 0.4889,
+   "gross_pnl": 3205.0,
+   "net_pnl": 955.0,
+   "return_on_100k_pct": 0.95,
+   "max_drawdown_usd": -14034.0,
+   "spy_buy_hold_pct": 24.0
+  },
+  "2025": {
+   "trades": 180,
+   "win_rate": 0.4278,
+   "gross_pnl": -7884.0,
+   "net_pnl": -10134.0,
+   "return_on_100k_pct": -10.13,
+   "max_drawdown_usd": -13718.0,
+   "spy_buy_hold_pct": 16.64
+  },
+  "2026": {
+   "trades": 100,
+   "win_rate": 0.47,
+   "gross_pnl": 15222.0,
+   "net_pnl": 13972.0,
+   "return_on_100k_pct": 13.97,
+   "max_drawdown_usd": -1564.0,
+   "spy_buy_hold_pct": 12.28
+  }
+ }
+}
