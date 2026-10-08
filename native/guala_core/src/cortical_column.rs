@@ -20,14 +20,15 @@
 //!        Claims of continuum material contact law closure or Holm/tunneling calibration are formally retracted.
 //!   3. Causal Multi-Axis Motor Efferent Transduction:
 //!      - Motor efferents scale directly from settled L5 pyramidal population excitation:
-//!        vocal_hz in [0, 480], stride_mm in [0, 60], steer_deg in [-45, +45], grip_n in [0, 25].
+//!        vocal_hz in [0, 480], stride_mm in [0, 60], steer_deg in [-45, +45], hand_n in [-25, +25].
 //!      - Silent motor populations produce strictly (0.0, 0.0, 0.0, 0.0) efferents.
 //!      - Actuators remain on independent physical axes; zero dimensionally invalid cross-ranking.
 //!   4. Prefrontal / Structural Invariant Sheet (Columns 48..63):
-//!      - Complete binary64 field values are preserved in storage and exact
-//!        rational representation. The typed phase/material consumer is absent.
-//!      - Full-field transition refuses atomically. Component-only execution
-//!        is not evidence of ratified full-field neuron physics.
+//!      - Complete binary64 fields are reconstructed from every MathLoom
+//!        rational digit, then delivered as continuous potentials to the
+//!        existing discrete laminar law, one dedicated column per coordinate.
+//!      - No positional truncation or aggregate field decision score is used.
+//!        This is functional discrete emulation, not continuum calibration.
 //!   5. Fail-Closed Lossless ARCLOOM4 State Persistence with Explicit Field Availability:
 //!      - Serializes complete topological configuration, including severed tracts,
 //!        column-local microcircuit plasticity parameters, and motor dynamics.
@@ -98,6 +99,28 @@ pub const G_ELASTIC_BASELINE: f32 = 0.05;
 // 1. Laminar Microcircuit (Canonical 6-Layer Primitive)
 // ---------------------------------------------------------------------------
 
+/// Functional shared inhibition with separate signed source poles.
+/// Equal branch conductances give each pole's reference by Kirchhoff current
+/// balance. Output rectification suppresses a source without reversing its
+/// polarity or creating an emitter at a resting site. This is a functional
+/// normalized circuit, not calibrated biological material reconstruction.
+fn settle_shared_inhibitory_reference(potentials: &mut [f32], threshold: f32, states: &mut [i8]) {
+    assert_eq!(potentials.len(), states.len());
+    assert!(!potentials.is_empty());
+    let count = potentials.len() as f64;
+    let positive_reference = potentials.iter().map(|&v| f64::from(v).max(0.0)).sum::<f64>() / count;
+    let negative_reference = potentials.iter().map(|&v| (-f64::from(v)).max(0.0)).sum::<f64>() / count;
+    for (potential, state) in potentials.iter_mut().zip(states.iter_mut()) {
+        let source = f64::from(*potential);
+        let current = if source > 0.0 { (source - positive_reference).max(0.0) }
+            else if source < 0.0 { -(-source - negative_reference).max(0.0) }
+            else { 0.0 };
+        *state = if current >= f64::from(threshold) { 1 }
+            else if current <= -f64::from(threshold) { -1 } else { 0 };
+        *potential = current as f32;
+    }
+}
+
 #[derive(Clone)]
 pub struct LaminarMicrocircuit {
     pub l1: Vec<i8>,
@@ -107,6 +130,9 @@ pub struct LaminarMicrocircuit {
     pub l6: Vec<i8>,
     pub v_23: Vec<f32>,
     pub v_5: Vec<f32>,
+    // Functional presynaptic transmission availability, not learned weights.
+    pub resource_23: Vec<f32>,
+    pub resource_5: Vec<f32>,
 
     pub g_4_23: Vec<f32>,
     pub g_23_23: Vec<f32>,
@@ -123,6 +149,17 @@ pub struct LaminarMicrocircuit {
 }
 
 impl LaminarMicrocircuit {
+    fn advance_activity_resource(&mut self, reserve_fraction: f64, resting: bool) {
+        let eta = reserve_fraction.max(0.10);
+        for (states, resources) in [(&self.l23, &mut self.resource_23), (&self.l5, &mut self.resource_5)] {
+            for (&state, resource) in states.iter().zip(resources.iter_mut()) {
+                let r = f64::from(*resource);
+                *resource = if !resting && state != 0 { (0.65 * r) as f32 }
+                    else { (r + 0.20 * eta * (1.0 - r)) as f32 };
+            }
+        }
+    }
+
     pub fn new(yield_threshold: f32, plastic_rate: f32, activation_threshold: f32) -> Self {
         Self {
             l1: vec![0; L1_NODES],
@@ -132,6 +169,8 @@ impl LaminarMicrocircuit {
             l6: vec![0; L6_NODES],
             v_23: vec![0.0; L23_NODES],
             v_5: vec![0.0; L5_NODES],
+            resource_23: vec![1.0; L23_NODES],
+            resource_5: vec![1.0; L5_NODES],
 
             g_4_23: vec![0.0; G_4_23_SIZE],
             g_23_23: vec![0.0; G_23_23_SIZE],
@@ -148,12 +187,43 @@ impl LaminarMicrocircuit {
     }
 
     pub fn step_laminar_flow(
+        &mut self, afferents: &[i8], apical_somatics: &[i8],
+        inter_l23_in: &[f32], inter_l5_in: &[f32],
+    ) -> (usize, f32) {
+        self.step_laminar_input(afferents, None, apical_somatics, inter_l23_in, inter_l5_in)
+    }
+
+    // One complete continuous field potential per dedicated column. The
+    // existing discrete neural transition follows delivery, never substitutes
+    // a prefix of the field's positional representation for that delivery.
+    fn step_field_potential(
+        &mut self, potential: f64, apical_somatics: &[i8],
+        inter_l23_in: &[f32], inter_l5_in: &[f32],
+    ) -> (usize, f32) {
+        self.step_laminar_input(&[], Some(&[potential]), apical_somatics, inter_l23_in, inter_l5_in)
+    }
+
+    fn step_field_potentials(
+        &mut self, potentials: &[f64; L4_NODES], apical_somatics: &[i8],
+        inter_l23_in: &[f32], inter_l5_in: &[f32],
+    ) -> (usize, f32) {
+        self.step_laminar_input(&[], Some(potentials), apical_somatics, inter_l23_in, inter_l5_in)
+    }
+
+    fn step_laminar_input(
         &mut self,
         afferents: &[i8],
+        field_potentials: Option<&[f64]>,
         apical_somatics: &[i8],
         inter_l23_in: &[f32],
         inter_l5_in: &[f32],
     ) -> (usize, f32) {
+        // Recurrence and predictive feedback arrive from the prior interval.
+        // Keep their actual causal sources until plastic settlement; the new
+        // outputs below have not driven these contacts in this interval.
+        let previous_l23: [i8; L23_NODES] = self.l23.as_slice().try_into().unwrap();
+        let previous_l6: [i8; L6_NODES] = self.l6.as_slice().try_into().unwrap();
+
         // 1. Update L1 (apical modulation)
         for (i, val) in self.l1.iter_mut().enumerate() {
             *val = if i < apical_somatics.len() { apical_somatics[i].clamp(-1, 1) } else { 0 };
@@ -166,10 +236,13 @@ impl LaminarMicrocircuit {
             for i in 0..L6_NODES {
                 pred_cancellation += (self.l6[i] as f32) * self.g_6_4[i * L4_NODES + j];
             }
-            let net_l4 = aff - pred_cancellation;
-            self.l4[j] = if net_l4 >= self.activation_threshold {
+            let net_l4 = match field_potentials {
+                Some(values) => values.get(j).copied().unwrap_or(0.0) - f64::from(pred_cancellation),
+                None => f64::from(aff - pred_cancellation),
+            };
+            self.l4[j] = if net_l4 >= f64::from(self.activation_threshold) {
                 1
-            } else if net_l4 <= -self.activation_threshold {
+            } else if net_l4 <= -f64::from(self.activation_threshold) {
                 -1
             } else {
                 0
@@ -189,82 +262,54 @@ impl LaminarMicrocircuit {
                 acc += (self.l1[i] as f32) * self.g_1_23[i * L23_NODES + j];
             }
             for i in 0..L23_NODES {
-                acc += (self.l23[i] as f32) * self.g_23_23[i * L23_NODES + j];
+                acc += self.resource_23[i] * (self.l23[i] as f32) * self.g_23_23[i * L23_NODES + j];
             }
             if j < inter_l23_in.len() {
                 acc += inter_l23_in[j];
             }
-            v_23[j] = acc;
+            v_23[j] = self.resource_23[j] * acc;
         }
 
+
+        // 4. Shared-reference lateral inhibition in L2/3.
+        settle_shared_inhibitory_reference(&mut v_23, self.activation_threshold, &mut self.l23);
         self.v_23 = v_23.clone();
-
-        // 4. Continuum Lateral Inhibitory Competition in L2/3:
-        let max_abs_v23 = v_23.iter().map(|v| v.abs()).fold(0.0f32, f32::max);
-        let inh_l23 = (max_abs_v23 * 0.80).max(self.activation_threshold);
-        for j in 0..L23_NODES {
-            self.l23[j] = if v_23[j] >= inh_l23 {
-                1
-            } else if v_23[j] <= -inh_l23 {
-                -1
-            } else {
-                0
-            };
-        }
 
         // 5. Infragranular Motor Pyramidal Layer (L5):
         let mut v_5 = vec![0.0f32; L5_NODES];
         for j in 0..L5_NODES {
-            let topo_l23 = self.l23[j * 2] as f32 * 0.50;
+            let topo_l23 = self.resource_23[j * 2] * self.l23[j * 2] as f32 * 0.50;
             let mut acc = topo_l23;
             for i in 0..L23_NODES {
-                acc += (self.l23[i] as f32) * self.g_23_5[i * L5_NODES + j];
+                acc += self.resource_23[i] * (self.l23[i] as f32) * self.g_23_5[i * L5_NODES + j];
             }
             if j < inter_l5_in.len() {
                 acc += inter_l5_in[j];
             }
-            v_5[j] = acc;
+            v_5[j] = self.resource_5[j] * acc;
         }
-        let max_abs_v5 = v_5.iter().map(|v| v.abs()).fold(0.0f32, f32::max);
-        let inh_l5 = (max_abs_v5 * 0.80).max(self.activation_threshold);
-        for j in 0..L5_NODES {
-            self.l5[j] = if v_5[j] >= inh_l5 {
-                1
-            } else if v_5[j] <= -inh_l5 {
-                -1
-            } else {
-                0
-            };
-        }
+        settle_shared_inhibitory_reference(&mut v_5, self.activation_threshold, &mut self.l5);
         self.v_5 = v_5;
 
         // 6. Efference Copy into L6: Driven by L5
         let mut v_6 = vec![0.0f32; L6_NODES];
         for j in 0..L6_NODES {
-            let topo_l5 = self.l5[j * 2] as f32 * 0.50;
+            let topo_l5 = self.resource_5[j * 2] * self.l5[j * 2] as f32 * 0.50;
             let mut acc = topo_l5;
             for i in 0..L5_NODES {
-                acc += (self.l5[i] as f32) * self.g_5_6[i * L6_NODES + j];
+                acc += self.resource_5[i] * (self.l5[i] as f32) * self.g_5_6[i * L6_NODES + j];
             }
             v_6[j] = acc;
         }
-        let max_abs_v6 = v_6.iter().map(|v| v.abs()).fold(0.0f32, f32::max);
-        let inh_l6 = (max_abs_v6 * 0.80).max(self.activation_threshold);
-        for j in 0..L6_NODES {
-            self.l6[j] = if v_6[j] >= inh_l6 {
-                1
-            } else if v_6[j] <= -inh_l6 {
-                -1
-            } else {
-                0
-            };
-        }
+        settle_shared_inhibitory_reference(&mut v_6, self.activation_threshold, &mut self.l6);
 
         // 7. Local continuum von Mises plasticity within the column (permanent during waking)
-        self.apply_intra_yield_plasticity()
+        self.apply_intra_yield_plasticity(&previous_l23, &previous_l6)
     }
 
-    pub fn apply_intra_yield_plasticity(&mut self) -> (usize, f32) {
+    pub fn apply_intra_yield_plasticity(
+        &mut self, previous_l23: &[i8; L23_NODES], previous_l6: &[i8; L6_NODES],
+    ) -> (usize, f32) {
         let mut yield_count = 0usize;
         let mut total_strain = 0.0f32;
 
@@ -278,12 +323,13 @@ impl LaminarMicrocircuit {
                 if self.l23[j] == 0 { continue; }
                 let idx = i * L23_NODES + j;
                 let target = (self.l4[i] * self.l23[j]) as f32;
-                let sigma = target - self.g_4_23[idx];
+                let resource = self.resource_23[j];
+                let sigma = resource * (target - self.g_4_23[idx]);
                 let abs_sigma = sigma.abs();
                 if abs_sigma > y {
                     let overstress = abs_sigma - y;
                     let was_zero = self.g_4_23[idx] == 0.0;
-                    self.g_4_23[idx] = (self.g_4_23[idx] + overstress * sigma.signum()).clamp(-1.0, 1.0);
+                    self.g_4_23[idx] = (self.g_4_23[idx] + (overstress / resource) * sigma.signum()).clamp(-1.0, 1.0);
                     if was_zero && self.g_4_23[idx] != 0.0 {
                         self.active_intra.push((0, idx as u16));
                     }
@@ -295,17 +341,18 @@ impl LaminarMicrocircuit {
 
         // Plasticity: Recurrent L2/3 -> L2/3
         for i in 0..L23_NODES {
-            if self.l23[i] == 0 { continue; }
+            if previous_l23[i] == 0 { continue; }
             for j in 0..L23_NODES {
                 if i == j || self.l23[j] == 0 { continue; }
                 let idx = i * L23_NODES + j;
-                let target = (self.l23[i] * self.l23[j]) as f32;
-                let sigma = target - self.g_23_23[idx];
+                let target = (previous_l23[i] * self.l23[j]) as f32;
+                let resource = self.resource_23[i] * self.resource_23[j];
+                let sigma = resource * (target - self.g_23_23[idx]);
                 let abs_sigma = sigma.abs();
                 if abs_sigma > y {
                     let overstress = abs_sigma - y;
                     let was_zero = self.g_23_23[idx] == 0.0;
-                    self.g_23_23[idx] = (self.g_23_23[idx] + overstress * sigma.signum()).clamp(-1.0, 1.0);
+                    self.g_23_23[idx] = (self.g_23_23[idx] + (overstress / resource) * sigma.signum()).clamp(-1.0, 1.0);
                     if was_zero && self.g_23_23[idx] != 0.0 {
                         self.active_intra.push((1, idx as u16));
                     }
@@ -322,12 +369,13 @@ impl LaminarMicrocircuit {
                 if self.l5[j] == 0 { continue; }
                 let idx = i * L5_NODES + j;
                 let target = (self.l23[i] * self.l5[j]) as f32;
-                let sigma = target - self.g_23_5[idx];
+                let resource = self.resource_23[i] * self.resource_5[j];
+                let sigma = resource * (target - self.g_23_5[idx]);
                 let abs_sigma = sigma.abs();
                 if abs_sigma > y {
                     let overstress = abs_sigma - y;
                     let was_zero = self.g_23_5[idx] == 0.0;
-                    self.g_23_5[idx] = (self.g_23_5[idx] + overstress * sigma.signum()).clamp(-1.0, 1.0);
+                    self.g_23_5[idx] = (self.g_23_5[idx] + (overstress / resource) * sigma.signum()).clamp(-1.0, 1.0);
                     if was_zero && self.g_23_5[idx] != 0.0 {
                         self.active_intra.push((2, idx as u16));
                     }
@@ -344,12 +392,13 @@ impl LaminarMicrocircuit {
                 if self.l6[j] == 0 { continue; }
                 let idx = i * L6_NODES + j;
                 let target = (self.l5[i] * self.l6[j]) as f32;
-                let sigma = target - self.g_5_6[idx];
+                let resource = self.resource_5[i];
+                let sigma = resource * (target - self.g_5_6[idx]);
                 let abs_sigma = sigma.abs();
                 if abs_sigma > y {
                     let overstress = abs_sigma - y;
                     let was_zero = self.g_5_6[idx] == 0.0;
-                    self.g_5_6[idx] = (self.g_5_6[idx] + overstress * sigma.signum()).clamp(-1.0, 1.0);
+                    self.g_5_6[idx] = (self.g_5_6[idx] + (overstress / resource) * sigma.signum()).clamp(-1.0, 1.0);
                     if was_zero && self.g_5_6[idx] != 0.0 {
                         self.active_intra.push((3, idx as u16));
                     }
@@ -361,11 +410,11 @@ impl LaminarMicrocircuit {
 
         // Plasticity: L6 -> L4 (Predictive cancellation gating)
         for i in 0..L6_NODES {
-            if self.l6[i] == 0 { continue; }
+            if previous_l6[i] == 0 { continue; }
             for j in 0..L4_NODES {
                 if self.l4[j] == 0 { continue; }
                 let idx = i * L4_NODES + j;
-                let target = (self.l6[i] * self.l4[j]) as f32;
+                let target = (previous_l6[i] * self.l4[j]) as f32;
                 let sigma = target - self.g_6_4[idx];
                 let abs_sigma = sigma.abs();
                 if abs_sigma > y {
@@ -388,12 +437,13 @@ impl LaminarMicrocircuit {
                 if self.l23[j] == 0 { continue; }
                 let idx = i * L23_NODES + j;
                 let target = (self.l1[i] * self.l23[j]) as f32;
-                let sigma = target - self.g_1_23[idx];
+                let resource = self.resource_23[j];
+                let sigma = resource * (target - self.g_1_23[idx]);
                 let abs_sigma = sigma.abs();
                 if abs_sigma > y {
                     let overstress = abs_sigma - y;
                     let was_zero = self.g_1_23[idx] == 0.0;
-                    self.g_1_23[idx] = (self.g_1_23[idx] + overstress * sigma.signum()).clamp(-1.0, 1.0);
+                    self.g_1_23[idx] = (self.g_1_23[idx] + (overstress / resource) * sigma.signum()).clamp(-1.0, 1.0);
                     if was_zero && self.g_1_23[idx] != 0.0 {
                         self.active_intra.push((5, idx as u16));
                     }
@@ -1774,6 +1824,7 @@ impl ModularSubstrate8D {
 // ---------------------------------------------------------------------------
 
 pub struct StagedSubstrateState {
+    pub activity_resource_active: bool,
     pub yield_threshold: f32,
     pub plastic_rate: f32,
     pub activation_threshold: f32,
@@ -1794,6 +1845,7 @@ pub struct StagedSubstrateState {
 pub use crate::mathloom::MathLoomRationalField;
 
 pub struct ModularSubstrate64D {
+    pub activity_resource_active: bool,
     pub columns: Vec<CorticalColumn>,
     pub w_inter_23: Vec<f32>,
     pub w_inter_5: Vec<f32>,
@@ -1819,6 +1871,7 @@ impl ModularSubstrate64D {
         }
 
         Self {
+            activity_resource_active: false,
             columns,
             w_inter_23: vec![0.0; INTER_COL_23_SIZE_64D],
             w_inter_5: vec![0.0; INTER_COL_5_SIZE_64D],
@@ -1898,7 +1951,46 @@ impl ModularSubstrate64D {
         self.continuous_joint_field
     }
 
+    /// Column 42 hand antagonist balance. Positive closes the hand,
+    /// negative opens it, and zero supplies no change in hand actuation.
+    /// The held object's custody remains in the physical world.
+    pub fn get_hand_efferent(&self) -> i16 {
+        self.columns[42].microcircuit.l5.iter().map(|&v| i16::from(v)).sum()
+    }
+
+    /// Signed jaw motor population in Column 44. Positive activity closes
+    /// the mouth; zero or negative activity cannot initiate oral contact.
+    /// Derived from canonical L5 state: no new memory or migration defaults.
+    pub fn get_mouth_efferent(&self) -> i16 {
+        self.columns[44].microcircuit.l5.iter().map(|&v| i16::from(v)).sum()
+    }
+
+    /// Existing airway actuator addresses: 11 onsets, 5 vowels, 4 registers.
+    /// A unique depolarized motor winner is required on each independent axis.
+    /// Ambiguous or silent populations emit no articulatory command.
+    pub fn get_articulatory_efferent(&self) -> Option<[usize; 3]> {
+        if self.motor_vocal_drive <= 0.0 { return None; }
+        fn winner(circuit: &LaminarMicrocircuit, count: usize) -> Option<usize> {
+            let mut peak = 0.0f32;
+            let mut selected = None;
+            for i in 0..count {
+                if circuit.l5[i] <= 0 { continue; }
+                let potential = circuit.v_5[i];
+                if potential > peak { peak = potential; selected = Some(i); }
+                else if potential == peak { selected = None; }
+            }
+            selected
+        }
+        Some([
+            winner(&self.columns[45].microcircuit, 11)?,
+            winner(&self.columns[46].microcircuit, 5)?,
+            winner(&self.columns[47].microcircuit, 4)?,
+        ])
+    }
+
+
     fn commit_staged_state(&mut self, staged: StagedSubstrateState) {
+        self.activity_resource_active = staged.activity_resource_active;
         self.yield_threshold = staged.yield_threshold;
         self.plastic_rate = staged.plastic_rate;
         self.activation_threshold = staged.activation_threshold;
@@ -1952,6 +2044,11 @@ impl ModularSubstrate64D {
     pub fn are_columns_fasciculated(&self, c_from: usize, c_to: usize) -> bool {
         if c_from >= NUM_COLUMNS_64D || c_to >= NUM_COLUMNS_64D || c_from == c_to { return false; }
         if self.severed_tracts[c_from * NUM_COLUMNS_64D + c_to] { return false; }
+        // Break symmetric elastic phase-locking between opposing effectors in Cluster 5:
+        // Hand (Col 42) and Mouth (Col 44) must not have mutual positive elastic coupling.
+        if (c_from == 42 && c_to == 44) || (c_from == 44 && c_to == 42) { return false; }
+        // Decouple Locomotion (Cols 40/41) from Mouth (Col 44).
+        if ((c_from == 40 || c_from == 41) && c_to == 44) || (c_from == 44 && (c_to == 40 || c_to == 41)) { return false; }
         let k_from = c_from / 8;
         let k_to = c_to / 8;
         if k_from == k_to { return true; }
@@ -1982,42 +2079,36 @@ impl ModularSubstrate64D {
         (i as isize - j as isize).abs() <= 6 || (i % 8 == j % 8)
     }
 
+    /// Directed signed synaptic transmission. The retained weights encode
+    /// excitatory/inhibitory polarization, not nonnegative gap conductance.
+    /// Receiver activity is therefore not a voltage to subtract from a spike.
     pub fn compute_inter_column_currents(&self) -> (Vec<Vec<f32>>, Vec<Vec<f32>>) {
         let mut in_23 = vec![vec![0.0f32; L23_NODES]; NUM_COLUMNS_64D];
         let mut in_5 = vec![vec![0.0f32; L5_NODES]; NUM_COLUMNS_64D];
-
         for c_from in 0..NUM_COLUMNS_64D {
             for i in 0..L23_NODES {
-                let v = self.columns[c_from].microcircuit.l23[i];
-                if v == 0 { continue; }
-                let v_f = v as f32;
+                let source = self.columns[c_from].microcircuit.l23[i];
+                if source == 0 { continue; }
                 for c_to in 0..NUM_COLUMNS_64D {
                     if !self.are_columns_fasciculated(c_from, c_to) { continue; }
                     for j in 0..L23_NODES {
                         if !Self::l23_contact_site(i, j) { continue; }
-                        let idx = Self::index_inter_23(c_from, c_to, i, j);
-                        let w = self.w_inter_23[idx];
-                        let g_eff = G_ELASTIC_BASELINE + w;
-                        if g_eff.abs() > 0.001 {
-                            in_23[c_to][j] += v_f * g_eff;
-                        }
+                        let coupling = G_ELASTIC_BASELINE + self.w_inter_23[
+                            Self::index_inter_23(c_from, c_to, i, j)];
+                        in_23[c_to][j] += self.columns[c_from].microcircuit.resource_23[i] * (source as f32) * coupling;
                     }
                 }
             }
             for i in 0..L5_NODES {
-                let v = self.columns[c_from].microcircuit.l5[i];
-                if v == 0 { continue; }
-                let v_f = v as f32;
+                let source = self.columns[c_from].microcircuit.l5[i];
+                if source == 0 { continue; }
                 for c_to in 0..NUM_COLUMNS_64D {
                     if !self.are_columns_fasciculated(c_from, c_to) { continue; }
                     for j in 0..L5_NODES {
                         if !Self::l5_contact_site(i, j) { continue; }
-                        let idx = Self::index_inter_5(c_from, c_to, i, j);
-                        let w = self.w_inter_5[idx];
-                        let g_eff = G_ELASTIC_BASELINE + w;
-                        if g_eff.abs() > 0.001 {
-                            in_5[c_to][j] += v_f * g_eff;
-                        }
+                        let coupling = G_ELASTIC_BASELINE + self.w_inter_5[
+                            Self::index_inter_5(c_from, c_to, i, j)];
+                        in_5[c_to][j] += self.columns[c_from].microcircuit.resource_5[i] * (source as f32) * coupling;
                     }
                 }
             }
@@ -2026,6 +2117,17 @@ impl ModularSubstrate64D {
     }
 
     pub fn step_cycle(
+        &mut self, sensory_trits: &[i8], somatic_trits: &[i8],
+        observed_r_mm: Option<f32>, observed_theta_mdeg: Option<i32>,
+        current_barrier_stress: f32, acoustic_formants: &[f32],
+        articulatory_reafference: Option<[usize; 3]>,
+    ) -> Result<(usize, f32), String> {
+        self.step_embodied_cycle(sensory_trits, somatic_trits, observed_r_mm,
+            observed_theta_mdeg, current_barrier_stress, acoustic_formants,
+            articulatory_reafference, None, None, None, None, None, None, None)
+    }
+
+    fn step_embodied_cycle(
         &mut self,
         sensory_trits: &[i8],
         somatic_trits: &[i8],
@@ -2033,7 +2135,28 @@ impl ModularSubstrate64D {
         observed_theta_mdeg: Option<i32>,
         current_barrier_stress: f32,
         acoustic_formants: &[f32],
+        articulatory_reafference: Option<[usize; 3]>,
+        motor_reafference: Option<[i32; 3]>,
+        own_auditory: Option<&[i8]>,
+        reserve_fraction: Option<f64>,
+        source_fields: Option<&[(usize, [f64; 8])]>,
+        kinematic_refusal: Option<bool>,
+        somatic_coordinates: Option<[f64; 8]>,
+        oral_contact: Option<bool>,
     ) -> Result<(usize, f32), String> {
+        if let Some(values) = somatic_coordinates {
+            if values.iter().any(|v| !v.is_finite() || !(0.0..=1.0).contains(v)) {
+                return Err("Primary body receptors require eight normalized physical coordinates".into());
+            }
+        }
+        if kinematic_refusal.is_some() && current_barrier_stress != 0.0 {
+            return Err("Kinematic refusal cannot compete with a mechanical-stress input".into());
+        }
+        if let Some(reserve) = reserve_fraction {
+            Self::validate_reserve(reserve)?;
+        } else if self.activity_resource_active {
+            return Err("Active transmission resources require actual body reserve".into());
+        }
         // Static formant triples are not mounted auditory receptor evidence.
         // The removed min(f / 5, 63) encoder collapsed all eight curriculum
         // verbs into identical afferents. Refuse before ANY state mutation;
@@ -2041,9 +2164,69 @@ impl ModularSubstrate64D {
         if !acoustic_formants.is_empty() {
             return Err("Formant-profile stimulation is unavailable: use mounted time-aligned acoustic receptor evidence; lossy frequency bins and word profiles are prohibited".to_string());
         }
+        // Actual airway proprioception: onset, vowel, register. These are
+        // physical actuator addresses, never words or teacher answer tokens.
+        if let Some([onset, vowel, pitch]) = articulatory_reafference {
+            if onset >= 11 || vowel >= 5 || pitch >= 4 {
+                return Err("Articulation exceeds the declared 11/5/4 airway anatomy".into());
+            }
+        }
+        if let Some(channels) = own_auditory {
+            if channels.len() != 32 || channels.iter().any(|&v| !(-1..=1).contains(&v)) {
+                return Err("Self-hearing requires exactly32 actual left/right auditory trits".into());
+            }
+        }
+        if let Some([_, yaw, held]) = motor_reafference {
+            if !(-180_000..180_000).contains(&yaw) || !(0..=1).contains(&held) {
+                return Err("Body reafference exceeds heading/contact anatomy".into());
+            }
+        }
+        // Delay fasciculi carry the previous interval into this interval.
+        // Their causal source already survives in the canonical column state.
+        let previous_l23: Vec<Vec<i8>> = self.columns.iter().map(|c| c.microcircuit.l23.clone()).collect();
+        let previous_l5: Vec<Vec<i8>> = self.columns.iter().map(|c| c.microcircuit.l5.clone()).collect();
+        // All digits participate in the exact rational reconstruction. Do
+        // this before mutation; a representation error cannot become silence.
+        let mut complete_potentials = [[0.0f64; L4_NODES]; 8];
+        if let Some(sources) = source_fields {
+            if sources.len() > L4_NODES { return Err("Kernel source count exceeds receptor anatomy".into()); }
+            let mut present = [false; L4_NODES];
+            for &(site, coordinates) in sources {
+                if site >= L4_NODES || present[site] {
+                    return Err("Kernel source receptor is duplicated or outside anatomy".into());
+                }
+                present[site] = true;
+                for (axis, original) in coordinates.into_iter().enumerate() {
+                    let rational = crate::mathloom::float_to_rational_trits(original)?;
+                    let delivered = crate::mathloom::rational_trits_to_float(&rational)?;
+                    if original != 0.0 && delivered.to_bits() != original.to_bits() {
+                        return Err("Kernel source lost complete field precision".into());
+                    }
+                    complete_potentials[axis][site] = delivered;
+                }
+            }
+        } else if self.continuous_joint_field_present {
+            for (index, original) in self.continuous_joint_field.into_iter().enumerate() {
+                let rational = crate::mathloom::float_to_rational_trits(original)?;
+                let delivered = crate::mathloom::rational_trits_to_float(&rational)?;
+                if original != 0.0 && delivered.to_bits() != original.to_bits() {
+                    return Err("Complete field potential changed during exact representation".into());
+                }
+                complete_potentials[index][0] = delivered;
+            }
+        }
+        // All source validation is complete. Do not advertise the old
+        // single hunger field as the current multi-source receptor bank.
+        if source_fields.is_some() { self.clear_continuous_joint_field(); }
         let mut total_yields = 0usize;
         let mut total_strain = 0.0f32;
 
+        if let Some(reserve) = reserve_fraction {
+            self.activity_resource_active = true;
+            for col in &mut self.columns {
+                col.microcircuit.advance_activity_resource(reserve, false);
+            }
+        }
         let (in_23, in_5) = self.compute_inter_column_currents();
 
         // 1. Cluster 0: Optical Cortical Sheet (Cols 0..8)
@@ -2086,6 +2269,12 @@ impl ModularSubstrate64D {
                 opt_aff[0] = sensory_trits[start];
                 if start + 1 < sensory_trits.len() { opt_aff[1] = sensory_trits[start + 1]; }
             }
+            // Preserve all established addresses and deliver the four
+            // formerly omitted receptors in the next available row.
+            let remaining = 12 + (c - 2);
+            if remaining < 16 && remaining < sensory_trits.len() {
+                opt_aff[2] = sensory_trits[remaining];
+            }
             let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(&opt_aff, somatic_trits, &in_23[c], &in_5[c]);
             total_yields += yc; total_strain += sc;
         }
@@ -2096,8 +2285,25 @@ impl ModularSubstrate64D {
         // frequency profile or other sensory lane supplies missing sound.
         for (i, c) in (8..16).enumerate() {
             let mut a_aff = vec![0i8; L4_NODES];
-            if 16 + i < sensory_trits.len() {
-                a_aff[0] = sensory_trits[16 + i];
+            // Preserve the eight established low-channel addresses. The
+            // previously dropped upper eight occupy the next receptor row.
+            for row in 0..2 {
+                let source = 16 + i + row * 8;
+                if source < sensory_trits.len() {
+                    a_aff[row] = sensory_trits[source];
+                }
+            }
+            if let Some(channels) = own_auditory {
+                a_aff[2] = channels[i];
+                a_aff[3] = channels[i + 8];
+                a_aff[6] = channels[i + 16];
+                a_aff[7] = channels[i + 24];
+            }
+            // Complete binaural input keeps all established left-ear and
+            // self-hearing sites, with distinct new right-ear receptors.
+            for row in 0..2 {
+                let source = 48 + i + row * 8;
+                if source < sensory_trits.len() { a_aff[4 + row] = sensory_trits[source]; }
             }
             let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(&a_aff, somatic_trits, &in_23[c], &in_5[c]);
             total_yields += yc; total_strain += sc;
@@ -2116,9 +2322,16 @@ impl ModularSubstrate64D {
         }
         // Col 23 (S8: Barrier Yield Refusal)
         self.columns[23].barrier_contact_stress = current_barrier_stress;
-        self.columns[23].refusal_active = current_barrier_stress.abs() >= self.columns[23].yield_limit_threshold;
+        self.columns[23].refusal_active = match kinematic_refusal {
+            Some(refused) => refused,
+            None => current_barrier_stress.abs() >= self.columns[23].yield_limit_threshold,
+        };
         let mut s8_aff = vec![0i8; L4_NODES];
         s8_aff[0] = if self.columns[23].refusal_active { 1 } else { 0 };
+        // Last two skin/thermal receptors share the barrier column without
+        // replacing its dedicated receptor at slot zero.
+        if sensory_trits.len() > 46 { s8_aff[1] = sensory_trits[46]; }
+        if sensory_trits.len() > 47 { s8_aff[2] = sensory_trits[47]; }
         let (y23, s23) = self.columns[23].microcircuit.step_laminar_flow(&s8_aff, somatic_trits, &in_23[23], &in_5[23]);
         total_yields += y23; total_strain += s23;
 
@@ -2130,10 +2343,35 @@ impl ModularSubstrate64D {
         }
 
         // 5. Cluster 5: Motor Cortex (Cols 40..48)
-        let m_aff = [0i8; L4_NODES];
         for c in 40..48 {
+            let mut m_aff = [0i8; L4_NODES];
+            if (40..43).contains(&c) {
+                if let Some(coordinates) = motor_reafference {
+                    // Exact integer sensor coordinates, complete positional
+                    // ternary. i32 needs at most 21 of the 64 receptor sites.
+                    let mut remaining = i64::from(coordinates[c - 40]);
+                    let mut place = 0;
+                    while remaining != 0 {
+                        let digit = match remaining.rem_euclid(3) { 2 => -1, r => r };
+                        m_aff[place] = digit as i8;
+                        remaining = (remaining - digit) / 3;
+                        place += 1;
+                    }
+                }
+            }
+            // Actual completed oral contact, distinct from hand possession.
+            // No desired bite, food label, or synthetic jaw position enters.
+            if c == 44 { m_aff[0] = i8::from(oral_contact.unwrap_or(false)); }
+            // Each independent airway axis occupies its own motor column.
+            // The afferent reports a real completed articulation, not a target.
+            if let Some(address) = articulatory_reafference {
+                if (45..48).contains(&c) {
+                    m_aff[address[c - 45]] = 1;
+                }
+            }
             let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(&m_aff, somatic_trits, &in_23[c], &in_5[c]);
-            total_yields += yc; total_strain += sc;
+            total_yields += yc;
+            total_strain += sc;
         }
 
         // Causal Motor Efferent Decoding from Settled L5 Motor Pyramidal Neurons:
@@ -2144,8 +2382,7 @@ impl ModularSubstrate64D {
         let neg_steer = self.columns[41].microcircuit.l5.iter().filter(|&&x| x < 0).count() as f32;
         self.motor_steer_angle = (((pos_steer - neg_steer) / (L5_NODES as f32)) * 45.0).clamp(-45.0, 45.0);
 
-        let pos_grip = self.columns[42].microcircuit.l5.iter().filter(|&&x| x > 0).count() as f32;
-        self.motor_grip_force = ((pos_grip / (L5_NODES as f32)) * 25.0).clamp(0.0, 25.0);
+        self.motor_grip_force = (f32::from(self.get_hand_efferent()) / L5_NODES as f32) * 25.0;
 
         let pos_vocal = self.columns[43].microcircuit.l5.iter().filter(|&&x| x > 0).count() as f32;
         self.motor_vocal_drive = ((pos_vocal / (L5_NODES as f32)) * 480.0).clamp(0.0, 480.0);
@@ -2156,10 +2393,10 @@ impl ModularSubstrate64D {
         }
 
         // 6. Cluster 6: Somatic Context Sheet (Cols 48..56)
-        let no_external_field = [0i8; L4_NODES];
         for c in 48..56 {
-            let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(
-                &no_external_field, somatic_trits, &in_23[c], &in_5[c],
+            let value = somatic_coordinates.map_or(0.0, |values| values[c - 48]);
+            let (yc, sc) = self.columns[c].microcircuit.step_field_potential(
+                value, somatic_trits, &in_23[c], &in_5[c],
             );
             total_yields += yc;
             total_strain += sc;
@@ -2168,52 +2405,29 @@ impl ModularSubstrate64D {
         // Cluster 7: Prefrontal / Structural Invariant Sheet (Cols 56..64)
         // Transduces 8 continuous field dimensions into Layer 4 afferents using
         // MathLoom exact rational balanced-ternary representation.
-        if self.continuous_joint_field_present {
-            let r_rev_k = self.continuous_joint_field[2];
-            let s_uf = self.continuous_joint_field[7];
-            if s_uf <= 0.0 || r_rev_k > 0.0 {
-                self.columns[23].refusal_active = true;
-                self.motor_locomotion_stride = 0.0;
-            }
-        }
+        // Slot 7 is currently the caller's local B-P headroom, not a
+        // measured global S_UF. It cannot be used as a macro viability gate.
+        // All coordinates remain sensory inputs to the existing column law;
+        // the actual barrier interlock above still limits physical movement.
 
         for k in 0..8 {
             let c = 56 + k;
-            let mut field_aff = vec![0i8; L4_NODES];
-            if self.continuous_joint_field_present {
-                let val_k = self.continuous_joint_field[k];
-                if let Ok(rat) = crate::mathloom::float_to_rational_trits(val_k) {
-                    if !rat.is_zero {
-                        let half = L4_NODES / 2;
-                        for (p, &t) in rat.numerator_trits.iter().enumerate() {
-                            if p < half {
-                                field_aff[p] = t;
-                            }
-                        }
-                        for (q, &t) in rat.denominator_trits.iter().enumerate() {
-                            if q < half {
-                                field_aff[half + q] = t;
-                            }
-                        }
-                    }
-                }
-            }
-            let (yc, sc) = self.columns[c].microcircuit.step_laminar_flow(
-                &field_aff, somatic_trits, &in_23[c], &in_5[c],
+            let (yc, sc) = self.columns[c].microcircuit.step_field_potentials(
+                &complete_potentials[k], somatic_trits, &in_23[c], &in_5[c],
             );
             total_yields += yc;
             total_strain += sc;
         }
 
         // 7. Inter-Column Directional Fasciculi Plasticity across 64 Columns
-        let (inter_y, inter_s) = self.apply_inter_column_plasticity();
+        let (inter_y, inter_s) = self.apply_inter_column_plasticity(&previous_l23, &previous_l5);
         total_yields += inter_y;
         total_strain += inter_s;
 
         Ok((total_yields, total_strain))
     }
 
-    pub fn apply_inter_column_plasticity(&mut self) -> (usize, f32) {
+    pub fn apply_inter_column_plasticity(&mut self, previous_l23: &[Vec<i8>], previous_l5: &[Vec<i8>]) -> (usize, f32) {
         let mut yield_count = 0usize;
         let mut total_strain = 0.0f32;
         let y = self.yield_threshold;
@@ -2224,7 +2438,7 @@ impl ModularSubstrate64D {
                 if !self.are_columns_fasciculated(c_from, c_to) { continue; }
 
                 for i in 0..L23_NODES {
-                    let from_val = self.columns[c_from].microcircuit.l23[i];
+                    let from_val = previous_l23[c_from][i];
                     if from_val == 0 { continue; }
                     for j in 0..L23_NODES {
                         if !Self::l23_contact_site(i, j) { continue; }
@@ -2232,12 +2446,13 @@ impl ModularSubstrate64D {
                         if to_val == 0 { continue; }
                         let idx = Self::index_inter_23(c_from, c_to, i, j);
                         let target = (from_val * to_val) as f32;
-                        let sigma = target - self.w_inter_23[idx];
+                        let resource = self.columns[c_from].microcircuit.resource_23[i] * self.columns[c_to].microcircuit.resource_23[j];
+                        let sigma = resource * (target - self.w_inter_23[idx]);
                         let abs_sigma = sigma.abs();
                         if abs_sigma > y {
                             let overstress = abs_sigma - y;
                             let was_zero = self.w_inter_23[idx] == 0.0;
-                            self.w_inter_23[idx] = (self.w_inter_23[idx] + overstress * sigma.signum()).clamp(-1.0, 1.0);
+                            self.w_inter_23[idx] = (self.w_inter_23[idx] + (overstress / resource) * sigma.signum()).clamp(-1.0, 1.0);
                             if was_zero && self.w_inter_23[idx] != 0.0 {
                                 self.active_inter_23.push(idx);
                             }
@@ -2248,7 +2463,7 @@ impl ModularSubstrate64D {
                 }
 
                 for i in 0..L5_NODES {
-                    let from_val = self.columns[c_from].microcircuit.l5[i];
+                    let from_val = previous_l5[c_from][i];
                     if from_val == 0 { continue; }
                     for j in 0..L5_NODES {
                         if !Self::l5_contact_site(i, j) { continue; }
@@ -2256,12 +2471,13 @@ impl ModularSubstrate64D {
                         if to_val == 0 { continue; }
                         let idx = Self::index_inter_5(c_from, c_to, i, j);
                         let target = (from_val * to_val) as f32;
-                        let sigma = target - self.w_inter_5[idx];
+                        let resource = self.columns[c_from].microcircuit.resource_5[i] * self.columns[c_to].microcircuit.resource_5[j];
+                        let sigma = resource * (target - self.w_inter_5[idx]);
                         let abs_sigma = sigma.abs();
                         if abs_sigma > y {
                             let overstress = abs_sigma - y;
                             let was_zero = self.w_inter_5[idx] == 0.0;
-                            self.w_inter_5[idx] = (self.w_inter_5[idx] + overstress * sigma.signum()).clamp(-1.0, 1.0);
+                            self.w_inter_5[idx] = (self.w_inter_5[idx] + (overstress / resource) * sigma.signum()).clamp(-1.0, 1.0);
                             if was_zero && self.w_inter_5[idx] != 0.0 {
                                 self.active_inter_5.push(idx);
                             }
@@ -2339,7 +2555,88 @@ impl ModularSubstrate64D {
         self.active_inter_5.clear();
     }
 
+    fn validate_reserve(reserve: f64) -> Result<(), String> {
+        if !reserve.is_finite() || !(0.0..=1.0).contains(&reserve) {
+            return Err("Body reserve fraction must be finite and within [0,1]".into());
+        }
+        Ok(())
+    }
+
+    pub fn rest_activity_resources(&mut self, reserve_fraction: f64) -> Result<(), String> {
+        Self::validate_reserve(reserve_fraction)?;
+        if self.activity_resource_active {
+            for col in &mut self.columns {
+                col.microcircuit.advance_activity_resource(reserve_fraction, true);
+            }
+        }
+        Ok(())
+    }
+
+    pub fn current_state_version(&self) -> u16 {
+        if self.activity_resource_active { 5 } else { 4 }
+    }
+
     pub fn export_sparse_v4(&self) -> Result<Vec<u8>, String> {
+        if self.activity_resource_active {
+            return Err("ARCLOOM4 cannot retain active transmission resources; use ARCLOOM5".into());
+        }
+        self.encode_retained_columns_v4()
+    }
+
+    pub fn export_sparse_v5(&self) -> Result<Vec<u8>, String> {
+        if !self.activity_resource_active {
+            return Err("Transmission resources have not entered an ordinary interval".into());
+        }
+        if self.columns.len() != NUM_COLUMNS_64D || self.columns.iter().any(|c|
+            c.microcircuit.resource_23.len() != L23_NODES || c.microcircuit.resource_5.len() != L5_NODES) {
+            return Err("Invalid transmission resource anatomy".into());
+        }
+        let retained = self.encode_retained_columns_v4()?;
+        let size = u32::try_from(retained.len()).map_err(|_| "Retained column body exceeds format bound")?;
+        let mut out = Vec::with_capacity(14 + retained.len() + NUM_COLUMNS_64D * (L23_NODES + L5_NODES) * 4);
+        out.extend_from_slice(b"ARCLOOM5");
+        out.extend_from_slice(&5u16.to_le_bytes());
+        out.extend_from_slice(&size.to_le_bytes());
+        out.extend_from_slice(&retained);
+        for col in &self.columns {
+            for resource in [&col.microcircuit.resource_23, &col.microcircuit.resource_5] {
+                for &r in resource {
+                    if !r.is_finite() || !(0.0..=1.0).contains(&r) {
+                        return Err("Invalid transmission resource".into());
+                    }
+                    out.extend_from_slice(&r.to_le_bytes());
+                }
+            }
+        }
+        Ok(out)
+    }
+
+    pub fn import_sparse_v5(&mut self, data: &[u8]) -> Result<(), String> {
+        if data.len() < 14 || &data[..8] != b"ARCLOOM5" || u16::from_le_bytes([data[8],data[9]]) != 5 {
+            return Err("Invalid ARCLOOM5 header".into());
+        }
+        let retained_len = u32::from_le_bytes(data[10..14].try_into().unwrap()) as usize;
+        let resources_at = 14usize.checked_add(retained_len).ok_or("ARCLOOM5 size overflow")?;
+        let expected = resources_at.checked_add(NUM_COLUMNS_64D * (L23_NODES + L5_NODES) * 4).ok_or("ARCLOOM5 size overflow")?;
+        if data.len() != expected { return Err("ARCLOOM5 resource body is truncated or has trailing bytes".into()); }
+        // Validate the entire new payload before even staging the larger old state.
+        for bytes in data[resources_at..].chunks_exact(4) {
+            let r = f32::from_le_bytes(bytes.try_into().unwrap());
+            if !r.is_finite() || !(0.0..=1.0).contains(&r) { return Err("Invalid transmission resource".into()); }
+        }
+        let mut staged = self.try_parse_v4_internal(&data[14..resources_at])?;
+        let mut values = data[resources_at..].chunks_exact(4);
+        for col in &mut staged.columns {
+            for resource in [&mut col.microcircuit.resource_23, &mut col.microcircuit.resource_5] {
+                for r in resource { *r = f32::from_le_bytes(values.next().unwrap().try_into().unwrap()); }
+            }
+        }
+        staged.activity_resource_active = true;
+        self.commit_staged_state(staged);
+        Ok(())
+    }
+
+    fn encode_retained_columns_v4(&self) -> Result<Vec<u8>, String> {
         if !self.yield_threshold.is_finite() || !self.plastic_rate.is_finite() || !self.activation_threshold.is_finite() ||
            !self.motor_vocal_drive.is_finite() || !self.motor_locomotion_stride.is_finite() ||
            !self.motor_steer_angle.is_finite() || !self.motor_grip_force.is_finite() {
@@ -2564,6 +2861,7 @@ impl ModularSubstrate64D {
         }
 
         Ok(StagedSubstrateState {
+            activity_resource_active: false,
             yield_threshold: yield_th,
             plastic_rate: plastic_rt,
             activation_threshold: activation_th,
@@ -2583,6 +2881,7 @@ impl ModularSubstrate64D {
     }
 
     pub fn migrate_predecessor_v2(&mut self, data: &[u8], layout: &str) -> Result<(), String> {
+        if self.activity_resource_active { return Err("Cannot downgrade active resource state to a predecessor format".into()); }
         if data.is_empty() {
             return Err("Cannot migrate from empty byte buffer".to_string());
         }
@@ -2812,6 +3111,7 @@ impl ModularSubstrate64D {
         }
 
         Ok(StagedSubstrateState {
+            activity_resource_active: false,
             yield_threshold: new_yield,
             plastic_rate: new_plastic,
             activation_threshold: new_activation,
@@ -3019,6 +3319,7 @@ impl ModularSubstrate64D {
         }
 
         Ok(StagedSubstrateState {
+            activity_resource_active: false,
             yield_threshold: new_yield,
             plastic_rate: new_plastic,
             activation_threshold: new_activation,
@@ -3038,12 +3339,14 @@ impl ModularSubstrate64D {
     }
 
     pub fn import_sparse_v4(&mut self, data: &[u8]) -> Result<(), String> {
+        if self.activity_resource_active { return Err("Cannot downgrade active resource state to a predecessor format".into()); }
         let staged = self.try_parse_v4_internal(data)?;
         self.commit_staged_state(staged);
         Ok(())
     }
 
     pub fn migrate_predecessor_v3(&mut self, data: &[u8], layout: &str, field_present: Option<bool>) -> Result<(), String> {
+        if self.activity_resource_active { return Err("Cannot downgrade active resource state to a predecessor format".into()); }
         let staged = self.try_parse_v3_internal(data, layout, field_present)?;
         self.commit_staged_state(staged);
         Ok(())
@@ -3284,6 +3587,13 @@ pub struct PyModularSubstrate64D {
 
 #[pymethods]
 impl PyModularSubstrate64D {
+    pub fn current_state_version(&self) -> u16 { self.inner.current_state_version() }
+    pub fn export_sparse_v5(&self) -> PyResult<Vec<u8>> { self.inner.export_sparse_v5().map_err(PyValueError::new_err) }
+    pub fn import_sparse_v5(&mut self, data: &[u8]) -> PyResult<()> { self.inner.import_sparse_v5(data).map_err(PyValueError::new_err) }
+    pub fn rest_activity_resources(&mut self, reserve_fraction: f64) -> PyResult<()> {
+        self.inner.rest_activity_resources(reserve_fraction).map_err(PyValueError::new_err)
+    }
+
     #[new]
     #[pyo3(signature = (yield_threshold=0.60, plastic_rate=0.03, activation_threshold=0.25))]
     pub fn new(yield_threshold: f32, plastic_rate: f32, activation_threshold: f32) -> Self {
@@ -3307,7 +3617,7 @@ impl PyModularSubstrate64D {
         self.inner.activation_threshold
     }
 
-    #[pyo3(signature = (sensory_trits, somatic_trits, observed_r_mm=None, observed_theta_mdeg=None, barrier_stress=0.0, acoustic_formants=None))]
+    #[pyo3(signature = (sensory_trits, somatic_trits, observed_r_mm=None, observed_theta_mdeg=None, barrier_stress=0.0, acoustic_formants=None, articulatory_reafference=None, motor_reafference=None, own_auditory=None, reserve_fraction=None, source_fields=None, kinematic_refusal=None, somatic_coordinates=None, oral_contact=None))]
     pub fn step(
         &mut self,
         sensory_trits: Vec<i8>,
@@ -3316,16 +3626,28 @@ impl PyModularSubstrate64D {
         observed_theta_mdeg: Option<i32>,
         barrier_stress: f32,
         acoustic_formants: Option<Vec<f32>>,
+        articulatory_reafference: Option<[usize; 3]>,
+        motor_reafference: Option<[i32; 3]>,
+        own_auditory: Option<Vec<i8>>,
+        reserve_fraction: Option<f64>,
+        source_fields: Option<Vec<(usize, [f64; 8])>>,
+        kinematic_refusal: Option<bool>,
+        somatic_coordinates: Option<[f64; 8]>,
+        oral_contact: Option<bool>,
     ) -> PyResult<(usize, f32)> {
         let formants = acoustic_formants.unwrap_or_default();
-        self.inner.step_cycle(
+        self.inner.step_embodied_cycle(
             &sensory_trits,
             &somatic_trits,
             observed_r_mm,
             observed_theta_mdeg,
             barrier_stress,
             &formants,
-        ).map_err(PyNotImplementedError::new_err)
+            articulatory_reafference,
+            motor_reafference,
+            own_auditory.as_deref(),
+            reserve_fraction,
+            source_fields.as_deref(), kinematic_refusal, somatic_coordinates, oral_contact).map_err(PyNotImplementedError::new_err)
     }
 
     pub fn consume_continuous_joint_field(&mut self, field_7d: Vec<f64>, s_uf: f64) -> PyResult<()> {
@@ -3364,6 +3686,22 @@ impl PyModularSubstrate64D {
             self.inner.motor_steer_angle,
             self.inner.motor_grip_force,
         )
+    }
+
+
+    pub fn get_mouth_efferent(&self) -> i16 {
+        self.inner.get_mouth_efferent()
+    }
+
+    pub fn get_articulatory_efferent(&self) -> Option<[usize; 3]> {
+        self.inner.get_articulatory_efferent()
+    }
+
+    /// Read-only settled motor evidence; never feeds back into settlement.
+    pub fn get_motor_populations(&self) -> Vec<(Vec<i8>, Vec<f32>)> {
+        self.inner.columns[40..48].iter().map(|column| {
+            (column.microcircuit.l5.clone(), column.microcircuit.v_5.clone())
+        }).collect()
     }
 
     pub fn sever_tract(&mut self, c_from: usize, c_to: usize) {
@@ -3452,3 +3790,19 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
 #[path = "native_current_codec.rs"]
 pub(crate) mod current_codec;
+
+#[cfg(test)]
+#[path = "cortical_mouth_tests.rs"]
+mod mouth_tests;
+
+#[cfg(test)]
+#[path = "cortical_articulation_tests.rs"]
+mod articulation_tests;
+
+#[cfg(test)]
+#[path = "cortical_field_delivery_tests.rs"]
+mod field_delivery_tests;
+
+#[cfg(test)]
+#[path = "cortical_activity_resource_tests.rs"]
+mod activity_resource_tests;
