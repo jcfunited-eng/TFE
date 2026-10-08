@@ -1,0 +1,150 @@
+{
+ "declared": "Declared 2026-10-08 before running (MINE). Does the kernel's reading differ\nbefore rises and before falls once price actually reaches it?\nFIELD: move-unit field (tools/ch2_field_units.move_unit_field), own resolution\ntau_D (c=3.77, trailing 252 median), canon kernel untouched.\nSAMPLE: 150 pool names, seed 7, >= 1000 bars (--full: every pool name with >= 1000 bars,\nsame bar, same report; added 10-08 after the sample, before running the full pool). TRADEABLE at the reading day\n(causal): close >= $5 and 20-day median dollar volume >= $2M.\nTRADE: reading on day t (known at close t) -> buy close t, sell close t+10.\nREPORT: base rate; by D_k (-1/0/+1); by sign of M_k; by URF_k tercile; by\nB_k at floor vs above. Win rate, mean 10-day return, n \u2014 both halves\n(<= 2023, >= 2024). PASS (declared): some reading separates rises from falls by\n>= 3 points of win rate vs base in BOTH halves with n >= 300 each.\nOUTPUT artifacts/ch4_uf/ch2_unit_field_census.json",
+ "n": 399135,
+ "names": 2887,
+ "refused_by_feed_check": {
+  "AKAN": "channel 4 carries 61% of the daily move \u2014 mixed units in the field",
+  "IMPP": "D_k sits on one value on 97% of readings \u2014 the kernel is not seeing the data",
+  "WPP": "D_k sits on one value on 98% of readings \u2014 the kernel is not seeing the data"
+ },
+ "H1": {
+  "base": {
+   "n": 262746,
+   "wr": 52.9,
+   "mean": 0.47
+  },
+  "D_k": {
+   "-1": {
+    "n": 111008,
+    "wr": 55.1,
+    "mean": 1.2
+   },
+   "0": {
+    "n": 33024,
+    "wr": 50.8,
+    "mean": 0.62
+   },
+   "1": {
+    "n": 118714,
+    "wr": 51.6,
+    "mean": -0.26
+   }
+  },
+  "M_sign": {
+   "-1.0": {
+    "n": 149006,
+    "wr": 52.9,
+    "mean": 0.42
+   },
+   "0.0": {
+    "n": 4230,
+    "wr": 55.4,
+    "mean": 0.4
+   },
+   "1.0": {
+    "n": 109510,
+    "wr": 52.8,
+    "mean": 0.53
+   }
+  },
+  "URF_t": {
+   "lo": {
+    "n": 87582,
+    "wr": 50.8,
+    "mean": 0.42
+   },
+   "mid": {
+    "n": 87582,
+    "wr": 52.8,
+    "mean": 0.19
+   },
+   "hi": {
+    "n": 87582,
+    "wr": 55.2,
+    "mean": 0.79
+   }
+  },
+  "B_floor": {
+   "False": {
+    "n": 47881,
+    "wr": 54.6,
+    "mean": 0.4
+   },
+   "True": {
+    "n": 214865,
+    "wr": 52.6,
+    "mean": 0.48
+   }
+  }
+ },
+ "H2": {
+  "base": {
+   "n": 136389,
+   "wr": 52.8,
+   "mean": 0.81
+  },
+  "D_k": {
+   "-1": {
+    "n": 51145,
+    "wr": 52.1,
+    "mean": 0.67
+   },
+   "0": {
+    "n": 23252,
+    "wr": 50.4,
+    "mean": 0.75
+   },
+   "1": {
+    "n": 61992,
+    "wr": 54.4,
+    "mean": 0.95
+   }
+  },
+  "M_sign": {
+   "-1.0": {
+    "n": 79608,
+    "wr": 53.2,
+    "mean": 0.83
+   },
+   "0.0": {
+    "n": 23,
+    "wr": 60.9,
+    "mean": 6.52
+   },
+   "1.0": {
+    "n": 56758,
+    "wr": 52.3,
+    "mean": 0.77
+   }
+  },
+  "URF_t": {
+   "lo": {
+    "n": 45463,
+    "wr": 51.3,
+    "mean": 0.7
+   },
+   "mid": {
+    "n": 45463,
+    "wr": 54.2,
+    "mean": 0.84
+   },
+   "hi": {
+    "n": 45463,
+    "wr": 52.9,
+    "mean": 0.88
+   }
+  },
+  "B_floor": {
+   "False": {
+    "n": 736,
+    "wr": 51.8,
+    "mean": -1.23
+   },
+   "True": {
+    "n": 135653,
+    "wr": 52.8,
+    "mean": 0.82
+   }
+  }
+ }
+}
