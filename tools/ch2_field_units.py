@@ -33,7 +33,7 @@ class FeedError(RuntimeError):
 
 
 def check_feed(F: np.ndarray, r: pd.DataFrame | None = None, max_share: float = 0.60,
-               max_pinned: float = 0.95, outputs=("D_k", "M_k", "URF_k")) -> None:
+               max_pinned: float = 0.95, outputs=("D_k", "M_k", "URF_k"), min_gate_bars: int = 5) -> None:
     """Joe's rule (10-08, after a year of it): no variance is impossible; if it
     appears, the FEED is wrong. Refuse when one channel carries more than
     max_share of the typical daily displacement, or when a direction/motion
@@ -43,7 +43,13 @@ def check_feed(F: np.ndarray, r: pd.DataFrame | None = None, max_share: float = 
     share = np.median(dF / np.maximum(dF.sum(axis=1, keepdims=True), 1e-12), axis=0)
     if share.max() > max_share:
         raise FeedError(f"channel {int(share.argmax())} carries {share.max():.0%} of the daily move — mixed units in the field")
-    if r is not None and len(r):
+    if r is not None and len(r) > 2:
+        # 2026-10-08: a q98 own-resolution run scored 174k "gates" whose median
+        # length was ONE bar — boundaries cluster while the 20-bar variance stays
+        # high. A structure must have length to be read as structure.
+        g = np.diff(r["t"].values)
+        if np.median(g) < min_gate_bars:
+            raise FeedError(f"median gate is {np.median(g):.0f} bar(s) — boundaries are clustering, no structure to read")
         for c in outputs:
             top = r[c].round(6).value_counts(normalize=True).iloc[0]
             if top > max_pinned:
