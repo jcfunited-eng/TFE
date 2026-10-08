@@ -1065,10 +1065,14 @@ export async function runSentinel() {
           if (filledPrice > 0) {
             await pool.query(
               `UPDATE personal_trade_ledger
-               SET status='filled', entry_filled_price=$1, entry_filled_at=$2
+               SET status='filled', entry_filled_price=$1, entry_filled_at=$2,
+                   shares=COALESCE(NULLIF($4::int, 0), shares)
                WHERE id=$3 AND status='submitted'`,
-              [filledPrice, filledAt, pos.id]
+              [filledPrice, filledAt, pos.id, parseInt(order.filled_qty ?? "0", 10) || 0]
             );
+            // a partial fill holds only what filled (2026-10-08 PENG: 11 of 40)
+            const fq = parseInt(order.filled_qty ?? "0", 10) || 0;
+            if (fq > 0) pos.shares = fq;
             console.log(`[SENTINEL] Fill synced: ${pos.ticker} @ $${filledPrice}`);
             pos.status = "filled"; // update in-memory so exit checks work
 
@@ -1232,10 +1236,21 @@ export async function runSentinel() {
             if (Array.isArray(closed)) {
               for (const o of closed) {
                 if (o.side === "sell" && o.filled_avg_price &&
-                    parseFloat(o.qty ?? "0") === pos.shares) {
+                    parseFloat(o.filled_qty ?? o.qty ?? "0") === parseFloat(pos.shares ?? "NaN")) {
                   bracketExitPrice = parseFloat(o.filled_avg_price);
                   recoveredOrderId = o.id;
                   break;
+                }
+              }
+              // 2026-10-08 PENG: the ledger held the ORDERED 40 shares while
+              // only 11 filled, so no sell ever matched and the exit closed
+              // with no price. Fall back to the newest filled sell (newest first).
+              if (bracketExitPrice === null) {
+                const sold = closed.find(o => o.side === "sell" && o.filled_avg_price
+                  && parseFloat(o.filled_qty ?? "0") > 0);
+                if (sold) {
+                  bracketExitPrice = parseFloat(sold.filled_avg_price);
+                  recoveredOrderId = sold.id;
                 }
               }
             }
@@ -1368,6 +1383,16 @@ export async function runSentinel() {
           currentPnlPct = ((checkCurrent - checkEntry) / checkEntry) * 100;
           livePosEntry = checkEntry;
           livePosPrice = checkCurrent;
+        }
+        // Custody: the broker's share count is ground truth. A partial entry
+        // fill left PENG's ledger at 40 shares while the broker held 11.
+        const brokerQty = parseInt(alpacaPosCheck.qty ?? "0", 10) || 0;
+        if (String(pos.signal_class ?? "").toUpperCase() === "CH2" && brokerQty > 0
+            && brokerQty !== (parseInt(pos.shares ?? "0", 10) || 0)) {
+          await pool.query(`UPDATE personal_trade_ledger SET shares=$1 WHERE id=$2`, [brokerQty, pos.id])
+            .then(() => console.log(`[SENTINEL] CH2 ${pos.ticker} custody: ledger shares ${pos.shares} → broker ${brokerQty}`))
+            .catch(() => {});
+          pos.shares = brokerQty;
         }
       }
     } catch { /* non-fatal */ }
