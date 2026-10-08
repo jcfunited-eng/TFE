@@ -1,0 +1,352 @@
+{
+ "declared": "Flares and their active regions \u2014 declared 2026-10-08 before running (Joe: \"this is\na physics problem first \u2014 solar flare prediction\"; July: the herd is the stock's OWN\npeer cohort, not the market; \"predicting the flares\").\nREGION: the stock's own pedigree cell each day (artifacts/ch4_uf/herd_state_live.parquet:\ncell, eband = region energy band, gband = region greed band, 0/1/2, each banded against\nthe cell's own trailing history; day-t state uses day-t closes, knowable at close t).\nSTORED ENERGY: the stock's own kernel structure (valid feed: path_unit_field L=100, own\nresolution, check_feed, tradeable filter) \u2014 D_k at the structure's end.\nFLARE: the next structure moves > 10 % (rise) or < -10 % (fall); quiet |move| < 2 %.\nIssue = close t_b+1; region state read on that day.\nREPORT per half (<= 2023 / >= 2024), per region state (eband x gband):\n  flare rate = flares / all structures; polarity = rises / flares;\n  and the same split by the stock's own D_k (>0 / <=0).\nDescriptive; nothing tuned. OUTPUT artifacts/ch4_uf/ch2_flare_region.json",
+ "structures": 103223,
+ "H1": {
+  "all": {
+   "n": 66862,
+   "flare_rate": 31.4,
+   "flares": 21006,
+   "polarity_up": 53.0
+  },
+  "region": {
+   "E0G0": {
+    "n": 2747,
+    "flare_rate": 31.7,
+    "flares": 871,
+    "polarity_up": 57.3
+   },
+   "E0G1": {
+    "n": 9059,
+    "flare_rate": 31.7,
+    "flares": 2876,
+    "polarity_up": 60.0
+   },
+   "E0G2": {
+    "n": 2307,
+    "flare_rate": 29.0,
+    "flares": 670,
+    "polarity_up": 64.0
+   },
+   "E1G0": {
+    "n": 5663,
+    "flare_rate": 29.9,
+    "flares": 1692,
+    "polarity_up": 55.9
+   },
+   "E1G1": {
+    "n": 12955,
+    "flare_rate": 31.2,
+    "flares": 4041,
+    "polarity_up": 59.5
+   },
+   "E1G2": {
+    "n": 7586,
+    "flare_rate": 29.4,
+    "flares": 2228,
+    "polarity_up": 61.4
+   },
+   "E2G0": {
+    "n": 10081,
+    "flare_rate": 28.3,
+    "flares": 2856,
+    "polarity_up": 54.9
+   },
+   "E2G1": {
+    "n": 5932,
+    "flare_rate": 29.3,
+    "flares": 1739,
+    "polarity_up": 56.2
+   },
+   "E2G2": {
+    "n": 10532,
+    "flare_rate": 38.3,
+    "flares": 4033,
+    "polarity_up": 30.0
+   }
+  },
+  "region_x_own_Dk": {
+   "E0G0|D0-": {
+    "n": 1374,
+    "flare_rate": 30.3,
+    "flares": 416,
+    "polarity_up": 56.7
+   },
+   "E0G0|D+": {
+    "n": 1373,
+    "flare_rate": 33.1,
+    "flares": 455,
+    "polarity_up": 57.8
+   },
+   "E0G1|D0-": {
+    "n": 4253,
+    "flare_rate": 31.2,
+    "flares": 1328,
+    "polarity_up": 61.7
+   },
+   "E0G1|D+": {
+    "n": 4806,
+    "flare_rate": 32.2,
+    "flares": 1548,
+    "polarity_up": 58.5
+   },
+   "E0G2|D0-": {
+    "n": 1064,
+    "flare_rate": 28.5,
+    "flares": 303,
+    "polarity_up": 64.7
+   },
+   "E0G2|D+": {
+    "n": 1243,
+    "flare_rate": 29.5,
+    "flares": 367,
+    "polarity_up": 63.5
+   },
+   "E1G0|D0-": {
+    "n": 2840,
+    "flare_rate": 28.3,
+    "flares": 804,
+    "polarity_up": 54.5
+   },
+   "E1G0|D+": {
+    "n": 2823,
+    "flare_rate": 31.5,
+    "flares": 888,
+    "polarity_up": 57.1
+   },
+   "E1G1|D0-": {
+    "n": 6085,
+    "flare_rate": 30.9,
+    "flares": 1882,
+    "polarity_up": 58.5
+   },
+   "E1G1|D+": {
+    "n": 6870,
+    "flare_rate": 31.4,
+    "flares": 2159,
+    "polarity_up": 60.3
+   },
+   "E1G2|D0-": {
+    "n": 3847,
+    "flare_rate": 27.5,
+    "flares": 1059,
+    "polarity_up": 61.6
+   },
+   "E1G2|D+": {
+    "n": 3739,
+    "flare_rate": 31.3,
+    "flares": 1169,
+    "polarity_up": 61.3
+   },
+   "E2G0|D0-": {
+    "n": 4432,
+    "flare_rate": 27.3,
+    "flares": 1210,
+    "polarity_up": 57.2
+   },
+   "E2G0|D+": {
+    "n": 5649,
+    "flare_rate": 29.1,
+    "flares": 1646,
+    "polarity_up": 53.2
+   },
+   "E2G1|D0-": {
+    "n": 2728,
+    "flare_rate": 29.1,
+    "flares": 794,
+    "polarity_up": 53.0
+   },
+   "E2G1|D+": {
+    "n": 3204,
+    "flare_rate": 29.5,
+    "flares": 945,
+    "polarity_up": 58.8
+   },
+   "E2G2|D0-": {
+    "n": 5216,
+    "flare_rate": 36.7,
+    "flares": 1915,
+    "polarity_up": 28.2
+   },
+   "E2G2|D+": {
+    "n": 5316,
+    "flare_rate": 39.8,
+    "flares": 2118,
+    "polarity_up": 31.6
+   }
+  }
+ },
+ "H2": {
+  "all": {
+   "n": 36361,
+   "flare_rate": 28.5,
+   "flares": 10365,
+   "polarity_up": 58.4
+  },
+  "region": {
+   "E0G0": {
+    "n": 1585,
+    "flare_rate": 27.3,
+    "flares": 433,
+    "polarity_up": 52.9
+   },
+   "E0G1": {
+    "n": 5306,
+    "flare_rate": 30.1,
+    "flares": 1599,
+    "polarity_up": 57.2
+   },
+   "E0G2": {
+    "n": 1594,
+    "flare_rate": 29.8,
+    "flares": 475,
+    "polarity_up": 55.8
+   },
+   "E1G0": {
+    "n": 3244,
+    "flare_rate": 26.5,
+    "flares": 859,
+    "polarity_up": 56.7
+   },
+   "E1G1": {
+    "n": 8075,
+    "flare_rate": 29.0,
+    "flares": 2339,
+    "polarity_up": 63.3
+   },
+   "E1G2": {
+    "n": 3931,
+    "flare_rate": 27.9,
+    "flares": 1097,
+    "polarity_up": 58.2
+   },
+   "E2G0": {
+    "n": 5123,
+    "flare_rate": 28.9,
+    "flares": 1480,
+    "polarity_up": 65.9
+   },
+   "E2G1": {
+    "n": 3752,
+    "flare_rate": 29.2,
+    "flares": 1095,
+    "polarity_up": 50.4
+   },
+   "E2G2": {
+    "n": 3751,
+    "flare_rate": 26.3,
+    "flares": 988,
+    "polarity_up": 51.3
+   }
+  },
+  "region_x_own_Dk": {
+   "E0G0|D0-": {
+    "n": 714,
+    "flare_rate": 23.8,
+    "flares": 170,
+    "polarity_up": 57.1
+   },
+   "E0G0|D+": {
+    "n": 871,
+    "flare_rate": 30.2,
+    "flares": 263,
+    "polarity_up": 50.2
+   },
+   "E0G1|D0-": {
+    "n": 2370,
+    "flare_rate": 28.3,
+    "flares": 670,
+    "polarity_up": 58.1
+   },
+   "E0G1|D+": {
+    "n": 2936,
+    "flare_rate": 31.6,
+    "flares": 929,
+    "polarity_up": 56.6
+   },
+   "E0G2|D0-": {
+    "n": 586,
+    "flare_rate": 26.8,
+    "flares": 157,
+    "polarity_up": 57.3
+   },
+   "E0G2|D+": {
+    "n": 1008,
+    "flare_rate": 31.5,
+    "flares": 318,
+    "polarity_up": 55.0
+   },
+   "E1G0|D0-": {
+    "n": 1463,
+    "flare_rate": 27.2,
+    "flares": 398,
+    "polarity_up": 57.5
+   },
+   "E1G0|D+": {
+    "n": 1781,
+    "flare_rate": 25.9,
+    "flares": 461,
+    "polarity_up": 56.0
+   },
+   "E1G1|D0-": {
+    "n": 3545,
+    "flare_rate": 27.6,
+    "flares": 977,
+    "polarity_up": 60.2
+   },
+   "E1G1|D+": {
+    "n": 4530,
+    "flare_rate": 30.1,
+    "flares": 1362,
+    "polarity_up": 65.6
+   },
+   "E1G2|D0-": {
+    "n": 1804,
+    "flare_rate": 28.1,
+    "flares": 507,
+    "polarity_up": 55.6
+   },
+   "E1G2|D+": {
+    "n": 2127,
+    "flare_rate": 27.7,
+    "flares": 590,
+    "polarity_up": 60.5
+   },
+   "E2G0|D0-": {
+    "n": 2400,
+    "flare_rate": 28.5,
+    "flares": 685,
+    "polarity_up": 66.4
+   },
+   "E2G0|D+": {
+    "n": 2723,
+    "flare_rate": 29.2,
+    "flares": 795,
+    "polarity_up": 65.5
+   },
+   "E2G1|D0-": {
+    "n": 1709,
+    "flare_rate": 28.7,
+    "flares": 491,
+    "polarity_up": 49.9
+   },
+   "E2G1|D+": {
+    "n": 2043,
+    "flare_rate": 29.6,
+    "flares": 604,
+    "polarity_up": 50.8
+   },
+   "E2G2|D0-": {
+    "n": 1832,
+    "flare_rate": 26.9,
+    "flares": 492,
+    "polarity_up": 52.6
+   },
+   "E2G2|D+": {
+    "n": 1919,
+    "flare_rate": 25.8,
+    "flares": 496,
+    "polarity_up": 50.0
+   }
+  }
+ }
+}
