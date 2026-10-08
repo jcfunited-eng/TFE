@@ -1,0 +1,338 @@
+{
+ "declared": "Region energy on the VALID kernel feed \u2014 declared 2026-10-08 before running.\nFixes the inconsistency found in the flare test: the stock was read on the valid feed\nbut its region's energy band came from the old log-close v2 kernel.\nKEPT: pedigree cell membership (sigma/attention/price character, herd_state_live.cell)\nand region greed band (gband: share of members rising \u2014 price, not kernel).\nREPLACED: region energy E_c(t) = mean over the cell's members (>= 5 with data) of each\nmember's valid-feed per-bar action D[t-1] (path_unit_field L=100; D = |dF| + sigma(W=20)\n+ kappa; D[t-1] is knowable at close t), banded against the cell's own trailing 20 days\n(pinned 25/75, as tools/ch4_uf_spectrum_herd.trailing_band3).\nMembers available = pool + blind OHLCV names (4,387).\nTEST (unchanged, declared earlier): BUILD = E1 G1 & own D_k > 0 must beat the\nall-structures mean in >= 8/10 years; EXHAUSTED = E2 G2 below it in >= 8/10 \u2014 on the\nstudied pool AND the blind names separately.\nOUTPUT artifacts/ch4_uf/ch2_region_energy_valid.json",
+ "member_days": 8603304,
+ "studied": {
+  "structures": 103223,
+  "years": {
+   "2017": {
+    "all": [
+     2914,
+     2.24
+    ],
+    "build": [
+     187,
+     3.69,
+     true
+    ],
+    "exhausted": [
+     526,
+     1.17,
+     true
+    ]
+   },
+   "2018": {
+    "all": [
+     9532,
+     0.75
+    ],
+    "build": [
+     802,
+     0.52,
+     false
+    ],
+    "exhausted": [
+     1494,
+     2.43,
+     false
+    ]
+   },
+   "2019": {
+    "all": [
+     5529,
+     0.07
+    ],
+    "build": [
+     475,
+     0.48,
+     true
+    ],
+    "exhausted": [
+     539,
+     -0.21,
+     true
+    ]
+   },
+   "2020": {
+    "all": [
+     22991,
+     2.97
+    ],
+    "build": [
+     2060,
+     7.35,
+     true
+    ],
+    "exhausted": [
+     6284,
+     -3.17,
+     true
+    ]
+   },
+   "2021": {
+    "all": [
+     6902,
+     -0.07
+    ],
+    "build": [
+     511,
+     -0.1,
+     false
+    ],
+    "exhausted": [
+     985,
+     -0.21,
+     true
+    ]
+   },
+   "2022": {
+    "all": [
+     7915,
+     -0.01
+    ],
+    "build": [
+     674,
+     0.51,
+     true
+    ],
+    "exhausted": [
+     1134,
+     -1.24,
+     true
+    ]
+   },
+   "2023": {
+    "all": [
+     11079,
+     2.06
+    ],
+    "build": [
+     933,
+     1.77,
+     false
+    ],
+    "exhausted": [
+     1805,
+     2.87,
+     false
+    ]
+   },
+   "2024": {
+    "all": [
+     15603,
+     1.01
+    ],
+    "build": [
+     1306,
+     2.05,
+     true
+    ],
+    "exhausted": [
+     2141,
+     0.33,
+     true
+    ]
+   },
+   "2025": {
+    "all": [
+     11814,
+     3.0
+    ],
+    "build": [
+     878,
+     3.79,
+     true
+    ],
+    "exhausted": [
+     1589,
+     0.41,
+     true
+    ]
+   },
+   "2026": {
+    "all": [
+     8944,
+     1.86
+    ],
+    "build": [
+     810,
+     1.83,
+     false
+    ],
+    "exhausted": [
+     1206,
+     2.6,
+     false
+    ]
+   }
+  },
+  "build_years": "6/10",
+  "exhausted_years": "7/10"
+ },
+ "blind": {
+  "structures": 37567,
+  "years": {
+   "2017": {
+    "all": [
+     446,
+     1.05
+    ],
+    "build": [
+     45,
+     1.6,
+     true
+    ],
+    "exhausted": [
+     53,
+     0.25,
+     true
+    ]
+   },
+   "2018": {
+    "all": [
+     4294,
+     -0.07
+    ],
+    "build": [
+     271,
+     0.15,
+     true
+    ],
+    "exhausted": [
+     1014,
+     0.22,
+     false
+    ]
+   },
+   "2019": {
+    "all": [
+     980,
+     0.17
+    ],
+    "build": [
+     109,
+     0.1,
+     false
+    ],
+    "exhausted": [
+     116,
+     2.95,
+     false
+    ]
+   },
+   "2020": {
+    "all": [
+     13937,
+     0.88
+    ],
+    "build": [
+     1124,
+     1.77,
+     true
+    ],
+    "exhausted": [
+     3013,
+     -2.75,
+     true
+    ]
+   },
+   "2021": {
+    "all": [
+     1965,
+     -0.99
+    ],
+    "build": [
+     179,
+     -0.47,
+     true
+    ],
+    "exhausted": [
+     342,
+     -1.19,
+     true
+    ]
+   },
+   "2022": {
+    "all": [
+     4330,
+     -0.65
+    ],
+    "build": [
+     326,
+     -0.27,
+     true
+    ],
+    "exhausted": [
+     735,
+     -1.48,
+     true
+    ]
+   },
+   "2023": {
+    "all": [
+     1981,
+     0.61
+    ],
+    "build": [
+     189,
+     -0.45,
+     false
+    ],
+    "exhausted": [
+     256,
+     1.13,
+     false
+    ]
+   },
+   "2024": {
+    "all": [
+     3280,
+     0.66
+    ],
+    "build": [
+     276,
+     0.26,
+     false
+    ],
+    "exhausted": [
+     461,
+     1.63,
+     false
+    ]
+   },
+   "2025": {
+    "all": [
+     3664,
+     2.56
+    ],
+    "build": [
+     212,
+     0.7,
+     false
+    ],
+    "exhausted": [
+     717,
+     1.69,
+     true
+    ]
+   },
+   "2026": {
+    "all": [
+     2690,
+     0.42
+    ],
+    "build": [
+     297,
+     0.37,
+     false
+    ],
+    "exhausted": [
+     370,
+     0.15,
+     true
+    ]
+   }
+  },
+  "build_years": "5/10",
+  "exhausted_years": "6/10"
+ }
+}
