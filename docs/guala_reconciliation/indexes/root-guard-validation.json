@@ -1,0 +1,40 @@
+{
+  "first_attempt": "Failed on absent deploy/guala_release_manifest.json; that obsolete release path is not a root-identity requirement. No file fabricated.",
+  "after_sha256": "61fde269d08b7775eabbdf4e7d72d7e258caba060d4b4d05df4b9ea256898d15",
+  "checks": [
+    {
+      "arguments": [
+        "/workspaces/Tao_Financial_Engine"
+      ],
+      "expected": 0,
+      "returncode": 0,
+      "stdout": "Guala worktree root: /workspaces/Tao_Financial_Engine\ndd9ee1fb008ca7f0394a0d644af4a94ef54e5c43\nRoot identity checked; architecture and live deployment are not certified. Read AGENTS.md for current authority.\n",
+      "stderr": ""
+    },
+    {
+      "arguments": [
+        "/workspaces/Tao_Financial_Engine/docs"
+      ],
+      "expected": 65,
+      "returncode": 65,
+      "stdout": "",
+      "stderr": "not the worktree root: /workspaces/Tao_Financial_Engine/docs (root is /workspaces/Tao_Financial_Engine)\n"
+    },
+    {
+      "arguments": [
+        "/tmp"
+      ],
+      "expected": 65,
+      "returncode": 65,
+      "stdout": "",
+      "stderr": "not a Git worktree: /tmp\n"
+    },
+    {
+      "arguments": [],
+      "expected": 64,
+      "returncode": 64,
+      "stdout": "",
+      "stderr": "usage: require-guala-root.sh <exact-guala-root>\n"
+    }
+  ]
+}

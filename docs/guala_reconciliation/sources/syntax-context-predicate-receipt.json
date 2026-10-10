@@ -1,0 +1,32 @@
+{
+  "scope": "Independent text predicate from the inspected core.build block-admission conditions; no product code import or execution.",
+  "entries": [
+    {
+      "source_id": "LCX01-01",
+      "sha256": "ca90babffcfdd554f9787c10cca36149ab1caa5b2f3ee1c68a5ac06317adcce6",
+      "header_faded": true,
+      "admitted_entry_blocks": 13,
+      "entry_faded": 0,
+      "cannot_entries": 0,
+      "rule_entries": 1
+    },
+    {
+      "source_id": "LCX02-01",
+      "sha256": "cdecc5470ad3b3f934ae9b8dbf44d9aa8e9e6fb0d0a3ad20f902917f389e9e6c",
+      "header_faded": false,
+      "admitted_entry_blocks": 12,
+      "entry_faded": 0,
+      "cannot_entries": 0,
+      "rule_entries": 0
+    },
+    {
+      "source_id": "LCX03-01",
+      "sha256": "b17ad279619a88fbb919ddbd03e761ab7b387beae5c442db6f5fa79a12021f64",
+      "header_faded": false,
+      "admitted_entry_blocks": 56,
+      "entry_faded": 0,
+      "cannot_entries": 0,
+      "rule_entries": 0
+    }
+  ]
+}

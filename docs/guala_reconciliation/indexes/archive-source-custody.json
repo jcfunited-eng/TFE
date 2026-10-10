@@ -1,0 +1,44 @@
+[
+  {
+    "archive": ".guala_release_work/guala-release-candidate-15a7dca9.zip",
+    "member": "deploy/guala_release_manifest.json",
+    "bytes": 21140,
+    "sha256": "d26df7f0805bd3b1fd5806ca2ed4071d8fdb02d54afeaadb09ced088c21cc755",
+    "snapshot": "archive-sources/guala-release-candidate-15a7dca9/deploy/guala_release_manifest.json"
+  },
+  {
+    "archive": ".guala_release_work/guala-release-candidate-15a7dca9.zip",
+    "member": "native/guala_core/src/lib.rs",
+    "bytes": 20416,
+    "sha256": "8ac2286386941832d34b715f203b791476d047be11c24b9548512c6ec4a31b51",
+    "snapshot": "archive-sources/guala-release-candidate-15a7dca9/native/guala_core/src/lib.rs"
+  },
+  {
+    "archive": ".guala_release_work/guala-release-candidate-15a7dca9.zip",
+    "member": "native/guala_core/Cargo.toml",
+    "bytes": 437,
+    "sha256": "e5c3d3aece4c4734f0c9600917dc03d4910ebd790f324c3bd0206234df103b39",
+    "snapshot": "archive-sources/guala-release-candidate-15a7dca9/native/guala_core/Cargo.toml"
+  },
+  {
+    "archive": ".guala_release_work/guala-release-candidate-da11405b.zip",
+    "member": "deploy/guala_release_manifest.json",
+    "bytes": 21140,
+    "sha256": "d26df7f0805bd3b1fd5806ca2ed4071d8fdb02d54afeaadb09ced088c21cc755",
+    "snapshot": "archive-sources/guala-release-candidate-da11405b/deploy/guala_release_manifest.json"
+  },
+  {
+    "archive": ".guala_release_work/guala-release-candidate-da11405b.zip",
+    "member": "native/guala_core/src/lib.rs",
+    "bytes": 20416,
+    "sha256": "8ac2286386941832d34b715f203b791476d047be11c24b9548512c6ec4a31b51",
+    "snapshot": "archive-sources/guala-release-candidate-da11405b/native/guala_core/src/lib.rs"
+  },
+  {
+    "archive": ".guala_release_work/guala-release-candidate-da11405b.zip",
+    "member": "native/guala_core/Cargo.toml",
+    "bytes": 437,
+    "sha256": "e5c3d3aece4c4734f0c9600917dc03d4910ebd790f324c3bd0206234df103b39",
+    "snapshot": "archive-sources/guala-release-candidate-da11405b/native/guala_core/Cargo.toml"
+  }
+]

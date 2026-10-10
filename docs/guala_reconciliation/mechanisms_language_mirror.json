@@ -1,0 +1,400 @@
+{
+  "schema": "guala.language_mirror_mechanisms.v1",
+  "at_utc": "2026-10-10T05:25:25.048771+00:00",
+  "scope": "Historical designs and separate fabric program. Current pupil activation/exclusion and learned speech remain unqualified.",
+  "mechanisms": [
+    {
+      "id": "VLM01",
+      "name": "Authored seed knowledge remains different from acquired sensory knowledge",
+      "classification": "Declared seed corpus; usage and current activation must be proven separately",
+      "finding": "LMR02",
+      "observed_mechanism": "The language and story mirrors explicitly name Claude-authored seed material compiled from earlier corpus files. Their THINGS/CLAIMS/SCIENCE/METHODS/MEANS/PURPOSE/HISTORY/RELATIONS structure organizes facts, rules, wants and cross-subject links. They call the language phylum the substrate of the first ribbon and describe threshold changes as knowledge changes. These documents do not specify native sensory acquisition or retained neuronal formation for those entries.",
+      "evidence_limits": "The header discloses seed authorship rather than hiding it. These new docs/phylums paths are distinct from the docs/fabric_phylums directory read by the inspected legacy core; this review does not establish their executable/current Guala consumers. Corpus reorganization alone is neither acquired cognition nor proof of sabotage.",
+      "replacement": "Preserve the authored material with explicit source and role. If used as external curriculum, deliver it through the approved actual senses and measure what is retained. Exclude direct semantic seed writes, phylum labels or supplied relation graphs from pupil answer authority; inventory the exact reader before any activation or exclusion claim.",
+      "acceptance": {
+        "unit": "Classify author, source, intended role, payload and every writer/reader.",
+        "module": "Verify sensory teaching cannot bypass transduction into semantic memory or action selection.",
+        "system": "Demonstrate independently retained concepts and relations from authentic experience, including controls before and after exposure.",
+        "release": "Bind mounted corpus, loaders and effective configuration to the exact serving artifact; a seed file is not native learned capital."
+      },
+      "refs": [
+        {
+          "source_id": "LD16-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD16-01--color.md",
+          "line": 3,
+          "anchor": "knowledge authored by Claude and marked as seed, mined from the old",
+          "sha256": "afae8dd15ed0b1d6eab8e7c33e8d5d8404439f942f83a17a5fad679d865ed8a8"
+        },
+        {
+          "source_id": "LD18-02",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD18-02--color.md",
+          "line": 3,
+          "anchor": "authored by Claude from docs/fabric_phylums/27_story_drama.md,",
+          "sha256": "d6f2e088823d8e0dadf9bee6aac801b280b8682b5f1b94575617a71498b736a9"
+        },
+        {
+          "source_id": "LD17-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD17-01--white.md",
+          "line": 6,
+          "anchor": "tombstone; every entry is a possibility waiting for its drain. Seed",
+          "sha256": "22f72beac8d8b47a7e2de5488bcf77b687bd61c660927793f0ba6f75e3ad9866"
+        },
+        {
+          "source_id": "LM01-02",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LM01-02--MODEL.md",
+          "line": 104,
+          "anchor": "Each phylum holds its own science AND all its relationships to",
+          "sha256": "c2ec70bbcf07fe44a777b7c9382f67764bc9bd8210d152192762abe6f09dbade"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 25,
+          "anchor": "    \"..\", \"docs\", \"fabric_phylums\"))",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A05",
+        "A06",
+        "A07",
+        "A09",
+        "A10",
+        "A12",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLM02",
+      "name": "The written mathematics does not prove the architecture asserted from it",
+      "classification": "Wrong model correspondence and unsupported inference; preserve correct arithmetic at its scope",
+      "finding": "LMR03",
+      "observed_mechanism": "The language science section uses Catalan counts of binary parenthesizations (four leaves→five shapes; six→42) to claim the reading stages at most five/42 shapes. The inspected stager instead enumerates n(n+1)^n parent assignments with a chosen doing:2500 candidates at four groups and705894 at six, before exclusions. Its 5000-word three-token arithmetic is numerically correct, but the assumed grammatical fraction and exposure estimate do not prove all storage mechanisms impossible. A rule accepting its own output need not produce endlessly new outputs; an identity rule is a counterexample. A speech-rate number alone supplies no lower bound proving fresh construction impossible.",
+      "evidence_limits": "This is an exact source/design correspondence and logical audit, not a product benchmark, a proof against composition or a diagnosis of Task1434. The Catalan sequence can be valid for its own structures while being the wrong bound for this implementation. The current native substrate has a separate physical/resource contract.",
+      "replacement": "Specify the actual state space, recurrence, candidate domain, physical units and computational bound. Keep empirical speech/memory observations conditional on original evidence. Do not turn correct arithmetic over assumed inputs into a necessity theorem, or enlarge budgets to conceal the missing mapping.",
+      "acceptance": {
+        "unit": "Independently derive actual state counts and exhibit counterexamples to each universal implication.",
+        "module": "Verify solver/stager/resource measurements use the same state space as the approved specification.",
+        "system": "Measure authentic retained-state behavior and bounded host/physical work without semantic shortcuts.",
+        "release": "No latency, capability or impossibility certificate from a mismatched count or unproved performance premise."
+      },
+      "refs": [
+        {
+          "source_id": "LD16-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD16-01--color.md",
+          "line": 308,
+          "anchor": "  four groups a reading weighs at most 5 shapes; at six it weighs",
+          "sha256": "afae8dd15ed0b1d6eab8e7c33e8d5d8404439f942f83a17a5fad679d865ed8a8"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 918,
+          "anchor": "            for parents in itertools.product(*[slots] * n)",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LD16-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD16-01--color.md",
+          "line": 301,
+          "anchor": "  Storage cannot be the mechanism; composition is compulsory",
+          "sha256": "afae8dd15ed0b1d6eab8e7c33e8d5d8404439f942f83a17a5fad679d865ed8a8"
+        },
+        {
+          "source_id": "LD16-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD16-01--color.md",
+          "line": 292,
+          "anchor": "LAW: a rule that accepts its own output never runs out — a piece",
+          "sha256": "afae8dd15ed0b1d6eab8e7c33e8d5d8404439f942f83a17a5fad679d865ed8a8"
+        },
+        {
+          "source_id": "LD16-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD16-01--color.md",
+          "line": 327,
+          "anchor": "RULE: nothing can be fully constructed at that rate — carry chunks",
+          "sha256": "afae8dd15ed0b1d6eab8e7c33e8d5d8404439f942f83a17a5fad679d865ed8a8"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A14",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLM03",
+      "name": "Benchmark retractions invalidate broad passes but do not prohibit independent human judgment",
+      "classification": "Historical false-positive evidence and overstated replacement test",
+      "finding": "LMR04",
+      "observed_mechanism": "The white language record reports63/70 builder-chosen sentences against3/20 sampled from the actual writing,29/30 order cases while two statements in five were misread, a failing case pruned from a perfect bench, and a declared-subject proxy scoring73% against74% random words. It explicitly leaves fluent prose at a three-bare-word ceiling. The color then labels arithmetic a bench that cannot be gamed and dismisses hand-labelled tests categorically.",
+      "evidence_limits": "These are recorded retractions; original complete traces and their exact test/serving paths remain unauthenticated here. A weak subject proxy does not establish failure on every possible task, and an arithmetic pass does not prove speech. Independent blinded listeners or validated labels can measure narrowly specified intelligibility/meaning; the flaw is biased or circular evidence, not the mere presence of human judgment.",
+      "replacement": "Preserve every failed case and authenticate original denominators, selection rules and execution paths. Use complementary tests tied to the actual claim: physical causal controls, independent grounded task outcomes, and blinded perceptual evidence where appropriate. No single benchmark is immune to gaming by its subject matter.",
+      "acceptance": {
+        "unit": "Audit sample generation, labels, exclusions, denominators and measurement predicates.",
+        "module": "Run the actual consumer/caller chain with independent controls; report all arms and failures.",
+        "system": "Qualify retained learned vocal use on new situations with authentic state and blinded listening at its declared scope.",
+        "release": "Bind original results to source/configuration/image and same-event evidence; no inherited all-speech pass."
+      },
+      "refs": [
+        {
+          "source_id": "LD17-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD17-01--white.md",
+          "line": 212,
+          "anchor": "- SCORING ON SENTENCES THE BUILDER CHOSE — 63 of 70 on",
+          "sha256": "22f72beac8d8b47a7e2de5488bcf77b687bd61c660927793f0ba6f75e3ad9866"
+        },
+        {
+          "source_id": "LD17-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD17-01--white.md",
+          "line": 208,
+          "anchor": "  in 100 and a control picking RANDOM words scored 74. Standing,",
+          "sha256": "22f72beac8d8b47a7e2de5488bcf77b687bd61c660927793f0ba6f75e3ad9866"
+        },
+        {
+          "source_id": "LD17-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD17-01--white.md",
+          "line": 315,
+          "anchor": "  in five were being misread as orders; a bench quietly pruned of",
+          "sha256": "22f72beac8d8b47a7e2de5488bcf77b687bd61c660927793f0ba6f75e3ad9866"
+        },
+        {
+          "source_id": "LD16-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD16-01--color.md",
+          "line": 608,
+          "anchor": "- THE BENCH THAT CANNOT BE GAMED: say a thing in plain words, let",
+          "sha256": "afae8dd15ed0b1d6eab8e7c33e8d5d8404439f942f83a17a5fad679d865ed8a8"
+        },
+        {
+          "source_id": "LD17-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD17-01--white.md",
+          "line": 305,
+          "anchor": "- SPEAK FLUENT PROSE FROM THIS FABRIC — blocked on the",
+          "sha256": "22f72beac8d8b47a7e2de5488bcf77b687bd61c660927793f0ba6f75e3ad9866"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A09",
+        "A10",
+        "A13",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLM04",
+      "name": "Documentation examples changed the counted language and removing denials changed its available law input",
+      "classification": "Document content is mechanism-bearing state; text cleanup needs causal verification",
+      "finding": "LMR05",
+      "observed_mechanism": "The white record admits an example repeated twice crossed a chunk floor and broke the illustrated sentence. It describes avoiding examples as a workaround, not a solution. It also reports deliberately removing5427 hand-written negatives and says2938 earlier denials included1629 that overmatched common words. The inspected core builds laws from CANNOT entries, while the revised color expects negatives to be read from positive claims.",
+      "evidence_limits": "The reported counts and complete migration path are not independently authenticated here. The exact legacy core consumer is verified, so removing its inputs cannot be called cosmetic. This review does not assert every current rule is absent: alternative readers and the revised mechanism still require source closure.",
+      "replacement": "Separate documentation, quoted examples, external lessons and executable policy explicitly. Retire the wrong pupil mechanism instead of rewriting prose to tune corpus statistics. For any permitted external program migration, verify the actual old/new representation and consumers with preserved content and all lost constraints visible.",
+      "acceptance": {
+        "unit": "Verify example/quotation provenance, exact policy sources and equivalent constraint meaning across migration.",
+        "module": "Test complete producer/consumer behavior after corpus/schema changes, including removed and newly derived rules.",
+        "system": "Prove that document cleanup cannot manufacture pupil learning or silently alter native decisions.",
+        "release": "Authenticate content/version lineage and actual reader configuration; report every unimplemented inference or lost constraint."
+      },
+      "refs": [
+        {
+          "source_id": "LD17-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD17-01--white.md",
+          "line": 249,
+          "anchor": "- EXAMPLE SENTENCES WRITTEN INTO READING-KNOWLEDGE — an",
+          "sha256": "22f72beac8d8b47a7e2de5488bcf77b687bd61c660927793f0ba6f75e3ad9866"
+        },
+        {
+          "source_id": "LD17-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD17-01--white.md",
+          "line": 270,
+          "anchor": "- DENIAL LINES AS A SECOND COPY OF CLAIMS — 5,427 hand-written",
+          "sha256": "22f72beac8d8b47a7e2de5488bcf77b687bd61c660927793f0ba6f75e3ad9866"
+        },
+        {
+          "source_id": "LD17-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD17-01--white.md",
+          "line": 274,
+          "anchor": "  1,629 of them into gripping anything at all — a wall made of",
+          "sha256": "22f72beac8d8b47a7e2de5488bcf77b687bd61c660927793f0ba6f75e3ad9866"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 175,
+          "anchor": "            for piece in re.split(r\"(?<=[.;])\\s+\", e[\"cannot\"]):",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A12",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLM05",
+      "name": "The failed relation and class mechanisms must remain failed at their actual scope",
+      "classification": "Preserve precise negative evidence; do not replace it with a supplied taxonomy",
+      "finding": "LMR06",
+      "observed_mechanism": "The white record names three failed kind-relation signals: containment tracks frequency, chance-adjusted overlap ranks a one-story coincidence highest, and declared root edges give zero for several true pairs while a false pair scores four. It explicitly labels the inference that the corpus lacks taxonomy as reasoning requiring a test. Self-taught word classes fail five uses despite clean class-separation scores; a modifier/doer error dominates the reported misread standings. Writing explicit kind-lines is offered as one possible way to supply missing knowledge.",
+      "evidence_limits": "These are historical mechanism failures, not a proof that native structural relations or language are impossible. Supplying dog-is-animal as direct pupil state would change the task from sensory learning to semantic seeding. Presenting such content as external teaching is a different role and requires actual acquisition evidence.",
+      "replacement": "Retain each failed signal and its counterexamples. Locate the actual missing current relation, acquisition, retention or recall boundary. Do not import taxonomy tables, pseudo-labelled classes or nearest-context scores to manufacture a learned-language pass.",
+      "acceptance": {
+        "unit": "Verify relation direction and distinctness on independent physical/sensory cases, retaining all known negative controls.",
+        "module": "Trace formation, storage and actual later recall before attributing failure to missing knowledge.",
+        "system": "Demonstrate new-cue/role/context generalization and endogenous action after authentic experience.",
+        "release": "No capability or permanent-impossibility claim from a historical proxy’s score or a supplied semantic relation."
+      },
+      "refs": [
+        {
+          "source_id": "LD17-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD17-01--white.md",
+          "line": 166,
+          "anchor": "- BROKE WHEN APPLIED: WORD CLASSES TAUGHT FROM THE RIBBON'S OWN",
+          "sha256": "22f72beac8d8b47a7e2de5488bcf77b687bd61c660927793f0ba6f75e3ad9866"
+        },
+        {
+          "source_id": "LD17-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD17-01--white.md",
+          "line": 179,
+          "anchor": "- LACKING: A KIND-RELATION SIGNAL (whether one word names a kind",
+          "sha256": "22f72beac8d8b47a7e2de5488bcf77b687bd61c660927793f0ba6f75e3ad9866"
+        },
+        {
+          "source_id": "LD17-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD17-01--white.md",
+          "line": 190,
+          "anchor": "  crossing answers that nothing written says so. That reading is",
+          "sha256": "22f72beac8d8b47a7e2de5488bcf77b687bd61c660927793f0ba6f75e3ad9866"
+        },
+        {
+          "source_id": "LD17-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD17-01--white.md",
+          "line": 195,
+          "anchor": "  kind-lines written into the fabric as knowledge, a sentence that",
+          "sha256": "22f72beac8d8b47a7e2de5488bcf77b687bd61c660927793f0ba6f75e3ad9866"
+        },
+        {
+          "source_id": "LD17-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD17-01--white.md",
+          "line": 139,
+          "anchor": "  standing fakes a doing — 91 of 96 misread standings had exactly",
+          "sha256": "22f72beac8d8b47a7e2de5488bcf77b687bd61c660927793f0ba6f75e3ad9866"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A06",
+        "A08",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLM06",
+      "name": "Story statistics and literary methods cannot specify neuronal memory",
+      "classification": "Authored curriculum and analogy; physical correspondence remains unproved",
+      "finding": "LMR07",
+      "observed_mechanism": "The story color labels list/story recall percentages a memory law and concludes the format IS the storage, later calling story the mind’s native file format. It prescribes chaining items by a want, use or consequence, and contains illustrative spread, trust, camera and narrative arithmetic. The white separately labels the stronger claim that memory is story-shaped unproven. None of these documents gives an ArcLoom encoding, sleep/consolidation or weave mechanism.",
+      "evidence_limits": "This review preserves the attributed curriculum; it does not independently validate its broad scientific claims or infer active runtime use. The worked arithmetic can be internally consistent while its assumed inputs, causal transfer and generalizations remain unsupported. A literature lesson is not an organism experience trace.",
+      "replacement": "Keep literary examples and claimed human findings external and source-attributed. Specify the actual internal/external senses, body/context/order, retained neuronal relations, sleep reinforcement and later procedural composition required by Joe’s story/mosaic/tapestry/weave terms. Do not encode plot/want templates as cognition.",
+      "acceptance": {
+        "unit": "Map every memory term to actual state, update, persistence and consumer, with exact source/clock identity.",
+        "module": "Verify multimodal acquisition, retained association and consolidation using actual predecessor/successor state.",
+        "system": "Demonstrate later contextual recall and composed action from authentic prior experience, including matched ablations.",
+        "release": "Require source-bound evidence for any imported calibration and actual current native behavior; analogy or human percentages are not qualification."
+      },
+      "refs": [
+        {
+          "source_id": "LD18-02",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD18-02--color.md",
+          "line": 155,
+          "anchor": "### THE MEMORY ARITHMETIC — why the mind keeps stories",
+          "sha256": "d6f2e088823d8e0dadf9bee6aac801b280b8682b5f1b94575617a71498b736a9"
+        },
+        {
+          "source_id": "LD18-02",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD18-02--color.md",
+          "line": 168,
+          "anchor": "  warnings traveled as tales in every tribe: the format IS the",
+          "sha256": "d6f2e088823d8e0dadf9bee6aac801b280b8682b5f1b94575617a71498b736a9"
+        },
+        {
+          "source_id": "LD18-02",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD18-02--color.md",
+          "line": 415,
+          "anchor": "  native file format.",
+          "sha256": "d6f2e088823d8e0dadf9bee6aac801b280b8682b5f1b94575617a71498b736a9"
+        },
+        {
+          "source_id": "LD19-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD19-01--white.md",
+          "line": 224,
+          "anchor": "  suspected claim is that memory itself is story-shaped — a self as",
+          "sha256": "289ca7e94830d935a66771050675a3ea25122735724a15ce3ae935f1c4c3e36c"
+        },
+        {
+          "source_id": "LD19-01",
+          "path": "docs/guala_reconciliation/sources/language-mirror/LD19-01--white.md",
+          "line": 226,
+          "anchor": "  confabulation and the defended map; unproven as law; its far end",
+          "sha256": "289ca7e94830d935a66771050675a3ea25122735724a15ce3ae935f1c4c3e36c"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A06",
+        "A07",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

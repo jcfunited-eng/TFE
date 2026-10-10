@@ -1,0 +1,46 @@
+{
+  "scope": "Independent exact arithmetic on printed documentary values only; no product code, original trace or benchmark execution.",
+  "short_median_ms": "1303",
+  "medium_median_ms": "8993/2",
+  "atlas_delta": 608,
+  "saving_percent": "100/653",
+  "approx_reported_tick_rate": "4489/1560",
+  "limits": "Conventional midpoint median; approximate26-minute clock cannot certify precise throughput. Original measurement custody and alternate documented conventions remain separate.",
+  "source_refs": [
+    {
+      "source_id": "EV01-01",
+      "path": "docs/guala_reconciliation/sources/early-voice-history/EV01-01--GL-ATTACH-READ-SENTENCE-PROFILE-C1-20260620-01.txt",
+      "line": 52,
+      "anchor": "  calls 2-5 (ms): 1315, 1276, 1291, 1315",
+      "sha256": "ddcc9cc169213a7649dbcd91938ad1ea8da4e1c861d36658dafd2dfeff919da8"
+    },
+    {
+      "source_id": "EV01-01",
+      "path": "docs/guala_reconciliation/sources/early-voice-history/EV01-01--GL-ATTACH-READ-SENTENCE-PROFILE-C1-20260620-01.txt",
+      "line": 56,
+      "anchor": "  calls 2-5 (ms): 4189, 4492, 4501, 4681",
+      "sha256": "ddcc9cc169213a7649dbcd91938ad1ea8da4e1c861d36658dafd2dfeff919da8"
+    },
+    {
+      "source_id": "EV12-01",
+      "path": "docs/guala_reconciliation/sources/early-voice-history/EV12-01--GL-RPT-READ-SENTENCE-PROFILE-C1-20260620-01.md",
+      "line": 182,
+      "anchor": "**The atlas is NOT monotonically growing during corpus loading.** Atlas entries oscillate (27,477\u201329,758) across the 25 sentences because `atlas.decay()` runs every 10 ticks and removes weak bindings, roughly balancing new additions. Net atlas growth over 25 sentences: +1 mode (vocab). This confirms the substrate is near equilibrium at 239,193 reads.",
+      "sha256": "e4f504fb53c4245db1134732375886686fe7323537514aa325e07822eb257de4"
+    },
+    {
+      "source_id": "EV12-01",
+      "path": "docs/guala_reconciliation/sources/early-voice-history/EV12-01--GL-RPT-READ-SENTENCE-PROFILE-C1-20260620-01.md",
+      "line": 250,
+      "anchor": "- **`deep_atlas._deep_prior_enabled()` called 8,000\u00d7/sentence** (162K calls for 20 sentences): This checks `os.environ` + a flag on every call. The flag does not change during a sentence. **Classification: Substrate-adjacent** \u2014 the deep prior feature is substrate-physics, but checking an environment variable on every invocation is not. This is a candidate for one-time caching at session init. Saves ~0.3s/20 sentences (1.5%) without changing behavior. Awaiting Eve review before touching.",
+      "sha256": "e4f504fb53c4245db1134732375886686fe7323537514aa325e07822eb257de4"
+    },
+    {
+      "source_id": "EV18-01",
+      "path": "docs/guala_reconciliation/sources/early-voice-history/EV18-01--GL-RPT-VOICE-TO-WORDS-C1-20260703-153-v1.md",
+      "line": 94,
+      "anchor": "(boot tick 14511920 to ~14516409 over ~26 minutes, consistent with the ~3.9 ticks/sec",
+      "sha256": "f3a4b038a9b8126dc5dfbc02f08fa98a304e5ceffbf4e27201969f3244a3d83d"
+    }
+  ]
+}

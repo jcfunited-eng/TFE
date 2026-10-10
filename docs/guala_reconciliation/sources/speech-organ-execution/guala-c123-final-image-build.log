@@ -1,0 +1,2514 @@
+#0 building with "guala-c123-release" instance using docker-container driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2.18kB done
+#1 DONE 0.1s
+
+#2 [internal] load metadata for public.ecr.aws/docker/library/python:3.11-slim
+#2 DONE 1.2s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.1s
+
+#4 [internal] load build context
+#4 DONE 0.0s
+
+#5 [native-builder 1/6] FROM public.ecr.aws/docker/library/python:3.11-slim@sha256:9534e5a8e315485d4061ed659af0fd78a284c015f9b73661b41d6bab25604534
+#5 resolve public.ecr.aws/docker/library/python:3.11-slim@sha256:9534e5a8e315485d4061ed659af0fd78a284c015f9b73661b41d6bab25604534 0.1s done
+#5 sha256:f9efa1b83d065a7c5a3041582875b75d63c4ab3d4413514de8e413b51f90e91a 249B / 249B 0.1s done
+#5 sha256:3678bb828654fcc3752f7a5eb63c5accfa00c97047252f25405285550d74a3fd 0B / 4.27MB 0.2s
+#5 sha256:3678bb828654fcc3752f7a5eb63c5accfa00c97047252f25405285550d74a3fd 1.05MB / 4.27MB 0.3s
+#5 sha256:db840d086b65cf73e0feea3bd0cf11063818114e466846ae3f2b2fb1a8c2b143 0B / 14.45MB 0.2s
+#5 sha256:6310eb16bf4251731feab01e8f633bf5e2d75a657ccad97f420b1f83cce457be 0B / 29.79MB 0.2s
+#5 sha256:3678bb828654fcc3752f7a5eb63c5accfa00c97047252f25405285550d74a3fd 3.15MB / 4.27MB 0.5s
+#5 sha256:3678bb828654fcc3752f7a5eb63c5accfa00c97047252f25405285550d74a3fd 4.27MB / 4.27MB 0.6s done
+#5 sha256:db840d086b65cf73e0feea3bd0cf11063818114e466846ae3f2b2fb1a8c2b143 1.05MB / 14.45MB 0.5s
+#5 sha256:db840d086b65cf73e0feea3bd0cf11063818114e466846ae3f2b2fb1a8c2b143 3.15MB / 14.45MB 0.6s
+#5 sha256:6310eb16bf4251731feab01e8f633bf5e2d75a657ccad97f420b1f83cce457be 2.10MB / 29.79MB 0.6s
+#5 sha256:db840d086b65cf73e0feea3bd0cf11063818114e466846ae3f2b2fb1a8c2b143 4.19MB / 14.45MB 0.8s
+#5 sha256:6310eb16bf4251731feab01e8f633bf5e2d75a657ccad97f420b1f83cce457be 4.19MB / 29.79MB 0.8s
+#5 sha256:db840d086b65cf73e0feea3bd0cf11063818114e466846ae3f2b2fb1a8c2b143 5.24MB / 14.45MB 0.9s
+#5 sha256:db840d086b65cf73e0feea3bd0cf11063818114e466846ae3f2b2fb1a8c2b143 7.34MB / 14.45MB 1.0s
+#5 sha256:6310eb16bf4251731feab01e8f633bf5e2d75a657ccad97f420b1f83cce457be 7.34MB / 29.79MB 1.0s
+#5 sha256:db840d086b65cf73e0feea3bd0cf11063818114e466846ae3f2b2fb1a8c2b143 8.39MB / 14.45MB 1.2s
+#5 sha256:6310eb16bf4251731feab01e8f633bf5e2d75a657ccad97f420b1f83cce457be 9.44MB / 29.79MB 1.2s
+#5 sha256:db840d086b65cf73e0feea3bd0cf11063818114e466846ae3f2b2fb1a8c2b143 9.44MB / 14.45MB 1.3s
+#5 sha256:db840d086b65cf73e0feea3bd0cf11063818114e466846ae3f2b2fb1a8c2b143 11.53MB / 14.45MB 1.5s
+#5 sha256:6310eb16bf4251731feab01e8f633bf5e2d75a657ccad97f420b1f83cce457be 11.53MB / 29.79MB 1.5s
+#5 sha256:db840d086b65cf73e0feea3bd0cf11063818114e466846ae3f2b2fb1a8c2b143 12.58MB / 14.45MB 1.6s
+#5 sha256:db840d086b65cf73e0feea3bd0cf11063818114e466846ae3f2b2fb1a8c2b143 14.45MB / 14.45MB 1.8s done
+#5 sha256:6310eb16bf4251731feab01e8f633bf5e2d75a657ccad97f420b1f83cce457be 14.68MB / 29.79MB 1.8s
+#5 sha256:6310eb16bf4251731feab01e8f633bf5e2d75a657ccad97f420b1f83cce457be 18.87MB / 29.79MB 2.1s
+#5 sha256:6310eb16bf4251731feab01e8f633bf5e2d75a657ccad97f420b1f83cce457be 22.02MB / 29.79MB 2.2s
+#5 sha256:6310eb16bf4251731feab01e8f633bf5e2d75a657ccad97f420b1f83cce457be 24.12MB / 29.79MB 2.4s
+#5 sha256:6310eb16bf4251731feab01e8f633bf5e2d75a657ccad97f420b1f83cce457be 26.21MB / 29.79MB 2.5s
+#5 sha256:6310eb16bf4251731feab01e8f633bf5e2d75a657ccad97f420b1f83cce457be 28.31MB / 29.79MB 2.7s
+#5 sha256:6310eb16bf4251731feab01e8f633bf5e2d75a657ccad97f420b1f83cce457be 29.79MB / 29.79MB 2.8s done
+#5 extracting sha256:6310eb16bf4251731feab01e8f633bf5e2d75a657ccad97f420b1f83cce457be
+#5 extracting sha256:6310eb16bf4251731feab01e8f633bf5e2d75a657ccad97f420b1f83cce457be 1.4s done
+#5 extracting sha256:3678bb828654fcc3752f7a5eb63c5accfa00c97047252f25405285550d74a3fd
+#5 extracting sha256:3678bb828654fcc3752f7a5eb63c5accfa00c97047252f25405285550d74a3fd 0.3s done
+#5 DONE 4.9s
+
+#4 [internal] load build context
+#4 transferring context: 66.21MB 4.8s
+#4 ...
+
+#5 [native-builder 1/6] FROM public.ecr.aws/docker/library/python:3.11-slim@sha256:9534e5a8e315485d4061ed659af0fd78a284c015f9b73661b41d6bab25604534
+#5 extracting sha256:db840d086b65cf73e0feea3bd0cf11063818114e466846ae3f2b2fb1a8c2b143 0.9s done
+#5 extracting sha256:f9efa1b83d065a7c5a3041582875b75d63c4ab3d4413514de8e413b51f90e91a 0.0s done
+#5 DONE 5.9s
+
+#4 [internal] load build context
+#4 ...
+
+#6 [stage-1 2/9] RUN printf 'git_sha=%s built=%s runtime=lean-native\n'       "5e327afbdfa85c45ceed16f45c8f1264d4d1c153" "2026-09-12T03:16:00Z" > /BUILD_INFO
+#6 DONE 0.5s
+
+#4 [internal] load build context
+#4 transferring context: 97.26MB 6.4s done
+#4 DONE 6.6s
+
+#7 [stage-1 3/9] WORKDIR /app
+#7 DONE 0.1s
+
+#8 [native-builder 2/6] RUN apt-get update && apt-get install -y --no-install-recommends         build-essential curl     && rm -rf /var/lib/apt/lists/*
+#8 0.389 Hit:1 http://deb.debian.org/debian trixie InRelease
+#8 0.392 Get:2 http://deb.debian.org/debian trixie-updates InRelease [47.3 kB]
+#8 0.396 Get:3 http://deb.debian.org/debian-security trixie-security InRelease [43.4 kB]
+#8 0.435 Get:4 http://deb.debian.org/debian trixie/main amd64 Packages [9673 kB]
+#8 0.933 Get:5 http://deb.debian.org/debian trixie-updates/main amd64 Packages [4412 B]
+#8 0.933 Get:6 http://deb.debian.org/debian-security trixie-security/main amd64 Packages [261 kB]
+#8 1.657 Fetched 10.0 MB in 1s (7065 kB/s)
+#8 1.657 Reading package lists...
+#8 2.234 Reading package lists...
+#8 2.878 Building dependency tree...
+#8 3.014 Reading state information...
+#8 3.212 The following additional packages will be installed:
+#8 3.212   binutils binutils-common binutils-x86-64-linux-gnu bzip2 cpp cpp-14
+#8 3.212   cpp-14-x86-64-linux-gnu cpp-x86-64-linux-gnu dpkg-dev g++ g++-14
+#8 3.212   g++-14-x86-64-linux-gnu g++-x86-64-linux-gnu gcc gcc-14
+#8 3.213   gcc-14-x86-64-linux-gnu gcc-x86-64-linux-gnu libasan8 libatomic1 libbinutils
+#8 3.213   libbrotli1 libc-dev-bin libc6-dev libcc1-0 libcom-err2 libcrypt-dev
+#8 3.213   libctf-nobfd0 libctf0 libcurl4t64 libdpkg-perl libgcc-14-dev
+#8 3.213   libgdbm-compat4t64 libgnutls30t64 libgomp1 libgprofng0 libgssapi-krb5-2
+#8 3.213   libhwasan0 libidn2-0 libisl23 libitm1 libjansson4 libk5crypto3 libkeyutils1
+#8 3.213   libkrb5-3 libkrb5support0 libldap2 liblsan0 libmpc3 libmpfr6 libnghttp2-14
+#8 3.213   libnghttp3-9 libp11-kit0 libperl5.40 libpsl5t64 libquadmath0 librtmp1
+#8 3.213   libsasl2-2 libsasl2-modules-db libsframe1 libssh2-1t64 libstdc++-14-dev
+#8 3.213   libtasn1-6 libtsan2 libubsan1 libunistring5 linux-libc-dev make patch perl
+#8 3.214   perl-modules-5.40 rpcsvc-proto xz-utils
+#8 3.215 Suggested packages:
+#8 3.215   binutils-doc gprofng-gui binutils-gold bzip2-doc cpp-doc gcc-14-locales
+#8 3.215   cpp-14-doc debian-keyring debian-tag2upload-keyring g++-multilib
+#8 3.215   g++-14-multilib gcc-14-doc gcc-multilib manpages-dev autoconf automake
+#8 3.215   libtool flex bison gdb gcc-doc gcc-14-multilib gdb-x86-64-linux-gnu
+#8 3.215   libc-devtools glibc-doc sq | sqop | rsop | gosop | pgpainless-cli | gpg-sq
+#8 3.215   | gnupg sensible-utils git bzr gnutls-bin krb5-doc krb5-user
+#8 3.215   libstdc++-14-doc make-doc ed diffutils-doc perl-doc
+#8 3.215   libterm-readline-gnu-perl | libterm-readline-perl-perl
+#8 3.215   libtap-harness-archive-perl
+#8 3.215 Recommended packages:
+#8 3.215   bash-completion fakeroot sq | sqop | rsop | gosop | pgpainless-cli | gpg-sq
+#8 3.215   | gnupg libalgorithm-merge-perl manpages manpages-dev libfile-fcntllock-perl
+#8 3.215   liblocale-gettext-perl krb5-locales libldap-common publicsuffix
+#8 3.215   libsasl2-modules
+#8 3.496 The following NEW packages will be installed:
+#8 3.496   binutils binutils-common binutils-x86-64-linux-gnu build-essential bzip2 cpp
+#8 3.496   cpp-14 cpp-14-x86-64-linux-gnu cpp-x86-64-linux-gnu curl dpkg-dev g++ g++-14
+#8 3.496   g++-14-x86-64-linux-gnu g++-x86-64-linux-gnu gcc gcc-14
+#8 3.497   gcc-14-x86-64-linux-gnu gcc-x86-64-linux-gnu libasan8 libatomic1 libbinutils
+#8 3.497   libbrotli1 libc-dev-bin libc6-dev libcc1-0 libcom-err2 libcrypt-dev
+#8 3.497   libctf-nobfd0 libctf0 libcurl4t64 libdpkg-perl libgcc-14-dev
+#8 3.497   libgdbm-compat4t64 libgnutls30t64 libgomp1 libgprofng0 libgssapi-krb5-2
+#8 3.497   libhwasan0 libidn2-0 libisl23 libitm1 libjansson4 libk5crypto3 libkeyutils1
+#8 3.498   libkrb5-3 libkrb5support0 libldap2 liblsan0 libmpc3 libmpfr6 libnghttp2-14
+#8 3.498   libnghttp3-9 libp11-kit0 libperl5.40 libpsl5t64 libquadmath0 librtmp1
+#8 3.499   libsasl2-2 libsasl2-modules-db libsframe1 libssh2-1t64 libstdc++-14-dev
+#8 3.499   libtasn1-6 libtsan2 libubsan1 libunistring5 linux-libc-dev make patch perl
+#8 3.499   perl-modules-5.40 rpcsvc-proto xz-utils
+#8 3.562 0 upgraded, 74 newly installed, 0 to remove and 0 not upgraded.
+#8 3.562 Need to get 87.4 MB of archives.
+#8 3.562 After this operation, 351 MB of additional disk space will be used.
+#8 3.562 Get:1 http://deb.debian.org/debian trixie/main amd64 bzip2 amd64 1.0.8-6 [40.5 kB]
+#8 3.587 Get:2 http://deb.debian.org/debian trixie/main amd64 perl-modules-5.40 all 5.40.1-6 [3019 kB]
+#8 3.730 Get:3 http://deb.debian.org/debian trixie/main amd64 libgdbm-compat4t64 amd64 1.24-2 [50.3 kB]
+#8 3.733 Get:4 http://deb.debian.org/debian trixie/main amd64 libperl5.40 amd64 5.40.1-6 [4341 kB]
+#8 3.881 Get:5 http://deb.debian.org/debian trixie/main amd64 perl amd64 5.40.1-6 [267 kB]
+#8 3.890 Get:6 http://deb.debian.org/debian trixie/main amd64 xz-utils amd64 5.8.1-1+deb13u1 [659 kB]
+#8 3.908 Get:7 http://deb.debian.org/debian trixie/main amd64 libsframe1 amd64 2.44-3 [78.4 kB]
+#8 3.911 Get:8 http://deb.debian.org/debian trixie/main amd64 binutils-common amd64 2.44-3 [2509 kB]
+#8 3.999 Get:9 http://deb.debian.org/debian trixie/main amd64 libbinutils amd64 2.44-3 [534 kB]
+#8 4.016 Get:10 http://deb.debian.org/debian trixie/main amd64 libgprofng0 amd64 2.44-3 [808 kB]
+#8 4.043 Get:11 http://deb.debian.org/debian trixie/main amd64 libctf-nobfd0 amd64 2.44-3 [156 kB]
+#8 4.054 Get:12 http://deb.debian.org/debian trixie/main amd64 libctf0 amd64 2.44-3 [88.6 kB]
+#8 4.057 Get:13 http://deb.debian.org/debian trixie/main amd64 libjansson4 amd64 2.14-2+b3 [39.8 kB]
+#8 4.058 Get:14 http://deb.debian.org/debian trixie/main amd64 binutils-x86-64-linux-gnu amd64 2.44-3 [1014 kB]
+#8 4.092 Get:15 http://deb.debian.org/debian trixie/main amd64 binutils amd64 2.44-3 [265 kB]
+#8 4.108 Get:16 http://deb.debian.org/debian trixie/main amd64 libc-dev-bin amd64 2.41-12+deb13u3 [59.8 kB]
+#8 4.111 Get:17 http://deb.debian.org/debian-security trixie-security/main amd64 linux-libc-dev all 6.12.107-1 [2919 kB]
+#8 4.216 Get:18 http://deb.debian.org/debian trixie/main amd64 libcrypt-dev amd64 1:4.4.38-1 [119 kB]
+#8 4.222 Get:19 http://deb.debian.org/debian trixie/main amd64 rpcsvc-proto amd64 1.4.3-1 [63.3 kB]
+#8 4.224 Get:20 http://deb.debian.org/debian trixie/main amd64 libc6-dev amd64 2.41-12+deb13u3 [1992 kB]
+#8 4.293 Get:21 http://deb.debian.org/debian trixie/main amd64 libisl23 amd64 0.27-1 [659 kB]
+#8 4.320 Get:22 http://deb.debian.org/debian trixie/main amd64 libmpfr6 amd64 4.2.2-1 [729 kB]
+#8 4.346 Get:23 http://deb.debian.org/debian trixie/main amd64 libmpc3 amd64 1.3.1-1+b3 [52.2 kB]
+#8 4.348 Get:24 http://deb.debian.org/debian trixie/main amd64 cpp-14-x86-64-linux-gnu amd64 14.2.0-19 [11.0 MB]
+#8 4.817 Get:25 http://deb.debian.org/debian trixie/main amd64 cpp-14 amd64 14.2.0-19 [1280 B]
+#8 4.817 Get:26 http://deb.debian.org/debian trixie/main amd64 cpp-x86-64-linux-gnu amd64 4:14.2.0-1 [4840 B]
+#8 4.818 Get:27 http://deb.debian.org/debian trixie/main amd64 cpp amd64 4:14.2.0-1 [1568 B]
+#8 4.818 Get:28 http://deb.debian.org/debian trixie/main amd64 libcc1-0 amd64 14.2.0-19 [42.8 kB]
+#8 4.818 Get:29 http://deb.debian.org/debian trixie/main amd64 libgomp1 amd64 14.2.0-19 [137 kB]
+#8 4.822 Get:30 http://deb.debian.org/debian trixie/main amd64 libitm1 amd64 14.2.0-19 [26.0 kB]
+#8 4.824 Get:31 http://deb.debian.org/debian trixie/main amd64 libatomic1 amd64 14.2.0-19 [9308 B]
+#8 4.825 Get:32 http://deb.debian.org/debian trixie/main amd64 libasan8 amd64 14.2.0-19 [2725 kB]
+#8 4.934 Get:33 http://deb.debian.org/debian trixie/main amd64 liblsan0 amd64 14.2.0-19 [1204 kB]
+#8 4.988 Get:34 http://deb.debian.org/debian trixie/main amd64 libtsan2 amd64 14.2.0-19 [2460 kB]
+#8 5.083 Get:35 http://deb.debian.org/debian trixie/main amd64 libubsan1 amd64 14.2.0-19 [1074 kB]
+#8 5.125 Get:36 http://deb.debian.org/debian trixie/main amd64 libhwasan0 amd64 14.2.0-19 [1488 kB]
+#8 5.178 Get:37 http://deb.debian.org/debian trixie/main amd64 libquadmath0 amd64 14.2.0-19 [145 kB]
+#8 5.183 Get:38 http://deb.debian.org/debian trixie/main amd64 libgcc-14-dev amd64 14.2.0-19 [2672 kB]
+#8 5.294 Get:39 http://deb.debian.org/debian trixie/main amd64 gcc-14-x86-64-linux-gnu amd64 14.2.0-19 [21.4 MB]
+#8 6.238 Get:40 http://deb.debian.org/debian trixie/main amd64 gcc-14 amd64 14.2.0-19 [540 kB]
+#8 6.274 Get:41 http://deb.debian.org/debian trixie/main amd64 gcc-x86-64-linux-gnu amd64 4:14.2.0-1 [1436 B]
+#8 6.275 Get:42 http://deb.debian.org/debian trixie/main amd64 gcc amd64 4:14.2.0-1 [5136 B]
+#8 6.275 Get:43 http://deb.debian.org/debian trixie/main amd64 libstdc++-14-dev amd64 14.2.0-19 [2376 kB]
+#8 6.442 Get:44 http://deb.debian.org/debian trixie/main amd64 g++-14-x86-64-linux-gnu amd64 14.2.0-19 [12.1 MB]
+#8 7.168 Get:45 http://deb.debian.org/debian trixie/main amd64 g++-14 amd64 14.2.0-19 [22.5 kB]
+#8 7.168 Get:46 http://deb.debian.org/debian trixie/main amd64 g++-x86-64-linux-gnu amd64 4:14.2.0-1 [1200 B]
+#8 7.169 Get:47 http://deb.debian.org/debian trixie/main amd64 g++ amd64 4:14.2.0-1 [1344 B]
+#8 7.169 Get:48 http://deb.debian.org/debian trixie/main amd64 make amd64 4.4.1-2 [463 kB]
+#8 7.204 Get:49 http://deb.debian.org/debian trixie/main amd64 libdpkg-perl all 1.22.22 [651 kB]
+#8 7.293 Get:50 http://deb.debian.org/debian trixie/main amd64 patch amd64 2.8-2 [134 kB]
+#8 7.311 Get:51 http://deb.debian.org/debian trixie/main amd64 dpkg-dev all 1.22.22 [1337 kB]
+#8 7.433 Get:52 http://deb.debian.org/debian trixie/main amd64 build-essential amd64 12.12 [4624 B]
+#8 7.433 Get:53 http://deb.debian.org/debian trixie/main amd64 libbrotli1 amd64 1.1.0-2+b7 [307 kB]
+#8 7.457 Get:54 http://deb.debian.org/debian trixie/main amd64 libkrb5support0 amd64 1.21.3-5+deb13u1 [33.1 kB]
+#8 7.460 Get:55 http://deb.debian.org/debian trixie/main amd64 libcom-err2 amd64 1.47.2-3+b11 [25.0 kB]
+#8 7.461 Get:56 http://deb.debian.org/debian trixie/main amd64 libk5crypto3 amd64 1.21.3-5+deb13u1 [81.2 kB]
+#8 7.468 Get:57 http://deb.debian.org/debian trixie/main amd64 libkeyutils1 amd64 1.6.3-6 [9456 B]
+#8 7.469 Get:58 http://deb.debian.org/debian trixie/main amd64 libkrb5-3 amd64 1.21.3-5+deb13u1 [326 kB]
+#8 7.508 Get:59 http://deb.debian.org/debian trixie/main amd64 libgssapi-krb5-2 amd64 1.21.3-5+deb13u1 [138 kB]
+#8 7.519 Get:60 http://deb.debian.org/debian trixie/main amd64 libunistring5 amd64 1.3-2 [477 kB]
+#8 7.566 Get:61 http://deb.debian.org/debian trixie/main amd64 libidn2-0 amd64 2.3.8-2 [109 kB]
+#8 7.573 Get:62 http://deb.debian.org/debian trixie/main amd64 libsasl2-modules-db amd64 2.1.28+dfsg1-9 [19.8 kB]
+#8 7.574 Get:63 http://deb.debian.org/debian trixie/main amd64 libsasl2-2 amd64 2.1.28+dfsg1-9 [57.5 kB]
+#8 7.580 Get:64 http://deb.debian.org/debian trixie/main amd64 libldap2 amd64 2.6.10+dfsg-1 [194 kB]
+#8 7.600 Get:65 http://deb.debian.org/debian trixie/main amd64 libnghttp2-14 amd64 1.64.0-1.1+deb13u1 [76.2 kB]
+#8 7.607 Get:66 http://deb.debian.org/debian trixie/main amd64 libnghttp3-9 amd64 1.8.0-1 [67.7 kB]
+#8 7.610 Get:67 http://deb.debian.org/debian trixie/main amd64 libpsl5t64 amd64 0.21.2-1.1+b1 [57.2 kB]
+#8 7.612 Get:68 http://deb.debian.org/debian trixie/main amd64 libp11-kit0 amd64 0.25.5-3 [425 kB]
+#8 7.637 Get:69 http://deb.debian.org/debian trixie/main amd64 libtasn1-6 amd64 4.20.0-2+deb13u1 [50.1 kB]
+#8 7.640 Get:70 http://deb.debian.org/debian trixie/main amd64 libgnutls30t64 amd64 3.8.9-3+deb13u4 [1469 kB]
+#8 7.739 Get:71 http://deb.debian.org/debian trixie/main amd64 librtmp1 amd64 2.4+20151223.gitfa8646d.1-2+b5 [58.8 kB]
+#8 7.742 Get:72 http://deb.debian.org/debian trixie/main amd64 libssh2-1t64 amd64 1.11.1-1+deb13u1 [245 kB]
+#8 7.754 Get:73 http://deb.debian.org/debian trixie/main amd64 libcurl4t64 amd64 8.14.1-2+deb13u4 [392 kB]
+#8 7.782 Get:74 http://deb.debian.org/debian trixie/main amd64 curl amd64 8.14.1-2+deb13u4 [270 kB]
+#8 7.999 debconf: unable to initialize frontend: Dialog
+#8 7.999 debconf: (TERM is not set, so the dialog frontend is not usable.)
+#8 7.999 debconf: falling back to frontend: Readline
+#8 7.999 debconf: unable to initialize frontend: Readline
+#8 7.999 debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC entries checked: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.40.1 /usr/local/share/perl/5.40.1 /usr/lib/x86_64-linux-gnu/perl5/5.40 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl-base /usr/lib/x86_64-linux-gnu/perl/5.40 /usr/share/perl/5.40 /usr/local/lib/site_perl) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 8, <STDIN> line 74.)
+#8 7.999 debconf: falling back to frontend: Teletype
+#8 8.008 debconf: unable to initialize frontend: Teletype
+#8 8.008 debconf: (This frontend requires a controlling tty.)
+#8 8.008 debconf: falling back to frontend: Noninteractive
+#8 9.860 Fetched 87.4 MB in 4s (20.4 MB/s)
+#8 9.892 Selecting previously unselected package bzip2.
+#8 9.892 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 5652 files and directories currently installed.)
+#8 9.898 Preparing to unpack .../00-bzip2_1.0.8-6_amd64.deb ...
+#8 9.910 Unpacking bzip2 (1.0.8-6) ...
+#8 9.978 Selecting previously unselected package perl-modules-5.40.
+#8 9.978 Preparing to unpack .../01-perl-modules-5.40_5.40.1-6_all.deb ...
+#8 9.990 Unpacking perl-modules-5.40 (5.40.1-6) ...
+#8 10.33 Selecting previously unselected package libgdbm-compat4t64:amd64.
+#8 10.33 Preparing to unpack .../02-libgdbm-compat4t64_1.24-2_amd64.deb ...
+#8 10.35 Unpacking libgdbm-compat4t64:amd64 (1.24-2) ...
+#8 10.43 Selecting previously unselected package libperl5.40:amd64.
+#8 10.43 Preparing to unpack .../03-libperl5.40_5.40.1-6_amd64.deb ...
+#8 10.45 Unpacking libperl5.40:amd64 (5.40.1-6) ...
+#8 ...
+
+#9 [stage-1 4/9] RUN pip install --no-cache-dir     fastapi     numpy     pandas     Pillow     python-flint==0.9.0     uvicorn
+#9 1.810 Collecting fastapi
+#9 1.955   Downloading fastapi-0.141.1-py3-none-any.whl.metadata (27 kB)
+#9 2.184 Collecting numpy
+#9 2.201   Downloading numpy-2.4.6-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (6.6 kB)
+#9 2.345 Collecting pandas
+#9 2.363   Downloading pandas-3.0.5-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (79 kB)
+#9 2.379      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 79.5/79.5 kB 5.6 MB/s eta 0:00:00
+#9 2.578 Collecting Pillow
+#9 2.602   Downloading pillow-12.3.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (9.1 kB)
+#9 2.643 Collecting python-flint==0.9.0
+#9 2.665   Downloading python_flint-0.9.0-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (23 kB)
+#9 2.713 Collecting uvicorn
+#9 2.728   Downloading uvicorn-0.52.4-py3-none-any.whl.metadata (6.6 kB)
+#9 2.796 Collecting starlette>=0.46.0 (from fastapi)
+#9 2.814   Downloading starlette-1.6.0-py3-none-any.whl.metadata (6.4 kB)
+#9 3.010 Collecting pydantic>=2.9.0 (from fastapi)
+#9 3.027   Downloading pydantic-2.13.5-py3-none-any.whl.metadata (110 kB)
+#9 3.038      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 110.2/110.2 kB 12.5 MB/s eta 0:00:00
+#9 3.114 Collecting typing-extensions>=4.8.0 (from fastapi)
+#9 3.141   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+#9 3.200 Collecting typing-inspection>=0.4.2 (from fastapi)
+#9 3.216   Downloading typing_inspection-0.4.4-py3-none-any.whl.metadata (2.6 kB)
+#9 3.259 Collecting annotated-doc>=0.0.2 (from fastapi)
+#9 3.279   Downloading annotated_doc-0.0.5-py3-none-any.whl.metadata (6.5 kB)
+#9 3.404 Collecting python-dateutil>=2.8.2 (from pandas)
+#9 3.423   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+#9 3.532 Collecting click>=7.0 (from uvicorn)
+#9 3.561   Downloading click-8.5.0-py3-none-any.whl.metadata (2.6 kB)
+#9 3.601 Collecting h11>=0.8 (from uvicorn)
+#9 3.638   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+#9 3.683 Collecting annotated-types>=0.6.0 (from pydantic>=2.9.0->fastapi)
+#9 3.693   Downloading annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+#9 4.900 Collecting pydantic-core==2.46.5 (from pydantic>=2.9.0->fastapi)
+#9 4.932   Downloading pydantic_core-2.46.5-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.6 kB)
+#9 5.033 Collecting six>=1.5 (from python-dateutil>=2.8.2->pandas)
+#9 5.053   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+#9 5.124 Collecting anyio<5,>=3.6.2 (from starlette>=0.46.0->fastapi)
+#9 5.157   Downloading anyio-4.15.1-py3-none-any.whl.metadata (4.7 kB)
+#9 5.235 Collecting idna>=2.8 (from anyio<5,>=3.6.2->starlette>=0.46.0->fastapi)
+#9 5.264   Downloading idna-3.19-py3-none-any.whl.metadata (9.2 kB)
+#9 5.310 Downloading python_flint-0.9.0-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (10.1 MB)
+#9 5.969    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.1/10.1 MB 15.5 MB/s eta 0:00:00
+#9 5.996 Downloading fastapi-0.141.1-py3-none-any.whl (131 kB)
+#9 6.009    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 132.0/132.0 kB 12.1 MB/s eta 0:00:00
+#9 6.028 Downloading numpy-2.4.6-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.9 MB)
+#9 7.205    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.9/16.9 MB 13.0 MB/s eta 0:00:00
+#9 7.222 Downloading pandas-3.0.5-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (11.3 MB)
+#9 7.645    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 11.3/11.3 MB 26.6 MB/s eta 0:00:00
+#9 7.663 Downloading pillow-12.3.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (6.9 MB)
+#9 7.935    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.9/6.9 MB 25.7 MB/s eta 0:00:00
+#9 7.951 Downloading uvicorn-0.52.4-py3-none-any.whl (79 kB)
+#9 7.954    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 79.9/79.9 kB 47.8 MB/s eta 0:00:00
+#9 7.968 Downloading annotated_doc-0.0.5-py3-none-any.whl (5.3 kB)
+#9 7.991 Downloading click-8.5.0-py3-none-any.whl (125 kB)
+#9 7.997    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 125.3/125.3 kB 28.9 MB/s eta 0:00:00
+#9 8.013 Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+#9 8.031 Downloading pydantic-2.13.5-py3-none-any.whl (472 kB)
+#9 8.050    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 472.6/472.6 kB 26.2 MB/s eta 0:00:00
+#9 8.066 Downloading pydantic_core-2.46.5-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+#9 8.143    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 27.4 MB/s eta 0:00:00
+#9 8.161 Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+#9 8.172    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 229.9/229.9 kB 24.5 MB/s eta 0:00:00
+#9 8.188 Downloading starlette-1.6.0-py3-none-any.whl (75 kB)
+#9 8.193    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 76.0/76.0 kB 39.5 MB/s eta 0:00:00
+#9 8.210 Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+#9 8.214    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 45.6/45.6 kB 31.0 MB/s eta 0:00:00
+#9 8.233 Downloading typing_inspection-0.4.4-py3-none-any.whl (14 kB)
+#9 8.255 Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+#9 8.274 Downloading anyio-4.15.1-py3-none-any.whl (132 kB)
+#9 8.282    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 132.1/132.1 kB 24.5 MB/s eta 0:00:00
+#9 8.304 Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+#9 8.328 Downloading idna-3.19-py3-none-any.whl (68 kB)
+#9 8.332    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 68.5/68.5 kB 25.1 MB/s eta 0:00:00
+#9 8.535 Installing collected packages: typing-extensions, six, python-flint, Pillow, numpy, idna, h11, click, annotated-types, annotated-doc, uvicorn, typing-inspection, python-dateutil, pydantic-core, anyio, starlette, pydantic, pandas, fastapi
+#9 ...
+
+#8 [native-builder 2/6] RUN apt-get update && apt-get install -y --no-install-recommends         build-essential curl     && rm -rf /var/lib/apt/lists/*
+#8 10.76 Selecting previously unselected package perl.
+#8 10.76 Preparing to unpack .../04-perl_5.40.1-6_amd64.deb ...
+#8 10.77 Unpacking perl (5.40.1-6) ...
+#8 10.85 Selecting previously unselected package xz-utils.
+#8 10.85 Preparing to unpack .../05-xz-utils_5.8.1-1+deb13u1_amd64.deb ...
+#8 10.86 Unpacking xz-utils (5.8.1-1+deb13u1) ...
+#8 10.97 Selecting previously unselected package libsframe1:amd64.
+#8 10.97 Preparing to unpack .../06-libsframe1_2.44-3_amd64.deb ...
+#8 10.98 Unpacking libsframe1:amd64 (2.44-3) ...
+#8 11.05 Selecting previously unselected package binutils-common:amd64.
+#8 11.05 Preparing to unpack .../07-binutils-common_2.44-3_amd64.deb ...
+#8 11.06 Unpacking binutils-common:amd64 (2.44-3) ...
+#8 11.24 Selecting previously unselected package libbinutils:amd64.
+#8 11.24 Preparing to unpack .../08-libbinutils_2.44-3_amd64.deb ...
+#8 11.25 Unpacking libbinutils:amd64 (2.44-3) ...
+#8 11.36 Selecting previously unselected package libgprofng0:amd64.
+#8 11.36 Preparing to unpack .../09-libgprofng0_2.44-3_amd64.deb ...
+#8 11.37 Unpacking libgprofng0:amd64 (2.44-3) ...
+#8 11.51 Selecting previously unselected package libctf-nobfd0:amd64.
+#8 11.51 Preparing to unpack .../10-libctf-nobfd0_2.44-3_amd64.deb ...
+#8 11.52 Unpacking libctf-nobfd0:amd64 (2.44-3) ...
+#8 11.62 Selecting previously unselected package libctf0:amd64.
+#8 11.62 Preparing to unpack .../11-libctf0_2.44-3_amd64.deb ...
+#8 11.63 Unpacking libctf0:amd64 (2.44-3) ...
+#8 11.73 Selecting previously unselected package libjansson4:amd64.
+#8 11.73 Preparing to unpack .../12-libjansson4_2.14-2+b3_amd64.deb ...
+#8 11.74 Unpacking libjansson4:amd64 (2.14-2+b3) ...
+#8 11.82 Selecting previously unselected package binutils-x86-64-linux-gnu.
+#8 11.82 Preparing to unpack .../13-binutils-x86-64-linux-gnu_2.44-3_amd64.deb ...
+#8 11.83 Unpacking binutils-x86-64-linux-gnu (2.44-3) ...
+#8 11.98 Selecting previously unselected package binutils.
+#8 11.98 Preparing to unpack .../14-binutils_2.44-3_amd64.deb ...
+#8 11.99 Unpacking binutils (2.44-3) ...
+#8 12.08 Selecting previously unselected package libc-dev-bin.
+#8 12.08 Preparing to unpack .../15-libc-dev-bin_2.41-12+deb13u3_amd64.deb ...
+#8 12.10 Unpacking libc-dev-bin (2.41-12+deb13u3) ...
+#8 12.16 Selecting previously unselected package linux-libc-dev.
+#8 12.16 Preparing to unpack .../16-linux-libc-dev_6.12.107-1_all.deb ...
+#8 12.17 Unpacking linux-libc-dev (6.12.107-1) ...
+#8 12.67 Selecting previously unselected package libcrypt-dev:amd64.
+#8 12.67 Preparing to unpack .../17-libcrypt-dev_1%3a4.4.38-1_amd64.deb ...
+#8 12.69 Unpacking libcrypt-dev:amd64 (1:4.4.38-1) ...
+#8 12.76 Selecting previously unselected package rpcsvc-proto.
+#8 12.76 Preparing to unpack .../18-rpcsvc-proto_1.4.3-1_amd64.deb ...
+#8 12.77 Unpacking rpcsvc-proto (1.4.3-1) ...
+#8 12.85 Selecting previously unselected package libc6-dev:amd64.
+#8 12.85 Preparing to unpack .../19-libc6-dev_2.41-12+deb13u3_amd64.deb ...
+#8 12.86 Unpacking libc6-dev:amd64 (2.41-12+deb13u3) ...
+#8 13.13 Selecting previously unselected package libisl23:amd64.
+#8 13.13 Preparing to unpack .../20-libisl23_0.27-1_amd64.deb ...
+#8 13.15 Unpacking libisl23:amd64 (0.27-1) ...
+#8 13.25 Selecting previously unselected package libmpfr6:amd64.
+#8 13.26 Preparing to unpack .../21-libmpfr6_4.2.2-1_amd64.deb ...
+#8 13.27 Unpacking libmpfr6:amd64 (4.2.2-1) ...
+#8 13.36 Selecting previously unselected package libmpc3:amd64.
+#8 13.36 Preparing to unpack .../22-libmpc3_1.3.1-1+b3_amd64.deb ...
+#8 13.37 Unpacking libmpc3:amd64 (1.3.1-1+b3) ...
+#8 13.43 Selecting previously unselected package cpp-14-x86-64-linux-gnu.
+#8 13.44 Preparing to unpack .../23-cpp-14-x86-64-linux-gnu_14.2.0-19_amd64.deb ...
+#8 13.45 Unpacking cpp-14-x86-64-linux-gnu (14.2.0-19) ...
+#8 13.98 Selecting previously unselected package cpp-14.
+#8 13.98 Preparing to unpack .../24-cpp-14_14.2.0-19_amd64.deb ...
+#8 13.99 Unpacking cpp-14 (14.2.0-19) ...
+#8 14.06 Selecting previously unselected package cpp-x86-64-linux-gnu.
+#8 14.06 Preparing to unpack .../25-cpp-x86-64-linux-gnu_4%3a14.2.0-1_amd64.deb ...
+#8 14.07 Unpacking cpp-x86-64-linux-gnu (4:14.2.0-1) ...
+#8 14.15 Selecting previously unselected package cpp.
+#8 14.16 Preparing to unpack .../26-cpp_4%3a14.2.0-1_amd64.deb ...
+#8 14.17 Unpacking cpp (4:14.2.0-1) ...
+#8 14.25 Selecting previously unselected package libcc1-0:amd64.
+#8 14.25 Preparing to unpack .../27-libcc1-0_14.2.0-19_amd64.deb ...
+#8 14.26 Unpacking libcc1-0:amd64 (14.2.0-19) ...
+#8 14.34 Selecting previously unselected package libgomp1:amd64.
+#8 14.35 Preparing to unpack .../28-libgomp1_14.2.0-19_amd64.deb ...
+#8 14.36 Unpacking libgomp1:amd64 (14.2.0-19) ...
+#8 14.44 Selecting previously unselected package libitm1:amd64.
+#8 14.44 Preparing to unpack .../29-libitm1_14.2.0-19_amd64.deb ...
+#8 14.45 Unpacking libitm1:amd64 (14.2.0-19) ...
+#8 14.53 Selecting previously unselected package libatomic1:amd64.
+#8 14.53 Preparing to unpack .../30-libatomic1_14.2.0-19_amd64.deb ...
+#8 14.55 Unpacking libatomic1:amd64 (14.2.0-19) ...
+#8 14.63 Selecting previously unselected package libasan8:amd64.
+#8 14.63 Preparing to unpack .../31-libasan8_14.2.0-19_amd64.deb ...
+#8 14.64 Unpacking libasan8:amd64 (14.2.0-19) ...
+#8 14.86 Selecting previously unselected package liblsan0:amd64.
+#8 14.87 Preparing to unpack .../32-liblsan0_14.2.0-19_amd64.deb ...
+#8 14.88 Unpacking liblsan0:amd64 (14.2.0-19) ...
+#8 15.01 Selecting previously unselected package libtsan2:amd64.
+#8 15.01 Preparing to unpack .../33-libtsan2_14.2.0-19_amd64.deb ...
+#8 15.02 Unpacking libtsan2:amd64 (14.2.0-19) ...
+#8 15.22 Selecting previously unselected package libubsan1:amd64.
+#8 15.22 Preparing to unpack .../34-libubsan1_14.2.0-19_amd64.deb ...
+#8 15.23 Unpacking libubsan1:amd64 (14.2.0-19) ...
+#8 15.37 Selecting previously unselected package libhwasan0:amd64.
+#8 15.37 Preparing to unpack .../35-libhwasan0_14.2.0-19_amd64.deb ...
+#8 15.38 Unpacking libhwasan0:amd64 (14.2.0-19) ...
+#8 15.54 Selecting previously unselected package libquadmath0:amd64.
+#8 15.54 Preparing to unpack .../36-libquadmath0_14.2.0-19_amd64.deb ...
+#8 15.55 Unpacking libquadmath0:amd64 (14.2.0-19) ...
+#8 15.63 Selecting previously unselected package libgcc-14-dev:amd64.
+#8 15.63 Preparing to unpack .../37-libgcc-14-dev_14.2.0-19_amd64.deb ...
+#8 15.66 Unpacking libgcc-14-dev:amd64 (14.2.0-19) ...
+#8 15.83 Selecting previously unselected package gcc-14-x86-64-linux-gnu.
+#8 15.83 Preparing to unpack .../38-gcc-14-x86-64-linux-gnu_14.2.0-19_amd64.deb ...
+#8 15.84 Unpacking gcc-14-x86-64-linux-gnu (14.2.0-19) ...
+#8 16.51 Selecting previously unselected package gcc-14.
+#8 16.51 Preparing to unpack .../39-gcc-14_14.2.0-19_amd64.deb ...
+#8 16.52 Unpacking gcc-14 (14.2.0-19) ...
+#8 16.60 Selecting previously unselected package gcc-x86-64-linux-gnu.
+#8 16.60 Preparing to unpack .../40-gcc-x86-64-linux-gnu_4%3a14.2.0-1_amd64.deb ...
+#8 16.61 Unpacking gcc-x86-64-linux-gnu (4:14.2.0-1) ...
+#8 16.70 Selecting previously unselected package gcc.
+#8 16.70 Preparing to unpack .../41-gcc_4%3a14.2.0-1_amd64.deb ...
+#8 16.71 Unpacking gcc (4:14.2.0-1) ...
+#8 ...
+
+#9 [stage-1 4/9] RUN pip install --no-cache-dir     fastapi     numpy     pandas     Pillow     python-flint==0.9.0     uvicorn
+#9 16.10 Successfully installed Pillow-12.3.0 annotated-doc-0.0.5 annotated-types-0.8.0 anyio-4.15.1 click-8.5.0 fastapi-0.141.1 h11-0.16.0 idna-3.19 numpy-2.4.6 pandas-3.0.5 pydantic-2.13.5 pydantic-core-2.46.5 python-dateutil-2.9.0.post0 python-flint-0.9.0 six-1.17.0 starlette-1.6.0 typing-extensions-4.16.0 typing-inspection-0.4.4 uvicorn-0.52.4
+#9 16.10 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+#9 16.21 
+#9 16.21 [notice] A new release of pip is available: 24.0 -> 26.2.1
+#9 16.21 [notice] To update, run: pip install --upgrade pip
+#9 DONE 17.3s
+
+#8 [native-builder 2/6] RUN apt-get update && apt-get install -y --no-install-recommends         build-essential curl     && rm -rf /var/lib/apt/lists/*
+#8 16.78 Selecting previously unselected package libstdc++-14-dev:amd64.
+#8 16.78 Preparing to unpack .../42-libstdc++-14-dev_14.2.0-19_amd64.deb ...
+#8 16.79 Unpacking libstdc++-14-dev:amd64 (14.2.0-19) ...
+#8 17.09 Selecting previously unselected package g++-14-x86-64-linux-gnu.
+#8 17.09 Preparing to unpack .../43-g++-14-x86-64-linux-gnu_14.2.0-19_amd64.deb ...
+#8 17.10 Unpacking g++-14-x86-64-linux-gnu (14.2.0-19) ...
+#8 17.94 Selecting previously unselected package g++-14.
+#8 17.94 Preparing to unpack .../44-g++-14_14.2.0-19_amd64.deb ...
+#8 17.95 Unpacking g++-14 (14.2.0-19) ...
+#8 18.00 Selecting previously unselected package g++-x86-64-linux-gnu.
+#8 18.00 Preparing to unpack .../45-g++-x86-64-linux-gnu_4%3a14.2.0-1_amd64.deb ...
+#8 18.01 Unpacking g++-x86-64-linux-gnu (4:14.2.0-1) ...
+#8 18.07 Selecting previously unselected package g++.
+#8 18.08 Preparing to unpack .../46-g++_4%3a14.2.0-1_amd64.deb ...
+#8 18.08 Unpacking g++ (4:14.2.0-1) ...
+#8 18.14 Selecting previously unselected package make.
+#8 18.14 Preparing to unpack .../47-make_4.4.1-2_amd64.deb ...
+#8 18.15 Unpacking make (4.4.1-2) ...
+#8 18.22 Selecting previously unselected package libdpkg-perl.
+#8 18.22 Preparing to unpack .../48-libdpkg-perl_1.22.22_all.deb ...
+#8 18.23 Unpacking libdpkg-perl (1.22.22) ...
+#8 18.32 Selecting previously unselected package patch.
+#8 18.32 Preparing to unpack .../49-patch_2.8-2_amd64.deb ...
+#8 18.33 Unpacking patch (2.8-2) ...
+#8 18.40 Selecting previously unselected package dpkg-dev.
+#8 18.40 Preparing to unpack .../50-dpkg-dev_1.22.22_all.deb ...
+#8 18.41 Unpacking dpkg-dev (1.22.22) ...
+#8 18.50 Selecting previously unselected package build-essential.
+#8 18.50 Preparing to unpack .../51-build-essential_12.12_amd64.deb ...
+#8 18.51 Unpacking build-essential (12.12) ...
+#8 18.58 Selecting previously unselected package libbrotli1:amd64.
+#8 18.58 Preparing to unpack .../52-libbrotli1_1.1.0-2+b7_amd64.deb ...
+#8 18.59 Unpacking libbrotli1:amd64 (1.1.0-2+b7) ...
+#8 18.68 Selecting previously unselected package libkrb5support0:amd64.
+#8 18.68 Preparing to unpack .../53-libkrb5support0_1.21.3-5+deb13u1_amd64.deb ...
+#8 18.69 Unpacking libkrb5support0:amd64 (1.21.3-5+deb13u1) ...
+#8 18.76 Selecting previously unselected package libcom-err2:amd64.
+#8 18.76 Preparing to unpack .../54-libcom-err2_1.47.2-3+b11_amd64.deb ...
+#8 18.77 Unpacking libcom-err2:amd64 (1.47.2-3+b11) ...
+#8 18.84 Selecting previously unselected package libk5crypto3:amd64.
+#8 18.84 Preparing to unpack .../55-libk5crypto3_1.21.3-5+deb13u1_amd64.deb ...
+#8 18.85 Unpacking libk5crypto3:amd64 (1.21.3-5+deb13u1) ...
+#8 18.93 Selecting previously unselected package libkeyutils1:amd64.
+#8 18.93 Preparing to unpack .../56-libkeyutils1_1.6.3-6_amd64.deb ...
+#8 18.94 Unpacking libkeyutils1:amd64 (1.6.3-6) ...
+#8 19.01 Selecting previously unselected package libkrb5-3:amd64.
+#8 19.01 Preparing to unpack .../57-libkrb5-3_1.21.3-5+deb13u1_amd64.deb ...
+#8 19.02 Unpacking libkrb5-3:amd64 (1.21.3-5+deb13u1) ...
+#8 19.12 Selecting previously unselected package libgssapi-krb5-2:amd64.
+#8 19.12 Preparing to unpack .../58-libgssapi-krb5-2_1.21.3-5+deb13u1_amd64.deb ...
+#8 19.13 Unpacking libgssapi-krb5-2:amd64 (1.21.3-5+deb13u1) ...
+#8 19.21 Selecting previously unselected package libunistring5:amd64.
+#8 19.21 Preparing to unpack .../59-libunistring5_1.3-2_amd64.deb ...
+#8 19.22 Unpacking libunistring5:amd64 (1.3-2) ...
+#8 19.31 Selecting previously unselected package libidn2-0:amd64.
+#8 19.31 Preparing to unpack .../60-libidn2-0_2.3.8-2_amd64.deb ...
+#8 19.33 Unpacking libidn2-0:amd64 (2.3.8-2) ...
+#8 19.39 Selecting previously unselected package libsasl2-modules-db:amd64.
+#8 19.39 Preparing to unpack .../61-libsasl2-modules-db_2.1.28+dfsg1-9_amd64.deb ...
+#8 19.40 Unpacking libsasl2-modules-db:amd64 (2.1.28+dfsg1-9) ...
+#8 19.47 Selecting previously unselected package libsasl2-2:amd64.
+#8 19.48 Preparing to unpack .../62-libsasl2-2_2.1.28+dfsg1-9_amd64.deb ...
+#8 19.49 Unpacking libsasl2-2:amd64 (2.1.28+dfsg1-9) ...
+#8 19.59 Selecting previously unselected package libldap2:amd64.
+#8 19.59 Preparing to unpack .../63-libldap2_2.6.10+dfsg-1_amd64.deb ...
+#8 19.60 Unpacking libldap2:amd64 (2.6.10+dfsg-1) ...
+#8 19.68 Selecting previously unselected package libnghttp2-14:amd64.
+#8 19.68 Preparing to unpack .../64-libnghttp2-14_1.64.0-1.1+deb13u1_amd64.deb ...
+#8 19.69 Unpacking libnghttp2-14:amd64 (1.64.0-1.1+deb13u1) ...
+#8 19.77 Selecting previously unselected package libnghttp3-9:amd64.
+#8 19.78 Preparing to unpack .../65-libnghttp3-9_1.8.0-1_amd64.deb ...
+#8 19.79 Unpacking libnghttp3-9:amd64 (1.8.0-1) ...
+#8 19.86 Selecting previously unselected package libpsl5t64:amd64.
+#8 19.86 Preparing to unpack .../66-libpsl5t64_0.21.2-1.1+b1_amd64.deb ...
+#8 19.87 Unpacking libpsl5t64:amd64 (0.21.2-1.1+b1) ...
+#8 19.95 Selecting previously unselected package libp11-kit0:amd64.
+#8 19.95 Preparing to unpack .../67-libp11-kit0_0.25.5-3_amd64.deb ...
+#8 19.96 Unpacking libp11-kit0:amd64 (0.25.5-3) ...
+#8 20.05 Selecting previously unselected package libtasn1-6:amd64.
+#8 20.05 Preparing to unpack .../68-libtasn1-6_4.20.0-2+deb13u1_amd64.deb ...
+#8 20.06 Unpacking libtasn1-6:amd64 (4.20.0-2+deb13u1) ...
+#8 20.13 Selecting previously unselected package libgnutls30t64:amd64.
+#8 20.14 Preparing to unpack .../69-libgnutls30t64_3.8.9-3+deb13u4_amd64.deb ...
+#8 20.15 Unpacking libgnutls30t64:amd64 (3.8.9-3+deb13u4) ...
+#8 20.25 Selecting previously unselected package librtmp1:amd64.
+#8 20.25 Preparing to unpack .../70-librtmp1_2.4+20151223.gitfa8646d.1-2+b5_amd64.deb ...
+#8 20.26 Unpacking librtmp1:amd64 (2.4+20151223.gitfa8646d.1-2+b5) ...
+#8 20.34 Selecting previously unselected package libssh2-1t64:amd64.
+#8 20.34 Preparing to unpack .../71-libssh2-1t64_1.11.1-1+deb13u1_amd64.deb ...
+#8 20.35 Unpacking libssh2-1t64:amd64 (1.11.1-1+deb13u1) ...
+#8 20.43 Selecting previously unselected package libcurl4t64:amd64.
+#8 20.43 Preparing to unpack .../72-libcurl4t64_8.14.1-2+deb13u4_amd64.deb ...
+#8 20.44 Unpacking libcurl4t64:amd64 (8.14.1-2+deb13u4) ...
+#8 20.51 Selecting previously unselected package curl.
+#8 20.51 Preparing to unpack .../73-curl_8.14.1-2+deb13u4_amd64.deb ...
+#8 20.52 Unpacking curl (8.14.1-2+deb13u4) ...
+#8 20.61 Setting up libkeyutils1:amd64 (1.6.3-6) ...
+#8 20.64 Setting up libgdbm-compat4t64:amd64 (1.24-2) ...
+#8 20.67 Setting up libbrotli1:amd64 (1.1.0-2+b7) ...
+#8 20.70 Setting up binutils-common:amd64 (2.44-3) ...
+#8 20.73 Setting up libnghttp2-14:amd64 (1.64.0-1.1+deb13u1) ...
+#8 20.76 Setting up linux-libc-dev (6.12.107-1) ...
+#8 20.79 Setting up libctf-nobfd0:amd64 (2.44-3) ...
+#8 20.82 Setting up libcom-err2:amd64 (1.47.2-3+b11) ...
+#8 20.87 Setting up libgomp1:amd64 (14.2.0-19) ...
+#8 20.90 Setting up bzip2 (1.0.8-6) ...
+#8 20.93 Setting up libsframe1:amd64 (2.44-3) ...
+#8 20.96 Setting up libjansson4:amd64 (2.14-2+b3) ...
+#8 20.99 Setting up libkrb5support0:amd64 (1.21.3-5+deb13u1) ...
+#8 21.02 Setting up libsasl2-modules-db:amd64 (2.1.28+dfsg1-9) ...
+#8 21.05 Setting up rpcsvc-proto (1.4.3-1) ...
+#8 21.08 Setting up make (4.4.1-2) ...
+#8 21.11 Setting up libmpfr6:amd64 (4.2.2-1) ...
+#8 21.14 Setting up xz-utils (5.8.1-1+deb13u1) ...
+#8 21.17 update-alternatives: using /usr/bin/xz to provide /usr/bin/lzma (lzma) in auto mode
+#8 21.17 update-alternatives: warning: skip creation of /usr/share/man/man1/lzma.1.gz because associated file /usr/share/man/man1/xz.1.gz (of link group lzma) doesn't exist
+#8 21.17 update-alternatives: warning: skip creation of /usr/share/man/man1/unlzma.1.gz because associated file /usr/share/man/man1/unxz.1.gz (of link group lzma) doesn't exist
+#8 21.17 update-alternatives: warning: skip creation of /usr/share/man/man1/lzcat.1.gz because associated file /usr/share/man/man1/xzcat.1.gz (of link group lzma) doesn't exist
+#8 21.17 update-alternatives: warning: skip creation of /usr/share/man/man1/lzmore.1.gz because associated file /usr/share/man/man1/xzmore.1.gz (of link group lzma) doesn't exist
+#8 21.17 update-alternatives: warning: skip creation of /usr/share/man/man1/lzless.1.gz because associated file /usr/share/man/man1/xzless.1.gz (of link group lzma) doesn't exist
+#8 21.17 update-alternatives: warning: skip creation of /usr/share/man/man1/lzdiff.1.gz because associated file /usr/share/man/man1/xzdiff.1.gz (of link group lzma) doesn't exist
+#8 21.17 update-alternatives: warning: skip creation of /usr/share/man/man1/lzcmp.1.gz because associated file /usr/share/man/man1/xzcmp.1.gz (of link group lzma) doesn't exist
+#8 21.17 update-alternatives: warning: skip creation of /usr/share/man/man1/lzgrep.1.gz because associated file /usr/share/man/man1/xzgrep.1.gz (of link group lzma) doesn't exist
+#8 21.17 update-alternatives: warning: skip creation of /usr/share/man/man1/lzegrep.1.gz because associated file /usr/share/man/man1/xzegrep.1.gz (of link group lzma) doesn't exist
+#8 21.17 update-alternatives: warning: skip creation of /usr/share/man/man1/lzfgrep.1.gz because associated file /usr/share/man/man1/xzfgrep.1.gz (of link group lzma) doesn't exist
+#8 21.19 Setting up libquadmath0:amd64 (14.2.0-19) ...
+#8 21.22 Setting up libp11-kit0:amd64 (0.25.5-3) ...
+#8 21.24 Setting up libunistring5:amd64 (1.3-2) ...
+#8 21.27 Setting up libmpc3:amd64 (1.3.1-1+b3) ...
+#8 21.30 Setting up libatomic1:amd64 (14.2.0-19) ...
+#8 21.33 Setting up patch (2.8-2) ...
+#8 21.36 Setting up libk5crypto3:amd64 (1.21.3-5+deb13u1) ...
+#8 21.39 Setting up libsasl2-2:amd64 (2.1.28+dfsg1-9) ...
+#8 21.42 Setting up libnghttp3-9:amd64 (1.8.0-1) ...
+#8 21.45 Setting up libubsan1:amd64 (14.2.0-19) ...
+#8 21.48 Setting up perl-modules-5.40 (5.40.1-6) ...
+#8 21.51 Setting up libhwasan0:amd64 (14.2.0-19) ...
+#8 21.54 Setting up libcrypt-dev:amd64 (1:4.4.38-1) ...
+#8 21.57 Setting up libasan8:amd64 (14.2.0-19) ...
+#8 21.60 Setting up libtasn1-6:amd64 (4.20.0-2+deb13u1) ...
+#8 21.63 Setting up libkrb5-3:amd64 (1.21.3-5+deb13u1) ...
+#8 21.66 Setting up libssh2-1t64:amd64 (1.11.1-1+deb13u1) ...
+#8 21.69 Setting up libtsan2:amd64 (14.2.0-19) ...
+#8 21.72 Setting up libbinutils:amd64 (2.44-3) ...
+#8 21.75 Setting up libisl23:amd64 (0.27-1) ...
+#8 21.78 Setting up libc-dev-bin (2.41-12+deb13u3) ...
+#8 21.81 Setting up libcc1-0:amd64 (14.2.0-19) ...
+#8 21.84 Setting up libldap2:amd64 (2.6.10+dfsg-1) ...
+#8 21.87 Setting up liblsan0:amd64 (14.2.0-19) ...
+#8 21.90 Setting up libitm1:amd64 (14.2.0-19) ...
+#8 21.93 Setting up libctf0:amd64 (2.44-3) ...
+#8 21.96 Setting up libidn2-0:amd64 (2.3.8-2) ...
+#8 22.00 Setting up libperl5.40:amd64 (5.40.1-6) ...
+#8 22.03 Setting up perl (5.40.1-6) ...
+#8 22.07 Setting up libgprofng0:amd64 (2.44-3) ...
+#8 22.10 Setting up libgssapi-krb5-2:amd64 (1.21.3-5+deb13u1) ...
+#8 22.13 Setting up cpp-14-x86-64-linux-gnu (14.2.0-19) ...
+#8 22.17 Setting up libdpkg-perl (1.22.22) ...
+#8 22.20 Setting up cpp-14 (14.2.0-19) ...
+#8 22.23 Setting up libc6-dev:amd64 (2.41-12+deb13u3) ...
+#8 22.26 Setting up libgcc-14-dev:amd64 (14.2.0-19) ...
+#8 22.29 Setting up libstdc++-14-dev:amd64 (14.2.0-19) ...
+#8 22.33 Setting up binutils-x86-64-linux-gnu (2.44-3) ...
+#8 22.36 Setting up cpp-x86-64-linux-gnu (4:14.2.0-1) ...
+#8 22.40 Setting up libgnutls30t64:amd64 (3.8.9-3+deb13u4) ...
+#8 22.43 Setting up libpsl5t64:amd64 (0.21.2-1.1+b1) ...
+#8 22.46 Setting up binutils (2.44-3) ...
+#8 22.50 Setting up dpkg-dev (1.22.22) ...
+#8 22.55 Setting up librtmp1:amd64 (2.4+20151223.gitfa8646d.1-2+b5) ...
+#8 22.59 Setting up cpp (4:14.2.0-1) ...
+#8 22.63 Setting up gcc-14-x86-64-linux-gnu (14.2.0-19) ...
+#8 22.66 Setting up gcc-x86-64-linux-gnu (4:14.2.0-1) ...
+#8 22.69 Setting up libcurl4t64:amd64 (8.14.1-2+deb13u4) ...
+#8 22.72 Setting up gcc-14 (14.2.0-19) ...
+#8 22.76 Setting up g++-14-x86-64-linux-gnu (14.2.0-19) ...
+#8 22.80 Setting up g++-x86-64-linux-gnu (4:14.2.0-1) ...
+#8 22.85 Setting up curl (8.14.1-2+deb13u4) ...
+#8 22.88 Setting up g++-14 (14.2.0-19) ...
+#8 22.91 Setting up gcc (4:14.2.0-1) ...
+#8 22.96 Setting up g++ (4:14.2.0-1) ...
+#8 22.98 update-alternatives: using /usr/bin/g++ to provide /usr/bin/c++ (c++) in auto mode
+#8 23.00 Setting up build-essential (12.12) ...
+#8 23.03 Processing triggers for libc-bin (2.41-12+deb13u3) ...
+#8 DONE 23.2s
+
+#10 [native-builder 3/6] RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs     | sh -s -- -y --profile minimal
+#10 0.403 info: downloading installer
+#10 1.513 info: profile set to minimal
+#10 1.513 info: default host tuple is x86_64-unknown-linux-gnu
+#10 1.514 info: syncing channel updates for stable-x86_64-unknown-linux-gnu
+#10 1.767 info: latest update on 2026-09-03 for version 1.98.1 (48a229cea 2026-09-01)
+#10 1.767 info: downloading 3 components
+#10 12.90 info: default toolchain set to stable-x86_64-unknown-linux-gnu
+#10 12.90 
+#10 12.91   stable-x86_64-unknown-linux-gnu installed - rustc 1.98.1 (48a229cea 2026-09-01)
+#10 12.91 
+#10 12.91 
+#10 12.91 Rust is installed now. Great!
+#10 12.91 
+#10 12.91 To get started you may need to restart your current shell.
+#10 12.91 This would reload your PATH environment variable to include
+#10 12.91 Cargo's bin directory ($HOME/.cargo/bin).
+#10 12.91 
+#10 12.91 To configure your current shell, you need to source the
+#10 12.91 corresponding env file under $HOME/.cargo.
+#10 12.91 
+#10 12.91 Consider running the right command for your shell (note the leading DOT):
+#10 12.91 . "$HOME/.cargo/env" # For sh/ash/dash/pdksh/bash
+#10 12.91 cargo:rerun-if-env-changed=CC_x86_64-unknown-linux-gnu
+#10 12.91 CC_x86_64-unknown-linux-gnu = None
+#10 12.91 cargo:rerun-if-env-changed=CC_x86_64_unknown_linux_gnu
+#10 12.91 CC_x86_64_unknown_linux_gnu = None
+#10 12.91 cargo:rerun-if-env-changed=HOST_CC
+#10 12.91 HOST_CC = None
+#10 12.91 cargo:rerun-if-env-changed=CC
+#10 12.91 CC = None
+#10 12.92 cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+#10 12.93 cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+#10 12.93 CRATE_CC_NO_DEFAULTS = None
+#10 12.93 cargo:rerun-if-env-changed=CFLAGS
+#10 12.93 CFLAGS = None
+#10 12.93 cargo:rerun-if-env-changed=HOST_CFLAGS
+#10 12.93 HOST_CFLAGS = None
+#10 12.93 cargo:rerun-if-env-changed=CFLAGS_x86_64_unknown_linux_gnu
+#10 12.93 CFLAGS_x86_64_unknown_linux_gnu = None
+#10 12.93 cargo:rerun-if-env-changed=CFLAGS_x86_64-unknown-linux-gnu
+#10 12.93 CFLAGS_x86_64-unknown-linux-gnu = None
+#10 DONE 13.5s
+
+#11 [native-builder 4/6] RUN pip install --no-cache-dir maturin
+#11 1.919 Collecting maturin
+#11 2.020   Downloading maturin-1.15.0-py3-none-manylinux_2_12_x86_64.manylinux2010_x86_64.musllinux_1_1_x86_64.whl.metadata (17 kB)
+#11 2.045 Downloading maturin-1.15.0-py3-none-manylinux_2_12_x86_64.manylinux2010_x86_64.musllinux_1_1_x86_64.whl (10.5 MB)
+#11 2.490    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.5/10.5 MB 25.4 MB/s eta 0:00:00
+#11 2.543 Installing collected packages: maturin
+#11 2.709 Successfully installed maturin-1.15.0
+#11 2.710 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+#11 2.851 
+#11 2.851 [notice] A new release of pip is available: 24.0 -> 26.2.1
+#11 2.851 [notice] To update, run: pip install --upgrade pip
+#11 DONE 3.1s
+
+#12 [native-builder 5/6] COPY native/guala_core/ /build/guala_core/
+#12 DONE 0.1s
+
+#13 [native-builder 6/6] RUN cd /build/guala_core && maturin build --release -o /build/dist
+#13 0.249     Updating crates.io index
+#13 0.723  Downloading crates ...
+#13 0.869   Downloaded block-buffer v0.10.4
+#13 0.880   Downloaded autocfg v1.5.1
+#13 0.885   Downloaded cfg-if v1.0.4
+#13 0.889   Downloaded crossbeam-deque v0.8.7
+#13 0.894   Downloaded cpufeatures v0.2.17
+#13 0.899   Downloaded unicode-ident v1.0.24
+#13 0.909   Downloaded crypto-common v0.1.7
+#13 0.912   Downloaded digest v0.10.7
+#13 0.918   Downloaded memchr v2.8.3
+#13 0.935   Downloaded version_check v0.9.5
+#13 0.938   Downloaded itoa v1.0.18
+#13 0.944   Downloaded memoffset v0.9.1
+#13 0.952   Downloaded unindent v0.2.4
+#13 0.956   Downloaded pyo3-macros v0.23.5
+#13 0.958   Downloaded heck v0.5.0
+#13 0.961   Downloaded generic-array v0.14.7
+#13 0.966   Downloaded target-lexicon v0.12.16
+#13 0.973   Downloaded subtle v2.6.1
+#13 0.977   Downloaded sha2 v0.10.9
+#13 0.987   Downloaded zeroize_derive v1.5.0
+#13 0.987   Downloaded indoc v2.0.7
+#13 0.995   Downloaded num-integer v0.1.46
+#13 1.000   Downloaded num-rational v0.4.2
+#13 1.004   Downloaded zeroize v1.9.0
+#13 1.008   Downloaded pyo3-build-config v0.23.5
+#13 1.010   Downloaded either v1.17.0
+#13 1.014   Downloaded zmij v1.0.23
+#13 1.020   Downloaded rustversion v1.0.23
+#13 1.026   Downloaded quote v1.0.46
+#13 1.034   Downloaded hmac v0.12.1
+#13 1.040   Downloaded crossbeam-epoch v0.9.20
+#13 1.046   Downloaded once_cell v1.21.4
+#13 1.055   Downloaded httparse v1.10.1
+#13 1.064   Downloaded crossbeam-utils v0.8.22
+#13 1.070   Downloaded proc-macro2 v1.0.106
+#13 1.076   Downloaded num-traits v0.2.19
+#13 1.082   Downloaded serde_derive v1.0.229
+#13 1.088   Downloaded serde_core v1.0.229
+#13 1.093   Downloaded pyo3-ffi v0.23.5
+#13 1.105   Downloaded rayon-core v1.13.0
+#13 1.114   Downloaded pyo3-macros-backend v0.23.5
+#13 1.119   Downloaded serde v1.0.229
+#13 1.124   Downloaded num-bigint v0.4.8
+#13 1.133   Downloaded typenum v1.20.1
+#13 1.138   Downloaded serde_json v1.0.151
+#13 1.152   Downloaded rayon v1.12.0
+#13 1.169   Downloaded portable-atomic v1.13.1
+#13 1.181   Downloaded syn v3.0.3
+#13 1.197   Downloaded syn v2.0.119
+#13 1.213   Downloaded libc v0.2.186
+#13 1.289   Downloaded pyo3 v0.23.5
+#13 1.404 🐍 Found CPython 3.11 at /usr/local/bin/python3
+#13 1.404 🔗 Found pyo3 bindings
+#13 1.404 📡 Using build options features, bindings from pyproject.toml
+#13 1.501    Compiling target-lexicon v0.12.16
+#13 1.501    Compiling once_cell v1.21.4
+#13 1.501    Compiling autocfg v1.5.1
+#13 1.501    Compiling proc-macro2 v1.0.106
+#13 1.691    Compiling version_check v0.9.5
+#13 1.725    Compiling unicode-ident v1.0.24
+#13 1.765    Compiling quote v1.0.46
+#13 1.908    Compiling generic-array v0.14.7
+#13 1.911    Compiling num-traits v0.2.19
+#13 1.978    Compiling typenum v1.20.1
+#13 1.992    Compiling crossbeam-utils v0.8.22
+#13 2.047    Compiling pyo3-build-config v0.23.5
+#13 2.244    Compiling syn v2.0.119
+#13 2.303    Compiling crossbeam-epoch v0.9.20
+#13 3.031    Compiling crossbeam-deque v0.8.7
+#13 3.138    Compiling libc v0.2.186
+#13 3.253    Compiling pyo3-macros-backend v0.23.5
+#13 3.315    Compiling pyo3-ffi v0.23.5
+#13 3.355    Compiling block-buffer v0.10.4
+#13 3.441    Compiling crypto-common v0.1.7
+#13 3.446    Compiling num-integer v0.1.46
+#13 3.492    Compiling memoffset v0.9.1
+#13 3.550    Compiling heck v0.5.0
+#13 3.658    Compiling serde_core v1.0.229
+#13 3.683    Compiling zmij v1.0.23
+#13 3.747    Compiling subtle v2.6.1
+#13 3.787    Compiling rayon-core v1.13.0
+#13 3.817    Compiling digest v0.10.7
+#13 3.824    Compiling num-bigint v0.4.8
+#13 4.011    Compiling pyo3 v0.23.5
+#13 4.106    Compiling httparse v1.10.1
+#13 4.263    Compiling serde_json v1.0.151
+#13 4.345    Compiling cfg-if v1.0.4
+#13 6.018    Compiling zeroize_derive v1.5.0
+#13 6.301    Compiling memchr v2.8.3
+#13 6.323    Compiling indoc v2.0.7
+#13 6.525    Compiling unindent v0.2.4
+#13 6.666    Compiling either v1.17.0
+#13 6.798    Compiling itoa v1.0.18
+#13 6.906    Compiling cpufeatures v0.2.17
+#13 7.000    Compiling sha2 v0.10.9
+#13 7.055    Compiling rayon v1.12.0
+#13 7.822    Compiling zeroize v1.9.0
+#13 7.909    Compiling num-rational v0.4.2
+#13 8.424    Compiling pyo3-macros v0.23.5
+#13 9.028    Compiling hmac v0.12.1
+#13 12.73    Compiling guala_core v0.1.0 (/build/guala_core)
+#13 13.26 warning: unused import: `crate::exact_rational::ExactRational`
+#13 13.26   --> src/auditory_receptor_work.rs:62:5
+#13 13.26    |
+#13 13.26 62 | use crate::exact_rational::ExactRational;
+#13 13.26    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 13.26    |
+#13 13.26    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+#13 13.26 
+#13 13.26 warning: unused import: `crate::exact_rational::ExactRational`
+#13 13.26   --> src/articulatory_receptor_work.rs:16:5
+#13 13.26    |
+#13 13.26 16 | use crate::exact_rational::ExactRational;
+#13 13.26    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 13.26 
+#13 13.26 warning: unused import: `crate::exact_rational::ExactRational`
+#13 13.26   --> src/chemical_receptor_work.rs:15:5
+#13 13.26    |
+#13 13.26 15 | use crate::exact_rational::ExactRational;
+#13 13.26    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 13.26 
+#13 13.26 warning: unused import: `num_bigint::BigInt`
+#13 13.26  --> src/joint_field_l0_l4.rs:9:5
+#13 13.26   |
+#13 13.26 9 | use num_bigint::BigInt;
+#13 13.26   |     ^^^^^^^^^^^^^^^^^^
+#13 13.26 
+#13 13.26 warning: unused import: `One`
+#13 13.26   --> src/joint_uf_neuron_boundary.rs:18:18
+#13 13.26    |
+#13 13.26 18 | use num_traits::{One, ToPrimitive, Zero};
+#13 13.26    |                  ^^^
+#13 13.26 
+#13 13.26 warning: unused import: `crate::exact_rational::ExactRational`
+#13 13.26   --> src/optical_receptor_work.rs:15:5
+#13 13.26    |
+#13 13.26 15 | use crate::exact_rational::ExactRational;
+#13 13.26    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 13.26 
+#13 13.26 warning: unused import: `prepare_resident_mounted_generation`
+#13 13.26   --> src/organism_runtime.rs:35:5
+#13 13.26    |
+#13 13.26 35 |     prepare_resident_mounted_generation, restore_resident_mounted_state, MountedJointDsfSummary,
+#13 13.26    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 13.26 
+#13 13.27 warning: unused import: `crate::exact_rational::ExactRational`
+#13 13.27   --> src/proprioceptive_receptor_work.rs:12:5
+#13 13.27    |
+#13 13.27 12 | use crate::exact_rational::ExactRational;
+#13 13.27    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 13.27 
+#13 13.27 warning: unused imports: `alter_physical_mosaic_recurrence` and `prove_physical_mosaic_recurrence`
+#13 13.27   --> src/resident_cognitive_formation.rs:83:60
+#13 13.27    |
+#13 13.27 83 |     admit_physical_mosaic, admit_physical_mosaic_original, alter_physical_mosaic_recurrence,
+#13 13.27    |                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 13.27 ...
+#13 13.27 87 |     prove_physical_mosaic_recurrence, prove_physical_mosaic_recurrence_with_origin,
+#13 13.27    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 13.27 
+#13 13.28 warning: unused import: `exact_completed_vocal_preparation_discharge`
+#13 13.28    --> src/resident_cognitive_formation.rs:180:49
+#13 13.28     |
+#13 13.28 180 |     exact_completed_vocal_preparation_body_act, exact_completed_vocal_preparation_discharge,
+#13 13.28     |                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 13.28 
+#13 13.28 warning: unused import: `crate::exact_rational::ExactRational`
+#13 13.28   --> src/tactile_receptor_work.rs:69:5
+#13 13.28    |
+#13 13.28 69 | use crate::exact_rational::ExactRational;
+#13 13.28    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 13.28 
+#13 13.28 warning: unused import: `crate::exact_rational::ExactRational`
+#13 13.28   --> src/thermal_receptor_work.rs:16:5
+#13 13.28    |
+#13 13.28 16 | use crate::exact_rational::ExactRational;
+#13 13.28    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 13.28 
+#13 13.28 warning: unused import: `crate::declared_geometric_anatomy::declared_geometric_territory`
+#13 13.28   --> src/vestibular_neuron_path.rs:25:5
+#13 13.28    |
+#13 13.28 25 | use crate::declared_geometric_anatomy::declared_geometric_territory;
+#13 13.28    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 13.28 
+#13 20.11 warning: method `composite_transduction_constant` is never used
+#13 20.11    --> src/auditory_receptor_work.rs:116:19
+#13 20.11     |
+#13 20.11  90 | impl AuditoryReceptorAnatomy {
+#13 20.11     | ---------------------------- method in this implementation
+#13 20.11 ...
+#13 20.11 116 |     pub(crate) fn composite_transduction_constant(&self) -> BigRational {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11     |
+#13 20.11     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+#13 20.11 
+#13 20.11 warning: function `settle_port` is never used
+#13 20.11    --> src/auditory_receptor_work.rs:265:15
+#13 20.11     |
+#13 20.11 265 | pub(crate) fn settle_port(
+#13 20.11     |               ^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `derive_auditory_receptor_work` is never used
+#13 20.11    --> src/auditory_receptor_work.rs:272:15
+#13 20.11     |
+#13 20.11 272 | pub(crate) fn derive_auditory_receptor_work(
+#13 20.11     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: method `composite_transduction_constant` is never used
+#13 20.11   --> src/chemical_receptor_work.rs:64:19
+#13 20.11    |
+#13 20.11 40 | impl ChemicalReceptorAnatomy {
+#13 20.11    | ---------------------------- method in this implementation
+#13 20.11 ...
+#13 20.11 64 |     pub(crate) fn composite_transduction_constant(&self) -> BigRational {
+#13 20.11    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: methods `amplitude_quanta`, `phase_thirds`, and `winding` are never used
+#13 20.11    --> src/complete_neuron.rs:128:19
+#13 20.11     |
+#13 20.11 127 | impl PsiRingState {
+#13 20.11     | ----------------- methods in this implementation
+#13 20.11 128 |     pub(crate) fn amplitude_quanta(self) -> [u128; 3] {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 132 |     pub(crate) fn phase_thirds(self) -> [i8; 3] {
+#13 20.11     |                   ^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 136 |     pub(crate) fn winding(self) -> BalancedTrit {
+#13 20.11     |                   ^^^^^^^
+#13 20.11 
+#13 20.11 warning: method `heap_bytes` is never used
+#13 20.11    --> src/complete_neuron.rs:631:8
+#13 20.11     |
+#13 20.11 596 | impl PhysicalEnergyResidue {
+#13 20.11     | -------------------------- method in this implementation
+#13 20.11 ...
+#13 20.11 631 |     fn heap_bytes(&self) -> Option<usize> {
+#13 20.11     |        ^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: associated function `definitive_virtual_material` is never used
+#13 20.11     --> src/complete_neuron.rs:1001:19
+#13 20.11      |
+#13 20.11  972 | impl PlasticSupportAnatomy {
+#13 20.11      | -------------------------- associated function in this implementation
+#13 20.11 ...
+#13 20.11 1001 |     pub(crate) fn definitive_virtual_material() -> Result<Self, PlasticityError> {
+#13 20.11      |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: enum `PlasticityAvailability` is never used
+#13 20.11     --> src/complete_neuron.rs:1096:17
+#13 20.11      |
+#13 20.11 1096 | pub(crate) enum PlasticityAvailability {
+#13 20.11      |                 ^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: methods `prepare_mathloom_delivery`, `shares_heavy_anatomy_with`, `share_heavy_anatomy_from`, `gate_support_coordinate_nanometres`, `gate_dissipation_quantum_exact_zeptojoules`, and `gate_single_channel_conductance_picosiemens` are never used
+#13 20.11     --> src/complete_neuron.rs:1529:19
+#13 20.11      |
+#13 20.11 1483 | impl NeuronPhysicalAnatomy {
+#13 20.11      | -------------------------- methods in this implementation
+#13 20.11 ...
+#13 20.11 1529 |     pub(crate) fn prepare_mathloom_delivery<'a>(
+#13 20.11      |                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 1595 |     pub(crate) fn shares_heavy_anatomy_with(&self, other: &Self) -> bool {
+#13 20.11      |                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 1607 |     pub(crate) fn share_heavy_anatomy_from(
+#13 20.11      |                   ^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 1635 |     pub(crate) fn gate_support_coordinate_nanometres(
+#13 20.11      |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 1661 |     pub(crate) fn gate_dissipation_quantum_exact_zeptojoules(
+#13 20.11      |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 1667 |     pub(crate) fn gate_single_channel_conductance_picosiemens(&self) -> ExactRational {
+#13 20.11      |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: method `resident_bytes` is never used
+#13 20.11     --> src/complete_neuron.rs:1806:19
+#13 20.11      |
+#13 20.11 1786 | impl NeuronPhysicalState {
+#13 20.11      | ------------------------ method in this implementation
+#13 20.11 ...
+#13 20.11 1806 |     pub(crate) fn resident_bytes(&self) -> Option<usize> {
+#13 20.11      |                   ^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: variant `SequenceEndedBeforeQuiescence` is never constructed
+#13 20.11     --> src/complete_neuron.rs:3341:5
+#13 20.11      |
+#13 20.11 3332 | pub(crate) enum NeuronPhysicalError {
+#13 20.11      |                 ------------------- variant in this enum
+#13 20.11 ...
+#13 20.11 3341 |     SequenceEndedBeforeQuiescence,
+#13 20.11      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11      |
+#13 20.11      = note: `NeuronPhysicalError` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+#13 20.11 
+#13 20.11 warning: function `settle_neuron_physical_interval` is never used
+#13 20.11     --> src/complete_neuron.rs:3396:15
+#13 20.11      |
+#13 20.11 3396 | pub(crate) fn settle_neuron_physical_interval(
+#13 20.11      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `settle_neuron_physical_interval_with_contact` is never used
+#13 20.11     --> src/complete_neuron.rs:3414:15
+#13 20.11      |
+#13 20.11 3414 | pub(crate) fn settle_neuron_physical_interval_with_contact(
+#13 20.11      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `settle_gate_membrane` is never used
+#13 20.11     --> src/complete_neuron.rs:3784:15
+#13 20.11      |
+#13 20.11 3784 | pub(crate) fn settle_gate_membrane(
+#13 20.11      |               ^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `gate_opening_quantum_window` is never used
+#13 20.11     --> src/complete_neuron.rs:4507:15
+#13 20.11      |
+#13 20.11 4507 | pub(crate) fn gate_opening_quantum_window(
+#13 20.11      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `required_gate_recovery_extent_for_interval` is never used
+#13 20.11     --> src/complete_neuron.rs:4556:15
+#13 20.11      |
+#13 20.11 4556 | pub(crate) fn required_gate_recovery_extent_for_interval(
+#13 20.11      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `required_gate_recovery_extent_for_interval_with_psi` is never used
+#13 20.11     --> src/complete_neuron.rs:4570:15
+#13 20.11      |
+#13 20.11 4570 | pub(crate) fn required_gate_recovery_extent_for_interval_with_psi(
+#13 20.11      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `open_minus_closed_support_energy` is never used
+#13 20.11     --> src/complete_neuron.rs:4667:4
+#13 20.11      |
+#13 20.11 4667 | fn open_minus_closed_support_energy(
+#13 20.11      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: struct `QuiescentNeuronState` is never constructed
+#13 20.11     --> src/complete_neuron.rs:4942:19
+#13 20.11      |
+#13 20.11 4942 | pub(crate) struct QuiescentNeuronState {
+#13 20.11      |                   ^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: associated items `state` and `from_state` are never used
+#13 20.11     --> src/complete_neuron.rs:4947:19
+#13 20.11      |
+#13 20.11 4946 | impl QuiescentNeuronState {
+#13 20.11      | ------------------------- associated items in this implementation
+#13 20.11 4947 |     pub(crate) fn state(&self) -> &NeuronPhysicalState {
+#13 20.11      |                   ^^^^^
+#13 20.11 ...
+#13 20.11 4951 |     pub(crate) fn from_state(state: NeuronPhysicalState) -> Self {
+#13 20.11      |                   ^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: methods `exact_delta` and `resident_bytes` are never used
+#13 20.11     --> src/complete_neuron.rs:5090:19
+#13 20.11      |
+#13 20.11 5069 | impl SparsePhysicalStateDelta {
+#13 20.11      | ----------------------------- methods in this implementation
+#13 20.11 ...
+#13 20.11 5090 |     pub(crate) fn exact_delta(
+#13 20.11      |                   ^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 5100 |     pub(crate) fn resident_bytes(&self) -> Option<usize> {
+#13 20.11      |                   ^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: struct `PostExperienceSettlement` is never constructed
+#13 20.11     --> src/complete_neuron.rs:5172:19
+#13 20.11      |
+#13 20.11 5172 | pub(crate) struct PostExperienceSettlement {
+#13 20.11      |                   ^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `settle_extended_interval` is never used
+#13 20.11     --> src/complete_neuron.rs:5196:4
+#13 20.11      |
+#13 20.11 5196 | fn settle_extended_interval(
+#13 20.11      |    ^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `settle_extended_interval_with_contact` is never used
+#13 20.11     --> src/complete_neuron.rs:5204:15
+#13 20.11      |
+#13 20.11 5204 | pub(crate) fn settle_extended_interval_with_contact(
+#13 20.11      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `settle_to_quiescence` is never used
+#13 20.11     --> src/complete_neuron.rs:5459:15
+#13 20.11      |
+#13 20.11 5459 | pub(crate) fn settle_to_quiescence(
+#13 20.11      |               ^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `settle_experience_to_quiescence` is never used
+#13 20.11     --> src/complete_neuron.rs:5475:15
+#13 20.11      |
+#13 20.11 5475 | pub(crate) fn settle_experience_to_quiescence(
+#13 20.11      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `membrane_and_gradient_work_zeptojoules` is never used
+#13 20.11     --> src/complete_neuron.rs:6764:15
+#13 20.11      |
+#13 20.11 6764 | pub(crate) fn membrane_and_gradient_work_zeptojoules(
+#13 20.11      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `membrane_capacitance_from_declared_geometry` is never used
+#13 20.11    --> src/declared_geometric_anatomy.rs:172:15
+#13 20.11     |
+#13 20.11 172 | pub(crate) fn membrane_capacitance_from_declared_geometry(
+#13 20.11     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: constant `PROJECTION_NAMES` is never used
+#13 20.11   --> src/developmental_resting_population.rs:33:7
+#13 20.11    |
+#13 20.11 33 | const PROJECTION_NAMES: [&str; DEVELOPMENTAL_PROJECTION_LAYER_COUNT] = [
+#13 20.11    |       ^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: associated items `declared_cell_count`, `independently_diverged_cell_bytes`, `minimum_sparse_contact_bytes`, `future_growth_reserve_bytes`, and `projection_name` are never used
+#13 20.11    --> src/developmental_resting_population.rs:161:19
+#13 20.11     |
+#13 20.11  84 | impl DevelopmentalRestingPopulation {
+#13 20.11     | ----------------------------------- associated items in this implementation
+#13 20.11 ...
+#13 20.11 161 |     pub(crate) fn declared_cell_count(&self) -> u64 {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 177 |     pub(crate) fn independently_diverged_cell_bytes(&self) -> u64 {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 181 |     pub(crate) fn minimum_sparse_contact_bytes(&self) -> u64 {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 185 |     pub(crate) fn future_growth_reserve_bytes(&self) -> u64 {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 215 |     pub(crate) fn projection_name(layer: u32) -> Option<&'static str> {
+#13 20.11     |                   ^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: constant `CODEC_BYTES` is never used
+#13 20.11   --> src/elementary_charge_membrane.rs:19:7
+#13 20.11    |
+#13 20.11 19 | const CODEC_BYTES: usize = 3 * size_of::<i128>();
+#13 20.11    |       ^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: variant `InvalidRestart` is never constructed
+#13 20.11   --> src/elementary_charge_membrane.rs:27:5
+#13 20.11    |
+#13 20.11 22 | pub(crate) enum MembraneChargeError {
+#13 20.11    |                 ------------------- variant in this enum
+#13 20.11 ...
+#13 20.11 27 |     InvalidRestart,
+#13 20.11    |     ^^^^^^^^^^^^^^
+#13 20.11    |
+#13 20.11    = note: `MembraneChargeError` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+#13 20.11 
+#13 20.11 warning: function `settle_membrane_current` is never used
+#13 20.11    --> src/elementary_charge_membrane.rs:109:15
+#13 20.11     |
+#13 20.11 109 | pub(crate) fn settle_membrane_current(
+#13 20.11     |               ^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `encode_membrane_state` is never used
+#13 20.11    --> src/elementary_charge_membrane.rs:206:15
+#13 20.11     |
+#13 20.11 206 | pub(crate) fn encode_membrane_state(state: ElementaryChargeMembraneState) -> [u8; CODEC_BYTES] {
+#13 20.11     |               ^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `decode_membrane_state` is never used
+#13 20.11    --> src/elementary_charge_membrane.rs:215:15
+#13 20.11     |
+#13 20.11 215 | pub(crate) fn decode_membrane_state(
+#13 20.11     |               ^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `exact_current_for_whole_carrier_transfer` is never used
+#13 20.11    --> src/elementary_charge_transfer.rs:371:15
+#13 20.11     |
+#13 20.11 371 | pub(crate) fn exact_current_for_whole_carrier_transfer(
+#13 20.11     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: methods `clear` and `scheduled_len` are never used
+#13 20.11   --> src/causal_event_scheduler.rs:69:19
+#13 20.11    |
+#13 20.11 54 | impl CarrierCrossingSchedule {
+#13 20.11    | ---------------------------- methods in this implementation
+#13 20.11 ...
+#13 20.11 69 |     pub(crate) fn clear(&mut self) {
+#13 20.11    |                   ^^^^^
+#13 20.11 ...
+#13 20.11 94 |     pub(crate) fn scheduled_len(&self) -> usize {
+#13 20.11    |                   ^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: method `commit` is never used
+#13 20.11    --> src/causal_event_scheduler.rs:298:19
+#13 20.11     |
+#13 20.11 295 | impl ContactIntegrationClock {
+#13 20.11     | ---------------------------- method in this implementation
+#13 20.11 ...
+#13 20.11 298 |     pub(crate) fn commit(&mut self, prepared: PreparedIntegrationClock) {
+#13 20.11     |                   ^^^^^^
+#13 20.11 
+#13 20.11 warning: fields `prepared_clock` and `transition_work_phase` are never read
+#13 20.11    --> src/causal_event_scheduler.rs:310:16
+#13 20.11     |
+#13 20.11 309 | pub(crate) struct SleepingSpanCatchUp {
+#13 20.11     |                   ------------------- fields in this struct
+#13 20.11 310 |     pub(crate) prepared_clock: PreparedIntegrationClock,
+#13 20.11     |                ^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 314 |     pub(crate) transition_work_phase: crate::exact_rational::ExactRational,
+#13 20.11     |                ^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: fields `axis_id` and `coordinate_id` are never read
+#13 20.11   --> src/full_field_bank_final.rs:52:5
+#13 20.11    |
+#13 20.11 51 | struct Coordinate {
+#13 20.11    |        ---------- fields in this struct
+#13 20.11 52 |     axis_id: String,
+#13 20.11    |     ^^^^^^^
+#13 20.11 53 |     coordinate_id: String,
+#13 20.11    |     ^^^^^^^^^^^^^
+#13 20.11    |
+#13 20.11    = note: `Coordinate` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+#13 20.11 
+#13 20.11 warning: field `coordinates` is never read
+#13 20.11   --> src/full_field_bank_final.rs:83:5
+#13 20.11    |
+#13 20.11 78 | struct CandidatePort {
+#13 20.11    |        ------------- field in this struct
+#13 20.11 ...
+#13 20.11 83 |     coordinates: Vec<Coordinate>,
+#13 20.11    |     ^^^^^^^^^^^
+#13 20.11    |
+#13 20.11    = note: `CandidatePort` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+#13 20.11 
+#13 20.11 warning: multiple fields are never read
+#13 20.11    --> src/full_field_bank_final.rs:130:5
+#13 20.11     |
+#13 20.11 129 | struct StoredPort {
+#13 20.11     |        ---------- fields in this struct
+#13 20.11 130 |     sense: u8,
+#13 20.11     |     ^^^^^
+#13 20.11 131 |     topology_index: u32,
+#13 20.11     |     ^^^^^^^^^^^^^^
+#13 20.11 132 |     sensor_id: String,
+#13 20.11     |     ^^^^^^^^^
+#13 20.11 133 |     substream_id: String,
+#13 20.11     |     ^^^^^^^^^^^^
+#13 20.11 134 |     input_map_group_receipt: [u8; 32],
+#13 20.11     |     ^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 135 |     source_times: Vec<BigRational>,
+#13 20.11     |     ^^^^^^^^^^^^
+#13 20.11 136 |     dimensionless_fields: Vec<BigRational>,
+#13 20.11     |     ^^^^^^^^^^^^^^^^^^^^
+#13 20.11 137 |     trace_digest: [u8; 32],
+#13 20.11     |     ^^^^^^^^^^^^
+#13 20.11 138 |     tuple_digests: Vec<[u8; 32]>,
+#13 20.11     |     ^^^^^^^^^^^^^
+#13 20.11 139 |     basin_digest: [u8; 32],
+#13 20.11     |     ^^^^^^^^^^^^
+#13 20.11     |
+#13 20.11     = note: `StoredPort` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+#13 20.11 
+#13 20.11 warning: field `sense_states` is never read
+#13 20.11    --> src/full_field_bank_final.rs:154:5
+#13 20.11     |
+#13 20.11 144 | struct BankStorage {
+#13 20.11     |        ----------- field in this struct
+#13 20.11 ...
+#13 20.11 154 |     sense_states: [u8; 6],
+#13 20.11     |     ^^^^^^^^^^^^
+#13 20.11     |
+#13 20.11     = note: `BankStorage` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+#13 20.11 
+#13 20.11 warning: struct `RegeneratedDsfDelivery` is never constructed
+#13 20.11    --> src/full_field_bank_final.rs:159:19
+#13 20.11     |
+#13 20.11 159 | pub(crate) struct RegeneratedDsfDelivery {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: struct `RegeneratedFullFieldBank` is never constructed
+#13 20.11    --> src/full_field_bank_final.rs:174:19
+#13 20.11     |
+#13 20.11 174 | pub(crate) struct RegeneratedFullFieldBank {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: multiple methods are never used
+#13 20.11    --> src/full_field_bank_final.rs:179:19
+#13 20.11     |
+#13 20.11 178 | impl RegeneratedFullFieldBank {
+#13 20.11     | ----------------------------- methods in this implementation
+#13 20.11 179 |     pub(crate) fn candidate_receipt(&self) -> [u8; 32] {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 183 |     pub(crate) fn bank_receipt(&self) -> [u8; 32] {
+#13 20.11     |                   ^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 187 |     pub(crate) fn kernel_config_receipt(&self) -> [u8; 32] {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 191 |     pub(crate) fn bank_bytes(&self) -> &[u8] {
+#13 20.11     |                   ^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 195 |     pub(crate) fn port_count(&self) -> usize {
+#13 20.11     |                   ^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 199 |     pub(crate) fn sample_count(&self) -> usize {
+#13 20.11     |                   ^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 203 |     pub(crate) fn field_row_count(&self) -> usize {
+#13 20.11     |                   ^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 207 |     pub(crate) fn delivery(
+#13 20.11     |                   ^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `regenerate_full_field_bank` is never used
+#13 20.11    --> src/full_field_bank_final.rs:269:15
+#13 20.11     |
+#13 20.11 269 | pub(crate) fn regenerate_full_field_bank(
+#13 20.11     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: struct `MaterializedPortView` is never constructed
+#13 20.11    --> src/full_field_bank_final.rs:282:19
+#13 20.11     |
+#13 20.11 282 | pub(crate) struct MaterializedPortView {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: methods `materialized_sense_states` and `materialized_ports` are never used
+#13 20.11    --> src/full_field_bank_final.rs:368:19
+#13 20.11     |
+#13 20.11 367 | impl NativeL0L4FullFieldBank {
+#13 20.11     | ---------------------------- methods in this implementation
+#13 20.11 368 |     pub(crate) fn materialized_sense_states(&self) -> [u8; 6] {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 372 |     pub(crate) fn materialized_ports(&self) -> Vec<MaterializedPortView> {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `push_bytes` is never used
+#13 20.11     --> src/full_field_bank_final.rs:1580:4
+#13 20.11      |
+#13 20.11 1580 | fn push_bytes(output: &mut Vec<u8>, value: &[u8]) {
+#13 20.11      |    ^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: variants `NotAnIsolatedSingleVertexOccurrence`, `FrameOutsideGate`, and `SourceIntervalOutsideGate` are never constructed
+#13 20.11   --> src/joint_uf_neuron_boundary.rs:31:5
+#13 20.11    |
+#13 20.11 28 | pub(crate) enum JointNeuronBoundaryError {
+#13 20.11    |                 ------------------------ variants in this enum
+#13 20.11 ...
+#13 20.11 31 |     NotAnIsolatedSingleVertexOccurrence,
+#13 20.11    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 36 |     FrameOutsideGate,
+#13 20.11    |     ^^^^^^^^^^^^^^^^
+#13 20.11 37 |     SourceIntervalOutsideGate,
+#13 20.11    |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11    |
+#13 20.11    = note: `JointNeuronBoundaryError` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+#13 20.11 
+#13 20.11 warning: function `prepare_complete_joint_field` is never used
+#13 20.11   --> src/joint_uf_neuron_boundary.rs:95:15
+#13 20.11    |
+#13 20.11 95 | pub(crate) fn prepare_complete_joint_field(
+#13 20.11    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `prepare_isolated_single_neuron_field` is never used
+#13 20.11    --> src/joint_uf_neuron_boundary.rs:140:15
+#13 20.11     |
+#13 20.11 140 | pub(crate) fn prepare_isolated_single_neuron_field(
+#13 20.11     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `prepare_isolated_single_neuron_field_with_admission` is never used
+#13 20.11    --> src/joint_uf_neuron_boundary.rs:148:15
+#13 20.11     |
+#13 20.11 148 | pub(crate) fn prepare_isolated_single_neuron_field_with_admission(
+#13 20.11     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `require_isolated_single_vertex` is never used
+#13 20.11    --> src/joint_uf_neuron_boundary.rs:179:4
+#13 20.11     |
+#13 20.11 179 | fn require_isolated_single_vertex(
+#13 20.11     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: methods `local_sev_len` and `local_sev` are never used
+#13 20.11    --> src/joint_uf_neuron_boundary.rs:260:19
+#13 20.11     |
+#13 20.11 243 | impl<'a> JointNeuronPerspective<'a> {
+#13 20.11     | ----------------------------------- methods in this implementation
+#13 20.11 ...
+#13 20.11 260 |     pub(crate) fn local_sev_len(self) -> usize {
+#13 20.11     |                   ^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 265 |     pub(crate) fn local_sev(
+#13 20.11     |                   ^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `bind_neuron_perspective_for_source_interval` is never used
+#13 20.11    --> src/joint_uf_neuron_boundary.rs:310:15
+#13 20.11     |
+#13 20.11 310 | pub(crate) fn bind_neuron_perspective_for_source_interval(
+#13 20.11     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `bind_isolated_neuron_perspective` is never used
+#13 20.11    --> src/joint_uf_neuron_boundary.rs:335:15
+#13 20.11     |
+#13 20.11 335 | pub(crate) fn bind_isolated_neuron_perspective(
+#13 20.11     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: struct `LocalSevComponent` is never constructed
+#13 20.11    --> src/joint_uf_neuron_boundary.rs:348:19
+#13 20.11     |
+#13 20.11 348 | pub(crate) struct LocalSevComponent<'a> {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: multiple methods are never used
+#13 20.11    --> src/joint_uf_neuron_boundary.rs:354:19
+#13 20.11     |
+#13 20.11 353 | impl LocalSevComponent<'_> {
+#13 20.11     | -------------------------- methods in this implementation
+#13 20.11 354 |     pub(crate) fn source_index(self) -> usize {
+#13 20.11     |                   ^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 358 |     pub(crate) fn field(self) -> f64 {
+#13 20.11     |                   ^^^^^
+#13 20.11 ...
+#13 20.11 362 |     pub(crate) fn delta_field(self) -> f64 {
+#13 20.11     |                   ^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 366 |     pub(crate) fn shared_delta_norm(self) -> f64 {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 370 |     pub(crate) fn shared_sigma(self) -> f64 {
+#13 20.11     |                   ^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 374 |     pub(crate) fn shared_kappa(self) -> f64 {
+#13 20.11     |                   ^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 378 |     pub(crate) fn joint_relevance(self) -> f64 {
+#13 20.11     |                   ^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 382 |     pub(crate) fn shared_negative_space(self) -> bool {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: method `as_bigint` is never used
+#13 20.11    --> src/joint_uf_neuron_boundary.rs:396:8
+#13 20.11     |
+#13 20.11 395 | impl BalancedTrit {
+#13 20.11     | ----------------- method in this implementation
+#13 20.11 396 |     fn as_bigint(self) -> BigInt {
+#13 20.11     |        ^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: methods `family`, `binary64_bits`, and `exact_value` are never used
+#13 20.11    --> src/joint_uf_neuron_boundary.rs:447:19
+#13 20.11     |
+#13 20.11 446 | impl TypedMathLoomConstraint {
+#13 20.11     | ---------------------------- methods in this implementation
+#13 20.11 447 |     pub(crate) fn family(&self) -> DsfFactFamily {
+#13 20.11     |                   ^^^^^^
+#13 20.11 ...
+#13 20.11 451 |     pub(crate) fn binary64_bits(&self) -> u64 {
+#13 20.11     |                   ^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 455 |     pub(crate) fn exact_value(&self) -> &BigRational {
+#13 20.11     |                   ^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: method `perspective` is never used
+#13 20.11    --> src/joint_uf_neuron_boundary.rs:489:19
+#13 20.11     |
+#13 20.11 488 | impl<'a> BorrowedMathLoomDelivery<'a> {
+#13 20.11     | ------------------------------------- method in this implementation
+#13 20.11 489 |     pub(crate) fn perspective(&self) -> JointNeuronPerspective<'a> {
+#13 20.11     |                   ^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: method `occurrence_count` is never used
+#13 20.11    --> src/joint_uf_source_adapter.rs:109:19
+#13 20.11     |
+#13 20.11  72 | impl AdmittedJointSourceEpisode {
+#13 20.11     | ------------------------------- method in this implementation
+#13 20.11 ...
+#13 20.11 109 |     pub(crate) fn occurrence_count(&self) -> usize {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `evaluate_occurrence` is never used
+#13 20.11    --> src/joint_uf_source_adapter.rs:276:15
+#13 20.11     |
+#13 20.11 276 | pub(crate) fn evaluate_occurrence(
+#13 20.11     |               ^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `gate_intervals` is never used
+#13 20.11    --> src/joint_uf_v1_4.rs:300:4
+#13 20.11     |
+#13 20.11 300 | fn gate_intervals(sev: &[SevFrame]) -> Vec<GateInterval> {
+#13 20.11     |    ^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: methods `finalized_sample_count` and `bounded_resident_bytes` are never used
+#13 20.11    --> src/joint_uf_v1_4.rs:612:19
+#13 20.11     |
+#13 20.11 480 | impl ContinuousJointUf {
+#13 20.11     | ---------------------- methods in this implementation
+#13 20.11 ...
+#13 20.11 612 |     pub(crate) fn finalized_sample_count(&self) -> usize {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 616 |     pub(crate) fn bounded_resident_bytes(&self) -> Result<usize, JointUfError> {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `evaluate` is never used
+#13 20.11     --> src/joint_uf_v1_4.rs:1068:15
+#13 20.11      |
+#13 20.11 1068 | pub(crate) fn evaluate(input: JointUfInput) -> Result<JointUfResult, JointUfError> {
+#13 20.11      |               ^^^^^^^^
+#13 20.11 
+#13 20.11 warning: methods `conductance_picosiemens` and `reversal_potential_millivolts` are never used
+#13 20.11   --> src/local_membrane_conductance_balance.rs:66:19
+#13 20.11    |
+#13 20.11 52 | impl LocalConductancePath {
+#13 20.11    | ------------------------- methods in this implementation
+#13 20.11 ...
+#13 20.11 66 |     pub(crate) fn conductance_picosiemens(self) -> ExactRational {
+#13 20.11    |                   ^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 70 |     pub(crate) fn reversal_potential_millivolts(self) -> ExactRational {
+#13 20.11    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `settle_local_membrane_conductances` is never used
+#13 20.11    --> src/local_membrane_conductance_balance.rs:141:15
+#13 20.11     |
+#13 20.11 141 | pub(crate) fn settle_local_membrane_conductances<const PATHS: usize>(
+#13 20.11     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `settle_local_membrane_conductances_with_active_transport` is never used
+#13 20.11    --> src/local_membrane_conductance_balance.rs:157:15
+#13 20.11     |
+#13 20.11 157 | pub(crate) fn settle_local_membrane_conductances_with_active_transport<const PATHS: usize>(
+#13 20.11     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `restore_current_fabric` is never used
+#13 20.11    --> src/materialized_fabric.rs:305:15
+#13 20.11     |
+#13 20.11 305 | pub(crate) fn restore_current_fabric(
+#13 20.11     |               ^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: variant `AnatomyWidth` is never constructed
+#13 20.11   --> src/metabolic_feeding.rs:52:5
+#13 20.11    |
+#13 20.11 47 | pub(crate) enum MetabolicError {
+#13 20.11    |                 -------------- variant in this enum
+#13 20.11 ...
+#13 20.11 52 |     AnatomyWidth,
+#13 20.11    |     ^^^^^^^^^^^^
+#13 20.11    |
+#13 20.11    = note: `MetabolicError` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+#13 20.11 
+#13 20.11 warning: struct `RestLaneRecovery` is never constructed
+#13 20.11   --> src/metabolic_feeding.rs:93:19
+#13 20.11    |
+#13 20.11 93 | pub(crate) struct RestLaneRecovery {
+#13 20.11    |                   ^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: struct `DarkRestNeuronSettlement` is never constructed
+#13 20.11    --> src/metabolic_feeding.rs:115:19
+#13 20.11     |
+#13 20.11 115 | pub(crate) struct DarkRestNeuronSettlement {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: methods `drained_dissipation_quanta`, `unmet_dissipation_quanta`, `fuel_quanta`, and `changed` are never used
+#13 20.11    --> src/metabolic_feeding.rs:129:19
+#13 20.11     |
+#13 20.11 128 | impl DarkRestNeuronSettlement {
+#13 20.11     | ----------------------------- methods in this implementation
+#13 20.11 129 |     pub(crate) fn drained_dissipation_quanta(&self) -> u128 {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 136 |     pub(crate) fn unmet_dissipation_quanta(&self) -> u128 {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 140 |     pub(crate) fn fuel_quanta(&self) -> u128 {
+#13 20.11     |                   ^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 148 |     pub(crate) fn changed(&self) -> bool {
+#13 20.11     |                   ^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `settle_dark_rest_neuron` is never used
+#13 20.11    --> src/metabolic_feeding.rs:228:15
+#13 20.11     |
+#13 20.11 228 | pub(crate) fn settle_dark_rest_neuron(
+#13 20.11     |               ^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `reservoir_can_recover` is never used
+#13 20.11    --> src/metabolic_feeding.rs:352:4
+#13 20.11     |
+#13 20.11 352 | fn reservoir_can_recover(
+#13 20.11     |    ^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: struct `RestLanePlan` is never constructed
+#13 20.11    --> src/metabolic_feeding.rs:653:8
+#13 20.11     |
+#13 20.11 653 | struct RestLanePlan {
+#13 20.11     |        ^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: function `plan_rest_lane` is never used
+#13 20.11    --> src/metabolic_feeding.rs:660:4
+#13 20.11     |
+#13 20.11 660 | fn plan_rest_lane(
+#13 20.11     |    ^^^^^^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: method `summary` is never used
+#13 20.11    --> src/mounted_joint_fractal.rs:153:19
+#13 20.11     |
+#13 20.11 152 | impl ResidentMountedState {
+#13 20.11     | ------------------------- method in this implementation
+#13 20.11 153 |     pub(crate) fn summary(&self) -> MountedJointDsfSummary {
+#13 20.11     |                   ^^^^^^^
+#13 20.11 
+#13 20.11 warning: methods `predecessor_generation`, `successor_generation`, `topology_authority`, `perspective`, `predecessor`, and `successor` are never used
+#13 20.11    --> src/mounted_joint_fractal.rs:176:19
+#13 20.11     |
+#13 20.11 175 | impl PreparedMountedNeuronTransition {
+#13 20.11     | ------------------------------------ methods in this implementation
+#13 20.11 176 |     pub(crate) fn predecessor_generation(&self) -> u64 {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 180 |     pub(crate) fn successor_generation(&self) -> u64 {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 184 |     pub(crate) fn topology_authority(&self) -> [u8; 32] {
+#13 20.11     |                   ^^^^^^^^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 188 |     pub(crate) fn perspective(&self) -> &crate::joint_field_l0_l4::NeuronFieldPerspective {
+#13 20.11     |                   ^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 192 |     pub(crate) fn predecessor(&self) -> Option<&DsfDeliveryImpression> {
+#13 20.11     |                   ^^^^^^^^^^^
+#13 20.11 ...
+#13 20.11 196 |     pub(crate) fn successor(&self) -> &DsfDeliveryImpression {
+#13 20.11     |                   ^^^^^^^^^
+#13 20.11 
+#13 20.11 warning: methods `topology_authority`, `experience`, `source_ports`, and `neurons` are never used
+#13 20.11    --> src/mounted_joint_fractal.rs:213:19
+#13 20.11     |
+#13 20.12 212 | impl PreparedMountedFieldSettlement {
+#13 20.12     | ----------------------------------- methods in this implementation
+#13 20.12 213 |     pub(crate) fn topology_authority(&self) -> [u8; 32] {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 217 |     pub(crate) fn experience(&self) -> &JointFieldExperience {
+#13 20.12     |                   ^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 221 |     pub(crate) fn source_ports(&self) -> &[JointSourcePortView] {
+#13 20.12     |                   ^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 225 |     pub(crate) fn neurons(&self) -> &[PreparedMountedNeuronTransition] {
+#13 20.12     |                   ^^^^^^^
+#13 20.12 
+#13 20.12 warning: multiple methods are never used
+#13 20.12    --> src/mounted_joint_fractal.rs:248:19
+#13 20.12     |
+#13 20.12 247 | impl PreparedMountedGeneration {
+#13 20.12     | ------------------------------ methods in this implementation
+#13 20.12 248 |     pub(crate) fn predecessor_generation(&self) -> u64 {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 252 |     pub(crate) fn successor_generation(&self) -> u64 {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 256 |     pub(crate) fn source_authority(&self) -> [u8; 32] {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 260 |     pub(crate) fn source_body(&self) -> &[u8] {
+#13 20.12     |                   ^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 264 |     pub(crate) fn restore_validation_cost(&self) -> MountedRestoreValidationCost {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 268 |     pub(crate) fn fields(&self) -> &[PreparedMountedFieldSettlement] {
+#13 20.12     |                   ^^^^^^
+#13 20.12 ...
+#13 20.12 272 |     pub(crate) fn state_bytes(&self) -> &[u8] {
+#13 20.12     |                   ^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 276 |     pub(crate) fn transition(&self) -> &MountedJointDsfTransition {
+#13 20.12     |                   ^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 280 |     pub(crate) fn successor_resident_state(&self) -> &ResidentMountedState {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 284 |     pub(crate) fn phase_counts(&self) -> MountedTransitionPhaseCounts {
+#13 20.12     |                   ^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 292 |     pub(crate) fn into_resident_parts(
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: struct `DerivedJointFieldInput` is never constructed
+#13 20.12    --> src/mounted_joint_fractal.rs:332:19
+#13 20.12     |
+#13 20.12 332 | pub(crate) struct DerivedJointFieldInput {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `derive_joint_field_inputs` is never used
+#13 20.12    --> src/mounted_joint_fractal.rs:406:15
+#13 20.12     |
+#13 20.12 406 | pub(crate) fn derive_joint_field_inputs(
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `prepare_resident_mounted_generation` is never used
+#13 20.12    --> src/mounted_joint_fractal.rs:478:15
+#13 20.12     |
+#13 20.12 478 | pub(crate) fn prepare_resident_mounted_generation(
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `inspect_mounted_joint_dsf` is never used
+#13 20.12    --> src/mounted_joint_fractal.rs:851:15
+#13 20.12     |
+#13 20.12 851 | pub(crate) fn inspect_mounted_joint_dsf(
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `quantize_optical_population_delivery` is never used
+#13 20.12    --> src/optical_receptor_work.rs:151:15
+#13 20.12     |
+#13 20.12 151 | pub(crate) fn quantize_optical_population_delivery(
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `settle_port` is never used
+#13 20.12    --> src/optical_receptor_work.rs:233:4
+#13 20.12     |
+#13 20.12 233 | fn settle_port(
+#13 20.12     |    ^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `derive_optical_receptor_work` is never used
+#13 20.12    --> src/optical_receptor_work.rs:240:15
+#13 20.12     |
+#13 20.12 240 | pub(crate) fn derive_optical_receptor_work(
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: variants `MountedGenerationDiscontinuity` and `ResidentMountedInvariantChanged` are never constructed
+#13 20.12    --> src/organism_runtime.rs:396:5
+#13 20.12     |
+#13 20.12 381 | pub(crate) enum RuntimeError {
+#13 20.12     |                 ------------ variants in this enum
+#13 20.12 ...
+#13 20.12 396 |     MountedGenerationDiscontinuity,
+#13 20.12     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 408 |     ResidentMountedInvariantChanged,
+#13 20.12     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12     |
+#13 20.12     = note: `RuntimeError` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+#13 20.12 
+#13 20.12 warning: struct `NativeResidentD3Transition` is never constructed
+#13 20.12    --> src/organism_runtime.rs:627:12
+#13 20.12     |
+#13 20.12 627 | pub struct NativeResidentD3Transition {
+#13 20.12     |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: multiple methods are never used
+#13 20.12    --> src/organism_runtime.rs:639:12
+#13 20.12     |
+#13 20.12 638 | impl NativeResidentD3Transition {
+#13 20.12     | ------------------------------- methods in this implementation
+#13 20.12 639 |     pub fn successor(&self) -> &[u8] {
+#13 20.12     |            ^^^^^^^^^
+#13 20.12 ...
+#13 20.12 643 |     pub fn state_receipt(&self) -> [u8; 32] {
+#13 20.12     |            ^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 647 |     pub fn source_authority(&self) -> [u8; 32] {
+#13 20.12     |            ^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 651 |     pub fn complete_neuron_count(&self) -> usize {
+#13 20.12     |            ^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 655 |     pub fn complete_neuron_fractal_count(&self) -> usize {
+#13 20.12     |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 659 |     pub fn cognitive_mosaic_count(&self) -> usize {
+#13 20.12     |            ^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 663 |     pub fn partial_cue_reassembly_count(&self) -> usize {
+#13 20.12     |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 667 |     pub fn endogenous_partial_cue_reassembly_count(&self) -> usize {
+#13 20.12     |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 671 |     pub fn python_callback_count(&self) -> u64 {
+#13 20.12     |            ^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `create_native_resident_d3_genesis` is never used
+#13 20.12     --> src/organism_runtime.rs:6817:8
+#13 20.12      |
+#13 20.12 6817 | pub fn create_native_resident_d3_genesis(
+#13 20.12      |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `transition_native_resident_d3` is never used
+#13 20.12     --> src/organism_runtime.rs:6831:8
+#13 20.12      |
+#13 20.12 6831 | pub fn transition_native_resident_d3(
+#13 20.12      |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: associated function `restore_current` is never used
+#13 20.12     --> src/organism_runtime.rs:7154:19
+#13 20.12      |
+#13 20.12 7153 | impl OrganismRuntime {
+#13 20.12      | -------------------- associated function in this implementation
+#13 20.12 7154 |     pub(crate) fn restore_current(
+#13 20.12      |                   ^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: methods `retained_fractals` and `resident_bytes` are never used
+#13 20.12    --> src/physical_mosaic.rs:211:19
+#13 20.12     |
+#13 20.12 109 | impl AdmittedPhysicalMosaic {
+#13 20.12     | --------------------------- methods in this implementation
+#13 20.12 ...
+#13 20.12 211 |     pub(crate) fn retained_fractals(&self) -> &[SparsePhysicalStateDelta] {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 348 |     pub(crate) fn resident_bytes(&self) -> Option<usize> {
+#13 20.12     |                   ^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `prove_physical_mosaic_recurrence` is never used
+#13 20.12    --> src/physical_mosaic.rs:690:15
+#13 20.12     |
+#13 20.12 690 | pub(crate) fn prove_physical_mosaic_recurrence(
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `alter_physical_mosaic_recurrence` is never used
+#13 20.12    --> src/physical_mosaic.rs:736:15
+#13 20.12     |
+#13 20.12 736 | pub(crate) fn alter_physical_mosaic_recurrence(
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `encode_admitted_physical_mosaic` is never used
+#13 20.12     --> src/physical_mosaic.rs:1070:15
+#13 20.12      |
+#13 20.12 1070 | pub(crate) fn encode_admitted_physical_mosaic(
+#13 20.12      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `decode_admitted_physical_mosaic` is never used
+#13 20.12     --> src/physical_mosaic.rs:1091:15
+#13 20.12      |
+#13 20.12 1091 | pub(crate) fn decode_admitted_physical_mosaic(
+#13 20.12      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `admitted_fractal_anatomies` is never used
+#13 20.12     --> src/physical_mosaic.rs:1109:4
+#13 20.12      |
+#13 20.12 1109 | fn admitted_fractal_anatomies(
+#13 20.12      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `encode_admitted_physical_mosaic_for_topology` is never used
+#13 20.12     --> src/physical_mosaic.rs:1124:15
+#13 20.12      |
+#13 20.12 1124 | pub(crate) fn encode_admitted_physical_mosaic_for_topology(
+#13 20.12      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: variant `PhysicalUnitMismatch` is never constructed
+#13 20.12   --> src/proprioceptive_receptor_work.rs:96:5
+#13 20.12    |
+#13 20.12 90 | pub(crate) enum ProprioceptiveReceptorWorkError {
+#13 20.12    |                 ------------------------------- variant in this enum
+#13 20.12 ...
+#13 20.12 96 |     PhysicalUnitMismatch,
+#13 20.12    |     ^^^^^^^^^^^^^^^^^^^^
+#13 20.12    |
+#13 20.12    = note: `ProprioceptiveReceptorWorkError` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+#13 20.12 
+#13 20.12 warning: variant `SequenceEndedBeforeQuiescence` is never constructed
+#13 20.12   --> src/reached_neuron_cohort.rs:78:5
+#13 20.12    |
+#13 20.12 65 | pub(crate) enum ReachedCohortError {
+#13 20.12    |                 ------------------ variant in this enum
+#13 20.12 ...
+#13 20.12 78 |     SequenceEndedBeforeQuiescence,
+#13 20.12    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12    |
+#13 20.12    = note: `ReachedCohortError` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+#13 20.12 
+#13 20.12 warning: method `source_site` is never used
+#13 20.12    --> src/reached_neuron_cohort.rs:400:19
+#13 20.12     |
+#13 20.12 214 | impl ReachedCohortAnatomy {
+#13 20.12     | ------------------------- method in this implementation
+#13 20.12 ...
+#13 20.12 400 |     pub(crate) fn source_site(&self, neuron_index: usize) -> Option<&NeuronSourceSite> {
+#13 20.12     |                   ^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: method `resident_bytes` is never used
+#13 20.12    --> src/reached_neuron_cohort.rs:577:19
+#13 20.12     |
+#13 20.12 441 | impl ReachedCohortState {
+#13 20.12     | ----------------------- method in this implementation
+#13 20.12 ...
+#13 20.12 577 |     pub(crate) fn resident_bytes(&self) -> Option<usize> {
+#13 20.12     |                   ^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `widen_reached_cohort_state_contacts` is never used
+#13 20.12    --> src/reached_neuron_cohort.rs:983:15
+#13 20.12     |
+#13 20.12 983 | pub(crate) fn widen_reached_cohort_state_contacts(
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `extend_reached_cohort_state_with_genesis` is never used
+#13 20.12    --> src/reached_neuron_cohort.rs:998:15
+#13 20.12     |
+#13 20.12 998 | pub(crate) fn extend_reached_cohort_state_with_genesis(
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `legacy_exhausted_recovery_content_digest` is never used
+#13 20.12     --> src/reached_neuron_cohort.rs:2537:4
+#13 20.12      |
+#13 20.12 2537 | fn legacy_exhausted_recovery_content_digest(
+#13 20.12      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: struct `ReachedCohortIntervalSettlement` is never constructed
+#13 20.12     --> src/reached_neuron_cohort.rs:3128:19
+#13 20.12      |
+#13 20.12 3128 | pub(crate) struct ReachedCohortIntervalSettlement {
+#13 20.12      |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: associated items `state` and `from_state` are never used
+#13 20.12     --> src/reached_neuron_cohort.rs:3170:19
+#13 20.12      |
+#13 20.12 3169 | impl RestReachedCohortState {
+#13 20.12      | --------------------------- associated items in this implementation
+#13 20.12 3170 |     pub(crate) fn state(&self) -> &ReachedCohortState {
+#13 20.12      |                   ^^^^^
+#13 20.12 ...
+#13 20.12 3174 |     pub(crate) fn from_state(state: ReachedCohortState) -> Self {
+#13 20.12      |                   ^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `settle_reached_cohort_membrane_pumps_in_place` is never used
+#13 20.12     --> src/reached_neuron_cohort.rs:3632:15
+#13 20.12      |
+#13 20.12 3632 | pub(crate) fn settle_reached_cohort_membrane_pumps_in_place(
+#13 20.12      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `settle_reached_cohort_dark_rest` is never used
+#13 20.12     --> src/reached_neuron_cohort.rs:3676:15
+#13 20.12      |
+#13 20.12 3676 | pub(crate) fn settle_reached_cohort_dark_rest(
+#13 20.12      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `settle_reached_cohort_interval` is never used
+#13 20.12     --> src/reached_neuron_cohort.rs:3884:15
+#13 20.12      |
+#13 20.12 3884 | pub(crate) fn settle_reached_cohort_interval(
+#13 20.12      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `settle_reached_cohort_to_quiescence` is never used
+#13 20.12     --> src/reached_neuron_cohort.rs:4389:15
+#13 20.12      |
+#13 20.12 4389 | pub(crate) fn settle_reached_cohort_to_quiescence(
+#13 20.12      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `settle_reached_cohort_experience_to_quiescence` is never used
+#13 20.12     --> src/reached_neuron_cohort.rs:4405:15
+#13 20.12      |
+#13 20.12 4405 | pub(crate) fn settle_reached_cohort_experience_to_quiescence(
+#13 20.12      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `settle_reached_cohort_recurrence` is never used
+#13 20.12     --> src/reached_neuron_cohort.rs:4465:15
+#13 20.12      |
+#13 20.12 4465 | pub(crate) fn settle_reached_cohort_recurrence(
+#13 20.12      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `total_carrier_material` is never used
+#13 20.12     --> src/reached_neuron_cohort.rs:4510:4
+#13 20.12      |
+#13 20.12 4510 | fn total_carrier_material(neurons: &[NeuronPhysicalState]) -> Result<u128, ReachedCohortError> {
+#13 20.12      |    ^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `resident_path_bytes` is never used
+#13 20.12   --> src/reached_vestibular_bundle_path.rs:74:15
+#13 20.12    |
+#13 20.12 74 | pub(crate) fn resident_path_bytes() -> usize {
+#13 20.12    |               ^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `transient_tick_bytes` is never used
+#13 20.12   --> src/reached_vestibular_bundle_path.rs:80:15
+#13 20.12    |
+#13 20.12 80 | pub(crate) fn transient_tick_bytes() -> usize {
+#13 20.12    |               ^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: method `minimum_recovery_energy_per_extent_zeptojoules` is never used
+#13 20.12    --> src/recovery_fluid_contact.rs:404:19
+#13 20.12     |
+#13 20.12 327 | impl ReachedRecoveryFluidAnatomy {
+#13 20.12     | -------------------------------- method in this implementation
+#13 20.12 ...
+#13 20.12 404 |     pub(crate) fn minimum_recovery_energy_per_extent_zeptojoules(&self) -> ExactRational {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `encode_legacy_exhausted_recovery_fluid_state` is never used
+#13 20.12     --> src/recovery_fluid_contact.rs:1145:15
+#13 20.12      |
+#13 20.12 1145 | pub(crate) fn encode_legacy_exhausted_recovery_fluid_state(
+#13 20.12      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: constant `CURRENT_FIXED_BYTES` is never used
+#13 20.12    --> src/resident_cognitive_formation.rs:422:7
+#13 20.12     |
+#13 20.12 422 | const CURRENT_FIXED_BYTES: usize = FIXED_BYTES + (7 * std::mem::size_of::<u64>()) + 1;
+#13 20.12     |       ^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: associated function `in_flight` is never used
+#13 20.12    --> src/resident_cognitive_formation.rs:610:8
+#13 20.12     |
+#13 20.12 530 | impl ActiveElectricalFrontierEntry {
+#13 20.12     | ---------------------------------- associated function in this implementation
+#13 20.12 ...
+#13 20.12 610 |     fn in_flight(
+#13 20.12     |        ^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: method `outward_current_from_seed_picoamperes` is never used
+#13 20.12     --> src/resident_cognitive_formation.rs:1285:19
+#13 20.12      |
+#13 20.12 1261 | impl PhysicalFrontierRouteObservation {
+#13 20.12      | ------------------------------------- method in this implementation
+#13 20.12 ...
+#13 20.12 1285 |     pub(crate) fn outward_current_from_seed_picoamperes(self) -> ExactRational {
+#13 20.12      |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: method `count` is never used
+#13 20.12     --> src/resident_cognitive_formation.rs:2148:8
+#13 20.12      |
+#13 20.12 2095 | impl SparseResidentNeuronMask {
+#13 20.12      | ----------------------------- method in this implementation
+#13 20.12 ...
+#13 20.12 2148 |     fn count(&self) -> usize {
+#13 20.12      |        ^^^^^
+#13 20.12 
+#13 20.12 warning: function `decode_organism_mosaic` is never used
+#13 20.12     --> src/resident_cognitive_formation.rs:2816:4
+#13 20.12      |
+#13 20.12 2816 | fn decode_organism_mosaic(
+#13 20.12      |    ^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `retain_reassembled_vocal_preparation_work` is never used
+#13 20.12     --> src/resident_cognitive_formation.rs:5142:4
+#13 20.12      |
+#13 20.12 5142 | fn retain_reassembled_vocal_preparation_work(
+#13 20.12      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: methods `prepare_admitted_transition`, `prepare_vestibular_transition`, `advance_admitted_transition`, and `advance_admitted_transition_with_residency` are never used
+#13 20.12      --> src/resident_cognitive_formation.rs:8493:19
+#13 20.12       |
+#13 20.12  5628 | impl ResidentCognitiveFormationState {
+#13 20.12       | ------------------------------------ methods in this implementation
+#13 20.12 ...
+#13 20.12  8493 |     pub(crate) fn prepare_admitted_transition(
+#13 20.12       |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12  8522 |     pub(crate) fn prepare_vestibular_transition(
+#13 20.12       |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 10614 |     pub(crate) fn advance_admitted_transition(
+#13 20.12       |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 10630 |     pub(crate) fn advance_admitted_transition_with_residency(
+#13 20.12       |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: variant `NewFormation` is never constructed
+#13 20.12      --> src/resident_cognitive_formation.rs:12964:5
+#13 20.12       |
+#13 20.12 12962 | enum MosaicStructuralResolution {
+#13 20.12       |      -------------------------- variant in this enum
+#13 20.12 12963 |     /// No retained formation carries the same exact original structure.
+#13 20.12 12964 |     NewFormation(AdmittedPhysicalMosaic),
+#13 20.12       |     ^^^^^^^^^^^^
+#13 20.12       |
+#13 20.12       = note: `MosaicStructuralResolution` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+#13 20.12 
+#13 20.12 warning: function `resolve_mosaic_structural_identity` is never used
+#13 20.12      --> src/resident_cognitive_formation.rs:12970:4
+#13 20.12       |
+#13 20.12 12970 | fn resolve_mosaic_structural_identity(
+#13 20.12       |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `mount_reached_motor_effector_with_root` is never used
+#13 20.12      --> src/resident_cognitive_formation.rs:17882:4
+#13 20.12       |
+#13 20.12 17882 | fn mount_reached_motor_effector_with_root(
+#13 20.12       |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: field `deferred_vocal_work_offers` is never read
+#13 20.12      --> src/resident_cognitive_formation.rs:19653:5
+#13 20.12       |
+#13 20.12 19638 | struct InternalContactSettlementObservation {
+#13 20.12       |        ------------------------------------ field in this struct
+#13 20.12 ...
+#13 20.12 19653 |     deferred_vocal_work_offers: Vec<LearnedMotorWorkOffer>,
+#13 20.12       |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `exact_completed_vocal_preparation_discharge` is never used
+#13 20.12   --> src/resident_cognitive_formation/lean_sensorimotor_route.rs:34:15
+#13 20.12    |
+#13 20.12 34 | pub(super) fn exact_completed_vocal_preparation_discharge(
+#13 20.12    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `exact_reassembled_work_founded_vocal_preparation` is never used
+#13 20.12    --> src/resident_cognitive_formation/lean_sensorimotor_route.rs:410:15
+#13 20.12     |
+#13 20.12 410 | pub(super) fn exact_reassembled_work_founded_vocal_preparation(
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `vocal_cognitive_action_continuation_routes_for_motor` is never used
+#13 20.12    --> src/resident_cognitive_formation/lean_sensorimotor_route.rs:634:15
+#13 20.12     |
+#13 20.12 634 | pub(super) fn vocal_cognitive_action_continuation_routes_for_motor(
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `frontier_carries_vocal_action_continuation` is never used
+#13 20.12    --> src/resident_cognitive_formation/lean_sensorimotor_route.rs:677:15
+#13 20.12     |
+#13 20.12 677 | pub(super) fn frontier_carries_vocal_action_continuation(
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: enum `VirtualTemporalObservation` is never used
+#13 20.12   --> src/resident_receptor_transition.rs:31:17
+#13 20.12    |
+#13 20.12 31 | pub(crate) enum VirtualTemporalObservation {
+#13 20.12    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: enum `ReceptorPhysicsUnavailable` is never used
+#13 20.12   --> src/resident_receptor_transition.rs:37:17
+#13 20.12    |
+#13 20.12 37 | pub(crate) enum ReceptorPhysicsUnavailable {
+#13 20.12    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: enum `PhysicalTransductionAvailability` is never used
+#13 20.12   --> src/resident_receptor_transition.rs:42:17
+#13 20.12    |
+#13 20.12 42 | pub(crate) enum PhysicalTransductionAvailability {
+#13 20.12    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: fields `source_tick`, `predecessor_body`, and `successor_body` are never read
+#13 20.12   --> src/resident_receptor_transition.rs:53:5
+#13 20.12    |
+#13 20.12 52 | pub(crate) struct ResidentVestibularIngress {
+#13 20.12    |                   ------------------------- fields in this struct
+#13 20.12 53 |     source_tick: u64,
+#13 20.12    |     ^^^^^^^^^^^
+#13 20.12 54 |     predecessor_body: YawBodyState,
+#13 20.12    |     ^^^^^^^^^^^^^^^^
+#13 20.12 55 |     successor_body: YawBodyState,
+#13 20.12    |     ^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: methods `source_tick`, `predecessor_body`, and `successor_body` are never used
+#13 20.12   --> src/resident_receptor_transition.rs:62:19
+#13 20.12    |
+#13 20.12 61 | impl ResidentVestibularIngress {
+#13 20.12    | ------------------------------ methods in this implementation
+#13 20.12 62 |     pub(crate) fn source_tick(&self) -> u64 {
+#13 20.12    |                   ^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 66 |     pub(crate) fn predecessor_body(&self) -> YawBodyState {
+#13 20.12    |                   ^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 70 |     pub(crate) fn successor_body(&self) -> YawBodyState {
+#13 20.12    |                   ^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: struct `ResidentNeuronAdmission` is never constructed
+#13 20.12    --> src/resident_receptor_transition.rs:122:19
+#13 20.12     |
+#13 20.12 122 | pub(crate) struct ResidentNeuronAdmission<'a> {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: multiple associated items are never used
+#13 20.12    --> src/resident_receptor_transition.rs:137:8
+#13 20.12     |
+#13 20.12 136 | impl<'a> ResidentNeuronAdmission<'a> {
+#13 20.12     | ------------------------------------ associated items in this implementation
+#13 20.12 137 |     fn from_typed_parts(
+#13 20.12     |        ^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 169 |     pub(crate) fn predecessor_generation(self) -> u64 {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 173 |     pub(crate) fn successor_generation(self) -> u64 {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 177 |     pub(crate) fn source_authority(self) -> [u8; 32] {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 181 |     pub(crate) fn topology_authority(self) -> [u8; 32] {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 185 |     pub(crate) fn complete_field(self) -> &'a JointFieldExperience {
+#13 20.12     |                   ^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 189 |     pub(crate) fn perspective(self) -> &'a NeuronFieldPerspective {
+#13 20.12     |                   ^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 193 |     pub(crate) fn predecessor_delivery(self) -> Option<&'a DsfDeliveryImpression> {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 197 |     pub(crate) fn successor_delivery(self) -> &'a DsfDeliveryImpression {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 201 |     pub(crate) fn source_port(self) -> &'a JointSourcePortView {
+#13 20.12     |                   ^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 205 |     pub(crate) fn temporal_observation(self) -> VirtualTemporalObservation {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 209 |     pub(crate) fn physical_transduction(self) -> PhysicalTransductionAvailability {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `prepare_resident_receptor_ingress` is never used
+#13 20.12    --> src/resident_receptor_transition.rs:289:15
+#13 20.12     |
+#13 20.12 289 | pub(crate) fn prepare_resident_receptor_ingress(
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: methods `single_channel_conductance_picosiemens`, `total_channel_population`, and `transition_work_quantum_zeptojoules` are never used
+#13 20.12    --> src/sparse_electrical_contact.rs:139:19
+#13 20.12     |
+#13 20.12  98 | impl ElectricalContactAnatomy {
+#13 20.12     | ----------------------------- methods in this implementation
+#13 20.12 ...
+#13 20.12 139 |     pub(crate) fn single_channel_conductance_picosiemens(self) -> ExactRational {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 143 |     pub(crate) fn total_channel_population(self) -> u128 {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 151 |     pub(crate) fn transition_work_quantum_zeptojoules(self) -> ExactRational {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `narrow_rational` is never used
+#13 20.12    --> src/sparse_electrical_contact.rs:347:4
+#13 20.12     |
+#13 20.12 347 | fn narrow_rational(value: BigRational) -> Result<ExactRational, SparseElectricalError> {
+#13 20.12     |    ^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: method `resident_contact_bytes` is never used
+#13 20.12     --> src/sparse_electrical_contact.rs:1962:19
+#13 20.12      |
+#13 20.12 1945 | impl SparseElectricalState {
+#13 20.12      | -------------------------- method in this implementation
+#13 20.12 ...
+#13 20.12 1962 |     pub(crate) fn resident_contact_bytes(&self) -> Option<usize> {
+#13 20.12      |                   ^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: struct `SparseElectricalSettlement` is never constructed
+#13 20.12     --> src/sparse_electrical_contact.rs:2367:19
+#13 20.12      |
+#13 20.12 2367 | pub(crate) struct SparseElectricalSettlement {
+#13 20.12      |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `settle_sparse_electrical_contacts` is never used
+#13 20.12     --> src/sparse_electrical_contact.rs:2611:15
+#13 20.12      |
+#13 20.12 2611 | pub(crate) fn settle_sparse_electrical_contacts(
+#13 20.12      |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: method `composite_transduction_constant` is never used
+#13 20.12    --> src/tactile_receptor_work.rs:121:19
+#13 20.12     |
+#13 20.12  95 | impl TactileReceptorAnatomy {
+#13 20.12     | --------------------------- method in this implementation
+#13 20.12 ...
+#13 20.12 121 |     pub(crate) fn composite_transduction_constant(&self) -> BigRational {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `settle_port` is never used
+#13 20.12    --> src/tactile_receptor_work.rs:269:15
+#13 20.12     |
+#13 20.12 269 | pub(crate) fn settle_port(
+#13 20.12     |               ^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `derive_tactile_receptor_work` is never used
+#13 20.12    --> src/tactile_receptor_work.rs:276:15
+#13 20.12     |
+#13 20.12 276 | pub(crate) fn derive_tactile_receptor_work(
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: fields `source_start`, `source_end`, `predecessor_tip_displacement_nanometres`, `successor_tip_displacement_nanometres`, `mounted_bundle_height_nanometres`, and `mechanical_evidence_receipt` are never read
+#13 20.12   --> src/vestibular_joint_source_builder.rs:62:5
+#13 20.12    |
+#13 20.12 60 | pub(crate) struct VestibularJointSourceAdmission {
+#13 20.12    |                   ------------------------------ fields in this struct
+#13 20.12 61 |     episode: NativeJointSourceEpisode,
+#13 20.12 62 |     source_start: BigRational,
+#13 20.12    |     ^^^^^^^^^^^^
+#13 20.12 63 |     source_end: BigRational,
+#13 20.12    |     ^^^^^^^^^^
+#13 20.12 64 |     predecessor_tip_displacement_nanometres: BigRational,
+#13 20.12    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 65 |     successor_tip_displacement_nanometres: BigRational,
+#13 20.12    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 66 |     mounted_bundle_height_nanometres: BigRational,
+#13 20.12    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 67 |     reached_tick: ReachedVestibularBundleTick,
+#13 20.12 68 |     mechanical_evidence_receipt: [u8; 32],
+#13 20.12    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: methods `source_interval`, `tip_displacements_nanometres`, `mounted_bundle_height_nanometres`, and `mechanical_evidence_receipt` are never used
+#13 20.12    --> src/vestibular_joint_source_builder.rs:82:19
+#13 20.12     |
+#13 20.12  72 | impl VestibularJointSourceAdmission {
+#13 20.12     | ----------------------------------- methods in this implementation
+#13 20.12 ...
+#13 20.12  82 |     pub(crate) fn source_interval(&self) -> (&BigRational, &BigRational) {
+#13 20.12     |                   ^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12  86 |     pub(crate) fn tip_displacements_nanometres(&self) -> (&BigRational, &BigRational) {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12  93 |     pub(crate) fn mounted_bundle_height_nanometres(&self) -> &BigRational {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 101 |     pub(crate) fn mechanical_evidence_receipt(&self) -> [u8; 32] {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: methods `gate_energy_quantum_zeptojoules` and `gate_dissipation_capacity_quanta` are never used
+#13 20.12    --> src/vestibular_neuron_path.rs:148:19
+#13 20.12     |
+#13 20.12 119 | impl FunctionalVestibularAnatomy {
+#13 20.12     | -------------------------------- methods in this implementation
+#13 20.12 ...
+#13 20.12 148 |     pub(crate) fn gate_energy_quantum_zeptojoules(&self) -> &BigRational {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 152 |     pub(crate) fn gate_dissipation_capacity_quanta(&self) -> u128 {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: struct `FunctionalVestibularNeuronInterval` is never constructed
+#13 20.12    --> src/vestibular_neuron_path.rs:499:19
+#13 20.12     |
+#13 20.12 499 | pub(crate) struct FunctionalVestibularNeuronInterval {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `settle_vestibular_neuron_compatibility_interval` is never used
+#13 20.12    --> src/vestibular_neuron_path.rs:531:15
+#13 20.12     |
+#13 20.12 531 | pub(crate) fn settle_vestibular_neuron_compatibility_interval(
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: associated function `at_rest` is never used
+#13 20.12    --> src/virtual_articulated_body.rs:118:25
+#13 20.12     |
+#13 20.12 117 | impl LegacyV6AcousticState {
+#13 20.12     | -------------------------- associated function in this implementation
+#13 20.12 118 |     pub(crate) const fn at_rest() -> Self {
+#13 20.12     |                         ^^^^^^^
+#13 20.12 
+#13 20.12 warning: method `is_vocal_tract_section` is never used
+#13 20.12    --> src/virtual_articulated_body.rs:539:19
+#13 20.12     |
+#13 20.12 504 | impl BodyAxis {
+#13 20.12     | ------------- method in this implementation
+#13 20.12 ...
+#13 20.12 539 |     pub(crate) fn is_vocal_tract_section(self) -> bool {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: methods `axes` and `antagonist_activation` are never used
+#13 20.12     --> src/virtual_articulated_body.rs:1182:19
+#13 20.12      |
+#13 20.12 1147 | impl ArticulatedBodyState {
+#13 20.12      | ------------------------- methods in this implementation
+#13 20.12 ...
+#13 20.12 1182 |     pub(crate) fn axes(&self) -> &[i32; BODY_AXIS_COUNT] {
+#13 20.12      |                   ^^^^
+#13 20.12 ...
+#13 20.12 1215 |     pub(crate) fn antagonist_activation(&self, terminal: BodyEffectorTerminal) -> u32 {
+#13 20.12      |                   ^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: variant `InvalidRestart` is never constructed
+#13 20.12   --> src/virtual_body_yaw_motion.rs:21:5
+#13 20.12    |
+#13 20.12 17 | pub(crate) enum YawMotionError {
+#13 20.12    |                 -------------- variant in this enum
+#13 20.12 ...
+#13 20.12 21 |     InvalidRestart,
+#13 20.12    |     ^^^^^^^^^^^^^^
+#13 20.12    |
+#13 20.12    = note: `YawMotionError` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+#13 20.12 
+#13 20.12 warning: methods `signed_displacement_millidegrees` and `duration_microseconds` are never used
+#13 20.12   --> src/virtual_body_yaw_motion.rs:76:19
+#13 20.12    |
+#13 20.12 54 | impl SignedYawActuation {
+#13 20.12    | ----------------------- methods in this implementation
+#13 20.12 ...
+#13 20.12 76 |     pub(crate) fn signed_displacement_millidegrees(self) -> i32 {
+#13 20.12    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 80 |     pub(crate) fn duration_microseconds(self) -> u32 {
+#13 20.12    |                   ^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `encode_yaw_body_state` is never used
+#13 20.12    --> src/virtual_body_yaw_motion.rs:223:15
+#13 20.12     |
+#13 20.12 223 | pub(crate) fn encode_yaw_body_state(state: YawBodyState) -> [u8; BODY_STATE_BYTES] {
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `decode_yaw_body_state` is never used
+#13 20.12    --> src/virtual_body_yaw_motion.rs:227:15
+#13 20.12     |
+#13 20.12 227 | pub(crate) fn decode_yaw_body_state(encoded: &[u8]) -> Result<YawBodyState, YawMotionError> {
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: constant `NATIVE_ARTICULATORY_INTERVAL_SAMPLES` is never used
+#13 20.12   --> src/virtual_articulatory_body.rs:27:18
+#13 20.12    |
+#13 20.12 27 | pub(crate) const NATIVE_ARTICULATORY_INTERVAL_SAMPLES: usize = 16;
+#13 20.12    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: constant `FOLD_COLLISION_LIMIT` is never used
+#13 20.12   --> src/virtual_articulatory_body.rs:99:7
+#13 20.12    |
+#13 20.12 99 | const FOLD_COLLISION_LIMIT: i64 = 3_072;
+#13 20.12    |       ^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: variant `RelaxationDidNotQuiesce` is never constructed
+#13 20.12    --> src/virtual_articulatory_body.rs:115:5
+#13 20.12     |
+#13 20.12 111 | pub(crate) enum ArticulatoryBodyError {
+#13 20.12     |                 --------------------- variant in this enum
+#13 20.12 ...
+#13 20.12 115 |     RelaxationDidNotQuiesce,
+#13 20.12     |     ^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12     |
+#13 20.12     = note: `ArticulatoryBodyError` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+#13 20.12 
+#13 20.12 warning: variant `Membrane` is never constructed
+#13 20.12    --> src/virtual_material_neuron_genesis.rs:100:5
+#13 20.12     |
+#13 20.12  95 | pub(crate) enum VirtualMaterialGenesisError {
+#13 20.12     |                 --------------------------- variant in this enum
+#13 20.12 ...
+#13 20.12 100 |     Membrane(MembraneChargeError),
+#13 20.12     |     ^^^^^^^^
+#13 20.12     |
+#13 20.12     = note: `VirtualMaterialGenesisError` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+#13 20.12 
+#13 20.12 warning: function `create_virtual_material_reached_cohort` is never used
+#13 20.12    --> src/virtual_material_neuron_genesis.rs:133:15
+#13 20.12     |
+#13 20.12 133 | pub(crate) fn create_virtual_material_reached_cohort(
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `create_virtual_material_reached_cohort_from_shared` is never used
+#13 20.12    --> src/virtual_material_neuron_genesis.rs:149:15
+#13 20.12     |
+#13 20.12 149 | pub(crate) fn create_virtual_material_reached_cohort_from_shared(
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `create_virtual_material_reached_cohort_subset_from_shared` is never used
+#13 20.12    --> src/virtual_material_neuron_genesis.rs:169:15
+#13 20.12     |
+#13 20.12 169 | pub(crate) fn create_virtual_material_reached_cohort_subset_from_shared(
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `extend_virtual_material_reached_cohort_from_shared` is never used
+#13 20.12    --> src/virtual_material_neuron_genesis.rs:228:15
+#13 20.12     |
+#13 20.12 228 | pub(crate) fn extend_virtual_material_reached_cohort_from_shared(
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: method `zero_recovery_catalysts` is never used
+#13 20.12    --> src/virtual_material_neuron_genesis.rs:265:19
+#13 20.12     |
+#13 20.12 256 | impl VirtualMaterialNeuronGenesis {
+#13 20.12     | --------------------------------- method in this implementation
+#13 20.12 ...
+#13 20.12 265 |     pub(crate) fn zero_recovery_catalysts(&self) -> &[u128] {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: function `definitive_virtual_genesis_support_energy_zeptojoules` is never used
+#13 20.12    --> src/virtual_material_neuron_genesis.rs:292:15
+#13 20.12     |
+#13 20.12 292 | pub(crate) fn definitive_virtual_genesis_support_energy_zeptojoules() -> BigRational {
+#13 20.12     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 20.12 warning: methods `signed_millidegrees_by_tick` and `duration_microseconds` are never used
+#13 20.12    --> src/virtual_vestibular_canal.rs:146:19
+#13 20.12     |
+#13 20.12 134 | impl<'a> SignedYawTrajectory<'a> {
+#13 20.12     | -------------------------------- methods in this implementation
+#13 20.12 ...
+#13 20.12 146 |     pub(crate) fn signed_millidegrees_by_tick(self) -> &'a [i32] {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 ...
+#13 20.12 150 |     pub(crate) fn duration_microseconds(self) -> u32 {
+#13 20.12     |                   ^^^^^^^^^^^^^^^^^^^^^
+#13 20.12 
+#13 119.5 warning: `guala_core` (lib) generated 191 warnings (run `cargo fix --lib -p guala_core` to apply 13 suggestions)
+#13 119.5     Finished `release` profile [optimized] target(s) in 1m 58s
+#13 120.2 📦 Built wheel for CPython 3.11 to /build/dist/guala_core-0.1.0-cp311-cp311-manylinux_2_35_x86_64.whl
+#13 DONE 120.2s
+
+#14 [stage-1 5/9] COPY --from=native-builder /build/dist/*.whl /tmp/wheels/
+#14 DONE 0.2s
+
+#15 [stage-1 6/9] RUN pip install --no-cache-dir /tmp/wheels/*.whl     && rm -rf /tmp/wheels
+#15 0.530 Processing /tmp/wheels/guala_core-0.1.0-cp311-cp311-manylinux_2_35_x86_64.whl
+#15 0.648 Installing collected packages: guala-core
+#15 0.703 Successfully installed guala-core-0.1.0
+#15 0.703 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+#15 0.835 
+#15 0.835 [notice] A new release of pip is available: 24.0 -> 26.2.1
+#15 0.835 [notice] To update, run: pip install --upgrade pip
+#15 DONE 1.0s
+
+#16 [stage-1 7/9] COPY runtime/ /app/
+#16 DONE 0.3s
+
+#17 [stage-1 8/9] COPY dsf_ai_service/lean_runtime_manifest.txt /LEAN_RUNTIME_MANIFEST
+#17 DONE 0.1s
+
+#18 [stage-1 9/9] RUN test ! -e /app/dsf_ai_service/app.py     && test ! -e /app/dsf_ai_service/native_production_app.py     && test ! -e /app/dsf_ai_service/candidate_release_rehearsal.py     && test ! -e /app/dsf_ai_service/cold_restore_probe.py     && test "$(find /app/guala_curriculum/cards -type f -name '*.png' | wc -l)" -eq 36
+#18 DONE 0.2s
+
+#19 exporting to oci image format
+#19 exporting layers
+#19 exporting layers 7.3s done
+#19 exporting manifest sha256:80755ca0965635ded9baa02d9df60463f1a27fab057365a8a0f0d8d1341a0bc7 0.0s done
+#19 exporting config sha256:703a490078ee11eff83e88747b47c9c8d39cb53c5009f0bf2442e852b9223933 0.0s done
+#19 sending tarball
+#19 ...
+
+#20 importing to docker
+#20 DONE 0.0s
+
+#19 exporting to oci image format
+#19 sending tarball 15.0s done
+#19 DONE 22.4s
+
+#21 resolving provenance for metadata file
+#21 DONE 0.0s

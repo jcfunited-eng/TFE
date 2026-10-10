@@ -1,0 +1,11 @@
+[
+  {
+    "task": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/54d300e31f754c8f913f70b4dd0840f1",
+    "status": "RUNNING",
+    "health": "HEALTHY",
+    "started": "2026-10-10T11:09:44.745000+00:00",
+    "stopped": null,
+    "stopCode": null,
+    "stoppedReason": null
+  }
+]

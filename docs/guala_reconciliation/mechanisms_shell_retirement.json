@@ -1,0 +1,976 @@
+{
+  "schema": "guala.documentary_mechanisms.v1",
+  "at_utc": "2026-10-10T09:30:17.949558+00:00",
+  "scope": "Complete content of72 versions of two shell/core ledgers:860 latest lines plus99 earlier passages/431 lines;8 further exact path/blob aliases verified against2 already fully read canonical bodies. Total80 pairs across10 paths. Original authority, complete historical code, current activation and product qualification remain open. No product execution.",
+  "mechanisms": [
+    {
+      "id": "VQS01",
+      "name": "Lean-shell delivery is real scoped progress with surviving whole-organism obligations",
+      "classification": "reported_scope_reconciliation_and_unclosed_function",
+      "finding": "QSR01",
+      "observed_mechanism": "P-005 reports replacing a 20248-line/40-route shell with a 1395-line/five-route core, one actor and one depth-one custody worker. Task 1433 is explicitly accepted only for the shell, while speech fails, vision is unmounted and meaningful autonomy is unproved. Earlier acceptance text included speech/action/learning; later acceptance separates them. Historical root action and self-hearing use preserved specimens, not proof of new autonomous meaningful choice.",
+      "evidence_limits": "The scope distinction is necessary and preserves useful engineering progress. It cannot erase the original functional requirements or qualify the present system. Zero Python cognitive callbacks, progressing ticks and full-field delivery counts are narrower than whole-program authority or learned cognition. Current serving reachability and original scope decisions remain separate.",
+      "replacement": "Carry all surviving charter functions into the canonical specification and qualification plan. Preserve proven transport, physical action/consequence and exact custody while G1 identifies the first failed native boundary on current acquired state; do not reconstruct the retired shell to fake the missing functions.",
+      "acceptance": {
+        "unit": "Separate shell health, actual field delivery, native physical output and acquired useful capability.",
+        "module": "Trace active authority and every preserved functional obligation across the shell replacement.",
+        "system": "Qualify meaningful sensory learning, action and speech on the actual integrated organism.",
+        "release": "No whole-organism certificate from P-005 closure, zero callback counts or old specimen motion."
+      },
+      "refs": [
+        {
+          "source_id": "SQ01-25",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ01-25--GUALA_P005_LEAN_PRODUCTION_SHELL_REPLACEMENT_2026-09-07.md",
+          "line": 10,
+          "anchor": "rollback and task1432/fadvise remains rejected. This closes only the production",
+          "sha256": "39a88d0cd59de20214f7be3541f1d09d13af61fbbf17034ebff92a3a17e431e3"
+        },
+        {
+          "source_id": "SQ01-01",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ01-01--GUALA_P005_LEAN_PRODUCTION_SHELL_REPLACEMENT_2026-09-07.md",
+          "line": 139,
+          "anchor": "pristine/mature; damage fail-close; old exclusion; speech/action/learning;",
+          "sha256": "eb35cccf67b5203c8e04ced76774f6dc40340e910566a8345d2912cf95135649"
+        },
+        {
+          "source_id": "SQ01-25",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ01-25--GUALA_P005_LEAN_PRODUCTION_SHELL_REPLACEMENT_2026-09-07.md",
+          "line": 214,
+          "anchor": "| D-003 | P-005 f470cce2 runtime was restored publicly after the rejected task1432 cutover. Static and transport proof passed, but recurring production custody stalls rejected shell completion; D-005 supersedes it. |",
+          "sha256": "39a88d0cd59de20214f7be3541f1d09d13af61fbbf17034ebff92a3a17e431e3"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A08",
+        "A09",
+        "A10",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VQS02",
+      "name": "The retired shell fabricated a refused action consequence and an empty-hand interaction",
+      "classification": "reported_causal_fabrication_and_direct_removal",
+      "finding": "QSR02",
+      "observed_mechanism": "P-005 F-026 records that the old shell returned requested yaw proprioception after physical refusal and automatically advanced a contacted optical surface when an empty hand opened. The lean path instead returns actual displacement, exposes refusal and advances physical time for ungrounded motion. The record also corrects a hardcoded two-interval report when the native delta was three.",
+      "evidence_limits": "These are concrete historical violations of action→consequence truth and truthful reporting. Their documented removal is an improvement, not evidence that every later environment/body adapter is clean. A refused movement can still have lawful time or effort consequences; it must not acquire the requested displacement.",
+      "replacement": "Trace every current actuator/world/sensory-return writer. Require consequences to come only from the actual committed body/world transition, including refusal and empty-hand cases; retain exact interval accounting and prevent observer/request fields from becoming physical evidence.",
+      "acceptance": {
+        "unit": "Falsify requested-but-refused yaw, empty-hand object changes and hardcoded native-delta reporting.",
+        "module": "Verify body/world transaction, exactly-once consequence and rollback at the actual owner.",
+        "system": "Demonstrate meaningful native action with true observed sensory consequences.",
+        "release": "No gait, agency or learning claim from requested motion or a fabricated book/object response."
+      },
+      "refs": [
+        {
+          "source_id": "SQ01-01",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ01-01--GUALA_P005_LEAN_PRODUCTION_SHELL_REPLACEMENT_2026-09-07.md",
+          "line": 109,
+          "anchor": "| F-026 | Old shell returned requested yaw proprioception after physical refusal and automatically advanced a contacted optical surface on empty-hand opening. Neither copied: lean returns actual displacement, exposes refusal, and advances physical time for ungrounded body motion. |",
+          "sha256": "eb35cccf67b5203c8e04ced76774f6dc40340e910566a8345d2912cf95135649"
+        },
+        {
+          "source_id": "SQ01-01",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ01-01--GUALA_P005_LEAN_PRODUCTION_SHELL_REPLACEMENT_2026-09-07.md",
+          "line": 108,
+          "anchor": "| F-025 | S-026 first loop reported hardcoded2 while native delta3. Replaced with exact positive lived-tick delta; actor/cold passed. |",
+          "sha256": "eb35cccf67b5203c8e04ced76774f6dc40340e910566a8345d2912cf95135649"
+        },
+        {
+          "source_id": "SQ01-25",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ01-25--GUALA_P005_LEAN_PRODUCTION_SHELL_REPLACEMENT_2026-09-07.md",
+          "line": 100,
+          "anchor": "| S-029 | Forced failure after committed root action restored exact tick208543/body `cdd30436...4e35`/world `3e9d94be...857b`. |",
+          "sha256": "39a88d0cd59de20214f7be3541f1d09d13af61fbbf17034ebff92a3a17e431e3"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VQS03",
+      "name": "Quarantine needs a complete release closure, not a filename ban or small file count",
+      "classification": "reported_packaging_correction_with_current_exclusion_open",
+      "finding": "QSR03",
+      "observed_mechanism": "The default manifest/Dockerfile still named the retired Python marker while a separately built live image was lean. Static closure found 81 required Python files versus a hand-maintained 64; later vision required 83. A packaged build also omitted a required Rust source module, and earlier lean world restore failed without its 36 authenticated optical assets. Corrected images explicitly excluded retired apps/probes; a ten-line marker refused legacy imports.",
+      "evidence_limits": "Required dependencies and world assets are not bloat solely because they increase file count. A small entrypoint or import marker does not prove all descendants or packaged model assets absent. Historical quarantine evidence does not establish current functional-organism retirement or ML-free packaging.",
+      "replacement": "Bind the exact current runtime, transitive imports, native build inputs, assets and entrypoint to a generated reviewed closure. Enforce the permanent retired-mechanism boundary across direct imports, alternate entrypoints and equivalent reimplementations; preserve required physical assets and classify every dependency.",
+      "acceptance": {
+        "unit": "Check missing required modules/assets, retired imports and brittle numeric file-count assertions.",
+        "module": "Compile and inspect the exact packaged artifact and all active/transitive authority.",
+        "system": "Run ordinary serving behavior with the retired mechanisms unreachable and required physical worlds intact.",
+        "release": "No retirement or ML-free certificate from exclusion of four named files alone."
+      },
+      "refs": [
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 124,
+          "anchor": "| Q-F-001 | The repository's default reviewed Dockerfile and release manifest still tried to package and boot the already-retired marker even though the separately built live image was lean. This could not boot successfully, but it made the ordinary release path stale and unusable. | The default Dockerfile, buildspec target, runtime entrypoint, resolved closure, and explicit absent-file assertions are now one quarantine contract. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 125,
+          "anchor": "| Q-F-002 | The hand-maintained lean allowlist named 64 Python files while static resolution found 81 reachable files. Seventeen current imports were missing. | The release manifest is generated and checked against the exact import closure; the allowlist now names all 81 Python files plus 36 optical surfaces. Required reachable code is correctness, not bloat. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 128,
+          "anchor": "| Q-F-005 | The first exact packaged-image build failed at Cargo compile because the reviewed native-core list omitted the already-committed 161-line `resident_cognitive_formation/lean_sensorimotor_route.rs`; the shell runtime was not started and no image exists from this attempt. | The exact missing compile input is added to the native-core release category. Before an image claim, compile the packaged crate rather than treating successful archive creation as a build success. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 155,
+          "anchor": "| Q-F-032 | The first release-closure check correctly refused because the two new retina modules were not yet in the reviewed manifest. After those were added, the same old test also demanded all 61 catalogued curriculum surfaces even though only 36 ABC/123 cards are mounted, and required three quarantined shell/probe files plus an unused binary store. | Keep the release equal to the actual lean import closure and the exact 36 mounted UI assets. Correct stale assertions rather than adding 25 unused card files or resurrecting four excluded Python modules. Q-S-030 proves the corrected packaging boundary. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ01-25",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ01-25--GUALA_P005_LEAN_PRODUCTION_SHELL_REPLACEMENT_2026-09-07.md",
+          "line": 50,
+          "anchor": "| RF-024/RF-031 | F-053 records guessed-file/zero-collection prevention; corrected exact list executed36/36. |",
+          "sha256": "39a88d0cd59de20214f7be3541f1d09d13af61fbbf17034ebff92a3a17e431e3"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A05",
+        "A06",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VQS04",
+      "name": "Lossless compression corrected real persistence work; fixed file count did not bound I/O",
+      "classification": "reported_exact_storage_improvement_and_remaining_cadence_contract",
+      "finding": "QSR04",
+      "observed_mechanism": "Paired v1 rewrote about 113 MB every four native intervals despite retaining five files. Task 1432’s cache-hint change passed local tests but stalled on EFS; rollback task 1431 also stalled. V2 uses deterministic gzip level 3 with raw-body hash/length, bounded decompression and explicit stopped-state migration; the matched 112827191-byte body became 2125817 bytes. Repeated production-EFS cadence and exact cold continuation were later reported. The next ledger still finds four-interval publication faster than custody and changes it to 32 intervals with a two-span ceiling.",
+      "evidence_limits": "Lossless binary compression preserves the full physical state and is not DSF flattening. Choosing an engineering codec level from measured cost is not a cognitive heuristic. Local cache success, five files or a healthy container did not establish throughput. The 32-interval choice changes the tolerated unpersisted horizon and needs its exact durability contract; represented time is not wall-clock latency.",
+      "replacement": "Preserve exact compressed custody and single-owner publication while qualifying total bytes, encode/I/O cost, outstanding work, crash horizon and latest durable state. Derive runtime limits from actual task/storage constraints; never hide stalls with unbounded queues, retries or dropped physical work.",
+      "acceptance": {
+        "unit": "Verify exact raw restore, bounded decompression, failure visibility and actual pending-state ceiling.",
+        "module": "Trace full snapshot/worker/publish/adopt lifecycle and explicit migration ordering.",
+        "system": "Measure repeated real-storage cadence and preserved state through ordinary graceful and failure boundaries.",
+        "release": "No resource or continuity certificate from file count, local fadvise results or compression ratio alone."
+      },
+      "refs": [
+        {
+          "source_id": "SQ01-25",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ01-25--GUALA_P005_LEAN_PRODUCTION_SHELL_REPLACEMENT_2026-09-07.md",
+          "line": 54,
+          "anchor": "| RF-062 | F-049-F-052 reject local cache hints and five-file count as acceptance. S-052-S-059 remove approximately98.1% of recurring body bytes. Isolated repeated-cadence proof on real production EFS remains the decisive open gate. |",
+          "sha256": "39a88d0cd59de20214f7be3541f1d09d13af61fbbf17034ebff92a3a17e431e3"
+        },
+        {
+          "source_id": "SQ01-25",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ01-25--GUALA_P005_LEAN_PRODUCTION_SHELL_REPLACEMENT_2026-09-07.md",
+          "line": 54,
+          "anchor": "| RF-062 | F-049-F-052 reject local cache hints and five-file count as acceptance. S-052-S-059 remove approximately98.1% of recurring body bytes. Isolated repeated-cadence proof on real production EFS remains the decisive open gate. |",
+          "sha256": "39a88d0cd59de20214f7be3541f1d09d13af61fbbf17034ebff92a3a17e431e3"
+        },
+        {
+          "source_id": "SQ01-25",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ01-25--GUALA_P005_LEAN_PRODUCTION_SHELL_REPLACEMENT_2026-09-07.md",
+          "line": 54,
+          "anchor": "| RF-062 | F-049-F-052 reject local cache hints and five-file count as acceptance. S-052-S-059 remove approximately98.1% of recurring body bytes. Isolated repeated-cadence proof on real production EFS remains the decisive open gate. |",
+          "sha256": "39a88d0cd59de20214f7be3541f1d09d13af61fbbf17034ebff92a3a17e431e3"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 187,
+          "anchor": "| Q-F-064 | The active five-route shell still encoded and published the complete raw organism every four 250 ms lived intervals. On the current 143,792,352-byte copied body one exact custody measured 1,612.839 ms encode plus 330.958 ms local publish, while the prior P-005 production-EFS record already showed 6.6-6.8-second custody windows and repeated blocked perception. The four-interval value had no physical derivation and forced continuous full-body bookkeeping faster than its store could finish. | Preserve the sole worker, paired atomic store, exact body receipt, and bounded failure ceiling, but do not preserve the four-interval churn. Q-S-060 changes only the cadence to one measured eight-second lived span. Copied-current and live public response must be measured before calling the correction complete. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 94,
+          "anchor": "| Q-S-060 | The production shell's full-body checkpoint cadence is now derived from measured custody rather than the original unexplained value four. Thirty-two 250 ms intervals form one eight-second lived custody span; the existing two-span ceiling bounds unpersisted life to sixteen represented seconds. This gives the sole worker longer than the recorded 6.6-6.8-second production-EFS custody window to finish before another snapshot is due, without adding a queue, retry, lock, owner, or state format. The native core, hearing path, body, DSF, identity, and store transaction are unchanged. All nine focused actor/application tests passed in 2.13 seconds. This is source evidence pending copied-current and live timing. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VQS05",
+      "name": "Resource and speed claims must retain baseline, interval and workload limits",
+      "classification": "documented_acceptance_gap_and_scope_limited_measurements",
+      "finding": "QSR05",
+      "observed_mechanism": "P-005 requires lower bounded CPU/RAM/wall work, yet final public RAM averages of 6.71–7.63 percent remain above the listed old 5.37–5.51 percent window; those unlike windows cannot establish lower memory. A worker-reference correction lowers controlled mean RSS only 1.29 percent. Later resource proofs explicitly cover short windows, and live 250-ms occurrences remain multi-second even after local subsecond tests. Under-one-second acceptance is itself slower than 250-ms real time.",
+      "evidence_limits": "Bounded operation, lower memory, faster native computation, faster HTTP and real-time throughput are distinct requirements. Reported data supports some narrow improvements, not all stated comparative promises or an indefinite no-runaway guarantee. Different cue, body, clock, machine or pending-checkpoint states can invalidate a speed comparison.",
+      "replacement": "Keep each metric tied to exact bytes, task capacity, body/input, phase, observation window and relevant acceptance. Close the unproved comparative resource and real-time requirements with controlled representative measurements while retaining actual useful improvements.",
+      "acceptance": {
+        "unit": "Validate units, baseline comparability, actual work count and represented versus elapsed time.",
+        "module": "Separate native, body return, queue, encode, persistence and HTTP costs without changing authority.",
+        "system": "Measure sustained useful sensory throughput and bounded resource trends on the exact current task.",
+        "release": "No lower-RAM, non-regression or real-time claim from mismatched windows, one point or isolated subsecond work."
+      },
+      "refs": [
+        {
+          "source_id": "SQ01-25",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ01-25--GUALA_P005_LEAN_PRODUCTION_SHELL_REPLACEMENT_2026-09-07.md",
+          "line": 191,
+          "anchor": "| F-046 | First task1431 production minutes improved CPU to34-36% from old~47% but memory averaged7.29→8.62% with a9.23% peak versus old5.37-5.51% five-minute averages. PID1 RSS was~1.09GiB and reclaimable paired-body cache~303MB. P-005 stayed open; no lower-RAM claim was made. |",
+          "sha256": "39a88d0cd59de20214f7be3541f1d09d13af61fbbf17034ebff92a3a17e431e3"
+        },
+        {
+          "source_id": "SQ01-25",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ01-25--GUALA_P005_LEAN_PRODUCTION_SHELL_REPLACEMENT_2026-09-07.md",
+          "line": 139,
+          "anchor": "| S-068 | Public service cut over once to exact task1433/task `96c1d9ce414a4dc4af469279b751d5bc`/digest13dd7018, desired/running/pending1/1/0, one completed deployment, ECS/container HEALTHY, and one `dsf-ai-task` writer. Direct and public observations retained identity and advanced live513839→513948/persisted513838→513946 with repeated cleared custodies,113 DSF deliveries,1,221-1,465 physically changed neurons,0 callbacks, monotonically advancing world revision, and no checkpoint/cleanup error. Exact public Guala/Loom HTML hashes match local `ade4fbef...2729`/`28718dea...e68b`; both return200. Observation returns200; pressure truthfully returns404 when no body-owned pressure exists; retired docs/OpenAPI/root observation return404. Production storage remained exactly5 files/4,376,010-4,376,359B with two approximately2.124MB bodies; PID1 has7 threads and cleared memory1,238,315,008-1,242,304,512B. AWS/ECS15:40-15:43 CPU average33.74-36.08%/max39.35% and memory average6.71-7.63%/max8.07% without a positive sequence; all five alarms are OK, while direct cadence—not alarms—closes F-058. BUILD_INFO is exact sourcef7d272b9/lean-five-route. |",
+          "sha256": "39a88d0cd59de20214f7be3541f1d09d13af61fbbf17034ebff92a3a17e431e3"
+        },
+        {
+          "source_id": "SQ01-25",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ01-25--GUALA_P005_LEAN_PRODUCTION_SHELL_REPLACEMENT_2026-09-07.md",
+          "line": 120,
+          "anchor": "| S-049 | Completed-work retention source `b950a375`: worker now releases its local work/outcome references before blocking. A weak-reference regression fails unless the completed snapshot is released while the worker remains alive; focused4/4 and combined42/42 passed. Same-body twelve-sample comparison reduced mean PID1 RSS1,153,605→1,138,769KiB (1.29%); useful but insufficient alone. |",
+          "sha256": "39a88d0cd59de20214f7be3541f1d09d13af61fbbf17034ebff92a3a17e431e3"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 190,
+          "anchor": "| Q-F-067 | Task1444's exact checkpoint-overlap public microphone occurrence remained unblocked but took 5.383071 seconds, advanced across one already-running unattended interval plus its own sensory interval, and produced zero pressure, self-hearing, body consequence, or root motion. Immediate CPU averaged 33.97% of four vCPU and memory 7.05%; this is bounded resource evidence, not functional success. | The shell's custody blockage is closed separately by Q-S-062. Production native settlement remains roughly 2.5 seconds per interval versus 0.49-0.63 seconds on the same copied body locally. Do not change checkpointing, hearing transport, or F-017/F-020 again. Reduce the two measured native cost centers—contact settlement and post-contact growth—without changing full DSF or learned state. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 112,
+          "anchor": "| Q-S-078 | Commit `c7b473c2` became live task1454 on immutable digest `sha256:8bdf4417...e0b9c`. The deployment controller preserved identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, advanced tick 577609 to 577654, and admitted one healthy writer. One exact pure microphone cue then completed in 5.627939 seconds with two native intervals, all 4,000 external samples, zero authored guide axes, four vocal-body consequences, all 4,000 same-act self-heard samples, 237 full-DSF deliveries and 1,803 changed neurons. Its fetched pressure was exactly 8,000 bytes/4,000 samples with 3,996 nonzero samples, peak 426 and receipt `cfb6e420...372e30`. A later read-only post-recovery cadence sample advanced 577930 to 577936 in 12.217933409 seconds, or 2.036322235 seconds per tick; because live inputs differed from task1453's sample, this proves no observed regression but not acceleration. Recent CPU peaked 53.02%, memory peaked 9.05%, process RSS was 1,518,400 KiB, cgroup memory was 1,650,991,104 bytes, and paired custody contained five files totaling 6,396,340 bytes. This accepts the sparse-workspace deployment and preserves the exact known-cue speech witness; it does not prove ordinary voice recognition, conversation, human-audible output, vision or autonomy. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A06",
+        "A10",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VQS06",
+      "name": "Core decomposition and exact indexing can be legitimate improvements without new cognition",
+      "classification": "reported_behavior_preserving_cleanup",
+      "finding": "QSR06",
+      "observed_mechanism": "The cleanup moves 9802 test lines out of the core, removes unused wrappers and active wall-clock diagnostic counters, replaces repeated scans with existing exact topology indexes and retains real growth authority when an index has no pre-existing relation. It later removes population-width transient workspaces and preserves separately due respiration. Q-C-001 skips a mount rebuild only when its enumerated physical authors are absent. Exact matched-body successor comparisons are reported for the accepted candidates.",
+      "evidence_limits": "Line-count reduction is not neuron loss when code movement and exact state preservation are proved. An exact ownership/precondition check or index is not automatically a heuristic. These improvements do not create speech or prove constitutive laws ratified; copied-state equality qualifies only the tested conditions plus the demonstrated source invariant.",
+      "replacement": "Preserve demonstrated exact execution and state improvements. Trace every optimization to its actual owner, complete legal inputs, ordering, conservation and error boundaries; remove only work that cannot affect the lawful successor, never fields, experience, due physical activity or useful learning.",
+      "acceptance": {
+        "unit": "Challenge absent/present physical-author paths, index misses, ordering and all retained due work.",
+        "module": "Prove complete source invariants and exact independent before/after state/receipt equality.",
+        "system": "Measure current useful function and bounded reached-frontier work under varied lawful inputs.",
+        "release": "No cognitive capability claim from fewer lines, fewer allocations or an exact passive successor alone."
+      },
+      "refs": [
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 42,
+          "anchor": "| Q-S-007 | The 9,802-line inline native test body moved unchanged to `resident_cognitive_formation/tests.rs`; the production file fell from 32,940 to 23,137 lines with no production logic change. Exact locked library and test compilation passed. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 43,
+          "anchor": "| Q-S-008 | Removed 279 lines of active wall-clock diagnostic bookkeeping from the resident transition and reached-cohort settlement paths: 11 timing prints, 17 atomic counters, their stopwatch reads/conversions, six unused timing result fields, and the artificial `settlement timing overflow` failure path. Deterministic organism/event time and all settlement physics remain. Locked library compilation retained the same 198 warning count; the focused shared-field/restart and changed-endpoint wake-law tests each passed 1/1. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 78,
+          "anchor": "| Q-S-043 | The active reached-receptor integration path no longer rescans every cohort/mount and every fabric contact for each of roughly 1,031 reached receptors. The already-built resident topology index now resolves an existing intrinsic integration place and its incident fabric contact; the original exact growth/search authority remains only when the queried relation is genuinely absent from that pre-transition index. No neuron, contact, DSF field, source identity, or learned state was removed or rewritten. Release compilation passed with the pre-change 183 warnings; the exact vocal-route and varied-multisensory assembly tests each ran 1/1 and passed. This is source evidence only until copied/live organism timing is measured. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 302,
+          "anchor": "Frozen correction law: this developmental function can author only (a) a",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 111,
+          "anchor": "| Q-S-077 | Q-C-006 release binaries were independently installed from fresh wheels and proved distinct (`77155003...e4d9f` baseline; `090dc449...b05a` candidate). Each restored the same authenticated task1453 tick-576653 body (`a5505489...a365c`) and world under the same fixed external second, then crossed two ordinary intervals with a cold restore between them. The complete non-timing projections were byte-identical (`b1223cc3...20a8a`): ticks 576654/576655, causal receipts, 221 full-DSF deliveries, changed-neuron counts 1,766/1,923, all motor/body/acoustic evidence, exact energy receipts, successor bodies `8c7a45bc...c5584`/`fc474aab...979e7`, and worlds `05dadbcb...dcff`/`36fe61d3...bf3c`. Candidate native times 744.688/715.980 ms versus baseline 732.502/693.011 ms are within a small single-run noise band and do not establish acceleration; seal times crossed in both directions. Source review proves the five former 1,895-cohort top-level workspaces and full-cohort parallel dispatch now contain/visit only the canonical selected cohort keys, with the separately due respiratory pump unchanged, and safe slice partitioning makes aliasing impossible. The full candidate native suite produced 597 passes, 13 explicit ignores and exactly the same four failures independently reproduced by the unmodified Candidate-78 baseline. This is exact copied-current and differential regression evidence, not deployment or a cadence improvement claim. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A08",
+        "A09",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VQS07",
+      "name": "Rejected performance ideas and exact arithmetic must not be misclassified",
+      "classification": "documented_honest_rejection_and_benchmark_custody",
+      "finding": "QSR07",
+      "observed_mechanism": "Parallel receptor preparation made the measured live delay worse and was withdrawn. Checked i128 contact accumulation with exact wide-integer overflow handling preserved results but did not improve speed. Serial energy census regressed; pump-job chunking saved only 1.354 ms in one comparison and was rejected. Bounded parallel energy census retained exact rational totals and explicitly preserved order for non-associative saturating charge observation. Some initial comparisons used a stale identical native binary or different solar times and were rejected.",
+      "evidence_limits": "An exact wider-integer algorithm at an overflow boundary is not a heuristic fallback merely because two algorithms exist. Rejection for no demonstrated benefit is appropriate. Aggregate timings or one run do not establish a noise distribution. The fixed 1800000000 comparison value is an external epoch-second input, not a force/energy gain or an organism override.",
+      "replacement": "Retain rejected candidates and their reasons in the decision history. Bind independent binaries and identical lawful external inputs before any equivalence/performance claim, preserve exact arithmetic and order, and require a material measured improvement for a performance release.",
+      "acceptance": {
+        "unit": "Verify binary identity/difference, overflow equivalence, non-associative order and clock provenance.",
+        "module": "Compare complete causal/physical successors on exact matched specimens and inputs.",
+        "system": "Measure the intended live work rather than promote a narrow test pass as a latency repair.",
+        "release": "No faster-system claim from identical binaries, different daylight inputs or failed candidate theories."
+      },
+      "refs": [
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 170,
+          "anchor": "| Q-F-047 | Task1439 deployed the Q-S-046 parallel-preparation candidate and one identical public 4,000-sample microphone occurrence took 15.553 seconds, made 1,031 full-DSF deliveries and changed 3,390 neurons. A five-second live thread sample then showed the main transition thread consuming 500 CPU ticks while all four Rayon workers consumed zero in the sampled dominant phase. The optimization theory was false as the dominant repair and made observed latency worse. | Never cite its narrow test passes as a performance success. Remove the parallel change before the next release and do not continue the uncommitted carried-index experiment. Recover the previously working path by diffing against the recorded live success. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 198,
+          "anchor": "| Q-F-075 | Q-C-002 removed ordinary arbitrary-width net-carrier accumulation exactly, but on the same copied production body the task1445 baseline settled in 1,000.479 ms and the candidate in 1,043.098 ms. That difference is noise or regression, not the material reduction needed for live cadence. The candidate never entered production and its source/test diff was removed; task1445 remains unchanged. | Do not rediscover or deploy the resident-width net-carrier idea as a cadence fix. The exact equality proof remains Q-S-068, but the result falsifies this operation as the dominant contact cost. Locate the actual repeated owner before another code candidate. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 202,
+          "anchor": "| Q-F-079 | Q-C-003 changed the 1,895-cohort energy census to one serial fold. It preserved the exact causal receipt, sealed body, and energy receipt, but took 1,138.870 ms versus the same fixed-input parallel baseline's 919.524 ms. | Exact equality is necessary but not a performance success. The serial candidate was replaced before commit or deployment; retain parallel evaluation but bound its scheduling/allocation as Q-C-004 does. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 208,
+          "anchor": "| Q-F-085 | Q-C-005 bounded the already-parallel contact-pump preparation to one chunk per worker, but the same copied-current interval changed only from 590.108 ms to 588.754 ms. The 1.354-ms difference is noise, not material progress. | Preserve Q-S-072 equality, remove the executable candidate before commit/deployment, and do not rediscover pump-job chunking as the contact/cadence fix. The measured contact owner lies elsewhere. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 194,
+          "anchor": "| Q-F-071 | The first baseline/candidate equality comparison ran the two occurrences at different real-world seconds. Guala's truthful outdoor illumination is explicitly driven by `time.time()`, so the resulting worlds differed and the comparison could not prove code equality even though both runs started from the same body receipt. | Equality evidence must hold the lawful external world-clock input identical for both independently restored runs. Repeating both sides at exact second `1800000000` produced Q-S-065; the fixed clock exists only in the disposable comparison harness and does not enter production code. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 217,
+          "anchor": "| Q-F-094 | The first candidate wheel reused the same Cargo target directory immediately after the detached Candidate 78 baseline build. Cargo returned in 0.03 seconds, and direct extraction proved the baseline and purported candidate native `.so` files had the same SHA-256. | A wheel filename is not candidate provenance. Build the candidate in a fresh target directory, install with `--no-cache-dir --force-reinstall`, and prove its extracted native binary differs from the baseline before comparison. The stale wheel is rejected and cannot supply evidence or enter an image. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VQS08",
+      "name": "Retinal transport success was repeatedly mistaken for durable or meaningful vision",
+      "classification": "documented_sensory_and_observer_boundary_corrections",
+      "finding": "QSR08",
+      "observed_mechanism": "The existing path averaged six optical bands into 135 gray values. A proposed spectral extension initially used an unowned RGB quantity, then overlapping topology ordinals and then mismatched action/source durations; unsealed evaluation was prematurely called durable receptor growth. Corrected proofs required a seal, unique physical ports and exact source census. Screen-color projection, authored display primaries and real-world spectrum reconstruction were explicitly distinguished. The home had zero mounted detailed optical surfaces despite a valid scanner.",
+      "evidence_limits": "Full DSF evaluation of a quantity does not establish an owned receptor law, durable learning or meaningful vision. Retaining achromatic receptors and adding spectral channels is not inherently an architectural violation solely because there are multiple channels; actual source, energy, law, need and authority decide. The subsequent rejection must be reconciled by its exact approved scope.",
+      "replacement": "Preserve genuine optical geometry, temporal co-occurrence, physical port identity and learned-state custody. Require owned transduction and sealed native effects, expose absent detail/meaning, and validate any sensory redesign without manufacturing scene content or mislabeling a human projection as organism perception.",
+      "acceptance": {
+        "unit": "Check quantity ownership, duplicate keys, topology, source clocks, seal and observer cardinality.",
+        "module": "Trace actual light→receptor→native state and distinguish display projection from physical ingress.",
+        "system": "Demonstrate acquired visual discrimination and contextual action with retained experience.",
+        "release": "No learned color vision or meaningful perception certificate from ports, DSF counts or a colored UI."
+      },
+      "refs": [
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 135,
+          "anchor": "| Q-F-012 | The active lean world path receives 810 body-centered spectral substreams but `_retinal_endpoints` averages the six bands into 135 gray scalars; browser camera/text/media first reduce their source to an 18-by-6 grayscale raster. The UI then presents those scalars as Guala's retina. | Do not enlarge or recolor the 135-value observer. Preserve the existing luminance receptors for learned-state continuity, add a separate exact spectral retinal layer from the same world/body occurrence, and keep human map, optical field, receptor delivery, and neural effects separately labelled. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 143,
+          "anchor": "| Q-F-020 | The exact nine-region home currently has 29 objects but zero mounted detailed `optical_surface` assets. The physically valid foveal scanner therefore has no home surface detail to scan. | Do not call room/object detail complete and do not substitute the rejected fake room image. Mount only authored physical surfaces that fit the existing world/object bounds, or revise the world capacity explicitly before adding more. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 146,
+          "anchor": "| Q-F-023 | The first 405-port RGB episode used an honest but unratified `bounded-browser-RGB-code` physical quantity. Full DSF evaluated it, but the native core correctly mounted no retinal tissue because no receptor law owned that quantity. | Browser primaries must enter the existing retinal spectral-irradiance transduction law, with the interface explicitly labelled as an authored display spectrum rather than reconstructed real-world spectra. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 54,
+          "anchor": "| Q-S-019 | The lean vision route rendered W1 once and co-evaluated the preserved primary sensorium beside all 810 six-band ports in one unsealed native interval against the immutable copied Candidate-58 body at tick 525890. It proved simultaneous evaluation, 1,031 DSF deliveries, 3,204 changed neurons, and zero Python callbacks. Q-F-024/Q-F-028 later proved that its overlapping sight topology could not seal, so this row is not durable receptor-mounting evidence. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 149,
+          "anchor": "| Q-F-026 | Bright RGB correctly triggered body/vocal work, but its immediate physical return failed because the 250-ms spectral observation was admitted with the 1-ms action-transition duration. | Keep the action transition at 1 ms; derive world and spectral gate bounds from the source clock's exact first-to-last 250-ms interval. The corrected copied occurrence progressed through its physical return and sealed. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 54,
+          "anchor": "| Q-S-019 | The lean vision route rendered W1 once and co-evaluated the preserved primary sensorium beside all 810 six-band ports in one unsealed native interval against the immutable copied Candidate-58 body at tick 525890. It proved simultaneous evaluation, 1,031 DSF deliveries, 3,204 changed neurons, and zero Python callbacks. Q-F-024/Q-F-028 later proved that its overlapping sight topology could not seal, so this row is not durable receptor-mounting evidence. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A06",
+        "A09",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VQS09",
+      "name": "Removing a sensory module did not remove its acquired persistent anatomy",
+      "classification": "documented_persistent_effect_and_selective_retirement",
+      "finding": "QSR09",
+      "observed_mechanism": "The rejected spectral rollout raised ordinary DSF deliveries from 221 to 1031. Removing its source modules returned deliveries to 221 but left 810 W1-retina sources and 810 derived integrators active in the stored organism; task 1440 still took 20.663510 seconds for one microphone event. V42 authenticates the exact rejected roster/topology, removes those 1620 cells, incident contacts/frontiers and formations containing them, and reports preservation of unrelated state. Copied neurons fall from 3813 to 2193 and raw body shrinks from about 310.4 to 143.8 MB.",
+      "evidence_limits": "This is a consequential state migration, not mere code cleanup or whole-history preservation. Removing affected formations may also remove relationships involving retained cells; original approval, actual state mapping and any unavoidable loss must be explicit. Increased cost alone does not prove the spectral concept physically invalid. Current-only preservation is not permission to repeat an old retirement.",
+      "replacement": "Recover exact original rejection/retirement authority and enumerate every removed state/formation and surviving reader. Preserve genuine acquired experience wherever lawful; document irrecoverable loss honestly. Verify current descendants do not regrow a rejected duplicate or silently remove legitimate sensory capability.",
+      "acceptance": {
+        "unit": "Authenticate full retirement signature and reject partial/mixed/unrelated anatomy; enumerate every affected formation.",
+        "module": "Prove exact approved before/after physical-state mapping and no unrelated rewrite.",
+        "system": "Demonstrate retained useful sensory memory and function after the qualified migration.",
+        "release": "No lossless-history claim from a smaller body, same UUID or reduced port count."
+      },
+      "refs": [
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 171,
+          "anchor": "| Q-F-048 | Regression comparison found that the spectral-vision commit added a second 810-port retina beside the established 135-site retina. Every current audio-only, visual and unattended interval therefore rose from the pre-vision 221 full-DSF deliveries to 1,031. Its own ledger explicitly says both retinal populations were simultaneously driven. | One physical retinal event must have one active author. Keep the learned 135-site population and every other synchronous sense; exclude the later 810-port modules from the production closure until vision is redesigned without duplicating a full neuronal population. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 176,
+          "anchor": "| Q-F-053 | The spectral-vision deployment did more than add 810 deliveries per interval: it durably mounted 810 `W1-retina` source identities and their reached anatomy into the live body. Task1440 stopped driving those ports but did not retire the rejected anatomy. The resulting 221-field unattended intervals still transition approximately the entire enlarged active population. | Do not call source-module removal a complete rollback. Use one authenticated, one-way retirement boundary for exactly the `W1-retina` anatomy and structural references created by the rejected duplicate-retina mechanism; preserve the established 135-site retina, every unrelated neuron/contact/formation, identity, L0-L4, and full DSF. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 85,
+          "anchor": "| Q-S-051 | The V42 one-way correction authenticates exactly the rejected task1437 anatomy before changing anything: 810 sight sources named `W1-retina`, contiguous topology 135..944, the retinal spectral quantity, and one injectively derived contacted layer-6 integrator per source. Any partial, renamed, mixed-cohort, aliased, or differently wired body refuses. The accepted correction removes those 1,620 rejected cells, their incident contacts/frontiers, and only formations containing them; it preserves every unrelated cohort, neuron, contact, field, formation, identity, and learned state. Release library compilation passed with the inherited 183 warnings. The exact retirement test ran 1/1 and passed in 0.07 seconds after linking; the existing V41 vocal-body migration test also ran 1/1 and passed in 0.00 seconds, proving the new boundary does not reopen that accepted migration. This is source/local evidence pending live cutover and timing. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 86,
+          "anchor": "| Q-S-052 | A read-only compressed copy of task1440's exact CURRENT at tick 534241 entered the candidate migration. Its persisted anatomy contained 135 all-W1 cohorts of six receptors: exactly 810 rejected sources plus their 810 derived integrators. The correction reduced complete neurons from 3,813 to 2,193, then encoded and cold-decoded the V42 cognitive body canonically in 6.62 seconds. The temporary test-only diagnostic was removed after this one result; the temporary S3 transfer object was deleted. This proves the exact live-body cognitive migration, not deployment or interval speed. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A06",
+        "A09",
+        "A10",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VQS10",
+      "name": "Migration must publish canonical custody before current-only restore",
+      "classification": "documented_startup_transaction_correction",
+      "finding": "QSR10",
+      "observed_mechanism": "Task 1441 attempted current-only decoding before the required one-way migration and refused. Task 1442 moved migration inside restore, changed the runtime body while the paired descriptor still named V41, and refused runtime-versus-CURRENT mismatch. The corrected startup authenticates the current pair, derives and publishes the authorized changed body at unchanged identity/tick/world through the sole store, then starts current-only restore against that pointer.",
+      "evidence_limits": "The failed guards correctly exposed disconnected state authorities. An implicit compatibility mutation inside current-only decode is not a valid repair. The later ordered transaction is a genuine custody correction if the underlying migration itself is authorized; these reports do not independently authenticate today’s migration or original approval.",
+      "replacement": "Preserve explicit versioned migration and atomic publication boundaries. Audit every current startup/restore path for hidden mutation, fallback, second writer or default genesis, and require exact acquired-state mapping before any authorized format change.",
+      "acceptance": {
+        "unit": "Fail stale-descriptor, partial-publication, unchanged-body and unauthorized-migration cases explicitly.",
+        "module": "Trace canonical body/world/pointer publication before runtime admission with one owner.",
+        "system": "Verify current preserved state and useful learned function across ordinary restart.",
+        "release": "No restore compatibility shim or same-identity boot can substitute for canonical custody."
+      },
+      "refs": [
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 178,
+          "anchor": "| Q-F-055 | Deployment Q-D-011 built and registered task1441, but its container exited 3 during startup with `retired empty or DSF-impression cognitive state cannot be restored`; the controller correctly left zero writers. Task1440 was immediately restored, became one healthy running writer, and preserved identity at live tick 534202. | The lean cold-restore entrypoint called current-only native decode directly, so a valid V41 CURRENT was rejected before the already-existing one-way migration could run. Connect that entrypoint to the native envelope migration; do not weaken current-only decode or add a Python migration shell. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 87,
+          "anchor": "| Q-S-053 | **Superseded by Q-F-057.** The native cold-restore entrypoint invoked the already-existing authenticated one-way envelope migration before current-only restore. The migration itself remained valid, but silently changing the body inside restore left the paired `CURRENT` descriptor on V41 and made the lean actor correctly refuse unequal custody. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 89,
+          "anchor": "| Q-S-055 | The corrected lean startup performs the already-existing authenticated native migration against the exact paired-current body receipt, publishes a changed body through the sole paired store at unchanged identity/tick/world, reconciles bounded custody, and only then current-restores and starts the actor against the new pointer. An unchanged current body causes no publication. The mistaken implicit migration was removed from current-only native restore. Release Rust compilation passed with the inherited 183 warnings; the focused startup transaction passed 1/1 and the related lean app/actor/checkpoint/paired-store set passed 23/23 in 2.91 seconds. No alternate shell, migration fallback, queue, retry, lock, or cognitive authority was added. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VQS11",
+      "name": "A complete admitted audio block did not make continuous hearing usable",
+      "classification": "documented_end_to_end_sensory_loss",
+      "finding": "QSR11",
+      "observed_mechanism": "Task 1437 accepted one 4000-sample/250-ms microphone block through native full-field receptors, but the public request took about 8.6 seconds. While one request was in flight, the browser stopped sending and repeatedly overwrote audioBlock, losing most of the spoken stream. Later requests measured 12.694, 15.553 and 20.663510 seconds; removing individual costs did not automatically restore continuous hearing. A finite existing mailbox was adjusted to retain one offered occurrence during checkpoint completion.",
+      "evidence_limits": "Correct transport of a selected block is genuine evidence, but not recognition, learning or usable continuous speech input. Most omitted audio cannot be recovered by relabeling admission counts or adding arbitrary backlog. Bounded mailbox ownership is legitimate transport; it must not select cognitive answers or conceal loss.",
+      "replacement": "G1 must trace the actual current microphone capture/admission/native/return/persistence path and quantify accepted, refused and overwritten intervals. Remove proved work at its owner, retain real physical time and expose overload/loss explicitly without unbounded queues or fabricated reconstruction.",
+      "acceptance": {
+        "unit": "Exercise capture during pending requests/checkpoints and verify exact accepted/refused/lost sample accounting.",
+        "module": "Measure complete input chronology and shared sensory interval boundaries through actual serving transport.",
+        "system": "Demonstrate sustained usable physical hearing and acquired discrimination under representative speech input.",
+        "release": "No hearing or speech-learning certificate from one complete block while the surrounding stream is discarded."
+      },
+      "refs": [
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 166,
+          "anchor": "| Q-F-043 | The live page is not usable continuous hearing even though Q-S-042 proves the receptor path works. The one 250 ms public occurrence took about 8.6 seconds wall time to settle; while its single request is in flight, `sensoryPulse` does not send and `audioBlock` is repeatedly overwritten by newer captured blocks. Most of Joe's spoken stream is therefore lost. The next unattended settlement also replaces the page's latest-event display, making accepted hearing appear to vanish. | Do not reopen the proven receptor, body-consequence, pressure, or self-hearing mechanisms and do not add an unbounded audio queue. Trace and remove the active one-interval cost/loss at its existing owner; treat isolated sample admission as transport evidence, not usable hearing. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 80,
+          "anchor": "| Q-S-045 | The synchronized-sense mechanism remains present and live; it is not being recreated. Task1438's public microphone occurrence co-admitted its pressure into the same primary passive world/body sensorium and coexisting spectral-retina transition, returned `native_interval_count=1`, and made 1,031 full-DSF deliveries. The lean physical loop still owns one combined `primary_sensorium` and one `advance_coexisting_admitted_interval_unsealed` call; camera-microphone, text-microphone, and card-microphone remain single-occurrence ingress. Protect this as causal simultaneity evidence separately from Q-F-045/Q-F-046 latency. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 173,
+          "anchor": "| Q-F-050 | Task1440's exact public 250-ms microphone occurrence took 20.663510 seconds despite the corrected 221-field input population and changed 3,210 neurons. A later unattended 221-field interval still changed 3,408 neurons. Removing the duplicate source delivery did not restore cadence; continuous hearing and ordinary autonomous time remain functionally failed. | Do not add a queue, timeout, sound bypass, or another broad performance candidate. Preserve the 221-field success separately and remove the persisted active baggage created by the rejected spectral-retina deployment before changing closed F-017/F-020 physics. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 71,
+          "anchor": "| Q-S-036 | The lean actor no longer throws away the one bounded sensory occurrence offered while durable custody is finishing. Its existing finite mailbox holds the occurrence; the actor processes it immediately after adopting the checkpoint, while any offer beyond the configured mailbox capacity is still refused. The exact hung-checkpoint boundary and five-route transport tests each passed 1/1. Production uses capacity one, so this removes the camera/microphone loss without adding a poller, queue, owner, or lock. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A06",
+        "A09",
+        "A10",
+        "A12",
+        "A13",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VQS12",
+      "name": "Native pressure and self-hearing were called speech closed without intelligible learned utterances",
+      "classification": "documented_capability_overstatement_with_real_physiology",
+      "finding": "QSR12",
+      "observed_mechanism": "Candidate 78/task 1453 and task 1454 produce a new 4000-sample pressure receipt after one known microphone cue with zero authored guide axes, four vocal-body consequences, same-act self-hearing and cessation. The ledger calls speech closed while separately disclaiming recognition, conversation and human-audible ordinary speech. Its final revision adds Joe’s reported mostly tonal sound and explicitly says there was no identifiable articulation.",
+      "evidence_limits": "Preserve the real native cue→motor→pressure→self-hearing evidence. It does not establish an acquired intelligible word, semantic control, syntax or general speech. A reported user hearing observation is stronger evidence of audible output than HTTP bytes alone, but the original conversation remains separately unverified here. Neither success nor failure proves permanent feasibility.",
+      "replacement": "Canonicalize separate gates for physiological sound, playback, acquired articulation, meaningful word use, syntax and autonomous expression. G1 must return the first failed boundary on actual current preserved state and the direct lawful remedy without canned words, recognizer labels or substitute TTS.",
+      "acceptance": {
+        "unit": "Prevent pressure/sample counts and known-cue activation from satisfying acquired-word or meaning criteria.",
+        "module": "Trace true retained sensory change through native preparation, articulation, air pressure and self-hearing.",
+        "system": "Demonstrate intelligible acquired contextual utterance and generalization with independent controls.",
+        "release": "No learned-speech certificate from native tones; no claim of permanent impossibility without a demonstrated architectural boundary."
+      },
+      "refs": [
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 110,
+          "anchor": "| Q-S-076 | Candidate 78 is live-production verified on task1453/digest `sha256:e0be5e66...8ff9f`: one pure microphone cue with zero guide caused four vocal-body consequences, emitted a new exact 8,000-byte/4,000-sample pressure receipt, returned 4,000 same-act self-heard samples, ceased without recurrence, and cold-restored the unchanged identity without replay. The complete proof and separate limitations are in Attempt 54. This closes speech as Q-C-006's protected predecessor; syntax and conversation remain unproved. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 112,
+          "anchor": "| Q-S-078 | Commit `c7b473c2` became live task1454 on immutable digest `sha256:8bdf4417...e0b9c`. The deployment controller preserved identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, advanced tick 577609 to 577654, and admitted one healthy writer. One exact pure microphone cue then completed in 5.627939 seconds with two native intervals, all 4,000 external samples, zero authored guide axes, four vocal-body consequences, all 4,000 same-act self-heard samples, 237 full-DSF deliveries and 1,803 changed neurons. Its fetched pressure was exactly 8,000 bytes/4,000 samples with 3,996 nonzero samples, peak 426 and receipt `cfb6e420...372e30`. A later read-only post-recovery cadence sample advanced 577930 to 577936 in 12.217933409 seconds, or 2.036322235 seconds per tick; because live inputs differed from task1453's sample, this proves no observed regression but not acceleration. Recent CPU peaked 53.02%, memory peaked 9.05%, process RSS was 1,518,400 KiB, cgroup memory was 1,650,991,104 bytes, and paired custody contained five files totaling 6,396,340 bytes. This accepts the sparse-workspace deployment and preserves the exact known-cue speech witness; it does not prove ordinary voice recognition, conversation, human-audible output, vision or autonomy. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 555,
+          "anchor": "Outcome: Joe directly reported hearing \"a mostly tonal sound\" from the live",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 558,
+          "anchor": "audible tone without identifiable articulation. The 64x browser gain and",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A06",
+        "A08",
+        "A09",
+        "A10",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VQS13",
+      "name": "Disclosed speaker gain and bounded receipt retention repair delivery, not cognition",
+      "classification": "documented_legitimate_playback_and_transport_scope",
+      "finding": "QSR13",
+      "observed_mechanism": "The UI preserves raw native pressure and applies a disclosed fixed 64× browser gain to low-amplitude samples; it reports non-JSON HTTP errors before parsing. SOW-SPEECH-04 retains current and immediately preceding pressure references, at most 16000 PCM bytes, and task 1455 verifies that a superseded exact receipt remains fetchable after the prior 404 race. Later Joe reportedly hears a tone.",
+      "evidence_limits": "A disclosed external playback gain is not an internal force/energy multiplier or semantic voice synthesis. Exact receipt retrieval and audibility are valid delivery gates; they cannot repair missing articulation or certify acquired speech. Gain-related clipping/headroom under the complete admitted amplitude range needs an explicit playback contract if not already qualified.",
+      "replacement": "Keep the raw pressure immutable and label all external rendering transformations. Preserve bounded exact receipt delivery and explicit transport failures. Focus articulation remedies on actual native causes instead of repeatedly treating playback as the remaining cognitive failure.",
+      "acceptance": {
+        "unit": "Verify raw-byte integrity, exact receipt identity, bounded supersession and disclosed gain/clipping behavior.",
+        "module": "Trace native pressure separately from browser conversion and playback errors.",
+        "system": "Confirm actual audible delivery independently while testing intelligible learned output as a separate requirement.",
+        "release": "No speech-learning pass from amplification or successful retrieval of an unchanged tone."
+      },
+      "refs": [
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 114,
+          "anchor": "| Q-S-080 | Q-UI-003 keeps Guala's exact stored pressure receipt unchanged and adds only a disclosed fixed 64× browser speaker gain. It checks HTTP status before JSON parsing, so an HTML gateway failure reports its actual HTTP status instead of `Unexpected token '<'`. The 29,934-byte page passes all 9 focused UI contracts, `git diff --check`, and direct JavaScript compilation. This is reviewed local interface evidence pending exact S3/CloudFront publication and Joe's laptop-hearing observation; it is not proof of audible or recognizable speech. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 115,
+          "anchor": "| Q-S-081 | Commit `12c24d74`'s 29,934-byte page was published as the sole object `s3://dsf-ai-site/gualaloom.html` with `text/html` and `no-cache`. CloudFront invalidation `I22CW1HNB29RTQOWAM77842KIE` completed; reviewed and public SHA-256 both equal `38c88f6a0517a68a9f84c04b8f7555ffa3dc676f120607953994064a9a8ec70e`. The live source contains the status-before-JSON refusal and fixed 64× gain. A read-only public observation returned available=true, unchanged identity, advancing tick 578237 and held pressure `1eddef5f...57ef1`; fetching that exact receipt returned 8,000 bytes/4,000 samples, 246 nonzero samples and raw peak 36, corresponding to peak 2,304 after the disclosed browser gain. This closes publication and transport evidence only. Whether the laptop actually emits audible sound remains unproved until Joe hears it. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 116,
+          "anchor": "| Q-S-082 | SOW-SPEECH-04 retains at most the current and immediately preceding exact pressure references in an immutable two-entry actor tuple, bounded to 16,000 PCM bytes with no pressure copy, history, queue, persistence or organism mutation. The exact supersession test passed 1/1, and the existing actor/five-route transport files passed 10/10. Commit `a9339e14` became live task1455 on digest `sha256:a10fe2c1...57f980`; the guarded controller preserved identity and tick 578713→578771 with one healthy writer. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 117,
+          "anchor": "| Q-S-083 | One exact live task1455 pure cue at tick 578798 again produced zero guided axes, 4,000 external samples, four vocal-body consequences, 4,000 same-act self-heard samples and pressure `db8ef6d4...ed627b`. After successor pressure `9b171a4d...cbe5f2` became current, the original receipt remained fetchable and its returned bytes hashed exactly to `db8ef6d4...ed627b`, directly closing the live 404 race. ECS remained `1/1/0`, HEALTHY and rollout-complete; CPU averaged 54.31%/max 65.97%, memory averaged 7.46%/max 8.50%, and tick 578816 observation was available, custody-settled and error-free. Laptop audibility remains a direct user-observation gate. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A06",
+        "A08",
+        "A10",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VQS14",
+      "name": "A manual restart caused two writers and thirteen intervals of unrecoverable loss",
+      "classification": "documented_destructive_operational_failure_and_scoped_recovery",
+      "finding": "QSR14",
+      "observed_mechanism": "The task 1454 restart used no RUNNING service task as a stop proof but did not wait for the exact predecessor to become STOPPED. A successor overlapped the stopping writer; CURRENT named tick 577823 whose files disappeared, and startup refused another-writer advancement. Recovery CAS-authenticated the broken pointer and repointed to the only complete pair at 577810, explicitly losing intervals 577811–577823 before admitting one successor.",
+      "evidence_limits": "This is a failed restart followed by recovery with stated loss, not preserved-history or clean-restart success. Same identity and later advancing ticks do not restore the lost experience. The record’s historical recovery is not present authorization to rewind state; exact original approval and incident artifacts remain to reconcile.",
+      "replacement": "Preserve the incident and lost-interval boundary permanently. Require exact predecessor termination plus verified zero writers before any successor or authorized migration. Audit all manual, deployment, diagnostic and recovery paths against the same owner/commit law; never substitute service-desired status for actual writer termination.",
+      "acceptance": {
+        "unit": "Refuse overlap during STOPPING, stale pointer writes, missing named generations and unsafe recovery admission.",
+        "module": "Prove exact task-owner lifecycle, atomic custody and all recovery authority with explicit loss accounting.",
+        "system": "Qualify ordinary restart retaining actual acquired state and useful function on authorized specimens.",
+        "release": "No continuous-history certificate over this incident without an explicit acknowledged loss boundary."
+      },
+      "refs": [
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 113,
+          "anchor": "| Q-S-079 | After Q-F-098, a zero-writer recovery transaction CAS-authenticated broken CURRENT SHA `1299da40...6580`, proved its named tick-577823 files absent, proved the only complete pair at tick 577810 exact, atomically repointed CURRENT to body `914c72c6...469a9` (153,176,416 raw bytes) and world `4fdc7b24...d9cda` (63,503 bytes), and cold-restored unchanged identity. Only after the diagnostic task stopped did exactly one task1454 process start. ECS now reports desired/running/pending `1/1/0`, one completed primary deployment, one HEALTHY task, advancing ticks, HTTP 200 at ALB health/readiness/observation, and no custody error. Recovery necessarily lost the 13 named-but-absent intervals 577811-577823 and cannot be called clean restart success. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 113,
+          "anchor": "| Q-S-079 | After Q-F-098, a zero-writer recovery transaction CAS-authenticated broken CURRENT SHA `1299da40...6580`, proved its named tick-577823 files absent, proved the only complete pair at tick 577810 exact, atomically repointed CURRENT to body `914c72c6...469a9` (153,176,416 raw bytes) and world `4fdc7b24...d9cda` (63,503 bytes), and cold-restored unchanged identity. Only after the diagnostic task stopped did exactly one task1454 process start. ECS now reports desired/running/pending `1/1/0`, one completed primary deployment, one HEALTHY task, advancing ticks, HTTP 200 at ALB health/readiness/observation, and no custody error. Recovery necessarily lost the 13 named-but-absent intervals 577811-577823 and cannot be called clean restart success. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 250,
+          "anchor": "| Q-D-019 | A later manual cold restart of the same task1454 image failed the one-writer custody law under Q-F-098. Production was stopped, CURRENT was recovered to the only exact complete pair at tick 577810, and the same immutable task1454 image was restarted only after the recovery task stopped. Q-S-079 proves the resulting one healthy writer and identity continuity while explicitly recording the unrecoverable 13-interval loss. This incident is a failed deployment operation followed by bounded recovery, not a successful restart acceptance. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VQS15",
+      "name": "Interface and monitoring truth require current routes, source identity and native cadence",
+      "classification": "documented_observation_and_deployment_mismatch",
+      "finding": "QSR15",
+      "observed_mechanism": "A new RGB backend initially received obsolete retina_u8 payloads from an old CloudFront page. The eye panel alternated between external RGB and later native achromatic input; bounded separate slots and explicit selection fixed that display behavior without changing Guala. An alarm used a retired log signature and falsely implied clock stall, while other healthy alarms missed real custody stalls. The deployment controller initially confused service settlement with delayed exact-task health propagation.",
+      "evidence_limits": "UI selection, browser tests, static hashes and transport health are valid observations of those surfaces, not learned vision or organism autonomy. A stale display or alarm can mislead the user; an advancing tick can coexist with unusable cadence and no meaningful action. Monitor correction must preserve the underlying visible failure.",
+      "replacement": "Bind current public assets/routes/schema and exact-task status to the active image. Keep observer sources distinct, cache-only and bounded, expose stale/unavailable data, and measure actual live progress separately from infrastructure health. Do not synthesize a scene, state or success to improve presentation.",
+      "acceptance": {
+        "unit": "Verify backend/page mismatches, source selection, stale metrics, actor death and custody-blocked observations.",
+        "module": "Trace actual monitor and UI data sources through current serving paths without feedback authority.",
+        "system": "Check the real browser plus independent native trajectory/cadence under representative operation.",
+        "release": "No organism-health or cognition claim from green AWS status, a moving display or correctly colored pixels."
+      },
+      "refs": [
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 164,
+          "anchor": "| Q-F-041 | Q-D-005 deployed the new RGB backend while CloudFront still served the previous 26,082-byte page. That page sent obsolete `retina_u8`; the lean backend requires `retina_rgb_u8`, so combined camera-microphone occurrences were rejected before hearing. | A backend cutover is incomplete until the matching reviewed page is published and its live SHA-256 equals source. The corrected RGB page was published before any combined-sense success claim. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 175,
+          "anchor": "| Q-F-052 | CloudWatch alarm `guala-clock-stalled` entered ALARM at 14:15:41 UTC for a zero `IntervalActivity` datapoint at 13:45. The metric is derived from the retired `guala-event-census` log line, which task1440 does not emit; authenticated observation nevertheless showed the live tick advancing. | Record the alarm but do not treat it as direct clock authority or change it during this item. The organism's cadence is independently and truthfully failed by Q-F-050; the stale log-signature alarm must be corrected only as its own later monitoring item. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 107,
+          "anchor": "| Q-S-073 | The Q-UI-002 candidate separates the latest native-world achromatic retinal field from the latest accepted camera/tutor RGB field in two bounded browser-memory slots. The selected source remains stable across later observations until Joe selects the other source; no server history, browser storage, merged field, spectral fallback, inferred scene, or substrate mutation was added. The panel grew from 102 to 220 CSS pixels and presents the exact 108 central samples above the exact 27 coarse samples with explicitly disclosed screen interpolation. Focused UI/schema checks passed 10/10. Disposable Chromium proved external remained selected across an unattended observation and world remained selected across a later camera observation, with zero final console/network errors. This is an observation-interface success only; it does not make Guala's underlying 135-site vision meaningful. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 72,
+          "anchor": "| Q-S-037 | Attempt Q-D-005 built immutable digest `sha256:f9ded05b488c1060fc4ca67027ef25d8478ee9d83db6a994bf301ca6e65791eb`, registered task definition 1437, drained task1436 before admission, and restored the same identity on the paired CURRENT. After the controller failure in Q-F-040, the same candidate task `f780a80e...fa44` became AWS HEALTHY before stopping; desired count was restored to one without rebuilding or replacing it. Live observation then proved exact identity, lean schema, tick 533429, persisted tick 533426, no custody errors, and no durability block. Speech, meaningful vision, and autonomous root motion are not claimed by this row. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ01-25",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ01-25--GUALA_P005_LEAN_PRODUCTION_SHELL_REPLACEMENT_2026-09-07.md",
+          "line": 139,
+          "anchor": "| S-068 | Public service cut over once to exact task1433/task `96c1d9ce414a4dc4af469279b751d5bc`/digest13dd7018, desired/running/pending1/1/0, one completed deployment, ECS/container HEALTHY, and one `dsf-ai-task` writer. Direct and public observations retained identity and advanced live513839→513948/persisted513838→513946 with repeated cleared custodies,113 DSF deliveries,1,221-1,465 physically changed neurons,0 callbacks, monotonically advancing world revision, and no checkpoint/cleanup error. Exact public Guala/Loom HTML hashes match local `ade4fbef...2729`/`28718dea...e68b`; both return200. Observation returns200; pressure truthfully returns404 when no body-owned pressure exists; retired docs/OpenAPI/root observation return404. Production storage remained exactly5 files/4,376,010-4,376,359B with two approximately2.124MB bodies; PID1 has7 threads and cleared memory1,238,315,008-1,242,304,512B. AWS/ECS15:40-15:43 CPU average33.74-36.08%/max39.35% and memory average6.71-7.63%/max8.07% without a positive sequence; all five alarms are OK, while direct cadence—not alarms—closes F-058. BUILD_INFO is exact sourcef7d272b9/lean-five-route. |",
+          "sha256": "39a88d0cd59de20214f7be3541f1d09d13af61fbbf17034ebff92a3a17e431e3"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A06",
+        "A08",
+        "A10",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VQS16",
+      "name": "Correcting invalid fixtures is distinct from softening surviving requirements",
+      "classification": "documented_verification_scope_and_inherited_failures",
+      "finding": "QSR16",
+      "observed_mechanism": "The records distinguish zero-test commands, wrong ports/import roots, stale native binaries, impossible fixture geometry, missing assets and discarded old-route assertions from actual organism failures. P-005 replaces tests requiring retired UI behavior with lean truth checks; inherited native results later show 597 passes, 13 ignores and four failures reproduced on the unchanged predecessor. An earlier false retinal-geometry defect was retracted after exact source rereading.",
+      "evidence_limits": "Fixing an incorrect fixture or retired-interface expectation can be legitimate. It must not erase the underlying sensory, continuity or cognitive requirement. No-new-failures is not a green full suite; existing failures and ignores still need dispositions. Successful compilation, a refused precondition or zero collection is not a passed behavior test.",
+      "replacement": "Map each retired/changed test to its surviving requirement and actual source boundary. Preserve explicit failures, diagnostic mistakes and corrected interpretations; require meaningful independent tests rather than implementation-mirroring counters or accommodation for a desired pass.",
+      "acceptance": {
+        "unit": "Require actual test execution and discriminate harness setup failures from tested behavior.",
+        "module": "Trace each changed/retired/ignored test to the current requirement, authority and independent evidence.",
+        "system": "Complete integrated preserved-state system qualification including inherited open failures.",
+        "release": "No full-green or certified-capability claim from no-new-regressions, compile-only results or a smaller replacement suite."
+      },
+      "refs": [
+        {
+          "source_id": "SQ01-25",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ01-25--GUALA_P005_LEAN_PRODUCTION_SHELL_REPLACEMENT_2026-09-07.md",
+          "line": 187,
+          "anchor": "| F-042 | First run of four retired static contract suites produced3 pass/25 expected failures because they mandated the deleted observer/camera/curriculum UI. Replaced those four contradictory files with one six-test lean truth/route/bounds/parser suite; S-042 is the corrected result. |",
+          "sha256": "39a88d0cd59de20214f7be3541f1d09d13af61fbbf17034ebff92a3a17e431e3"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 139,
+          "anchor": "| Q-F-016 | The agent misread one displayed retinal-geometry excerpt as containing a doubled horizontal column term and reported a concrete defect before re-reading the file. Both the working file and immutable `HEAD` contain the term exactly once; no production code was changed. | Never classify a displayed-code anomaly from one excerpt. Re-read the exact working lines and immutable source, inspect the diff, then add an executable geometry assertion. The accepted test requires both coarse and fine fields to be symmetric and span exactly -90 to +90 degrees. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 217,
+          "anchor": "| Q-F-094 | The first candidate wheel reused the same Cargo target directory immediately after the detached Candidate 78 baseline build. Cargo returned in 0.03 seconds, and direct extraction proved the baseline and purported candidate native `.so` files had the same SHA-256. | A wheel filename is not candidate provenance. Build the candidate in a fresh target directory, install with `--no-cache-dir --force-reinstall`, and prove its extracted native binary differs from the baseline before comparison. The stale wheel is rejected and cannot supply evidence or enter an image. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        },
+        {
+          "source_id": "SQ02-46",
+          "path": "docs/guala_reconciliation/sources/shell-retirement/SQ02-46--GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+          "line": 219,
+          "anchor": "| Q-F-096 | The full Q-C-006 native suite ended with 597 passes, 13 explicit ignores and four failures in older motor-topology expectation tests. Each of the same four exact tests independently fails at the unchanged deployed Candidate-78 source with the same assertion, so none is a Q-C-006 regression. | Record and compare the frozen predecessor before attributing a broad-suite failure to a candidate. Q-C-006 may claim no new test failure, but it does not claim these inherited tests are healthy or silently relabel them as passes. Repairing their post-speech expectations or underlying behavior is a separate explicitly authorized item. |",
+          "sha256": "377acfcfcc59cce47a43fa6402864ec55225fb964fe0f18c30752e8e2b0072cc"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A06",
+        "A09",
+        "A10",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

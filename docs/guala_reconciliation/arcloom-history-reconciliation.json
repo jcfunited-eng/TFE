@@ -1,0 +1,1662 @@
+{
+  "schema": "guala.historical_family_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T00:53:24.415588+00:00",
+  "scope": "14 recovered documentary versions across11paths, including four chronological master versions;9 complete captured working implementation files. All-document and all-code-version reconciliation remains OPEN.",
+  "source_read_complete": true,
+  "implementation_closure": false,
+  "sources": [
+    {
+      "id": "HAR01-01",
+      "path": "docs/ArcLoom_Spec_v0_3.txt",
+      "git_blob": "f2514c1b37b8b6a53f48201caec71cb77f3de7bd",
+      "sha256": "0aed4958c5ebc9bb51d4fb0de4bd3c5b1a230e3d1bada12b6605896e4229652a",
+      "bytes": 20357,
+      "lines": 664,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-07T22:34:09+00:00",
+          "commit": "9e574428bab0a98160ecc33224899bdb3a1829c6",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-04-22T05:17:57+00:00",
+          "commit": "72bcc00fc1b463cb50dc648611e7b64173336c03",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/HAR01-01--ArcLoom_Spec_v0_3.txt",
+      "review": "Full source read; for HAR09-02/04/03, fully read base HAR09-01 plus all three complete chronological deltas. Transitive implementation and live closure remain open.",
+      "canonical_copy": "docs/guala_reconciliation/sources/arcloom-history/HAR01-01--ArcLoom_Spec_v0_3.txt"
+    },
+    {
+      "id": "HAR02-01",
+      "path": "docs/ArcLoom_Spec_v0_4.txt",
+      "git_blob": "4e29bdd02377f638ee215ddbea4f50ed90b1bea4",
+      "sha256": "988a60b20b6aa27ded7ec0638a00a36754fc6d323c32c61477a44063e7c27acb",
+      "bytes": 17599,
+      "lines": 575,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-07T22:34:09+00:00",
+          "commit": "9e574428bab0a98160ecc33224899bdb3a1829c6",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-04-22T05:17:57+00:00",
+          "commit": "72bcc00fc1b463cb50dc648611e7b64173336c03",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/HAR02-01--ArcLoom_Spec_v0_4.txt",
+      "review": "Full source read; for HAR09-02/04/03, fully read base HAR09-01 plus all three complete chronological deltas. Transitive implementation and live closure remain open.",
+      "canonical_copy": "docs/guala_reconciliation/sources/arcloom-history/HAR02-01--ArcLoom_Spec_v0_4.txt"
+    },
+    {
+      "id": "HAR03-01",
+      "path": "docs/ArcLoom_Consolidated_Spec_v1_0.txt",
+      "git_blob": "bdfe83296918e29562ab02718e95bcb0e0e7153b",
+      "sha256": "c87a46ee703b2942b9b0e79919ab70dc0953ac20e0e7b35bc811572e9fcd45ed",
+      "bytes": 43800,
+      "lines": 935,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-07T22:34:09+00:00",
+          "commit": "9e574428bab0a98160ecc33224899bdb3a1829c6",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-04-22T05:17:57+00:00",
+          "commit": "72bcc00fc1b463cb50dc648611e7b64173336c03",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/HAR03-01--ArcLoom_Consolidated_Spec_v1_0.txt",
+      "review": "Full source read; for HAR09-02/04/03, fully read base HAR09-01 plus all three complete chronological deltas. Transitive implementation and live closure remain open.",
+      "canonical_copy": "docs/guala_reconciliation/sources/arcloom-history/HAR03-01--ArcLoom_Consolidated_Spec_v1_0.txt"
+    },
+    {
+      "id": "HAR04-01",
+      "path": "docs/ArcLoom_Spec_v1_1_BinaryFree.txt",
+      "git_blob": "9d66e9181a694de821fa582dbe41253097826bd9",
+      "sha256": "3cef9dac80a48a3efef0ef3d4bd45c0ce429a496bee84f3c46745d8bd4067e9c",
+      "bytes": 16863,
+      "lines": 408,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-07T22:34:09+00:00",
+          "commit": "9e574428bab0a98160ecc33224899bdb3a1829c6",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-04-22T05:17:57+00:00",
+          "commit": "72bcc00fc1b463cb50dc648611e7b64173336c03",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/HAR04-01--ArcLoom_Spec_v1_1_BinaryFree.txt",
+      "review": "Full source read; for HAR09-02/04/03, fully read base HAR09-01 plus all three complete chronological deltas. Transitive implementation and live closure remain open.",
+      "canonical_copy": "docs/guala_reconciliation/sources/arcloom-history/HAR04-01--ArcLoom_Spec_v1_1_BinaryFree.txt"
+    },
+    {
+      "id": "HAR05-01",
+      "path": "docs/ArcLoom_Spec_v1_2_OptionA_TernaryDiff.txt",
+      "git_blob": "81f579feb1f2a4473a275e3337afba80caa84a7c",
+      "sha256": "7957d999d24cd0ecc9475e6634681f4edaea0ed438fa650888f33edd0d4cebbd",
+      "bytes": 14690,
+      "lines": 377,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-07T22:34:09+00:00",
+          "commit": "9e574428bab0a98160ecc33224899bdb3a1829c6",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-04-22T05:17:57+00:00",
+          "commit": "72bcc00fc1b463cb50dc648611e7b64173336c03",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/HAR05-01--ArcLoom_Spec_v1_2_OptionA_TernaryDiff.txt",
+      "review": "Full source read; for HAR09-02/04/03, fully read base HAR09-01 plus all three complete chronological deltas. Transitive implementation and live closure remain open.",
+      "canonical_copy": "docs/guala_reconciliation/sources/arcloom-history/HAR05-01--ArcLoom_Spec_v1_2_OptionA_TernaryDiff.txt"
+    },
+    {
+      "id": "HAR06-01",
+      "path": "docs/ArcLoom_Spec_v1_3_Ternary_Attractor_Loom.txt",
+      "git_blob": "7729b6b61cc04ec645069abe47154ececa9a39fd",
+      "sha256": "626b030968fba71e48f8a3517d96903bbf37ca7114ff543515415dc23c8d5c22",
+      "bytes": 19801,
+      "lines": 496,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-07T22:34:09+00:00",
+          "commit": "9e574428bab0a98160ecc33224899bdb3a1829c6",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-04-22T05:17:57+00:00",
+          "commit": "72bcc00fc1b463cb50dc648611e7b64173336c03",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/HAR06-01--ArcLoom_Spec_v1_3_Ternary_Attractor_Loom.txt",
+      "review": "Full source read; for HAR09-02/04/03, fully read base HAR09-01 plus all three complete chronological deltas. Transitive implementation and live closure remain open.",
+      "canonical_copy": "docs/guala_reconciliation/sources/arcloom-history/HAR06-01--ArcLoom_Spec_v1_3_Ternary_Attractor_Loom.txt"
+    },
+    {
+      "id": "HAR07-01",
+      "path": "docs/ArcLoom_Interop_BSIL_Spec_v0_1.txt",
+      "git_blob": "9e830bba21cab6aab170ae363ba9b7ffe22b760f",
+      "sha256": "75a2356e06f5d3e2fd4e562347331ce21e617e671e6bdcea9c109a0e3a32c57b",
+      "bytes": 12035,
+      "lines": 339,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-07T22:34:09+00:00",
+          "commit": "9e574428bab0a98160ecc33224899bdb3a1829c6",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-04-22T05:17:57+00:00",
+          "commit": "72bcc00fc1b463cb50dc648611e7b64173336c03",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/HAR07-01--ArcLoom_Interop_BSIL_Spec_v0_1.txt",
+      "review": "Full source read; for HAR09-02/04/03, fully read base HAR09-01 plus all three complete chronological deltas. Transitive implementation and live closure remain open.",
+      "canonical_copy": "docs/guala_reconciliation/sources/arcloom-history/HAR07-01--ArcLoom_Interop_BSIL_Spec_v0_1.txt"
+    },
+    {
+      "id": "HAR08-01",
+      "path": "docs/ArcLoom_Processor_Specification_v4_0.tex",
+      "git_blob": "2f7fc96b469f44f3cb871f023c8d677928235211",
+      "sha256": "41b2febd1e68816116839702f15d02c7d8c4a74de192b4b6a5e44d1caf184b92",
+      "bytes": 37009,
+      "lines": 914,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-07T22:34:09+00:00",
+          "commit": "9e574428bab0a98160ecc33224899bdb3a1829c6",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-04-10T00:26:13+00:00",
+          "commit": "9ea8ee94a9dc72fa25a79ee997c7573cb54f9810",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/HAR08-01--ArcLoom_Processor_Specification_v4_0.tex",
+      "review": "Full source read; for HAR09-02/04/03, fully read base HAR09-01 plus all three complete chronological deltas. Transitive implementation and live closure remain open.",
+      "canonical_copy": "docs/guala_reconciliation/sources/arcloom-history/HAR08-01--ArcLoom_Processor_Specification_v4_0.tex"
+    },
+    {
+      "id": "HAR09-01",
+      "path": "docs/ArcLoom_Master_Specification_v5_0.tex",
+      "git_blob": "2a1975e0bc53d91e7461da70131f08641d83c46c",
+      "sha256": "31c9744714cae868fc5a1d412a952fcdc0769d06828bccd9c91174c708277658",
+      "bytes": 38511,
+      "lines": 1020,
+      "observations": [
+        {
+          "author_time": "2026-04-10T04:02:44+00:00",
+          "commit": "a00aaf097d29381611098964627103f32d96a663",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-04-10T03:35:36+00:00",
+          "commit": "9c80e8caa9d78d8fb5529cb896607509659dfbdf",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/HAR09-01--ArcLoom_Master_Specification_v5_0.tex",
+      "review": "Full source read; for HAR09-02/04/03, fully read base HAR09-01 plus all three complete chronological deltas. Transitive implementation and live closure remain open.",
+      "canonical_copy": "docs/guala_reconciliation/sources/arcloom-history/HAR09-01--ArcLoom_Master_Specification_v5_0.tex"
+    },
+    {
+      "id": "HAR09-02",
+      "path": "docs/ArcLoom_Master_Specification_v5_0.tex",
+      "git_blob": "41033f7374e00fbd32c8b3882377e92f8b4d35d4",
+      "sha256": "45f1e141a87bc498f57fd92ae20e07e5e4640714523d49689c53af2382bf125b",
+      "bytes": 46026,
+      "lines": 1179,
+      "observations": [
+        {
+          "author_time": "2026-05-03T06:53:01+00:00",
+          "commit": "498c6b6465c6625635c3ebf91c9aac2684124446",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-04-10T04:02:44+00:00",
+          "commit": "a00aaf097d29381611098964627103f32d96a663",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/HAR09-02--ArcLoom_Master_Specification_v5_0.tex",
+      "review": "Full source read; for HAR09-02/04/03, fully read base HAR09-01 plus all three complete chronological deltas. Transitive implementation and live closure remain open.",
+      "canonical_copy": "docs/guala_reconciliation/sources/arcloom-history/HAR09-02--ArcLoom_Master_Specification_v5_0.tex"
+    },
+    {
+      "id": "HAR09-03",
+      "path": "docs/ArcLoom_Master_Specification_v5_0.tex",
+      "git_blob": "7e5d64ff9639c2fedb2bb38042878ba183d8ced7",
+      "sha256": "d8c33af74dc81937b5954b28fb1f678773e600c39f30240b233f9e01ba734a5a",
+      "bytes": 56240,
+      "lines": 1415,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-07T22:34:09+00:00",
+          "commit": "9e574428bab0a98160ecc33224899bdb3a1829c6",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-05-03T06:55:05+00:00",
+          "commit": "948fcb5d709a0e6f9828bb4e7113251dc72fb70f",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/HAR09-03--ArcLoom_Master_Specification_v5_0.tex",
+      "review": "Full source read; for HAR09-02/04/03, fully read base HAR09-01 plus all three complete chronological deltas. Transitive implementation and live closure remain open.",
+      "canonical_copy": "docs/guala_reconciliation/sources/arcloom-history/HAR09-03--ArcLoom_Master_Specification_v5_0.tex"
+    },
+    {
+      "id": "HAR09-04",
+      "path": "docs/ArcLoom_Master_Specification_v5_0.tex",
+      "git_blob": "d9887aec42ba7c341bdd800020da6d58ad4ec62b",
+      "sha256": "00c72e56348c37766403588ed82f113070a1384a26dff1030f3a249e5d670b92",
+      "bytes": 53162,
+      "lines": 1339,
+      "observations": [
+        {
+          "author_time": "2026-05-03T06:55:05+00:00",
+          "commit": "948fcb5d709a0e6f9828bb4e7113251dc72fb70f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-05-03T06:53:01+00:00",
+          "commit": "498c6b6465c6625635c3ebf91c9aac2684124446",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/HAR09-04--ArcLoom_Master_Specification_v5_0.tex",
+      "review": "Full source read; for HAR09-02/04/03, fully read base HAR09-01 plus all three complete chronological deltas. Transitive implementation and live closure remain open.",
+      "canonical_copy": "docs/guala_reconciliation/sources/arcloom-history/HAR09-04--ArcLoom_Master_Specification_v5_0.tex"
+    },
+    {
+      "id": "HAR10-01",
+      "path": "docs/GL-SPC-EXPERIENCE-FIRST-20260702-v1.md",
+      "git_blob": "7b9c594df0dbd5e4ac508a9f36bd19dc6af3b344",
+      "sha256": "1b7b9a319b99d782bc1316e2b8587167f04b149ef4d5a82abfb34af517158ed0",
+      "bytes": 13398,
+      "lines": 270,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-02T16:06:42+00:00",
+          "commit": "3737bad41d44eb279b79472784e604ec95a478c8",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/HAR10-01--GL-SPC-EXPERIENCE-FIRST-20260702-v1.md",
+      "review": "Full source read; for HAR09-02/04/03, fully read base HAR09-01 plus all three complete chronological deltas. Transitive implementation and live closure remain open.",
+      "canonical_copy": "docs/guala_reconciliation/sources/arcloom-history/HAR10-01--GL-SPC-EXPERIENCE-FIRST-20260702-v1.md"
+    },
+    {
+      "id": "HAR11-01",
+      "path": "docs/GL-SPC-EXPERIENCE-FIRST-20260702-v2.md",
+      "git_blob": "49d32cb356e6e0ee8c40127bc795e33209c93e91",
+      "sha256": "1b142234586b5bba8b4870423fa7ba1bbabbe42481b5bd5239a0e3de7d79395d",
+      "bytes": 21321,
+      "lines": 425,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-02T16:06:42+00:00",
+          "commit": "3737bad41d44eb279b79472784e604ec95a478c8",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/HAR11-01--GL-SPC-EXPERIENCE-FIRST-20260702-v2.md",
+      "review": "Full source read; for HAR09-02/04/03, fully read base HAR09-01 plus all three complete chronological deltas. Transitive implementation and live closure remain open.",
+      "canonical_copy": "docs/guala_reconciliation/sources/arcloom-history/HAR11-01--GL-SPC-EXPERIENCE-FIRST-20260702-v2.md"
+    }
+  ],
+  "code_sources": [
+    {
+      "path": "arcloom/hdl/arcloom_sppu.v",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_sppu.v",
+      "bytes": 15691,
+      "sha256": "b15a4c6d2620603f4d11d52098879a01bb0b18fcbe5cddae787f450578796d7c",
+      "scope": "Per-file stable working bytes, no loaded artifact/physical hardware claim"
+    },
+    {
+      "path": "arcloom/hdl/arcloom_mathloom.v",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_mathloom.v",
+      "bytes": 9378,
+      "sha256": "988deb22e0117b69765943e50c0a5d7a9075cd35588e8b41646dfcb863fc463e",
+      "scope": "Per-file stable working bytes, no loaded artifact/physical hardware claim"
+    },
+    {
+      "path": "arcloom/hdl/arcloom_mathloom_div.v",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_mathloom_div.v",
+      "bytes": 3155,
+      "sha256": "8b97541f3217cf63a296b492c90c8db235f2ca18e8de8ef8ebf38cfe23596657",
+      "scope": "Per-file stable working bytes, no loaded artifact/physical hardware claim"
+    },
+    {
+      "path": "native/guala_core/src/mathloom.rs",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/native/guala_core/src/mathloom.rs",
+      "bytes": 15527,
+      "sha256": "50b0e524f927032636a9d60bf52f998b24ca948fa4f583ed749dcf2c8b26a751",
+      "scope": "Per-file stable working bytes, no loaded artifact/physical hardware claim"
+    },
+    {
+      "path": "tools/mathloom_sim.py",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/tools/mathloom_sim.py",
+      "bytes": 12039,
+      "sha256": "528ebae9b918690e9e2976ecf997ac0b46035f01bce143fb5aead3070a6c8a3a",
+      "scope": "Per-file stable working bytes, no loaded artifact/physical hardware claim"
+    },
+    {
+      "path": "arcloom/hdl/arcloom_ternary_loom.v",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_ternary_loom.v",
+      "bytes": 16722,
+      "sha256": "d495ce1c2063b02720f276cd9d2ab69cdba6bd934c736061bf915a442a657bb7",
+      "scope": "Per-file stable working bytes; no loaded artifact/hardware claim"
+    },
+    {
+      "path": "arcloom/hdl/arcloom_krimelack.v",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_krimelack.v",
+      "bytes": 8526,
+      "sha256": "06cea1bcb2e6f9d5571d419cc7efe6006b538efde584f7d119b7d294a127cded",
+      "scope": "Per-file stable working bytes; no loaded artifact/hardware claim"
+    },
+    {
+      "path": "arcloom/hdl/arcloom_l6_tcl.v",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_l6_tcl.v",
+      "bytes": 3519,
+      "sha256": "6916133fb8578ed38297dfba44bd1a66313e014049447f54e51fde97d72a34db",
+      "scope": "Per-file stable working source; no loaded hardware/production claim"
+    },
+    {
+      "path": "arcloom/hdl/arcloom_bsil_bt.v",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_bsil_bt.v",
+      "bytes": 7221,
+      "sha256": "0b0c3af992adc74fb839d15280d92e6c0e3614ef45d3acd8718a1664387fe114",
+      "scope": "Per-file stable working source; no loaded hardware/production claim"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "HA01",
+      "title": "Approval is not established by a specification heading",
+      "refs": [
+        {
+          "source_id": "HAR06-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR06-01--ArcLoom_Spec_v1_3_Ternary_Attractor_Loom.txt",
+          "sha256": "626b030968fba71e48f8a3517d96903bbf37ca7114ff543515415dc23c8d5c22",
+          "line": 6,
+          "anchor": "Design approvals assumed:"
+        },
+        {
+          "source_id": "HAR09-02",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-02--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "45f1e141a87bc498f57fd92ae20e07e5e4640714523d49689c53af2382bf125b",
+          "line": 79,
+          "anchor": "Purpose & Consolidate all prior ArcLoom specifications into a single"
+        }
+      ],
+      "requirement": "Keep the actual authority and scope of each change.",
+      "historical_disposition": "v1.3 assumes design approvals; later master text declares all prior specifications superseded. Neither proves original approval. January-dated foundations first appear in recovered April22 history.",
+      "current_reconciliation": "Current user constraints outrank contrary assistant-authored historical assertions.",
+      "lawful_remedy": "Recover original decisions and preserve unresolved authority; do not adopt a law merely because a document says locked.",
+      "acceptance_falsifier": "Each ratified change must resolve to its original decision and exact scope, not a copied claim.",
+      "repair_actions": [
+        "A01",
+        "A18"
+      ],
+      "change_classification": "Authority gap; no inference of deceptive intent"
+    },
+    {
+      "id": "HA02",
+      "title": "Packed normalized injection is not the full joint field",
+      "refs": [
+        {
+          "source_id": "HAR02-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR02-01--ArcLoom_Spec_v0_4.txt",
+          "sha256": "988a60b20b6aa27ded7ec0638a00a36754fc6d323c32c61477a44063e7c27acb",
+          "line": 6,
+          "anchor": "Locked v0.4: OD‑1 CN integration; OD‑2 reorder-within-jitter then SafeMode; OD‑3 neutral SafeHold; OD‑4 hashed orthonormal P_in from seed; OD‑5 commit‑centroid mode growth; OD‑6 min ΔS_total law selection."
+        },
+        {
+          "source_id": "HAR09-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-01--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "31c9744714cae868fc5a1d412a952fcdc0769d06828bccd9c91174c708277658",
+          "line": 408,
+          "anchor": "where $P_{in}$ is a deterministic orthonormal projection matrix constructed"
+        }
+      ],
+      "requirement": "Preserve all seven explicit DSF fields and distinct global stability.",
+      "historical_disposition": "Packed/normalized TVR/ISF/URF/DSF projection was specified, but it does not prove preservation of the required explicit field structure.",
+      "current_reconciliation": "Current seven-field contract rejects substituting this projection as full-field cognition. A matrix alone does not imply ML.",
+      "lawful_remedy": "Trace each source field through typed delivery and demonstrate exact preservation before integration; retire reduced authority paths.",
+      "acceptance_falsifier": "Distinct full fields that share a projection must not become indistinguishable to the required successor.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A16"
+      ],
+      "change_classification": "Reject reduced authority; preserve only independently justified transport mathematics"
+    },
+    {
+      "id": "HA03",
+      "title": "Forced conservative evolution needs an explicit balance",
+      "refs": [
+        {
+          "source_id": "HAR02-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR02-01--ArcLoom_Spec_v0_4.txt",
+          "sha256": "988a60b20b6aa27ded7ec0638a00a36754fc6d323c32c61477a44063e7c27acb",
+          "line": 20,
+          "anchor": "• OD‑1 Lattice integration method: Crank‑Nicolson (norm‑preserving for Hermitian H_total)."
+        },
+        {
+          "source_id": "HAR09-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-01--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "31c9744714cae868fc5a1d412a952fcdc0769d06828bccd9c91174c708277658",
+          "line": 321,
+          "anchor": "  \\item Integration method: Crank--Nicolson (norm-preserving, stable)"
+        }
+      ],
+      "requirement": "State the actual evolution equation, units and source/sink balance.",
+      "historical_disposition": "The printed Crank–Nicolson forcing disagrees with its ODE; Hermitian evolution with arbitrary forcing need not conserve norm. EQ05/EQ06.",
+      "current_reconciliation": "A source name or deterministic integrator does not establish the definitive physical law.",
+      "lawful_remedy": "Correct the specification derivation from its declared ODE and source terms; leave canonical kernel unchanged.",
+      "acceptance_falsifier": "Use H=0 and constant real/imaginary injection to expose the sign/phase and norm discrepancy.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A16"
+      ],
+      "change_classification": "Printed mathematical contradiction"
+    },
+    {
+      "id": "HA04",
+      "title": "Conservative phase motion is not dissipative settling",
+      "refs": [
+        {
+          "source_id": "HAR09-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-01--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "31c9744714cae868fc5a1d412a952fcdc0769d06828bccd9c91174c708277658",
+          "line": 341,
+          "anchor": "with $W$ symmetric. The system settles by damped gradient flow toward"
+        },
+        {
+          "source_id": "HAR06-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR06-01--ArcLoom_Spec_v1_3_Ternary_Attractor_Loom.txt",
+          "sha256": "626b030968fba71e48f8a3517d96903bbf37ca7114ff543515415dc23c8d5c22",
+          "line": 138,
+          "anchor": "The TALC evolution SHALL be defined by a deterministic rule. A reference rule is damped gradient flow:"
+        }
+      ],
+      "requirement": "Distinguish conservative motion, dissipation and their authorized coupling.",
+      "historical_disposition": "A fixed Hermitian Hamiltonian conserves energy expectation; it does not relax to its minimum. TAL gradient flow is a different law. EQ10.",
+      "current_reconciliation": "No renormalization or invented damping may bridge an unspecified boundary.",
+      "lawful_remedy": "Require an explicit admissible coupling and energy/resource balance before treating the two models as one mechanism.",
+      "acceptance_falsifier": "The equal superposition under diag(0,1) stays at energy1/2; a claimed relaxation law must account for the energy leaving.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A11",
+        "A16"
+      ],
+      "change_classification": "Unresolved physical interface, not permission for a shim"
+    },
+    {
+      "id": "HA05",
+      "title": "The consolidated specification explicitly permitted forbidden policies",
+      "refs": [
+        {
+          "source_id": "HAR03-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR03-01--ArcLoom_Consolidated_Spec_v1_0.txt",
+          "sha256": "c87a46ee703b2942b9b0e79919ab70dc0953ac20e0e7b35bc811572e9fcd45ed",
+          "line": 212,
+          "anchor": "Process: apply stability/entropy heuristics; identify near-deterministic segments; form candidate motifs"
+        },
+        {
+          "source_id": "HAR03-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR03-01--ArcLoom_Consolidated_Spec_v1_0.txt",
+          "sha256": "c87a46ee703b2942b9b0e79919ab70dc0953ac20e0e7b35bc811572e9fcd45ed",
+          "line": 645,
+          "anchor": "p_i(k) = exp(s_i(k)) / SUM_j exp(s_j(k))"
+        },
+        {
+          "source_id": "HAR03-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR03-01--ArcLoom_Consolidated_Spec_v1_0.txt",
+          "sha256": "c87a46ee703b2942b9b0e79919ab70dc0953ac20e0e7b35bc811572e9fcd45ed",
+          "line": 287,
+          "anchor": "- If provided, r(t) SHALL be deterministic and SHALL be based on explicitly specified rules (e.g., threshold crossings, event markers), not learned heuristics unless the learning model is frozen and versioned."
+        }
+      ],
+      "requirement": "Classify actual update and selection laws before an ML-free claim.",
+      "historical_disposition": "v1.0 permits stability/entropy heuristics, learned relevance and softmax mode scores. Thus the recovered documentary history does not establish a uniformly heuristic-free predecessor.",
+      "current_reconciliation": "Activation of those historical paths is a separate code/artifact question. Softmax alone is not proof of learning.",
+      "lawful_remedy": "Retire authored cognitive score policies and trace every remaining decision to ratified causal state dynamics.",
+      "acceptance_falsifier": "Freeze update/selection paths; isolate reward/example state and prove no reachable policy is hidden by renamed fields.",
+      "repair_actions": [
+        "A05",
+        "A11",
+        "A15",
+        "A16"
+      ],
+      "change_classification": "Explicit historical architectural conflict; live scope unresolved"
+    },
+    {
+      "id": "HA06",
+      "title": "Memory summaries and recall counts are not physical formations",
+      "refs": [
+        {
+          "source_id": "HAR03-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR03-01--ArcLoom_Consolidated_Spec_v1_0.txt",
+          "sha256": "c87a46ee703b2942b9b0e79919ab70dc0953ac20e0e7b35bc811572e9fcd45ed",
+          "line": 86,
+          "anchor": "- Krimelacks memory: A folded structural memory storing strands/motifs and landmark indices to preserve locality and enable cue-based recall."
+        },
+        {
+          "source_id": "HAR09-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-01--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "31c9744714cae868fc5a1d412a952fcdc0769d06828bccd9c91174c708277658",
+          "line": 431,
+          "anchor": "reinforcement."
+        }
+      ],
+      "requirement": "Learned memory must have retained physical relations and causal recall.",
+      "historical_disposition": "Hashes, summaries, recall pruning and reinforcement/decay scores were described as memory; their names do not establish post-quiescence formations.",
+      "current_reconciliation": "Archive custody and physical memory have different responsibilities.",
+      "lawful_remedy": "Preserve evidence archives separately; implement retained physical formation and changed response through existing64-column causal paths.",
+      "acceptance_falsifier": "A repeated digest, archive lookup or increased counter must fail learning acceptance without physical retained change and later causal use.",
+      "repair_actions": [
+        "A03",
+        "A06",
+        "A09",
+        "A16"
+      ],
+      "change_classification": "Reject proxy evidence; preserve legitimate archival custody"
+    },
+    {
+      "id": "HA07",
+      "title": "Cohesion terminology and global stability remain in conflict",
+      "refs": [
+        {
+          "source_id": "HAR03-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR03-01--ArcLoom_Consolidated_Spec_v1_0.txt",
+          "sha256": "c87a46ee703b2942b9b0e79919ab70dc0953ac20e0e7b35bc811572e9fcd45ed",
+          "line": 65,
+          "anchor": "[UFCP-2026] A Process-Based Coherence Field Bridging Classical and Quantum Dynamics (Not-Math Framework). Used as a conservative process-field anchor for optional coherence-field embodiments."
+        },
+        {
+          "source_id": "HAR08-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR08-01--ArcLoom_Processor_Specification_v4_0.tex",
+          "sha256": "41b2febd1e68816116839702f15d02c7d8c4a74de192b4b6a5e44d1caf184b92",
+          "line": 410,
+          "anchor": "$C_k$ (Cohesion) & Binding ring pair & $J = \\frac{C_k}{1+C_k} \\cdot J_{base}$ \\\\"
+        }
+      ],
+      "requirement": "Keep kernel divergence C_k distinct from physical cohesion and preserve the canonical kernel.",
+      "historical_disposition": "Older specifications use a global cohesion penalty and inconsistent meanings for C_k.",
+      "current_reconciliation": "The previously recorded UF PDF/definitive-guidance discrepancy remains unresolved.",
+      "lawful_remedy": "Recover original equation authority and publish the conflict with exact meanings; no A1 kernel alteration.",
+      "acceptance_falsifier": "An authoritative equation and current implementation must match term by term before the discrepancy can close.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A18"
+      ],
+      "change_classification": "Terminology and mathematical authority gap"
+    },
+    {
+      "id": "HA08",
+      "title": "Binary-free hardware and deterministic software simulation are different scopes",
+      "refs": [
+        {
+          "source_id": "HAR04-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR04-01--ArcLoom_Spec_v1_1_BinaryFree.txt",
+          "sha256": "3cef9dac80a48a3efef0ef3d4bd45c0ce429a496bee84f3c46745d8bd4067e9c",
+          "line": 1,
+          "anchor": "ArcLoom Specification v1.1 — Binary‑Free Structural Processing Unit (SPU)"
+        },
+        {
+          "source_id": "HAR08-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR08-01--ArcLoom_Processor_Specification_v4_0.tex",
+          "sha256": "41b2febd1e68816116839702f15d02c7d8c4a74de192b4b6a5e44d1caf184b92",
+          "line": 3,
+          "anchor": "%  Pure Ternary Invariant Fabric & Hybrid Control Plane"
+        },
+        {
+          "source_id": "HAR07-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR07-01--ArcLoom_Interop_BSIL_Spec_v0_1.txt",
+          "sha256": "75a2356e06f5d3e2fd4e562347331ce21e617e671e6bdcea9c109a0e3a32c57b",
+          "line": 1,
+          "anchor": "ArcLoom Interop Spec v0.1 — Binary Story Ingestion Layer (BSIL)"
+        }
+      ],
+      "requirement": "Identify whether a claim concerns hardware primitives, reference simulation or external interoperation.",
+      "historical_disposition": "Binary-free core specifications coexist with external BSIL and later hybrid CPU fallback. These are material scope changes.",
+      "current_reconciliation": "Python/Rust or binary limbs do not by themselves violate exact ternary simulation; neither prove a pure ternary physical processor.",
+      "lawful_remedy": "Qualify claims per execution boundary and actual implementation. Never count an external fallback as substrate cognition.",
+      "acceptance_falsifier": "For every claimed operator identify the actual executing artifact and any fallback; refuse scope substitution.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A15",
+        "A18"
+      ],
+      "change_classification": "Scope evolution requiring explicit authority and evidence"
+    },
+    {
+      "id": "HA09",
+      "title": "ML-NVM is not a machine-learning mechanism",
+      "refs": [
+        {
+          "source_id": "HAR04-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR04-01--ArcLoom_Spec_v1_1_BinaryFree.txt",
+          "sha256": "3cef9dac80a48a3efef0ef3d4bd45c0ce429a496bee84f3c46745d8bd4067e9c",
+          "line": 326,
+          "anchor": "Profile F‑1: Ternary differential signaling fabric + multi‑level nonvolatile memory (ML‑NVM)"
+        },
+        {
+          "source_id": "HAR09-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-01--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "31c9744714cae868fc5a1d412a952fcdc0769d06828bccd9c91174c708277658",
+          "line": 78,
+          "anchor": "                   WeaveSpec v0.1; MathLoom v1.4; ArcLoom v4.0 \\\\\\hline"
+        }
+      ],
+      "requirement": "Classify mechanisms by causal law rather than abbreviations.",
+      "historical_disposition": "ML-NVM denotes multi-level nonvolatile memory; MathLoom is also abbreviated ML in historical documents.",
+      "current_reconciliation": "Keyword hits cannot establish a learned policy or exclude one.",
+      "lawful_remedy": "Retain exact numeric/physical mechanisms when justified; separately inspect learned state, training updates and decision consumers.",
+      "acceptance_falsifier": "Registry rows must include update/decision laws and reachability; a name-only classification fails.",
+      "repair_actions": [
+        "A01",
+        "A15"
+      ],
+      "change_classification": "Terminology clarification preventing false positives"
+    },
+    {
+      "id": "HA10",
+      "title": "Ternary receivers need complete boundary behavior",
+      "refs": [
+        {
+          "source_id": "HAR05-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR05-01--ArcLoom_Spec_v1_2_OptionA_TernaryDiff.txt",
+          "sha256": "7957d999d24cd0ecc9475e6634681f4edaea0ed438fa650888f33edd0d4cebbd",
+          "line": 40,
+          "anchor": "OA‑2: Ternary receivers SHALL classify into exactly three states with declared thresholds."
+        }
+      ],
+      "requirement": "Every admitted input has a defined output or explicit invalid result.",
+      "historical_disposition": "Receiver threshold inequalities require a complete tie/gap policy; examples alone do not supply it.",
+      "current_reconciliation": "The current body cannot inherit unproved receiver completeness from a schematic.",
+      "lawful_remedy": "Specify the physical transfer range and exact boundary/refusal behavior without assigning an invented cognitive category.",
+      "acceptance_falsifier": "Exercise equality, gap, saturation, invalid and reversal boundaries; no silently substituted zero.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A16"
+      ],
+      "change_classification": "Incomplete interface specification"
+    },
+    {
+      "id": "HA11",
+      "title": "Attractor requirements survive unsupported parameter choices",
+      "refs": [
+        {
+          "source_id": "HAR06-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR06-01--ArcLoom_Spec_v1_3_Ternary_Attractor_Loom.txt",
+          "sha256": "626b030968fba71e48f8a3517d96903bbf37ca7114ff543515415dc23c8d5c22",
+          "line": 21,
+          "anchor": "• Recasts “processing” as: bias → settle → readout → DSF → commit/recall, rather than symbol streaming."
+        },
+        {
+          "source_id": "HAR06-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR06-01--ArcLoom_Spec_v1_3_Ternary_Attractor_Loom.txt",
+          "sha256": "626b030968fba71e48f8a3517d96903bbf37ca7114ff543515415dc23c8d5c22",
+          "line": 437,
+          "anchor": "• Stable 0-basin: midpoint remains a basin under zero-bias and small perturbations."
+        }
+      ],
+      "requirement": "Demonstrate all three admissible stable states and bounded settlement under the declared physical law.",
+      "historical_disposition": "v1.3 makes zero-basin failure a stop and requires measured settling. Example gains/clipping and similarity recall still need derivation.",
+      "current_reconciliation": "Determinism alone does not establish lawful parameters or cognitive recall.",
+      "lawful_remedy": "Preserve falsification and bounds; derive coefficients from ratified anatomy/units rather than tune behavior.",
+      "acceptance_falsifier": "Stable-state and boundary tests must fail a two-state or nonsettling candidate; matching one desired behavior is insufficient.",
+      "repair_actions": [
+        "A04",
+        "A14",
+        "A16"
+      ],
+      "change_classification": "Preserve valid requirements; reject unsupported parameter authority"
+    },
+    {
+      "id": "HA12",
+      "title": "A 64-ring robot is not the current 64-column organism",
+      "refs": [
+        {
+          "source_id": "HAR08-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR08-01--ArcLoom_Processor_Specification_v4_0.tex",
+          "sha256": "41b2febd1e68816116839702f15d02c7d8c4a74de192b4b6a5e44d1caf184b92",
+          "line": 741,
+          "anchor": "        in the FPGA. For the reference robot: 64 trit rings organized in"
+        },
+        {
+          "source_id": "HAR09-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-01--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "31c9744714cae868fc5a1d412a952fcdc0769d06828bccd9c91174c708277658",
+          "line": 824,
+          "anchor": "Fabric: 64 trit rings in 8$\\times$8 lattice. Coupling matrix loaded as"
+        }
+      ],
+      "requirement": "Trace anatomy by structure, state and connection laws.",
+      "historical_disposition": "The April demonstrator specifies64trit rings in an8×8lattice.",
+      "current_reconciliation": "Matching the number64 does not establish continuity with64cortical columns, their retained formations or full-brain function.",
+      "lawful_remedy": "Keep separate anatomy identifiers and map actual preserved/replaced state explicitly.",
+      "acceptance_falsifier": "A migration claim must show component/state correspondence; a count or name match fails.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A18"
+      ],
+      "change_classification": "Prevent false ancestry by number"
+    },
+    {
+      "id": "HA13",
+      "title": "The printed ternary carry formula is wrong",
+      "refs": [
+        {
+          "source_id": "HAR08-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR08-01--ArcLoom_Processor_Specification_v4_0.tex",
+          "sha256": "41b2febd1e68816116839702f15d02c7d8c4a74de192b4b6a5e44d1caf184b92",
+          "line": 371,
+          "anchor": "  \\item Carry ring $R_C$ settles to $w_C = \\lfloor(w_A + w_B + 1)/3\\rfloor - 1$"
+        },
+        {
+          "source_id": "HAR09-02",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-02--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "45f1e141a87bc498f57fd92ae20e07e5e4640714523d49689c53af2382bf125b",
+          "line": 950,
+          "anchor": "The balanced ternary carry function is associative:"
+        }
+      ],
+      "requirement": "For every digit, input total equals output digit plus three times carry.",
+      "historical_disposition": "The printed extra minus one violates the identity even for0+0; EQ01 checks all9operand pairs.",
+      "current_reconciliation": "Current HDL full-adder truth table is independently correct for its declared valid inputs; do not restore the bad formula.",
+      "lawful_remedy": "Correct historical errata and preserve exact arithmetic. Reject invalid input encodings at admission.",
+      "acceptance_falsifier": "Exhaustively check valid digit/carry combinations and end-to-end value conservation; test invalid encodings separately.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A16"
+      ],
+      "change_classification": "Concrete mathematical defect; later arithmetic improvement retained"
+    },
+    {
+      "id": "HA14",
+      "title": "The printed barrier value contradicts its coefficients",
+      "refs": [
+        {
+          "source_id": "HAR09-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-01--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "31c9744714cae868fc5a1d412a952fcdc0769d06828bccd9c91174c708277658",
+          "line": 589,
+          "anchor": "Energy barrier between adjacent states:"
+        }
+      ],
+      "requirement": "Numerical examples must follow their stated equations and units.",
+      "historical_disposition": "The stated substitution gives1101/512=2.150390625, not2.37; EQ02.",
+      "current_reconciliation": "This arithmetic correction alone validates neither the proposed barrier law nor its coefficients.",
+      "lawful_remedy": "Correct the example and separately require physical derivation, coefficient authority and stability evidence.",
+      "acceptance_falsifier": "Exact substitution must agree; dimensional and regime checks remain separate gates.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A16"
+      ],
+      "change_classification": "Arithmetic error plus unresolved physical qualification"
+    },
+    {
+      "id": "HA15",
+      "title": "Dependent constraint ranks cannot simply be added",
+      "refs": [
+        {
+          "source_id": "HAR09-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-01--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "31c9744714cae868fc5a1d412a952fcdc0769d06828bccd9c91174c708277658",
+          "line": 743,
+          "anchor": "  n_{eff} = n_{start} - \\sum_{i=1}^{k} \\text{rank}(C_i)"
+        }
+      ],
+      "requirement": "Residual freedom must account for constraint dependence.",
+      "historical_disposition": "n_eff=n_start−sum(rank(C_i)) double-counts repeated constraints; EQ03. A knee at n/e does not itself prove certainty.",
+      "current_reconciliation": "The current HDL substitutes non-null trit counts, which is another unproved reduction.",
+      "lawful_remedy": "Use the authorized exact constraint geometry if supplied; otherwise report the missing operator and keep L6 observational.",
+      "acceptance_falsifier": "Two identical rank-one constraints in2D leave one free dimension. A zero-freedom report fails.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A16"
+      ],
+      "change_classification": "Invalid rank formula; no invented replacement L6 law"
+    },
+    {
+      "id": "HA16",
+      "title": "Parity does not locate an arbitrary unknown error",
+      "refs": [
+        {
+          "source_id": "HAR09-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-01--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "31c9744714cae868fc5a1d412a952fcdc0769d06828bccd9c91174c708277658",
+          "line": 619,
+          "anchor": "Groups of $P = 5$ trits with topological parity constant $K$:"
+        }
+      ],
+      "requirement": "Separate error detection, known-erasure reconstruction and unknown-error correction.",
+      "historical_disposition": "One sum constraint admits two different originals one error away from the same received word; EQ04.",
+      "current_reconciliation": "A parity sum alone cannot certify arbitrary single-trit correction.",
+      "lawful_remedy": "Specify the actual syndrome/known-location assumptions and prove code distance or report detection only.",
+      "acceptance_falsifier": "Use the two-original witness; correction must not select an arbitrary convenient original.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A16"
+      ],
+      "change_classification": "Overstated correction capability"
+    },
+    {
+      "id": "HA17",
+      "title": "A rational constant and a cosine are not derivations",
+      "refs": [
+        {
+          "source_id": "HAR09-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-01--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "31c9744714cae868fc5a1d412a952fcdc0769d06828bccd9c91174c708277658",
+          "line": 591,
+          "anchor": "For $J = 1$, $\\alpha = 37/64$: $\\Delta E \\approx 2.37$."
+        },
+        {
+          "source_id": "HAR09-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-01--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "31c9744714cae868fc5a1d412a952fcdc0769d06828bccd9c91174c708277658",
+          "line": 245,
+          "anchor": "                              metastability resolution. \\\\"
+        }
+      ],
+      "requirement": "Derive coefficients and settling bounds for the declared domain.",
+      "historical_disposition": "Fixed37/64 and a claimed escape bound do not prove avoidance of an exact unforced saddle.",
+      "current_reconciliation": "Cosine can be a legitimate potential term; its name alone is not heuristic evidence.",
+      "lawful_remedy": "Document the physical potential, boundary perturbation and admitted initial states; preserve explicit nonsettling failures.",
+      "acceptance_falsifier": "Include exact saddle and neighboring trajectories with energy accounting; never inject hidden noise to manufacture escape.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A14",
+        "A16"
+      ],
+      "change_classification": "Unproved universality; classify mathematical role precisely"
+    },
+    {
+      "id": "HA18",
+      "title": "Hybrid fallback cannot establish universal substrate correctness",
+      "refs": [
+        {
+          "source_id": "HAR08-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR08-01--ArcLoom_Processor_Specification_v4_0.tex",
+          "sha256": "41b2febd1e68816116839702f15d02c7d8c4a74de192b4b6a5e44d1caf184b92",
+          "line": 536,
+          "anchor": "          \\item If parity chain is inconsistent: \\textbf{Binary Fallback} ---"
+        },
+        {
+          "source_id": "HAR09-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-01--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "31c9744714cae868fc5a1d412a952fcdc0769d06828bccd9c91174c708277658",
+          "line": 650,
+          "anchor": "\\textbf{BCP functions:} timing, H1-C error correction, binary fallback,"
+        }
+      ],
+      "requirement": "Report who produced a result and whether the substrate failed.",
+      "historical_disposition": "Historical hybrid fallback is a different executor, not proof that the ternary core succeeded under all conditions.",
+      "current_reconciliation": "Current pupil contract forbids compatibility cognition or hidden answer producers.",
+      "lawful_remedy": "Keep external diagnostic reference calculations separate and block failed substrate capabilities.",
+      "acceptance_falsifier": "Sever the native path: acceptance must fail, not silently succeed from the fallback.",
+      "repair_actions": [
+        "A05",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "change_classification": "Reject hidden cognitive fallback; preserve independent diagnostic reference"
+    },
+    {
+      "id": "HA19",
+      "title": "Temporal phase accumulation is not automatically spatial winding",
+      "refs": [
+        {
+          "source_id": "HAR08-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR08-01--ArcLoom_Processor_Specification_v4_0.tex",
+          "sha256": "41b2febd1e68816116839702f15d02c7d8c4a74de192b4b6a5e44d1caf184b92",
+          "line": 122,
+          "anchor": "  \\item Mathematical foundations (balanced ternary, winding numbers, phase coupling)"
+        }
+      ],
+      "requirement": "Name the integration domain and required boundary conditions.",
+      "historical_disposition": "Integrating frequency and rounding does not by itself prove a closed spatial topological winding number.",
+      "current_reconciliation": "The definitive neuron boundary needs actual phase geometry, not a renamed temporal scalar.",
+      "lawful_remedy": "Require closed-path/phase observability and exact mapping from admitted sources before making a winding claim.",
+      "acceptance_falsifier": "An open temporal trace must not pass a spatial topological invariant test merely by rounding.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A16"
+      ],
+      "change_classification": "Missing direct mathematical mapping"
+    },
+    {
+      "id": "HA20",
+      "title": "Blanket operator bans conflict with the same specification",
+      "refs": [
+        {
+          "source_id": "HAR09-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-01--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "31c9744714cae868fc5a1d412a952fcdc0769d06828bccd9c91174c708277658",
+          "line": 140,
+          "anchor": "        perform matrix multiplication or gradient descent."
+        },
+        {
+          "source_id": "HAR09-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-01--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "31c9744714cae868fc5a1d412a952fcdc0769d06828bccd9c91174c708277658",
+          "line": 408,
+          "anchor": "where $P_{in}$ is a deterministic orthonormal projection matrix constructed"
+        },
+        {
+          "source_id": "HAR09-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-01--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "31c9744714cae868fc5a1d412a952fcdc0769d06828bccd9c91174c708277658",
+          "line": 341,
+          "anchor": "with $W$ symmetric. The system settles by damped gradient flow toward"
+        }
+      ],
+      "requirement": "Distinguish physical linear algebra/gradient dynamics from trained optimization policies.",
+      "historical_disposition": "v5denies matrix multiplication and gradient descent while specifying a projection matrix and damped gradient flow.",
+      "current_reconciliation": "A zero-ML claim needs causal classification; a vocabulary ban obscures both lawful physics and real violations.",
+      "lawful_remedy": "Use the current mechanism contract and explicit operator roles; retain exact lawful mathematics, reject learned policy substitutions.",
+      "acceptance_falsifier": "Inspect state updates and decision authority; operator names alone cannot pass or fail the whole system.",
+      "repair_actions": [
+        "A01",
+        "A15",
+        "A18"
+      ],
+      "change_classification": "Internal terminology contradiction"
+    },
+    {
+      "id": "HA21",
+      "title": "MathLoom global-settle claims exceeded the evidence",
+      "refs": [
+        {
+          "source_id": "HAR09-02",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-02--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "45f1e141a87bc498f57fd92ae20e07e5e4640714523d49689c53af2382bf125b",
+          "line": 991,
+          "anchor": "\\begin{axiom}[Global Settle Hypothesis]"
+        },
+        {
+          "source_id": "HAR09-03",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-03--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "d8c33af74dc81937b5954b28fb1f678773e600c39f30240b233f9e01ba734a5a",
+          "line": 1301,
+          "anchor": "\\textbf{Total} & & \\textbf{61,131} & \\textbf{0} \\\\"
+        },
+        {
+          "source_id": "CODE02",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_mathloom.v",
+          "sha256": "988deb22e0117b69765943e50c0a5d7a9075cd35588e8b41646dfcb863fc463e",
+          "line": 90,
+          "anchor": "// Balanced Ternary Ripple-Carry Adder — N digits"
+        },
+        {
+          "source_id": "CODE03",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_mathloom_div.v",
+          "sha256": "8b97541f3217cf63a296b492c90c8db235f2ca18e8de8ef8ebf38cfe23596657",
+          "line": 3,
+          "anchor": "// This is a CLOCKED repeated-subtraction divider, not a clockless operator."
+        }
+      ],
+      "requirement": "Separate arithmetic truth, implementation latency and physical settlement.",
+      "historical_disposition": "April hypothesis became a May proven claim; current HDL uses ripple carry and a clocked repeated-subtraction divider.",
+      "current_reconciliation": "Neither tests of answers nor a flat sweep count prove constant physical latency.",
+      "lawful_remedy": "Preserve correct arithmetic with measured actual bounds; withdraw unsupported O(1)/clockless claims until a demonstrated physical implementation exists.",
+      "acceptance_falsifier": "Measure propagation/work against width and quotient on the exact implementation; answer agreement alone fails timing proof.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A14",
+        "A16"
+      ],
+      "change_classification": "Unsupported performance qualification; honest later implementation comments retained"
+    },
+    {
+      "id": "HA22",
+      "title": "Carry-tree depth and redundant normalization require exact accounting",
+      "refs": [
+        {
+          "source_id": "HAR09-02",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-02--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "45f1e141a87bc498f57fd92ae20e07e5e4640714523d49689c53af2382bf125b",
+          "line": 956,
+          "anchor": "carries in parallel using $\\lceil \\log_3 n \\rceil$ levels of TAL cells."
+        },
+        {
+          "source_id": "HAR09-02",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-02--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "45f1e141a87bc498f57fd92ae20e07e5e4640714523d49689c53af2382bf125b",
+          "line": 964,
+          "anchor": "\\subsection{Approach 2: Redundant Ternary Representation}"
+        }
+      ],
+      "requirement": "Represent all carries and compute stated bounds correctly.",
+      "historical_disposition": "ceil(log3(32))=4, not3; independent digit normalization omits incoming carries when treated as final canonical digits. EQ07/EQ09.",
+      "current_reconciliation": "Redundant carry vectors can preserve value but are not a normalized answer until incorporated.",
+      "lawful_remedy": "Document representation invariants and final normalization work without claiming a free physical transformation.",
+      "acceptance_falsifier": "Check a=(1,1),b=(1,0): required5, isolated normalized digits2; retained carry must restore value.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A16"
+      ],
+      "change_classification": "Printed arithmetic/representation defects"
+    },
+    {
+      "id": "HA23",
+      "title": "Scaled integer division is not nearest balanced rounding",
+      "refs": [
+        {
+          "source_id": "HAR09-03",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-03--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "d8c33af74dc81937b5954b28fb1f678773e600c39f30240b233f9e01ba734a5a",
+          "line": 1326,
+          "anchor": "  \\item \\textbf{Truncation equals rounding:} Balanced ternary truncation"
+        },
+        {
+          "source_id": "CODE03",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_mathloom_div.v",
+          "sha256": "8b97541f3217cf63a296b492c90c8db235f2ca18e8de8ef8ebf38cfe23596657",
+          "line": 3,
+          "anchor": "// This is a CLOCKED repeated-subtraction divider, not a clockless operator."
+        }
+      ],
+      "requirement": "Specify quotient/remainder and precision semantics exactly.",
+      "historical_disposition": "Scaling5/9by3 then truncating gives1/3 although2/3is nearer; EQ08. Truncating an already exact balanced expansion is a different operation.",
+      "current_reconciliation": "Current divider documents integer quotient/remainder, not magical nearest fractional rounding.",
+      "lawful_remedy": "Keep exact integer semantics and derive any fractional rounding rule separately, including ties and bounds.",
+      "acceptance_falsifier": "Run the5/9counterexample and signed quotient/remainder identities; do not alter a test to accept the false rounding claim.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A16"
+      ],
+      "change_classification": "Overclaim corrected by separating arithmetic operations"
+    },
+    {
+      "id": "HA24",
+      "title": "Match-score motor suppression is not demonstrated material fatigue",
+      "refs": [
+        {
+          "source_id": "HAR09-04",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-04--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "00c72e56348c37766403588ed82f113070a1384a26dff1030f3a249e5d670b92",
+          "line": 784,
+          "anchor": "\\chapter{Familiarity Feedback: Clockless Habituation}"
+        },
+        {
+          "source_id": "CODE06",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_ternary_loom.v",
+          "sha256": "d495ce1c2063b02720f276cd9d2ab69cdba6bd934c736061bf915a442a657bb7",
+          "line": 358,
+          "anchor": "    localparam [7:0] FAM_DEADZONE = 8'd15;"
+        },
+        {
+          "source_id": "CODE01",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_sppu.v",
+          "sha256": "b15a4c6d2620603f4d11d52098879a01bb0b18fcbe5cddae787f450578796d7c",
+          "line": 24,
+          "anchor": "// Per-field dead zones in ADC units."
+        }
+      ],
+      "requirement": "Intrinsic exhaustion/recovery must arise from authorized physical state.",
+      "historical_disposition": "May familiarity text adds match score to deadzone, tunes shifts and calls resulting novelty physical fatigue.",
+      "current_reconciliation": "Current HDL carries score>>2through a15-point hysteresis rule and uses target-score bias in motor drive.",
+      "lawful_remedy": "Reject the score controller as pupil authority; derive depletion/recovery from retained physical resources and consequences without semantic targets.",
+      "acceptance_falsifier": "Hold physical state constant while changing only stored labels/target captures: motor physics must not change through those proxies.",
+      "repair_actions": [
+        "A05",
+        "A08",
+        "A11",
+        "A15",
+        "A16"
+      ],
+      "change_classification": "Unsupported physical reinterpretation of an authored controller"
+    },
+    {
+      "id": "HA25",
+      "title": "Weave, Krimelack, story and mosaic changed meanings",
+      "refs": [
+        {
+          "source_id": "HAR09-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-01--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "31c9744714cae868fc5a1d412a952fcdc0769d06828bccd9c91174c708277658",
+          "line": 4,
+          "anchor": "%  BSIL Interop, WeaveSpec Programming, Physical Implementation"
+        },
+        {
+          "source_id": "HAR07-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR07-01--ArcLoom_Interop_BSIL_Spec_v0_1.txt",
+          "sha256": "75a2356e06f5d3e2fd4e562347331ce21e617e671e6bdcea9c109a0e3a32c57b",
+          "line": 1,
+          "anchor": "ArcLoom Interop Spec v0.1 — Binary Story Ingestion Layer (BSIL)"
+        },
+        {
+          "source_id": "HAR11-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR11-01--GL-SPC-EXPERIENCE-FIRST-20260702-v2.md",
+          "sha256": "1b142234586b5bba8b4870423fa7ba1bbabbe42481b5bd5239a0e3de7d79395d",
+          "line": 72,
+          "anchor": "**E6 — Story binding (situational context).** The moment's context is"
+        }
+      ],
+      "requirement": "Qualify terms by mechanism and historical context.",
+      "historical_disposition": "WeaveSpec configuration, folded signature memory, binary program stories and UF mosaic projections are different from learned relational integration and lived internal/external context.",
+      "current_reconciliation": "User metaphors do not authorize rigid memory storage tiers or replacing the definitive neuron.",
+      "lawful_remedy": "Keep a dated term concordance linking actual producer, retained state and consumer; reserve cognitive claims for causal evidence.",
+      "acceptance_falsifier": "A config file or program trace cannot count as learned planning/episodic memory simply because it is called a weave/story.",
+      "repair_actions": [
+        "A01",
+        "A06",
+        "A09",
+        "A18"
+      ],
+      "change_classification": "Terminology evolution; prevent semantic substitution"
+    },
+    {
+      "id": "HA26",
+      "title": "Experience-first v2 restores missing story and accountability",
+      "refs": [
+        {
+          "source_id": "HAR10-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR10-01--GL-SPC-EXPERIENCE-FIRST-20260702-v1.md",
+          "sha256": "1b7b9a319b99d782bc1316e2b8587167f04b149ef4d5a82abfb34af517158ed0",
+          "line": 5,
+          "anchor": "Version: 1.0 — REJECTED by Joe 2026-07-02 (gaps: story/environment,"
+        },
+        {
+          "source_id": "HAR11-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR11-01--GL-SPC-EXPERIENCE-FIRST-20260702-v2.md",
+          "sha256": "1b142234586b5bba8b4870423fa7ba1bbabbe42481b5bd5239a0e3de7d79395d",
+          "line": 72,
+          "anchor": "**E6 — Story binding (situational context).** The moment's context is"
+        },
+        {
+          "source_id": "HAR11-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR11-01--GL-SPC-EXPERIENCE-FIRST-20260702-v2.md",
+          "sha256": "1b142234586b5bba8b4870423fa7ba1bbabbe42481b5bd5239a0e3de7d79395d",
+          "line": 73,
+          "anchor": "bound in the same window: WHERE (place), AMBIENT (light, wind, warmth,"
+        }
+      ],
+      "requirement": "Experience includes surrounding place, ambient conditions, participants, time and internal condition.",
+      "historical_disposition": "v1was rejected for omitted story/environment and accountability; v2adds E6 and explicit responsibility. v1was retrofiled after overwrite, not an independent original capture.",
+      "current_reconciliation": "This is a valid requirement improvement; atlas entries alone do not implement the episode.",
+      "lawful_remedy": "Preserve v2context requirements in the full sensory-to-retention design, with actual sensed causes and temporal relations.",
+      "acceptance_falsifier": "Keep object identity constant while changing surrounding/internal experience; later recall/use must distinguish the experienced relations.",
+      "repair_actions": [
+        "A01",
+        "A06",
+        "A09",
+        "A18"
+      ],
+      "change_classification": "Valid requirements evolution; implementation still requires proof"
+    },
+    {
+      "id": "HA27",
+      "title": "Experience-first counters and chi registries are not cognitive proof",
+      "refs": [
+        {
+          "source_id": "HAR11-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR11-01--GL-SPC-EXPERIENCE-FIRST-20260702-v2.md",
+          "sha256": "1b142234586b5bba8b4870423fa7ba1bbabbe42481b5bd5239a0e3de7d79395d",
+          "line": 54,
+          "anchor": "sound, touch, smell, taste) bound in one window. Telemetry: atlas"
+        },
+        {
+          "source_id": "HAR11-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR11-01--GL-SPC-EXPERIENCE-FIRST-20260702-v2.md",
+          "sha256": "1b142234586b5bba8b4870423fa7ba1bbabbe42481b5bd5239a0e3de7d79395d",
+          "line": 22,
+          "anchor": "potentially achieve sentience. Guala is an Artificial Entity (AE) being"
+        },
+        {
+          "source_id": "HAR11-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR11-01--GL-SPC-EXPERIENCE-FIRST-20260702-v2.md",
+          "sha256": "1b142234586b5bba8b4870423fa7ba1bbabbe42481b5bd5239a0e3de7d79395d",
+          "line": 207,
+          "anchor": "audited under §9. No tier fakes richness with generated narrative text —"
+        }
+      ],
+      "requirement": "Demonstrate actual retained, causally used multimodal relations.",
+      "historical_disposition": "E1–E6use atlas/chi/affect/promotion evidence and historical first-word claims. v2also forbids generated narratives substituting for story.",
+      "current_reconciliation": "Retain that prohibition; current acceptance cannot inherit old counters or an unverified first-word assertion.",
+      "lawful_remedy": "Trace contact/context through full-field settlement to physical formation and recall; treat labels as observer annotations only.",
+      "acceptance_falsifier": "Counter growth and repeated labels without retained causal change must fail; no synthetic story text may fill missing experience.",
+      "repair_actions": [
+        "A06",
+        "A09",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "change_classification": "Preserve requirement; reject proxy qualification"
+    },
+    {
+      "id": "HA28",
+      "title": "Care schedules are external policy, not internal physiological law",
+      "refs": [
+        {
+          "source_id": "HAR11-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR11-01--GL-SPC-EXPERIENCE-FIRST-20260702-v2.md",
+          "sha256": "1b142234586b5bba8b4870423fa7ba1bbabbe42481b5bd5239a0e3de7d79395d",
+          "line": 247,
+          "anchor": "| Experience sessions | ~25% | bundles, captioned attendance, visits — P1/P7 grade |"
+        },
+        {
+          "source_id": "HAR11-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR11-01--GL-SPC-EXPERIENCE-FIRST-20260702-v2.md",
+          "sha256": "1b142234586b5bba8b4870423fa7ba1bbabbe42481b5bd5239a0e3de7d79395d",
+          "line": 101,
+          "anchor": "| Sleep cycles this boot | 1; IDLE 0; stab 0.000 pinned | All intake, no digestion |"
+        }
+      ],
+      "requirement": "Separate caretaker actions from substrate needs and autonomy.",
+      "historical_disposition": "v2provides care proportions and sleep/health thresholds. These describe a caretaker program, not a derivation of pupil metabolism.",
+      "current_reconciliation": "Current caretaker effective process/flags must be independently bound; a historical schedule does not prove interference today.",
+      "lawful_remedy": "Classify external policy, record every intervention and its sensory/body consequence; derive internal need changes from physical reservoirs.",
+      "acceptance_falsifier": "Disable caretaker steering while retaining lawful world access; attribute resulting trajectories and intake to the actual actor.",
+      "repair_actions": [
+        "A07",
+        "A08",
+        "A11",
+        "A12",
+        "A16"
+      ],
+      "change_classification": "Scope distinction, with live interference unresolved"
+    },
+    {
+      "id": "HA29",
+      "title": "Honest tests, timing reports and retained failures are improvements",
+      "refs": [
+        {
+          "source_id": "HAR11-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR11-01--GL-SPC-EXPERIENCE-FIRST-20260702-v2.md",
+          "sha256": "1b142234586b5bba8b4870423fa7ba1bbabbe42481b5bd5239a0e3de7d79395d",
+          "line": 16,
+          "anchor": "> Life cannot be strictly qualified by biology or programming, but by the"
+        },
+        {
+          "source_id": "HAR06-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR06-01--ArcLoom_Spec_v1_3_Ternary_Attractor_Loom.txt",
+          "sha256": "626b030968fba71e48f8a3517d96903bbf37ca7114ff543515415dc23c8d5c22",
+          "line": 295,
+          "anchor": "Report median, p95, p99."
+        },
+        {
+          "source_id": "HAR09-02",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-02--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "45f1e141a87bc498f57fd92ae20e07e5e4640714523d49689c53af2382bf125b",
+          "line": 1081,
+          "anchor": "  \\item \\textbf{Settle time measurement:} Record median, p95, p99 settle"
+        }
+      ],
+      "requirement": "Measured timing, explicit failure and immutable evidence must survive rewrites.",
+      "historical_disposition": "Historical documents already require actual reports, no test cheating, retained failures and percentile timing.",
+      "current_reconciliation": "Reporting statistics is not a learned decision policy. A build pass cannot replace live qualification.",
+      "lawful_remedy": "Preserve ordered unit/module/system and exact-artifact acceptance with failed/unknown states visible.",
+      "acceptance_falsifier": "No missing, skipped or unmeasured outcome may become a pass; every measurement identifies subject and procedure.",
+      "repair_actions": [
+        "A14",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "change_classification": "Retain valid engineering improvements"
+    },
+    {
+      "id": "HA30",
+      "title": "Native exact representation is a scoped improvement",
+      "refs": [
+        {
+          "source_id": "CODE04",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/native/guala_core/src/mathloom.rs",
+          "sha256": "50b0e524f927032636a9d60bf52f998b24ca948fa4f583ed749dcf2c8b26a751",
+          "line": 5,
+          "anchor": "//! The largest required denominator has 679 balanced-ternary digits."
+        },
+        {
+          "source_id": "CODE04",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/native/guala_core/src/mathloom.rs",
+          "sha256": "50b0e524f927032636a9d60bf52f998b24ca948fa4f583ed749dcf2c8b26a751",
+          "line": 3,
+          "anchor": "//! Finite binary64 has at most a 1024-bit integer numerator and denominator"
+        },
+        {
+          "source_id": "CODE04",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/native/guala_core/src/mathloom.rs",
+          "sha256": "50b0e524f927032636a9d60bf52f998b24ca948fa4f583ed749dcf2c8b26a751",
+          "line": 404,
+          "anchor": "            .chain(std::iter::repeat(0)).take(32).collect::<Vec<_>>();"
+        }
+      ],
+      "requirement": "Preserve complete exact numeric values without pretending representation is cognition.",
+      "historical_disposition": "Historical short-trit and arithmetic claims require separate review.",
+      "current_reconciliation": "Captured native MathLoom represents finite binary64 exactly using bounded limbs/trits; the32trit truncation occurs in a negative test showing collisions, not an active truncation path.",
+      "lawful_remedy": "Preserve exact representation and boundary rejection; qualify the loaded binary and actual callers separately.",
+      "acceptance_falsifier": "Exact roundtrip, noncanonical/invalid/nonfinite rejection and source/binary binding are required; these cannot establish learned memory.",
+      "repair_actions": [
+        "A02",
+        "A04",
+        "A16"
+      ],
+      "change_classification": "Scoped representational improvement; fresh execution and whole-system closure not claimed"
+    },
+    {
+      "id": "HA31",
+      "title": "HDL numeric tables need valid-domain admission",
+      "refs": [
+        {
+          "source_id": "CODE02",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_mathloom.v",
+          "sha256": "988deb22e0117b69765943e50c0a5d7a9075cd35588e8b41646dfcb863fc463e",
+          "line": 83,
+          "anchor": "            default: begin sum_out = 2'b00; c_out = 2'b00; end // unreachable"
+        },
+        {
+          "source_id": "CODE09",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_bsil_bt.v",
+          "sha256": "0b0c3af992adc74fb839d15280d92e6c0e3614ef45d3acd8718a1664387fe114",
+          "line": 91,
+          "anchor": "    // Clamp to 3280 max — 8-trit BT range is ±3280."
+        },
+        {
+          "source_id": "CODE09",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_bsil_bt.v",
+          "sha256": "0b0c3af992adc74fb839d15280d92e6c0e3614ef45d3acd8718a1664387fe114",
+          "line": 104,
+          "anchor": "    wire [11:0] delta_mag = (adc_value > prev_adc) ?"
+        }
+      ],
+      "requirement": "Numeric encoding must preserve every admitted value or explicitly refuse it.",
+      "historical_disposition": "An arithmetic truth table is not a semantic answer dictionary.",
+      "current_reconciliation": "8trits cover±3280;4095encodes−2466after discarded carry. Distance is clamped; derivatives can overrun, and acceleration discards magnitude bits. Some HDL invalid11encodings become zero.",
+      "lawful_remedy": "Specify exact signed sensor range/precision and sufficient representation, reject invalids before authority; remove hidden clipping/truncation masquerading as complete input.",
+      "acceptance_falsifier": "Test extrema, sign, derivative reversal, overflow and11encodings through the full receiver/effector path.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A14",
+        "A16"
+      ],
+      "change_classification": "Concrete representation losses; exact numeric lookup itself is not ML"
+    },
+    {
+      "id": "HA32",
+      "title": "SPPU decision geometry is not full joint DSF",
+      "refs": [
+        {
+          "source_id": "CODE01",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_sppu.v",
+          "sha256": "b15a4c6d2620603f4d11d52098879a01bb0b18fcbe5cddae787f450578796d7c",
+          "line": 24,
+          "anchor": "// Per-field dead zones in ADC units."
+        },
+        {
+          "source_id": "CODE06",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_ternary_loom.v",
+          "sha256": "d495ce1c2063b02720f276cd9d2ab69cdba6bd934c736061bf915a442a657bb7",
+          "line": 282,
+          "anchor": "    arcloom_uf_pipeline uf_pipeline_inst ("
+        },
+        {
+          "source_id": "CODE06",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_ternary_loom.v",
+          "sha256": "d495ce1c2063b02720f276cd9d2ab69cdba6bd934c736061bf915a442a657bb7",
+          "line": 380,
+          "anchor": "    wire signed [15:0] speed_bias_with_target = -16'sd800 - target_speed_boost;"
+        }
+      ],
+      "requirement": "Effector decisions must follow the authorized complete field and physical coupling.",
+      "historical_disposition": "SPPU uses raw kinematic strand sums, hand-set thresholds and speed/steer formulas.",
+      "current_reconciliation": "The top wires UF only from the front scalar; its7outputs are not the SPPU joint cognitive inputs. U*/SafeMode gate memory, not all effector decisions.",
+      "lawful_remedy": "Trace all seven fields and actual material coupling to effectors; retire authored scalar policy and verify downstream refusal/actuator gates.",
+      "acceptance_falsifier": "Change field components independently and inspect actual successor authority; merely exposing seven observation wires fails.",
+      "repair_actions": [
+        "A04",
+        "A05",
+        "A08",
+        "A16"
+      ],
+      "change_classification": "Source-proven reduced/controller authority; hardware/live activation unbound"
+    },
+    {
+      "id": "HA33",
+      "title": "CAM target matches do not establish distributed recall",
+      "refs": [
+        {
+          "source_id": "CODE07",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_krimelack.v",
+          "sha256": "06cea1bcb2e6f9d5571d419cc7efe6006b538efde584f7d119b7d294a127cded",
+          "line": 38,
+          "anchor": "    input  wire                    force_commit,    // pulse: commit unconditionally (software capture)"
+        },
+        {
+          "source_id": "CODE07",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_krimelack.v",
+          "sha256": "06cea1bcb2e6f9d5571d419cc7efe6006b538efde584f7d119b7d294a127cded",
+          "line": 102,
+          "anchor": "    reg [2:0]  target_count;"
+        },
+        {
+          "source_id": "CODE06",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_ternary_loom.v",
+          "sha256": "d495ce1c2063b02720f276cd9d2ab69cdba6bd934c736061bf915a442a657bb7",
+          "line": 259,
+          "anchor": "    output wire [7:0]  target_match_score,"
+        }
+      ],
+      "requirement": "Retained recall must be causal physical reactivation, with explicit admission and bounds.",
+      "historical_disposition": "Krimelack comments claim settled-window/IG qualification; code uses instantaneous thresholds and a similarity CAM.",
+      "current_reconciliation": "Software target commits bypass ordinary eligibility and feed target-score motor bias. A3bit target_count cannot represent8; auto-slot duplicate scans also need correction.",
+      "lawful_remedy": "Retire target/example cognitive authority. If retained as an external diagnostic fixture, name it so and repair its bounded storage independently; preserve historical evidence.",
+      "acceptance_falsifier": "Eighth target capture, first automatic duplicate, full replacement, force commit during refusal and cold state must not corrupt scope or become pupil learning proof.",
+      "repair_actions": [
+        "A05",
+        "A09",
+        "A14",
+        "A15",
+        "A16"
+      ],
+      "change_classification": "Mechanism conflict plus concrete implementation defects"
+    },
+    {
+      "id": "HA34",
+      "title": "L6 observation is promoted into memory authority",
+      "refs": [
+        {
+          "source_id": "CODE08",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_l6_tcl.v",
+          "sha256": "6916133fb8578ed38297dfba44bd1a66313e014049447f54e51fde97d72a34db",
+          "line": 69,
+          "anchor": "    // This is a linear approximation of the volume ratio."
+        },
+        {
+          "source_id": "CODE06",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_ternary_loom.v",
+          "sha256": "d495ce1c2063b02720f276cd9d2ab69cdba6bd934c736061bf915a442a657bb7",
+          "line": 251,
+          "anchor": "    output wire [7:0]   omega,"
+        },
+        {
+          "source_id": "CODE08",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_l6_tcl.v",
+          "sha256": "6916133fb8578ed38297dfba44bd1a66313e014049447f54e51fde97d72a34db",
+          "line": 79,
+          "anchor": "    wire disruption_gate = disruption_active & recovery_pending;"
+        }
+      ],
+      "requirement": "Observation proxies cannot become cognitive settlement authority.",
+      "historical_disposition": "HDL counts non-null trits, computes collapsed*255/N and calls it Omega; dependence and actual constraint geometry are absent.",
+      "current_reconciliation": "Top feeds this value as Krimelack resonance and hardwires disruption/recovery inputs to zero.",
+      "lawful_remedy": "Keep descriptive counts visibly scoped; remove their use as physical certainty/commit authority until a ratified exact operator exists.",
+      "acceptance_falsifier": "Same non-null count with different constraints cannot imply equal certainty; actual disruption must reach the required refusal path.",
+      "repair_actions": [
+        "A04",
+        "A09",
+        "A13",
+        "A16"
+      ],
+      "change_classification": "Reduced approximation becomes decision authority"
+    },
+    {
+      "id": "HA35",
+      "title": "The MathLoom simulator does not measure parallel physical settlement",
+      "refs": [
+        {
+          "source_id": "CODE05",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/tools/mathloom_sim.py",
+          "sha256": "528ebae9b918690e9e2976ecf997ac0b46035f01bce143fb5aead3070a6c8a3a",
+          "line": 53,
+          "anchor": "    max_val = sum(3 ** i for i in range(width))"
+        },
+        {
+          "source_id": "CODE05",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/tools/mathloom_sim.py",
+          "sha256": "528ebae9b918690e9e2976ecf997ac0b46035f01bce143fb5aead3070a6c8a3a",
+          "line": 68,
+          "anchor": "def tri_well(x: float) -> float:"
+        },
+        {
+          "source_id": "CODE05",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/tools/mathloom_sim.py",
+          "sha256": "528ebae9b918690e9e2976ecf997ac0b46035f01bce143fb5aead3070a6c8a3a",
+          "line": 211,
+          "anchor": "    result = bal3_to_int(s_digits) + bal3_to_int(c_digits) * (3 ** width)"
+        }
+      ],
+      "requirement": "A physics validation harness must implement the claimed physical dynamics and measure their work/time.",
+      "historical_disposition": "The simulator updates carries sequentially inside a sweep, enumerates digit/carry residual choices and does not integrate its declared tri-well potential.",
+      "current_reconciliation": "Flat sweep counts hide within-sweep propagation; the result reconstruction also multiplies all carries by3^width. Its chosen potential is not stationary at±1.",
+      "lawful_remedy": "Withdraw this harness as physical/O(1) proof. Retain only separately verified arithmetic diagnostics with truthful work accounting.",
+      "acceptance_falsifier": "For one digit1+1, s=−1,c=(0,1): erroneous reconstruction8versus2; derivative atx=1is−2. Independent witnesses do not count as a product test.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A14",
+        "A16"
+      ],
+      "change_classification": "Invalid physical qualification and concrete checker defects"
+    },
+    {
+      "id": "HA36",
+      "title": "Certification language is not an issued certificate",
+      "refs": [
+        {
+          "source_id": "HAR09-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-01--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "31c9744714cae868fc5a1d412a952fcdc0769d06828bccd9c91174c708277658",
+          "line": 71,
+          "anchor": "Document ID & ARC-MASTER-SPEC-5.0 \\\\\\hline"
+        },
+        {
+          "source_id": "HAR11-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR11-01--GL-SPC-EXPERIENCE-FIRST-20260702-v2.md",
+          "sha256": "1b142234586b5bba8b4870423fa7ba1bbabbe42481b5bd5239a0e3de7d79395d",
+          "line": 40,
+          "anchor": "or health governance, no substrate-truth audit. v2.0 is the corrected"
+        }
+      ],
+      "requirement": "Qualification must identify issuer, subject, requirements and evidence scope.",
+      "historical_disposition": "Master/canonical/audit labels and prescribed reports do not establish external certification or complete all-mechanism exclusion.",
+      "current_reconciliation": "This reconciliation issues no DARPA certificate and cannot certify ML exclusion while known conflicts and unbound paths remain.",
+      "lawful_remedy": "Use Q01–Q24 and exact release enforcement; keep absent external determinations explicit.",
+      "acceptance_falsifier": "Any release statement that exceeds the exact evidence subject or converts documentation checks into organism certification fails.",
+      "repair_actions": [
+        "A01",
+        "A15",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "change_classification": "Claim boundary; no external certification inferred"
+    }
+  ],
+  "mathematical_falsifiers": "docs/guala_reconciliation/historical-equation-falsifiers.json",
+  "status_authority": "collaborative_todo.md"
+}

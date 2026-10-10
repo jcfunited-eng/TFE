@@ -1,0 +1,32 @@
+{
+  "image": "418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:91640805ccc0548ccb10d55e97598812684112047bbabdd4ecd5415b25c0b69f",
+  "id": "sha256:91640805ccc0548ccb10d55e97598812684112047bbabdd4ecd5415b25c0b69f",
+  "repo_digests": [
+    "418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:91640805ccc0548ccb10d55e97598812684112047bbabdd4ecd5415b25c0b69f"
+  ],
+  "labels": {
+    "com.gualaloom.build_ts": "2026-09-23T22:53:22Z",
+    "org.opencontainers.image.revision": "702be702e"
+  },
+  "files": [
+    {
+      "path": "/app/release_manifest.json",
+      "copied": true,
+      "bytes": 76658,
+      "sha256": "1d60ad93ba646329f7c53edc04fe776f1adbe9d1ea042a90980dc88974ec2c93"
+    },
+    {
+      "path": "/opt/release_manifest.json",
+      "copied": true,
+      "bytes": 76658,
+      "sha256": "1d60ad93ba646329f7c53edc04fe776f1adbe9d1ea042a90980dc88974ec2c93"
+    },
+    {
+      "path": "/usr/local/lib/python3.11/site-packages/guala_core/guala_core.cpython-311-x86_64-linux-gnu.so",
+      "copied": true,
+      "bytes": 2345592,
+      "sha256": "4c7c1811a389cb7acee89b77409672a5803d080801d3528fc9c596a9346b5244"
+    }
+  ],
+  "never_started_container_removed": true
+}

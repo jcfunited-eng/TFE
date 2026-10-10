@@ -1,0 +1,22 @@
+{
+  "scope": "Two selected primary-source checks, not full bibliography qualification",
+  "sources": [
+    {
+      "id": "RMP01",
+      "title": "Sevenster, Beckers and Kindt2014",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4201815/",
+      "checked": "Abstract and primary methods/results/discussion, especially lines95–155 of retrieved page; not every linked source or supplement.",
+      "finding": "In this human fear-conditioning experiment, reactivation conditions changed whether reconsolidation occurred. Prediction error was not sufficient. These findings do not derive a universal deterministic ArcLoom update law.",
+      "limit": "No global biological sufficiency theorem or implementation approval inferred."
+    },
+    {
+      "id": "RMP02",
+      "title": "Spens and Burgess2024, UCLauthor institution record",
+      "url": "https://discovery.ucl.ac.uk/id/eprint/10186145/",
+      "checked": "Author institution metadata and abstract, lines28–39.",
+      "finding": "The authors describe an autoassociative system whose replay trains variational autoencoders. This is an MLcomputational model, not evidence that Guala executes it.",
+      "limit": "Naturefulltext redirected; PMCdirect read returnedcaptcha; UCLPDF timedout. No full-paper or optimizer review claimed."
+    }
+  ],
+  "product_execution": false
+}

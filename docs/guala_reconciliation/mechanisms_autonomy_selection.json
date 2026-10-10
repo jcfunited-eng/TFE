@@ -1,0 +1,695 @@
+{
+  "schema": "guala.documentary_mechanisms.v1",
+  "at_utc": "2026-10-10T08:39:04.447029+00:00",
+  "scope": "Complete captured content of26 versions/10 paths:2147 latest-document lines plus45 older-only passages/227 lines. No product execution, current telemetry refresh, original approval authentication or primary-literature review.",
+  "mechanisms": [
+    {
+      "id": "VAS01",
+      "name": "Persistent world proof excluded the broken default constructor",
+      "classification": "reported_scoped_world_custody_with_separate_genesis_failure",
+      "finding": "ASR01",
+      "observed_mechanism": "A002 proves a restored15-object four-room world, exact cold bytes, read-only observation and refusal of corruption. Its generic constructor authors66 curriculum objects against capacity64; A008 later reports nine of16 tests stopped at that same fresh-construction boundary. Production uses15 explicit objects, so neither failure directly disproves its observed yaw.",
+      "evidence_limits": "The dormant/default defect still needs disposition wherever reachable. Six focused passes do not close it, and a2MiB world bound does not prove food consumption/replenishment, locomotion or all sensory effects. Stable UUID is needed for correct authentication but is not full physical preservation.",
+      "replacement": "Trace current constructors, capacities, object/material state and all serving/test callers. Preserve exact real world state and distinguish finite declared capacity from guessed inflation. Resolve actual required genesis functionality and nourishment sources without masking missing state with defaults.",
+      "acceptance": {
+        "unit": "Reject corrupt/missing current state and invalid object capacity before mutation.",
+        "module": "Verify actual restored/default paths and canonical world/body persistence.",
+        "system": "Prove current native action, food material change and appropriate sensory return with retained state.",
+        "release": "Do not use the15-object scope to certify all66-object or current world requirements."
+      },
+      "refs": [
+        {
+          "source_id": "AS01-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS01-01--GUALA_A002_PERSISTENT_WORLD_SPRINT_LEDGER_2026-08-14.md",
+          "line": 63,
+          "anchor": "  its generic constructor now authors 66 curriculum objects against an older",
+          "sha256": "19b41611cceb7357592e7b4827bbac8d22438f26cf1318370e0433c3fef59ff6"
+        },
+        {
+          "source_id": "AS01-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS01-01--GUALA_A002_PERSISTENT_WORLD_SPRINT_LEDGER_2026-08-14.md",
+          "line": 47,
+          "anchor": "| Corruption | false state is never silently substituted | a one-byte-corrupt world is refused and remains untouched rather than being rebuilt from defaults |",
+          "sha256": "19b41611cceb7357592e7b4827bbac8d22438f26cf1318370e0433c3fef59ff6"
+        },
+        {
+          "source_id": "AS06-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS06-01--GUALA_A008_CHOICE_TO_AT_MOST_ONCE_ACTION_SPRINT_LEDGER_2026-08-14.md",
+          "line": 82,
+          "anchor": "- The first focused run executed 16 tests: seven passed and nine default-world",
+          "sha256": "801f608f2333f260dd192090f722c6e84c4101d9e67f9b0b388247f306fc1000"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A07",
+        "A08",
+        "A12",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VAS02",
+      "name": "Physical residual imbalance and finite route competition are not drive scores",
+      "classification": "reported_local_physics_with_limited_motivational_claim",
+      "finding": "ASR02",
+      "observed_mechanism": "A004 allows an odd elementary-charge residual to rest and even gradients to equalize; open-system imbalance never requires every neuron to fire forever. Local pumps consume finite work and passive descent exports heat. A005 gives System Greed no stored coefficient: actual finite carriers divide[1,1] versus[0,2] after prior local state changes, while zero-transport routes remain observable.",
+      "evidence_limits": "Useful narrow conservation/state-dependent competition is not semantic hunger, nourishment, curiosity, planned food acquisition or learned speech. Approximate displayed work values and false authority flags are not independent exact-source audits. Continuous external or internal stimulation must be separately sourced.",
+      "replacement": "Keep actual material/charge/work laws and causal retained-state effects. Trace current reservoir income, depletion/recovery, all full-field readers and ordinary alternative routes; derive needs through the ratified physical/functional architecture without adding a scalar Greed or drive controller.",
+      "acceptance": {
+        "unit": "Verify finite sources, exact conservation, allowed rest and competing routes without authored winner.",
+        "module": "Trace native physical quantities and real input/recovery consumers end to end.",
+        "system": "Demonstrate preserved experience/body-state effects on useful action and food acquisition with controls.",
+        "release": "Neither continuing activity nor local competition closes full autonomy, speech or nutrition."
+      },
+      "refs": [
+        {
+          "source_id": "AS02-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS02-01--GUALA_A004_CONTROLLED_PHYSICAL_IMBALANCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 44,
+          "anchor": "- An even two-node difference may settle to equality. An odd difference may",
+          "sha256": "43dbc22283cecc99a247a95eeb0f6cfa8a9e2df94202a22eeddb38053ed23ca4"
+        },
+        {
+          "source_id": "AS02-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS02-01--GUALA_A004_CONTROLLED_PHYSICAL_IMBALANCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 54,
+          "anchor": "  satisfied state or global target—not that every neuron must remain firing.",
+          "sha256": "43dbc22283cecc99a247a95eeb0f6cfa8a9e2df94202a22eeddb38053ed23ca4"
+        },
+        {
+          "source_id": "AS03-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS03-01--GUALA_A005_LOCAL_PHYSICAL_COMPETITION_SPRINT_LEDGER_2026-08-14.md",
+          "line": 17,
+          "anchor": "  it is not a stored property, coefficient, score, personality, or goal.",
+          "sha256": "16f4b0594d39f15ffae4244369f6efaa45efa451b6c3f027e7b0e56bdf6019b1"
+        },
+        {
+          "source_id": "AS03-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS03-01--GUALA_A005_LOCAL_PHYSICAL_COMPETITION_SPRINT_LEDGER_2026-08-14.md",
+          "line": 56,
+          "anchor": "  transition changes one membrane, the same anatomy settles `[0,2]` with exact",
+          "sha256": "16f4b0594d39f15ffae4244369f6efaa45efa451b6c3f027e7b0e56bdf6019b1"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A05",
+        "A07",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VAS03",
+      "name": "Choice witness required real preparation, not discharge or coincident paths",
+      "classification": "reported_observer_correction_with_motor_law_and_scope_requirements",
+      "finding": "ASR03",
+      "observed_mechanism": "A007 rejects prediction paths, motor discharge, aggregate attention counts and cross-transaction contact coincidence as sufficient choice. Its corrected observer matches exact directed attention/preparation transfers in one hop, using a later frontier only to classify route change. Both antagonist populations discharge and their difference matches a pre-existing signed yaw; first qualifying observation is bounded and has no decision authority.",
+      "evidence_limits": "The1-carrier-to1-millidegree correspondence and even/odd antagonist anatomy are reported body rules, not derived physics or recovered approval here. Actual opposed preparation is stronger than one authored Python option but does not by itself establish deliberation, learned goals or syntax. Five capital dimensions credited by an observer cannot supply those mechanisms.",
+      "replacement": "Preserve hop/transfer/lineage/time binding and lawful antagonist mechanics. Trace actual current candidate generation, body mapping and all consumers; recover exact motor-law authority and demonstrate learned contextual selection. Latest witness observation must not be relabeled present cognitive state.",
+      "acceptance": {
+        "unit": "Reject cancelled antagonists, mismatched transfer direction/quantity/time and unrelated coexistence.",
+        "module": "Bind current attention/native motor/body law without observer or Python option authority.",
+        "system": "Prove retained experience changes the prepared/applied action under relevant alternatives and controls.",
+        "release": "No full-choice/speech certificate from a read-only projection or five credited capital dimensions."
+      },
+      "refs": [
+        {
+          "source_id": "AS05-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS05-01--GUALA_A007_ATTENTION_TO_PHYSICAL_CHOICE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 94,
+          "anchor": "2. Rejected: call every motor discharge a choice. A discharge without authentic",
+          "sha256": "d25f0301c96b65d5c27c51488d306c965aecd165180ea461dae161daadc6dec7"
+        },
+        {
+          "source_id": "AS05-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS05-01--GUALA_A007_ATTENTION_TO_PHYSICAL_CHOICE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 104,
+          "anchor": "   the whole transaction. The same contact can move different quantities in",
+          "sha256": "d25f0301c96b65d5c27c51488d306c965aecd165180ea461dae161daadc6dec7"
+        },
+        {
+          "source_id": "AS05-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS05-01--GUALA_A007_ATTENTION_TO_PHYSICAL_CHOICE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 68,
+          "anchor": "  exact signed settlement was `1641 - 1865 = -224` millidegrees, identical to",
+          "sha256": "d25f0301c96b65d5c27c51488d306c965aecd165180ea461dae161daadc6dec7"
+        },
+        {
+          "source_id": "AS05-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS05-01--GUALA_A007_ATTENTION_TO_PHYSICAL_CHOICE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 150,
+          "anchor": "  Cognitive capital credits exactly five `Deliberation and choice` dimensions:",
+          "sha256": "d25f0301c96b65d5c27c51488d306c965aecd165180ea461dae161daadc6dec7"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A05",
+        "A08",
+        "A09",
+        "A10",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VAS04",
+      "name": "Consumed action capability proves a narrower boundary than crash-safe whole-organism continuity",
+      "classification": "reported_at_most_once_world_transaction_with_cross_boundary_obligations",
+      "finding": "ASR04",
+      "observed_mechanism": "A008 prepares one world candidate without mutation, rejects concurrent/stale/reused capabilities, commits one revision and returns body senses under the same receipt. It describes world rollback if organism publication fails. Its live snapshot binds one-126mdeg action to revision3957→3958;8 focused passes use an explicit finite world fixture.",
+      "evidence_limits": "In-process capability consumption and one applied snapshot do not independently prove crash/restart ordering across separately persisted organism/world state, exact learned selection, or every later consequence. Atomic multi-boundary claims require actual persistence and recovery proof; historical rollback prose grants no authority to discard current experience.",
+      "replacement": "Trace actual prepare/commit/native/world/durable publication and all interruptions, preserving one lawful predecessor/descendant pair. Keep receipt and physical action ancestry; no retries after uncertain response until authenticated state resolves whether the action committed.",
+      "acceptance": {
+        "unit": "Reject stale, reused and interrupted capabilities without duplicate visible action.",
+        "module": "Verify native/world publication ordering and crash boundaries against canonical state.",
+        "system": "Prove one physical effect and retained learned continuity through restart and uncertain-response recovery.",
+        "release": "Exact current serving/persistence evidence must qualify the full boundary; local fixture passes alone do not."
+      },
+      "refs": [
+        {
+          "source_id": "AS06-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS06-01--GUALA_A008_CHOICE_TO_AT_MOST_ONCE_ACTION_SPRINT_LEDGER_2026-08-14.md",
+          "line": 70,
+          "anchor": "- A commit interruption restores the exact prior world and leaves the original",
+          "sha256": "801f608f2333f260dd192090f722c6e84c4101d9e67f9b0b388247f306fc1000"
+        },
+        {
+          "source_id": "AS06-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS06-01--GUALA_A008_CHOICE_TO_AT_MOST_ONCE_ACTION_SPRINT_LEDGER_2026-08-14.md",
+          "line": 72,
+          "anchor": "- If organism publication fails after world commit, the existing rollback",
+          "sha256": "801f608f2333f260dd192090f722c6e84c4101d9e67f9b0b388247f306fc1000"
+        },
+        {
+          "source_id": "AS06-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS06-01--GUALA_A008_CHOICE_TO_AT_MOST_ONCE_ACTION_SPRINT_LEDGER_2026-08-14.md",
+          "line": 117,
+          "anchor": "  A-008 at-most-once path pass 8/8 against this exact worktree.",
+          "sha256": "801f608f2333f260dd192090f722c6e84c4101d9e67f9b0b388247f306fc1000"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A08",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VAS05",
+      "name": "Curiosity evidence overconstraints and actual social causation must be separated",
+      "classification": "documented_review_corrections_and_incomplete_behavioral_proof",
+      "finding": "ASR05",
+      "observed_mechanism": "The A006 review packet records accepted corrections: observer arity, three-way lineage intersection and same-action/same-tick social coincidence are stronger detail rather than governing vetoes; a missing named-need object was itself a wrong requirement. Its proposedexactly-two prediction alternatives and all-contributors-one-event proof remain questioned. Participant-only then later card requests did not share active causation; the combined corrected route was not yet live-exercised.",
+      "evidence_limits": "Relaxing an unratified observer quota can be legitimate without weakening real causal proof. Participant presence, proximity and a catalog apple/A label cannot establish social cause or word knowledge. Separate genuine episodes can prove different capacities, but cannot be composed into a causal sequence they never supplied.",
+      "replacement": "Recover exact governing functional requirements and replace accidental quotas with faithful causal evidence. Preserve actual changed participant receptors, physical transfers, retained state and body consequences. Distinguish latest process-local observation from persistent learning and no-observation from no-capability.",
+      "acceptance": {
+        "unit": "Falsify label/coincidence/proxy evidence while allowing ratified causal forms beyond arbitrary quotas.",
+        "module": "Trace actual current observer inputs/readers and native contributor paths without feedback authority.",
+        "system": "Demonstrate each claimed function and required integrated relation on the same preserved organism.",
+        "release": "No A006, social or speech closure from a deployed lock fix or a proposed acceptance packet."
+      },
+      "refs": [
+        {
+          "source_id": "AS04-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS04-01--GUALA_A006_INDEPENDENT_ANALYSIS_BRIEF_FOR_CLAUDE_2026-08-23.md",
+          "line": 32,
+          "anchor": "  social coincidence are stronger evidence details, not governing A-006",
+          "sha256": "482dda9c1645f299b0231b0ff58cab76c34dec21f45ebae4db1984115f0a6598"
+        },
+        {
+          "source_id": "AS04-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS04-01--GUALA_A006_INDEPENDENT_ANALYSIS_BRIEF_FOR_CLAUDE_2026-08-23.md",
+          "line": 34,
+          "anchor": "- a named-need object is forbidden and was incorrectly described as missing;",
+          "sha256": "482dda9c1645f299b0231b0ff58cab76c34dec21f45ebae4db1984115f0a6598"
+        },
+        {
+          "source_id": "AS04-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS04-01--GUALA_A006_INDEPENDENT_ANALYSIS_BRIEF_FOR_CLAUDE_2026-08-23.md",
+          "line": 342,
+          "anchor": "6. exactly two physical prediction alternatives are present;",
+          "sha256": "482dda9c1645f299b0231b0ff58cab76c34dec21f45ebae4db1984115f0a6598"
+        },
+        {
+          "source_id": "AS04-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS04-01--GUALA_A006_INDEPENDENT_ANALYSIS_BRIEF_FOR_CLAUDE_2026-08-23.md",
+          "line": 418,
+          "anchor": "substrate receives physical visual/body occurrences. A-006 does not prove that",
+          "sha256": "482dda9c1645f299b0231b0ff58cab76c34dec21f45ebae4db1984115f0a6598"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A12",
+        "A13",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VAS06",
+      "name": "Transport serialization is not a cognitive chooser and unlike workloads are not a speedup",
+      "classification": "reported_race_correction_with_explicit_performance_limits",
+      "finding": "ASR06",
+      "observed_mechanism": "Task1193 read native retinal/body axes while unattended mutation held the borrow, before external action/admission. The already-existing reentrant transition lock corrected custody; the external intake signal yields at an atomic boundary while native cognition proceeds through its actual input. One focused lock test and task1194 deployment did not prove combined behavior. Body-only4.15–4.28seconds and mixed eight-episode55.389seconds are unequal workloads.",
+      "evidence_limits": "A transport lock is not automatically forbidden cognitive ownership. It can still create latency/starvation and requires real current lifecycle bounds. Absence of a current process-local curiosity witness after restart is not proof learned structure disappeared. A compatibility function used by focused tests is not automatically a live cognitive path.",
+      "replacement": "Trace all shared native readers, bounded admission/serialization and exact active versus test-only call paths. Compare identical workloads and account whole-body sealing separately; preserve independent native life without duplicate snapshots or pause-after-action architecture.",
+      "acceptance": {
+        "unit": "Verify reads share required native custody and cannot double-mutate or starve input.",
+        "module": "Measure identical complete current workloads and actual active call graph.",
+        "system": "Prove ordinary unattended/external interaction continuity and retained learned effect after restart.",
+        "release": "Do not call a lock fix a speedup, deployment health a behavior pass or old compatibility code active without reachability."
+      },
+      "refs": [
+        {
+          "source_id": "AS04-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS04-01--GUALA_A006_INDEPENDENT_ANALYSIS_BRIEF_FOR_CLAUDE_2026-08-23.md",
+          "line": 299,
+          "anchor": "RuntimeError: Already mutably borrowed",
+          "sha256": "482dda9c1645f299b0231b0ff58cab76c34dec21f45ebae4db1984115f0a6598"
+        },
+        {
+          "source_id": "AS04-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS04-01--GUALA_A006_INDEPENDENT_ANALYSIS_BRIEF_FOR_CLAUDE_2026-08-23.md",
+          "line": 323,
+          "anchor": "before beginning its next atomic interval. This is not a cognitive pause:",
+          "sha256": "482dda9c1645f299b0231b0ff58cab76c34dec21f45ebae4db1984115f0a6598"
+        },
+        {
+          "source_id": "AS04-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS04-01--GUALA_A006_INDEPENDENT_ANALYSIS_BRIEF_FOR_CLAUDE_2026-08-23.md",
+          "line": 39,
+          "anchor": "- the historical full-occurrence and body-only timings were different",
+          "sha256": "482dda9c1645f299b0231b0ff58cab76c34dec21f45ebae4db1984115f0a6598"
+        },
+        {
+          "source_id": "AS04-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS04-01--GUALA_A006_INDEPENDENT_ANALYSIS_BRIEF_FOR_CLAUDE_2026-08-23.md",
+          "line": 626,
+          "anchor": "4.15–4.28 seconds, not 6.27 seconds. The current combined A-006 transport lock",
+          "sha256": "482dda9c1645f299b0231b0ff58cab76c34dec21f45ebae4db1984115f0a6598"
+        },
+        {
+          "source_id": "AS04-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS04-01--GUALA_A006_INDEPENDENT_ANALYSIS_BRIEF_FOR_CLAUDE_2026-08-23.md",
+          "line": 661,
+          "anchor": "`_advance_internal_formation_motor_trace` is an older focused-test",
+          "sha256": "482dda9c1645f299b0231b0ff58cab76c34dec21f45ebae4db1984115f0a6598"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A05",
+        "A06",
+        "A09",
+        "A12",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VAS07",
+      "name": "Sleep closure was repeatedly broader than its witnessed physical sequence",
+      "classification": "explicit_claim_retraction_and_later_narrow_sequence_proof",
+      "finding": "ASR07",
+      "observed_mechanism": "A012 evolves from dependency-open to composed historical closure, then direct task1193 closure, then Aug29 retraction because endogenous reassembly is not a sleep boundary. A58-tick quiet window had zero recovery/dissipation drain. Later task1322 records tick258821 one recovered neuron/no motor with46 internal reassemblies and318 reported thought transitions, tick258822 effectors, and returned consequence by258828.",
+      "evidence_limits": "That later ordered physical witness is stronger than simultaneous recovery/movement and must be preserved. It is not by itself sustained sleep, dreaming content, sleep-dependent memory strengthening or later benefit to speech. Originalfunctional sleep acceptance needs exact authority and contextual controls; current functional emulation does not require rebuilding full biological sleep anatomy.",
+      "replacement": "Canonicalize closure chronology and precise functional sleep definition. Bind native state, duration, internal recurrence, reduction of external action, wake cause and later retained benefit. Do not add a sleep Boolean, scheduled replay or familiar terminology to manufacture missing function.",
+      "acceptance": {
+        "unit": "Reject unordered aggregates and endogenous-origin labels as sleep proof.",
+        "module": "Verify actual sequence/time and native source/body effects without observer control.",
+        "system": "Show meaningful retained consolidation/use across the ratified sleep/wake function with negative controls.",
+        "release": "Keep task1322 narrow evidence distinct from complete current sleep, dreams, learning or speech qualification."
+      },
+      "refs": [
+        {
+          "source_id": "AS07-04",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS07-04--GUALA_A012_UNATTENDED_DEVELOPMENT_SPRINT_LEDGER_2026-08-16.md",
+          "line": 179,
+          "anchor": "`internally_simulated` provenance as sleep/internal replay. That inference is",
+          "sha256": "65d0c767af26c8fc433c59326160d843f2ceaa2bccc5bfe3f0cefa91a6dc2ef4"
+        },
+        {
+          "source_id": "AS07-04",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS07-04--GUALA_A012_UNATTENDED_DEVELOPMENT_SPRINT_LEDGER_2026-08-16.md",
+          "line": 185,
+          "anchor": "timer, or forced-energy withdrawal was supplied. Across 58 unattended ticks,",
+          "sha256": "65d0c767af26c8fc433c59326160d843f2ceaa2bccc5bfe3f0cefa91a6dc2ef4"
+        },
+        {
+          "source_id": "AS07-04",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS07-04--GUALA_A012_UNATTENDED_DEVELOPMENT_SPRINT_LEDGER_2026-08-16.md",
+          "line": 449,
+          "anchor": "- tick 258821 recovered one resident neuron with no motor recruitment;",
+          "sha256": "65d0c767af26c8fc433c59326160d843f2ceaa2bccc5bfe3f0cefa91a6dc2ef4"
+        },
+        {
+          "source_id": "AS07-07",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS07-07--GUALA_A012_UNATTENDED_DEVELOPMENT_SPRINT_LEDGER_2026-08-16.md",
+          "line": 133,
+          "anchor": "A-012 is Live-Closed as the truthful composition of live-deployed physical",
+          "sha256": "69555fe31156b1a4c2002947720283489c41bd035de96b49caf9821957204e68"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A13",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VAS08",
+      "name": "Stopped-axis load feedback had contradictory runtime and retained mappings",
+      "classification": "documented_concrete_body_reflex_repair_with_inherited_failures",
+      "finding": "ASR08",
+      "observed_mechanism": "A012 finds live eyelids at12000µm stop with outward discharge but no displacement. Mounting/cold correction route reacted load to opposing_effector, while runtime used quantity-blind paired_effector. The corrected typed load admits the releasing motor only; task1316 records11999/11994µm apertures. Candidate full native result522pass8fail11ignored versus baseline520pass9fail11ignored.",
+      "evidence_limits": "This is a specific mechanical contradiction and reported useful repair, not evidence of completed sleep. Three focused passes and no newly introduced failures do not close eight inherited failures or ignored obligations. Existing mapping itself needs current ratified body-law lineage rather than nomenclature as authority.",
+      "replacement": "Trace current typed physical load source, mounting, migration and ordinary resolver together. Preserve same-axis/opposing-motor constraints, actual load/proprioceptive feedback and all failed-test dispositions; no forced pose or artificial stop escape.",
+      "acceptance": {
+        "unit": "Reject wrong quantity, same-direction motor and unrelated axis.",
+        "module": "Verify ordinary resolver equals actual mounted physical load law across cold/warm state.",
+        "system": "Show real stopped-axis unloading and sensed return in the preserved current organism.",
+        "release": "Qualify inherited failures explicitly; a one-micrometre motion is not full sleep or body capability."
+      },
+      "refs": [
+        {
+          "source_id": "AS07-04",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS07-04--GUALA_A012_UNATTENDED_DEVELOPMENT_SPRINT_LEDGER_2026-08-16.md",
+          "line": 236,
+          "anchor": "body ending through `paired_effector()`. That contradicts both the one-way",
+          "sha256": "65d0c767af26c8fc433c59326160d843f2ceaa2bccc5bfe3f0cefa91a6dc2ef4"
+        },
+        {
+          "source_id": "AS07-04",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS07-04--GUALA_A012_UNATTENDED_DEVELOPMENT_SPRINT_LEDGER_2026-08-16.md",
+          "line": 296,
+          "anchor": "The complete candidate native library result was `522 passed, 8 failed, 11",
+          "sha256": "65d0c767af26c8fc433c59326160d843f2ceaa2bccc5bfe3f0cefa91a6dc2ef4"
+        },
+        {
+          "source_id": "AS07-04",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS07-04--GUALA_A012_UNATTENDED_DEVELOPMENT_SPRINT_LEDGER_2026-08-16.md",
+          "line": 327,
+          "anchor": "12,000-micrometre stop to 11,999 micrometres and the right later reached 11,994",
+          "sha256": "65d0c767af26c8fc433c59326160d843f2ceaa2bccc5bfe3f0cefa91a6dc2ef4"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A08",
+        "A09",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VAS09",
+      "name": "Root translation rest obstruction came from wrong persistent preparation status",
+      "classification": "documented_recovery_deadlock_and_scoped_passive_return_fix",
+      "finding": "ASR09",
+      "observed_mechanism": "Positive charge in both yaw and translation terminals was treated as prepared action, although translation required a fresh layer11 ordering transfer and prohibited returned position feedback from preparing another translation. Unprepared translation remained scheduled but neither actionable nor passively recovering. The fix permits its existing passive return and wakes exact incident contacts while preserving yaw action memory; task1317 reports first7–8 recovered neurons.",
+      "evidence_limits": "An actually persistent prepared yaw state is a different function from translation feedback and cannot be deleted merely to suppress motion. Recovery evidence alone does not prove action-free rest or lawful useful navigation. This historical defect is a concrete audit target, not a diagnosis of current turning.",
+      "replacement": "Trace current preparation lifetime and authority for each effector, actual passive-return sources and universal contact wake. Preserve real causal history, typed differences and exact conservation; no blanket rest gate or decay of learned state.",
+      "acceptance": {
+        "unit": "Falsify feedback-triggered repeat translation and incorrect permanent prepared flags.",
+        "module": "Verify native preparation/recovery/contact wake and transported recovery counts.",
+        "system": "Demonstrate appropriate current rest/action alternation and useful native navigation with controls.",
+        "release": "Require exact serving proof; historical recovery count cannot certify current attractor absence."
+      },
+      "refs": [
+        {
+          "source_id": "AS07-04",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS07-04--GUALA_A012_UNATTENDED_DEVELOPMENT_SPRINT_LEDGER_2026-08-16.md",
+          "line": 337,
+          "anchor": "correct only for root yaw. Root translation now requires a fresh layer-11",
+          "sha256": "65d0c767af26c8fc433c59326160d843f2ceaa2bccc5bfe3f0cefa91a6dc2ef4"
+        },
+        {
+          "source_id": "AS07-04",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS07-04--GUALA_A012_UNATTENDED_DEVELOPMENT_SPRINT_LEDGER_2026-08-16.md",
+          "line": 337,
+          "anchor": "correct only for root yaw. Root translation now requires a fresh layer-11",
+          "sha256": "65d0c767af26c8fc433c59326160d843f2ceaa2bccc5bfe3f0cefa91a6dc2ef4"
+        },
+        {
+          "source_id": "AS07-04",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS07-04--GUALA_A012_UNATTENDED_DEVELOPMENT_SPRINT_LEDGER_2026-08-16.md",
+          "line": 343,
+          "anchor": "The correction preserves root-yaw action memory and sends an unprepared",
+          "sha256": "65d0c767af26c8fc433c59326160d843f2ceaa2bccc5bfe3f0cefa91a6dc2ef4"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A04",
+        "A05",
+        "A08",
+        "A09",
+        "A11",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VAS10",
+      "name": "Scheduled physical settlement contaminated the causal seed authority",
+      "classification": "documented_resurrection_of_false_motor_preparation",
+      "finding": "ASR10",
+      "observed_mechanism": "Tasks1317–1320 had recovery/recurrence but no action-free interval. Task1321 added a causal_seed_lineages membership gate and passed three local tests, yet live still recruited127 motors. Commit9228fa81 had converted a due contact into ActiveElectricalFrontierEntry despite neither endpoint belonging to the causal occurrence; next interval promoted its receiver into a causal seed. Correction separates scheduled charge settlement/incident wake from actual causal-boundary crossing that authorizes next_active_frontier.",
+      "evidence_limits": "An upstream contaminated authority set defeats a correct-looking downstream predicate. Scheduled physical change is real and may have genuine downstream consequences; bookkeeping alone must not fabricate membership, cognition or action. Exact current causal law and preservation must decide eligibility, not a filter chosen to create silence.",
+      "replacement": "Trace every current causal-set writer, not only motor gates, through source/recovery/schedule and actual directed transfers. Retain all lawful physical settlement and universal wake while removing unsupported authority promotion. Link this recurrence to earlier C021 and later gate retirements without assuming equal names mean equal semantics.",
+      "acceptance": {
+        "unit": "Inject due-only noncausal contact cases and distinguish genuine causal-boundary crossings.",
+        "module": "Verify all producer→frontier→motor/learning readers on the actual native current path.",
+        "system": "Demonstrate action-free states and authentic renewed action without losing acquired behavior.",
+        "release": "Current full causal closure must survive production-sized replay/live proof; three green local gates were insufficient historically."
+      },
+      "refs": [
+        {
+          "source_id": "AS07-04",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS07-04--GUALA_A012_UNATTENDED_DEVELOPMENT_SPRINT_LEDGER_2026-08-16.md",
+          "line": 424,
+          "anchor": "reassemblies. The predicate received a contaminated authority set.",
+          "sha256": "65d0c767af26c8fc433c59326160d843f2ceaa2bccc5bfe3f0cefa91a6dc2ef4"
+        },
+        {
+          "source_id": "AS07-04",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS07-04--GUALA_A012_UNATTENDED_DEVELOPMENT_SPRINT_LEDGER_2026-08-16.md",
+          "line": 426,
+          "anchor": "The contamination was introduced by commit `9228fa81`: a contact selected only",
+          "sha256": "65d0c767af26c8fc433c59326160d843f2ceaa2bccc5bfe3f0cefa91a6dc2ef4"
+        },
+        {
+          "source_id": "AS07-04",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS07-04--GUALA_A012_UNATTENDED_DEVELOPMENT_SPRINT_LEDGER_2026-08-16.md",
+          "line": 435,
+          "anchor": "the already-mounted universal wake law. Only a contact crossing the actual",
+          "sha256": "65d0c767af26c8fc433c59326160d843f2ceaa2bccc5bfe3f0cefa91a6dc2ef4"
+        },
+        {
+          "source_id": "AS07-04",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS07-04--GUALA_A012_UNATTENDED_DEVELOPMENT_SPRINT_LEDGER_2026-08-16.md",
+          "line": 407,
+          "anchor": "The correction requires that sender to be present in the current causal seed",
+          "sha256": "65d0c767af26c8fc433c59326160d843f2ceaa2bccc5bfe3f0cefa91a6dc2ef4"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VAS11",
+      "name": "Endogenous reattention proposal was explicitly unratified and its first law failed",
+      "classification": "documented_failed_cue_law_and_unapproved_persistence_proposal",
+      "finding": "ASR11",
+      "observed_mechanism": "Aug6 proposal finds exogenous-only optical cues unable to recur in300 dark intervals despite real settling. V1uses both whole-transfer endpoints as proper partial cue under zero gate work; its first settling tail admits on presentation1 and breaks five tests, falsifying claimed exclusion of afterglow. V2adds a per-experience rested Boolean and proposes pre-law bodies restore true, while explicitly requiring ratification and further measurement.",
+      "evidence_limits": "The stated no-endogenous-cue argument is conditional on that old source law, not permanent impossibility for ArcLoom. An exact physical state bit is not automatically heuristic, but its transition, per-experience history and migration cannot be guessed from hundreds of global intervals. This document does not approve later hunger-pressure machinery. Read-only posting-chain navigation is a separate reported capability, not cognitive authority.",
+      "replacement": "Recover original approval and actual source descendants; preserve the V1failure. Map genuine quiescence/retained history and current internal cue law without fabricated rested state, presentation-count tuning, scheduled replay or scalar drive bridge. Keep navigation custody distinct from physical recurrence.",
+      "acceptance": {
+        "unit": "Falsify settling-tail relabeling, absent/severed paths and unsupported legacy bit initialization.",
+        "module": "Trace current internal/external cue, exact retained state and canonical migrations.",
+        "system": "Show genuine acquired internal recurrence and later useful effect after restart with controls.",
+        "release": "No adoption or speech feasibility conclusion from a ratification-required design or old conditional impossibility statement."
+      },
+      "refs": [
+        {
+          "source_id": "AS09-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS09-01--GUALA_ENDOGENOUS_REATTENTION_DESIGN_2026-08-06.md",
+          "line": 4,
+          "anchor": "Status: **RATIFICATION REQUIRED** for the physics-law section (§4). The",
+          "sha256": "ba83a049550ab45ca61174316c3c60fa64f24722fe4f622dbf47903ca4945f8b"
+        },
+        {
+          "source_id": "AS09-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS09-01--GUALA_ENDOGENOUS_REATTENTION_DESIGN_2026-08-06.md",
+          "line": 122,
+          "anchor": "cargo suite. **It fails F1**: five existing physics tests broke because",
+          "sha256": "ba83a049550ab45ca61174316c3c60fa64f24722fe4f622dbf47903ca4945f8b"
+        },
+        {
+          "source_id": "AS09-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS09-01--GUALA_ENDOGENOUS_REATTENTION_DESIGN_2026-08-06.md",
+          "line": 148,
+          "anchor": "pre-law bodies restore as rested=true, which is factually correct for the",
+          "sha256": "ba83a049550ab45ca61174316c3c60fa64f24722fe4f622dbf47903ca4945f8b"
+        },
+        {
+          "source_id": "AS09-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS09-01--GUALA_ENDOGENOUS_REATTENTION_DESIGN_2026-08-06.md",
+          "line": 171,
+          "anchor": "  the retained per-lineage posting chain (episode generation, address,",
+          "sha256": "ba83a049550ab45ca61174316c3c60fa64f24722fe4f622dbf47903ca4945f8b"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A11",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VAS12",
+      "name": "R3 readiness-to-motor bridge was its authors unratified claim, not established architecture",
+      "classification": "explicit_trial_controller_proposal_requiring_current_descendant_audit",
+      "finding": "ASR12",
+      "observed_mechanism": "Sep2R3 declaration marks nothing built and claim on trial—not ratified. It proposes reviving a deficit branch and gated motivation pressure, then a new bounded readiness accumulator whose threshold issues consume/approach. Claimed approval of the world bite/drink half is distinct from this bridge. It declares fed/severed controls and30body-minute/45wall-minute limits on copied state.",
+      "evidence_limits": "Controls can show an authored bridge causes an action; severing it cannot alone establish that the bridge is a ratified physical law, ML-free cognition or learned selection. Calling underlying motivation ratified is a claim requiring original authority, especially against the Aug6 unresolved law. No run, implementation or live activation is proved by this declaration, and it grants no present authorization.",
+      "replacement": "Trace the named bench revision and every descendant/current consumer, classify exact units/source/state/decision role and recover original approvals. Remove or replace unauthorized scalar decision authority through ratified native dynamics; preserve genuine world matter/metabolic income and acquired state. Do not choose near-food fixtures to stand in for learned foraging.",
+      "acceptance": {
+        "unit": "Reject arbitrary drive threshold, unsupported scale and control outcomes promoted into architecture approval.",
+        "module": "Trace actual world intake→finite metabolism→native condition→action without semantic motor injection.",
+        "system": "Prove hunger-related acquired food seeking and satiation with unrelated/location/availability controls.",
+        "release": "No current ML-free or autonomy certificate from preregistration, copied-body controls or claimed world-half approval."
+      },
+      "refs": [
+        {
+          "source_id": "AS10-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS10-01--GUALA_R3_CHOICE_WITNESS_DECLARATION_20260902.md",
+          "line": 8,
+          "anchor": "## The claim on trial (mine, on trial — not ratified)",
+          "sha256": "a0a113095945c8bfb66ef8cf065548c9fff236b3ab5d96d405d920824ef769bf"
+        },
+        {
+          "source_id": "AS10-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS10-01--GUALA_R3_CHOICE_WITNESS_DECLARATION_20260902.md",
+          "line": 35,
+          "anchor": "  - Readiness bridge (R3 proper): MINE-on-trial — bounded accumulator",
+          "sha256": "a0a113095945c8bfb66ef8cf065548c9fff236b3ab5d96d405d920824ef769bf"
+        },
+        {
+          "source_id": "AS10-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS10-01--GUALA_R3_CHOICE_WITNESS_DECLARATION_20260902.md",
+          "line": 24,
+          "anchor": "  - Bite/drink world law: MINE, Joe-accepted for the world half.",
+          "sha256": "a0a113095945c8bfb66ef8cf065548c9fff236b3ab5d96d405d920824ef769bf"
+        },
+        {
+          "source_id": "AS10-01",
+          "path": "docs/guala_reconciliation/sources/autonomy-selection/AS10-01--GUALA_R3_CHOICE_WITNESS_DECLARATION_20260902.md",
+          "line": 59,
+          "anchor": "  triggers anywhere in the chain (severing test is the proof).",
+          "sha256": "a0a113095945c8bfb66ef8cf065548c9fff236b3ab5d96d405d920824ef769bf"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

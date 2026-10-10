@@ -1,0 +1,34 @@
+{
+  "schema": "guala.complete_neuron_law_read_receipt.v1",
+  "sources": 15,
+  "paths": 14,
+  "latest_lines": 1519,
+  "historical_only_passages": 14,
+  "historical_only_lines": 52,
+  "source_hashes_validated": true,
+  "all_latest_and_old_content_read": true,
+  "product_execution": false,
+  "product_qualification": false,
+  "primary_literature_review": false,
+  "independent_arithmetic": {
+    "scope": "Arithmetic on printed equations/values, not product/model execution or scientific validation",
+    "charge_fC": "-12",
+    "whole_carriers": -74898,
+    "residual_phase": "-29077778/267029439",
+    "charge_reconstructed_fC": "-12",
+    "half_recurrence": [
+      {
+        "steps": 10,
+        "denominator_bits": 11
+      },
+      {
+        "steps": 100,
+        "denominator_bits": 101
+      },
+      {
+        "steps": 1000,
+        "denominator_bits": 1001
+      }
+    ]
+  }
+}

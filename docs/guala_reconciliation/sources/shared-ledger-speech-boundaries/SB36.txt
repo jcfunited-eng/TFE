@@ -1,0 +1,40 @@
+1. **Do not require intake for all memory.** The live source records actual
+   motor transitions in the same moments map. Five motor records are not, by
+   themselves, five fabricated sensory experiences. Intake-only retention
+   would delete the approach/grasp predecessors needed to learn how food was
+   reached; it also excludes silent pain/touch and visual/spatial experience.
+   The old functional test demands zero moments after six unattended beats,
+   while test_unbroken_meaning_chain.py:318 explicitly requires silent visual
+   and room transitions and forbids unchanged-view recurrence. Resolve this
+   contradictory test contract by record type and actual physical transition.
+   Keep bounded authentic causal links; do not manufacture recurrent moments
+   from unchanged observations or make a hunger Boolean sufficient evidence.
+2. **Fix target ownership, not a six-observation gaze lock.** The optical helper
+   writes gaze_target each beat while allowing unrelated autonomous body
+   motion. This is not a clean fixed-target optical experiment. Also live
+   organism.py:2192 overwrites the selected spatial target with the entire
+   heard_speech_target dictionary, passing that dictionary into gaze_target
+   and motor records at:2223. _target_point:583 rejects non-string targets.
+   Keep the spatial target separate from the acoustic event, retain only
+   needed event references, and preserve measured neck/eye limits and lawful
+   interruption. Do not replace a spatial ID with an acoustic hash either.
+   Separate controlled optics acceptance from autonomous attention behavior.
+3. **Measure memory by owner before altering its law.** The112000-byte test
+   measures the ENTIRE organism encoding, not receptive memory alone. Its
+   comment assumes at most256 events while live EVENT_RECORD_CAPACITY=4096.
+   Other stores and motor records have changed. The target-dictionary bug
+   above can serialize complete acoustic envelope copies into motor history;
+   remove that type/ownership error rather than deleting legitimate memories.
+   Require a per-store byte census, bounded links and cold-restore equivalence
+   under the agreed retention rule.184329 bytes proves a test limit violation,
+   not unbounded growth, and must not be explained by an unmeasured cause.
+
+The current DIRTY, NOT DEPLOYED tree contains more than G1's stated fix:
+_form_moments now returns on every acoustically silent input, a new
+_cue_matches treats a missing visual figure as a match, _choose adds scripted
+affordance-plan step execution/advance before physical success, and the vocal
+matcher expands to all220 synthesized syllables. Bedding movement/name-based
+collision exceptions and furniture removal are also present. These are not
+certified by this audit and must not hitchhike into a narrow repair. The
+null-figure matching also conflicts with the previously recorded negative
+recognition witness. Preserve the dirty work; do not deploy it as-is.

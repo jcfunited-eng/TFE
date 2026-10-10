@@ -1,0 +1,93 @@
+{
+  "at_utc": "2026-10-09T22:39:14.633511+00:00",
+  "bucket": "guala-incident-bench-20260831",
+  "result": {
+    "IsTruncated": false,
+    "Name": "guala-incident-bench-20260831",
+    "Prefix": "",
+    "Delimiter": "/",
+    "MaxKeys": 1000,
+    "CommonPrefixes": [
+      {
+        "Prefix": "c131-feedback-incident-20260912/"
+      },
+      {
+        "Prefix": "c131-feedback-release-20260912/"
+      },
+      {
+        "Prefix": "c132-release-20260913/"
+      },
+      {
+        "Prefix": "c132-release-preflight-20260913/"
+      },
+      {
+        "Prefix": "captures/"
+      },
+      {
+        "Prefix": "drive-organ-20260913/"
+      },
+      {
+        "Prefix": "drive-organ-20260914/"
+      },
+      {
+        "Prefix": "drive-organ-stage2-20260914/"
+      },
+      {
+        "Prefix": "guala/"
+      },
+      {
+        "Prefix": "sensory-latency-20260913/"
+      },
+      {
+        "Prefix": "speech-attempt53/"
+      },
+      {
+        "Prefix": "speech-attempt54/"
+      },
+      {
+        "Prefix": "speech-attempt55/"
+      },
+      {
+        "Prefix": "speech-attempt63/"
+      },
+      {
+        "Prefix": "speech-attempt66/"
+      },
+      {
+        "Prefix": "speech-attempt70/"
+      },
+      {
+        "Prefix": "strength-feedback-continuation-20260913/"
+      },
+      {
+        "Prefix": "strength-gate-trace-20260913/"
+      },
+      {
+        "Prefix": "strength-retained-contact-20260913/"
+      },
+      {
+        "Prefix": "strength-route-phase-20260913/"
+      },
+      {
+        "Prefix": "strength-standing-crossing-20260913/"
+      },
+      {
+        "Prefix": "strength-use-parked-20260913/"
+      },
+      {
+        "Prefix": "strength-writing-review-20260913/"
+      },
+      {
+        "Prefix": "vision-realtime-20260913/"
+      },
+      {
+        "Prefix": "vision-release-20260913/"
+      },
+      {
+        "Prefix": "vision-world-20260914/"
+      }
+    ],
+    "EncodingType": "url",
+    "KeyCount": 26
+  }
+}

@@ -1,0 +1,179 @@
+{
+  "schema": "guala.complete_shell_history_and_alias_read.v1",
+  "sources": 80,
+  "paths": 10,
+  "ledger_versions": 72,
+  "latest_lines": 860,
+  "historical_only_passages": 99,
+  "historical_only_lines": 431,
+  "exact_alias_pairs": 8,
+  "exact_alias_unique_previously_read_bodies": 2,
+  "all_content_read": true,
+  "alias_proof": [
+    {
+      "source_id": "SQA01",
+      "path": "ArcLoom_Master_Specification_v5_0.tex",
+      "blob": "7e5d64ff9639c2fedb2bb38042878ba183d8ced7",
+      "sha256": "d8c33af74dc81937b5954b28fb1f678773e600c39f30240b233f9e01ba734a5a",
+      "exact_content_previously_reviewed_at": "docs/ArcLoom_Master_Specification_v5_0.tex",
+      "previous_complete_reviews": [
+        {
+          "id": "HAR09-03",
+          "registry": "arcloom-history-reconciliation.json",
+          "review": "Full source read; for HAR09-02/04/03, fully read base HAR09-01 plus all three complete chronological deltas. Transitive implementation and live closure remain open.",
+          "sha256": "d8c33af74dc81937b5954b28fb1f678773e600c39f30240b233f9e01ba734a5a"
+        }
+      ],
+      "new_path_authority_not_inferred": true
+    },
+    {
+      "source_id": "SQA02",
+      "path": "backups/runtime/a1-native-connections-20261007/comprehensive-model-20261008-1947/integrated-model/native/guala_core/README.md",
+      "blob": "12460c90a0da0e45798bf4d34fe9317eb3df6f3a",
+      "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964",
+      "exact_content_previously_reviewed_at": "backups/runtime/a1-native-connections-20261007/comprehensive-model-e9-2130/independent-articulation-model/native/guala_core/README.md",
+      "previous_complete_reviews": [
+        {
+          "id": "WR01-01",
+          "registry": "legacy-word-recall-reconciliation.json",
+          "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified.",
+          "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964"
+        }
+      ],
+      "new_path_authority_not_inferred": true
+    },
+    {
+      "source_id": "SQA03",
+      "path": "backups/runtime/a1-native-connections-20261007/comprehensive-model-20261008-1956/integrated-model/native/guala_core/README.md",
+      "blob": "12460c90a0da0e45798bf4d34fe9317eb3df6f3a",
+      "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964",
+      "exact_content_previously_reviewed_at": "backups/runtime/a1-native-connections-20261007/comprehensive-model-e9-2130/independent-articulation-model/native/guala_core/README.md",
+      "previous_complete_reviews": [
+        {
+          "id": "WR01-01",
+          "registry": "legacy-word-recall-reconciliation.json",
+          "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified.",
+          "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964"
+        }
+      ],
+      "new_path_authority_not_inferred": true
+    },
+    {
+      "source_id": "SQA04",
+      "path": "backups/runtime/a1-native-connections-20261007/comprehensive-model-20261008-e6-2031/feedback-discriminator/native/guala_core/README.md",
+      "blob": "12460c90a0da0e45798bf4d34fe9317eb3df6f3a",
+      "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964",
+      "exact_content_previously_reviewed_at": "backups/runtime/a1-native-connections-20261007/comprehensive-model-e9-2130/independent-articulation-model/native/guala_core/README.md",
+      "previous_complete_reviews": [
+        {
+          "id": "WR01-01",
+          "registry": "legacy-word-recall-reconciliation.json",
+          "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified.",
+          "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964"
+        }
+      ],
+      "new_path_authority_not_inferred": true
+    },
+    {
+      "source_id": "SQA05",
+      "path": "backups/runtime/a1-native-connections-20261007/comprehensive-model-e7-2052/receiving-compartment-model/native/guala_core/README.md",
+      "blob": "12460c90a0da0e45798bf4d34fe9317eb3df6f3a",
+      "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964",
+      "exact_content_previously_reviewed_at": "backups/runtime/a1-native-connections-20261007/comprehensive-model-e9-2130/independent-articulation-model/native/guala_core/README.md",
+      "previous_complete_reviews": [
+        {
+          "id": "WR01-01",
+          "registry": "legacy-word-recall-reconciliation.json",
+          "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified.",
+          "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964"
+        }
+      ],
+      "new_path_authority_not_inferred": true
+    },
+    {
+      "source_id": "SQA06",
+      "path": "backups/runtime/a1-native-connections-20261007/comprehensive-model-e8-archive/coupled-reception-model/native/guala_core/README.md",
+      "blob": "12460c90a0da0e45798bf4d34fe9317eb3df6f3a",
+      "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964",
+      "exact_content_previously_reviewed_at": "backups/runtime/a1-native-connections-20261007/comprehensive-model-e9-2130/independent-articulation-model/native/guala_core/README.md",
+      "previous_complete_reviews": [
+        {
+          "id": "WR01-01",
+          "registry": "legacy-word-recall-reconciliation.json",
+          "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified.",
+          "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964"
+        }
+      ],
+      "new_path_authority_not_inferred": true
+    },
+    {
+      "source_id": "SQA07",
+      "path": "backups/runtime/a1-native-connections-20261007/comprehensive-model-runtime-2155/locality-model/native/guala_core/README.md",
+      "blob": "12460c90a0da0e45798bf4d34fe9317eb3df6f3a",
+      "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964",
+      "exact_content_previously_reviewed_at": "backups/runtime/a1-native-connections-20261007/comprehensive-model-e9-2130/independent-articulation-model/native/guala_core/README.md",
+      "previous_complete_reviews": [
+        {
+          "id": "WR01-01",
+          "registry": "legacy-word-recall-reconciliation.json",
+          "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified.",
+          "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964"
+        }
+      ],
+      "new_path_authority_not_inferred": true
+    },
+    {
+      "source_id": "SQA08",
+      "path": "native/guala_core/README.md",
+      "blob": "12460c90a0da0e45798bf4d34fe9317eb3df6f3a",
+      "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964",
+      "exact_content_previously_reviewed_at": "backups/runtime/a1-native-connections-20261007/comprehensive-model-e9-2130/independent-articulation-model/native/guala_core/README.md",
+      "previous_complete_reviews": [
+        {
+          "id": "WR01-01",
+          "registry": "legacy-word-recall-reconciliation.json",
+          "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified.",
+          "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964"
+        }
+      ],
+      "new_path_authority_not_inferred": true
+    }
+  ],
+  "chronology_correction": {
+    "ordering": [
+      {
+        "path": "docs/GUALA_P005_LEAN_PRODUCTION_SHELL_REPLACEMENT_2026-09-07.md",
+        "previous_comparison_base": "SQ01-25",
+        "latest_new_blob_revision": "SQ01-25",
+        "basis": "new-side revision observations, not later old-side observation time"
+      },
+      {
+        "path": "docs/GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+        "previous_comparison_base": "SQ02-47",
+        "latest_new_blob_revision": "SQ02-46",
+        "basis": "new-side revision observations, not later old-side observation time"
+      }
+    ],
+    "direct_revision_edge": {
+      "author_time": "2026-09-09T18:41:43+00:00",
+      "commit": "5ca9814b345bc9f2510fca3f57bf6fee6ded998c",
+      "commit_time": "2026-09-09T18:41:43+00:00",
+      "new_blob": "1c2c7169720c0b917c5c002ab22ed17fab12ec53",
+      "new_mode": "100644",
+      "old_blob": "6591947cfa03d416bde2e4e6097508c6566ba8c2",
+      "old_mode": "100644",
+      "parents": [
+        "a003f8023897b3014220fb0a70a411cfc7291a42"
+      ],
+      "path": "docs/GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md",
+      "status": "M",
+      "subject": "Record audible tonal Guala output"
+    },
+    "correction": "The report of Joe hearing a mostly tonal sound was added, not omitted in a later revision. All source content had already been read; no source bytes or product were changed. Capture ordering was corrected before canonical publication."
+  },
+  "read_method": "SQ01-25 all 300 lines; SQ02-47 all 553 lines plus SQ02-46 added seven-line audibility outcome; all initial 100 old passages read. Corrected latest baseline SQ02-46 yields 860 latest plus 99 old passages / 431 lines. Exact aliases verified against prior fully read canonical copies.",
+  "product_execution": false,
+  "product_qualification": false,
+  "original_authority_authenticated": false,
+  "current_activation_qualified": false
+}

@@ -1,0 +1,33 @@
+{
+  "scope": "Exact arithmetic counterexample to the written AT06 body law and endpoint-only observation; no product source imported or executed and no current live defect asserted.",
+  "source": "articulated-tissue/AT06--4e6f8269948c.md",
+  "input": {
+    "neutral": 0,
+    "minimum": -100,
+    "maximum": 100,
+    "initial_position": 0,
+    "new_toward_maximum_carriers": 1,
+    "initial_activation_units_after_admission": 32,
+    "elapsed_ms": 250
+  },
+  "result": {
+    "initial_position": 0,
+    "final_position": 0,
+    "final_activation": 0,
+    "absolute_endpoint_displacement": 0,
+    "total_travel": 2,
+    "position_change_events": [
+      {
+        "ms": 1,
+        "position": 1,
+        "activation": 31
+      },
+      {
+        "ms": 33,
+        "position": 0,
+        "activation": 0
+      }
+    ]
+  },
+  "conclusion": "Final position/activation equality can coexist with a real intermediate out-and-back movement; endpoint equality alone cannot qualify timed proprioceptive/acoustic return across a multi-millisecond call. Ordinary one-millisecond producers may preserve this; their actual consumers require inspection."
+}

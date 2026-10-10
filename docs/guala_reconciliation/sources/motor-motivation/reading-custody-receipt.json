@@ -1,0 +1,14 @@
+{
+  "schema": "guala.complete_motor_motivation_read_receipt.v1",
+  "sources": 11,
+  "paths": 5,
+  "latest_lines": 572,
+  "historical_only_passages": 16,
+  "historical_only_lines": 224,
+  "source_hashes_validated": true,
+  "all_latest_and_old_content_read": true,
+  "product_execution": false,
+  "product_qualification": false,
+  "primary_literature_review": false,
+  "original_authority_authenticated": false
+}

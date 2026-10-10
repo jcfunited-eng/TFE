@@ -1,0 +1,95 @@
+{
+  "archive_sha256": "49650f2341b26d886b46b3f4fb8fed59e30300b17550f1ee4a768b3106cf93a0",
+  "authority_receipt_sha256": "53fca0fbd463ffa93aced4504a5d28e44708a8c59f95d4e10e5d9e81d5dc8a94",
+  "controlled_chamber_missing_physics": [
+    "pinna transfer",
+    "head shadow",
+    "diffraction",
+    "reflections",
+    "reverberation",
+    "sensor noise"
+  ],
+  "full_report_authority_receipt_sha256": "fa944f83daf07c26778e31072c77f8e5d626036d686e6070585bda671e7f1ec0",
+  "full_report_file_sha256": "d4e23bf0d6797f2793171cdd3f0ec7ad73cd32f0c36e287ff2cbeee4d8243c80",
+  "full_report_path": "/tmp/guala_auditory_layer_information_loss_v1.json",
+  "held_out_pass_count_at_every_layer": 0,
+  "kernel_change_justified": false,
+  "labels_used_by_relations": false,
+  "l0_l4_modified": false,
+  "layer_counts": {
+    "L0_SEV": {
+      "local_cross_locked": 1736,
+      "local_within_locked": 217,
+      "trajectory_cross_locked": 0,
+      "trajectory_within_locked": 0
+    },
+    "L1_GateL1State": {
+      "local_cross_locked": 0,
+      "local_within_locked": 0,
+      "trajectory_cross_locked": 0,
+      "trajectory_within_locked": 0
+    },
+    "L2_GateInterpretation": {
+      "local_cross_locked": 0,
+      "local_within_locked": 0,
+      "trajectory_cross_locked": 0,
+      "trajectory_within_locked": 0
+    },
+    "L3_ResonanceResult": {
+      "local_cross_locked": 0,
+      "local_within_locked": 0,
+      "trajectory_cross_locked": 0,
+      "trajectory_within_locked": 0
+    },
+    "L4_DSF": {
+      "local_cross_locked": 8,
+      "local_within_locked": 1,
+      "trajectory_cross_locked": 0,
+      "trajectory_within_locked": 0
+    },
+    "cochlear_receptor": {
+      "local_cross_locked": 1290,
+      "local_within_locked": 157,
+      "trajectory_cross_locked": 0,
+      "trajectory_within_locked": 0
+    },
+    "physical_stereo_L4_DSF": {
+      "local_cross_locked": 8,
+      "local_within_locked": 0,
+      "trajectory_cross_locked": 0,
+      "trajectory_within_locked": 0
+    },
+    "physical_stereo_brainstem": {
+      "local_cross_locked": 1682,
+      "local_within_locked": 210,
+      "trajectory_cross_locked": 0,
+      "trajectory_within_locked": 0
+    },
+    "raw_pcm": {
+      "local_cross_locked": 1792,
+      "local_within_locked": 224,
+      "trajectory_cross_locked": 0,
+      "trajectory_within_locked": 0
+    }
+  },
+  "physical_source_segregation_checks_passed": 8,
+  "physical_source_segregation_checks_total": 8,
+  "reason": "No declared exact quotient establishes selective within-command recurrence at raw PCM, so no later layer is an established recurrence-loss boundary.",
+  "schema": "guala.audit.auditory_layer_information_loss_compact.v1",
+  "selective_recurrence_layers": [],
+  "source_disjoint_speaker_count": 64,
+  "transfer_paths": [
+    {
+      "left_attenuation": "1/1",
+      "left_delay_samples": 10,
+      "right_attenuation": "1/1",
+      "right_delay_samples": 14
+    },
+    {
+      "left_attenuation": "1/1",
+      "left_delay_samples": 14,
+      "right_attenuation": "1/1",
+      "right_delay_samples": 10
+    }
+  ]
+}

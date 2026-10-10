@@ -1,0 +1,449 @@
+{
+  "schema": "guala.reconciliation_mechanism_supplement.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T02:22:56.024118+00:00",
+  "scope": "All 48 recovered versions of Attempt44–53 (10 paths), read completely by base plus every delta or full version; three historical source snapshots have selected-line scope. Attempts43/54 remain unreconciled here. Historical reports are not original execution receipts.",
+  "mechanisms": [
+    {
+      "id": "LVM01",
+      "name": "Fixed one-carrier output was passed off as a physical invariant",
+      "classification": "source-verified unsupported replacement",
+      "finding": "LS01",
+      "observed_mechanism": "The dfed68a3 source cancels the ordinary learned-contact transition, selects a founding transfer of at least two carriers, subtracts exactly one carrier and emits transferred_whole_carriers:1. It then checks only total charge and aggregate energy descent. Attempt47 later rejects this law and its inference from a limited range test.",
+      "evidence_limits": "Conservation is necessary but does not derive this particular split. The later rejection is not evidence that every earlier component failed, or that this retired law is in the current64 candidate.",
+      "replacement": "Retire fixed dispatch and every port. Bind the approved local input/contact/gate law; let actual predecessor state determine discharge and account every affected contact current, phase, work and heat together.",
+      "acceptance": "Vary strength, interval, contact state, direction and convergence under identical authority; permute branch order. Exact conservation alone cannot grant passage. Preserve the failure if no constitutive law applies.",
+      "refs": [
+        {
+          "source_id": "LSC01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSC01--resident_cognitive_formation.rs",
+          "sha256": "1ddddee19e749f5ffa81034600ea50c02dbfee7ce6bf00de0f67d44093ae5d90",
+          "line": 19520,
+          "anchor": "                transferred_whole_carriers: 1,"
+        },
+        {
+          "source_id": "LSP47-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP47-01--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+          "sha256": "73bab99eea8a1fd5538aa79b8723c9a1d7807f099af2f8ea036ef2c243edcd44",
+          "line": 6,
+          "anchor": "complete. The present fixed-one-carrier mechanism is rejected. Production is"
+        },
+        {
+          "source_id": "LSP47-02",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP47-02--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+          "sha256": "43377c489751bce947a86d91d439559fb3873b6d7a57a0c99969cf5c5590c64f",
+          "line": 265,
+          "anchor": "of the 21 route/clock cases, three samples reconstruct one quadratic work curve"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A08",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "LVM02",
+      "name": "Respiratory thermal refusal silently lost the vocal consequence",
+      "classification": "historically reported physical and failure-visibility defect",
+      "finding": "LS02",
+      "observed_mechanism": "Attempt45 records an isolated respiratory cell with only 0.2443 zJ thermal headroom against a 0.32014 zJ two-carrier release. The deposit returned None, and the caller committed only Some. Reached metabolic cooling had been omitted.",
+      "evidence_limits": "The report preserves a finite-work component repair; it does not prove learned articulation. Raw probe receipts have not been recovered here.",
+      "replacement": "Service every actually recruited respiratory cell through its ordinary bounded metabolic law before settlement; make refusal explicit and atomic. Do not increase capacity, reset heat or shrink a carrier command to obtain sound.",
+      "acceptance": "Test repeated mature-body recruitment, exhausted headroom, exact heat/work totals, refusal rollback and cold continuation. Successful sound must identify its actual respiratory debit.",
+      "refs": [
+        {
+          "source_id": "LSP45-02",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP45-02--GUALA_SPEECH_REPAIR_ATTEMPT_45_RESPIRATORY_THERMAL_REACHABILITY_2026-09-04.md",
+          "sha256": "82a0a56f29f02a3fb13c66fe3fa2e46eecb20b6f05b2a170cabb8071a1498c44",
+          "line": 63,
+          "anchor": "  or approximately `0.244260428467` zJ of headroom."
+        },
+        {
+          "source_id": "LSP45-02",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP45-02--GUALA_SPEECH_REPAIR_ATTEMPT_45_RESPIRATORY_THERMAL_REACHABILITY_2026-09-04.md",
+          "sha256": "82a0a56f29f02a3fb13c66fe3fa2e46eecb20b6f05b2a170cabb8071a1498c44",
+          "line": 158,
+          "anchor": "The unchanged tick-434112 copied production body then passed 512 ordinary"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "LVM03",
+      "name": "Motor-gate API mismatch must not be repaired by weakening anatomy",
+      "classification": "rejected type/physics mismatch and narrower candidate evolution",
+      "finding": "LS05",
+      "observed_mechanism": "47G used a multichannel receptor-population delivery API on a one-conformation intrinsic motor gate and failed GatePopulationExceeded. 47H instead used that gate’s existing free-energy transition and local work residue.",
+      "evidence_limits": "This supports rejecting the mismatched API, not increasing the population or assuming47H was production-qualified.",
+      "replacement": "Match the actual motor anatomy and authority before proposing a transition. Persist genuine subthreshold work and use the ordinary intrinsic gate; any new law requires explicit derivation.",
+      "acceptance": "One-conformation and independent-channel fixtures must remain distinct; no target population, carrier choice or special vocal threshold may bridge them.",
+      "refs": [
+        {
+          "source_id": "LSP47-11",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP47-11--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+          "sha256": "89e7bb2d68ca8b4cb68c55717f34489d8bf0969d89186e0c73c6ca67be32fab1",
+          "line": 1076,
+          "anchor": "`GatePopulationExceeded`. The failure is not a production incident and did"
+        },
+        {
+          "source_id": "LSP47-12",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP47-12--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+          "sha256": "c447324fc3178d04da5d0f0588c8faced1538548659267639ced9fda8a3c9081",
+          "line": 1136,
+          "anchor": "## Candidate 47H — intrinsic one-gate range passes its first boundary"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "LVM04",
+      "name": "Learned work was dropped at the observation boundary",
+      "classification": "preserve legitimate evidence transport improvement",
+      "finding": "LS09",
+      "observed_mechanism": "47I emitted LearnedMotorWorkPreparation but a wrapper discarded it, risking rejection of real later discharge for lacking a carrier-transfer tuple. The correction carried work and source lineage separately.",
+      "evidence_limits": "Work across a learned relation is not proof that a carrier crossed it. An observation fix is not new cognition.",
+      "replacement": "Carry exact source, relation, recipient, accepted work, residue, gate and heat through typed read-only evidence. Never fabricate an old tuple to satisfy a validator.",
+      "acceptance": "Validate both offered=accepted+source heat and predecessor residue+accepted=gate+successor residue+narrowing heat, with no observer effect.",
+      "refs": [
+        {
+          "source_id": "LSP47-16",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP47-16--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+          "sha256": "03979e1a7d9cc46464bbaf98b9b117e88cd26b48cd546fa38475e8089828033f",
+          "line": 1351,
+          "anchor": "## Candidate 47I observation completion — learned work is not a carrier transfer"
+        }
+      ],
+      "repair_actions": [
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "LVM05",
+      "name": "Snapshot calibration manufactured movement and inflated development claims",
+      "classification": "source-verified forbidden bootstrap; historical correction",
+      "finding": "LS11",
+      "observed_mechanism": "dfed68a3 routes a complete-body calibration flag to special vocal preparation. Attempt48 called its broad movement an ordinary learned motor chain; Attempt49 later identified12 snapshot-caused bindings and only one duplicate learned route, with no new terminal coverage.",
+      "evidence_limits": "Distinct pressure hashes were real sounds, but their cause did not establish learned articulation. Removing the flag reportedly left32 ordinary intervals without vocal binding.",
+      "replacement": "Retire snapshot-to-action authority, including renamed/native equivalents. Body observation may convey actual state; movement requires a separately qualified internal cause.",
+      "acceptance": "A complete static snapshot cannot cause a new vocal act. Preserve lawful learned and reflex paths while proving calibration absent at startup, restore and later observation.",
+      "refs": [
+        {
+          "source_id": "LSC01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSC01--resident_cognitive_formation.rs",
+          "sha256": "1ddddee19e749f5ffa81034600ea50c02dbfee7ce6bf00de0f67d44093ae5d90",
+          "line": 19933,
+          "anchor": "            let regulations = if initial_vocal_tract_calibration"
+        },
+        {
+          "source_id": "LSP49-02",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP49-02--GUALA_SPEECH_REPAIR_ATTEMPT_49_EXISTING_ORGAN_ONLY_2026-09-06.md",
+          "sha256": "b97ad891e34064cc84a28bac4c1e45d33963e59546f65c489ba9233abf3316c9",
+          "line": 48,
+          "anchor": "each section often fired together. These were caused by the body-snapshot"
+        },
+        {
+          "source_id": "LSP49-02",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP49-02--GUALA_SPEECH_REPAIR_ATTEMPT_49_EXISTING_ORGAN_ONLY_2026-09-06.md",
+          "sha256": "b97ad891e34064cc84a28bac4c1e45d33963e59546f65c489ba9233abf3316c9",
+          "line": 162,
+          "anchor": "- all later intervals also caused zero vocal motor bindings;"
+        }
+      ],
+      "repair_actions": [
+        "A05",
+        "A08",
+        "A10",
+        "A13",
+        "A15",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "LVM06",
+      "name": "Birth pump admission supplied gradient but no gate-opening cause",
+      "classification": "falsified developmental hypothesis",
+      "finding": "LS12",
+      "observed_mechanism": "48E lawfully pumped six carriers into new motor cells but produced no gate opening or act over the tested range. The recorded anatomy had no voltage-sensing charge, chemical bias or Psi gate contact; a gradient alone was insufficient.",
+      "evidence_limits": "Do not invent random babble, an oscillator, a larger pump or copied mature charge. Missing developmental excitability is separate from learning existing motor coordination.",
+      "replacement": "If required, specify a general finite developmental transition using real material, work and extinction before implementation; first check existing anatomy and current scope.",
+      "acceptance": "Connected/severed/exhausted and cold branches must distinguish energized cells from actual motor output. One finite negative run does not prove universal impossibility.",
+      "refs": [
+        {
+          "source_id": "LSP48-08",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP48-08--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+          "sha256": "5d1b20fdd038cc2de10b4a895f5c8bdb0fd5f249a6faf5ba23c2ba6171a01cb5",
+          "line": 722,
+          "anchor": "## Candidate 48E copied-body rejection — pump admission is insufficient"
+        },
+        {
+          "source_id": "LSP48-08",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP48-08--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+          "sha256": "5d1b20fdd038cc2de10b4a895f5c8bdb0fd5f249a6faf5ba23c2ba6171a01cb5",
+          "line": 774,
+          "anchor": "now exact in current anatomy: these intrinsic cells have zero voltage-sensing"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A08",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "LVM07",
+      "name": "An artificial energy multiplier cannot qualify population recruitment",
+      "classification": "test-only energetic surrogate; forbidden production authority",
+      "finding": "LS14",
+      "observed_mechanism": "50B’s scale-four arm multiplied one source’s work instead of representing four independently powered cells. It produced pressure where scale one’s measured continuation was silent.",
+      "evidence_limits": "This was disclosed as a diagnostic, not speech or a lawful energy source. Passing it cannot authorize a factor of four in cognition.",
+      "replacement": "Actual recruited cells must provide their own finite state and energy. Retire diagnostic multipliers from every product/test-acceptance path.",
+      "acceptance": "Account work per real source and show no energy is created by population counts, labels or arithmetic scaling. Verify the unmodified predecessor and all causal controls.",
+      "refs": [
+        {
+          "source_id": "LSP50-03",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP50-03--GUALA_SPEECH_REPAIR_ATTEMPT_50_LEARNED_VOCAL_GESTURE_CAUSAL_IMPACT_2026-09-06.md",
+          "sha256": "5a3d8397a57e3d6a7cffdb375334506de43ee2659734bb0917109947a3187837",
+          "line": 374,
+          "anchor": "neurons: it was an artificial energetic surrogate for four independently"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "LVM08",
+      "name": "Guided movement was initially credited without organism motor cause",
+      "classification": "explicitly withdrawn lawful-learning claim",
+      "finding": "LS15",
+      "observed_mechanism": "51B called co-aged population growth lawful, but51D records motor_discharges_during_guidance=0. Assisted tissue movement plus a premotor frontier had authored the alleged learned anatomy.",
+      "evidence_limits": "Later gates required the exact real learned motor discharge and returned consequence. The stronger earlier claim is withdrawn; induced movement remains a disclosed external experience.",
+      "replacement": "Separate externally guided experience, organism action, observed sensory association and demonstrated procedural learning. Require the actual law’s causal evidence; no broadened count may substitute.",
+      "acceptance": "Guidance-only, sound-only, reflex-only and premotor-only controls cannot receive learned motor-act credit; subsequent unassisted use must depend on retained experience.",
+      "refs": [
+        {
+          "source_id": "LSP51-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP51-01--GUALA_SPEECH_REPAIR_ATTEMPT_51_PREMOTOR_POPULATION_2026-09-06.md",
+          "sha256": "a031e4bf674e74efddaabfee16e07f45218e03f195e1471220d34a58b38b56ee",
+          "line": 160,
+          "anchor": "claim. The harness recorded `motor_discharges_during_guidance = 0`: 51B proved"
+        },
+        {
+          "source_id": "LSP51-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP51-01--GUALA_SPEECH_REPAIR_ATTEMPT_51_PREMOTOR_POPULATION_2026-09-06.md",
+          "sha256": "a031e4bf674e74efddaabfee16e07f45218e03f195e1471220d34a58b38b56ee",
+          "line": 157,
+          "anchor": "## 51D — causal-authority correction to 51B"
+        }
+      ],
+      "repair_actions": [
+        "A06",
+        "A08",
+        "A10",
+        "A12",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "LVM09",
+      "name": "Population growth depended on storage order and teacher identity",
+      "classification": "historical atomicity and duplicate-growth defect",
+      "finding": "LS16",
+      "observed_mechanism": "51G/H found sibling teachers could duplicate routes; sequential mutation skipped a needed co-aged source. The claimed target moved from eight to ten routes because two authentic older teachers had to remain.",
+      "evidence_limits": "The legitimate improvement is immutable predecessor decisions and preservation, not choosing a convenient route count to pass.",
+      "replacement": "Derive growth once from the actual event and predecessor family; retain original sources and prove idempotence when later siblings become active. Document why each new source is required.",
+      "acceptance": "Permute terminal/regulation order, repeat original and sibling teaching, and cold-continue. Require the same topology and no discarded authentic state.",
+      "refs": [
+        {
+          "source_id": "LSP51-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP51-01--GUALA_SPEECH_REPAIR_ATTEMPT_51_PREMOTOR_POPULATION_2026-09-06.md",
+          "sha256": "a031e4bf674e74efddaabfee16e07f45218e03f195e1471220d34a58b38b56ee",
+          "line": 273,
+          "anchor": "source. Regulation storage order had become motor-population authority."
+        },
+        {
+          "source_id": "LSP51-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP51-01--GUALA_SPEECH_REPAIR_ATTEMPT_51_PREMOTOR_POPULATION_2026-09-06.md",
+          "sha256": "a031e4bf674e74efddaabfee16e07f45218e03f195e1471220d34a58b38b56ee",
+          "line": 279,
+          "anchor": "bounded accepted topology is ten routes: two preserved mature teachers plus"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A08",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "LVM10",
+      "name": "A unit-test bridge was reported as present although the taught body never formed it",
+      "classification": "documented claim contradiction with source-bound distinction",
+      "finding": "LS19",
+      "observed_mechanism": "Attempt52B’s focused fixture formed an experience-to-family link, but its complete result stayed silent. Attempt53 explicitly calls the claim that this anatomy existed in the taught body false. The2fd5fb8 source contains the conditional bridge; source existence cannot prove that its predicates were reached.",
+      "evidence_limits": "This is a false activation claim, not proof of deliberate deception. The raw taught bodies/reports are not locally recovered by this slice.",
+      "replacement": "Withdraw activation claims lacking retained-body evidence. Record the exact post-teaching relation and later physical transfer before claiming causal integration.",
+      "acceptance": "The same authenticated mature body must show the new relation actually formed, survived cold restore and caused post-cue output; synthetic fixture anatomy is insufficient.",
+      "refs": [
+        {
+          "source_id": "LSC02",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSC02--resident_cognitive_formation.rs",
+          "sha256": "1f239818a2954ca2eade5eae82df6192e4bf62508420d6d33cf7e0682089f9df",
+          "line": 17359,
+          "anchor": "            for experience_ordering in &causal_path_ordering {"
+        },
+        {
+          "source_id": "LSP53-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP53-01--GUALA_SPEECH_REPAIR_ATTEMPT_53_LEARNED_CUE_TO_VOCAL_ORDERING_2026-09-07.md",
+          "sha256": "f92c4560efb2b87367ba6977888a17272bc4ce585d7a92fc24300e8e13309188",
+          "line": 178,
+          "anchor": "- F-015: Attempt 52's claim that its new current-experience lateral anatomy was"
+        },
+        {
+          "source_id": "LSP52-02",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP52-02--GUALA_SPEECH_REPAIR_ATTEMPT_52_CUMULATIVE_INTEGRATION_2026-09-07.md",
+          "sha256": "7cc5eee2e0800d0f73dc67cd063195ef15759132923ccbd92c7397ed11deb0be",
+          "line": 425,
+          "anchor": "The post-cue WAV remained silent, SHA-256"
+        }
+      ],
+      "repair_actions": [
+        "A06",
+        "A10",
+        "A13",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "LVM11",
+      "name": "Simultaneous sensory episodes were partitioned so cross-sense association could not form",
+      "classification": "source-verified causal exclusion",
+      "finding": "LS20",
+      "observed_mechanism": "The2fd5fb8 association builder evaluates each occurrence separately and requires at least two source layers within that occurrence. Separate sound-only and body-only episodes therefore fail even when co-admitted in one physical interval.",
+      "evidence_limits": "This establishes the printed predicate’s exclusion for that input structure. It does not prove the later candidate fixed all experience association or that the current64 path retains this code.",
+      "replacement": "Preserve common physical context together with each participant’s exact causal identity. Reconcile the actual full-field plasticity law before changing association construction; do not simply merge every simultaneous input.",
+      "acceptance": "Equivalent sensory packaging must preserve the same physical coexperience; unrelated or differently caused movements must remain distinguishable. Check exact retained relations and their subsequent use.",
+      "refs": [
+        {
+          "source_id": "LSC02",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSC02--resident_cognitive_formation.rs",
+          "sha256": "1f239818a2954ca2eade5eae82df6192e4bf62508420d6d33cf7e0682089f9df",
+          "line": 15013,
+          "anchor": "    for occurrence in externally_energized_by_occurrence {"
+        },
+        {
+          "source_id": "LSC02",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSC02--resident_cognitive_formation.rs",
+          "sha256": "1f239818a2954ca2eade5eae82df6192e4bf62508420d6d33cf7e0682089f9df",
+          "line": 15039,
+          "anchor": "        if sensory_layer_count < 2 {"
+        },
+        {
+          "source_id": "LSP53-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP53-01--GUALA_SPEECH_REPAIR_ATTEMPT_53_LEARNED_CUE_TO_VOCAL_ORDERING_2026-09-07.md",
+          "sha256": "f92c4560efb2b87367ba6977888a17272bc4ce585d7a92fc24300e8e13309188",
+          "line": 401,
+          "anchor": "## Exact coexisting-sense exclusion found after 53C"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "LVM12",
+      "name": "Moved-body-only association can exclude genuine sensory learning",
+      "classification": "source-verified historical scope restriction; present activation unresolved",
+      "finding": "LS22",
+      "observed_mechanism": "The f0be7e7 snapshot returns no assembly when moved_body_regulations is empty. This is a general association builder called before a vocal-specific mounting helper. It excludes sensory-only coexperience at this boundary, even when sound and sight are real.",
+      "evidence_limits": "This commit includes later lean-route work and is not the exact frozen53F test binary. Its restriction requires charter reconciliation; reducing excess speech anatomy cannot silently erase observer-only experience learning.",
+      "replacement": "Separate a motor-learning evidence requirement from general multimodal memory eligibility. Preserve lawful experience of seeing/hearing another agent as experience, while withholding unearned own-motor credit.",
+      "acceptance": "Test own action, assisted movement and observation of another actor independently. A sensory-only experience must not be rejected merely because the pupil did not move; own procedural learning needs its separately specified evidence.",
+      "refs": [
+        {
+          "source_id": "LSC03",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSC03--resident_cognitive_formation.rs",
+          "sha256": "750c615d3a81c290337480f4e3c2f74b4329ee0213ab3c7c712106fe5890543e",
+          "line": 15055,
+          "anchor": "            if local_integrations.is_empty() || moved_body_regulations.is_empty() {"
+        },
+        {
+          "source_id": "LSC03",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSC03--resident_cognitive_formation.rs",
+          "sha256": "750c615d3a81c290337480f4e3c2f74b4329ee0213ab3c7c712106fe5890543e",
+          "line": 9129,
+          "anchor": "        mount_exact_vocal_sensorimotor_routes("
+        }
+      ],
+      "repair_actions": [
+        "A06",
+        "A08",
+        "A10",
+        "A12",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ],
+  "exhaustive_classification": false,
+  "product_acceptance": false
+}

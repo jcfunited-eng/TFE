@@ -1,0 +1,232 @@
+commit 7406b9ab35d47bb6f4f40ab1f27aecd3fa0fd8f7
+Author:     Codex <codex@openai.local>
+AuthorDate: Mon Sep 14 04:12:00 2026 +0000
+Commit:     Codex <codex@openai.local>
+CommitDate: Mon Sep 14 04:12:00 2026 +0000
+
+    The functional organism: declared act laws over her measured state, the kernel over her sensed streams, bounded memory; no neurons, charge or muscles in the acting path (Joe, 2026-09-14)
+    
+    - guala_functional_organism.py: senses (world sight, camera, ear, touch, hunger) as measured streams; uf_core L0-L4 over each stream's trailing window every beat; familiarity/episode/sound memory with fixed bounds; acts: bite when hungry with food at the mouth (held or hand-fed), release an eaten core, grasp food in hand reach, turn and step toward seen food, keep one wander goal, attend to new structure, babble through her own airway when idle and imitate a heard sound with her nearest own syllable; metabolism in micrograms at the world's tastant masses; JSON body under 64 KB, restores byte-exact; the actor's runtime contract.
+    - guala_functional_loop.py: one beat = senses in, one decision, the world validates her commands in order (sidesteps when a stride is blocked), passive interval otherwise; her voice rides the pressure feed and is heard by her next beat.
+    - lean_production_app.py: restores a functional CURRENT body, or converts a native CURRENT body once at the same identity and tick (native envelope retained as predecessor); FunctionalPhysicalLoop replaces the native loop.
+    - gualaloom.html: beat line shows her act and reason, kernel reading, what she ate, hunger, lifetime counts, her syllable.
+    - manifest: native_resident_organism.py, lean_physical_loop.py, guala_motor_world.py leave the runtime closure; articulatory_self_vocal_mechanics.py joins it.
+    - tests: 8 organism/loop tests on the real home world; app startup tests for restore and conversion; page literals; packaging closure.
+    
+    Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+
+diff --git a/deploy/guala_release_manifest.json b/deploy/guala_release_manifest.json
+index d50b2dc96..6e718934b 100644
+--- a/deploy/guala_release_manifest.json
++++ b/deploy/guala_release_manifest.json
+@@ -137,30 +137,30 @@
+         "dsf_ai_service/glew_runtime/native_exact_field_batch.py",
+         "dsf_ai_service/glew_runtime/native_joint_source_episode.py",
+         "dsf_ai_service/glew_runtime/native_l0_l4_full_field_bank.py",
+-        "dsf_ai_service/glew_runtime/native_resident_organism.py",
+         "dsf_ai_service/glew_runtime/native_sensory_full_field.py",
+         "dsf_ai_service/glew_runtime/operators.py",
+         "dsf_ai_service/glew_runtime/physical_l6_tangents.py",
+         "dsf_ai_service/glew_runtime/safe_mode.py",
+         "dsf_ai_service/glew_runtime/sensory_full_field_boundary.py",
+         "dsf_ai_service/glew_runtime/structural_port_basin.py",
++        "dsf_ai_service/guala_caretaker_hand.py",
+         "dsf_ai_service/guala_cochlea.py",
++        "dsf_ai_service/guala_functional_loop.py",
++        "dsf_ai_service/guala_functional_organism.py",
+         "dsf_ai_service/guala_home_world.py",
+-        "dsf_ai_service/guala_caretaker_hand.py",
+-        "dsf_ai_service/guala_motor_world.py",
+-        "dsf_ai_service/guala_physical_sensorium.py",
+         "dsf_ai_service/guala_physical_return.py",
++        "dsf_ai_service/guala_physical_sensorium.py",
+         "dsf_ai_service/guala_receptor_anatomy.py",
+         "dsf_ai_service/guala_world_sensorium.py",
+         "dsf_ai_service/lean_actor.py",
+         "dsf_ai_service/lean_checkpoint.py",
+         "dsf_ai_service/lean_embodiment_observation.py",
+-        "dsf_ai_service/lean_physical_loop.py",
+         "dsf_ai_service/lean_production_app.py",
+         "dsf_ai_service/lean_sensory_occurrence.py",
+         "dsf_ai_service/paired_current_store.py",
+         "dsf_ai_service/substrate/__init__.py",
+         "dsf_ai_service/substrate/approved_curriculum_physical_surfaces.py",
++        "dsf_ai_service/substrate/articulatory_self_vocal_mechanics.py",
+         "dsf_ai_service/substrate/auditory_event_boundary.py",
+         "dsf_ai_service/substrate/auditory_incremental_terminal.py",
+         "dsf_ai_service/substrate/auditory_kernel_mount.py",
+diff --git a/dsf_ai_service/lean_production_app.py b/dsf_ai_service/lean_production_app.py
+index f19607cfd..2ef5c8b80 100644
+--- a/dsf_ai_service/lean_production_app.py
++++ b/dsf_ai_service/lean_production_app.py
+@@ -15,9 +15,10 @@ from fastapi import FastAPI, HTTPException, Query, Request
+ from fastapi.responses import JSONResponse, Response
+ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+ 
++from dsf_ai_service.guala_functional_loop import FunctionalPhysicalLoop
++from dsf_ai_service.guala_functional_organism import FunctionalOrganism, MAGIC as FUNCTIONAL_MAGIC
+ from dsf_ai_service.guala_home_world import home_world_authority
+ from dsf_ai_service.lean_actor import LeanOrganismActor, PhysicalOccurrence
+-from dsf_ai_service.lean_physical_loop import LeanPhysicalLoop
+ from dsf_ai_service.lean_sensory_occurrence import LeanSensoryOccurrence
+ from dsf_ai_service.paired_current_store import PairedCurrentStore
+ 
+@@ -132,10 +133,6 @@ def _restore_production_actor() -> LeanOrganismActor:
+         raise RuntimeError("GUALA_PAIRED_ROOT is required")
+     root = Path(root_text)
+ 
+-    from dsf_ai_service.glew_runtime.native_resident_organism import (
+-        migrate_native_resident_organism_exact_energy,
+-        restore_native_resident_organism,
+-    )
+     from dsf_ai_service.substrate.native_resident_resource_admission import (
+         derive_native_resident_resource_admission,
+     )
+@@ -150,58 +147,24 @@ def _restore_production_actor() -> LeanOrganismActor:
+     )
+     restored = store.restore()
+     current = restored.pointer.current
+-    current_body = migrate_native_resident_organism_exact_energy(
+-        current_envelope=restored.body,
+-        expected_predecessor_sha256=current.body_sha256,
+-        max_envelope_bytes=admission.max_envelope_bytes,
+-        max_fabric_bytes=admission.max_fabric_bytes,
+-        max_logical_peak_bytes=admission.max_logical_peak_bytes,
+-    )
+-    runtime = restore_native_resident_organism(
+-        current_envelope=current_body,
+-        max_envelope_bytes=admission.max_envelope_bytes,
+-        max_fabric_bytes=admission.max_fabric_bytes,
+-        max_logical_peak_bytes=admission.max_logical_peak_bytes,
+-    )
+-    native = runtime.readiness()
+-    if (
+-        native.identity != current.identity
+-        or native.organism_tick != current.organism_tick
+-        or runtime.live_organism_tick != current.organism_tick
+-    ):
+-        raise RuntimeError("restored native identity/tick differs from paired CURRENT")
+-    # Before pending-source expansion, migration publication or actor start.
+-    # These are existing producer limits, not a second resource allowance.
+-    from dsf_ai_service.guala_receptor_anatomy import receptor_anatomy
+-    from dsf_ai_service.guala_world_sensorium import consequence_source_times
+-    from dsf_ai_service.glew_runtime.sensory_full_field_boundary import PhysicalSense, SENSE_ORDER
+-    from dsf_ai_service.lean_actor import MAX_PRESSURE_BYTES
+-    from dsf_ai_service.lean_physical_loop import PASSIVE_TIMES
+-    from dsf_ai_service.substrate.thermally_coupled_embodiment_world import MAX_COUPLED_STATE_BYTES
+-
+-    runtime.admit_ordinary_physical_workspace(
+-        anatomy=receptor_anatomy(),
+-        additional_anatomy=receptor_anatomy(include_focal=False),
+-        primary_frames=len(consequence_source_times(PASSIVE_TIMES)),
+-        hearing_frames=len(PASSIVE_TIMES),
+-        hearing_sense=SENSE_ORDER.index(PhysicalSense.SOUND),
+-        maximum_pressure_samples=MAX_PRESSURE_BYTES // 2,
+-        coupled_encoded_limit=MAX_COUPLED_STATE_BYTES,
++    # The functional organism (Joe, 2026-09-14). A CURRENT body that is still a
++    # native neuron envelope is succeeded here, once, by a functional body at
++    # the same identity and tick; the native envelope stays as the retained
++    # predecessor generation and is never read for cognition again.
++    converted = not restored.body.startswith(FUNCTIONAL_MAGIC)
++    runtime = (
++        FunctionalOrganism.genesis(identity=current.identity, organism_tick=current.organism_tick)
++        if converted else FunctionalOrganism.restore(restored.body)
+     )
++    if runtime.identity != current.identity or runtime.live_organism_tick != current.organism_tick:
++        raise RuntimeError("restored organism identity/tick differs from paired CURRENT")
++    current_body = runtime.encoded()
+     world = home_world_authority(
+         identity=current.identity,
+         encoded_world=restored.world,
+         migrate_physical_return=True,
+     )
+     current_world = bytes(world.encoded_snapshot())
+-    pending = world.pending_physical_return
+-    if pending is not None:
+-        observed = world.observation_snapshot()
+-        pending.validate_binding(
+-            identity=current.identity, producer_tick=runtime.live_organism_tick,
+-            world_revision=observed.revision,
+-            world_receipt=observed.authority_receipt_sha256,
+-        )
+     # One startup-only receipt of the validated bytes actually read. It precedes
+     # any migration publication and never participates in cognition or identity.
+     print(json.dumps({
+@@ -212,6 +175,7 @@ def _restore_production_actor() -> LeanOrganismActor:
+         "body_bytes": current.body_bytes,
+         "world_sha256": current.world_sha256,
+         "world_bytes": current.world_bytes,
++        "functional_conversion": converted,
+     }, sort_keys=True, separators=(",", ":")), flush=True)
+     pointer = restored.pointer
+     if current_body != restored.body or current_world != restored.world:
+@@ -228,7 +192,7 @@ def _restore_production_actor() -> LeanOrganismActor:
+         world=world,
+         pointer=pointer,
+         store=store,
+-        physical=LeanPhysicalLoop(),
++        physical=FunctionalPhysicalLoop(),
+         mailbox_capacity=MAILBOX_CAPACITY,
+         checkpoint_every_intervals=CHECKPOINT_EVERY_INTERVALS,
+         unattended_interval_seconds=UNATTENDED_INTERVAL_SECONDS,
+diff --git a/dsf_ai_service/lean_runtime_manifest.txt b/dsf_ai_service/lean_runtime_manifest.txt
+index 02c6ed26c..359f8fbce 100644
+--- a/dsf_ai_service/lean_runtime_manifest.txt
++++ b/dsf_ai_service/lean_runtime_manifest.txt
+@@ -15,28 +15,30 @@ dsf_ai_service/glew_runtime/model.py
+ dsf_ai_service/glew_runtime/native_exact_field_batch.py
+ dsf_ai_service/glew_runtime/native_joint_source_episode.py
+ dsf_ai_service/glew_runtime/native_l0_l4_full_field_bank.py
+-dsf_ai_service/glew_runtime/native_resident_organism.py
+ dsf_ai_service/glew_runtime/native_sensory_full_field.py
+ dsf_ai_service/glew_runtime/operators.py
+ dsf_ai_service/glew_runtime/physical_l6_tangents.py
+ dsf_ai_service/glew_runtime/safe_mode.py
+ dsf_ai_service/glew_runtime/sensory_full_field_boundary.py
+ dsf_ai_service/glew_runtime/structural_port_basin.py
++dsf_ai_service/guala_caretaker_hand.py
+ dsf_ai_service/guala_cochlea.py
++dsf_ai_service/guala_functional_loop.py
++dsf_ai_service/guala_functional_organism.py
+ dsf_ai_service/guala_home_world.py
+-dsf_ai_service/guala_motor_world.py
++dsf_ai_service/guala_physical_return.py
+ dsf_ai_service/guala_physical_sensorium.py
+ dsf_ai_service/guala_receptor_anatomy.py
+ dsf_ai_service/guala_world_sensorium.py
+ dsf_ai_service/lean_actor.py
+ dsf_ai_service/lean_checkpoint.py
+ dsf_ai_service/lean_embodiment_observation.py
+-dsf_ai_service/lean_physical_loop.py
+ dsf_ai_service/lean_production_app.py
+ dsf_ai_service/lean_sensory_occurrence.py
+ dsf_ai_service/paired_current_store.py
+ dsf_ai_service/substrate/__init__.py
+ dsf_ai_service/substrate/approved_curriculum_physical_surfaces.py
++dsf_ai_service/substrate/articulatory_self_vocal_mechanics.py
+ dsf_ai_service/substrate/auditory_event_boundary.py
+ dsf_ai_service/substrate/auditory_incremental_terminal.py
+ dsf_ai_service/substrate/auditory_kernel_mount.py
+@@ -73,12 +75,6 @@ dsf_ai_service/substrate/w1_binaural_receptor_settlement.py
+ dsf_ai_service/substrate/w1_coupled_material_sensory_physics.py
+ dsf_ai_service/substrate/w1_exact_binaural_source_separation.py
+ dsf_ai_service/substrate/w1_physical_receptors.py
+-uf_core/config.py
+-uf_core/layer0.py
+-uf_core/layer1.py
+-uf_core/layer2.py
+-uf_core/layer3.py
+-uf_core/layer4.py
+ guala_curriculum/cards/C-is-for-Cat.png
+ guala_curriculum/cards/D-is-for-Dolphin.png
+ guala_curriculum/cards/E-is-for-Elephant.png
+@@ -115,3 +111,9 @@ guala_curriculum/cards/number-07-seven-v1.png
+ guala_curriculum/cards/number-08-eight-v1.png
+ guala_curriculum/cards/number-09-nine-v1.png
+ guala_curriculum/cards/number-10-ten-v1.png
++uf_core/config.py
++uf_core/layer0.py
++uf_core/layer1.py
++uf_core/layer2.py
++uf_core/layer3.py
++uf_core/layer4.py

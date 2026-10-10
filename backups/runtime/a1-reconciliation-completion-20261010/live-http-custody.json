@@ -1,0 +1,61 @@
+[
+  {
+    "name": "gualaloom",
+    "url": "https://dsf-ai.com/gualaloom.html",
+    "at_utc": "2026-10-10T00:19:07.959216+00:00",
+    "method": "GET; no controls or mutation",
+    "status": 200,
+    "bytes": 90313,
+    "sha256": "8786a8bf0c67466f03d01b6afb53135f8fc95b5d61235aa36be0c15d4f15d31d",
+    "artifact": "backups/runtime/a1-reconciliation-completion-20261010/live-gualaloom.html",
+    "content_type": "text/html"
+  },
+  {
+    "name": "loomscan",
+    "url": "https://dsf-ai.com/loomscan.html",
+    "at_utc": "2026-10-10T00:19:08.106731+00:00",
+    "method": "GET; no controls or mutation",
+    "status": 200,
+    "bytes": 34499,
+    "sha256": "c3fd1afbf1fc8c35c6d4ed471875a3d1b08e6858a714ec19397762a0562e362e",
+    "artifact": "backups/runtime/a1-reconciliation-completion-20261010/live-loomscan.html",
+    "content_type": "text/html"
+  },
+  {
+    "name": "observation",
+    "url": "https://dsf-ai.com/api/v1/guala/observation",
+    "at_utc": "2026-10-10T00:19:08.228753+00:00",
+    "method": "GET; no controls or mutation",
+    "status": 200,
+    "bytes": 203194,
+    "sha256": "5aa850425a9de98ee4157ece556dae9f758da61d070c465f682174d1a963c4fd",
+    "artifact": "backups/runtime/a1-reconciliation-completion-20261010/live-observation.json",
+    "content_type": "application/json",
+    "summary": {
+      "schema": "guala.lean_actor_observation.v1",
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 4226681,
+      "persisted_tick": 4226659,
+      "available": true,
+      "durability_blocked": false,
+      "checkpoint_error": null,
+      "event": {
+        "tick": null,
+        "her_act": "stride",
+        "reserve_micrograms": 332093,
+        "metabolic_need_reserve_deficit": [
+          167907,
+          500000
+        ],
+        "actual_root_motion": [
+          12656,
+          -12,
+          -16
+        ],
+        "physically_transitioned_neuron_count": 10656,
+        "external_retinal_site_count": 0,
+        "external_heard_sample_count": 0
+      }
+    }
+  }
+]

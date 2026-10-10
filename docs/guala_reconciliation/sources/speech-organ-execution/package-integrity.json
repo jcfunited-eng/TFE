@@ -1,0 +1,43 @@
+{
+  "archive_sha256": "a30c66b729d13abaffa860f34604f5b6b037fd9978c97954de2210c100b50889",
+  "zip_sha256": "5814c1be8550921d63a709bcf41bcf371913585c575c2adc80d2e6b0fbf3b3be",
+  "git_commit": "5e327afbdfa85c45ceed16f45c8f1264d4d1c153",
+  "receipt_sha256": "973f5571ad910fbfbcf5999af5ff1cf5e8ac1134785e8c3307b5c29cb9ac40bc",
+  "verified_stage_files": 215,
+  "verified_zip_files": 215,
+  "extra_zip_members": [
+    "_release/release-receipt.json"
+  ],
+  "source_copies": [
+    {
+      "path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/image/Dockerfile",
+      "archive_path": "dsf_ai_service/Dockerfile",
+      "sha256": "8ccdb7fe011bec2bad5e94fc607189fd7a402282399d3af9ed28e2591e61a1c2",
+      "bytes": 2143,
+      "review": "Captured only; semantic source review pending"
+    },
+    {
+      "path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/image/lean_sensorimotor_route.rs",
+      "archive_path": "native/guala_core/src/resident_cognitive_formation/lean_sensorimotor_route.rs",
+      "sha256": "25eeaab42a6bd922912c7f05cfaf0a6384f89fb80cdbb73bd1a2ede436db256b",
+      "bytes": 38542,
+      "review": "Captured only; semantic source review pending"
+    },
+    {
+      "path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/image/virtual_articulatory_body.rs",
+      "archive_path": "native/guala_core/src/virtual_articulatory_body.rs",
+      "sha256": "c4dd38a1d1d6cc5f20dcf90c5650ee73f34cf9a0b9bd7b9c5ddfc40f94a4203e",
+      "bytes": 104643,
+      "review": "Captured only; semantic source review pending"
+    },
+    {
+      "path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/image/resident_cognitive_formation.rs",
+      "archive_path": "native/guala_core/src/resident_cognitive_formation.rs",
+      "sha256": "d43187110cd4e80999ea1fe7019ce4dd36e14d56e3dc76fdc2475b99b6cb6bd7",
+      "bytes": 1130922,
+      "review": "Captured only; semantic source review pending"
+    }
+  ],
+  "semantic_clearance": false,
+  "executed_product": false
+}

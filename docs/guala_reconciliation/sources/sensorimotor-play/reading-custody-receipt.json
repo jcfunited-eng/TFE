@@ -1,0 +1,22 @@
+{
+  "schema": "guala.complete_document_content_read_receipt.v1",
+  "sources": 87,
+  "paths": 4,
+  "latest_lines": 3815,
+  "historical_only_passages": 18,
+  "historical_only_lines": 92,
+  "basis_passages": 18,
+  "basis_lines": 92,
+  "source_hashes_validated": true,
+  "all_latest_and_basis_content_read": true,
+  "exact_old_passage_containment_validated": true,
+  "product_execution": false,
+  "product_qualification": false,
+  "scientific_sources_independently_verified": false,
+  "original_approval_not_inferred": true,
+  "independent_arithmetic": {
+    "q": "16822854657/800000000",
+    "q_decimal": "21.02856832125",
+    "initial_conductance_pS": 500
+  }
+}

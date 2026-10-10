@@ -1,0 +1,388 @@
+{
+  "schema": "guala.reconciliation_mechanism_supplement.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T00:55:36.414678+00:00",
+  "mechanisms": [
+    {
+      "id": "AH01",
+      "name": "Exact native ternary representation",
+      "algorithm_classes": [
+        "deterministic_transduction"
+      ],
+      "observed_mechanism": "No learned update or reward state in the captured representation module; exact finite binary64 encoding, bounded integer limbs/trits, explicit invalid/noncanonical refusals.",
+      "architecture_disposition": "PRESERVE numeric representation within its proved domain; not cognitive acceptance",
+      "refs": [
+        {
+          "source_id": "CODE04",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/native/guala_core/src/mathloom.rs",
+          "sha256": "50b0e524f927032636a9d60bf52f998b24ca948fa4f583ed749dcf2c8b26a751",
+          "line": 5,
+          "anchor": "//! The largest required denominator has 679 balanced-ternary digits."
+        },
+        {
+          "source_id": "CODE04",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/native/guala_core/src/mathloom.rs",
+          "sha256": "50b0e524f927032636a9d60bf52f998b24ca948fa4f583ed749dcf2c8b26a751",
+          "line": 3,
+          "anchor": "//! Finite binary64 has at most a 1024-bit integer numerator and denominator"
+        },
+        {
+          "source_id": "CODE04",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/native/guala_core/src/mathloom.rs",
+          "sha256": "50b0e524f927032636a9d60bf52f998b24ca948fa4f583ed749dcf2c8b26a751",
+          "line": 404,
+          "anchor": "            .chain(std::iter::repeat(0)).take(32).collect::<Vec<_>>();"
+        }
+      ],
+      "lawful_remedy": "Preserve exact representation and boundary rejection; qualify the loaded binary and actual callers separately.",
+      "acceptance_falsifier": "Exact roundtrip, noncanonical/invalid/nonfinite rejection and source/binary binding are required; these cannot establish learned memory.",
+      "repair_actions": [
+        "A02",
+        "A04",
+        "A16"
+      ],
+      "evidence_level": "Full captured-file source review; no fresh native/HDL execution or loaded hardware binding",
+      "artifact_scope": "Nine per-file stable working snapshots in historical reconciliation code_sources; not a frozen whole candidate and not attributed to Task1598",
+      "ml_scope": "No whole-system ML exclusion. Example/controller conflicts remain forbidden whether or not classified as a trained statistical model."
+    },
+    {
+      "id": "AH02",
+      "name": "HDL full-adder and ripple arithmetic",
+      "algorithm_classes": [
+        "deterministic_transduction"
+      ],
+      "observed_mechanism": "Fixed numeric truth table; exact value identity for valid inputs. Combinational ripple depth is not constant physical latency; invalid11encodings need explicit boundary rejection.",
+      "architecture_disposition": "PRESERVE valid arithmetic; qualify admission and actual timing",
+      "refs": [
+        {
+          "source_id": "HAR08-01",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR08-01--ArcLoom_Processor_Specification_v4_0.tex",
+          "sha256": "41b2febd1e68816116839702f15d02c7d8c4a74de192b4b6a5e44d1caf184b92",
+          "line": 371,
+          "anchor": "  \\item Carry ring $R_C$ settles to $w_C = \\lfloor(w_A + w_B + 1)/3\\rfloor - 1$"
+        },
+        {
+          "source_id": "HAR09-02",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-02--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "45f1e141a87bc498f57fd92ae20e07e5e4640714523d49689c53af2382bf125b",
+          "line": 950,
+          "anchor": "The balanced ternary carry function is associative:"
+        }
+      ],
+      "lawful_remedy": "Correct historical errata and preserve exact arithmetic. Reject invalid input encodings at admission.",
+      "acceptance_falsifier": "Exhaustively check valid digit/carry combinations and end-to-end value conservation; test invalid encodings separately.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A16"
+      ],
+      "evidence_level": "Full captured-file source review; no fresh native/HDL execution or loaded hardware binding",
+      "artifact_scope": "Nine per-file stable working snapshots in historical reconciliation code_sources; not a frozen whole candidate and not attributed to Task1598",
+      "ml_scope": "No whole-system ML exclusion. Example/controller conflicts remain forbidden whether or not classified as a trained statistical model."
+    },
+    {
+      "id": "AH03",
+      "name": "Clocked integer division",
+      "algorithm_classes": [
+        "deterministic_transduction"
+      ],
+      "observed_mechanism": "Repeated subtraction with captured signs/operands, divide-by-zero result and explicit work bound. No reward or example learning follows from this arithmetic.",
+      "architecture_disposition": "PRESERVE stated integer arithmetic; reject unsupported clockless/O(1)/rounding claims",
+      "refs": [
+        {
+          "source_id": "HAR09-03",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-03--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "d8c33af74dc81937b5954b28fb1f678773e600c39f30240b233f9e01ba734a5a",
+          "line": 1326,
+          "anchor": "  \\item \\textbf{Truncation equals rounding:} Balanced ternary truncation"
+        },
+        {
+          "source_id": "CODE03",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_mathloom_div.v",
+          "sha256": "8b97541f3217cf63a296b492c90c8db235f2ca18e8de8ef8ebf38cfe23596657",
+          "line": 3,
+          "anchor": "// This is a CLOCKED repeated-subtraction divider, not a clockless operator."
+        }
+      ],
+      "lawful_remedy": "Keep exact integer semantics and derive any fractional rounding rule separately, including ties and bounds.",
+      "acceptance_falsifier": "Run the5/9counterexample and signed quotient/remainder identities; do not alter a test to accept the false rounding claim.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A16"
+      ],
+      "evidence_level": "Full captured-file source review; no fresh native/HDL execution or loaded hardware binding",
+      "artifact_scope": "Nine per-file stable working snapshots in historical reconciliation code_sources; not a frozen whole candidate and not attributed to Task1598",
+      "ml_scope": "No whole-system ML exclusion. Example/controller conflicts remain forbidden whether or not classified as a trained statistical model."
+    },
+    {
+      "id": "AH04",
+      "name": "Sensor input clipping and overflow",
+      "algorithm_classes": [
+        "field_projection",
+        "deterministic_transduction"
+      ],
+      "observed_mechanism": "Below-baseline ADC values become zero; distance clamps at3280. Derivatives can exceed8trit range, and acceleration magnitude is reduced to12bits. This loses sign/magnitude distinctions before cognition.",
+      "architecture_disposition": "REJECT full-input fidelity claim; repair exact receiver contract",
+      "refs": [
+        {
+          "source_id": "CODE02",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_mathloom.v",
+          "sha256": "988deb22e0117b69765943e50c0a5d7a9075cd35588e8b41646dfcb863fc463e",
+          "line": 83,
+          "anchor": "            default: begin sum_out = 2'b00; c_out = 2'b00; end // unreachable"
+        },
+        {
+          "source_id": "CODE09",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_bsil_bt.v",
+          "sha256": "0b0c3af992adc74fb839d15280d92e6c0e3614ef45d3acd8718a1664387fe114",
+          "line": 91,
+          "anchor": "    // Clamp to 3280 max — 8-trit BT range is ±3280."
+        },
+        {
+          "source_id": "CODE09",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_bsil_bt.v",
+          "sha256": "0b0c3af992adc74fb839d15280d92e6c0e3614ef45d3acd8718a1664387fe114",
+          "line": 104,
+          "anchor": "    wire [11:0] delta_mag = (adc_value > prev_adc) ?"
+        }
+      ],
+      "lawful_remedy": "Specify exact signed sensor range/precision and sufficient representation, reject invalids before authority; remove hidden clipping/truncation masquerading as complete input.",
+      "acceptance_falsifier": "Test extrema, sign, derivative reversal, overflow and11encodings through the full receiver/effector path.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A14",
+        "A16"
+      ],
+      "evidence_level": "Full captured-file source review; no fresh native/HDL execution or loaded hardware binding",
+      "artifact_scope": "Nine per-file stable working snapshots in historical reconciliation code_sources; not a frozen whole candidate and not attributed to Task1598",
+      "ml_scope": "No whole-system ML exclusion. Example/controller conflicts remain forbidden whether or not classified as a trained statistical model."
+    },
+    {
+      "id": "AH05",
+      "name": "Raw-strand SPPU motor controller",
+      "algorithm_classes": [
+        "hand_authored_policy",
+        "field_projection"
+      ],
+      "observed_mechanism": "Distinct kinematic strands are combined into scalar sums with fixed thresholds and authored speed/steer formulas. Exposed UF wires do not enter the SPPU as a joint seven-field mechanism.",
+      "architecture_disposition": "REJECT as full-field physical cognitive authority",
+      "refs": [
+        {
+          "source_id": "CODE01",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_sppu.v",
+          "sha256": "b15a4c6d2620603f4d11d52098879a01bb0b18fcbe5cddae787f450578796d7c",
+          "line": 24,
+          "anchor": "// Per-field dead zones in ADC units."
+        },
+        {
+          "source_id": "CODE06",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_ternary_loom.v",
+          "sha256": "d495ce1c2063b02720f276cd9d2ab69cdba6bd934c736061bf915a442a657bb7",
+          "line": 282,
+          "anchor": "    arcloom_uf_pipeline uf_pipeline_inst ("
+        },
+        {
+          "source_id": "CODE06",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_ternary_loom.v",
+          "sha256": "d495ce1c2063b02720f276cd9d2ab69cdba6bd934c736061bf915a442a657bb7",
+          "line": 380,
+          "anchor": "    wire signed [15:0] speed_bias_with_target = -16'sd800 - target_speed_boost;"
+        }
+      ],
+      "lawful_remedy": "Trace all seven fields and actual material coupling to effectors; retire authored scalar policy and verify downstream refusal/actuator gates.",
+      "acceptance_falsifier": "Change field components independently and inspect actual successor authority; merely exposing seven observation wires fails.",
+      "repair_actions": [
+        "A04",
+        "A05",
+        "A08",
+        "A16"
+      ],
+      "evidence_level": "Full captured-file source review; no fresh native/HDL execution or loaded hardware binding",
+      "artifact_scope": "Nine per-file stable working snapshots in historical reconciliation code_sources; not a frozen whole candidate and not attributed to Task1598",
+      "ml_scope": "No whole-system ML exclusion. Example/controller conflicts remain forbidden whether or not classified as a trained statistical model."
+    },
+    {
+      "id": "AH06",
+      "name": "Familiarity and target-score motion bias",
+      "algorithm_classes": [
+        "example_matching",
+        "hand_authored_policy"
+      ],
+      "observed_mechanism": "Stored pattern match score>>2 passes a15point hysteresis; target match score is shifted into speed bias. Stored examples and hand-set gains control behavior; no material yield/depletion derivation is established.",
+      "architecture_disposition": "REJECT as material fatigue/curiosity",
+      "refs": [
+        {
+          "source_id": "HAR09-04",
+          "path": "docs/guala_reconciliation/sources/arcloom-history/HAR09-04--ArcLoom_Master_Specification_v5_0.tex",
+          "sha256": "00c72e56348c37766403588ed82f113070a1384a26dff1030f3a249e5d670b92",
+          "line": 784,
+          "anchor": "\\chapter{Familiarity Feedback: Clockless Habituation}"
+        },
+        {
+          "source_id": "CODE06",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_ternary_loom.v",
+          "sha256": "d495ce1c2063b02720f276cd9d2ab69cdba6bd934c736061bf915a442a657bb7",
+          "line": 358,
+          "anchor": "    localparam [7:0] FAM_DEADZONE = 8'd15;"
+        },
+        {
+          "source_id": "CODE01",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_sppu.v",
+          "sha256": "b15a4c6d2620603f4d11d52098879a01bb0b18fcbe5cddae787f450578796d7c",
+          "line": 24,
+          "anchor": "// Per-field dead zones in ADC units."
+        }
+      ],
+      "lawful_remedy": "Reject the score controller as pupil authority; derive depletion/recovery from retained physical resources and consequences without semantic targets.",
+      "acceptance_falsifier": "Hold physical state constant while changing only stored labels/target captures: motor physics must not change through those proxies.",
+      "repair_actions": [
+        "A05",
+        "A08",
+        "A11",
+        "A15",
+        "A16"
+      ],
+      "evidence_level": "Full captured-file source review; no fresh native/HDL execution or loaded hardware binding",
+      "artifact_scope": "Nine per-file stable working snapshots in historical reconciliation code_sources; not a frozen whole candidate and not attributed to Task1598",
+      "ml_scope": "No whole-system ML exclusion. Example/controller conflicts remain forbidden whether or not classified as a trained statistical model."
+    },
+    {
+      "id": "AH07",
+      "name": "Krimelack similarity CAM and target capture",
+      "algorithm_classes": [
+        "example_matching",
+        "hand_authored_policy"
+      ],
+      "observed_mechanism": "A bounded motif CAM selects best match and software-captured targets. Instantaneous thresholds replace claimed settled-window/IG checks; force_commit bypasses them. Counter/slot defects are separately recorded.",
+      "architecture_disposition": "REJECT as distributed retained physical memory",
+      "refs": [
+        {
+          "source_id": "CODE07",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_krimelack.v",
+          "sha256": "06cea1bcb2e6f9d5571d419cc7efe6006b538efde584f7d119b7d294a127cded",
+          "line": 38,
+          "anchor": "    input  wire                    force_commit,    // pulse: commit unconditionally (software capture)"
+        },
+        {
+          "source_id": "CODE07",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_krimelack.v",
+          "sha256": "06cea1bcb2e6f9d5571d419cc7efe6006b538efde584f7d119b7d294a127cded",
+          "line": 102,
+          "anchor": "    reg [2:0]  target_count;"
+        },
+        {
+          "source_id": "CODE06",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_ternary_loom.v",
+          "sha256": "d495ce1c2063b02720f276cd9d2ab69cdba6bd934c736061bf915a442a657bb7",
+          "line": 259,
+          "anchor": "    output wire [7:0]  target_match_score,"
+        }
+      ],
+      "lawful_remedy": "Retire target/example cognitive authority. If retained as an external diagnostic fixture, name it so and repair its bounded storage independently; preserve historical evidence.",
+      "acceptance_falsifier": "Eighth target capture, first automatic duplicate, full replacement, force commit during refusal and cold state must not corrupt scope or become pupil learning proof.",
+      "repair_actions": [
+        "A05",
+        "A09",
+        "A14",
+        "A15",
+        "A16"
+      ],
+      "evidence_level": "Full captured-file source review; no fresh native/HDL execution or loaded hardware binding",
+      "artifact_scope": "Nine per-file stable working snapshots in historical reconciliation code_sources; not a frozen whole candidate and not attributed to Task1598",
+      "ml_scope": "No whole-system ML exclusion. Example/controller conflicts remain forbidden whether or not classified as a trained statistical model."
+    },
+    {
+      "id": "AH08",
+      "name": "L6 count-based certainty and memory gating",
+      "algorithm_classes": [
+        "field_projection",
+        "hand_authored_policy"
+      ],
+      "observed_mechanism": "Count nonzero trits; scale collapsed*255/N; compare n_eff to a knee. Top passes this proxy as memory resonance and hardwires disruption/recovery low.",
+      "architecture_disposition": "REJECT as exact structural certainty or commit authority",
+      "refs": [
+        {
+          "source_id": "CODE08",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_l6_tcl.v",
+          "sha256": "6916133fb8578ed38297dfba44bd1a66313e014049447f54e51fde97d72a34db",
+          "line": 69,
+          "anchor": "    // This is a linear approximation of the volume ratio."
+        },
+        {
+          "source_id": "CODE06",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_ternary_loom.v",
+          "sha256": "d495ce1c2063b02720f276cd9d2ab69cdba6bd934c736061bf915a442a657bb7",
+          "line": 251,
+          "anchor": "    output wire [7:0]   omega,"
+        },
+        {
+          "source_id": "CODE08",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/arcloom/hdl/arcloom_l6_tcl.v",
+          "sha256": "6916133fb8578ed38297dfba44bd1a66313e014049447f54e51fde97d72a34db",
+          "line": 79,
+          "anchor": "    wire disruption_gate = disruption_active & recovery_pending;"
+        }
+      ],
+      "lawful_remedy": "Keep descriptive counts visibly scoped; remove their use as physical certainty/commit authority until a ratified exact operator exists.",
+      "acceptance_falsifier": "Same non-null count with different constraints cannot imply equal certainty; actual disruption must reach the required refusal path.",
+      "repair_actions": [
+        "A04",
+        "A09",
+        "A13",
+        "A16"
+      ],
+      "evidence_level": "Full captured-file source review; no fresh native/HDL execution or loaded hardware binding",
+      "artifact_scope": "Nine per-file stable working snapshots in historical reconciliation code_sources; not a frozen whole candidate and not attributed to Task1598",
+      "ml_scope": "No whole-system ML exclusion. Example/controller conflicts remain forbidden whether or not classified as a trained statistical model."
+    },
+    {
+      "id": "AH09",
+      "name": "MathLoom physical-settlement proof harness",
+      "algorithm_classes": [
+        "physical_model_unverified",
+        "state_transport"
+      ],
+      "observed_mechanism": "Sequential in-place carry propagation and enumeration of digit/carry residuals do not integrate the named potential. Verification misweights carry state. Exact arithmetic diagnostic and physical simulation must be distinguished.",
+      "architecture_disposition": "REJECT as physical settlement/performance proof",
+      "refs": [
+        {
+          "source_id": "CODE05",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/tools/mathloom_sim.py",
+          "sha256": "528ebae9b918690e9e2976ecf997ac0b46035f01bce143fb5aead3070a6c8a3a",
+          "line": 53,
+          "anchor": "    max_val = sum(3 ** i for i in range(width))"
+        },
+        {
+          "source_id": "CODE05",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/tools/mathloom_sim.py",
+          "sha256": "528ebae9b918690e9e2976ecf997ac0b46035f01bce143fb5aead3070a6c8a3a",
+          "line": 68,
+          "anchor": "def tri_well(x: float) -> float:"
+        },
+        {
+          "source_id": "CODE05",
+          "path": "backups/runtime/a1-reconciliation-completion-20261010/arcloom-history/source/tools/mathloom_sim.py",
+          "sha256": "528ebae9b918690e9e2976ecf997ac0b46035f01bce143fb5aead3070a6c8a3a",
+          "line": 211,
+          "anchor": "    result = bal3_to_int(s_digits) + bal3_to_int(c_digits) * (3 ** width)"
+        }
+      ],
+      "lawful_remedy": "Withdraw this harness as physical/O(1) proof. Retain only separately verified arithmetic diagnostics with truthful work accounting.",
+      "acceptance_falsifier": "For one digit1+1, s=−1,c=(0,1): erroneous reconstruction8versus2; derivative atx=1is−2. Independent witnesses do not count as a product test.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A14",
+        "A16"
+      ],
+      "evidence_level": "Full captured-file source review; no fresh native/HDL execution or loaded hardware binding",
+      "artifact_scope": "Nine per-file stable working snapshots in historical reconciliation code_sources; not a frozen whole candidate and not attributed to Task1598",
+      "ml_scope": "No whole-system ML exclusion. Example/controller conflicts remain forbidden whether or not classified as a trained statistical model."
+    }
+  ],
+  "source_registry": "arcloom-history-reconciliation.json",
+  "whole_system_qualification": false,
+  "status_authority": "collaborative_todo.md"
+}

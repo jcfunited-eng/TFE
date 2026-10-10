@@ -1,0 +1,413 @@
+{
+  "schema": "guala.documentary_full_content_read.v1",
+  "sources": [
+    {
+      "id": "AG001",
+      "path": "AGENTS.md",
+      "git_blob": "37d7bdc490c075dc8ca4f6e2c7572e91ffee3403",
+      "sha256": "7980c64acc23824b666ebb71e448e5a638131e06a10cab22da9344ad7068d519",
+      "bytes": 5130,
+      "lines": 66,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/agents-history/AG001--AGENTS.md",
+      "observations": [
+        {
+          "author_time": "2026-04-08T23:50:23+00:00",
+          "commit": "1efadfd5e8aab5195333f20b9834794432416182",
+          "side": "old"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "AG002",
+      "path": "AGENTS.md",
+      "git_blob": "f96a1bd99978a95d9a065a140419cbcb256e7542",
+      "sha256": "ef56721c434b032b68800e75026b6b8f2f603477ca786538e4f9826ad3e5b8d7",
+      "bytes": 8351,
+      "lines": 132,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/agents-history/AG002--AGENTS.md",
+      "observations": [
+        {
+          "author_time": "2026-04-08T23:54:56+00:00",
+          "commit": "355e5f44f32cfce6e7f570a2f82c01053fdb621b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-04-08T23:50:23+00:00",
+          "commit": "1efadfd5e8aab5195333f20b9834794432416182",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "AG003",
+      "path": "AGENTS.md",
+      "git_blob": "d8d867d156ddbdddc175001b013b26e59bb804ac",
+      "sha256": "e14591af88bd0511d0ad5744d2a865063c6e65576ef21611c94dc4fa783866d9",
+      "bytes": 8498,
+      "lines": 132,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/agents-history/AG003--AGENTS.md",
+      "observations": [
+        {
+          "author_time": "2026-04-11T23:15:40+00:00",
+          "commit": "b9d1f9338d60d5965f616cb5da60b71bfe2d056a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-04-08T23:54:56+00:00",
+          "commit": "355e5f44f32cfce6e7f570a2f82c01053fdb621b",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "AG004",
+      "path": "AGENTS.md",
+      "git_blob": "8711ab213d32fc3d66c31e95fb10720a280c1520",
+      "sha256": "1a8f1ddce032134862ad96ed8513a3af61c58e39a25ef91da1304a2f79eba105",
+      "bytes": 10828,
+      "lines": 184,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/agents-history/AG004--AGENTS.md",
+      "observations": [
+        {
+          "author_time": "2026-09-22T13:19:41+00:00",
+          "commit": "c4752d81903ff2d187debc77981223fdc558310d",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T08:30:07+00:00",
+          "commit": "a6fa385a3ca312bab39be342a92e91fc46397557",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-04-11T23:15:40+00:00",
+          "commit": "b9d1f9338d60d5965f616cb5da60b71bfe2d056a",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "AG005",
+      "path": "AGENTS.md",
+      "git_blob": "90cafd4f2a30bf9983c306e1e354efa0a0a86ff4",
+      "sha256": "c9e361f81cc024ffec083f86a9419380710cbf196e56958deff98a24416357a5",
+      "bytes": 12567,
+      "lines": 210,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/agents-history/AG005--AGENTS.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-03T08:30:07+00:00",
+          "commit": "a6fa385a3ca312bab39be342a92e91fc46397557",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "AG006",
+      "path": "AGENTS.md",
+      "git_blob": "6a14f975b899eaf9afe407f92aa82e42542cf21f",
+      "sha256": "42c55ff34d4b85950efb5ac14d00f3e1153d40d23da3a22f3d3630e3542ee6de",
+      "bytes": 12526,
+      "lines": 204,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/agents-history/AG006--AGENTS.md",
+      "observations": [
+        {
+          "author_time": "2026-09-28T01:01:08+00:00",
+          "commit": "344baa6073770954b0f2f3a0bbc8f52ea4a47a64",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-22T13:19:41+00:00",
+          "commit": "c4752d81903ff2d187debc77981223fdc558310d",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "AG007",
+      "path": "AGENTS.md",
+      "git_blob": "5ca60681ff7a48f9d191ed609775d8494f911402",
+      "sha256": "356e1b4e1366b195e382f7e4512fe07d78b3993bb80f9f3a3aba78fad55eaa3a",
+      "bytes": 14499,
+      "lines": 235,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/agents-history/AG007--AGENTS.md",
+      "observations": [
+        {
+          "author_time": "2026-10-01T11:51:12+00:00",
+          "commit": "2d5cf0fc63913b770db3c9a06cb0efb27902a4f1",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-28T01:01:08+00:00",
+          "commit": "344baa6073770954b0f2f3a0bbc8f52ea4a47a64",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "AG008",
+      "path": "AGENTS.md",
+      "git_blob": "4135256cffeb5b5ca0f1edba429c66fde04cd07f",
+      "sha256": "484cf6d4c437112d1554b152a33efc0f92e7382f56014603c063052d82aa42a5",
+      "bytes": 15847,
+      "lines": 252,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/agents-history/AG008--AGENTS.md",
+      "observations": [
+        {
+          "author_time": "2026-10-01T11:51:12+00:00",
+          "commit": "2d5cf0fc63913b770db3c9a06cb0efb27902a4f1",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    }
+  ],
+  "base": "AG008",
+  "base_lines": 252,
+  "historical_only_passages": [
+    {
+      "source_id": "AG002",
+      "start_line": 1,
+      "end_line": 1,
+      "latest_id": "AG008",
+      "latest_start_line": 1,
+      "latest_end_line": 1,
+      "kind": "replace",
+      "text": "# What This Project Is"
+    },
+    {
+      "source_id": "AG002",
+      "start_line": 3,
+      "end_line": 5,
+      "latest_id": "AG008",
+      "latest_start_line": 3,
+      "latest_end_line": 17,
+      "kind": "replace",
+      "text": "TFE (Tao Financial Engine) is **not** a financial application. It is the first\ndomain-specific proving ground for **DSF-AI** (Deterministic Structural Field AI)\n— a universal structural cognition engine."
+    },
+    {
+      "source_id": "AG002",
+      "start_line": 19,
+      "end_line": 19,
+      "latest_id": "AG008",
+      "latest_start_line": 31,
+      "latest_end_line": 31,
+      "kind": "replace",
+      "text": "## L5 Is the First Domain Governance Layer"
+    },
+    {
+      "source_id": "AG002",
+      "start_line": 21,
+      "end_line": 24,
+      "latest_id": "AG008",
+      "latest_start_line": 33,
+      "latest_end_line": 33,
+      "kind": "replace",
+      "text": "Layer 5 translates L4's geometric output into domain-specific decisions. The\ncurrent implementation governs financial structural interpretation (Accumulate /\nHold / Avoid) using DSF V3 deterministic basin physics. This is the first of many\npossible domain governance layers."
+    },
+    {
+      "source_id": "AG002",
+      "start_line": 26,
+      "end_line": 28,
+      "latest_id": "AG008",
+      "latest_start_line": 35,
+      "latest_end_line": 35,
+      "kind": "replace",
+      "text": "## Why Financial Data\n\nFinancial markets were chosen as the first test domain because the data is:"
+    },
+    {
+      "source_id": "AG002",
+      "start_line": 33,
+      "end_line": 35,
+      "latest_id": "AG008",
+      "latest_start_line": 40,
+      "latest_end_line": 41,
+      "kind": "replace",
+      "text": "Gemini (w3.1) suggested this domain. The goal is not to \"beat the market\" or\noperate as a quant. The goal is to prove that the L0–L4 kernel reliably detects\nstructural state transitions in hostile data."
+    },
+    {
+      "source_id": "AG002",
+      "start_line": 37,
+      "end_line": 37,
+      "latest_id": "AG008",
+      "latest_start_line": 43,
+      "latest_end_line": 43,
+      "kind": "replace",
+      "text": "## Target Domains Beyond Finance"
+    },
+    {
+      "source_id": "AG002",
+      "start_line": 39,
+      "end_line": 44,
+      "latest_id": "AG008",
+      "latest_start_line": 45,
+      "latest_end_line": 45,
+      "kind": "replace",
+      "text": "Once the physics is validated in the financial domain:\n- **Medical devices** — physiological signal interpretation\n- **Thermal sensors** — structural anomaly detection\n- **Autonomous vehicles** — environmental state cognition\n- **ArcLoom processor** — hardware instantiation of DSF-AI\n- **Android-level cognition** — emergent structural awareness"
+    },
+    {
+      "source_id": "AG002",
+      "start_line": 46,
+      "end_line": 46,
+      "latest_id": "AG008",
+      "latest_start_line": 47,
+      "latest_end_line": 49,
+      "kind": "replace",
+      "text": "## What This Means for Any Agent Working Here"
+    },
+    {
+      "source_id": "AG002",
+      "start_line": 48,
+      "end_line": 63,
+      "latest_id": "AG008",
+      "latest_start_line": 51,
+      "latest_end_line": 138,
+      "kind": "replace",
+      "text": "1. You are solving **physics problems** (entropy, cohesion, structural greed),\n   not market problems.\n2. Win rate is a **physics accuracy metric**, not a financial performance metric.\n   85% is the floor, not a target.\n3. The Negative Space operator, Quiescence, Asymmetric Exhaustion, and the Greed\n   Operator ($\\Gamma$) are **structural physics concepts** being stress-tested in\n   a financial domain.\n4. L0–L4 is **frozen and canonical**. It is the kernel. Do not modify it.\n5. TFE needs to work reliably so the physics can be validated and the project can\n   advance to its real applications. Stability is the priority.\n6. The user (Joseph Forrester) is the physicist and architect of the kernel. He is\n   **not a developer**. Frame all explanations in physics terms, not market terms.\n   Never assume developer knowledge.\n7. Any AI agent that introduces ML approximations, heuristic smoothing, or\n   probabilistic shortcuts into the deterministic physics is actively sabotaging\n   the project. This has happened before (see E5.4 history) and cost months."
+    },
+    {
+      "source_id": "AG003",
+      "start_line": 39,
+      "end_line": 44,
+      "latest_id": "AG008",
+      "latest_start_line": 45,
+      "latest_end_line": 45,
+      "kind": "replace",
+      "text": "Once the physics is validated in the financial domain:\n- **Medical devices** — physiological signal interpretation\n- **Thermal sensors** — structural anomaly detection\n- **Autonomous vehicles** — environmental state cognition\n- **ArcLoom processor** — ternary processor that supports kernel outputs; minimizes power consumption and interprets analog inputs for direct decision fulfillment (next step, not destination)\n- **Android-level cognition** — emergent structural awareness (destination)"
+    },
+    {
+      "source_id": "AG004",
+      "start_line": 69,
+      "end_line": 70,
+      "latest_id": "AG008",
+      "latest_start_line": 92,
+      "latest_end_line": 93,
+      "kind": "replace",
+      "text": "Claude (c1) is the architect, deployer, and auditor of the TFE production\ncodebase. This is not advisory — it is ownership with responsibility."
+    },
+    {
+      "source_id": "AG004",
+      "start_line": 82,
+      "end_line": 82,
+      "latest_id": "AG008",
+      "latest_start_line": 105,
+      "latest_end_line": 105,
+      "kind": "replace",
+      "text": "Fix it. An ML approximation in the kernel is wrong. Remove it immediately."
+    },
+    {
+      "source_id": "AG004",
+      "start_line": 94,
+      "end_line": 95,
+      "latest_id": "AG008",
+      "latest_start_line": 117,
+      "latest_end_line": 118,
+      "kind": "replace",
+      "text": "- **Architecture decisions:** Claude makes them and executes them.\n- **L0-L4 kernel:** Canonical. Never modified without Joseph's explicit approval."
+    },
+    {
+      "source_id": "AG004",
+      "start_line": 97,
+      "end_line": 97,
+      "latest_id": "AG008",
+      "latest_start_line": 120,
+      "latest_end_line": 120,
+      "kind": "replace",
+      "text": "  Only deterministic DSF V3 basin physics unless Joseph explicitly approves"
+    },
+    {
+      "source_id": "AG004",
+      "start_line": 99,
+      "end_line": 99,
+      "latest_id": "AG008",
+      "latest_start_line": 122,
+      "latest_end_line": 122,
+      "kind": "replace",
+      "text": "- **L6 (future):** Claude owns constraints and development under the same"
+    },
+    {
+      "source_id": "AG004",
+      "start_line": 101,
+      "end_line": 102,
+      "latest_id": "AG008",
+      "latest_start_line": 124,
+      "latest_end_line": 125,
+      "kind": "replace",
+      "text": "- **Optimization audits:** Claude decides when. Joseph approves scope.\n- **Deployment:** Claude deploys when ready. No waiting for permission on"
+    },
+    {
+      "source_id": "AG005",
+      "start_line": 156,
+      "end_line": 180,
+      "latest_id": "AG008",
+      "latest_start_line": 181,
+      "latest_end_line": 181,
+      "kind": "replace",
+      "text": "# Permanent Pure-Physics Boundary Audit\n\n- Apply `docs/GUALA_PURE_PHYSICS_BOUNDARY_AUDIT_RULE.md` to every neuronal,\n  Krimelack, synaptic, fluid, body, sensory, motor, formation, growth-DNA, and\n  autonomous physical transition before architecture promotion or deployment.\n- A physics path begins with already-authenticated, locality-resolved physical\n  inputs and ends before successor authentication. Authentication, ownership,\n  locks, databases, digests, receipts, serialization, persistence, networking,\n  deployment, and UI work are forbidden inside that path or its transitive calls.\n- Do not recursively or repeatedly validate an input that the organism boundary\n  has already admitted. Authenticate once before physics and once after it.\n- Exact topology and locality must determine physical participation and\n  orientation. Validators, semantic labels, learned weights, scalar scores,\n  static meaning tables, and compatibility fields may not substitute for physics.\n- Transition each reached component and reached sparse edge exactly once per\n  applicable exact clock. Measure calls and prove work is linear in the reached\n  causal frontier, with no whole-population polling, recursion, re-entry, hidden\n  callbacks, or growth with total organism history.\n- Persist only bounded causative physical state. Do not place append-only event\n  history, duplicate field bodies, cumulative identity, or observation logs in\n  cognition.\n- A behavioral test pass is insufficient. Source and transitive-call review,\n  forbidden-dependency audit, bounded recurrence falsification, and derived\n  CPU/RAM/storage growth are mandatory. Any failure blocks promotion and must be\n  corrected before more architecture is built on the candidate."
+    }
+  ],
+  "reconstruction": [
+    {
+      "id": "AG001",
+      "sha256": "7980c64acc23824b666ebb71e448e5a638131e06a10cab22da9344ad7068d519",
+      "lines": 66,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "AG002",
+      "sha256": "ef56721c434b032b68800e75026b6b8f2f603477ca786538e4f9826ad3e5b8d7",
+      "lines": 132,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "AG003",
+      "sha256": "e14591af88bd0511d0ad5744d2a865063c6e65576ef21611c94dc4fa783866d9",
+      "lines": 132,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "AG004",
+      "sha256": "1a8f1ddce032134862ad96ed8513a3af61c58e39a25ef91da1304a2f79eba105",
+      "lines": 184,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "AG005",
+      "sha256": "c9e361f81cc024ffec083f86a9419380710cbf196e56958deff98a24416357a5",
+      "lines": 210,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "AG006",
+      "sha256": "42c55ff34d4b85950efb5ac14d00f3e1153d40d23da3a22f3d3630e3542ee6de",
+      "lines": 204,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "AG007",
+      "sha256": "356e1b4e1366b195e382f7e4512fe07d78b3993bb80f9f3a3aba78fad55eaa3a",
+      "lines": 235,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "AG008",
+      "sha256": "484cf6d4c437112d1554b152a33efc0f92e7382f56014603c063052d82aa42a5",
+      "lines": 252,
+      "complete_reconstruction": true
+    }
+  ],
+  "all_captured_content_read": true,
+  "product_execution": false,
+  "complete_reconciliation": false
+}

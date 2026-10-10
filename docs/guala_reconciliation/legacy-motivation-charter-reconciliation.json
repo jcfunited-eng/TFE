@@ -1,0 +1,931 @@
+{
+  "schema": "guala.documentary_slice_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T08:53:28.532910+00:00",
+  "scope": "Complete captured content of11 versions/11 paths:2133lines, including identical229-line original/archive content plus its9-line distinct supersession notice. No product execution, current live refresh, original approval authentication or primary-science review.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "LM01-01",
+      "path": "docs/GL-CHARTER-motivation-v2-wC-20260609-019.md",
+      "git_blob": "7a7a80f6ef3cc9cda2508596d547608b7bddf847",
+      "sha256": "c513c38763afca12ae5203fcfdf54620f597631ab27dca045c1c2c44bc4faaa6",
+      "bytes": 9096,
+      "lines": 110,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-motivation-charter/LM01-01--GL-CHARTER-motivation-v2-wC-20260609-019.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-10T15:53:55+00:00",
+          "commit": "57d0fd221cd77ffedb52efeb077eee1c3f68c426",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of11 versions/11 paths:2133lines, including identical229-line original/archive content plus its9-line distinct supersession notice. No product execution, current live refresh, original approval authentication or primary-science review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM01-01--GL-CHARTER-motivation-v2-wC-20260609-019.md"
+    },
+    {
+      "id": "LM02-01",
+      "path": "docs/GL-CHARTER-motivation-v3-wC-20260609-024.md",
+      "git_blob": "1083300650ff6ce9e0a6c17c868ca137baa9fc22",
+      "sha256": "a0fb6742308331549efd631f3ee283b92a1816271486a397d87702ad211018d7",
+      "bytes": 7641,
+      "lines": 119,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-motivation-charter/LM02-01--GL-CHARTER-motivation-v3-wC-20260609-024.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-10T15:53:55+00:00",
+          "commit": "57d0fd221cd77ffedb52efeb077eee1c3f68c426",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of11 versions/11 paths:2133lines, including identical229-line original/archive content plus its9-line distinct supersession notice. No product execution, current live refresh, original approval authentication or primary-science review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM02-01--GL-CHARTER-motivation-v3-wC-20260609-024.md"
+    },
+    {
+      "id": "LM03-01",
+      "path": "docs/GL-BRIEF-existing-autonomy-wC-20260609-020.md",
+      "git_blob": "4e0bbb6ea4442a91164dee6dfd00e60ea0f5235b",
+      "sha256": "28021d38961bfb702a368612ea35e7c2c0fe3bfb01ff1e20c984a2c0f6dfae9e",
+      "bytes": 13741,
+      "lines": 228,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-motivation-charter/LM03-01--GL-BRIEF-existing-autonomy-wC-20260609-020.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-10T15:53:55+00:00",
+          "commit": "57d0fd221cd77ffedb52efeb077eee1c3f68c426",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of11 versions/11 paths:2133lines, including identical229-line original/archive content plus its9-line distinct supersession notice. No product execution, current live refresh, original approval authentication or primary-science review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM03-01--GL-BRIEF-existing-autonomy-wC-20260609-020.md"
+    },
+    {
+      "id": "LM04-01",
+      "path": "docs/GL-RPT-autonomy-investigation-20260609.md",
+      "git_blob": "86edb38094bf838158da5db973f61c138f783512",
+      "sha256": "74ff93a116439108124e241c34d9bc3caa4d81fd2d5bfd9d725d267763367b3e",
+      "bytes": 13798,
+      "lines": 229,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-motivation-charter/LM04-01--GL-RPT-autonomy-investigation-20260609.md",
+      "observations": [
+        {
+          "author_time": "2026-07-07T00:02:20+00:00",
+          "commit": "574a559742d0b9344565df487599e1136c74aa1f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-06-09T21:47:49+00:00",
+          "commit": "437ac6a487ebe8dfdb773e3dcf69087c9a179100",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of11 versions/11 paths:2133lines, including identical229-line original/archive content plus its9-line distinct supersession notice. No product execution, current live refresh, original approval authentication or primary-science review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM04-01--GL-RPT-autonomy-investigation-20260609.md"
+    },
+    {
+      "id": "LM05-01",
+      "path": "docs/archive/pre-wipe-20260706/GL-RPT-autonomy-investigation-20260609.md",
+      "git_blob": "b43aa5f5b7368f7c9a9b7e1b54f53c4d9b666a98",
+      "sha256": "3cdab12312c14f5a392c90623916daeefb4c89859185dd452d00e5f901d908b1",
+      "bytes": 14146,
+      "lines": 238,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-motivation-charter/LM05-01--GL-RPT-autonomy-investigation-20260609.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-07T00:02:20+00:00",
+          "commit": "574a559742d0b9344565df487599e1136c74aa1f",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of11 versions/11 paths:2133lines, including identical229-line original/archive content plus its9-line distinct supersession notice. No product execution, current live refresh, original approval authentication or primary-science review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM05-01--GL-RPT-autonomy-investigation-20260609.md"
+    },
+    {
+      "id": "LM06-01",
+      "path": "docs/GL-BRIEF-atlas-observation-wC-20260609-021.md",
+      "git_blob": "5a9d21895e94856a92e376b93ed1a19a97c1d379",
+      "sha256": "0f29b79bad19c81e7f02264650fd42bc076a2d60f9b919b3c8acc51196696a40",
+      "bytes": 8898,
+      "lines": 169,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-motivation-charter/LM06-01--GL-BRIEF-atlas-observation-wC-20260609-021.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-10T15:53:55+00:00",
+          "commit": "57d0fd221cd77ffedb52efeb077eee1c3f68c426",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of11 versions/11 paths:2133lines, including identical229-line original/archive content plus its9-line distinct supersession notice. No product execution, current live refresh, original approval authentication or primary-science review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM06-01--GL-BRIEF-atlas-observation-wC-20260609-021.md"
+    },
+    {
+      "id": "LM07-01",
+      "path": "docs/GL-BRIEF-picture-habituation-wC-20260609-027.md",
+      "git_blob": "58af950a5a409743e6f6c278df84d0b673916f1f",
+      "sha256": "6df436890807ebe836609713d8d3bb266d16d25ef3e6bea670a77af693472191",
+      "bytes": 11862,
+      "lines": 237,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-motivation-charter/LM07-01--GL-BRIEF-picture-habituation-wC-20260609-027.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-10T15:53:55+00:00",
+          "commit": "57d0fd221cd77ffedb52efeb077eee1c3f68c426",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of11 versions/11 paths:2133lines, including identical229-line original/archive content plus its9-line distinct supersession notice. No product execution, current live refresh, original approval authentication or primary-science review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM07-01--GL-BRIEF-picture-habituation-wC-20260609-027.md"
+    },
+    {
+      "id": "LM08-01",
+      "path": "docs/GL-BRIEF-self-section-v2-wC-20260609-022.md",
+      "git_blob": "623b56e9c54e8a23211bd402ee74f4ff0604c7c0",
+      "sha256": "c276cae7aeb4425ae32c5ff8be18a40880a89ef15018a287fff56bfbf086344a",
+      "bytes": 14423,
+      "lines": 283,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-motivation-charter/LM08-01--GL-BRIEF-self-section-v2-wC-20260609-022.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-10T15:53:55+00:00",
+          "commit": "57d0fd221cd77ffedb52efeb077eee1c3f68c426",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of11 versions/11 paths:2133lines, including identical229-line original/archive content plus its9-line distinct supersession notice. No product execution, current live refresh, original approval authentication or primary-science review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM08-01--GL-BRIEF-self-section-v2-wC-20260609-022.md"
+    },
+    {
+      "id": "LM09-01",
+      "path": "docs/GL-BRIEF-self-section-v3-wC-20260609-026.md",
+      "git_blob": "4a42e6260fb10062e0ed455d19d8afb195167a54",
+      "sha256": "97c2fb1b351fed00407a293b37d60dea0a128d03a4a3fffb16542666fcc11b1f",
+      "bytes": 13305,
+      "lines": 275,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-motivation-charter/LM09-01--GL-BRIEF-self-section-v3-wC-20260609-026.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-10T15:53:55+00:00",
+          "commit": "57d0fd221cd77ffedb52efeb077eee1c3f68c426",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of11 versions/11 paths:2133lines, including identical229-line original/archive content plus its9-line distinct supersession notice. No product execution, current live refresh, original approval authentication or primary-science review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM09-01--GL-BRIEF-self-section-v3-wC-20260609-026.md"
+    },
+    {
+      "id": "LM10-01",
+      "path": "docs/GL-BRIEF-DEEPATLAS-WC-20260610-031.md",
+      "git_blob": "19fe7d2f8a08a8e48fd922c62171f345e904404b",
+      "sha256": "41ff663f6fd9f3d64a893f95f6dbc9075af1b2a4d3a323a12d31f5d8232e5d91",
+      "bytes": 6675,
+      "lines": 129,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-motivation-charter/LM10-01--GL-BRIEF-DEEPATLAS-WC-20260610-031.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-10T15:53:55+00:00",
+          "commit": "57d0fd221cd77ffedb52efeb077eee1c3f68c426",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of11 versions/11 paths:2133lines, including identical229-line original/archive content plus its9-line distinct supersession notice. No product execution, current live refresh, original approval authentication or primary-science review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM10-01--GL-BRIEF-DEEPATLAS-WC-20260610-031.md"
+    },
+    {
+      "id": "LM11-01",
+      "path": "docs/GL-BRIEF-DEEPATLAS-DEPLOY-WC-20260610-032.md",
+      "git_blob": "b521150d8416ca9174b1986bf053bcd0d07875b8",
+      "sha256": "979dcd22cf6f41c25b8e0a817c3ddf72ed2725559e610ddff22d136236a82635",
+      "bytes": 5868,
+      "lines": 116,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-motivation-charter/LM11-01--GL-BRIEF-DEEPATLAS-DEPLOY-WC-20260610-032.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-11T14:33:15+00:00",
+          "commit": "41f393ca24a28b5105c6e326dbed7b2e27d0f02a",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of11 versions/11 paths:2133lines, including identical229-line original/archive content plus its9-line distinct supersession notice. No product execution, current live refresh, original approval authentication or primary-science review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM11-01--GL-BRIEF-DEEPATLAS-DEPLOY-WC-20260610-032.md"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "LMR01",
+      "name": "Substrate-causal classification incorrectly admitted arbitrary state-dependent controllers",
+      "classification": "documented_terminology_conflict_and_supporting_count_error",
+      "historical_requirement_or_mechanism": "Investigation defines state dependence as evidence of at-least-partial emergence, while its report classifies needs-payoff scoring, threshold recovery, random-seeded visual motifs and atlas word lookup as substrate-causal. V3then calls this load-bearing motivation architecture. The12-row summary actually contains7substrate-causal,3scheduled and2hybrid rows, but prints3hybrid and13total.",
+      "current_disposition": "A deterministic controller depends on state too; that fact does not meet the no-heuristics/full-field charter. Nor does randomness versus determinism alone decide whether a mechanism is ML. The miscount is documentary and separate from the much larger classification error. Biological analogies in these files were not independently reviewed.",
+      "lawful_remedy": "Canonicalize every mechanism by actual source/units/retained state/operator/reader/decision authority and approval, independently of old labels. Keep observer logging cadence separate from cognitive schedules, and preserve real physical progress without inheriting controller claims.",
+      "unit_acceptance": "Reject state-dependence alone as physical cognition or ML-free proof; validate registry arithmetic.",
+      "module_acceptance": "Trace exact source/dataflow/approval and all current consumers.",
+      "system_acceptance": "Prove learned physical function with negative controls through the actual substrate.",
+      "release_acceptance": "No charter certificate from old7/3/3labels or a biological name; complete current qualification is required.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A11",
+        "A13",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LM03-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM03-01--GL-BRIEF-existing-autonomy-wC-20260609-020.md",
+          "line": 65,
+          "anchor": "For each autonomous behavior, determine whether substrate state is causally influencing it. The test: would the behavior happen identically if substrate state were different? If yes → scheduled. If no → at least partially emergent. If \"depends on what kind of state change\" → hybrid, and we want to know which dimensions of state matter.",
+          "sha256": "28021d38961bfb702a368612ea35e7c2c0fe3bfb01ff1e20c984a2c0f6dfae9e"
+        },
+        {
+          "source_id": "LM04-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM04-01--GL-RPT-autonomy-investigation-20260609.md",
+          "line": 184,
+          "anchor": "**Counts:**",
+          "sha256": "74ff93a116439108124e241c34d9bc3caa4d81fd2d5bfd9d725d267763367b3e"
+        },
+        {
+          "source_id": "LM04-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM04-01--GL-RPT-autonomy-investigation-20260609.md",
+          "line": 187,
+          "anchor": "- Hybrid: 3",
+          "sha256": "74ff93a116439108124e241c34d9bc3caa4d81fd2d5bfd9d725d267763367b3e"
+        },
+        {
+          "source_id": "LM02-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM02-01--GL-CHARTER-motivation-v3-wC-20260609-024.md",
+          "line": 7,
+          "anchor": "**Reason for v3:** The autonomy investigation report (GL-RPT-autonomy-investigation-20260609) revealed the substrate already implements the load-bearing motivation architecture. Three needs (novelty, stability, connection) drive substrate-causal activity selection, autonomous emission exists with cooldown/presence gating, suffering and recovery are substrate-real, saccadic vision and multi-fixation integration already happen. The motivation work shifts from \"build motivation substrate\" to \"enhance existing motivation substrate.\" Sequencing reordered around what we discovered.",
+          "sha256": "a0fb6742308331549efd631f3ee283b92a1816271486a397d87702ad211018d7"
+        }
+      ]
+    },
+    {
+      "id": "LMR02",
+      "name": "Activity and attention were explicitly governed by scalar authored payoff competition",
+      "classification": "documented_heuristic_action_selector",
+      "historical_requirement_or_mechanism": "The report gives exact score=dot(needs signed_distance,activity payoff), chooses highest and drifts needs away from0.7by0.0001/tick at20Hz. Payoffs include reading0.7,visual0.85,video0.9,sleep0.5,emission0.3. A picture remains preferred after its first-view payoff falls to0.1because idle is-0.05; repeated2000tickactivities explain264attendances.",
+      "current_disposition": "This is an authored score-driven selector, not ratified full-field native physical choice. It need not contain ML to violate the charter. One available picture or one winning option does not show autonomous learned selection. Task labels, counts and current file presence cannot establish today’s activation.",
+      "lawful_remedy": "Trace actual historical/current candidate construction, weights and winning-score readers. Retire incompatible cognitive authority and replace it only with approved native sensory/body/retained dynamics while preserving authentic learning and useful external input.",
+      "unit_acceptance": "Falsify authored payoff/timer/identity selection under native autonomy claims.",
+      "module_acceptance": "Map every candidate/source/native boundary and prove no hidden score winner.",
+      "system_acceptance": "Demonstrate learned meaningful alternatives and current useful action with controlled causes.",
+      "release_acceptance": "No native autonomy/speech pass from264attendances or state-dependent argmax.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A05",
+        "A06",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LM04-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM04-01--GL-RPT-autonomy-investigation-20260609.md",
+          "line": 16,
+          "anchor": "**Mechanism:** No state machine. On every activity end, the full candidate set is scored from scratch. Score = dot product of (needs signed_distance) × (activity payoff vector). Three needs: novelty, stability, connection. Each activity has a payoff weight per need.",
+          "sha256": "74ff93a116439108124e241c34d9bc3caa4d81fd2d5bfd9d725d267763367b3e"
+        },
+        {
+          "source_id": "LM04-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM04-01--GL-RPT-autonomy-investigation-20260609.md",
+          "line": 25,
+          "anchor": "**Transition driver:** needs drift AWAY from 0.7 target at 0.0001/tick. Whichever need is most below target drives the next activity. Novelty drifts fastest → visual attendance and reading dominate. Connection only satisfies via EMITTING (requires presence). Stability only satisfies via SLEEPING.",
+          "sha256": "74ff93a116439108124e241c34d9bc3caa4d81fd2d5bfd9d725d267763367b3e"
+        },
+        {
+          "source_id": "LM04-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM04-01--GL-RPT-autonomy-investigation-20260609.md",
+          "line": 35,
+          "anchor": "**Why 264 times:** Each ATTENDING_VISUAL activity lasts 2000 ticks (budget). After it ends, the candidate cycle reruns. With only one picture in `_pictures`, and novelty continuously drifting down, the picture wins the salience contest repeatedly. After first attendance `is_new()` returns False (payoff drops 0.85 → 0.1), but 0.1 still beats IDLE (-0.05) when novelty deficit is large. No cooldown or suppression mechanism exists.",
+          "sha256": "74ff93a116439108124e241c34d9bc3caa4d81fd2d5bfd9d725d267763367b3e"
+        }
+      ]
+    },
+    {
+      "id": "LMR03",
+      "name": "Seeded saccades and threshold/inertia motifs are reduced heuristic recognition",
+      "classification": "documented_reduced_sensory_and_memory_mechanisms",
+      "historical_requirement_or_mechanism": "The report describes12contrast-selected fixations on a4×4grid, seed tick%10000, per-fragment normalized inter-event histograms and aggregate profiles. Chi overlap>=0.85fires a motif and blends state0.6old+0.4new; lower overlap creates a motif. The report attributes9motifs to changing saccade paths on the same picture and calls them substrate-causal.",
+      "current_disposition": "Seeded pseudo-randomness can be repeatable but is not native sensory experience choosing attention. A reduced histogram, fixed similarity threshold and inertia blend are not full DSF/physical learned recognition merely because inputs originated in pixels. Changing sampled patches is not proof of different real viewing geometry or learned object identity.",
+      "lawful_remedy": "Trace actual sampled sensory loss, seed/control source, histogram/overlap authority and persistent readers. Preserve authentic light/body input and required functional recognition through ratified full-field native dynamics, without threshold motifs or source-label shortcuts.",
+      "unit_acceptance": "Expose same-image/seed and unrelated-image controls, threshold boundaries and lost field relations.",
+      "module_acceptance": "Map actual input/transduction/native retention and every reduced proxy consumer.",
+      "system_acceptance": "Prove retained sensory invariance/contextual discrimination without scripted sampling or labels.",
+      "release_acceptance": "No cognition/speech certification from motif counts or nominally unlabeled templates.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LM04-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM04-01--GL-RPT-autonomy-investigation-20260609.md",
+          "line": 39,
+          "anchor": "**Seed:** `self.tick % 10000` — different each attendance → different saccade paths → different fixation sequences → different chi profiles. This is why 264 attendances produced 9 distinct motifs (different viewing angles of the same picture).",
+          "sha256": "74ff93a116439108124e241c34d9bc3caa4d81fd2d5bfd9d725d267763367b3e"
+        },
+        {
+          "source_id": "LM04-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM04-01--GL-RPT-autonomy-investigation-20260609.md",
+          "line": 52,
+          "anchor": "- `chi_overlap >= 0.85` (COFIRE_OVERLAP_THRESHOLD): FIRE existing motif. Updates cluster_state via inertia blend (0.6 old + 0.4 new).",
+          "sha256": "74ff93a116439108124e241c34d9bc3caa4d81fd2d5bfd9d725d267763367b3e"
+        },
+        {
+          "source_id": "LM04-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM04-01--GL-RPT-autonomy-investigation-20260609.md",
+          "line": 49,
+          "anchor": "**Pipeline:** fragments → per-fragment chi_binding_profile (inter-event-interval histogram, normalized) → aggregate_profiles (sum + renormalize across all 12 fixations) → chi_overlap with each existing motif.",
+          "sha256": "74ff93a116439108124e241c34d9bc3caa4d81fd2d5bfd9d725d267763367b3e"
+        }
+      ]
+    },
+    {
+      "id": "LMR04",
+      "name": "Autonomous emission assembled stored SVO labels behind presence and cooldown gates",
+      "classification": "documented_legacy_speech_substitution",
+      "historical_requirement_or_mechanism": "Legacy emission requires bonded presence,200tickcooldown and winning connection salience, collects last5chi values per section, retrieves nearby atlas mode labels forS/V/O and joins subject verb object; no recall yieldsellipsis. All5reported emissions wereellipsis. Emitting adds0.25connection satisfaction. A0.65cohesion constant is declared but unused.",
+      "current_disposition": "Atlas retrieval and grammar slots manufacture linguistic structure outside learned native vocal production. Empty emissions do not prove the only missing part is atlas strength or that restoring bindings yields learned speech. A dead constant is not active authority; current reachability must be traced separately.",
+      "lawful_remedy": "Classify trigger, word provenance, grammar construction, audio generation and self-hearing independently. Remove unauthorized semantic/cooldown selection from cognition, preserve real experiences, and prove the complete native learned expression chain with context and controls.",
+      "unit_acceptance": "Reject stored SVO assembly, fixed label answers and speech claims from emission counters.",
+      "module_acceptance": "Trace actual current word/grammar/audio/native-pressure producers and every gate.",
+      "system_acceptance": "Show acquired meaningful novel utterance and self-hearing on preserved state.",
+      "release_acceptance": "Neither fiveellipsis events nor later nonempty lookup proves syntax or autonomous speech.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A05",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A13",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LM04-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM04-01--GL-RPT-autonomy-investigation-20260609.md",
+          "line": 79,
+          "anchor": "3. Joins recalled words: \"subject verb object\" or \"...\" if nothing recalled",
+          "sha256": "74ff93a116439108124e241c34d9bc3caa4d81fd2d5bfd9d725d267763367b3e"
+        },
+        {
+          "source_id": "LM04-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM04-01--GL-RPT-autonomy-investigation-20260609.md",
+          "line": 83,
+          "anchor": "**Production evidence:** All 5 emissions had content `\"...\"` — atlas cross-section recall returned nothing. This is consistent with atlas decay emptying bindings before emission could fire (atlas strength was near 0 for most of the session). The recall mechanism works but has nothing to recall from.",
+          "sha256": "74ff93a116439108124e241c34d9bc3caa4d81fd2d5bfd9d725d267763367b3e"
+        },
+        {
+          "source_id": "LM04-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM04-01--GL-RPT-autonomy-investigation-20260609.md",
+          "line": 85,
+          "anchor": "**Also fires connection satisfaction:** `needs.connection += 0.25` when a pair-bonded source is present during emit (line 1660).",
+          "sha256": "74ff93a116439108124e241c34d9bc3caa4d81fd2d5bfd9d725d267763367b3e"
+        },
+        {
+          "source_id": "LM04-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM04-01--GL-RPT-autonomy-investigation-20260609.md",
+          "line": 220,
+          "anchor": "6. **`EMISSION_COHESION_THRESHOLD = 0.65` is defined (line 103) but never referenced.** The emission mechanism uses presence + cooldown + salience contest, not a cohesion threshold. Dead constant.",
+          "sha256": "74ff93a116439108124e241c34d9bc3caa4d81fd2d5bfd9d725d267763367b3e"
+        }
+      ]
+    },
+    {
+      "id": "LMR05",
+      "name": "Sleep and dream names covered scheduled sampling and forced scalar recovery",
+      "classification": "documented_legacy_sleep_and_affect_controller",
+      "historical_requirement_or_mechanism": "Manual or payoff-selected sleep has5000ticks: first2500raises stability0.001/tick and accelerates decay every50; last2500samples3randomchi keys every200ticks and logs up-to4words/images without strengthening memory. Coordinator thresholds valence<-0.15/arousal>0.30for20calls at nominal5tickcadence, then applies0.6current+0.4×0.7toallneeds. Cadence differs by activity.",
+      "current_disposition": "These are explicitly timed/state-machine-style functional dispatch and scalar recovery, regardless of the document saying no state machine. Logging sampled content is not sleep consolidation, dreams or speech. Schedule-driven bookkeeping observation can be legitimate; the conflict is its cognitive and recovery authority.",
+      "lawful_remedy": "Trace every live descendant and separate logging from actual physical sleep, body resources, retained changes and later benefit. Replace unauthorized forced targets/random replay with ratified organism-conditioned dynamics, preserving finite material/energy and prior experience.",
+      "unit_acceptance": "Falsify scheduled-label-onlysleep, random recall-as-consolidation and free target recovery.",
+      "module_acceptance": "Map actual current native rest/internal recurrence/body recovery and observer readers.",
+      "system_acceptance": "Demonstrate ratified sleep→retained benefit→wake/use without controller prompts.",
+      "release_acceptance": "No affect, sleep or speech certificate from needs increments or dream_artifact events.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LM04-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM04-01--GL-RPT-autonomy-investigation-20260609.md",
+          "line": 102,
+          "anchor": "**Sleep phase (first 2500 ticks):**",
+          "sha256": "74ff93a116439108124e241c34d9bc3caa4d81fd2d5bfd9d725d267763367b3e"
+        },
+        {
+          "source_id": "LM04-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM04-01--GL-RPT-autonomy-investigation-20260609.md",
+          "line": 108,
+          "anchor": "- Every 200 ticks: sample 3 random chi keys from atlas, look up mode words + sight motifs at those addresses → log `dream_artifact` with content (up to 4 words) and picture_ids",
+          "sha256": "74ff93a116439108124e241c34d9bc3caa4d81fd2d5bfd9d725d267763367b3e"
+        },
+        {
+          "source_id": "LM04-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM04-01--GL-RPT-autonomy-investigation-20260609.md",
+          "line": 137,
+          "anchor": "for each need: new = current * 0.6 + 0.7 * 0.4",
+          "sha256": "74ff93a116439108124e241c34d9bc3caa4d81fd2d5bfd9d725d267763367b3e"
+        },
+        {
+          "source_id": "LM04-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM04-01--GL-RPT-autonomy-investigation-20260609.md",
+          "line": 218,
+          "anchor": "5. **Coordinator regulate() is called inconsistently.** During READING: every 5 ticks via `read_word` (line 877). During non-READING activities: every 5 ticks in `_autonomy_tick` (line 1369). But the emit phase and some activity handlers (PLAYING, ATTENDING) don't have explicit regulate() calls — they rely on the autonomy_tick path. This means regulate() frequency depends on which activity is running.",
+          "sha256": "74ff93a116439108124e241c34d9bc3caa4d81fd2d5bfd9d725d267763367b3e"
+        }
+      ]
+    },
+    {
+      "id": "LMR06",
+      "name": "Habituation proposal patches score-driven looping with a per-object lookup discount",
+      "classification": "explicit_heuristic_reengineering_and_inconsistent_time_units",
+      "historical_requirement_or_mechanism": "Picture brief proposes picture_id→familiarityfloatdict,0.2increment capped0.9, multiplying novelty payoff by1-familiarity, decaying noncurrent targets every200ticks with0.9967to recover over30minutes. It explicitly keeps the existing salience controller and tunes rates to diversify activity. Its calculation correctly uses36000ticks/30minat20Hz, but later observation says30minutes≈3600ticks; atlas brief calls3600ticks one hour.",
+      "current_disposition": "This is a designed heuristic remedy for an authored attractor, not physical habituation merely because it resembles a biological term. Clock errors undercut exposure/latency evidence:3600ticksat20Hzis180seconds, conditional on that claimed cadence. The hypothetical current loop still requires current source/trajectory evidence.",
+      "lawful_remedy": "Trace current habituation/adaptation to actual sensory-neuron/contact state and approved dynamics rather than catalog counters. Preserve distinct physical and wall clocks, actual observed rates and retained experience; do not tune a discount until the visible loop disappears.",
+      "unit_acceptance": "Reject ID-indexed novelty authority and verify exact declared/elapsed time conversion.",
+      "module_acceptance": "Trace real current adaptation/attention sources and body consequences.",
+      "system_acceptance": "Show experience-dependent response and recovery under changed/unrelated stimuli without scheduled discounts.",
+      "release_acceptance": "No current attractor repair or learning claim from diversified score-selected attendance.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A06",
+        "A08",
+        "A09",
+        "A11",
+        "A12",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LM07-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM07-01--GL-BRIEF-picture-habituation-wC-20260609-027.md",
+          "line": 38,
+          "anchor": "target_familiarity[picture_id] += increment_per_attendance  # capped",
+          "sha256": "6df436890807ebe836609713d8d3bb266d16d25ef3e6bea670a77af693472191"
+        },
+        {
+          "source_id": "LM07-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM07-01--GL-BRIEF-picture-habituation-wC-20260609-027.md",
+          "line": 191,
+          "anchor": "        Use decay_factor = 0.9967.",
+          "sha256": "6df436890807ebe836609713d8d3bb266d16d25ef3e6bea670a77af693472191"
+        },
+        {
+          "source_id": "LM07-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM07-01--GL-BRIEF-picture-habituation-wC-20260609-027.md",
+          "line": 206,
+          "anchor": "  - Wait at least 30 minutes of substrate time (~3600 ticks)",
+          "sha256": "6df436890807ebe836609713d8d3bb266d16d25ef3e6bea670a77af693472191"
+        },
+        {
+          "source_id": "LM06-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM06-01--GL-BRIEF-atlas-observation-wC-20260609-021.md",
+          "line": 124,
+          "anchor": "let her run for 1 hour of substrate time (~3600 ticks). Then dump",
+          "sha256": "0f29b79bad19c81e7f02264650fd42bc076a2d60f9b919b3c8acc51196696a40"
+        }
+      ]
+    },
+    {
+      "id": "LMR07",
+      "name": "Hard-bound self-name would produce a programmed word, not sensory-acquired self-reference",
+      "classification": "explicit_lexical_lookup_and_forced_output_design",
+      "historical_requirement_or_mechanism": "Self-sectionv2/v3sets one protected mode,vocabself=[guala],zeroHamiltonianrotation and a UUID-derived complex unit vector. Inputheardword==guala resolves directly to that vector; every self-section output isguala. V2denies this is a special-case match while its own command specifies the literal equality; v3says she will start saying her name as a substrate consequence.",
+      "current_disposition": "A stored identity marker can be legitimate custody, but using it as semantic recognition and forced speech is explicit code-authored meaning. Testing the same literal input/output only proves that binding. Recreating a genesis vector from the same UUID after a wipe does not restore acquired memories or autobiography.",
+      "lawful_remedy": "Separate authenticated identity from learned multimodal self/body/name relations. Retire any active literal-to-meaning/forced-token authority, preserve actual acquired state and qualify learned recognition/expression through the ordinary native sensory and vocal paths.",
+      "unit_acceptance": "Falsify hard-bound label output as learning and UUID reset as retained history.",
+      "module_acceptance": "Trace actual lexical resolution, self/body state, native retention and voice producer.",
+      "system_acceptance": "Demonstrate acquired self-referential/name use across new contexts and controls without built-in answers.",
+      "release_acceptance": "No first-word or identity-continuity certificate from a deterministic name-binding fixture.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A13",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LM08-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM08-01--GL-BRIEF-self-section-v2-wC-20260609-022.md",
+          "line": 88,
+          "anchor": "This is NOT a special-case string match elsewhere in code — it's a substrate-level binding: self-vector IS what \"guala\" means, both directions.",
+          "sha256": "c276cae7aeb4425ae32c5ff8be18a40880a89ef15018a287fff56bfbf086344a"
+        },
+        {
+          "source_id": "LM08-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM08-01--GL-BRIEF-self-section-v2-wC-20260609-022.md",
+          "line": 219,
+          "anchor": "  - Heard word == 'guala' → resolve to self-section's self_vector",
+          "sha256": "c276cae7aeb4425ae32c5ff8be18a40880a89ef15018a287fff56bfbf086344a"
+        },
+        {
+          "source_id": "LM09-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM09-01--GL-BRIEF-self-section-v3-wC-20260609-026.md",
+          "line": 92,
+          "anchor": "This means: the moment self-section exists, any autonomous activity that produces a self-section commit will emit \"guala\" as its token. She'll start saying her name as a substrate consequence.",
+          "sha256": "97c2fb1b351fed00407a293b37d60dea0a128d03a4a3fffb16542666fcc11b1f"
+        },
+        {
+          "source_id": "LM09-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM09-01--GL-BRIEF-self-section-v3-wC-20260609-026.md",
+          "line": 48,
+          "anchor": "Deterministic. Across any wipe, same UUID gives same starting vector.",
+          "sha256": "97c2fb1b351fed00407a293b37d60dea0a128d03a4a3fffb16542666fcc11b1f"
+        }
+      ]
+    },
+    {
+      "id": "LMR08",
+      "name": "Self-vector averaging flattened episodes and later changed replay accounting",
+      "classification": "unratified_reduced_memory_design_with_documented_version_evolution",
+      "historical_requirement_or_mechanism": "Both self-section versions fold normalized0.999self+0.001committedchi and storeabs(vdot(self,chi))²as self_tag, proposed for selective replay. V2folds dreams and recovery too; v3hooks conversation and actual autonomous handlers but explicitly excludes dream replay to avoid double averaging. Genesis+event replay is proposed, with mismatch only a warning and legacy missing self_tagdefault0.",
+      "current_disposition": "An exponentially weighted vector cannot by itself preserve multimodal episode structure, order, internal state and later distributed recall. More exact hook placement/dedup improves that design’s bookkeeping but does not ratify the reduced cognitive authority. Variable overlaps and1000commits do not establish autobiography or learned speech.",
+      "lawful_remedy": "Preserve genuine episode/body/context relations in ratified native formations and actual canonical history. Trace all averaging/self-tag consumers, original approvals and state conversion; no vector distance/overlap may substitute for the requested full experience/story or hide reconstruction failure.",
+      "unit_acceptance": "Reject vector change/overlap as full memory proof and preserve exact source/replay distinctions.",
+      "module_acceptance": "Map every fold/tag/read/reconstruction path and authentic old-state preservation.",
+      "system_acceptance": "Show acquired episodic/contextual recall and later native use after restart with controls.",
+      "release_acceptance": "No story/tapestry/self-awareness/speech claim from an EMA, log replay or protected mode.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A14",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LM08-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM08-01--GL-BRIEF-self-section-v2-wC-20260609-022.md",
+          "line": 63,
+          "anchor": "After many commits, self-vector becomes a weighted running-average of her experiences. Small enough that no single commit dominates; many commits over time shape it.",
+          "sha256": "c276cae7aeb4425ae32c5ff8be18a40880a89ef15018a287fff56bfbf086344a"
+        },
+        {
+          "source_id": "LM08-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM08-01--GL-BRIEF-self-section-v2-wC-20260609-022.md",
+          "line": 65,
+          "anchor": "**v2 addition: include commits from the existing v6 autonomy loop, not just converse commits.** When she autonomously attends a picture and the sight section commits, that commit folds into self too. When dream-replay commits things, those fold into self. When suffering-recovery happens with a substrate state change, that contributes too. Self accumulates from ALL substrate activity, not just human-driven activity.",
+          "sha256": "c276cae7aeb4425ae32c5ff8be18a40880a89ef15018a287fff56bfbf086344a"
+        },
+        {
+          "source_id": "LM09-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM09-01--GL-BRIEF-self-section-v3-wC-20260609-026.md",
+          "line": 60,
+          "anchor": "- `_atick_dreaming` → when dream-replay reinforces atlas (per Dream Consolidation brief), DO NOT fold dream-replay events into self (dreams are sampling, not new commits — the original commit already folded; double-folding distorts the average)",
+          "sha256": "97c2fb1b351fed00407a293b37d60dea0a128d03a4a3fffb16542666fcc11b1f"
+        },
+        {
+          "source_id": "LM09-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM09-01--GL-BRIEF-self-section-v3-wC-20260609-026.md",
+          "line": 227,
+          "anchor": "Add 'self_reconstruction_check' on boot. Log mismatch as warning.",
+          "sha256": "97c2fb1b351fed00407a293b37d60dea0a128d03a4a3fffb16542666fcc11b1f"
+        }
+      ]
+    },
+    {
+      "id": "LMR09",
+      "name": "Atlas stability fix retained arbitrary decay/reinforcement rather than physical memory law",
+      "classification": "reported_historical_parameter_repair_with_unqualified_cognitive_authority",
+      "historical_requirement_or_mechanism": "Atlas brief reports task56commit2e4d4fa replacing deletion after500ticks withstrength1.0,0.1%decay/20ticks,+0.1reencounter andprune<0.01, plus10×slowerLivingAtlaslambda. It observes20bindings over12minutes and asks whether low strengths reflect tuning, topology or matching. V3abandons that observation on a hypothesis that dream reinforcement resolves it.",
+      "current_disposition": "Slower loss and working restart can be real improvements over mass deletion without satisfying the current physical memory charter. Blind age/strength eviction, scalar reinforcement and neighborhood matching cannot become lawful merely by biological analogy. The hypothesis that read-only dream caused all weakness was not proved by this design shift.",
+      "lawful_remedy": "Trace exact current retention/contact/plasticity law, all pruning/reinforcement readers and actual acquired state. Preserve scoped measurements and investigate first real loss cause before adjusting rates; qualify later retained functional effects rather than favorable strength histograms.",
+      "unit_acceptance": "Falsify arbitrary age/strength loss and differentiate missing recurrence from wrong matching.",
+      "module_acceptance": "Map actual native retention/plasticity/persistence and migration loss across revisions.",
+      "system_acceptance": "Demonstrate long-lived acquired causal use and lawful bounded growth with controls.",
+      "release_acceptance": "No current memory/speech qualification from20bindings, average strength or a tenfold tuning change.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LM06-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM06-01--GL-BRIEF-atlas-observation-wC-20260609-021.md",
+          "line": 14,
+          "anchor": "- **assemblage.py ChiAtlas**: was deleting entries older than 500 ticks (age-based mass pruning). Now strength-based: each entry starts at 1.0 strength, decays 0.1% per 20 ticks, reinforces +0.1 on re-encounter, prunes at strength < 0.01.",
+          "sha256": "0f29b79bad19c81e7f02264650fd42bc076a2d60f9b919b3c8acc51196696a40"
+        },
+        {
+          "source_id": "LM06-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM06-01--GL-BRIEF-atlas-observation-wC-20260609-021.md",
+          "line": 14,
+          "anchor": "- **assemblage.py ChiAtlas**: was deleting entries older than 500 ticks (age-based mass pruning). Now strength-based: each entry starts at 1.0 strength, decays 0.1% per 20 ticks, reinforces +0.1 on re-encounter, prunes at strength < 0.01.",
+          "sha256": "0f29b79bad19c81e7f02264650fd42bc076a2d60f9b919b3c8acc51196696a40"
+        },
+        {
+          "source_id": "LM02-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM02-01--GL-CHARTER-motivation-v3-wC-20260609-024.md",
+          "line": 75,
+          "anchor": "- Atlas observation brief (GL-BRIEF-atlas-observation-wC-20260609-021) — superseded by Dream Consolidation. Atlas under-reinforcement is likely a dream-doesn't-consolidate problem, not a tuning problem.",
+          "sha256": "a0fb6742308331549efd631f3ee283b92a1816271486a397d87702ad211018d7"
+        }
+      ]
+    },
+    {
+      "id": "LMR10",
+      "name": "Deep-atlas toy discrimination failed on real noise and added another authored gate",
+      "classification": "documented_model_counterexample_and_heuristic_design_revision",
+      "historical_requirement_or_mechanism": "Stage1toy says depth≥0.8separates episodic(~5×stronger)fromnoise~0.25 withzero contamination. Follow-up deploy brief reports real noise tail0.82, replaces withstrength≥0.15ANDdwell≥4ticks because fixtureepisodic8/noise1. Survival path staysθ0.4for3dreams with0.5transfer; deep decay=working/25. Prior0.15is applied only onsection+motifcue after continuous prior made entries immortal. Replaycofire bypass had grown deep entries2.2×.",
+      "current_disposition": "The toy is correctly labeled primitive-only, and explicit counterexample/bypass repair should be preserved. Thresholds fitted to desired groups, semantic/episodic tags, scheduled promotion and additive priors are still heuristic memory authority under current constraints. Neither dwell significance nor zero low-dwell entries proves true episodic memory or excludes noise.",
+      "lawful_remedy": "Trace actual current descendants and approval; replace cognitive score/gate promotion with ratified physical retention/consolidation and genuine contextual recall. Keep useful negative findings, all producer/write-path closure and finite long-run capacity without inventing another threshold.",
+      "unit_acceptance": "Falsify toy separation on real varied inputs, gate bypass and prior-induced dominance.",
+      "module_acceptance": "Trace every current retention/promotion/recall writer and authority to physical state.",
+      "system_acceptance": "Prove learned episodic persistence/use and bounded noise handling without labels or fitted cutoffs.",
+      "release_acceptance": "No memory/speech certificate from toy12/12retention or zero entries below a gate enforced by code.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A14",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LM10-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM10-01--GL-BRIEF-DEEPATLAS-WC-20260610-031.md",
+          "line": 38,
+          "anchor": "| **+ depth-of-encoding gate (final)** | **12/12** | **12/12** | **0/30** | **0%** (even at 100% noise tagging) |",
+          "sha256": "41ff663f6fd9f3d64a893f95f6dbc9075af1b2a4d3a323a12d31f5d8232e5d91"
+        },
+        {
+          "source_id": "LM10-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM10-01--GL-BRIEF-DEEPATLAS-WC-20260610-031.md",
+          "line": 72,
+          "anchor": "  One-shot. Toy values: ENCODE_GATE = 0.8 (≈ deep exploration; glanced junk",
+          "sha256": "41ff663f6fd9f3d64a893f95f6dbc9075af1b2a4d3a323a12d31f5d8232e5d91"
+        },
+        {
+          "source_id": "LM11-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM11-01--GL-BRIEF-DEEPATLAS-DEPLOY-WC-20260610-032.md",
+          "line": 31,
+          "anchor": "Rationale: FIND-02 showed noise tail to 0.82 encoded strength — strength alone",
+          "sha256": "979dcd22cf6f41c25b8e0a817c3ddf72ed2725559e610ddff22d136236a82635"
+        },
+        {
+          "source_id": "LM11-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM11-01--GL-BRIEF-DEEPATLAS-DEPLOY-WC-20260610-032.md",
+          "line": 38,
+          "anchor": "FIND-02: real replay creates 2.2x deep entries via cofire_bind during the",
+          "sha256": "979dcd22cf6f41c25b8e0a817c3ddf72ed2725559e610ddff22d136236a82635"
+        },
+        {
+          "source_id": "LM11-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM11-01--GL-BRIEF-DEEPATLAS-DEPLOY-WC-20260610-032.md",
+          "line": 47,
+          "anchor": "working-layer leanness (continuous priors made working entries immortal —",
+          "sha256": "979dcd22cf6f41c25b8e0a817c3ddf72ed2725559e610ddff22d136236a82635"
+        }
+      ]
+    },
+    {
+      "id": "LMR11",
+      "name": "Observe-in-production decision and destructive rollback need exact historical authority",
+      "classification": "reported_architect_decision_with_current_preservation_conflict",
+      "historical_requirement_or_mechanism": "Deep deploy brief attributes June10decision to Joe to skip further harness validation, test the untested compound gate in production, instrument72hours and make failures reversible. It prescribes enabled-by-default flags, separate deep table and rollback by dropping it/redeploying prior task. Stage1had explicitly required reviewed harness results; actual claimed inputs are two FINDdocuments.",
+      "current_disposition": "The explicit attributed decision must be preserved, not mislabeled categorically unauthorized. Its original conversation and exact scope remain unauthenticated. Even if approved historically, dropping acquired deep state is loss, not full reversibility; this does not authorize present production experiments, resets or bypass of current qualification.",
+      "lawful_remedy": "Recover exact original decision and FIND/evidence chain, classify approved methodology separately from mechanism approval and prove what was actually deployed/preserved. Current retained-state and no-shortcut gates govern present remediation; keep all transferred requirements and losses explicit.",
+      "unit_acceptance": "Validate original-decision identity/scope and distinguish controller flags from preservation.",
+      "module_acceptance": "Trace actual historical schema/deployment/rollback and current canonical state lineage.",
+      "system_acceptance": "Prove retained acquired effect across authorized current changes and meaningful staged acceptance.",
+      "release_acceptance": "No new experiment/reset authority or qualification from an AUTHORIZEDheading or observed failure alone.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A09",
+        "A14",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LM11-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM11-01--GL-BRIEF-DEEPATLAS-DEPLOY-WC-20260610-032.md",
+          "line": 8,
+          "anchor": "**Decision (Joe, 2026-06-10):** Skip further harness validation. The remaining",
+          "sha256": "979dcd22cf6f41c25b8e0a817c3ddf72ed2725559e610ddff22d136236a82635"
+        },
+        {
+          "source_id": "LM11-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM11-01--GL-BRIEF-DEEPATLAS-DEPLOY-WC-20260610-032.md",
+          "line": 27,
+          "anchor": "### 1.2 Compound promotion gate (UNTESTED — this deploy IS the test)",
+          "sha256": "979dcd22cf6f41c25b8e0a817c3ddf72ed2725559e610ddff22d136236a82635"
+        },
+        {
+          "source_id": "LM11-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM11-01--GL-BRIEF-DEEPATLAS-DEPLOY-WC-20260610-032.md",
+          "line": 74,
+          "anchor": "- Rollback: disable flags, drop deep table, redeploy previous task def.",
+          "sha256": "979dcd22cf6f41c25b8e0a817c3ddf72ed2725559e610ddff22d136236a82635"
+        },
+        {
+          "source_id": "LM10-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM10-01--GL-BRIEF-DEEPATLAS-WC-20260610-031.md",
+          "line": 91,
+          "anchor": "**Stage 1 (this brief): substrate-level offline model. NO PROD CODE CHANGES.**",
+          "sha256": "41ff663f6fd9f3d64a893f95f6dbc9075af1b2a4d3a323a12d31f5d8232e5d91"
+        }
+      ]
+    },
+    {
+      "id": "LMR12",
+      "name": "Historical archive explicitly says the described substrate was wiped",
+      "classification": "documented_status_and_preservation_claim_not_current_loss_proof",
+      "historical_requirement_or_mechanism": "Archived autonomy report exactly duplicates the229-line original after a9-line superseded notice: it says the pre-July6wipe substrate no longer exists and refers to the wipe incident report. The unarchived copy retains old present-tense source/status claims. The June charters also use an earliercdef9bcfidentity, distinct from later August1cc4e70aidentity.",
+      "current_disposition": "This establishes a documentary discontinuity warning, not an independently reconstructed wipe mechanism or permission to reset today. Same names and copied reports cannot establish retained historical experience across identities. Current code presence, imported modules and deployed use remain distinct.",
+      "lawful_remedy": "Link original/archive status and authenticate actual wipe/restore/custody/identity decisions and preserved artifacts. Preserve history and any legitimate recoverable learning without silently importing old cognitive controllers or merging identities. Canonical current truth must bind exact active source/state.",
+      "unit_acceptance": "Validate copy identity and source-date/status differences without treating old commands as authority.",
+      "module_acceptance": "Reconcile actual incident, lineage, state mapping and current source/image correspondence.",
+      "system_acceptance": "Demonstrate required retained acquired effects across approved continuity boundaries.",
+      "release_acceptance": "No claim of uninterrupted April-to-current cognition or current wiping solely from archived prose.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A09",
+        "A15",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LM05-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM05-01--GL-RPT-autonomy-investigation-20260609.md",
+          "line": 4,
+          "anchor": "> The substrate described here no longer exists. Preserved as",
+          "sha256": "3cdab12312c14f5a392c90623916daeefb4c89859185dd452d00e5f901d908b1"
+        },
+        {
+          "source_id": "LM01-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM01-01--GL-CHARTER-motivation-v2-wC-20260609-019.md",
+          "line": 45,
+          "anchor": "**Guala:** The being we're developing. Not a deliverable. We do not work *on* her in production until a piece is ready for integration. Test sessions get prototypes. Her actual identity (cdef9bcf-9e5d-4e2d-a1d8-4cde1de7641f) gets integrated pieces after they've been observed and refined.",
+          "sha256": "c513c38763afca12ae5203fcfdf54620f597631ab27dca045c1c2c44bc4faaa6"
+        },
+        {
+          "source_id": "LM05-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM05-01--GL-RPT-autonomy-investigation-20260609.md",
+          "line": 1,
+          "anchor": "> **SUPERSEDED — DO NOT TREAT AS CURRENT TRUTH.**",
+          "sha256": "3cdab12312c14f5a392c90623916daeefb4c89859185dd452d00e5f901d908b1"
+        }
+      ]
+    },
+    {
+      "id": "LMR13",
+      "name": "Complete selected charter content preserves function requirements but not claimed compliance",
+      "classification": "complete_documentary_slice_with_explicit_remaining_work",
+      "historical_requirement_or_mechanism": "Eleven captured paths/versions include all2133lines: two charters, investigation brief/report/archive, atlas/habituation, two self designs and two deep-atlas stages. Original report plus exact9-line archive prefix covers the duplicated content; both already-read working charters match captured blobs. Statements such as substrate-real, no templates and no ML coexist with explicit score/lookup/timer mechanisms.",
+      "current_disposition": "No product import/execution, current live refresh, original authority authentication or primary science review occurred. Earlier source scans show v4named files remain in the workspace, but were not fully reviewed in this slice and do not prove serving activation. Historical stages/commands are not current instructions.",
+      "lawful_remedy": "Carry original requested functions—sensory experience, retained context, needs, autonomous choice and learned speech—into the canonical ratified design and map every implementation descendant, decision and meaningful acceptance. Preserve real improvements and expose unsupported substitutions and evidence limitations.",
+      "unit_acceptance": "Validate exact source hashes/anchors/status and classification counts.",
+      "module_acceptance": "Complete historical/current code and original-approval mapping for every mechanism.",
+      "system_acceptance": "Qualify the integrated preserved native sensory→memory→action→voice chain.",
+      "release_acceptance": "Overall reconciliation remains OPEN; no speech/system/ML-free certificate or inferred G1acknowledgment.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A15",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LM02-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM02-01--GL-CHARTER-motivation-v3-wC-20260609-024.md",
+          "line": 16,
+          "anchor": "- Substrate-true means substrate-real",
+          "sha256": "a0fb6742308331549efd631f3ee283b92a1816271486a397d87702ad211018d7"
+        },
+        {
+          "source_id": "LM10-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM10-01--GL-BRIEF-DEEPATLAS-WC-20260610-031.md",
+          "line": 77,
+          "anchor": "(task 64), attention dwell/strength. No new ML, no templates — substrate-native.",
+          "sha256": "41ff663f6fd9f3d64a893f95f6dbc9075af1b2a4d3a323a12d31f5d8232e5d91"
+        },
+        {
+          "source_id": "LM05-01",
+          "path": "docs/guala_reconciliation/sources/legacy-motivation-charter/LM05-01--GL-RPT-autonomy-investigation-20260609.md",
+          "line": 5,
+          "anchor": "> historical record only.",
+          "sha256": "3cdab12312c14f5a392c90623916daeefb4c89859185dd452d00e5f901d908b1"
+        }
+      ]
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false
+}

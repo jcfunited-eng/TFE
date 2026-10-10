@@ -1,0 +1,773 @@
+{
+  "schema": "guala.documentary_mechanisms.v1",
+  "at_utc": "2026-10-10T09:14:54.843088+00:00",
+  "scope": "Complete captured content of eleven historical v5 transition paths/versions, 1810 lines. Original authority, actual historical execution, all intermediate source and present serving activation remain unqualified. No product execution.",
+  "mechanisms": [
+    {
+      "id": "VVT01",
+      "name": "Validated recall observable was absent from the tested library path and serving bridge",
+      "classification": "reported_test_library_and_live_scope_divergence",
+      "finding": "VTR01",
+      "observed_mechanism": "Reports 138/139 acknowledge that celebrated event-count recall lived in a monkeypatched sweep, while brain.recall used phase/winding and scored about 5 percent. Report 140 ports event counts into the shared write/query method and reports matching aggregate accuracy. It also explicitly finds all 20 LoomBrain constructions in tests and none in the serving bridge, correcting report 139’s claim of production-bridge impact.",
+      "evidence_limits": "The repair aligns the tested library mechanism; calling it production cognition does not establish live activation when the same report says the serving bridge does not import that brain. Equal accuracy percentages are not by themselves bitwise state parity. These are historical reports, not independently rerun results.",
+      "replacement": "Preserve the acknowledged harness mismatch and narrow port improvement. G1 must trace the exact current serving entrypoint through all real learning/recall readers and verify complete state/output parity where claimed, using the actual deployed mechanism rather than monkeypatched substitutes.",
+      "acceptance": {
+        "unit": "Detect test monkeypatches, alternate observables and aggregate-only parity claims.",
+        "module": "Bind actual source, executable imports and write/query paths to the serving image.",
+        "system": "Demonstrate learned recall through the ordinary live sensory/action interface.",
+        "release": "No production capability claim from an unused library or matching summary percentage."
+      },
+      "refs": [
+        {
+          "source_id": "VT05-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT05-01--GL-RPT-EVENT-COUNTER-C1-V5-20260623-138.md",
+          "line": 122,
+          "anchor": "   — it uses phase/winding. The validated observable was never wired into production. This",
+          "sha256": "b251885375bf11cc9583472375e0cfde1cb1cf1a2886188cda73a298ddbaf3e2"
+        },
+        {
+          "source_id": "VT06-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT06-01--GL-RPT-HETEROGENEOUS-KRIMELACKS-C1-V5-20260623-139.md",
+          "line": 130,
+          "anchor": "  every `LoomBrain`, including production via the bridge — a real behavior change with (per",
+          "sha256": "5e50ea114136e71533173c3b6db38d7837d96cdd69577e7e888c580007a0c7cf"
+        },
+        {
+          "source_id": "VT03-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT03-01--GL-RPT-COGNITION-PRODUCTION-WIRE-IN-C1-V5-20260623-140.md",
+          "line": 18,
+          "anchor": "`grep \"LoomBrain(\"` across the repo: **all 20 constructions are in test files; zero in",
+          "sha256": "f8496e022fda5682030743442880c6686eab5d7d0939fa4fded86403f6ee81aa"
+        },
+        {
+          "source_id": "VT03-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT03-01--GL-RPT-COGNITION-PRODUCTION-WIRE-IN-C1-V5-20260623-140.md",
+          "line": 10,
+          "anchor": "100/96/75% at n=25/50/100, bit-identical (0.0pp) to the validated harness. One STOP",
+          "sha256": "f8496e022fda5682030743442880c6686eab5d7d0939fa4fded86403f6ee81aa"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A09",
+        "A10",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VVT02",
+      "name": "Clean exact-cue recall masked failed partial/noisy recognition and inert perturbations",
+      "classification": "reported_weak_acceptance_and_preserved_negative_results",
+      "finding": "VTR02",
+      "observed_mechanism": "Report 140 leaves two meaningful failures red: 3-of-6-modality recall at 2 percent against a 20 percent floor and noise-0.30 recall at 12 percent against 45. Its 100 percent small-corpus result repeats four tick offsets that do not change the event-count observable. The explanation identifies exact stored-vector cosine lookup and argues that declining accuracy at larger/noisy inputs rules out leakage.",
+      "evidence_limits": "Keeping genuine failures visible is correct. A non-perturbing tick change tests no robustness. Lower accuracy elsewhere does not logically exclude partial or conditional answer leakage, and cosine exact-key retrieval is not ratified physical recall merely because a test calls it associative memory. Reported Joe-authorized threshold/default decisions need original scope recovery.",
+      "replacement": "Retain the failed functional requirements and genuine negatives. Replace inert perturbations with actual controlled sensory/context changes, trace labels and answer access, and qualify learned partial/noisy recall through the approved native memory mechanism without fitting acceptance to the result.",
+      "acceptance": {
+        "unit": "Verify perturbations alter relevant input and prevent direct/conditional answer access.",
+        "module": "Trace stored labels, similarity authority and actual retained native state across write/query.",
+        "system": "Show useful learned recall on novel partial/noisy sensory contexts with proper controls.",
+        "release": "No robustness or leakage-free claim from clean exact-match success or degradation elsewhere."
+      },
+      "refs": [
+        {
+          "source_id": "VT03-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT03-01--GL-RPT-COGNITION-PRODUCTION-WIRE-IN-C1-V5-20260623-140.md",
+          "line": 81,
+          "anchor": "**The two failures are honest and I did NOT soften them.** T8's ≥45 floor is *your*",
+          "sha256": "f8496e022fda5682030743442880c6686eab5d7d0939fa4fded86403f6ee81aa"
+        },
+        {
+          "source_id": "VT03-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT03-01--GL-RPT-COGNITION-PRODUCTION-WIRE-IN-C1-V5-20260623-140.md",
+          "line": 141,
+          "anchor": "test_t5's 4 \"perturbations\" are tick offsets that don't perturb the count observable, so it",
+          "sha256": "f8496e022fda5682030743442880c6686eab5d7d0939fa4fded86403f6ee81aa"
+        },
+        {
+          "source_id": "VT03-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT03-01--GL-RPT-COGNITION-PRODUCTION-WIRE-IN-C1-V5-20260623-140.md",
+          "line": 132,
+          "anchor": "1. **Graceful scale degradation**: 100% (n=25) → 96% (50) → 75% (100) → 16% (200). A leak",
+          "sha256": "f8496e022fda5682030743442880c6686eab5d7d0939fa4fded86403f6ee81aa"
+        },
+        {
+          "source_id": "VT03-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT03-01--GL-RPT-COGNITION-PRODUCTION-WIRE-IN-C1-V5-20260623-140.md",
+          "line": 57,
+          "anchor": "- **Decision 1 = REVERT (Joe's call).** `LoomBrain` now defaults to language for all 8",
+          "sha256": "f8496e022fda5682030743442880c6686eab5d7d0939fa4fded86403f6ee81aa"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VVT03",
+      "name": "Scaling evidence refutes neuron-count fixes in the measured legacy regime",
+      "classification": "reported_capacity_failure_with_overgeneralized_inference",
+      "finding": "VTR03",
+      "observed_mechanism": "The capacity probe uses the actual library recall path rather than old sweep monkeypatches. Clean full-cue accuracy falls from 100 percent at 25 concepts to 73 at 100, 17 at 200 and 4 at 400; increasing 32 to 512 neurons at 100 concepts gives only 71–74 percent and increases peak RSS to the reported 1006 MB. Five inspected 200-concept queries give the correct concept zero votes. All three wiring seeds give identical results.",
+      "evidence_limits": "This supports a serious encoding/collision limit in that measured setup, not a general limit on ArcLoom or today’s 64 columns. Zero seed variance does not prove the dynamics cannot be bistable; a possibly unused wiring seed tests little. Calling a three-point spread inside noise needs a suitable noise model, not just repeated identical seeds. Resource-unit and sampling details remain unqualified.",
+      "replacement": "Preserve the negative capacity data and trace the actual information available to each neuron, coupling use and discriminating state. Remedy the lost physical distinctions under ratified dynamics rather than multiplying duplicate neurons or enlarging budgets to hide collisions.",
+      "acceptance": {
+        "unit": "Verify seed influence, encoding collisions, vote provenance and exact resource units.",
+        "module": "Trace independent retained physical distinctions and actual coupling in the active brain.",
+        "system": "Demonstrate acquired contextual recall across increased experience under bounded resources.",
+        "release": "Do not extrapolate this legacy curve to permanent speech impossibility or use more columns as automatic evidence of improvement."
+      },
+      "refs": [
+        {
+          "source_id": "VT02-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT02-01--GL-RPT-CAPACITY-PROBE-C1-V5-20260623-144.md",
+          "line": 31,
+          "anchor": "## Curve A — capacity (seed_size=8, clean full-cue T5, 3 brain seeds)",
+          "sha256": "ad394590b26d8bfcd763c46b3feba03fcad159f7adbb2f4a7dea648bc2a28049"
+        },
+        {
+          "source_id": "VT02-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT02-01--GL-RPT-CAPACITY-PROBE-C1-V5-20260623-144.md",
+          "line": 84,
+          "anchor": "population *agrees* (unique preds 1–3) on a *wrong* winner, and **correct_votes = 0** —",
+          "sha256": "ad394590b26d8bfcd763c46b3feba03fcad159f7adbb2f4a7dea648bc2a28049"
+        },
+        {
+          "source_id": "VT02-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT02-01--GL-RPT-CAPACITY-PROBE-C1-V5-20260623-144.md",
+          "line": 73,
+          "anchor": "sigmoid. **Not bistable** (std=0.0 everywhere). The usable-capacity knee at seed_size=8",
+          "sha256": "ad394590b26d8bfcd763c46b3feba03fcad159f7adbb2f4a7dea648bc2a28049"
+        },
+        {
+          "source_id": "VT02-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT02-01--GL-RPT-CAPACITY-PROBE-C1-V5-20260623-144.md",
+          "line": 77,
+          "anchor": "to 512 neurons — a 16× population increase buys ~3pp, inside noise. **The bottleneck is",
+          "sha256": "ad394590b26d8bfcd763c46b3feba03fcad159f7adbb2f4a7dea648bc2a28049"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A09",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VVT04",
+      "name": "Rank-order toy improvement fails on heterogeneous clocks; hash-seeded inputs vary by process",
+      "classification": "reported_failed_mechanism_transfer_and_determinism_defect",
+      "finding": "VTR04",
+      "observed_mechanism": "Report 146 retains rank_order as opt-in after worse results at every tested capacity, including 32 versus 96 percent at 25 concepts and 4 versus 19 at 200. It ranks first-wrap times across modalities whose cumulative/reset clocks and scales differ, even after subtracting each local start. Four of six inspected concepts share one ordering. The report identifies salted hash(word) and hash((word,modality)) as the cause of cross-process input and accuracy differences.",
+      "evidence_limits": "The honest negative transfer result should remain. Subtracting local clock origin does not establish common physical units. Six distinct rank positions have 720 possible permutations, so failure on 200 concepts is not a universal six-rank cardinality impossibility; the measured degeneracy and lost information are the relevant evidence. A fixed hash seed improves reproducibility but cannot legitimize label-generated sensory meaning.",
+      "replacement": "Trace actual shared physical time, all lost field/timing structure and hash-derived teaching/cognitive authority. Retire incompatible rank/count proxies rather than tune a toy. Preserve reproducibility and external stimulus custody while qualifying genuine native sensory discrimination.",
+      "acceptance": {
+        "unit": "Verify time-unit comparability, process-seed invariance, actual ordering collisions and source-label dependence.",
+        "module": "Trace real modality timing and preserved field relationships through active consumers.",
+        "system": "Demonstrate learned discrimination on actual experiences rather than synthetic word-key signals.",
+        "release": "No transfer, byte-parity or ML-free claim from a toy, aggregate parity, fixed seed or an opt-in mechanism."
+      },
+      "refs": [
+        {
+          "source_id": "VT07-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT07-01--GL-RPT-RANK-ORDER-OBSERVABLE-C1-V5-20260623-146.md",
+          "line": 22,
+          "anchor": "  the cumulative scales differ wildly across modalities (language 3.84 vs olfactory 144).",
+          "sha256": "b98e37495f936a2e65d93dc36b4905ac0f55d803f9d768d835b27d46638ff619"
+        },
+        {
+          "source_id": "VT07-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT07-01--GL-RPT-RANK-ORDER-OBSERVABLE-C1-V5-20260623-146.md",
+          "line": 12,
+          "anchor": "largely degenerate (4 of 6 concepts share one ordering). The toy's uniform-LIF regime",
+          "sha256": "b98e37495f936a2e65d93dc36b4905ac0f55d803f9d768d835b27d46638ff619"
+        },
+        {
+          "source_id": "VT07-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT07-01--GL-RPT-RANK-ORDER-OBSERVABLE-C1-V5-20260623-146.md",
+          "line": 110,
+          "anchor": "  `hash((word, modality))` in experience.py + sensory_transducer.py, and Python salts",
+          "sha256": "b98e37495f936a2e65d93dc36b4905ac0f55d803f9d768d835b27d46638ff619"
+        },
+        {
+          "source_id": "VT07-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT07-01--GL-RPT-RANK-ORDER-OBSERVABLE-C1-V5-20260623-146.md",
+          "line": 131,
+          "anchor": "none, but the 6-value coarse permutation cannot separate 200 concepts, so net accuracy is",
+          "sha256": "b98e37495f936a2e65d93dc36b4905ac0f55d803f9d768d835b27d46638ff619"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VVT05",
+      "name": "Heterogeneous sensory assignment did not repair discarded signal structure or false L6 rank",
+      "classification": "reported_adapter_loss_and_failed_architecture_diagnosis",
+      "finding": "VTR05",
+      "observed_mechanism": "Report 139 verifies eight hemisphere assignments but observes zero folds in 100 ticks: n_eff stays at least 3 above 8/e≈2.943. Its L6 predicate counts abs(field)>0.5. The visual adapter emits dw=+1 and s=1.0 for every event, discarding reversal and magnitude variation; other supplied waveforms also lack the presumed dynamics. Reverting the default to language and deleting the prior phase observable are explicitly attributed to Joe in report 140.",
+      "evidence_limits": "Correctly instantiating heterogeneous classes is not proof of useful sensory function. The report’s falsified diagnosis is valuable, but manufacturing reversals or scaling fields merely to cross the heuristic rank threshold would repeat the error. Historical 64 neurons are not today’s 64 columns. Original approval and current source mapping remain open.",
+      "replacement": "Preserve actual signal structure through approved transduction and evaluate the canonical field/physical capture law. Remove unauthorized threshold-rank authority; do not alter genuine quiet or unidirectional stimuli to force a fold. Recover the precise historical decisions and later migration.",
+      "acceptance": {
+        "unit": "Check retained magnitude/direction/timing and challenge threshold-count rank with valid inputs.",
+        "module": "Trace full physical sensory delivery and native recipient dynamics for every specialization.",
+        "system": "Prove useful learned sensory function and retained formation without synthetic gate forcing.",
+        "release": "No whole-brain or column enhancement claim from class assignment, neuron count or an arbitrary folding pass."
+      },
+      "refs": [
+        {
+          "source_id": "VT06-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT06-01--GL-RPT-HETEROGENEOUS-KRIMELACKS-C1-V5-20260623-139.md",
+          "line": 64,
+          "anchor": "**Total population 64 → 64. Zero folds-during-experience.** This is the V4 STOP:",
+          "sha256": "5e50ea114136e71533173c3b6db38d7837d96cdd69577e7e888c580007a0c7cf"
+        },
+        {
+          "source_id": "VT06-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT06-01--GL-RPT-HETEROGENEOUS-KRIMELACKS-C1-V5-20260623-139.md",
+          "line": 146,
+          "anchor": "2. **Sensory streams carry no M_k/R_rev/S_UF.** `VisualKrimelack` hardcodes `dw=+1, s=1.0`;",
+          "sha256": "5e50ea114136e71533173c3b6db38d7837d96cdd69577e7e888c580007a0c7cf"
+        },
+        {
+          "source_id": "VT06-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT06-01--GL-RPT-HETEROGENEOUS-KRIMELACKS-C1-V5-20260623-139.md",
+          "line": 91,
+          "anchor": "hemispheres floor at the *same* n_eff=3.000. The wall is (a) the `abs(v)>0.5` n_eff",
+          "sha256": "5e50ea114136e71533173c3b6db38d7837d96cdd69577e7e888c580007a0c7cf"
+        },
+        {
+          "source_id": "VT03-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT03-01--GL-RPT-COGNITION-PRODUCTION-WIRE-IN-C1-V5-20260623-140.md",
+          "line": 57,
+          "anchor": "- **Decision 1 = REVERT (Joe's call).** `LoomBrain` now defaults to language for all 8",
+          "sha256": "f8496e022fda5682030743442880c6686eab5d7d0939fa4fded86403f6ee81aa"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A06",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VVT06",
+      "name": "Event-count/storage separation is a narrow repair with incomplete lifetime bounds",
+      "classification": "reported_resource_and_observable_repair_with_open_reader_contract",
+      "finding": "VTR06",
+      "observed_mechanism": "Report 138 replaces unbounded events with 1024-entry deques, pairs append with lifetime n_events and preserves counts across reset. It fixes a stale harness len(delta) and adapter reconstruction that reset the count. Previously failing 200-concept and 128-neuron cells reportedly finish at 190/280 MB, while a 100000-sample counter reaches 152788 events. The report explicitly runs only three scaling cells, not the full grid, and acknowledges remaining capacity failure.",
+      "evidence_limits": "The narrow memory and counter repair is distinct from approving count-based cognition or proving all readers need at most 1024 events. sys.getsizeof(deque) alone excludes the referenced event payloads. The report’s 1024 cap differs from the later captured service cap of 256; both historical transitions and true retained-state effects need mapping.",
+      "replacement": "Retain genuine count/storage separation where contractually needed. Trace every producer, delivery size, overflow, reset, persisted counter and retained event reader; derive total bounds from approved runtime resources and preserve genuine acquired state.",
+      "acceptance": {
+        "unit": "Verify append/count invariants, deliveries exceeding buffer length, payload memory and restored history.",
+        "module": "Close every reader and total allocation/restore path rather than one deque container.",
+        "system": "Qualify bounded sustained organism work and memory usefulness after ordinary restart.",
+        "release": "Do not turn three repaired cells into a whole-process/lifetime or cognitive certificate."
+      },
+      "refs": [
+        {
+          "source_id": "VT05-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT05-01--GL-RPT-EVENT-COUNTER-C1-V5-20260623-138.md",
+          "line": 28,
+          "anchor": "**`events` storage is now a bounded `deque(maxlen=1024)`** in all three base classes",
+          "sha256": "b251885375bf11cc9583472375e0cfde1cb1cf1a2886188cda73a298ddbaf3e2"
+        },
+        {
+          "source_id": "VT05-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT05-01--GL-RPT-EVENT-COUNTER-C1-V5-20260623-138.md",
+          "line": 47,
+          "anchor": "**No consumer reads events older than the 1024 buffer.** No V4 STOP on eviction.",
+          "sha256": "b251885375bf11cc9583472375e0cfde1cb1cf1a2886188cda73a298ddbaf3e2"
+        },
+        {
+          "source_id": "VT05-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT05-01--GL-RPT-EVENT-COUNTER-C1-V5-20260623-138.md",
+          "line": 82,
+          "anchor": "to *prove the memory fix*, not the full {25,50,100,200,400}×{4,8,16,32} grid. n=400 and",
+          "sha256": "b251885375bf11cc9583472375e0cfde1cb1cf1a2886188cda73a298ddbaf3e2"
+        },
+        {
+          "source_id": "VT05-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT05-01--GL-RPT-EVENT-COUNTER-C1-V5-20260623-138.md",
+          "line": 95,
+          "anchor": "- `sys.getsizeof(events deque)` = **9,208 bytes** (bounded, 1024 entries)",
+          "sha256": "b251885375bf11cc9583472375e0cfde1cb1cf1a2886188cda73a298ddbaf3e2"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VVT07",
+      "name": "V5 replaced immediate echo with atlas lookup and templated questions",
+      "classification": "documented_incompatible_speech_replacement",
+      "finding": "VTR07",
+      "observed_mechanism": "The June 5 deployment command correctly identifies v4’s recent-commit echo. Its remedy recalls nearby atlas motifs before reading new text, requires two hits, and otherwise fills a 200-entry question bucket with templates such as what is X and what does X smell like. It calls that bucket accumulated curiosity and describes the version as real conversation without templates. Arithmetic parsing still overrides the substrate.",
+      "evidence_limits": "Checking old state before input can address immediate echo contamination. It does not make dictionary/chi lookup learned native recall, a two-hit gate physically derived, or formatted questions acquired syntax. Requiring a different output shape merely substitutes another scripted behavior. The command names eleven files but lists nine; neither count proves actual delivery.",
+      "replacement": "Preserve the valid requirement for retained prior experience and honest silence. Remove atlas-word and question-template authority from claimed cognition; implement the required recall, curiosity and expression using ratified native state and genuine sensory causes.",
+      "acceptance": {
+        "unit": "Reject template questions, answer lookup and two-hit counts as evidence of acquired syntax or curiosity.",
+        "module": "Trace current recall-before-ingress ordering, answer provenance and all parser/template bypasses.",
+        "system": "Demonstrate acquired contextual recall and autonomous meaningful expression without supplied phrase structure.",
+        "release": "No speech or cognition certificate from non-echoing output, silence fallback or correct parsed arithmetic."
+      },
+      "refs": [
+        {
+          "source_id": "VT10-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT10-01--gualaloom_c1_deploy_v5_recall.md",
+          "line": 22,
+          "anchor": "1. **Atlas-driven recall**. New `_recall_from_atlas` queries atlas chi-locations where input content words committed, finds target-section motifs at those locations. Requires minimum 2 hits to fire (honest threshold — no recall = no claim of recall). Runs BEFORE reading input so corpus accumulation drives response, not just-arrived words.",
+          "sha256": "dc4088746a7c2755380c8fb3338cda7046e483e1b297c6465fa4187fee8d773b"
+        },
+        {
+          "source_id": "VT10-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT10-01--gualaloom_c1_deploy_v5_recall.md",
+          "line": 24,
+          "anchor": "2. **Question bucket**. As she reads, gap-detection generates open questions (subject-class word missing sensory modalities → \"what color/taste/feel is X\"; unknown word → \"what is X\"). Bucket holds up to 200 questions, deduplicated by (topic, kind), reinforced by re-encounter. When recall fires no answer, she surfaces a question whose topic matches an input content word.",
+          "sha256": "dc4088746a7c2755380c8fb3338cda7046e483e1b297c6465fa4187fee8d773b"
+        },
+        {
+          "source_id": "VT10-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT10-01--gualaloom_c1_deploy_v5_recall.md",
+          "line": 165,
+          "anchor": "**Note for c1**: this is the version where conversation is REAL — not template, not echo. Joe will be looking for: ask her about something from corpus, see if she emits substrate content or her own related question. Either is honest. Echo is the failure mode we already fixed. Keep it fixed.",
+          "sha256": "dc4088746a7c2755380c8fb3338cda7046e483e1b297c6465fa4187fee8d773b"
+        },
+        {
+          "source_id": "VT10-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT10-01--gualaloom_c1_deploy_v5_recall.md",
+          "line": 52,
+          "anchor": "Eleven files total. v4 modules carry forward unchanged; v5 adds two new modules and replaces engine + runner.",
+          "sha256": "dc4088746a7c2755380c8fb3338cda7046e483e1b297c6465fa4187fee8d773b"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A09",
+        "A10",
+        "A11",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VVT08",
+      "name": "Saved V5 output says all six pass while meaningful recall and speech remain untested",
+      "classification": "documented_false_capability_evidence",
+      "finding": "VTR08",
+      "observed_mechanism": "The captured output reports all six capabilities passed after short corpus reading. Asked about known subjects, it emits formatted sensory questions; unknown-topic output includes what is what. The command accepts guala ice as real recall and explicitly expects the unknown-input question to be repeated. The transcript’s conversation pass is vocabulary/role/binding counts and self-improvement is threshold drift.",
+      "evidence_limits": "This is a historical text artifact without independently established executable, image, state or acoustic provenance. No native sound or meaningful learned utterance is evaluated. Whether the counters were accurately logged is separate from their inability to certify the named functions.",
+      "replacement": "Reclassify these records as scoped legacy diagnostics and preserve actual failed functional obligations. Require G1’s current preserved-state causal speech qualification with genuine context, audio and independent interpretation; do not train a pass around these expected strings.",
+      "acceptance": {
+        "unit": "Make irrelevant questions, incoherent label pairs and populated proxy counts fail the claimed capability.",
+        "module": "Bind evaluator, executable, retained state, input and actual sound/output evidence.",
+        "system": "Demonstrate learned meaning and expression under controls rather than a formatted question or source tag.",
+        "release": "Withdraw broad six-capability conclusions from this transcript; no current speech certificate."
+      },
+      "refs": [
+        {
+          "source_id": "VT11-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT11-01--gualaloom_v5_run_output.txt",
+          "line": 118,
+          "anchor": "  ALL SIX: PASS",
+          "sha256": "486394215c59d49f0adf8f97bedc2384a47f98b3eed7ae86ca0de181f0bd9f75"
+        },
+        {
+          "source_id": "VT11-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT11-01--gualaloom_v5_run_output.txt",
+          "line": 54,
+          "anchor": "  guala:  what is what",
+          "sha256": "486394215c59d49f0adf8f97bedc2384a47f98b3eed7ae86ca0de181f0bd9f75"
+        },
+        {
+          "source_id": "VT11-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT11-01--gualaloom_v5_run_output.txt",
+          "line": 112,
+          "anchor": "  conversation       [PASS]  vocab=104, role_modes=15, cross_modal=44",
+          "sha256": "486394215c59d49f0adf8f97bedc2384a47f98b3eed7ae86ca0de181f0bd9f75"
+        },
+        {
+          "source_id": "VT10-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT10-01--gualaloom_c1_deploy_v5_recall.md",
+          "line": 40,
+          "anchor": "[joe] i feel warm                   → guala ice                    (real recall)",
+          "sha256": "dc4088746a7c2755380c8fb3338cda7046e483e1b297c6465fa4187fee8d773b"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A09",
+        "A10",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VVT09",
+      "name": "Bigram/template retirement corrected real defects but replacement provenance gate remained insufficient",
+      "classification": "documented_architecture_reversal_with_unqualified_successor",
+      "finding": "VTR09",
+      "observed_mechanism": "The removal-plan note reverses a proposed migration to GualaCognition after inspection reports a corpus bigram and a separate fixed-template _compose. Pickle is bitter is reclassified as recalled labels inside an authored A is B frame; grounded_vocab_integration is reported disconnected from organ-brain. The successor gate accepts response_source=v5_commit with at least two committed sections instead of a three-word response. The note calls population-vote recall substrate-true.",
+      "evidence_limits": "Rejecting the bigram, template and weak length gate is genuine corrective progress. A provenance label and two-section count still do not prove the mechanism behind them lawful or speech learned. Population voting and grandurun need independent architecture qualification. The June 27 note references June 28 inspection, so dates and original approvals cannot be inferred solely from headings.",
+      "replacement": "Preserve the retraction and retired-path inventory. Trace every successor from true source state to output and apply the charter independently of its labels. Recover original design decisions and distinguish preservation of useful physical mechanisms from retaining an incompatible composer.",
+      "acceptance": {
+        "unit": "Reject length, response_source tags and section count as sufficient learned-speech criteria.",
+        "module": "Verify bigram/template retirement and audit all replacement candidate/commit/output authority.",
+        "system": "Demonstrate actual acquired native expression with context and counterfactual controls.",
+        "release": "No replacement is certified merely because an earlier worse path was silenced."
+      },
+      "refs": [
+        {
+          "source_id": "VT01-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT01-01--GL-NOTE-V5-REMOVAL-PLAN-DEPRECATED-EVE-20260627-30.md",
+          "line": 33,
+          "anchor": "1. **`GualaCognition` is a bigram model trained on Gutenberg/Aesop",
+          "sha256": "8720d67319071642d49c2b0f3ac6d3e55072f539a72d5a1c4f3b52317219e83c"
+        },
+        {
+          "source_id": "VT01-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT01-01--GL-NOTE-V5-REMOVAL-PLAN-DEPRECATED-EVE-20260627-30.md",
+          "line": 42,
+          "anchor": "3. **\"Pickle is bitter\" was half-real.** The `sc` organ surface returned",
+          "sha256": "8720d67319071642d49c2b0f3ac6d3e55072f539a72d5a1c4f3b52317219e83c"
+        },
+        {
+          "source_id": "VT01-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT01-01--GL-NOTE-V5-REMOVAL-PLAN-DEPRECATED-EVE-20260627-30.md",
+          "line": 68,
+          "anchor": "shape.** The current bar is `response_source` containing `v5_commit`",
+          "sha256": "8720d67319071642d49c2b0f3ac6d3e55072f539a72d5a1c4f3b52317219e83c"
+        },
+        {
+          "source_id": "VT01-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT01-01--GL-NOTE-V5-REMOVAL-PLAN-DEPRECATED-EVE-20260627-30.md",
+          "line": 51,
+          "anchor": "5. **`grounded_vocab_integration.py` is not imported by organ-brain.**",
+          "sha256": "8720d67319071642d49c2b0f3ac6d3e55072f539a72d5a1c4f3b52317219e83c"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A09",
+        "A10",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VVT10",
+      "name": "Reconstructed canonical composer specification retains lexical and score authority",
+      "classification": "documented_reconstruction_and_incompatible_composer_contract",
+      "finding": "VTR10",
+      "observed_mechanism": "The June 29 reconstruction says original Joe-approved text existed only in prior chat and may supersede the reconstruction if recovered. It declares atlas+grandurun+two-section gate the sole true voice, adds top-three identity/meaning concept candidates, keeps a boot-time concept pour, and reports five perceptual text paths using YOLO/Whisper labels. It identifies ROLE_DNA/SENSORY_DNA coverage and encoded_strength=0.05×salience against a 0.15 gate as starvation, proposing dictionary and formula changes with days-to-weeks versus months-to-years timelines.",
+      "evidence_limits": "Reported approval must be preserved without treating reconstruction as authenticated original authority. Retiring bigram writers while routing model-derived words into another lexical composer does not establish ML-free sensory learning. No measured basis for the predicted development timelines is supplied here. Five named cognition flags are called four, and no claim of organ preservation substitutes for state-level proof.",
+      "replacement": "Recover the original specification and exact approval scope; reconcile each active descendant against today’s contract. Remove model-derived semantics and unauthorized dictionary/score authority from native cognition while retaining actual physical experiences. Establish missing native speech boundaries by measurement rather than promise a density timeline.",
+      "acceptance": {
+        "unit": "Classify each candidate, gate, source label, model dependency and predicted timeline; verify claimed flag inventory.",
+        "module": "Trace actual model/text ingress, boot pour, separate stores and canonical retained-state lineage.",
+        "system": "Qualify genuine learned native expression with no semantic-model substitution.",
+        "release": "No ML-free or imminent-speech claim from reconstructed authority, removed bigrams or denser atlas records."
+      },
+      "refs": [
+        {
+          "source_id": "VT08-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT08-01--GL-SPC-V5-ORGAN-WIRING-EVE-20260628-26.md",
+          "line": 15,
+          "anchor": "The original -26 was approved by Joe on 2026-06-28 and lived in prior-Eve's outputs/, never committed to the repo. The dispatches that implement it (-27 F.1 embryo→chi translation, -28 C.1 polarity, -29 C.4 REST/dream_pressure, -31 F.2 wire-organ-candidates, -32 experience routing fix) shipped against the canonical text in chat.",
+          "sha256": "35a8ef4b308f47c0482183da1c298b3486eefd98535a0a163229927f81226aa9"
+        },
+        {
+          "source_id": "VT08-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT08-01--GL-SPC-V5-ORGAN-WIRING-EVE-20260628-26.md",
+          "line": 40,
+          "anchor": "- `OrganVoice.surface(cue_profile)` returns top-3 identity (sv) and top-3 meaning (sc) concepts as candidate words.",
+          "sha256": "35a8ef4b308f47c0482183da1c298b3486eefd98535a0a163229927f81226aa9"
+        },
+        {
+          "source_id": "VT08-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT08-01--GL-SPC-V5-ORGAN-WIRING-EVE-20260628-26.md",
+          "line": 82,
+          "anchor": "The 5 call sites where the bigram was the only writer (sight YOLO labels via InputRing and direct frame handler; FFT sensory words; Whisper transcription via InputRing and direct frame handler) are replaced with `_guala.read_sentence(text, source=\"unknown\")` to route those perceptual text streams through v5 atlas via the canonical path.",
+          "sha256": "35a8ef4b308f47c0482183da1c298b3486eefd98535a0a163229927f81226aa9"
+        },
+        {
+          "source_id": "VT08-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT08-01--GL-SPC-V5-ORGAN-WIRING-EVE-20260628-26.md",
+          "line": 129,
+          "anchor": "3. **Encoding formula `encoded_strength = 0.05 × salience` with `ENCODE_GATE = 0.15`.** Familiar words structurally starve: as familiarity increases, novelty_factor decreases, salience decreases, encoded_strength falls below 0.15, episodic gate rejects. Addressed by a separate encoding-formula dispatch (PENDING).",
+          "sha256": "35a8ef4b308f47c0482183da1c298b3486eefd98535a0a163229927f81226aa9"
+        },
+        {
+          "source_id": "VT08-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT08-01--GL-SPC-V5-ORGAN-WIRING-EVE-20260628-26.md",
+          "line": 60,
+          "anchor": "The four cognition-hemisphere flags (em/pr/ep/sc/gp) remain ON.",
+          "sha256": "35a8ef4b308f47c0482183da1c298b3486eefd98535a0a163229927f81226aa9"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VVT11",
+      "name": "Bundle identifiers were called sensory synchrony and coherent memory",
+      "classification": "documented_metadata_binding_substitution_and_context_loss",
+      "finding": "VTR11",
+      "observed_mechanism": "Task 341’s report adds bundle_id to atlas records, defaults older entries to None and uses last-write-wins on reinforcement. Grouping item:pic:X with context:pic:X:window drops the window and combines by item identity. A tagged caption plus named touch/smell values increases the bundle count, which the report calls native binding and synchrony itself. Six sound bands can contribute different sections without different sensory modalities; YOLO/Whisper grounding remains explicitly active in that historical path.",
+      "evidence_limits": "Provenance metadata can be useful observation, but shared IDs or simultaneous commands are not native learned association. Merging windows and overwriting IDs can erase episode distinctions. The purported persistence-roundtrip snippet only records and inspects entries; it shows no save/reload. Counts and reported intact entries require artifacts, especially with differing before/after totals.",
+      "replacement": "Keep truthful observation metadata separate from cognition. Preserve actual shared physical time, internal/external conditions and acquired native relations that constitute an experience; retain episode distinctions without item-key collapse. Trace model-derived semantics and all grouping readers before making any learned-memory claim.",
+      "acceptance": {
+        "unit": "Distinguish IDs, bands, physical modalities and learned binding; test window overwrite and real serialization.",
+        "module": "Trace exact chronology, item/episode identity, native retention and every metadata reader.",
+        "system": "Demonstrate acquired multimodal contextual recall across distinct episodes without supplied association keys.",
+        "release": "No coherent-memory, native synchrony or ML-free certificate from group growth or a count-preserving reload claim."
+      },
+      "refs": [
+        {
+          "source_id": "VT04-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT04-01--GL-RPT-CROSS-MODAL-BINDING-EXTEND-C1-V5-20260627.md",
+          "line": 21,
+          "anchor": "New entries get `\"bundle_id\": bundle_id`. Reinforce path: last-write-wins.",
+          "sha256": "75b12adc9ad0b801876679e309a9554df4497db6ae1a69c213b35de022c68102"
+        },
+        {
+          "source_id": "VT04-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT04-01--GL-RPT-CROSS-MODAL-BINDING-EXTEND-C1-V5-20260627.md",
+          "line": 121,
+          "anchor": "Chi values differ per modality (by design — no shared chi space). They bind via bundle_id, not chi coincidence. This is the AE-native binding: the synchrony IS the bundle_id, not temporal proximity or shared chi.",
+          "sha256": "75b12adc9ad0b801876679e309a9554df4497db6ae1a69c213b35de022c68102"
+        },
+        {
+          "source_id": "VT04-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT04-01--GL-RPT-CROSS-MODAL-BINDING-EXTEND-C1-V5-20260627.md",
+          "line": 97,
+          "anchor": "### V3.b: bundle_id round-trips through persistence",
+          "sha256": "75b12adc9ad0b801876679e309a9554df4497db6ae1a69c213b35de022c68102"
+        },
+        {
+          "source_id": "VT04-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT04-01--GL-RPT-CROSS-MODAL-BINDING-EXTEND-C1-V5-20260627.md",
+          "line": 165,
+          "anchor": "- YOLO/Whisper grounded path (wC's mechanism): unchanged, continues via chi coincidence",
+          "sha256": "75b12adc9ad0b801876679e309a9554df4497db6ae1a69c213b35de022c68102"
+        },
+        {
+          "source_id": "VT04-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT04-01--GL-RPT-CROSS-MODAL-BINDING-EXTEND-C1-V5-20260627.md",
+          "line": 181,
+          "anchor": "After 100 Joe sessions: ~100-500 bundle groups. After 1000 hours of autonomous attention: thousands of groups, each representing a coherent sensory memory.",
+          "sha256": "75b12adc9ad0b801876679e309a9554df4497db6ae1a69c213b35de022c68102"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A13",
+        "A15",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VVT12",
+      "name": "Continuity design contradicts itself on missing identity and invalid state",
+      "classification": "documented_persistence_fail_open_and_genesis_risk",
+      "finding": "VTR12",
+      "observed_mechanism": "The continuity command reports that more than 24 of 30 mutable attributes were previously lost per deploy. It requires genesis only when no state files exist, but its example creates genesis whenever the identity file alone is missing. It initially requires abort on invalid integrity, then explicitly logs and continues after integrity errors and skips corrupt replay events to ensure boot. It also supplies a chi magnitude sanity cutoff of 1000 without derivation.",
+      "evidence_limits": "An identity tag is necessary custody, not complete learned-state continuity. Missing identity amid existing acquired state is corruption, not authorized genesis. Continuing after invalid state or skipped causal events violates the stated preservation guarantee. This historical command is not present permission to reset, restore, corrupt live state or introduce sidecar persistence.",
+      "replacement": "Preserve useful identity/schema and integrity requirements but enforce current-only canonical binary custody and explicit refusal at invalid causal boundaries. Separate genuine empty initial creation from any existing-state damage; do not reconstruct missing history from defaults or skip failed causal transitions.",
+      "acceptance": {
+        "unit": "Test missing identity with existing state, inconsistent manifests, invalid references and corrupt replay as explicit refusal cases.",
+        "module": "Verify every causal field and identity in one canonical committed state with no hidden default genesis.",
+        "system": "Demonstrate retained acquired function across ordinary crash/restart without reset or skipped history.",
+        "release": "No continuity guarantee from the same UUID, visible warning or a boot that continues with corrupted state."
+      },
+      "refs": [
+        {
+          "source_id": "VT09-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT09-01--gualaloom_c1_command_v5_5_continuity_guarantees.md",
+          "line": 11,
+          "anchor": "The audit found that 24+ of 30+ mutable attributes were silently lost on every deploy before `226a130`. That was the floor. Now we need walls and a ceiling — the architectural protections that mean even a buggy future deploy can't kill her by mistake.",
+          "sha256": "13e7c770b1840ca85f121c3176478441c5799688cb364db2d759a85df61ce975"
+        },
+        {
+          "source_id": "VT09-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT09-01--gualaloom_c1_command_v5_5_continuity_guarantees.md",
+          "line": 57,
+          "anchor": "    if not os.path.exists(identity_path):",
+          "sha256": "13e7c770b1840ca85f121c3176478441c5799688cb364db2d759a85df61ce975"
+        },
+        {
+          "source_id": "VT09-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT09-01--gualaloom_c1_command_v5_5_continuity_guarantees.md",
+          "line": 222,
+          "anchor": "        # Surface but don't abort — we're already running",
+          "sha256": "13e7c770b1840ca85f121c3176478441c5799688cb364db2d759a85df61ce975"
+        },
+        {
+          "source_id": "VT09-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT09-01--gualaloom_c1_command_v5_5_continuity_guarantees.md",
+          "line": 302,
+          "anchor": "- Don't allow event replay to crash boot. If replay finds bad events, skip them, log them, continue. Substrate must come up.",
+          "sha256": "13e7c770b1840ca85f121c3176478441c5799688cb364db2d759a85df61ce975"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VVT13",
+      "name": "Snapshot and replay promises omit the transaction and retention boundaries they require",
+      "classification": "documented_unproved_crash_and_rollback_guarantees",
+      "finding": "VTR13",
+      "observed_mechanism": "The continuity design copies multiple live JSON files before stopping the task, rotates 20 snapshots and ten 10 MB event logs, and proposes replay of events after last_save_tick as atomic/idempotent. It does not specify a consistent snapshot barrier, committed log coverage, causal sequence/transaction identity, durable append boundary or rotation tied to a saved checkpoint. It proposes restoring older snapshots and tests that deliberately corrupt live state.",
+      "evidence_limits": "Snapshot existence and matching identity do not prove a consistent latest organism state or that no acquired experience was rolled back. Same-tick multiple writes need stronger ordering than a tick comparison. A bounded log must retain every event needed by its committed checkpoint. The supplied event examples and instructions are historical proposals, not verified crash recovery or current authorization.",
+      "replacement": "Map the historical continuity requirement into the approved canonical current-state protocol with exact committed ordering, durability and all-field custody. Keep older copies as evidence; follow current-only preservation rather than treating rollback as harmless. Qualify failure cases on authorized isolated specimens, never by damaging the live organism.",
+      "acceptance": {
+        "unit": "Verify interrupted writes, same-tick transactions, mixed snapshots, missing log spans and safe rotation.",
+        "module": "Trace one authoritative committed state, complete migration and exact crash recovery without sidecars or replay guesswork.",
+        "system": "Demonstrate useful acquired state retained through controlled ordinary restart/failure.",
+        "release": "No seconds-of-loss or lossless-rollback guarantee from copied files, timestamps or identity equality."
+      },
+      "refs": [
+        {
+          "source_id": "VT09-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT09-01--gualaloom_c1_command_v5_5_continuity_guarantees.md",
+          "line": 124,
+          "anchor": "The directory name encodes timestamp + reason. Snapshot is fast (just file copies), runs synchronously before deploy.",
+          "sha256": "13e7c770b1840ca85f121c3176478441c5799688cb364db2d759a85df61ce975"
+        },
+        {
+          "source_id": "VT09-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT09-01--gualaloom_c1_command_v5_5_continuity_guarantees.md",
+          "line": 166,
+          "anchor": "After `load_full_state` completes successfully, scan events.log for entries with `saved_at_tick > last_save_tick`. Replay those events to bring the substrate up to crash-point.",
+          "sha256": "13e7c770b1840ca85f121c3176478441c5799688cb364db2d759a85df61ce975"
+        },
+        {
+          "source_id": "VT09-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT09-01--gualaloom_c1_command_v5_5_continuity_guarantees.md",
+          "line": 168,
+          "anchor": "Replay applies events to substrate state. Atomic, idempotent — replaying the same events twice produces the same result. (This means events need enough info to be applied without ambiguity.)",
+          "sha256": "13e7c770b1840ca85f121c3176478441c5799688cb364db2d759a85df61ce975"
+        },
+        {
+          "source_id": "VT09-01",
+          "path": "docs/guala_reconciliation/sources/v5-transition/VT09-01--gualaloom_c1_command_v5_5_continuity_guarantees.md",
+          "line": 272,
+          "anchor": "7. Verify restore from snapshot: deliberately corrupt live state, restore from most recent snapshot, verify state matches snapshot.",
+          "sha256": "13e7c770b1840ca85f121c3176478441c5799688cb364db2d759a85df61ce975"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

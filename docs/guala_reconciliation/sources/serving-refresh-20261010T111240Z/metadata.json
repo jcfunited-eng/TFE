@@ -1,0 +1,41 @@
+{
+  "at_utc": "2026-10-10T11:12:42.462271+00:00",
+  "scope": "Read-only current ECS metadata and bounded stdlib filesystem/health GET; no organism import, action, test, signal, state edit or restart",
+  "services": [
+    {
+      "serviceName": "dsf-ai-service-lb",
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1606",
+      "desired": 1,
+      "running": 1,
+      "pending": 0,
+      "deployments": [
+        {
+          "status": "PRIMARY",
+          "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1606",
+          "desired": 1,
+          "running": 1,
+          "pending": 0,
+          "rolloutState": "COMPLETED"
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "taskArn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/54d300e31f754c8f913f70b4dd0840f1",
+      "taskDefinitionArn": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1606",
+      "lastStatus": "RUNNING",
+      "healthStatus": "HEALTHY",
+      "startedAt": "2026-10-10T11:09:44.745000+00:00",
+      "containers": [
+        {
+          "name": "dsf-ai",
+          "lastStatus": "RUNNING",
+          "healthStatus": "HEALTHY",
+          "image": "418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:91640805ccc0548ccb10d55e97598812684112047bbabdd4ecd5415b25c0b69f",
+          "imageDigest": "sha256:91640805ccc0548ccb10d55e97598812684112047bbabdd4ecd5415b25c0b69f"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+file,domain,phi,H,energy,intent,reason,tokens,meta_tokens
+finance_news.txt,finance,0.6370834112167358,0.99999999711461,0.5764569090452231,GROW,High coherence (0.64) and energy (0.58).,,
+nasa_mission.txt,science,0.7080419063568115,0.99999999711461,0.6406628105940122,GROW,High coherence (0.71) and energy (0.64).,,
+weather_noaa.txt,weather,0.7477280497550964,0.99999999711461,0.6765723181286825,GROW,High coherence (0.75) and energy (0.68).,,

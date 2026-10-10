@@ -1,0 +1,974 @@
+{
+  "schema": "guala.charter_assessment.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T01:47:10.071624+00:00",
+  "conclusion": "Enough evidence to define a bounded falsifiable charter qualification; insufficient evidence to certify the current system or guarantee learned syntax/autonomy.",
+  "source_read_complete": true,
+  "source_scope": "All eleven named per-file captures now fully read; transitive implementation/authority/runtime closure remains incomplete. No atomic frozen candidate, test execution, production refresh or whole-program exclusion.",
+  "sources": [
+    {
+      "id": "CA01",
+      "path": "dsf_ai_service/guala_functional64_runtime.py",
+      "sha256": "f4710a82da0fbaa1e45ebad2018c521a739ccd8555ca780ca9f8758e662181ca",
+      "bytes": 9613,
+      "lines": 217,
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/charter-assessment/CA01--guala_functional64_runtime.py",
+      "scope": "Per-file working copy; not an atomic frozen candidate",
+      "canonical_copy": "docs/guala_reconciliation/sources/charter-assessment/CA01--guala_functional64_runtime.py",
+      "review": "Complete217-line runtime read."
+    },
+    {
+      "id": "CA02",
+      "path": "dsf_ai_service/guala_functional64_loop.py",
+      "sha256": "d26d3c059abebfe12ee599ecc15a1bc1e574fd8c57fa1dec9bc169ba2bb58b41",
+      "bytes": 16123,
+      "lines": 275,
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/charter-assessment/CA02--guala_functional64_loop.py",
+      "scope": "Per-file working copy; not an atomic frozen candidate",
+      "canonical_copy": "docs/guala_reconciliation/sources/charter-assessment/CA02--guala_functional64_loop.py",
+      "review": "Complete275-line physical loop read."
+    },
+    {
+      "id": "CA03",
+      "path": "dsf_ai_service/guala_functional64_world.py",
+      "sha256": "af838e22caf38123229c763bb2d3d5251c14842825e44d6539752ef87de19583",
+      "bytes": 7954,
+      "lines": 139,
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/charter-assessment/CA03--guala_functional64_world.py",
+      "scope": "Per-file working copy; not an atomic frozen candidate",
+      "canonical_copy": "docs/guala_reconciliation/sources/charter-assessment/CA03--guala_functional64_world.py",
+      "review": "Complete139-line world commissioning/restore read."
+    },
+    {
+      "id": "CA04",
+      "path": "tests/test_functional64_loop.py",
+      "sha256": "0df21c33649c66c7686d67fd0592d93f47f383a64617e1d506acbe595a1b2ebc",
+      "bytes": 7860,
+      "lines": 143,
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/charter-assessment/CA04--test_functional64_loop.py",
+      "scope": "Per-file working copy; not an atomic frozen candidate",
+      "canonical_copy": "docs/guala_reconciliation/sources/charter-assessment/CA04--test_functional64_loop.py",
+      "review": "Complete143-line test read; not executed."
+    },
+    {
+      "id": "CA05",
+      "path": "tests/test_functional64_physical_path.py",
+      "sha256": "8b3ff4e845a17018c351a24a2158a457ca37e096e4b1cf9361bd9032fae11bc5",
+      "bytes": 12755,
+      "lines": 233,
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/charter-assessment/CA05--test_functional64_physical_path.py",
+      "scope": "Per-file working copy; not an atomic frozen candidate",
+      "canonical_copy": "docs/guala_reconciliation/sources/charter-assessment/CA05--test_functional64_physical_path.py",
+      "review": "Complete233-line test read; not executed."
+    },
+    {
+      "id": "CA06",
+      "path": "native/guala_core/src/arcloom_neuron.rs",
+      "sha256": "8824748466903ce11333007e3dfe3cd0201e7c88fa9da63abc6c4350f2db181d",
+      "bytes": 40086,
+      "lines": 799,
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/charter-assessment/CA06--arcloom_neuron.rs",
+      "scope": "Per-file working copy; not an atomic frozen candidate",
+      "canonical_copy": "docs/guala_reconciliation/sources/charter-assessment/CA06--arcloom_neuron.rs",
+      "review": "Complete799-line source read across the charter and current-native slices; no import, test or organism execution."
+    },
+    {
+      "id": "CA07",
+      "path": "native/guala_core/src/functional64_owner.rs",
+      "sha256": "8a32081253636874e282f6596d83755648877158e39bae8c4f51cf90e44e38a9",
+      "bytes": 47874,
+      "lines": 588,
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/charter-assessment/CA07--functional64_owner.rs",
+      "scope": "Per-file working copy; not an atomic frozen candidate",
+      "canonical_copy": "docs/guala_reconciliation/sources/charter-assessment/CA07--functional64_owner.rs",
+      "review": "Complete588-line source read across the charter and current-native slices; no import, test or organism execution."
+    },
+    {
+      "id": "CA08",
+      "path": "native/guala_core/src/functional64_current_commission.rs",
+      "sha256": "74a86e547719f6e024fcfbbead380fa3b63493802ffe1fa9f2cf8b882006b137",
+      "bytes": 10062,
+      "lines": 170,
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/charter-assessment/CA08--functional64_current_commission.rs",
+      "scope": "Per-file working copy; not an atomic frozen candidate",
+      "canonical_copy": "docs/guala_reconciliation/sources/charter-assessment/CA08--functional64_current_commission.rs",
+      "review": "Complete170-line commissioning implementation read."
+    },
+    {
+      "id": "CA09",
+      "path": "native/guala_core/src/functional64_material.rs",
+      "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a",
+      "bytes": 156308,
+      "lines": 2061,
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/charter-assessment/CA09--functional64_material.rs",
+      "scope": "Per-file working copy; not an atomic frozen candidate",
+      "canonical_copy": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+      "review": "Complete2061-line source read across the charter and current-native slices; no import, test or organism execution."
+    },
+    {
+      "id": "CA10",
+      "path": "native/guala_core/src/functional64_contact.rs",
+      "sha256": "f6a08256eb7d97e13637f7027c67a2f9fafeacc2fd625eed448d25ca1a79aef6",
+      "bytes": 31852,
+      "lines": 436,
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/charter-assessment/CA10--functional64_contact.rs",
+      "scope": "Per-file working copy; not an atomic frozen candidate",
+      "canonical_copy": "docs/guala_reconciliation/sources/charter-assessment/CA10--functional64_contact.rs",
+      "review": "Complete436-line source read across the charter and current-native slices; no import, test or organism execution."
+    },
+    {
+      "id": "CA11",
+      "path": "native/guala_core/src/functional64_charge.rs",
+      "sha256": "09eff4269b7d2ac49a36fbe2bd1a3be46d8a4398020e051d07ec8496b37b237b",
+      "bytes": 3260,
+      "lines": 49,
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/charter-assessment/CA11--functional64_charge.rs",
+      "scope": "Per-file working copy; not an atomic frozen candidate",
+      "canonical_copy": "docs/guala_reconciliation/sources/charter-assessment/CA11--functional64_charge.rs",
+      "review": "Complete49-line charge representation read; no numerical or integration test run."
+    }
+  ],
+  "requirements": [
+    {
+      "id": "CQ01",
+      "name": "64-column commissioning is not yet a demonstrated conservative extension",
+      "classification": "verified source boundary; preservation qualification open",
+      "finding": "The captured commission_from_current carries original bytes, raw contact values, yield thresholds and severed topology into an explicitly new material. Functional64Material::commission initializes new phases, rings, gates, facts, work and delivery state. The outer runtime keeps the original paired body/world inert. This establishes custody/design scope, not preserved learned capability or historical erasure.",
+      "lawful_remedy": "Map each causative predecessor state into the proposed successor or record why it cannot be translated. Preserve all originals. Prove retained physical relations and ordinary next-step/cold behavior with copied mature fixtures before calling the new anatomy an enhancement. New-law initialization requires its explicit authority; an archive is not operational memory.",
+      "acceptance_falsifier": "An identity, tick, byte archive or contact count alone cannot pass. The earlier supported learned-state effect must survive the stated migration and ordinary cue; unlearned/severed controls must distinguish it. Do not remount rejected historical policy merely to reproduce a symptom.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A09",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "CA08",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA08--functional64_current_commission.rs",
+          "line": 106,
+          "anchor": "pub(crate) fn commission_from_current(current:&CurrentView,clock:ExactTime,",
+          "sha256": "74a86e547719f6e024fcfbbead380fa3b63493802ffe1fa9f2cf8b882006b137"
+        },
+        {
+          "source_id": "CA09",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+          "line": 357,
+          "anchor": "        let mut s=Self{anatomy,clock,phases:Pages::new(NODES,PhasePair::default()),rings:Pages::new(FACTS,Ring{phase:[0.0;3]}),weights:Pages::new(RAW_SLOTS,0.0),incident:Pages::new(NODES,Arc::new(Vec::new())),nonzero_nodes:Arc::new(BTreeSet::new()),facts:vec![Fact{digit:0,present:false};FACTS].into(),gates:Arc::new(vec![Gate::new();INPUTS+TERMINALS]),power:Vec::new(),last_power:vec![None;INPUTS],delivery:VecDeque::new(),reserve_ug,work:Work::ZERO,unavailable_since:None,contact_changes:Pages::new(RAW_SLOTS,false)};",
+          "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+        },
+        {
+          "source_id": "CA01",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA01--guala_functional64_runtime.py",
+          "line": 3,
+          "anchor": "The original paired body/world remain inert bytes. Native material separately",
+          "sha256": "f4710a82da0fbaa1e45ebad2018c521a739ccd8555ca780ca9f8758e662181ca"
+        }
+      ]
+    },
+    {
+      "id": "CQ02",
+      "name": "Current fixture contracts deliberately stop short of the charter",
+      "classification": "preserve honest test scope; positive capability proof missing",
+      "finding": "Captured loop tests explicitly use new fixtures and test physical delivery/paired persistence. The neutral source test asserts field progression, changed phases across64columns, END discharges, body/pressure and cold comparison, while expressly disclaiming learned-language evidence. Source reading does not establish that these tests passed.",
+      "lawful_remedy": "Keep these component and continuation tests. Add separately specified retained-learning, partial-cue use, grounded syntax and unattended need/action/consequence evidence on the frozen candidate and authentic history. Keep intervention fixtures outside product cognition.",
+      "acceptance_falsifier": "Changed phases, nonzero pressure, a source delivery, four quarters or an ordinary call must not count as learning, syntax or mature autonomy. Require learned versus pre-learning/severed differences and later reuse.",
+      "repair_actions": [
+        "A06",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CA04",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA04--test_functional64_loop.py",
+          "line": 1,
+          "anchor": "\"\"\"Ordinary caller/persistence witnesses, never mature learning/autonomy proof.",
+          "sha256": "0df21c33649c66c7686d67fd0592d93f47f383a64617e1d506acbe595a1b2ebc"
+        },
+        {
+          "source_id": "CA05",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA05--test_functional64_physical_path.py",
+          "line": 1,
+          "anchor": "\"\"\"Positive ordinary-path component witness; not learned-language evidence.",
+          "sha256": "8b3ff4e845a17018c351a24a2158a457ca37e096e4b1cf9361bd9032fae11bc5"
+        },
+        {
+          "source_id": "CA05",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA05--test_functional64_physical_path.py",
+          "line": 141,
+          "anchor": "            assert changed_columns == tuple(range(64))",
+          "sha256": "8b3ff4e845a17018c351a24a2158a457ca37e096e4b1cf9361bd9032fae11bc5"
+        }
+      ]
+    },
+    {
+      "id": "CQ03",
+      "name": "Exact charge custody does not qualify the complete neuronal computation",
+      "classification": "preserve exactness boundary; full-law approval and conformance open",
+      "finding": "The current one-neuron file explicitly calls its dynamics numerical and separates full joint UF/MathLoom mounting. Functional64 material reuses its constants but implements its own material/geometry/contact/source route. The captured exact Charge representation does not itself certify that full route or its physical calibration.",
+      "lawful_remedy": "Bind the intended neuron law, approved material/accuracy contract, actual typed full-field mount, reciprocal interactions and complete conserved state to the frozen64-column execution. Demonstrate any functional specialization as such; do not advertise a direct multiplication of an independently proven complete neuron without correspondence.",
+      "acceptance_falsifier": "Exact encoded packets alongside an unqualified solver cannot pass exact physical evolution. Fields must retain typed meaning/topology; conservation, refusal, numerical error and ordinary continuation must meet their declared authority.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CA06",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA06--arcloom_neuron.rs",
+          "line": 1,
+          "anchor": "//! Engineered one-neuron material component. Numerical dynamics are NOT exact",
+          "sha256": "8824748466903ce11333007e3dfe3cd0201e7c88fa9da63abc6c4350f2db181d"
+        },
+        {
+          "source_id": "CA09",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+          "line": 6,
+          "anchor": "use crate::arcloom_neuron as material;",
+          "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+        },
+        {
+          "source_id": "CA11",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA11--functional64_charge.rs",
+          "line": 1,
+          "anchor": "//! Exact custody of admitted finite charge packets. Numerical capacitor voltage",
+          "sha256": "09eff4269b7d2ac49a36fbe2bd1a3be46d8a4398020e051d07ec8496b37b237b"
+        }
+      ]
+    },
+    {
+      "id": "CQ04",
+      "name": "Mounted external-input scope remains narrower than complete embodiment",
+      "classification": "explicitly unavailable paths; no hidden-success inference",
+      "finding": "The captured loop accepts one exact4000-sample microphone occurrence or unattended work with virtual-world optics/body consequences. It explicitly refuses other external sensory payloads and pending physical returns. Surface-record construction and all transitive sensor/body laws have not been completely reviewed here.",
+      "lawful_remedy": "Inventory actual mounted internal/external paths and their source/clock/coverage contracts. Close each required missing route through authentic physical transduction and retained same-organism consequence, or keep it unavailable. Do not translate words into sensory answers.",
+      "acceptance_falsifier": "A rejected or unmounted modality cannot be displayed as functioning. A context label, silence buffer or empty event list cannot replace a claimed real observation; actual coverage must be independently bound.",
+      "repair_actions": [
+        "A02",
+        "A06",
+        "A12",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CA02",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA02--guala_functional64_loop.py",
+          "line": 108,
+          "anchor": "            raise NotImplementedError(\"this input requires the complete chronological external physical owner\")",
+          "sha256": "d26d3c059abebfe12ee599ecc15a1bc1e574fd8c57fa1dec9bc169ba2bb58b41"
+        },
+        {
+          "source_id": "CA02",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA02--guala_functional64_loop.py",
+          "line": 127,
+          "anchor": "            raise NotImplementedError(\"retained physical return needs explicit same-history delivery\")",
+          "sha256": "d26d3c059abebfe12ee599ecc15a1bc1e574fd8c57fa1dec9bc169ba2bb58b41"
+        }
+      ]
+    }
+  ],
+  "product_acceptance": false,
+  "full_reconciliation_complete": false,
+  "status_authority": "collaborative_todo.md",
+  "historical_recognition_documentary_update": {
+    "at_utc": "2026-10-10T03:40:21.476375+00:00",
+    "registry": "speech-organ-history-reconciliation.json",
+    "findings": [
+      "VO56",
+      "VO57",
+      "VO58",
+      "VO59",
+      "VO60",
+      "VO61",
+      "VO62",
+      "VO63",
+      "VO64",
+      "VO65",
+      "VO66",
+      "VO67",
+      "VO68",
+      "VO69",
+      "VO70",
+      "VO71",
+      "VO72",
+      "VO73"
+    ],
+    "scope": "Positive task1322 recognition report preserved separately from speech output and current64 qualification; original execution not independently authenticated in this addition."
+  },
+  "current_native_source_update": {
+    "at_utc": "2026-10-10T04:58:14.931997+00:00",
+    "registry": "current-native-speech-audit.json",
+    "findings": [
+      "CNA01",
+      "CNA02",
+      "CNA03",
+      "CNA04",
+      "CNA05",
+      "CNA06",
+      "CNA07",
+      "CNA08",
+      "CNA09",
+      "CNA10"
+    ]
+  },
+  "cross_context_history_update": {
+    "at_utc": "2026-10-10T06:15:06.244345+00:00",
+    "record": "cross-context-reconciliation.json",
+    "ids": [
+      "CXR01",
+      "CXR04",
+      "CXR06",
+      "CXR10"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "Earlier retained-formation-to-native-action routes are reported and must be preserved/recovered at narrow scope. The broad cognitive closure was retracted. Neither current learned speech nor permanent speech impossibility follows; exact64-column state/mechanism correspondence remains unqualified."
+  },
+  "legacy_word_recall_update": {
+    "at_utc": "2026-10-10T06:26:46.071172+00:00",
+    "record": "legacy-word-recall-reconciliation.json",
+    "ids": [
+      "WRR01",
+      "WRR02",
+      "WRR03",
+      "WRR04",
+      "WRR05",
+      "WRR06",
+      "WRR07",
+      "WRR08",
+      "WRR09",
+      "WRR10"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The newly reconciled June/July speech records expose semantic lookup/vote/role controllers, microphone labels treated as heard words, weakened acceptance and unqualified fallback repairs. They also preserve legitimate performance findings, regression rejections and synthetic-test retirement. None proves current learned speech, permanent impossibility or present activation of the historical mechanisms."
+  },
+  "aurelion_content_update": {
+    "at_utc": "2026-10-10T06:49:04.508732+00:00",
+    "record": "aurelion-content-reconciliation.json",
+    "ids": [
+      "ACR01",
+      "ACR02",
+      "ACR03",
+      "ACR04",
+      "ACR05",
+      "ACR06",
+      "ACR07",
+      "ACR08",
+      "ACR09",
+      "ACR10",
+      "ACR11",
+      "ACR12"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The repository contains actual pretrained-model/statistical semantic and optional LLM implementations in historical Aurelion, plus text-derived fake modalities and authored speech. Present serving invocation of these routes is not established. Incompatible interfaces/schemas and disconnected growth payloads prevent treating this file set or its CSV labels as a verified working predecessor. Neither permanent speech impossibility nor successful current learned speech is established. The lawful next engineering item remains preserved-state native causal qualification."
+  },
+  "curiosity_multisensory_update": {
+    "at_utc": "2026-10-10T06:57:43.760456+00:00",
+    "record": "curiosity-multisensory-reconciliation.json",
+    "ids": [
+      "CMR01",
+      "CMR02",
+      "CMR03",
+      "CMR04",
+      "CMR05",
+      "CMR06",
+      "CMR07",
+      "CMR08",
+      "CMR09",
+      "CMR10",
+      "CMR11",
+      "CMR12",
+      "CMR13"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The complete A006/A009 history preserves genuine reported native sensory/action progress and exact resource corrections, but also explicit loss of higher-layer retained state: GLCOG027 keeps organism identity while retained mosaics become zero. Earlier identity/cadence fixes do not establish current performance or continuity into64 columns. Qualification must expose every loss, recover original authority and prove the current sensory→retained-state→action/speech chain without invented observer conditions, omitted physiology or false health/learning labels."
+  },
+  "migration_v27_update": {
+    "at_utc": "2026-10-10T07:23:04.223619+00:00",
+    "record": "migration-v27-reconciliation.json",
+    "ids": [
+      "MGR01",
+      "MGR02",
+      "MGR03",
+      "MGR04",
+      "MGR05",
+      "MGR06"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "Original Aug23 approval for the disclosed V27 cleanup is recovered, correcting the earlier unresolved-authority finding. Exact code confirms broad retained-experience custody loss, but the outer valid-current guard refutes a blanket claim that every restart clears memory. Old play/laughter witnesses were explicitly retired. Artifact-dependent tests can return without assertions and their stale lossless predicates do not qualify this migration. None of this proves speech impossible or current speech working; preserved-state native causal qualification remains required."
+  },
+  "sensorimotor_play_update": {
+    "at_utc": "2026-10-10T07:33:08.829937+00:00",
+    "record": "sensorimotor-play-reconciliation.json",
+    "ids": [
+      "PLR01",
+      "PLR02",
+      "PLR03",
+      "PLR04",
+      "PLR05",
+      "PLR06",
+      "PLR07",
+      "PLR08",
+      "PLR09",
+      "PLR10",
+      "PLR11",
+      "PLR12",
+      "PLR13",
+      "PLR14",
+      "PLR15",
+      "PLR16"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The recovered play/contact history gives concrete failures rather than a verdict of speech impossibility: neuron-wide plastic saturation lacked contact-specific repeated reinforcement; generic mature recurrent flow produced false recognition; missing body feedback and wrong preparation direction caused stalls/fanout; and observers both hid valid paths and accepted temporal coincidence. Preserve documented genuine circuit/contact/native vocal evidence, including Task1095 pressure and self-hearing, while refusing to call it intelligible speech. The old learned vocal witness was retired; Task1222 later closed basic varied play only, leaving affect/social joy/laughter separately open. Exact current preserved-state sensory→retained-state→vocal/body/acoustic→self-hearing qualification remains required."
+  },
+  "reconstructive_memory_update": {
+    "at_utc": "2026-10-10T07:41:43.510539+00:00",
+    "record": "reconstructive-memory-reconciliation.json",
+    "ids": [
+      "RMR01",
+      "RMR02",
+      "RMR03",
+      "RMR04",
+      "RMR05",
+      "RMR06",
+      "RMR07",
+      "RMR08",
+      "RMR09",
+      "RMR10",
+      "RMR11",
+      "RMR12"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The full recovered memory group distinguishes genuine reported distributed partial-cue relation reassembly from retired episode retrieval and unratified reconsolidation proposals. Derived counts can still be score authority; byte novelty is not a derived prediction-error law; forgetting proposals contradict their own recovery/reversibility assertions. Preserve actual sensory/body/action/context relations and prove later native use. Historical copied-current recall tests and an MLbased paper citation establish neither current speech nor permanent impossibility, and cannot support an ML-free certificate."
+  },
+  "formations_sleep_update": {
+    "at_utc": "2026-10-10T07:54:11.541876+00:00",
+    "record": "formations-sleep-reconciliation.json",
+    "ids": [
+      "FSR01",
+      "FSR02",
+      "FSR03",
+      "FSR04",
+      "FSR05",
+      "FSR06",
+      "FSR07",
+      "FSR08",
+      "FSR09",
+      "FSR10",
+      "FSR11",
+      "FSR12",
+      "FSR13",
+      "FSR14",
+      "FSR15"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The recovered formation/rest chain contains useful narrow reported mechanisms: learned local differential, multisensory/body retention, physical recurrence, transient relations, quiet recovery and ordinary-live internally sourced reassembly. None establishes useful sleep consolidation or the full current speech route. An older authored-app WeaveSpec conflicts with cognitive-weave meaning and contains score/commit/decay proposals; deterministic seeds do not make those lawful. Preserve legitimate gains, reconcile exact changed laws and losses, and require G1’s frozen preserved-state causal qualification. Neither permanent impossibility nor guaranteed speech is demonstrated."
+  },
+  "cognitive_dynamics_update": {
+    "at_utc": "2026-10-10T08:01:12.660625+00:00",
+    "record": "cognitive-dynamics-reconciliation.json",
+    "ids": [
+      "CDR01",
+      "CDR02",
+      "CDR03",
+      "CDR04",
+      "CDR05",
+      "CDR06",
+      "CDR07",
+      "CDR08",
+      "CDR09",
+      "CDR10",
+      "CDR11",
+      "CDR12"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The recovered ordered-memory/prediction chain preserves narrower reported native gains, but exposes a concrete learning gap: C016 requires a relation acquired from prior lived consequence, admits that proof is missing, and closes as a physical precursor on pre-existing routes plus a later directed transfer. The learned requirement remains unqualified. C012 likewise changes a failed overlapping-path model to recurrence of one route, not proof of semantic depth. G1 must identify the first failed actual preserved-state speech boundary and supply a lawful remedy; neither inevitable speech nor impossibility is established."
+  },
+  "recognition_foundations_update": {
+    "at_utc": "2026-10-10T08:07:10.568606+00:00",
+    "record": "recognition-foundations-reconciliation.json",
+    "ids": [
+      "RFR01",
+      "RFR02",
+      "RFR03",
+      "RFR04",
+      "RFR05",
+      "RFR06",
+      "RFR07",
+      "RFR08",
+      "RFR09",
+      "RFR10",
+      "RFR11"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The retained-memory foundation contains reported useful repairs, but its scope must remain exact. C002 first excluded then admitted receptor residue after a failed positive; persistent physical evidence is not itself learned speech. C007/C008 decisive postcutover tests ran on disposable production-body copies, and broad participant reach does not establish useful contextual recognition. Earlier ordered-object laws conflict with later architecture and require authority/preservation mapping. Preserve genuine causal mechanisms and complete G1’s frozen-state learned speech qualification; neither guaranteed success nor permanent impossibility follows."
+  },
+  "neuron_law_authority_update": {
+    "at_utc": "2026-10-10T08:13:35.705721+00:00",
+    "record": "neuron-law-authority-reconciliation.json",
+    "ids": [
+      "NLR01",
+      "NLR02",
+      "NLR03",
+      "NLR04",
+      "NLR05",
+      "NLR06",
+      "NLR07",
+      "NLR08",
+      "NLR09",
+      "NLR10",
+      "NLR11",
+      "NLR12"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "Earlier neuron-law records explicitly distinguish architecture ratification from missing local equations, reject conserved/deterministic shortcuts, and limit isolated charge/material proofs. Current functional emulation must preserve those honesty boundaries without imposing molecule-by-molecule prerequisites. Exact field custody, finite displayed magnitudes and a positive count do not establish full-field causation, bounded exact representation or learned speech. G1’s preserved-state chain must identify the actual current missing law or failed implementation; neither speech certainty nor impossibility is established."
+  },
+  "early_runtime_physics_update": {
+    "at_utc": "2026-10-10T08:20:32.948212+00:00",
+    "record": "early-runtime-physics-reconciliation.json",
+    "ids": [
+      "EPR01",
+      "EPR02",
+      "EPR03",
+      "EPR04",
+      "EPR05",
+      "EPR06",
+      "EPR07",
+      "EPR08",
+      "EPR09",
+      "EPR10",
+      "EPR11",
+      "EPR12"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The early runtime/physics history contains explicit invalidation of apparently successful recurrence tests when their component/terminal laws were rejected. Those cannot support current speech or organism claims. Logical memory plans remain distinct from actual allocator bounds, and signed body/sensory models remain distinct from native learned selection. A supplied-recovery fixture motivates checking current environment causes but does not diagnose today’s loop. Preserve real advances and complete G1’s exact preserved-state causal qualification; no speech certainty, impossibility or ML-free certificate follows."
+  },
+  "continuous_ingress_care_update": {
+    "at_utc": "2026-10-10T08:30:09.611947+00:00",
+    "record": "continuous-ingress-care-reconciliation.json",
+    "ids": [
+      "CIR01",
+      "CIR02",
+      "CIR03",
+      "CIR04",
+      "CIR05",
+      "CIR06",
+      "CIR07",
+      "CIR08",
+      "CIR09",
+      "CIR10",
+      "CIR11",
+      "CIR12"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "Continuous ingress history preserves real native sensory gains but explicitly does not establish learned words. A014 later retracts Live-Closed after a healthy service froze CURRENT through competing contact authorities, and records false genesis on hot startup. The older latency fix passed a gateway criterion with43–57 seconds for250ms motion; it did not prove real-time function. Current caretaker interference requires actual producer/rate/source/native-effect mapping. Preserve state and qualify the real first failing speech boundary; neither permanent impossibility nor promised success is proved."
+  },
+  "autonomy_selection_update": {
+    "at_utc": "2026-10-10T08:39:04.447029+00:00",
+    "record": "autonomy-selection-reconciliation.json",
+    "ids": [
+      "ASR01",
+      "ASR02",
+      "ASR03",
+      "ASR04",
+      "ASR05",
+      "ASR06",
+      "ASR07",
+      "ASR08",
+      "ASR09",
+      "ASR10",
+      "ASR11",
+      "ASR12",
+      "ASR13"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The autonomy history contains genuine narrow physical gains and explicit later retractions. Motor discharge is not choice; internal recurrence is not sleep; a controlled scalar bridge is not automatically ratified cognition. Task1321locally passed a motor gate while scheduled-contact promotion contaminated its causal seed input. Preserve later physical corrections and task1322ordered evidence at its scope. Trace every current descendant and actual learned speech boundary on preserved state; no guarantee, permanent impossibility or ML-free certificate follows."
+  },
+  "motor_motivation_update": {
+    "at_utc": "2026-10-10T08:46:06.402337+00:00",
+    "record": "motor-motivation-reconciliation.json",
+    "ids": [
+      "MMR01",
+      "MMR02",
+      "MMR03",
+      "MMR04",
+      "MMR05",
+      "MMR06",
+      "MMR07",
+      "MMR08",
+      "MMR09"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The record now explicitly links claimed ratified hunger coupling to the R3audit correction: no ratified hunger ancestor existed; the cited law was endogenous cue. The Junev4plan openly prescribes identity-tag bonding cheat and target/timer controls. These violate current charter if active, but their present activation is not established by the documents. Earlier417-test motor success also hid an unreachable real source. Trace exact current descendants and first failed native learned-speech boundary; no old positive runner can certify the system."
+  },
+  "legacy_motivation_charter_update": {
+    "at_utc": "2026-10-10T08:53:28.532910+00:00",
+    "record": "legacy-motivation-charter-reconciliation.json",
+    "ids": [
+      "LMR01",
+      "LMR02",
+      "LMR03",
+      "LMR04",
+      "LMR05",
+      "LMR06",
+      "LMR07",
+      "LMR08",
+      "LMR09",
+      "LMR10",
+      "LMR11",
+      "LMR12",
+      "LMR13"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "June terminology called needs-payoff scoring and word lookup substrate-causal; that classification is incompatible with the current charter. Self-section explicitly hard-binds and emitsguala, which is programmed lexical output rather than sensory-acquired name learning. Preserve real historical gains and reported authorizations at their scope while tracing current descendants, original decisions and retained state. No current learned speech or ML-free certificate is established."
+  },
+  "legacy_v4_source_update": {
+    "at_utc": "2026-10-10T09:06:27.369098+00:00",
+    "record": "legacy-v4-source-reconciliation.json",
+    "ids": [
+      "LVR01",
+      "LVR02",
+      "LVR03",
+      "LVR04",
+      "LVR05",
+      "LVR06",
+      "LVR07",
+      "LVR08",
+      "LVR09",
+      "LVR10",
+      "LVR11",
+      "LVR12",
+      "LVR13",
+      "LVR14",
+      "LVR15",
+      "LVR16"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The legacy speech and learning substitutions are now confirmed in captured source: authored word meaning/roles, approximate fields, cosine prototypes with EMA adaptation, stored SVO assembly and a conversation pass that never evaluates an utterance. Those are real architectural and acceptance conflicts if claimed as native learned speech. They do not establish present activation or permanent ArcLoom speech impossibility. G1 must produce the first actual failed boundary of current preserved-state sensory→native retention→preparation→articulation→sound→self-hearing qualification, with the direct lawful remedy. No guarantee or certificate is issued."
+  },
+  "v5_transition_update": {
+    "at_utc": "2026-10-10T09:14:54.843088+00:00",
+    "record": "v5-transition-reconciliation.json",
+    "ids": [
+      "VTR01",
+      "VTR02",
+      "VTR03",
+      "VTR04",
+      "VTR05",
+      "VTR06",
+      "VTR07",
+      "VTR08",
+      "VTR09",
+      "VTR10",
+      "VTR11",
+      "VTR12",
+      "VTR13",
+      "VTR14"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The v5 transition preserves genuine corrections but repeatedly certifies substitutes: echo gives way to atlas lookup and question templates; bigram/template speakers are rejected, then a word-candidate/two-section gate is called the true voice. Reports expose a monkeypatched recall success absent from the library and also show that repaired library was absent from the serving bridge. These facts invalidate broad historical speech/production claims; they do not prove the current native substrate incapable of learning speech. G1 still owes preserved-state qualification of the actual sensory→retention→preparation→articulation→self-hearing chain and the first failed boundary with its lawful remedy."
+  },
+  "shell_retirement_update": {
+    "at_utc": "2026-10-10T09:30:17.949558+00:00",
+    "record": "shell-retirement-reconciliation.json",
+    "ids": [
+      "QSR01",
+      "QSR02",
+      "QSR03",
+      "QSR04",
+      "QSR05",
+      "QSR06",
+      "QSR07",
+      "QSR08",
+      "QSR09",
+      "QSR10",
+      "QSR11",
+      "QSR12",
+      "QSR13",
+      "QSR14",
+      "QSR15",
+      "QSR16",
+      "QSR17"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The September record contains genuine lean-shell, lossless-storage and exact native execution improvements, alongside severe continuous-audio loss, a consequential1620-cell/formation retirement and a manual restart that lost13 intervals. Candidate78’s known-cue native pressure/self-hearing is real scoped physiology, but calling it speech closed overstates acquired language. The final captured revision records Joe hearing a mostly tonal sound without identifiable articulation. Preserve that progress and its limits; G1 must qualify the actual current preserved-state learned speech chain and identify the first failed boundary, without inventing a decoder or promising impossibility/success."
+  },
+  "task1606_boundary_update": {
+    "at_utc": "2026-10-10T09:48:50.461496+00:00",
+    "record": "task1606-boundary-reconciliation.json",
+    "ids": [
+      "TSR01",
+      "TSR02",
+      "TSR03",
+      "TSR04",
+      "TSR05",
+      "TSR06",
+      "TSR07"
+    ],
+    "documentary_only": false,
+    "current_correspondence_qualified": false,
+    "conclusion": "Task1606 removes the checked retired-controller paths but fails live health/ready. Native computation retains the interpreter lock; one worker is busy while the web thread waits. A fresh-substrate commissioning branch preserves old bytes inertly, which cannot establish active learned-state continuity. Current microphone-only ingress and actual native pressure remain narrower than complete senses and learned speech. G1 must repair/qualify the first real execution and preservation boundaries, then the full acquired speech chain. No impossibility or success promise follows.",
+    "independent_read_only_serving_inspection": true
+  },
+  "latest_independent_serving_inspection": {
+    "task_definition": 1606,
+    "task": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/54d300e31f754c8f913f70b4dd0840f1",
+    "observed_utc": "2026-10-10T11:12–11:19Z",
+    "record": "serving-refresh-20261010T111240Z.json",
+    "health": "ECS HEALTHY; /health timed out and /ready responded in1.637seconds",
+    "two_retired_controller_paths_absent": true,
+    "active_acquired_state_preservation_qualified": false,
+    "learned_speech_qualified": false,
+    "exact_dynamic_root_cause_qualified": false,
+    "read_only": true
+  },
+  "functional_body_history_update": {
+    "at_utc": "2026-10-10T10:27:44.566594+00:00",
+    "record": "functional-body-history-reconciliation.json",
+    "ids": [
+      "FBR01",
+      "FBR02",
+      "FBR03",
+      "FBR04",
+      "FBR05",
+      "FBR06",
+      "FBR07",
+      "FBR08",
+      "FBR09",
+      "FBR10",
+      "FBR11",
+      "FBR12",
+      "FBR13",
+      "FBR14",
+      "FBR15",
+      "FBR16",
+      "FBR17",
+      "FBR18",
+      "FBR19",
+      "FBR20"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The complete body history contains genuine reported physical corrections and explicitly rejected numerical candidates. It does not establish learned speech: the September source flags uncommitted dense association/Python recall-to-syllable logic, later vocal readouts and an unresolved native motor/receptor handoff. The final changed-law body remained unmounted and its paired trajectory reached22.2ms before a resource stop; old-law progress and local cold proofs cannot certify the current organism. G1 must complete the approved preserved-state sensory-learning→retained-state→contextual recall→native articulation→audible output qualification, identify the first actual failure and implement its lawful remedy. Neither guaranteed speech nor permanent impossibility is established. October5functional emulation does not require this entire historical body precursor. The same source explicitly calls the22stream/64choice scalar learner reduced cognition and records destructive unfamiliar-stream migration; these must not be grandfathered into current full-field speech or memory claims."
+  },
+  "ratified_operator_delivery_update": {
+    "at_utc": "2026-10-10T10:31:33.958525+00:00",
+    "record": "ratified-operator-delivery-reconciliation.json",
+    "ids": [
+      "ROR01",
+      "ROR02",
+      "ROR03",
+      "ROR04",
+      "ROR05",
+      "ROR06"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The October1 full-field/sleep/equilibrium report was explicitly retracted. Its32-trit weighted cosine/tanh reader, direct motor injection and overwritten interlocks did not implement the claimed retained physical law; its synthetic50k run did not establish real sleep, zero memory degradation or calibrated energy. Preserve the reported containment/test/package correction and open A10/A11 capability gates. G1 must qualify the actual current preserved-state native chain, including acquired audible expression; this evidence proves neither eventual speech success nor permanent impossibility."
+  },
+  "delivery_history_update": {
+    "at_utc": "2026-10-10T10:48:30.763493+00:00",
+    "record": "delivery-history-reconciliation.json",
+    "ids": [
+      "DLR01",
+      "DLR02",
+      "DLR03",
+      "DLR04",
+      "DLR05",
+      "DLR06",
+      "DLR07",
+      "DLR08",
+      "DLR09",
+      "DLR10",
+      "DLR11",
+      "DLR12",
+      "DLR13",
+      "DLR14",
+      "DLR15",
+      "DLR16",
+      "DLR17",
+      "DLR18",
+      "DLR19",
+      "DLR20",
+      "DLR21",
+      "DLR22"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The delivery history supports genuine physical voice and narrower recognition work, not a qualified acquired intelligible word. It identifies ordinary learned spatial/temporal vocal coordination, finite work recruitment and retained-state expression as open boundaries. A conserved young-motor pump produced no gate or motor effect and was rejected; the already capable organ did not require an added pitch axis for the accepted supplied Mama example. Preserve real physical progress and retractions, and qualify the exact current native experienced-waveform→active retained state→timed articulation→pressure/self-hearing chain. Neither eventual success nor permanent impossibility is established."
+  },
+  "permanent_fix_history_update": {
+    "at_utc": "2026-10-10T10:57:38.719340+00:00",
+    "record": "permanent-fix-history-reconciliation.json",
+    "ids": [
+      "PFR01",
+      "PFR02",
+      "PFR03",
+      "PFR04",
+      "PFR05",
+      "PFR06",
+      "PFR07",
+      "PFR08",
+      "PFR09",
+      "PFR10",
+      "PFR11",
+      "PFR12",
+      "PFR13",
+      "PFR14",
+      "PFR15",
+      "PFR16",
+      "PFR17",
+      "PFR18",
+      "PFR19",
+      "PFR20",
+      "PFR21"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The permanent-fix history explicitly retracts vocal physical-exhaustion claims after finding fixed160phase/16000countdown/no emitted-air debit, then retires that source. It also records repeated coincidence fan-out, missing mature effector authority,200012lostin-flightbytes and false self-hearing labels. Preserve genuine later source/custody/thermal/body repairs without calling them acquired intelligible speech. Native experience-dependent temporal/spatial articulation and current active-state preservation remain unqualified; neither success nor permanent impossibility is proved."
+  },
+  "root_yaw_history_update": {
+    "at_utc": "2026-10-10T11:01:29.517488+00:00",
+    "record": "root-yaw-history-reconciliation.json",
+    "ids": [
+      "RYR01",
+      "RYR02",
+      "RYR03",
+      "RYR04",
+      "RYR05",
+      "RYR06",
+      "RYR07",
+      "RYR08"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "Root-yaw history contains real native action/return progress after repeated explicit source and live failures; it does not establish current open navigation or learned speech. Its narrow final one-carrier turn plus later ticks does not document the original second-distinct-action criterion. Preserve actual typed physical invariants, active state and original test semantics, and qualify ordinary current causation rather than restoring obsolete frontend/controller paths."
+  },
+  "skill_history_update": {
+    "at_utc": "2026-10-10T11:07:03.184144+00:00",
+    "record": "skill-history-reconciliation.json",
+    "ids": [
+      "GSR01",
+      "GSR02",
+      "GSR03",
+      "GSR04",
+      "GSR05",
+      "GSR06",
+      "GSR07",
+      "GSR08",
+      "GSR09",
+      "GSR10",
+      "GSR11",
+      "GSR12"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "Historical skill claims were not a reliable certificate: it explicitly retracts inert hearing, caretaker-touch substitution, fixture-only autonomy and stale-root continuity assumptions. Real narrow camera/native memory progress must remain preserved. Current operating guidance already points to source-bound canonical mechanisms and the preserved-state charter; this history supplies further original contradictions and remedies. Current learned intelligible speech and complete active-state preservation remain unqualified, not proved impossible."
+  },
+  "demonstrator_readme_history_update": {
+    "at_utc": "2026-10-10T11:11:14.708563+00:00",
+    "record": "demonstrator-readme-history-reconciliation.json",
+    "ids": [
+      "DRR01",
+      "DRR02",
+      "DRR03",
+      "DRR04",
+      "DRR05",
+      "DRR06",
+      "DRR07",
+      "DRR08",
+      "DRR09"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The demonstratorREADME advertised multiwordspeech/commands and fullfieldintegration, later reintroduced rejectedphysicalclaims, and finally declares strict component-only refusal with A10/A11 and spoken-command learning unavailable. Exactstorage, a separate neuronclass, authoredinterlocks, profileinputs and expected failures cannot establish learnedspeech. Preserve honest component results and qualify the actual current native retained-state-to-articulation chain; no success or permanent-impossibility verdict follows."
+  },
+  "agents_history_update": {
+    "at_utc": "2026-10-10T11:20:31.421072+00:00",
+    "record": "agents-history-reconciliation.json",
+    "ids": [
+      "AGR01",
+      "AGR02",
+      "AGR03",
+      "AGR04"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The no-heuristic, architecture-honesty and full-field requirements already exist in the earliest indexed April predecessor. Later documentation cannot excuse false speech claims or substitute for actual enforcement. The correct speech verdict remains unqualified: preserve real component achievements and demand the ordinary retained-experience-to-articulation chain; neither inevitable success nor permanent impossibility is proved."
+  },
+  "architecture_boundary_history_update": {
+    "at_utc": "2026-10-10T11:28:29.997218+00:00",
+    "record": "architecture-boundary-history-reconciliation.json",
+    "ids": [
+      "AAR01",
+      "AAR02",
+      "AAR03",
+      "AAR04",
+      "AAR05",
+      "AAR06",
+      "AAR07",
+      "AAR08",
+      "AAR09"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "A dated July audit identifies genuine receptor input ending before downstream neuronal change, while its proposed temporal-constraint recognizer remains explicitly unproved. D2 later established narrow sensory/fractal custody, not learned speech. Preserve those real achievements and rejected physical candidates at their actual scope; qualify the actual current approved retained-state-to-articulation chain rather than infer success or permanent impossibility from either old report."
+  },
+  "w1_closure_source_update": {
+    "at_utc": "2026-10-10T11:34:02.966522+00:00",
+    "record": "w1-closure-source-reconciliation.json",
+    "ids": [
+      "WCR01",
+      "WCR02",
+      "WCR03",
+      "WCR04",
+      "WCR05",
+      "WCR06",
+      "WCR07",
+      "WCR08",
+      "WCR09"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The current packaged legacy W1 owner is concretely a supervised sign-pair/frequency classifier, and its reduced_approximation=False status contradicts its decision law. It does not implement native material plasticity or articulation. This corrects mechanism claims while preserving exact arithmetic/integrity results. Presence is verified, active invocation is not; neither current learned speech nor permanent speech impossibility is established."
+  },
+  "consolidation_scope_update": {
+    "at_utc": "2026-10-10T13:05:52.808807+00:00",
+    "functional_equivalence_controls": true,
+    "microscopic_reconstruction_required": false,
+    "expanding_historical_investigation_stopped": true,
+    "product_qualified": false,
+    "exhaustive_history_complete": false,
+    "latest_receipt": "docs/guala_reconciliation/serving-refresh-20261010T111240Z.md"
+  }
+}

@@ -1,0 +1,418 @@
+{
+  "schema": "guala.language_vocabulary_mechanisms.v1",
+  "at_utc": "2026-10-10T05:39:33.090325+00:00",
+  "scope": "Historical corpus and separate fabric reader; loaded state, actual consumers, current pupil activation and qualified native speech are distinct.",
+  "mechanisms": [
+    {
+      "id": "VLV01",
+      "name": "A word family is neither equivalence nor acquired sensory knowledge",
+      "classification": "Authored lexicon with explicit distinctions; reader semantics must be traced",
+      "finding": "LVR01",
+      "observed_mechanism": "File169 groups words under MEANS-SAME while its prose distinguishes degree, direction and manner: warm versus scalding, hard versus brittle, whisper versus shout. The title is not a license to substitute every group member. File173 explicitly warns that opposite words can keep the same company. The inspected ribbon loader builds sets from the groups, losing their written distinctions in that representation.",
+      "evidence_limits": "Authored dictionary/curriculum content is not intrinsically a violation. The vocabulary is not evidence of native acquired concepts. This particular ribbon reader never consumes its built sense sets, so the audit does not claim they currently decide a pupil response or that every table is executed.",
+      "replacement": "Keep source-attributed teaching material external to the pupil. Bind each relation to its actual consumer and retained physical experience. Do not seed semantic equivalence, antonymy, degree or context into native memory or pretend a shared set preserves them.",
+      "acceptance": {
+        "unit": "Specify state distinctions for degree, polarity, manner and relation direction; retain counterexamples from the corpus.",
+        "module": "Trace the actual acquisition, persistence and recall of those distinctions without direct semantic table writes.",
+        "system": "Demonstrate retained discrimination in new sensory contexts, not lookup agreement with the supplied list.",
+        "release": "Bind mounted data and readers to the serving artifact; retain explicit unknown activation/exclusion."
+      },
+      "refs": [
+        {
+          "source_id": "LD03-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD03-01--169_words_that_mean_the_same.md",
+          "line": 16,
+          "anchor": "MEANS-SAME: hot warm heated scalding boiling searing roasting sweltering baking | cold cool chilly freezing frigid icy frosty bitter",
+          "sha256": "4272fefab26e0ede1f67a82af20d5c48c61cc7a16f9378cd6c2403e584365478"
+        },
+        {
+          "source_id": "LD03-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD03-01--169_words_that_mean_the_same.md",
+          "line": 451,
+          "anchor": "MEANS-SAME: say tell speak talk state remark mention utter declare announce | whisper mutter mumble murmur shout yell scream",
+          "sha256": "4272fefab26e0ede1f67a82af20d5c48c61cc7a16f9378cd6c2403e584365478"
+        },
+        {
+          "source_id": "LD07-02",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD07-02--173_when_words_mislead.md",
+          "line": 390,
+          "anchor": "ESSENCE: opposites keep the same company. Hot and cold both travel",
+          "sha256": "90bdb7a969ac433b562ebf1c1c09e0bffe954b2d32597696c844c5cb4c7f246b"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 46,
+          "anchor": "                        self.senses.setdefault(w, set()).update(gw)",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A12",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLV02",
+      "name": "The question dictionary is a handwritten classifier with overwrite precedence",
+      "classification": "Deterministic heuristic in the inspected separate fabric reader",
+      "finding": "LVR02",
+      "observed_mechanism": "File171 mixes question forms, common words, rare-word descriptors, negation, courtesy and subject descriptors in MEANS-SAME lists. Language.__init__ marks every token from every such entry as an asking word, with later assignments overwriting earlier kinds. read() takes the kind of the first matching input token and removes all listed tokens from the subject. This is authored classification and filtering, not a sentence assembling its own language mechanism.",
+      "evidence_limits": "This is exact inspected source behavior conditional on these loaded entries, not proof the current ArcLoom pupil invokes it. The audit-only lexical receipt inventories the captured lists without importing the product; it is not a runtime acceptance test. Changing a list changes this classifier even if Python remains unchanged.",
+      "replacement": "Exclude this classifier from pupil cognitive authority. Preserve the corpus and its historical failures for reconciliation. If retained as external tooling, label its scope and failure modes. Native roles, requests and contextual references must be acquired and retained through the approved sensory mechanism rather than repaired by more trigger words.",
+      "acceptance": {
+        "unit": "Inventory every policy-bearing token, collision, precedence and discarded distinction.",
+        "module": "Trace actual reader/caller behavior, including input order, paraphrase, negation and multi-question controls.",
+        "system": "Require authentic experience-dependent interpretation and action on new contexts, with no dictionary answer injection.",
+        "release": "Verify all executable routes and effective corpora in the frozen serving artifact; a module name or absence of an ML import is not clearance."
+      },
+      "refs": [
+        {
+          "source_id": "LD05-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-01--171_words_that_carry_the_question.md",
+          "line": 16,
+          "anchor": "MEANS-SAME: why reason cause because behind purpose explain how come what for",
+          "sha256": "c40637f05bbeffa839339ba439f4efa3774db21f32731d01ada56eb7857298a1"
+        },
+        {
+          "source_id": "LD05-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-01--171_words_that_carry_the_question.md",
+          "line": 149,
+          "anchor": "MEANS-SAME: rare unusual uncommon specific technical distinctive particular narrow precise telling",
+          "sha256": "c40637f05bbeffa839339ba439f4efa3774db21f32731d01ada56eb7857298a1"
+        },
+        {
+          "source_id": "LD05-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-01--171_words_that_carry_the_question.md",
+          "line": 260,
+          "anchor": "MEANS-SAME: not no never cannot without fails lacks missing absent neither none unless",
+          "sha256": "c40637f05bbeffa839339ba439f4efa3774db21f32731d01ada56eb7857298a1"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 38,
+          "anchor": "                for w in words: self.asking[w] = kind.strip()",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 64,
+          "anchor": "                if kind is None: kind = self.asking[w]",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 65,
+          "anchor": "        subject = [w for w in raw if w not in self.asking and len(w) > 2]",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A12",
+        "A15",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLV03",
+      "name": "Crowd matching supplies authored context to the downstream answer",
+      "classification": "Count-based selection, fixed threshold and lexical query expansion",
+      "finding": "LVR03",
+      "observed_mechanism": "File172 supplies 44 authored subject crowds and repeatedly declares two words nearly certain. The reader counts subject/crowd overlap, takes a strictly greater count (earliest crowd survives a tie), requires two hits, and answer() adds the alphabetically first twelve crowd words to the carried query. These added words were not supplied by the current question or acquired by the pupil in this path.",
+      "evidence_limits": "The full downstream os_fabric consumer has not been closed in this slice, so no particular final answer or live interference is inferred. Subject token order is retained in the carried string; the finding is supplied lexical context and score authority, not a claim that this function alone flattens every representation.",
+      "replacement": "Remove the count/tie/threshold/expansion route from pupil authority. Do not tune two to three or substitute another similarity score. Demonstrate native contextual discrimination using retained sensory relations; keep genuine external retrieval tools separately attributed if used outside the pupil.",
+      "acceptance": {
+        "unit": "Expose exact candidate set, tie order, thresholds and inserted terms; no near-certainty claim without independent evidence.",
+        "module": "Follow the complete caller chain and verify no hidden context insertion drives native outcomes.",
+        "system": "Test ambiguous and mixed-context sensory experiences under matched retained-state controls, without supplied topic labels.",
+        "release": "Publish the exact source/configuration/data route and causal results; retrieval counts are not speech qualification."
+      },
+      "refs": [
+        {
+          "source_id": "LD06-02",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD06-02--172_what_words_go_together.md",
+          "line": 10,
+          "anchor": "  doings. Any two of them in one line places the sentence in a",
+          "sha256": "90f54829a35bbaf6322193dc09fad7908337e1d6172d5503ea8c82fc8a214d5f"
+        },
+        {
+          "source_id": "LD06-02",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD06-02--172_what_words_go_together.md",
+          "line": 131,
+          "anchor": "  things elsewhere, but two together settle it.",
+          "sha256": "90f54829a35bbaf6322193dc09fad7908337e1d6172d5503ea8c82fc8a214d5f"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 71,
+          "anchor": "            hit = len(sset & words)",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 72,
+          "anchor": "            if hit > best_hit:",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 75,
+          "anchor": "                    area=best_area if best_hit >= 2 else None,",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 91,
+          "anchor": "        sorted(r[\"crowd\"])[:12])",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A12",
+        "A14",
+        "A15",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLV04",
+      "name": "Loaded sense tables and cached policy do not fulfill the advertised reader",
+      "classification": "False source-level mechanism description; unused state is not active decision evidence",
+      "finding": "LVR04",
+      "observed_mechanism": "File170 stores SPLITS-INTO under sense labels such as money, river and tilt, each followed by bank and contextual words. The loader keys these entries by the first token of the label, rather than bank, merges them with MEANS-SAME sets, and never reads self.senses in read() or answer(). Its header nevertheless says it settles which sense is meant and reads the language files at the moment of each question. The global LANG object is built once and has no refresh path in this file.",
+      "evidence_limits": "The built .senses table is unused by this complete inspected module. Other consumers/dynamic access remain to inventory; no blanket repository-wide dead-code conclusion is made. core refreshing its own entries does not rebuild this Language object. The actual current serving use of either is unknown.",
+      "replacement": "Correct the mechanism inventory and claims before any acceptance. Do not wire the unused dictionary into the pupil to make the advertised behavior appear. Prove the lawful native ambiguity mechanism separately; inventory snapshot/version coherence for any permitted external tool.",
+      "acceptance": {
+        "unit": "Require a real consumer for every claimed mechanism; verify names, data shape, version and refresh behavior.",
+        "module": "Exercise complete allowed external callers across data revisions and demonstrate exact snapshot coherence.",
+        "system": "Verify new-context native recall resolves distinctions from experience rather than supplied labels.",
+        "release": "No certification from loaded-but-unused assets, docstrings or stale policy; establish current invocation and exclusion separately."
+      },
+      "refs": [
+        {
+          "source_id": "LD04-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD04-01--170_words_with_two_meanings.md",
+          "line": 27,
+          "anchor": "SPLITS-INTO: money: bank account loan deposit branch interest teller savings | river: bank shore edge water bend erosion mud stream | tilt: bank turn aircraft corner camber lean roll",
+          "sha256": "bf8b6a2337543e00006b1d0f22b3fc630e75ba979597dc81b1c78149b34996bb"
+        },
+        {
+          "source_id": "LD04-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD04-01--170_words_with_two_meanings.md",
+          "line": 628,
+          "anchor": "ESSENCE: the entries in this file and its neighbours are about WORDS,",
+          "sha256": "bf8b6a2337543e00006b1d0f22b3fc630e75ba979597dc81b1c78149b34996bb"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 9,
+          "anchor": "Every one of those is read out of the files at the moment of the",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 54,
+          "anchor": "                for w in re.findall(r\"[a-z]{3,}\", name.lower())[:1]:",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 82,
+          "anchor": "    if LANG is None: LANG = Language()",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A09",
+        "A10",
+        "A13",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLV05",
+      "name": "The reader loses distinctions its own language documents require",
+      "classification": "Source/document contradiction with bounded static counterexamples",
+      "finding": "LVR05",
+      "observed_mechanism": "File171 says negation reverses the requested answer, then calls bread/rising the whole question after stripping not. The reader removes listed negations from its carried subject; asked/kind metadata is not passed by answer() to deliver(). Its letters-only tokenizer discards numeric values, so changing 200C to 300C leaves the same lexical material. File173 demands number-plus-unit fidelity and warns about negation, quotation, hypothetical claims and direction. The separate core masks additionally discard word order and polarity as previously documented.",
+      "evidence_limits": "The independent receipt checks text projection only; it does not run the organism or assert all system representations lose order. The contradiction is not fixed by retaining raw text in a receipt if the decision consumer still receives the reduced projection. File173’s requirement that an answer add new words is also an invalid universal acceptance predicate: a correct choice may repeat an offered alternative.",
+      "replacement": "Specify the actual physical/retained distinctions needed for roles, quantities, negation, source attribution and temporal context. Prove they reach and influence the decision consumer. Retire the symbolic filtering authority rather than add exception lists, synthetic polarity flags or word-novelty scoring to emulate understanding.",
+      "acceptance": {
+        "unit": "Use paired polarity, role-order, magnitude/unit, quotation and hypothetical falsifiers tied to exact representations.",
+        "module": "Trace differing physical inputs through retained state and actual consumers; display any point where distinguishing information is lost.",
+        "system": "Show later grounded behavior distinguishes those experiences and survives retention, with independent negative controls.",
+        "release": "Qualify semantic claims only at the demonstrated causal scope; a new word or fluent sentence is not evidence of a correct answer."
+      },
+      "refs": [
+        {
+          "source_id": "LD05-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-01--171_words_that_carry_the_question.md",
+          "line": 252,
+          "anchor": "ESSENCE: negation flips what is being asked without changing a",
+          "sha256": "c40637f05bbeffa839339ba439f4efa3774db21f32731d01ada56eb7857298a1"
+        },
+        {
+          "source_id": "LD05-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-01--171_words_that_carry_the_question.md",
+          "line": 363,
+          "anchor": "  strip why, is, my and not, and bread and rising are what is left",
+          "sha256": "c40637f05bbeffa839339ba439f4efa3774db21f32731d01ada56eb7857298a1"
+        },
+        {
+          "source_id": "LD07-02",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD07-02--173_when_words_mislead.md",
+          "line": 303,
+          "anchor": "ESSENCE: numbers and units look like words and are not. A question",
+          "sha256": "90bdb7a969ac433b562ebf1c1c09e0bffe954b2d32597696c844c5cb4c7f246b"
+        },
+        {
+          "source_id": "LD07-02",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD07-02--173_when_words_mislead.md",
+          "line": 317,
+          "anchor": "  nothing. The remedy is to require the answer to add words the",
+          "sha256": "90bdb7a969ac433b562ebf1c1c09e0bffe954b2d32597696c844c5cb4c7f246b"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 59,
+          "anchor": "        raw = re.findall(r\"[a-z]+\", question.lower())",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 92,
+          "anchor": "    settled, stopped, reached = os_fabric.deliver(carried)",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLV06",
+      "name": "Recover removed constraints and greeting-rule changes without restoring the wrong authority",
+      "classification": "Historical policy migration, explicit failure lessons and authored output",
+      "finding": "LVR07",
+      "observed_mechanism": "Across these seven families, earlier versions contain 347 unique older-only passages totaling943 lines, predominantly removed CANNOT claims. The question family includes different greeting rules and ready-made CHUNKS (hello/morning/hi/good to see you/I am here/go on). The latest retains the broad MEANS-SAME lists. The inspected old core consumes CANNOT prose as rules, while saying.py separately builds authored greeting responses. Removing headings or moving policy between prose, chunks and Python changes authority; it is not automatically a semantic repair.",
+      "evidence_limits": "All17 captured versions are content-reconciled. These are historical source transitions, not a deployment receipt or proof that every removed prohibition was sound. Some prohibitions are overbroad; blindly restoring all943 lines would reintroduce wrong policy. A documented retraction is useful evidence, not qualification of its successor.",
+      "replacement": "Preserve predecessor content, original decisions and counterexamples. Distinguish genuine correction, corpus editorial change, behavior change and unsupported replacement. Retire authored pupil replies rather than move them into data; any allowed external greeting/tool must remain attributed and outside learned-speech evidence.",
+      "acceptance": {
+        "unit": "Check every removed/changed policy against original authority, counterexamples and actual readers.",
+        "module": "Verify every representation migration preserves only approved behavior and exposes lost/unimplemented constraints.",
+        "system": "Demonstrate native speech without authored reply chunks or hidden fallback routes.",
+        "release": "Bind complete historical disposition and current exclusions to the candidate; no restored old controller or edited corpus can manufacture acceptance."
+      },
+      "refs": [
+        {
+          "source_id": "LD05-03",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-03--171_words_that_carry_the_question.md",
+          "line": 257,
+          "anchor": "RULE: to answer a greeting — carry back a ready-made chunk; hold the",
+          "sha256": "1d89db6c03ec5cd157ed3fd413bfc9cbeb1b1ede6014829bac9e88609ef6b1c2"
+        },
+        {
+          "source_id": "LD05-04",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-04--171_words_that_carry_the_question.md",
+          "line": 257,
+          "anchor": "RULE: to answer a greeting — carry back a ready-made chunk, name no",
+          "sha256": "090403389abe40bcf05537242565c09cecdf95107144d94149f0802b8206bef3"
+        },
+        {
+          "source_id": "LD05-04",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-04--171_words_that_carry_the_question.md",
+          "line": 259,
+          "anchor": "CHUNKS: hello | morning | hi | good to see you | I am here | go on",
+          "sha256": "090403389abe40bcf05537242565c09cecdf95107144d94149f0802b8206bef3"
+        },
+        {
+          "source_id": "LD07-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD07-01--173_when_words_mislead.md",
+          "line": 29,
+          "anchor": "CANNOT: no meaning from a word that appears in more than a tenth of",
+          "sha256": "afb9eb8bc6a67e441529c8bba55411fd284fbecbb59ac8cfd7b74a97067f2d78"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 175,
+          "anchor": "            for piece in re.split(r\"(?<=[.;])\\s+\", e[\"cannot\"]):",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A05",
+        "A09",
+        "A10",
+        "A12",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

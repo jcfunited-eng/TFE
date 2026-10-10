@@ -1,0 +1,298 @@
+{
+  "schema": "guala.syntax_context_mechanisms.v1",
+  "at_utc": "2026-10-10T06:05:40.342668+00:00",
+  "scope": "Historical documents and separate fabric reader. Current ArcLoom activation or complete exclusion not established.",
+  "mechanisms": [
+    {
+      "id": "VLCX01",
+      "name": "A document-level FADED flag does not retire these entries",
+      "classification": "Concrete historical loader/retirement mismatch; live activation not established",
+      "finding": "LCXR01",
+      "observed_mechanism": "Six recovered syntax versions put STATE: FADED in the header before the first ESSENCE. The inspected core splits at ESSENCE, skips non-entry blocks, then checks FADED only inside an entry. The newest syntax document therefore admits all13 entries, including its authored turn procedure, under that exact admission predicate. Context admits12 and linguistics56 entries. This is a pure-text predicate receipt, not execution of the product loader.",
+      "evidence_limits": "The earliest recovered syntax version has no FADED header. The later marker and actual loader behavior disagree. The original intent/approval and complete call graph remain unverified. This expands the already identified LFR header-scope failure to a concrete cognitive-syntax family; it is not an additional unique defect or proof of current ArcLoom invocation.",
+      "replacement": "Exclude the incompatible corpus controller from pupil decision authority. For any separately authorized external reader, define document-level retirement as input admission and verify it at the actual loader and consumer; do not wire the retired policy into native cognition. Preserve predecessor files and evidence of prior use.",
+      "acceptance": {
+        "unit": "Check header, entry and absent retirement flags against the declared admission contract; preserve all13 syntax entries as rejected-input evidence.",
+        "module": "Trace actual data mounting, refresh/cache behavior and every reader; prove excluded rules cannot select, veto or supply pupil output.",
+        "system": "Run normal pupil input with and without the retired corpus present and demonstrate the approved physical mechanism remains the sole authority.",
+        "release": "Bind reader, mounted corpus and exclusion evidence to the exact deployed artifact; a FADED label alone is not clearance."
+      },
+      "refs": [
+        {
+          "source_id": "LCX01-01",
+          "path": "docs/guala_reconciliation/sources/syntax-context/LCX01-01--74_cognitive_syntax.md",
+          "line": 7,
+          "anchor": "STATE: FADED",
+          "sha256": "ca90babffcfdd554f9787c10cca36149ab1caa5b2f3ee1c68a5ac06317adcce6"
+        },
+        {
+          "source_id": "LCX01-01",
+          "path": "docs/guala_reconciliation/sources/syntax-context/LCX01-01--74_cognitive_syntax.md",
+          "line": 113,
+          "anchor": "RULE: to take a turn in a conversation — reach for what the",
+          "sha256": "ca90babffcfdd554f9787c10cca36149ab1caa5b2f3ee1c68a5ac06317adcce6"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 140,
+          "anchor": "            for block in re.split(r\"\\n(?=ESSENCE:)\", text):",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 141,
+          "anchor": "                if not block.startswith(\"ESSENCE:\"): continue",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 142,
+          "anchor": "                if \"STATE: FADED\" in block: continue",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLCX02",
+      "name": "Conversation is supplied by a fixed move program, not acquired syntax",
+      "classification": "Authored decision policy and specification/implementation mismatch",
+      "finding": "LCXR02",
+      "observed_mechanism": "The syntax prose enumerates five kinds of turn and progressively replaces a best-reply rule with filtering, counting what opens, greatest selection and joints. The inspected saying.Thread instead invokes12 named moves in a fixed list. It supplies greetings, sense thresholds (near>=3, at most four marks), fixed role ordering, a six-output repetition window and the literal ground: none fallback. Its state is Python subject/last-doing/sets/lists. The source asserts none of the words or sentences are its own, but the mechanism contains authored selection and formatting.",
+      "evidence_limits": "These are separate-fabric source findings, already related to LFR/LVR policy records; the eleven historical documents do not prove current pupil activation. A deterministic authored program is neither ML by default nor native experience-driven cognition. The phrase five move kinds is a proposed ontology, not a physical limit on conversation.",
+      "replacement": "Retain honest diagnostic readers only at explicitly external scope. Retire their answer authority from the pupil. Require a direct native mechanism for retained sensory relations and endogenous articulation; do not tune the move list, rarity, thresholds, or sentence templates to obtain a speech pass.",
+      "acceptance": {
+        "unit": "Classify each authored constant, branch, supplied word and state variable; specify the actual physical state transitions needed by the claim.",
+        "module": "Show retained experience changing the native relation and later efferent response without authored role labels or ready-made output.",
+        "system": "Use unfamiliar role/context combinations and matched absent/reversed experience; count intelligibility and grounded use separately.",
+        "release": "Verify ordinary serving paths and all fallback/diagnostic consumers; component prose generation cannot certify native speech."
+      },
+      "refs": [
+        {
+          "source_id": "LCX01-01",
+          "path": "docs/guala_reconciliation/sources/syntax-context/LCX01-01--74_cognitive_syntax.md",
+          "line": 18,
+          "anchor": "ESSENCE: a turn is a move, and moves come in kinds — an opening",
+          "sha256": "ca90babffcfdd554f9787c10cca36149ab1caa5b2f3ee1c68a5ac06317adcce6"
+        },
+        {
+          "source_id": "LCX01-01",
+          "path": "docs/guala_reconciliation/sources/syntax-context/LCX01-01--74_cognitive_syntax.md",
+          "line": 120,
+          "anchor": "  that passed; count what each opens for the other one; keep the",
+          "sha256": "ca90babffcfdd554f9787c10cca36149ab1caa5b2f3ee1c68a5ac06317adcce6"
+        },
+        {
+          "source_id": "LCX01-04",
+          "path": "docs/guala_reconciliation/sources/syntax-context/LCX01-04--74_cognitive_syntax.md",
+          "line": 144,
+          "anchor": "  compare the ones still standing by what each opens for the",
+          "sha256": "654058a1ea567d2611d59d625e561867b6785a94f908a80edb845b5c54ad9911"
+        },
+        {
+          "source_id": "LDC03",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC03--saying.py",
+          "line": 335,
+          "anchor": "    MOVES = [\"m_unread\", \"m_greet\", \"m_lean\", \"m_group\", \"m_say\",",
+          "sha256": "4251fdcd55cd2bc4620b395ee1defacd07cecb35ad88913817af5a3e67eefada"
+        },
+        {
+          "source_id": "LDC03",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC03--saying.py",
+          "line": 289,
+          "anchor": "        if not best or best[1][\"near\"] < 3:",
+          "sha256": "4251fdcd55cd2bc4620b395ee1defacd07cecb35ad88913817af5a3e67eefada"
+        },
+        {
+          "source_id": "LDC03",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC03--saying.py",
+          "line": 348,
+          "anchor": "            if line not in self.spoken[-6:]:",
+          "sha256": "4251fdcd55cd2bc4620b395ee1defacd07cecb35ad88913817af5a3e67eefada"
+        },
+        {
+          "source_id": "LDC03",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC03--saying.py",
+          "line": 351,
+          "anchor": "            out = [\"ground: none\"]",
+          "sha256": "4251fdcd55cd2bc4620b395ee1defacd07cecb35ad88913817af5a3e67eefada"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A05",
+        "A09",
+        "A10",
+        "A12",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLCX03",
+      "name": "Context requirements conflict with unconditional recency and one-subject state",
+      "classification": "Useful requirements mixed with unsupported universal rules",
+      "finding": "LCXR03",
+      "observed_mechanism": "Syntax says a standing question persists until closed and the thread never restarts. Context says the most recent turn dominates, a three-turn-late answer reaches a question nobody holds, and the older version forbids a thin reply reaching past intervening turns. These are different policies, not derived time constants. The source Thread holds one subject and last doing; those variables do not establish multimodal episodic context, speaker attribution, body need, temporal order or the story of experience.",
+      "evidence_limits": "Contextual disambiguation, common ground, clarification, attribution and truthful uncertainty are useful requirements. Assertions that surroundings always eliminate all but one meaning, or that a spoken frame resets every later interpretation, are not demonstrated physical laws. No current forgetting rate or live latency is measured here.",
+      "replacement": "Specify retained episode relations and measured physical decay/consolidation separately from dialogue display state. Keep original uncertainty and source attribution. Context must influence native recall through sensed and retained state; never supply the intended meaning as hidden metadata or a hardcoded recency winner.",
+      "acceptance": {
+        "unit": "Specify what distinguishes episode, speaker, order, elapsed physical time and unresolved relation; test real preservation at serialization boundaries.",
+        "module": "Trace multimodal experience and internal state through consolidation and recall, separating those mechanisms from UI conversation variables.",
+        "system": "Compare identical utterances after different experienced events, an interruption with a still-open question, and context genuinely insufficient to resolve the reference.",
+        "release": "Bind retained mature state and sensor origins to the candidate; require visible unknown context rather than manufactured certainty."
+      },
+      "refs": [
+        {
+          "source_id": "LCX01-01",
+          "path": "docs/guala_reconciliation/sources/syntax-context/LCX01-01--74_cognitive_syntax.md",
+          "line": 27,
+          "anchor": "ESSENCE: a question put into the air stays standing until",
+          "sha256": "ca90babffcfdd554f9787c10cca36149ab1caa5b2f3ee1c68a5ac06317adcce6"
+        },
+        {
+          "source_id": "LCX01-01",
+          "path": "docs/guala_reconciliation/sources/syntax-context/LCX01-01--74_cognitive_syntax.md",
+          "line": 11,
+          "anchor": "  never restarted.",
+          "sha256": "ca90babffcfdd554f9787c10cca36149ab1caa5b2f3ee1c68a5ac06317adcce6"
+        },
+        {
+          "source_id": "LCX02-01",
+          "path": "docs/guala_reconciliation/sources/syntax-context/LCX02-01--82_context.md",
+          "line": 41,
+          "anchor": "ESSENCE: the last thing said is the loudest context there is, and",
+          "sha256": "cdecc5470ad3b3f934ae9b8dbf44d9aa8e9e6fb0d0a3ad20f902917f389e9e6c"
+        },
+        {
+          "source_id": "LCX02-02",
+          "path": "docs/guala_reconciliation/sources/syntax-context/LCX02-02--82_context.md",
+          "line": 54,
+          "anchor": "CANNOT: no leaning on a turn that has gone cold. No thin reply",
+          "sha256": "9f350702db08b701655a797dbca363e6d40457ff4c386f8ce824cc0fc2fc77b6"
+        },
+        {
+          "source_id": "LCX02-01",
+          "path": "docs/guala_reconciliation/sources/syntax-context/LCX02-01--82_context.md",
+          "line": 23,
+          "anchor": "ESSENCE: who is speaking, to whom, where they stand and what has",
+          "sha256": "cdecc5470ad3b3f934ae9b8dbf44d9aa8e9e6fb0d0a3ad20f902917f389e9e6c"
+        },
+        {
+          "source_id": "LCX02-01",
+          "path": "docs/guala_reconciliation/sources/syntax-context/LCX02-01--82_context.md",
+          "line": 85,
+          "anchor": "ESSENCE: the usual failure is not confusion but smooth agreement",
+          "sha256": "cdecc5470ad3b3f934ae9b8dbf44d9aa8e9e6fb0d0a3ad20f902917f389e9e6c"
+        },
+        {
+          "source_id": "LDC03",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC03--saying.py",
+          "line": 220,
+          "anchor": "        self.last_doing = None",
+          "sha256": "4251fdcd55cd2bc4620b395ee1defacd07cecb35ad88913817af5a3e67eefada"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A06",
+        "A09",
+        "A10",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLCX04",
+      "name": "Learned reusable formations must be distinguished from supplied language pieces",
+      "classification": "Retained useful functional requirements; missing native causal implementation proof",
+      "finding": "LCXR05",
+      "observed_mechanism": "The linguistic text distinguishes sound categories from pressure, words from role structure, learned reusable phrases from composition, lexical labels from the wider system of distinctions, and sensory channels from language function. Those distinctions can guide falsifiers. They do not define DSF-to-neuron transitions, plastic contact changes, consolidation, recall, planning, or vocal acquisition. The source statement that fluency uses stored chunks does not authorize manually installed greetings or word-to-gesture tables.",
+      "evidence_limits": "The corpus is external authored text. Its mention of signed language is not evidence that the current body supports signing. Its use of field, category and store is not automatically the project DSF, post-quiescence neuronal formation or canonical checkpoint. No field is numerically evaluated here; the separate word-mask reader is a lexical projection rather than full seven-field DSF plus global S(UF).",
+      "replacement": "Map each claimed language function to sensory acquisition, retained native state, later causal use and the actual body channel. Preserve genuinely acquired reusable formations and measured improvements. Leave an absent mapping open rather than inserting labels, phrase lists, universal grammar rules or native-sounding terminology.",
+      "acceptance": {
+        "unit": "Define the physical representation and distinguish authored sensory stimulus, acquired trace and reporting label without reducing the full available field.",
+        "module": "Demonstrate trace formation, sleep retention and recall influencing native control; preserve the exact learned state across continuation.",
+        "system": "Require novel composition and matched experience controls plus independent intelligibility; classify component instrument output separately.",
+        "release": "Release only the demonstrated scope with canonical state and complete provenance; audio, text and UI labels cannot stand in for one another."
+      },
+      "refs": [
+        {
+          "source_id": "LCX03-01",
+          "path": "docs/guala_reconciliation/sources/syntax-context/LCX03-01--144_deep_linguistics.md",
+          "line": 19,
+          "anchor": "ESSENCE: a sound unit is a category, not a noise. Two noises belong to",
+          "sha256": "b17ad279619a88fbb919ddbd03e761ab7b387beae5c442db6f5fa79a12021f64"
+        },
+        {
+          "source_id": "LCX03-01",
+          "path": "docs/guala_reconciliation/sources/syntax-context/LCX03-01--144_deep_linguistics.md",
+          "line": 248,
+          "anchor": "ESSENCE: much of what people say is not assembled from scratch. Large",
+          "sha256": "b17ad279619a88fbb919ddbd03e761ab7b387beae5c442db6f5fa79a12021f64"
+        },
+        {
+          "source_id": "LCX03-01",
+          "path": "docs/guala_reconciliation/sources/syntax-context/LCX03-01--144_deep_linguistics.md",
+          "line": 281,
+          "anchor": "ESSENCE: noun and verb are not defined by meaning. \"Explosion\" names an",
+          "sha256": "b17ad279619a88fbb919ddbd03e761ab7b387beae5c442db6f5fa79a12021f64"
+        },
+        {
+          "source_id": "LCX03-01",
+          "path": "docs/guala_reconciliation/sources/syntax-context/LCX03-01--144_deep_linguistics.md",
+          "line": 457,
+          "anchor": "  dictionary preserves the labels and not the system that gave them",
+          "sha256": "b17ad279619a88fbb919ddbd03e761ab7b387beae5c442db6f5fa79a12021f64"
+        },
+        {
+          "source_id": "LCX03-01",
+          "path": "docs/guala_reconciliation/sources/syntax-context/LCX03-01--144_deep_linguistics.md",
+          "line": 586,
+          "anchor": "ESSENCE: signed languages have units below the word, exactly as spoken",
+          "sha256": "b17ad279619a88fbb919ddbd03e761ab7b387beae5c442db6f5fa79a12021f64"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 159,
+          "anchor": "                e[\"color\"] = self.mask(e[\"essence\"])      # possible face",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A06",
+        "A09",
+        "A10",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

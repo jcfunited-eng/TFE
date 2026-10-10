@@ -1,0 +1,156 @@
+{
+  "at_utc": "2026-10-10T00:18:06.466144+00:00",
+  "scope": "Per-file captured working sources, not a frozen G1 candidate or current-image source attestation",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/AGENTS.md",
+      "bytes": 21887,
+      "sha256": "03055a888c43eb349b62e1edacf532f68d1526e363f6f21361fb2d13bca7b5e0"
+    },
+    {
+      "path": "docs/GUALA_NEXT_SESSION_HANDOFF_2026-10-09.md",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/docs/GUALA_NEXT_SESSION_HANDOFF_2026-10-09.md",
+      "bytes": 15299,
+      "sha256": "0d658047f9e4d7a464523ee8593ede8eb8633bc696ac70e7d586079daafdb14d"
+    },
+    {
+      "path": "docs/GUALA_CANONICAL_RECONCILIATION.md",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/docs/GUALA_CANONICAL_RECONCILIATION.md",
+      "bytes": 8345,
+      "sha256": "8614b30078de3d2bf799e559f832debe5f771447ae3fb18aa9dfb8a206510216"
+    },
+    {
+      "path": "docs/GUALA_LEARNING_DECISION_MECHANISM_CONTRACT_2026-10-08.md",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/docs/GUALA_LEARNING_DECISION_MECHANISM_CONTRACT_2026-10-08.md",
+      "bytes": 19732,
+      "sha256": "15ca8ce53cab440680b1c246ac9530d7967d4f46b41f7d7173195b8bad35f38b"
+    },
+    {
+      "path": "docs/GUALA_LEARNING_DECISION_CLASSIFICATION_TASK1593_2026-10-09.json",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/docs/GUALA_LEARNING_DECISION_CLASSIFICATION_TASK1593_2026-10-09.json",
+      "bytes": 262421,
+      "sha256": "0e502ef3808357db7724d5ec43d924382cf8c1688c429ff2af6fedbc24a17569"
+    },
+    {
+      "path": "docs/guala_reconciliation/findings.json",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/docs/guala_reconciliation/findings.json",
+      "bytes": 13962,
+      "sha256": "a24961c6a4461310182b7f5845a7a73e361d5ce2ae8490bd06fcde7c7ea60546"
+    },
+    {
+      "path": "docs/guala_reconciliation/specification-crosswalk.json",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/docs/guala_reconciliation/specification-crosswalk.json",
+      "bytes": 66396,
+      "sha256": "bb39ee8697c6afd967a90ab1e50ac364a71b8a0f9bf6667c2a81f2c4937c9b4a"
+    },
+    {
+      "path": "docs/guala_reconciliation/capabilities.json",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/docs/guala_reconciliation/capabilities.json",
+      "bytes": 127833,
+      "sha256": "681419a9e0c55727b0192eee80e8b41c1465b57efaf37c20a123663d76894119"
+    },
+    {
+      "path": "docs/guala_reconciliation/designs.md",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/docs/guala_reconciliation/designs.md",
+      "bytes": 16591,
+      "sha256": "c25a5b06b0f637e96cd6484aa8bd8d505b02a421427dd72f0b7d4921cae6d4d6"
+    },
+    {
+      "path": "docs/guala_reconciliation/supporting-documentation.md",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/docs/guala_reconciliation/supporting-documentation.md",
+      "bytes": 11477,
+      "sha256": "919e6b9fe0b46786a990e89729ca8205bf80256641883ce6fcbb66f3270b5361"
+    },
+    {
+      "path": "docs/guala_reconciliation/mechanisms_task1598.json",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/docs/guala_reconciliation/mechanisms_task1598.json",
+      "bytes": 12195,
+      "sha256": "f8ae6260fe511e45d0c38678c660863bfc7beef34494e5b20948ca7a002a72ce"
+    },
+    {
+      "path": "docs/guala_reconciliation/mechanisms_orthographic.json",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/docs/guala_reconciliation/mechanisms_orthographic.json",
+      "bytes": 34535,
+      "sha256": "ef06dbd0892590ce6383ee483714c8e161699ddd7315e2f5e99faef6c1b1f273"
+    },
+    {
+      "path": "dsf_ai_service/static/gualaloom.html",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/static/gualaloom.html",
+      "bytes": 90927,
+      "sha256": "89582f361a2e6ec30a42a8a60b4375220eb711b5316ce46e8d871f656500606f"
+    },
+    {
+      "path": "dsf_ai_service/static/loomscan.html",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/static/loomscan.html",
+      "bytes": 24646,
+      "sha256": "61887e9edbc2026e97ece15af83eb87d862298c6d7eca3aa64aa11ad09eb3f5a"
+    },
+    {
+      "path": "dsf_ai_service/lean_production_app.py",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/lean_production_app.py",
+      "bytes": 19825,
+      "sha256": "3ed977f4f8e28b7814bef4c6545a3ef283f0f45e03a877e15411a121b80e4845"
+    },
+    {
+      "path": "dsf_ai_service/lean_actor.py",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/lean_actor.py",
+      "bytes": 26532,
+      "sha256": "a92a571a4e9276321273a907c630bf69a11947b52714f63effdef14da4ded6f8"
+    },
+    {
+      "path": "dsf_ai_service/lean_sensory_occurrence.py",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/lean_sensory_occurrence.py",
+      "bytes": 13571,
+      "sha256": "cb7ebef4b506c04f1f87e0f2dc593d53d21dd3d76badf3d41d514c8dc93f8b6d"
+    },
+    {
+      "path": "dsf_ai_service/guala_functional64_runtime.py",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/guala_functional64_runtime.py",
+      "bytes": 9613,
+      "sha256": "f4710a82da0fbaa1e45ebad2018c521a739ccd8555ca780ca9f8758e662181ca"
+    },
+    {
+      "path": "dsf_ai_service/guala_functional64_loop.py",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/guala_functional64_loop.py",
+      "bytes": 16123,
+      "sha256": "d26d3c059abebfe12ee599ecc15a1bc1e574fd8c57fa1dec9bc169ba2bb58b41"
+    },
+    {
+      "path": "dsf_ai_service/guala_functional64_world.py",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/guala_functional64_world.py",
+      "bytes": 7954,
+      "sha256": "af838e22caf38123229c763bb2d3d5251c14842825e44d6539752ef87de19583"
+    },
+    {
+      "path": "dsf_ai_service/Dockerfile",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/Dockerfile",
+      "bytes": 6350,
+      "sha256": "79dace7250708012390bb9087ccb68b1288e93827a139c1d729b658aac5441ae"
+    },
+    {
+      "path": "guala_caretaker/caretaker.py",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/guala_caretaker/caretaker.py",
+      "bytes": 71652,
+      "sha256": "02536433d5c749004a6f599a24566788bf10ca8e3c827203ffd9f3ae87381493"
+    },
+    {
+      "path": "guala_caretaker/media.py",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/guala_caretaker/media.py",
+      "bytes": 16260,
+      "sha256": "06a6781c653fc4d7f130ddf5588c3fbbe27ba70e52a7b25fcbaabc6dbd1741aa"
+    },
+    {
+      "path": "guala_caretaker/keep_caretaker.sh",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/guala_caretaker/keep_caretaker.sh",
+      "bytes": 650,
+      "sha256": "0b315dd3a960fc3606bd3c6139634882840052938fc6bd4c41a84901c473bf25"
+    },
+    {
+      "path": "tools/deploy_guala_task_1598.py",
+      "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/tools/deploy_guala_task_1598.py",
+      "bytes": 25928,
+      "sha256": "cdcfd0054e1d56fbbdea4ccfa6addc4423cd6f72d671f231f74a4f4ab55b0a15"
+    }
+  ]
+}

@@ -1,0 +1,1293 @@
+{
+  "schema": "guala.cross_context_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T06:15:06.244345+00:00",
+  "scope": "All30 recovered versions of the two C-010/C-023 ledgers; historical reported results, corrections and failures, not independently reproduced experiments or current serving proof.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "CX01-01",
+      "path": "docs/GUALA_C010_CROSS_CONTEXT_GENERALIZATION_SPRINT_2026-08-12.md",
+      "git_blob": "4f7e193063c323987d08dc13ef7a73296e9cded9",
+      "sha256": "5a85165df5b3ac75d7b980174cba3f3546863a9457f3c708e12602ac181a365d",
+      "bytes": 11600,
+      "lines": 179,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX01-01--GUALA_C010_CROSS_CONTEXT_GENERALIZATION_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T18:36:19+00:00",
+          "commit": "798ba0fa1a9a3a925f0442e0479f41ac3a06b2a6",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-12T18:10:10+00:00",
+          "commit": "13d9771e14f675f9f6d7d348b13a18c7ccdbff12",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX01-01--GUALA_C010_CROSS_CONTEXT_GENERALIZATION_SPRINT_2026-08-12.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX01-02",
+      "path": "docs/GUALA_C010_CROSS_CONTEXT_GENERALIZATION_SPRINT_2026-08-12.md",
+      "git_blob": "e60216a043351257735018bcd0c6be545e27df10",
+      "sha256": "541a43279ca7cd11f200abcc8d51442ccadfc0d322ff2073b35fce9935955cdf",
+      "bytes": 14470,
+      "lines": 223,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX01-02--GUALA_C010_CROSS_CONTEXT_GENERALIZATION_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T18:36:19+00:00",
+          "commit": "798ba0fa1a9a3a925f0442e0479f41ac3a06b2a6",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX01-02--GUALA_C010_CROSS_CONTEXT_GENERALIZATION_SPRINT_2026-08-12.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-01",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "18f0ce7ca76867a1cdbcef8c6356b632a8ebfa29",
+      "sha256": "fa11adb1de8e7bedff675b21236ed5f5bf772606dffa99b1bdd1f9354c7ff400",
+      "bytes": 23606,
+      "lines": 365,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-01--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T08:07:17+00:00",
+          "commit": "49fe7ffea4d260aa762b786dfe718932731e19ae",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T07:37:52+00:00",
+          "commit": "a5183b81e8dd7e47a8ad8f6af2b54da116c183fe",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-01--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-02",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "21d20e9a0d855244dd045b2bd43423e74f2bfa7b",
+      "sha256": "dcb8870c27a9a60f15fdb30f7c2f316f62f89ad692663974ee17e05ef752e1e5",
+      "bytes": 74645,
+      "lines": 1141,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-02--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T15:32:41+00:00",
+          "commit": "3f926236c68093cc2e7a3e5edfb3fc577e75a324",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T14:57:00+00:00",
+          "commit": "e6721c96663a15416b97728e2d924a8ed255a721",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-02--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-03",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "2482e87c65a0e31b4365d83a8c09f961c921f7d3",
+      "sha256": "bdfb92cee88f0ee3e67c9fb8fb2735901ee86619a015de429855d53d56e937e6",
+      "bytes": 56846,
+      "lines": 878,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-03--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T02:26:32+00:00",
+          "commit": "4947977117685c02021135d745e36849068fc46f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T02:02:44+00:00",
+          "commit": "99907ea1548f6b0499de20319e52b9d46a735e01",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-03--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-04",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "2f39a7dcbc6a3874ba2a6d3008d2c84b4f029b43",
+      "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b",
+      "bytes": 80548,
+      "lines": 1239,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T04:22:00+00:00",
+          "commit": "0c094bc45bb1608147a28b937ec77f15440c9db1",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-05",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "358f0523752535fa450be882743415080b2322b3",
+      "sha256": "8b6cfe5aa450f244dacc3ece98ca16c466e0c73dc3d7846c79a0ead461177b23",
+      "bytes": 16909,
+      "lines": 266,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-05--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T06:05:04+00:00",
+          "commit": "7f4dbc6935c764a2e2173d26ec6ccb94399bbef8",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T05:36:34+00:00",
+          "commit": "df4e74e3026ab33538e8a371d452ce5232affd82",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-05--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-06",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "3a92b9d3583ea563b13677562a9085dfd5fd8ac9",
+      "sha256": "f03d09b73455a3eb3952a4a1ef285a1307dfa0bddf4ec4873c1c31be29131373",
+      "bytes": 53372,
+      "lines": 822,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-06--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T14:08:45+00:00",
+          "commit": "3907c349dcae7444c90b181e3338dca3a5b8ed0e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T13:39:25+00:00",
+          "commit": "46f1c09cd45e5554162e76f42c1a40c6dc187e72",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-06--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-07",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "3ffc08abb14a43652ea6abfd640e159b56598ed0",
+      "sha256": "55b05b8803e62629c70445b2667d25b8f03b2635bf8e9bdb12a53c40e8d60aec",
+      "bytes": 20092,
+      "lines": 317,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-07--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T07:37:52+00:00",
+          "commit": "a5183b81e8dd7e47a8ad8f6af2b54da116c183fe",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T06:36:29+00:00",
+          "commit": "b0dcbb5bc1d1d14d4a7d4d14acf56d08321d5eee",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-07--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-08",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "438067fc8a41049225a072b61110729f5093842c",
+      "sha256": "ce515374b07abd20191b24631ca38e036f1a05b6449cff4876311aa4e2f2fc1a",
+      "bytes": 18494,
+      "lines": 292,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-08--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T06:36:29+00:00",
+          "commit": "b0dcbb5bc1d1d14d4a7d4d14acf56d08321d5eee",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T06:05:04+00:00",
+          "commit": "7f4dbc6935c764a2e2173d26ec6ccb94399bbef8",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-08--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-09",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "491bf72d2101823cd74245f80ea4d6e0b80fb88d",
+      "sha256": "3eb0b985975a6afe6489e379308cc77e3b4c042485251ac6698eaf5aeec06a34",
+      "bytes": 65759,
+      "lines": 1005,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-09--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T12:23:59+00:00",
+          "commit": "514c67a4dc956c0bb957af398c31cd18586c96d1",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T11:39:55+00:00",
+          "commit": "cd7dc82f6fba803c1b6895af6a6290dfc34681ba",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-09--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-10",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "5f0ace7b224002368027d7310d2ab8734d5a7f4b",
+      "sha256": "471993b0db76776be424b4759b3fbb16c1a6c8442e268d17d99a18be44242b3c",
+      "bytes": 27663,
+      "lines": 427,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-10--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T11:15:17+00:00",
+          "commit": "c39a72f8f8f52678ae6d31127f3a871453f0e79f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T08:47:35+00:00",
+          "commit": "19c2a33798914ce1998f6a6774aa1888be9db747",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-10--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-11",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "650ad35a1f66da87cb7cfcd66bda043c0e64dd21",
+      "sha256": "e0418b3748a1b03a8b1facd97d5b5f4c26027bac3723330a3607800ece530bca",
+      "bytes": 76204,
+      "lines": 1165,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-11--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T16:22:37+00:00",
+          "commit": "ae3a1bbea21c7534948ec23e23452bbe29be9cd0",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T15:32:41+00:00",
+          "commit": "3f926236c68093cc2e7a3e5edfb3fc577e75a324",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-11--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-12",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "65751a863fad0cea09c79d6a33ddc03164e1fb45",
+      "sha256": "6ba54ce2a2a48fd92e577eb12e6899cf544fcd0e14380566c6a3c006605a8976",
+      "bytes": 67776,
+      "lines": 1037,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-12--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T12:26:38+00:00",
+          "commit": "dbe984fbe4c0d74276e3235b49a2ada20a3cc310",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T12:23:59+00:00",
+          "commit": "514c67a4dc956c0bb957af398c31cd18586c96d1",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-12--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-13",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "6a4e1fc2e912aa7adc87e5a9d107a5cb29b43cf0",
+      "sha256": "d6be92cadee1d75d3ff885f589a94ddc93db2c8c429284ab67fdc85ba273f19e",
+      "bytes": 70427,
+      "lines": 1076,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-13--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T14:17:17+00:00",
+          "commit": "b3fba57656cbcbf2ae1dc23baddb9b119c9511f3",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T13:18:10+00:00",
+          "commit": "da575dd778f7c483b56c16faa77de3d41f70f54d",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-13--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-14",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "861f354c750974296fbe3d0848e19fd4162cd9c3",
+      "sha256": "216a291d0e3d4f903c1c2a86b0a75f30e6e4acc0171fe259497529e454dc80ea",
+      "bytes": 69844,
+      "lines": 1067,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-14--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T13:18:10+00:00",
+          "commit": "da575dd778f7c483b56c16faa77de3d41f70f54d",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T13:13:36+00:00",
+          "commit": "24d7d9363cb3f70c133be8ef6d4f8fdec5260c33",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-14--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-15",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "8c830263a12e9bc124062194f1344553e3f8aa46",
+      "sha256": "acd685b8c5eba9759b8487795c863c0924bb91b2d902897b9cb9c3e21b34789d",
+      "bytes": 12325,
+      "lines": 187,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-15--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T05:36:34+00:00",
+          "commit": "df4e74e3026ab33538e8a371d452ce5232affd82",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T03:59:25+00:00",
+          "commit": "85d9f8d1123ff89fb53944a7934687ff78e37a0e",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-15--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-16",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "969dd76df76bfbb1f29093629cc3c11b8779f6fc",
+      "sha256": "51f04a644ca87a33a6857f6e2df607a7474f7a5f9bf51e1711e3beaf5efbec76",
+      "bytes": 57733,
+      "lines": 890,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-16--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T02:45:31+00:00",
+          "commit": "8537a2a8028cbf9395e3c33af71e1739a66f5221",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T02:26:32+00:00",
+          "commit": "4947977117685c02021135d745e36849068fc46f",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-16--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-17",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "aa841e8136acac2a4dbb4c57f616251c6261dc2b",
+      "sha256": "6f8ed6d4958d00df8f847562a77689628084b664a6e344bc65159b1e5242904c",
+      "bytes": 64627,
+      "lines": 987,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-17--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T11:39:55+00:00",
+          "commit": "cd7dc82f6fba803c1b6895af6a6290dfc34681ba",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T10:56:38+00:00",
+          "commit": "48dbdaaea66f0e6176b8c28cd7c122ff6aff2d8d",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-17--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-18",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "ab28ba3525b0b54b8efa323ad24ce847a3808268",
+      "sha256": "23d24335e706157829527142e818d22ef89f443f5b70ad3ed9115f0a055d0029",
+      "bytes": 69447,
+      "lines": 1061,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-18--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T13:13:36+00:00",
+          "commit": "24d7d9363cb3f70c133be8ef6d4f8fdec5260c33",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T12:46:58+00:00",
+          "commit": "0480154e5d95e17289709718e84e9b632448eacc",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-18--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-19",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "b70031f74b8939fb8daac164fe6539cefa921351",
+      "sha256": "f3c4ea69e1de7a8d8bf11a2bed2980789e4405e400870ca2c38de54eb0de0918",
+      "bytes": 78930,
+      "lines": 1211,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-19--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T04:22:00+00:00",
+          "commit": "0c094bc45bb1608147a28b937ec77f15440c9db1",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T16:22:37+00:00",
+          "commit": "ae3a1bbea21c7534948ec23e23452bbe29be9cd0",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-19--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-20",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "c05f684560c5d2f31565055abde046f78f03a7ca",
+      "sha256": "b9f4c4e30a3514540569eaa6b8b8a04d31775214f0a1f30d0e221b39862cb270",
+      "bytes": 39162,
+      "lines": 609,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-20--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T13:39:25+00:00",
+          "commit": "46f1c09cd45e5554162e76f42c1a40c6dc187e72",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T11:48:08+00:00",
+          "commit": "a32bbd0042883846ee7c7fd8909aade2e9029900",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-20--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-21",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "c749c8ba057eac651cb075c17ee02b7dea8ea776",
+      "sha256": "c029680b113718b8640012df714c7cd3d39240077d71cb5995dbb8a2cae3b1de",
+      "bytes": 25201,
+      "lines": 390,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-21--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T08:25:56+00:00",
+          "commit": "cdb4f10dc3f596a07d73288930191605829022c7",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T08:07:17+00:00",
+          "commit": "49fe7ffea4d260aa762b786dfe718932731e19ae",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-21--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-22",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "cca0c1c4d9d122f4bda900415682bc693d35d0af",
+      "sha256": "3a62136588293826e4b961dfa42ebf6cad696a9c0469ff40942ea2c7e1719973",
+      "bytes": 61393,
+      "lines": 937,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-22--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T10:56:38+00:00",
+          "commit": "48dbdaaea66f0e6176b8c28cd7c122ff6aff2d8d",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T10:49:25+00:00",
+          "commit": "663e666a79df7354cac21a7075c4c6c2252dfbfb",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-22--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-23",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "d4239052f0358827c24cb36cd68ed9bd3575961b",
+      "sha256": "7210a9fca83971edd4bf24ccfc61b528332b110843dc9f30cc114311d465ee3b",
+      "bytes": 58079,
+      "lines": 895,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-23--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T10:49:25+00:00",
+          "commit": "663e666a79df7354cac21a7075c4c6c2252dfbfb",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T02:45:31+00:00",
+          "commit": "8537a2a8028cbf9395e3c33af71e1739a66f5221",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-23--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-24",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "d58de84e1e233934428161fdd554ae7655a935f5",
+      "sha256": "1a419d86d94a332098045ef6609d196fc9b25d4b19ab036a0adebcad880ebae1",
+      "bytes": 55412,
+      "lines": 856,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-24--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T02:02:44+00:00",
+          "commit": "99907ea1548f6b0499de20319e52b9d46a735e01",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T14:08:45+00:00",
+          "commit": "3907c349dcae7444c90b181e3338dca3a5b8ed0e",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-24--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-25",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "d8f117718695bc666f3e2814a969bbc6425adac5",
+      "sha256": "f78a5f52d57a1e666dc2024fe64292a157fda41c7ca802c0720a2215e5d4a03f",
+      "bytes": 37061,
+      "lines": 576,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-25--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T11:48:08+00:00",
+          "commit": "a32bbd0042883846ee7c7fd8909aade2e9029900",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T11:15:17+00:00",
+          "commit": "c39a72f8f8f52678ae6d31127f3a871453f0e79f",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-25--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-26",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "e02904f9d61e8de5ca61111635c254052f96aed4",
+      "sha256": "c69de3943450153f134acbfe4f6b1f6150f4d4b8c646f5bd3efdd8da5708f1d5",
+      "bytes": 72934,
+      "lines": 1115,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-26--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T14:57:00+00:00",
+          "commit": "e6721c96663a15416b97728e2d924a8ed255a721",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T14:17:17+00:00",
+          "commit": "b3fba57656cbcbf2ae1dc23baddb9b119c9511f3",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-26--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-27",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "e42db9ecbf1d9e66990b2c2bb55d3d6fd73e08a3",
+      "sha256": "c563fab0e70a80d7af5a2dcc40f756de6961cfaee85c84ac2e8ea42184906e60",
+      "bytes": 26759,
+      "lines": 414,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-27--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T08:47:35+00:00",
+          "commit": "19c2a33798914ce1998f6a6774aa1888be9db747",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T08:25:56+00:00",
+          "commit": "cdb4f10dc3f596a07d73288930191605829022c7",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-27--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    },
+    {
+      "id": "CX02-28",
+      "path": "docs/GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "fe82c7fe3fdc0e103b20092aadeb5025cc2e8b26",
+      "sha256": "491b20ea289d1321ed7a4019b08893b55879fb381ccaa3515f2ae21e50ea039a",
+      "bytes": 68692,
+      "lines": 1050,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cross-context/CX02-28--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T12:46:58+00:00",
+          "commit": "0480154e5d95e17289709718e84e9b632448eacc",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T12:26:38+00:00",
+          "commit": "dbe984fbe4c0d74276e3235b49a2ada20a3cc310",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/cross-context/CX02-28--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content read:1462 latest lines and all7 unique historical-only passages/23 lines. Documentary production/test claims are not independently replayed or promoted to current proof."
+    }
+  ],
+  "requirements": [
+    {
+      "id": "CXR01",
+      "name": "A stable structural digest is useful identity evidence, not sufficient generalization",
+      "classification": "Narrow historical accomplishment with a broader proof limit",
+      "historical_requirement_or_mechanism": "C-010 describes an observer digest built from already-reached member sets and active bonds, distinct from changing recurrence receipts. It records Task998 self-caused yaw, externally submitted yaw and later self-caused yaw with one relation digest, unchanged identity and cold continuity. It explicitly rejects scanning every retained formation. The external yaw returned504 but committed, and the operator checked its successor before retrying.",
+      "current_disposition": "This is fully read documentary evidence, not an independently replayed Task998 experiment. Equal structure observed in distinct contexts does not alone establish learned generalization or prove that the retained relation changed the action. C-023 later explicitly rejects co-occurring recurrence and motor events without a directed causal path. A useful bounded observer improvement must not inherit an unproved cognitive claim.",
+      "lawful_remedy": "Preserve the reached-structure digest as read-only identity evidence and preserve committed-successor handling. Require native participation, exact later physical effects and claim-specific matched controls before calling reuse generalization. The digest must never select a concept, retrieve a response or authorize settlement.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A09",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "CX01-02",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX01-02--GUALA_C010_CROSS_CONTEXT_GENERALIZATION_SPRINT_2026-08-12.md",
+          "line": 133,
+          "anchor": "  bounded latest recurrence witness lawfully changes. Receipt equality is",
+          "sha256": "541a43279ca7cd11f200abcc8d51442ccadfc0d322ff2073b35fce9935955cdf"
+        },
+        {
+          "source_id": "CX01-02",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX01-02--GUALA_C010_CROSS_CONTEXT_GENERALIZATION_SPRINT_2026-08-12.md",
+          "line": 136,
+          "anchor": "  retained formation after each active hop. Pre-deployment review rejected and",
+          "sha256": "541a43279ca7cd11f200abcc8d51442ccadfc0d322ff2073b35fce9935955cdf"
+        },
+        {
+          "source_id": "CX01-02",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX01-02--GUALA_C010_CROSS_CONTEXT_GENERALIZATION_SPRINT_2026-08-12.md",
+          "line": 203,
+          "anchor": "- **Context A:** ordinary unattended intake at organism tick `57349` moved her",
+          "sha256": "541a43279ca7cd11f200abcc8d51442ccadfc0d322ff2073b35fce9935955cdf"
+        },
+        {
+          "source_id": "CX01-02",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX01-02--GUALA_C010_CROSS_CONTEXT_GENERALIZATION_SPRINT_2026-08-12.md",
+          "line": 217,
+          "anchor": "  externally submitted world move and truthfully reports `chose_to_go=false`.",
+          "sha256": "541a43279ca7cd11f200abcc8d51442ccadfc0d322ff2073b35fce9935955cdf"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 448,
+          "anchor": "3. Conflict: yes. Co-occurrence is not causal cross-context use.",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        }
+      ],
+      "unit_acceptance": "Verify digest domain, exact membership/bonds and independence from transient receipts; prove the observer never re-enters decisions.",
+      "module_acceptance": "Show the retained relation physically alters its claimed downstream transition, with authentic state and absent/reversed-experience controls.",
+      "system_acceptance": "Demonstrate appropriate use in genuinely different experienced contexts, distinguishing repeated anatomy from retained learned relationships.",
+      "release_acceptance": "Recover original source/binary/state/observations and bind any current equivalent to a frozen candidate; do not reuse Task998 closure as current proof."
+    },
+    {
+      "id": "CXR02",
+      "name": "Exact source custody improved, but receptor settlement changed under falsification",
+      "classification": "Supported documentary correction and unresolved physical-law qualification",
+      "historical_requirement_or_mechanism": "C-023 records integer body samples over real spans4000/64/40/40 becoming wide binary64 rational denominators and failing ResidueWidth. A dyadic-span workaround passed arithmetic but was rejected because it changed receptor sensitivity. Exact source fractions and a typed projection replaced it. The subsequent energy rule first retained work in partially open populations, then live Task1042 failed again; Task1043 distinguished absorbed-energy settlement through an open channel from membrane carrier current.",
+      "current_disposition": "These are materially different hypotheses and implementations, not one unchanged law throughout. The ledger says the initial any-open rule erased integration, then accepts an open-conformation rule with separate current accounting. That distinction needs the exact source and complete conservation/receptor derivation; deployment success or a disappeared refusal cannot supply it. No old operator is imported into current64-column physics by this audit.",
+      "lawful_remedy": "Preserve exact physical units and custody, and retain every rejected hypothesis. Reconcile activation-barrier storage, absorbed work, conductive current and dissipated energy in one approved law. Validate actual bounded arithmetic and full DSF source correspondence; do not change receptor spans, round residue or relax the law to eliminate a failing test.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A04",
+        "A06",
+        "A14",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 84,
+          "anchor": "  and `40`, creating exact binary64 rationals with denominator widths up to 59",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 171,
+          "anchor": "  spans were transport-derived and changed receptor sensitivity. The code and",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 234,
+          "anchor": "  an outcome-driven shortcut.",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 284,
+          "anchor": "- Live behavior falsified the partially-open retention hypothesis: the new",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 296,
+          "anchor": "  did not distinguish absorbed-energy settlement from membrane current. The",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        }
+      ],
+      "unit_acceptance": "Independently derive and check exact work/residue, closed/partial/full populations, all conservation terms and finite-width bounds.",
+      "module_acceptance": "Verify producer→typed source→full-field delivery→receptor→membrane for repeated non-dyadic samples without lost or invented work.",
+      "system_acceptance": "Run prolonged preserved-state body/self-hearing recurrence and compare old/new physical trajectories at the exact authorized change boundary.",
+      "release_acceptance": "Admit only the law and binary actually qualified; retain rejected candidates and refuse unsupported historical migrations."
+    },
+    {
+      "id": "CXR03",
+      "name": "Measured latency and false-zero observation failures predate64 columns",
+      "classification": "Recorded computational and observation improvements with bounded scope",
+      "historical_requirement_or_mechanism": "Task1043 repeatedly recomputed an exact heading enclosure; a bounded cache and proof-depth schedule avoided duplicate geometry work. Task1044 then exposed repeated cochlear envelopes:32 sites×251 transported points=8032 values instead of32×26=832. The ledger reports a matched local transition falling from153.573 to15.528 seconds, while Task1045 live intervals still took43–47 seconds against a declared two-second interval. It also corrects a final quiet-hop count of0 that concealed27 earlier fractal occurrences in the same experience.",
+      "current_disposition": "Reported timings and tests are historical, not measurements of Task1598 or the current candidate. Repeated values are not independent sensory evidence. Changing the observation clock can change physical inputs even with unchanged kernel code and requires source/clock correspondence. Twenty-seven emitted occurrences are not automatically27 unique retained memories; public zero likewise did not establish no physical activity.",
+      "lawful_remedy": "Preserve exact memoization and correct occurrence aggregation where their equivalence is proved. Bind each sample to its real transducer clock, distinguish occurrences from unique retained formations, and profile the actual current candidate before assigning today’s latency to64 columns or caretaker activity.",
+      "repair_actions": [
+        "A02",
+        "A04",
+        "A06",
+        "A13",
+        "A14",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 314,
+          "anchor": "  the receptor population and held the interval open for minutes.",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 348,
+          "anchor": "  one-millisecond PCM grid. One cochlear hop therefore carried 8,032 values",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 359,
+          "anchor": "  reached the in-memory successor in 15.528 seconds rather than 153.573. It",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 385,
+          "anchor": "  47 seconds apart. This is materially faster than the multi-minute task-1044",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 407,
+          "anchor": "  count of zero beside those 27 evidence records.",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 431,
+          "anchor": "  whole-experience total `27`, public `formed_in_last_experience = 27`, and",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        }
+      ],
+      "unit_acceptance": "Check geometry-cache equivalence, clock/sample custody and quiet-final-hop aggregation; distinguish exact count types.",
+      "module_acceptance": "Measure admitted samples, repeated work, kernel outputs and retained consequences on the same preserved predecessor.",
+      "system_acceptance": "Measure continuous wall-clock latency and storage through ordinary sensing, self-action and rest without deleting experience or reducing the full field.",
+      "release_acceptance": "Publish exact-artifact live timing/bounds evidence; historical speedups and a short stable interval cannot certify current service."
+    },
+    {
+      "id": "CXR04",
+      "name": "Causal-frontier direction must not be confused with carrier direction",
+      "classification": "Documented mechanism repair with rejected outcome-producing alternatives",
+      "historical_requirement_or_mechanism": "The ledger records four internal cues with motor events but no directed continuation: receiver-only frontier retention discarded a changed sender. Retaining both endpoints produced a desired path but activated about1600 of1617 contacts and was rejected. A generic current/prior convergence rule then joined unrelated non-simultaneous activity and failed regression. The accepted candidate preserved physical transfer direction separately and retained a formation-local recurrent endpoint only under specified interval-local conditions.",
+      "current_disposition": "A source-shaped six-contact or three-contact path is stronger than co-occurrence, but a documentary path alone is not independent qualification of the law. The formation-local condition and learned topology must be shown to derive from approved dynamics rather than targeting a desired motor result. Layer9/11/12 identities are historical topology, not a license to hardcode them into the new architecture.",
+      "lawful_remedy": "Preserve physical transfer direction and exact provenance. Reconcile why each changed endpoint participates next, why convergence is valid and how the rule remains bounded, local and domain-agnostic. Retain the unrelated-activity falsifier and reject activation widening that merely obtains an action.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A04",
+        "A08",
+        "A09",
+        "A14",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 473,
+          "anchor": "  endpoints, but `next_active_frontier` retains only the receiving endpoint.",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 517,
+          "anchor": "  desired path in three intervals, but activated approximately 1,600 of the",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 692,
+          "anchor": "  `non_simultaneous_body_and_sensory_activity_does_not_manufacture_effectors`",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 697,
+          "anchor": "- The accepted implementation boundary is formation-local and interval-local.",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 752,
+          "anchor": "  615 from layer 11 to recurrent layer 9, and 864 from layer 12 to layer 11.",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        }
+      ],
+      "unit_acceptance": "Derive physical versus causal direction and exact frontier update; falsify both-endpoint saturation and unrelated convergence.",
+      "module_acceptance": "Trace authentic retained structure through preparation contacts to native recruitment, preserving exact time and state provenance.",
+      "system_acceptance": "Require sensed body consequence plus matched controls for the claimed retained effect; do not accept a motor event merely touched by the report.",
+      "release_acceptance": "Qualify the actual successor mechanism and preserved topology rather than copying a historical layer-specific exception."
+    },
+    {
+      "id": "CXR05",
+      "name": "Global provenance veto erased valid local internal activity",
+      "classification": "Recorded provenance correction; source of experience remains a separate obligation",
+      "historical_requirement_or_mechanism": "Task1047 reportedly moved normally but produced no accepted internal-origin witness because any external receptor perturbation globally emptied every formation’s internal cue. The ledger corrects this to exact member-lineage intersections, preserving external precedence for the same formation while allowing unrelated local metabolic activity to remain visible. It also falsifies a missing-contact diagnosis: the required500-pS recurrent contact was already present.",
+      "current_disposition": "Continuous external sensation and internal-origin activity are not mutually exclusive by definition. But removing a veto does not prove imagination: shared/mixed origins require exact causal accounting, and a metabolism-driven recurrence is not automatically a novel imagined plan. The original source/state evidence and current implementation mapping remain unverified here.",
+      "lawful_remedy": "Keep source attribution local to actual participating state and preserve mixed-origin facts. Prove existing topology before adding connections. Link internal/external experience, body state and later consequences without semantic self/other labels, novelty counters or fabricated episode records.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A06",
+        "A09",
+        "A10",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 604,
+          "anchor": "  `settle_organism_mosaic_boundary`: any external receptor perturbation anywhere",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 622,
+          "anchor": "- The missing-contact hypothesis is falsified. The 14-member body-linked",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 637,
+          "anchor": "- Candidate correction: derive both external and metabolic cues by exact",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 645,
+          "anchor": "  action, and sensed return. Merely restoring internal cue observation does not",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        }
+      ],
+      "unit_acceptance": "Check unrelated, same-formation and mixed-origin perturbations with exact membership and time; verify existing contact provenance.",
+      "module_acceptance": "Demonstrate locally retained source distinctions survive recurrence, consolidation and later contextual use.",
+      "system_acceptance": "Separate common internal recurrence from imagination, socially attributed experience and grounded language using claim-specific controls.",
+      "release_acceptance": "Bind provenance to the actual retained candidate and observer; labels or global veto removal cannot qualify a cognitive family."
+    },
+    {
+      "id": "CXR06",
+      "name": "Broad completion was retracted; earlier physical accomplishments remain narrow",
+      "classification": "Explicit claim correction, positive reported evidence and unfinished cognitive scope",
+      "historical_requirement_or_mechanism": "The C-023 task originally names imagination, social cognition, self/body continuity, procedural skill, creativity and reflection. It later retracts Live-Closed to RECONCILED PARTIAL. Task1048 records an internal formation→motor→body→sensed-return route; Task1166 records an external retinal partial cue over31 transfers. Task1172 later records an internally reassembled formation, a changed contact, native body movement and returned modalities. The family table distinguishes partial procedural/social/imagination evidence from unavailable creativity/reflection.",
+      "current_disposition": "These reports support preserving and recovering earlier mechanisms, not dismissing them as all fabricated. They remain documentary claims until original artifacts/observations are independently bound. Task1172’s later narrow imagination/common-mechanism entry supersedes the table’s earlier imagination gap only to its demonstrated scope; it does not close every family, intelligible speech or current64-column continuity.",
+      "lawful_remedy": "Retain the retraction and positive evidence together. Recover the original physical mechanism and artifacts, map each causative state to the current candidate, and qualify each capability separately. State plainly where old state has no valid current representation; UUID, archived bytes, a common path or all-green component tests cannot establish preserved cognition.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A09",
+        "A10",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "CX02-03",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-03--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 5,
+          "anchor": "Status: Live-Closed on 2026-08-14. The exact reviewed artifact is deployed and",
+          "sha256": "bdfb92cee88f0ee3e67c9fb8fb2735901ee86619a015de429855d53d56e937e6"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 5,
+          "anchor": "Status: RECONCILED PARTIAL as of 2026-08-22. The exact reviewed artifact and",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 865,
+          "anchor": "  mechanism, not imagination, social cognition, self/body continuity,",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 911,
+          "anchor": "boundary, crossed 31 exact directed physical transfers, changed a contact",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 927,
+          "anchor": "| Creativity | none | unavailable: no internally originated novel coherent recombination has been enacted, sensed, changed, and reused |",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 928,
+          "anchor": "| Reflection | none in native cognition | unavailable: legacy Python reflection monitors and labels are not organism cognition and cannot satisfy C-023 |",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1210,
+          "anchor": "remains `RECONCILED PARTIAL` while its imagination/common cross-context-use",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        }
+      ],
+      "unit_acceptance": "Inventory exactly what each historical state, witness and capability claim contains and lacks; preserve all corrected statuses.",
+      "module_acceptance": "Verify authentic mechanism/state continuity and reproduce the narrow route under its original qualified scope before claiming equivalence.",
+      "system_acceptance": "Demonstrate distinct contextual, procedural, social, creative, reflective and language outcomes with appropriate controls, rather than relabel one action six ways.",
+      "release_acceptance": "Publish capability-specific acceptance for the exact current artifact; no broad certificate or inevitable/impossible speech conclusion."
+    },
+    {
+      "id": "CXR07",
+      "name": "A read-only observer acquired curriculum and readiness authority",
+      "classification": "Documented architectural conflict followed by reported authority removal",
+      "historical_requirement_or_mechanism": "The Aug22 record removes a dormant retained-formation readiness scan and Python causal-trace authority over curriculum admission. Presentation is tied to physical participant movement affecting retinal receptors, and the observer no longer decides that Guala attended. Later readiness/public failures exposed both immutable ECS metadata being queried during every transition and an energy-serialization exception after a successful organism restore.",
+      "current_disposition": "The older metadata-only explanation was superseded by an exact4300-digit conversion failure; both historical diagnoses must remain distinguishable. A display failure is not proof that the organism stopped, but a healthy organism does not excuse a broken display or readiness surface. The claimed no-authority boundary requires actual callers, not zero callback counters alone.",
+      "lawful_remedy": "Separate observation, external presentation, pupil attention, state admission and readiness with explicit owners. Keep exact native failures visible while preventing display rendering or network metadata from deciding cognition, experience, persistence or successful commitment. Verify current caretaker/curriculum programs on their actual causal routes.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A06",
+        "A12",
+        "A13",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 873,
+          "anchor": "  formation readiness scan and remove Python causal-trace authority over",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 876,
+          "anchor": "  no longer claims that Guala attended, and a reporting trace cannot permit,",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-18",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-18--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1060,
+          "anchor": "its rendering nor ECS metadata availability can participate in cognition,",
+          "sha256": "23d24335e706157829527142e818d22ef89f443f5b70ad3ed9115f0a055d0029"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1056,
+          "anchor": "JSON-encode an exact native energy numerator exceeding Python's 4,300-decimal-",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1065,
+          "anchor": "is also resolved once during process startup rather than through metadata after",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        }
+      ],
+      "unit_acceptance": "Test each boundary’s authority and failure behavior; distinguish native unavailability from optional projection failure.",
+      "module_acceptance": "Prove observer/readiness errors cannot alter a committed successor, gate curriculum from reported cognition or trigger duplicate experience.",
+      "system_acceptance": "Exercise real sensory presentation and independently observed pupil effects with caretaker programs disabled/enabled under the declared scope.",
+      "release_acceptance": "Trace every current consumer and dependency in the serving image; report separate native, observer and curriculum status."
+    },
+    {
+      "id": "CXR08",
+      "name": "Oldest-trace and no-revisit rules hid valid recurrent evidence",
+      "classification": "Explicit observer heuristics and later corrections; resource bound still needs proof",
+      "historical_requirement_or_mechanism": "An older C-023 contract retains only the oldest canonical advancing trace for each permitted kind. The later source diagnosis rejects age/receipt sampling because it discards valid routes. A later no-revisit rule rejects origin→frontier→origin and is removed in Task1204. The replacement retains one canonical path per current frontier and cites the finite interval list as its bound.",
+      "current_disposition": "These are observer-selection rules, not automatically native action selection. Removing them can correct false negatives without creating a new capability. Because traces may cross intake boundaries, a finite per-transaction interval list alone is not a demonstrated bound on cumulative stored path length; exact path lifetime, reduction, restart and continuation semantics require source closure. Canonical path selection must not erase required provenance.",
+      "lawful_remedy": "Preserve every required advancing origin/provenance at the permitted scope, including lawful returns, and prove bounded representation without age winners or arbitrary truncation. If evidence cannot be carried within the approved bound, report unavailable evidence; do not alter native cognition to manufacture a report.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A09",
+        "A13",
+        "A14",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "CX02-09",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-09--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 962,
+          "anchor": "  path. The boundary retains at most one canonical oldest trace for each of the",
+          "sha256": "3eb0b985975a6afe6489e379308cc77e3b4c042485251ac6698eaf5aeec06a34"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1044,
+          "anchor": "one arbitrarily oldest trace for the next context and discarded every other",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1228,
+          "anchor": "path such as `origin -> frontier -> origin`; the transaction's finite native",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1229,
+          "anchor": "interval list remains the bound, and only one canonical path per current",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 947,
+          "anchor": "  during the immediately following intake. The observer may complete a witness",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        }
+      ],
+      "unit_acceptance": "Falsify discarded advancing origins, revisits, merged-frontier provenance and unbounded cross-intake path accumulation.",
+      "module_acceptance": "Verify trace publication only after commit, no publication on rollback, restart semantics and exact separation from native state authority.",
+      "system_acceptance": "Observe prolonged recurrent activity with trustworthy positive and negative witnesses; unavailable evidence must not become failed cognition or synthetic success.",
+      "release_acceptance": "Bind proved work/storage bounds and all observer consumers to the serving artifact; replacing one selection rule is not complete qualification."
+    },
+    {
+      "id": "CXR09",
+      "name": "Bounded public projection repaired outages but does not certify bounded native state",
+      "classification": "Documented observer improvement with a distinct unresolved resource claim",
+      "historical_requirement_or_mechanism": "Tasks1169–1171 repeatedly exposed arbitrary-width energy/contact/fluid/thermal coordinates copied into JSON. Repairs were incomplete until Task1172 removed the remaining eight before/after energy-coordinate bodies from unattended observation. Exact comparisons became changed/unchanged facts plus native receipts, with raw coordinates resident. A5000-digit fixture tested rendering. Task1172 then reports healthy public responses through four autonomous successors.",
+      "current_disposition": "This preserves exact native authority while reducing a read-only display; it is not forbidden decision-field flattening if no consumer promotes those facts back into decisions. A successful JSON fixture and a few live transitions do not prove bounded native rational width, checkpoint growth, restore time or long-run memory. Zero Python cognition callbacks also does not establish no ML in native dependencies, external services or shipped assets.",
+      "lawful_remedy": "Preserve the truthful bounded observer and explicit rendering failures. Independently prove native arithmetic/state/resource bounds and restore behavior under mature experience; classify every active and shipped mechanism through transitive dependencies. Never hide native resource growth behind small public receipts or equate callback zero with ML-free certification.",
+      "repair_actions": [
+        "A02",
+        "A04",
+        "A13",
+        "A14",
+        "A15",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1062,
+          "anchor": "very wide rational coordinates remain solely in the native state identified by",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1153,
+          "anchor": "bounded. This was eight redundant arbitrary-precision coordinate bodies in",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1161,
+          "anchor": "the observer gains no physics or action authority. A 5,000-digit autonomous-",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1179,
+          "anchor": "to return HTTP 200 after autonomous successors at ticks 150203, 150219, 150236,",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1093,
+          "anchor": "while the one mature candidate was still performing the same lawful cold",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        }
+      ],
+      "unit_acceptance": "Verify bounded projection with exact native comparisons, and separately prove limits for resident arithmetic, codec and allocation.",
+      "module_acceptance": "Check mature restore, all projection consumers and native failure propagation; prohibit decisions based on display summaries.",
+      "system_acceptance": "Measure continuous CPU/RAM/storage/latency and current-only restart across authentic long-run activity without reset or discarded retained state.",
+      "release_acceptance": "Require complete artifact/runtime ML and controller closure plus actual long-run resource evidence, not callback counters or page health."
+    },
+    {
+      "id": "CXR10",
+      "name": "Historical production proofs do not transfer automatically to the64-column replacement",
+      "classification": "Preservation obligation and conditional feasibility; no permanent impossibility established",
+      "historical_requirement_or_mechanism": "The ledger carries concrete historical images, extension hashes, predecessor/successor states, action and sensory receipts, failed candidates, cold-restore outcomes and later corrected statuses. It reports retained physical structure influencing body action before the64-column transition. None of its30 versions specifies a causative-state conversion to the current64-column material or demonstrates learned intelligible speech on that candidate.",
+      "current_disposition": "The complete30-version content review adds recoverable history, not new live experiments or a speech certificate. Successful historical action is evidence against casually declaring that no native causal route ever existed, but does not guarantee acquisition of syntax, grounded words, articulation or preservation after redesign. The first actual failed current boundary still requires G1’s frozen-candidate qualification.",
+      "lawful_remedy": "Use Joe’s approved preserved-state charter qualification: bind old/current material and state, map real causative relationships, disclose missing conversions, and verify sensory experience→retained change→later contextual use→native articulation→self-hearing. Preserve genuine improvements and archive authentic failures without reactivating rejected heuristics or falsely claiming continuity.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A09",
+        "A10",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "CX01-02",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX01-02--GUALA_C010_CROSS_CONTEXT_GENERALIZATION_SPRINT_2026-08-12.md",
+          "line": 198,
+          "anchor": "- Candidate cold rehearsal restored identity",
+          "sha256": "541a43279ca7cd11f200abcc8d51442ccadfc0d322ff2073b35fce9935955cdf"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 766,
+          "anchor": "- A new process then restored the exact tick-85,807 successor and world revision",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1203,
+          "anchor": "No scripted action authority or Python cognition authority participated.",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        },
+        {
+          "source_id": "CX02-04",
+          "path": "docs/guala_reconciliation/sources/cross-context/CX02-04--GUALA_C023_CAUSAL_CROSS_CONTEXT_USE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1207,
+          "anchor": "production. It does not close the complete top-level C-023 sentence by itself:",
+          "sha256": "1bf050c3d3770a4e68ebcaf2af17f53ee3fa8769edd5defa64f61ca50819f66b"
+        }
+      ],
+      "unit_acceptance": "Inventory and verify every relevant old/new state dimension and admitted conversion; distinguish archive custody from active preservation.",
+      "module_acceptance": "Establish component law and causal retained-use correspondence from authentic states; fail explicitly when a mapping is absent.",
+      "system_acceptance": "Qualify actual contextual acquisition, novel use, native vocal action and independent intelligibility with matched controls.",
+      "release_acceptance": "Bind the exact image/configuration/state/live evidence and publish the first failed boundary, supported cause and remedy; no blanket pass."
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false
+}

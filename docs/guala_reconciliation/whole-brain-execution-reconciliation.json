@@ -1,0 +1,652 @@
+{
+  "schema": "guala.historical_execution_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T01:15:09.610644+00:00",
+  "session_path": "/root/.codex/sessions/2026/08/16/rollout-2026-08-16T08-29-10-01a009b0-6684-78f1-b610-fbaa76fafb3b.jsonl",
+  "custody": "Exact JSONL records by byte offset and SHA256; source files bound to Git blobs. Not a whole-session or whole-program review.",
+  "receipts": [
+    {
+      "id": "EX01",
+      "scope": "Task1173 deploy completion; poll, not initial deploy command",
+      "records": {
+        "result": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX01-result.jsonl",
+          "session_offset": 463177004,
+          "bytes": 1277,
+          "sha256": "60539800b642a2f5fe699e4e4c848b33e0823970e018e56c18c3113ac3ff91d1",
+          "timestamp": "2026-08-22T17:10:47.373Z",
+          "payload_type": "custom_tool_call_output",
+          "call_id": "call_cn6XvAA0Qt7ULgr1MER1eazb"
+        },
+        "call": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX01-call.jsonl",
+          "session_offset": 463176520,
+          "bytes": 484,
+          "sha256": "6cb5b483dcc47e96e739de9c653b21529a1360e09a2850b8cff02f41248aa289",
+          "timestamp": "2026-08-22T17:10:40.179Z",
+          "payload_type": "custom_tool_call",
+          "call_id": "call_cn6XvAA0Qt7ULgr1MER1eazb"
+        }
+      },
+      "evidence_level": "Recovered original historical tool record; not a fresh live probe"
+    },
+    {
+      "id": "EX02",
+      "scope": "Task1173 initial observation: 65 mosaics, 14 capital cells",
+      "records": {
+        "result": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX02-result.jsonl",
+          "session_offset": 463189607,
+          "bytes": 8787,
+          "sha256": "c34e0391d5d50fcf2e3b8178125130e3cbd6de1fd37a45feeddd1a000665fdb2",
+          "timestamp": "2026-08-22T17:11:03.218Z",
+          "payload_type": "custom_tool_call_output",
+          "call_id": "call_erA3YI0zRI3nc6KoHVNO0jDH"
+        },
+        "call": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX02-call.jsonl",
+          "session_offset": 463188479,
+          "bytes": 1128,
+          "sha256": "79d380a3495f95671f58a6ac10cd9e7ca014e769d40fe3d4476639f76a5f1bc2",
+          "timestamp": "2026-08-22T17:11:02.698Z",
+          "payload_type": "custom_tool_call",
+          "call_id": "call_erA3YI0zRI3nc6KoHVNO0jDH"
+        }
+      },
+      "evidence_level": "Recovered original historical tool record; not a fresh live probe"
+    },
+    {
+      "id": "EX03",
+      "scope": "Task1173 generation150301 body receipt and size",
+      "records": {
+        "result": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX03-result.jsonl",
+          "session_offset": 463202350,
+          "bytes": 2263,
+          "sha256": "a65f1ab7753f1efe63a4d99636601fd24e8b6610ddd5f2b156d5782bce4a937f",
+          "timestamp": "2026-08-22T17:11:10.385Z",
+          "payload_type": "custom_tool_call_output",
+          "call_id": "call_ikqjzQPlIUOejMAsqpaWzmys"
+        },
+        "call": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX03-call.jsonl",
+          "session_offset": 463201090,
+          "bytes": 1260,
+          "sha256": "98181eec01e0daf490b4406a802d7de3914ab609ad0917a2f08d2bd1b2042679",
+          "timestamp": "2026-08-22T17:11:09.764Z",
+          "payload_type": "custom_tool_call",
+          "call_id": "call_ikqjzQPlIUOejMAsqpaWzmys"
+        }
+      },
+      "evidence_level": "Recovered original historical tool record; not a fresh live probe"
+    },
+    {
+      "id": "EX04",
+      "scope": "Task1173 polling result: generation150334, 83 cells",
+      "records": {
+        "result": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX04-result.jsonl",
+          "session_offset": 463367471,
+          "bytes": 600,
+          "sha256": "dd78f1c0baea099fa88c88cc0874ce8a0a51c8c102e779bdb0527de2e24a8f5b",
+          "timestamp": "2026-08-22T17:18:00.001Z",
+          "payload_type": "custom_tool_call_output",
+          "call_id": "call_C62I3UXppXLsquuH3gyak6Zb"
+        },
+        "call": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX04-call.jsonl",
+          "session_offset": 463366987,
+          "bytes": 484,
+          "sha256": "14e0bf7a16c7857d75a7d4eeebb366c414ec63e68e758b577ddd3858a609ea72",
+          "timestamp": "2026-08-22T17:17:58.591Z",
+          "payload_type": "custom_tool_call",
+          "call_id": "call_C62I3UXppXLsquuH3gyak6Zb"
+        }
+      },
+      "evidence_level": "Recovered original historical tool record; not a fresh live probe"
+    },
+    {
+      "id": "EX05",
+      "scope": "Task1173 public observation with exact build and capital paths",
+      "records": {
+        "result": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX05-result.jsonl",
+          "session_offset": 463375410,
+          "bytes": 2299,
+          "sha256": "ae3bc81ccaad902bf77d6a2caf70286c27d5229c95d651125ba653f640cda560",
+          "timestamp": "2026-08-22T17:18:21.428Z",
+          "payload_type": "custom_tool_call_output",
+          "call_id": "call_ZIor79IykRfYGOWJHKEEKhZH"
+        },
+        "call": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX05-call.jsonl",
+          "session_offset": 463372754,
+          "bytes": 2656,
+          "sha256": "bab0bb39cc1eb990b6663d4cf08cc6f899de9eed0554a3471781860c3cbe0435",
+          "timestamp": "2026-08-22T17:18:20.794Z",
+          "payload_type": "custom_tool_call",
+          "call_id": "call_ZIor79IykRfYGOWJHKEEKhZH"
+        }
+      },
+      "evidence_level": "Recovered original historical tool record; not a fresh live probe"
+    },
+    {
+      "id": "EX06",
+      "scope": "Task1173 complete prior causal witness; root_motion false",
+      "records": {
+        "result": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX06-result.jsonl",
+          "session_offset": 463381205,
+          "bytes": 2639,
+          "sha256": "6ef204a2ede7bacd6abe78d84a8ecfa0cc2571ed492c4c9def2d35f7a38f24b5",
+          "timestamp": "2026-08-22T17:18:28.607Z",
+          "payload_type": "custom_tool_call_output",
+          "call_id": "call_KIyJozaA8Og4gcHaM88Bvuln"
+        },
+        "call": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX06-call.jsonl",
+          "session_offset": 463380365,
+          "bytes": 840,
+          "sha256": "7a3aac2eaf6823f52b58cabf89331bb47ad0b8a9c9a5e96dd43929ca9b2ee6dc",
+          "timestamp": "2026-08-22T17:18:28.036Z",
+          "payload_type": "custom_tool_call",
+          "call_id": "call_KIyJozaA8Og4gcHaM88Bvuln"
+        }
+      },
+      "evidence_level": "Recovered original historical tool record; not a fresh live probe"
+    },
+    {
+      "id": "EX07",
+      "scope": "Task1173 ECS/ECR and empty bounded error query",
+      "records": {
+        "result": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX07-result.jsonl",
+          "session_offset": 463388630,
+          "bytes": 1835,
+          "sha256": "d36c439a447aa87623bacf80631ed59f746fa101cde38cd6600fd2cbfa7f8d3a",
+          "timestamp": "2026-08-22T17:18:57.066Z",
+          "payload_type": "custom_tool_call_output",
+          "call_id": "call_5QHNMGVwB2J6U0Il9YKwThnq"
+        },
+        "call": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX07-call.jsonl",
+          "session_offset": 463386819,
+          "bytes": 1811,
+          "sha256": "c5204eb88f536db89a32a06d8e195504963edfc43653a8c91c8960f0ab0f93e0",
+          "timestamp": "2026-08-22T17:18:46.605Z",
+          "payload_type": "custom_tool_call",
+          "call_id": "call_5QHNMGVwB2J6U0Il9YKwThnq"
+        }
+      },
+      "evidence_level": "Recovered original historical tool record; not a fresh live probe"
+    },
+    {
+      "id": "EX08",
+      "scope": "Task1175 deployment completion",
+      "records": {
+        "result": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX08-result.jsonl",
+          "session_offset": 468208892,
+          "bytes": 1279,
+          "sha256": "b3a0533cd9fe99371795f7476234e847552307eb953d9e976ed9c0b65e663914",
+          "timestamp": "2026-08-22T18:59:24.536Z",
+          "payload_type": "custom_tool_call_output",
+          "call_id": "call_vfsqI0EVhHW2cRyBtB8T7yUG"
+        }
+      },
+      "evidence_level": "Recovered original historical tool record; not a fresh live probe"
+    },
+    {
+      "id": "EX09",
+      "scope": "Task1175 saved observation projection: identity, tick, body and resource scope",
+      "records": {
+        "result": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX09-result.jsonl",
+          "session_offset": 468258072,
+          "bytes": 3119,
+          "sha256": "4272dc1ac609fbfef37989378cfe0a172dc74b372b7ff80cea87b8b0cf3ea642",
+          "timestamp": "2026-08-22T19:00:36.689Z",
+          "payload_type": "custom_tool_call_output",
+          "call_id": "call_2q1iFeuPS24168919YvD4isd"
+        },
+        "call": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX09-call.jsonl",
+          "session_offset": 468257419,
+          "bytes": 653,
+          "sha256": "668e0f61594d2c2e44dc5c86f6dc76181f8847757daf1ea65f0fc4695cf935d6",
+          "timestamp": "2026-08-22T19:00:36.478Z",
+          "payload_type": "custom_tool_call",
+          "call_id": "call_2q1iFeuPS24168919YvD4isd"
+        }
+      },
+      "evidence_level": "Recovered original historical tool record; not a fresh live probe"
+    },
+    {
+      "id": "EX10",
+      "scope": "Task1175 saved observation: eight availability credits",
+      "records": {
+        "result": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX10-result.jsonl",
+          "session_offset": 468306599,
+          "bytes": 5670,
+          "sha256": "cceffd6e0669cd64d53854a23381ee117d00f8cf36472d54c0a5aa5d97f32914",
+          "timestamp": "2026-08-22T19:01:52.617Z",
+          "payload_type": "custom_tool_call_output",
+          "call_id": "call_1bJJl4e1KfanJOQSM63IR608"
+        },
+        "call": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX10-call.jsonl",
+          "session_offset": 468305981,
+          "bytes": 618,
+          "sha256": "dccc2eefd54c0906ed2304d76e201dd3b48318d00cd223926da8ee9665fe7f13",
+          "timestamp": "2026-08-22T19:01:50.983Z",
+          "payload_type": "custom_tool_call",
+          "call_id": "call_1bJJl4e1KfanJOQSM63IR608"
+        }
+      },
+      "evidence_level": "Recovered original historical tool record; not a fresh live probe"
+    },
+    {
+      "id": "EX11",
+      "scope": "Task1175 saved observation: prior causal witness unavailable",
+      "records": {
+        "result": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX11-result.jsonl",
+          "session_offset": 468316423,
+          "bytes": 902,
+          "sha256": "a430bbccc3edf2d8e3390ae11e8b825632eb45e5562fa1a69a7dd58ac337e1b6",
+          "timestamp": "2026-08-22T19:02:05.976Z",
+          "payload_type": "custom_tool_call_output",
+          "call_id": "call_oMn7WAJ1JzjvKRsd87LFeD9U"
+        },
+        "call": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX11-call.jsonl",
+          "session_offset": 468315647,
+          "bytes": 776,
+          "sha256": "b93d341eaf53294e8f3be927ecc2952d0b438ba389b820d97acb6e2ce5d75383",
+          "timestamp": "2026-08-22T19:02:05.801Z",
+          "payload_type": "custom_tool_call",
+          "call_id": "call_oMn7WAJ1JzjvKRsd87LFeD9U"
+        }
+      },
+      "evidence_level": "Recovered original historical tool record; not a fresh live probe"
+    },
+    {
+      "id": "EX12",
+      "scope": "Successful GET producing the saved Task1175 observation used in EX09–11",
+      "records": {
+        "result": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX12-result.jsonl",
+          "session_offset": 468254196,
+          "bytes": 503,
+          "sha256": "ac85e79277c58556b7bcd77495d30acf50e3e36d7a41ad47051e9c5ba61c34ee",
+          "timestamp": "2026-08-22T19:00:31.305Z",
+          "payload_type": "custom_tool_call_output",
+          "call_id": "call_MwN1EO0aBnIEDi9GBDja6ahn"
+        },
+        "call": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX12-call.jsonl",
+          "session_offset": 468253310,
+          "bytes": 886,
+          "sha256": "8c1f48ab7f76c8e5fa8fc4dae3b7702a9cffbc25443ff2205a71db4701ceadbb",
+          "timestamp": "2026-08-22T19:00:30.876Z",
+          "payload_type": "custom_tool_call",
+          "call_id": "call_MwN1EO0aBnIEDi9GBDja6ahn"
+        }
+      },
+      "evidence_level": "Recovered original historical tool record; not a fresh live probe"
+    },
+    {
+      "id": "EX13",
+      "scope": "Later Task1175 generation150596 observation of unavailable curiosity/play witnesses",
+      "records": {
+        "result": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX13-result.jsonl",
+          "session_offset": 468710296,
+          "bytes": 5854,
+          "sha256": "f56b9da1eb12d1d443e361594f5e05fdc9944115905586d496131f3c0ecc22fd",
+          "timestamp": "2026-08-22T19:13:44.490Z",
+          "payload_type": "custom_tool_call_output",
+          "call_id": "call_Kpc0JrcAF7ojREENmU7kx5Gj"
+        }
+      },
+      "evidence_level": "Recovered original historical tool record; not a fresh live probe"
+    },
+    {
+      "id": "EX14",
+      "scope": "Intermediate historical observation still reports65 formations",
+      "records": {
+        "result": {
+          "path": "docs/guala_reconciliation/sources/c024-execution/EX14-result.jsonl",
+          "session_offset": 464919444,
+          "bytes": 2262,
+          "sha256": "8120d0e91dc551806767da90bf2cec38a26d8ddce8a30bbadd787cc54b498e06",
+          "timestamp": "2026-08-22T17:40:54.899Z",
+          "payload_type": "custom_tool_call_output",
+          "call_id": "call_6jLtwoOIJG2eCLA2psUWtu0f"
+        }
+      },
+      "evidence_level": "Recovered original historical tool record; not a fresh live probe"
+    }
+  ],
+  "sources": [
+    {
+      "id": "CS01",
+      "path": "docs/guala_reconciliation/sources/c024-execution/35e6845ba--native_production_app.py",
+      "original_path": "dsf_ai_service/native_production_app.py",
+      "commit": "35e6845ba3ce42c4adc7a93b1fe4599aa6f7a240",
+      "sha256": "5a5d1da1e4559b8448c8674fb0b18038ec647ff7d19b16e3b5a6a7afd90a3e81",
+      "bytes": 610214,
+      "review_scope": "Selected complete capital/choice/play/curiosity/body producer functions and observation boundaries; not the complete app"
+    },
+    {
+      "id": "CS02",
+      "path": "docs/guala_reconciliation/sources/c024-execution/35e6845ba--test_native_c024_cognitive_capital.py",
+      "original_path": "tests/test_native_c024_cognitive_capital.py",
+      "commit": "35e6845ba3ce42c4adc7a93b1fe4599aa6f7a240",
+      "sha256": "cd591b27e73a1a219a044b9be41124f2904f315ade352f43850c84b7a10370e6",
+      "bytes": 8447,
+      "review_scope": "Complete test file"
+    },
+    {
+      "id": "CS03",
+      "path": "docs/guala_reconciliation/sources/c024-execution/e5b366c5--native_production_app.py",
+      "original_path": "dsf_ai_service/native_production_app.py",
+      "commit": "e5b366c51118d63c4f9207bcd30759cb82b09c90",
+      "sha256": "7d186835fb409e5da36dc9aecae7b36312d625e7d53cf6948f62f98f46ee8d13",
+      "bytes": 403548,
+      "review_scope": "Complete capital function only"
+    },
+    {
+      "id": "CS04",
+      "path": "docs/guala_reconciliation/sources/c024-execution/e5b366c5--test_native_c024_cognitive_capital.py",
+      "original_path": "tests/test_native_c024_cognitive_capital.py",
+      "commit": "e5b366c51118d63c4f9207bcd30759cb82b09c90",
+      "sha256": "4fca8255eec393d99e1a9d1baa64ac3749635088a555bb8bfc2f62d39a328474",
+      "bytes": 6686,
+      "review_scope": "Complete test file"
+    },
+    {
+      "id": "CS05",
+      "path": "docs/guala_reconciliation/sources/c024-execution/V25-before--resident_cognitive_formation.rs",
+      "original_path": "native/guala_core/src/resident_cognitive_formation.rs",
+      "commit": "eface784c40a37cc65c9dad5070349e6335069b3^",
+      "sha256": "705d71848ca6b461d316584ac5503a0f9c3c062cb484e95aca0c9289e5564b65",
+      "bytes": 796237,
+      "review_scope": "Complete V25 delta against successor, not whole base"
+    },
+    {
+      "id": "CS06",
+      "path": "docs/guala_reconciliation/sources/c024-execution/V25-after--resident_cognitive_formation.rs",
+      "original_path": "native/guala_core/src/resident_cognitive_formation.rs",
+      "commit": "eface784c40a37cc65c9dad5070349e6335069b3",
+      "sha256": "da3f6bcea1db049cf8e25f30f66340d92749d40d35ee106e73a2ddae4d10f300",
+      "bytes": 790978,
+      "review_scope": "Complete V25 delta plus selected full decoder, migration, summary and retirement functions; not whole source"
+    },
+    {
+      "id": "CS07",
+      "path": "docs/guala_reconciliation/sources/c024-execution/V25-migration.diff",
+      "original_path": null,
+      "commit": "eface784c40a37cc65c9dad5070349e6335069b3",
+      "sha256": "8d703ee7d58090dcb6acbc1e47a54a37e0cd615488c6ead9b83f073823ee3157",
+      "bytes": 89010,
+      "review_scope": "All1925lines read; three-file change including probes"
+    },
+    {
+      "id": "CS08",
+      "path": "docs/guala_reconciliation/sources/c024-execution/V25--organism_runtime.rs",
+      "original_path": "native/guala_core/src/organism_runtime.rs",
+      "commit": "eface784c40a37cc65c9dad5070349e6335069b3",
+      "sha256": "5aa72cc9fdcda18613e13e492ffcb0ef720fe1a0e8df13382df7b9b55d5c400b",
+      "bytes": 312760,
+      "review_scope": "Selected readiness and restored-observation producer; not whole source"
+    },
+    {
+      "id": "CS09",
+      "path": "docs/guala_reconciliation/sources/c024-execution/V25--native_resident_organism.py",
+      "original_path": "dsf_ai_service/glew_runtime/native_resident_organism.py",
+      "commit": "eface784c40a37cc65c9dad5070349e6335069b3",
+      "sha256": "55528d6c7a2de40cc8a778ea5ea8a93032852bf7d9dffb3f77a2de20e8325856",
+      "bytes": 150101,
+      "review_scope": "Selected observation-validation and readiness caller; not whole source"
+    }
+  ],
+  "findings": [
+    {
+      "id": "RX01",
+      "name": "Recovered causal witness is real historical evidence with a narrow scope",
+      "classification": "verified historical observation; preserve bounded accomplishment",
+      "finding": "Task1173 reports65 retained formations and83 capital cells at generation150334. The recovered causal witness carries a retained formation receipt,42 effector bindings, a changed contact and two externally perturbed body receptors. It explicitly says root_motion:false. This supports a historical formation-to-body consequence witness, not open navigation, language or current autonomy.",
+      "receipt_ids": [
+        "EX01",
+        "EX02",
+        "EX04",
+        "EX05",
+        "EX06",
+        "EX07"
+      ],
+      "refs": [
+        {
+          "source": "CS01",
+          "path": "docs/guala_reconciliation/sources/c024-execution/35e6845ba--native_production_app.py",
+          "sha256": "5a5d1da1e4559b8448c8674fb0b18038ec647ff7d19b16e3b5a6a7afd90a3e81",
+          "line": 5124,
+          "anchor": "def _causal_cross_context_use_record() -> dict[str, object]:"
+        }
+      ],
+      "lawful_remedy": "Preserve the exact witness in historical acceptance; separate articulated consequence from root locomotion and current capability. Reproduce the requested navigation path on the qualified retained candidate before using it as evidence of navigation.",
+      "acceptance_falsifier": "A navigation claim fails if only articulated motion occurs, root pose does not change, or the next consequence cannot be traced to retained neuronal state.",
+      "repair_actions": [
+        "A08",
+        "A13",
+        "A16",
+        "A18"
+      ]
+    },
+    {
+      "id": "RX02",
+      "name": "The83-to8 reduction is not established as observation-cache loss alone",
+      "classification": "verified observation discrepancy; physical loss and exact cause unresolved",
+      "finding": "Task1175 reports the same organism identity at tick150596 with131697766bytes and eight credits, all availability. Earlier Task1173 reported204133596bytes at150301 and65formations. The capital producer is byte-identical across the two builds and credits episodic/learning retention whenever formations.mosaic_count>0, independently of the cached prior action witness. Restored native observation carries cognitive.mosaic_count rather than resetting it. Therefore the cache explanation does not account for all missing credits. The full post-migration formation body and adjacent pre/post retained-state comparison have not been recovered; do not assert erasure or preservation from counts alone.",
+      "receipt_ids": [
+        "EX02",
+        "EX03",
+        "EX09",
+        "EX10",
+        "EX11",
+        "EX12"
+      ],
+      "refs": [
+        {
+          "source": "CS01",
+          "path": "docs/guala_reconciliation/sources/c024-execution/35e6845ba--native_production_app.py",
+          "sha256": "5a5d1da1e4559b8448c8674fb0b18038ec647ff7d19b16e3b5a6a7afd90a3e81",
+          "line": 5439,
+          "anchor": "    if int(record[\"formations\"].get(\"mosaic_count\", 0)) > 0:"
+        },
+        {
+          "source": "CS08",
+          "path": "docs/guala_reconciliation/sources/c024-execution/V25--organism_runtime.rs",
+          "sha256": "5aa72cc9fdcda18613e13e492ffcb0ef720fe1a0e8df13382df7b9b55d5c400b",
+          "line": 5270,
+          "anchor": "        cognitive_mosaic_count: cognitive.mosaic_count,"
+        },
+        {
+          "source": "CS06",
+          "path": "docs/guala_reconciliation/sources/c024-execution/V25-after--resident_cognitive_formation.rs",
+          "sha256": "da3f6bcea1db049cf8e25f30f66340d92749d40d35ee106e73a2ddae4d10f300",
+          "line": 3836,
+          "anchor": "    pub(crate) fn summary(&self) -> CognitiveFormationSummary {"
+        }
+      ],
+      "lawful_remedy": "Bind the last V24 body and first V25 body and compare retained lineages, physical deltas, original/recurrent bonds, generation and the next ordinary transition. Trace every count through native summary, binding, Python and public evidence. Account every removed relation with explicit authority; do not fill missing evidence with a reconstructed story.",
+      "acceptance_falsifier": "Cold restore of a body with retained formations must still expose those exact formations and retention credits without replaying a new episode. A lost relation, falsely zero observer or unexplained changed continuation fails preservation.",
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A13",
+        "A16",
+        "A18"
+      ]
+    },
+    {
+      "id": "RX03",
+      "name": "V25 deleted causal-unlearning and legacy-conversion assertions",
+      "classification": "verified test-coverage regression; intent not inferred",
+      "finding": "The V25 commit removes the test branch that restores predecessor neuron states and demonstrates recurrence cannot form the learned mosaic; a nonempty retained-member assertion replaces it. It also removes a V6-to-current retained-evidence equivalence test and adds rejection of relabeled V7 bytes. Nonempty members and rejecting invalid format labels do not prove learned-state causality or legitimate migration preservation.",
+      "receipt_ids": [],
+      "refs": [
+        {
+          "source": "CS07",
+          "path": "docs/guala_reconciliation/sources/c024-execution/V25-migration.diff",
+          "sha256": "8d703ee7d58090dcb6acbc1e47a54a37e0cd615488c6ead9b83f073823ee3157",
+          "line": 1705,
+          "anchor": "-        let mut unlearned = ResidentCognitiveFormationState {"
+        },
+        {
+          "source": "CS07",
+          "path": "docs/guala_reconciliation/sources/c024-execution/V25-migration.diff",
+          "sha256": "8d703ee7d58090dcb6acbc1e47a54a37e0cd615488c6ead9b83f073823ee3157",
+          "line": 1852,
+          "anchor": "-        assert_eq!(migrated, *retained);"
+        }
+      ],
+      "lawful_remedy": "Keep the new sparse representation, but retain independent pre-learning and learned snapshots in the external test fixture. Exercise the same physical partial cue on both. Add authenticated legacy migration fixtures comparing exact retained coordinates, relations and next transition. Do not reintroduce duplicate production snapshots merely to satisfy tests.",
+      "acceptance_falsifier": "A candidate must fail if unlearned/severed state reproduces the learned causal effect, if migration drops a retained coordinate/relation, or if warm/cold successors diverge. A member count is insufficient.",
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A16"
+      ]
+    },
+    {
+      "id": "RX04",
+      "name": "Migration includes destructive historical correction branches beyond encoding",
+      "classification": "verified conditional source behavior; activation and authorization onTask1175 unresolved",
+      "finding": "migrate_to_current_format also calls retire_aliased_local_integrators and into_expanded_legacy_receptor_channel_populations. The first removes selected cells, contacts and formations. The second, when expansion is required, clears experience on every cohort, electrical frontiers and all mosaics. These branches predate the V25 delta; attributing them newly to V25 would be wrong. Their invocation/effect on the actual Task1175 predecessor is not proved by this review. The optional legacy decoder also drops an untranslatable pending recovery record; retained errors propagate.",
+      "receipt_ids": [
+        "EX08",
+        "EX09"
+      ],
+      "refs": [
+        {
+          "source": "CS06",
+          "path": "docs/guala_reconciliation/sources/c024-execution/V25-after--resident_cognitive_formation.rs",
+          "sha256": "da3f6bcea1db049cf8e25f30f66340d92749d40d35ee106e73a2ddae4d10f300",
+          "line": 3470,
+          "anchor": "    fn retire_aliased_local_integrators(&self) -> Result<Option<Self>, FormationError> {"
+        },
+        {
+          "source": "CS06",
+          "path": "docs/guala_reconciliation/sources/c024-execution/V25-after--resident_cognitive_formation.rs",
+          "sha256": "da3f6bcea1db049cf8e25f30f66340d92749d40d35ee106e73a2ddae4d10f300",
+          "line": 3621,
+          "anchor": "    fn expand_legacy_receptor_channel_populations(&self) -> Result<Self, FormationError> {"
+        },
+        {
+          "source": "CS06",
+          "path": "docs/guala_reconciliation/sources/c024-execution/V25-after--resident_cognitive_formation.rs",
+          "sha256": "da3f6bcea1db049cf8e25f30f66340d92749d40d35ee106e73a2ddae4d10f300",
+          "line": 3689,
+          "anchor": "    fn into_expanded_legacy_receptor_channel_populations(self) -> Result<Self, FormationError> {"
+        },
+        {
+          "source": "CS06",
+          "path": "docs/guala_reconciliation/sources/c024-execution/V25-after--resident_cognitive_formation.rs",
+          "sha256": "da3f6bcea1db049cf8e25f30f66340d92749d40d35ee106e73a2ddae4d10f300",
+          "line": 9613,
+          "anchor": "                )) if !retained => {"
+        }
+      ],
+      "lawful_remedy": "Separate exact serialization conversion from architectural state retirement in the migration contract and receipt. Preflight which branch applies to the authenticated predecessor. Preserve the original body, enumerate changed/lost relations and authority, and fail visibly where faithful translation is unavailable. No identity-only continuity claim.",
+      "acceptance_falsifier": "An encoding-only migration must preserve retained state and its next transition. Any structural retirement requires exact before/after evidence and its own ratified boundary; silent None, blanket clearing or undisclosed loss fails.",
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A17",
+        "A18"
+      ]
+    },
+    {
+      "id": "RX05",
+      "name": "Sparse V25 storage is a potential improvement with a distinct causal change to qualify",
+      "classification": "source-verified representation evolution; behavioral equivalence unproved",
+      "finding": "V25 replaces duplicate predecessor/learned neuron snapshots with sparse retained-coordinate deltas and composes interval deltas. It also changes recurrence evidence from learned-to-successor comparison to interval-local physical changes. Reduced bytes alone do not imply loss, but the second change is more than compression and needs downstream causal equivalence proof. No organism code was run by A1.",
+      "receipt_ids": [
+        "EX03",
+        "EX09"
+      ],
+      "refs": [
+        {
+          "source": "CS07",
+          "path": "docs/guala_reconciliation/sources/c024-execution/V25-migration.diff",
+          "sha256": "8d703ee7d58090dcb6acbc1e47a54a37e0cd615488c6ead9b83f073823ee3157",
+          "line": 1250,
+          "anchor": "-            &member.learned,"
+        },
+        {
+          "source": "CS06",
+          "path": "docs/guala_reconciliation/sources/c024-execution/V25-after--resident_cognitive_formation.rs",
+          "sha256": "da3f6bcea1db049cf8e25f30f66340d92749d40d35ee106e73a2ddae4d10f300",
+          "line": 8107,
+          "anchor": "fn merge_pending_experience_members("
+        },
+        {
+          "source": "CS06",
+          "path": "docs/guala_reconciliation/sources/c024-execution/V25-after--resident_cognitive_formation.rs",
+          "sha256": "da3f6bcea1db049cf8e25f30f66340d92749d40d35ee106e73a2ddae4d10f300",
+          "line": 8573,
+          "anchor": "fn recurrence_settlement("
+        }
+      ],
+      "lawful_remedy": "Derive which historical and current coordinates the recurrence consumer needs; prove composed deltas conserve that information across cancellation, repeated changes, positional growth and cold restore. Preserve sparse storage only where the same physical effect is established; do not rename an interval delta as a historical delta.",
+      "acceptance_falsifier": "Compare identical copied learned bodies through repeated and intervening activity, recurrence, migration and cold restore. A changed recurrence decision/effect not entailed by the ratified law falsifies equivalence.",
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A14",
+        "A16"
+      ]
+    },
+    {
+      "id": "RX06",
+      "name": "Observer fixture tests do not certify cognitive capability",
+      "classification": "verified evidence scope limitation and classification requirement",
+      "finding": "The historical app derives capability credits from mounted availability, same-transition sense counts, retained-formation presence and referenced causal records. Capital unit tests set those records explicitly. The two historical routing fixes are present in source, but passing these fixtures proves projection behavior only. Multisensory co-occurrence alone is not proof of causal integration; formation presence alone does not establish the full episodic story.",
+      "receipt_ids": [
+        "EX05",
+        "EX10"
+      ],
+      "refs": [
+        {
+          "source": "CS01",
+          "path": "docs/guala_reconciliation/sources/c024-execution/35e6845ba--native_production_app.py",
+          "sha256": "5a5d1da1e4559b8448c8674fb0b18038ec647ff7d19b16e3b5a6a7afd90a3e81",
+          "line": 5419,
+          "anchor": "    if len(participating_senses) > 1:"
+        },
+        {
+          "source": "CS01",
+          "path": "docs/guala_reconciliation/sources/c024-execution/35e6845ba--native_production_app.py",
+          "sha256": "5a5d1da1e4559b8448c8674fb0b18038ec647ff7d19b16e3b5a6a7afd90a3e81",
+          "line": 5311,
+          "anchor": "def _cognitive_capital_record(record: dict[str, Any]) -> dict[str, object]:"
+        }
+      ],
+      "lawful_remedy": "Keep capital read-only and classify every credit as availability, participation, retention or independently qualified capability. Bind each stronger credit to its complete physical producer and falsifier. Preserve no-credit/unavailable states and avoid a scalar cognitive grade.",
+      "acceptance_falsifier": "Removing the relevant causal participation or retained relation must remove only its justified claim; coincident sensor counts, mocked booleans or a schema-compliant witness cannot pass system qualification.",
+      "repair_actions": [
+        "A06",
+        "A13",
+        "A15",
+        "A16",
+        "A18"
+      ]
+    }
+  ],
+  "product_tests_run": false,
+  "current_activation_proved": false,
+  "complete_reconciliation": false,
+  "status_authority": "collaborative_todo.md"
+}

@@ -1,0 +1,110 @@
+{
+  "sources": [
+    {
+      "id": "TS01",
+      "path": "dsf_ai_service/lean_production_app.py",
+      "sha256": "e0eae159c9aac1038cecb7effa10fca158a058f9e493b5b97a196abbfba5c9da",
+      "bytes": 22757,
+      "lines": 543,
+      "git_blob": "working:e0eae159c9aac1038cecb7effa10fca158a058f9e493b5b97a196abbfba5c9da",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/task1606-boundary/TS01--lean_production_app.py",
+      "review": "Complete named source content read; exact Python bytes independently checked in serving container. Rust source matches packaged manifest and deployed wheel/binary identity, without a reproducible-build qualification."
+    },
+    {
+      "id": "TS02",
+      "path": "dsf_ai_service/guala_functional64_runtime.py",
+      "sha256": "f4710a82da0fbaa1e45ebad2018c521a739ccd8555ca780ca9f8758e662181ca",
+      "bytes": 9613,
+      "lines": 217,
+      "git_blob": "working:f4710a82da0fbaa1e45ebad2018c521a739ccd8555ca780ca9f8758e662181ca",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/task1606-boundary/TS02--guala_functional64_runtime.py",
+      "review": "Complete named source content read; exact Python bytes independently checked in serving container. Rust source matches packaged manifest and deployed wheel/binary identity, without a reproducible-build qualification."
+    },
+    {
+      "id": "TS03",
+      "path": "dsf_ai_service/guala_functional64_loop.py",
+      "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862",
+      "bytes": 16496,
+      "lines": 283,
+      "git_blob": "working:86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/task1606-boundary/TS03--guala_functional64_loop.py",
+      "review": "Complete named source content read; exact Python bytes independently checked in serving container. Rust source matches packaged manifest and deployed wheel/binary identity, without a reproducible-build qualification."
+    },
+    {
+      "id": "TS04",
+      "path": "native/guala_core/src/functional64_owner_boundary.rs",
+      "sha256": "fa31e8b566260dde36a4f687d841b5102f5cac6dd25dde1f70c7ed02e3cb3105",
+      "bytes": 13189,
+      "lines": 164,
+      "git_blob": "working:fa31e8b566260dde36a4f687d841b5102f5cac6dd25dde1f70c7ed02e3cb3105",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/task1606-boundary/TS04--functional64_owner_boundary.rs",
+      "review": "Complete named source content read; exact Python bytes independently checked in serving container. Rust source matches packaged manifest and deployed wheel/binary identity, without a reproducible-build qualification."
+    }
+  ],
+  "full_named_sources_read": true,
+  "git_document_corpus_pairs_added": 0,
+  "live_evidence": {
+    "task_definition": 1606,
+    "task_id": "7a13bf3c08ed4328bd4249531dcc277e",
+    "image_sha256": "91640805ccc0548ccb10d55e97598812684112047bbabdd4ecd5415b25c0b69f",
+    "native_sha256": "4c7c1811a389cb7acee89b77409672a5803d080801d3528fc9c596a9346b5244",
+    "independent_serving_reads": true,
+    "product_mutations": false,
+    "product_tests": false,
+    "evidence": [
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/container-read.json",
+        "sha256": "5549e146227dcdf66f55f889470a2126bacfb4c6022ecaeb93f4b1461c0cab4d",
+        "bytes": 1381
+      },
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/aws-refresh.json",
+        "sha256": "8002284473087e388291637b216e615fd74ab51d66cf9c778fdee5c8209aaeca",
+        "bytes": 2088
+      },
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/execution-read.json",
+        "sha256": "85c5fb838bc5fec93aa1a2786abaceccb6823c81953d8f39f8a850d939740dbf",
+        "bytes": 2895
+      },
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/execution-result.json",
+        "sha256": "18c8a9b1282d5765b1ec8131cdb809eb407b80833edab5f11518256c74eb37bb",
+        "bytes": 3155
+      },
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/custody-read.json",
+        "sha256": "7a013dca87d5abf8633c5e3bf0ef7f3ec4719b18de2115a5ef5a5f408c1d4e70",
+        "bytes": 1288
+      },
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/image-extraction.json",
+        "sha256": "85e6076d0e379e0db04575ee0543634f90511e211816734a61786fc524b76efb",
+        "bytes": 1186
+      },
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/image-release-manifest.json",
+        "sha256": "1d60ad93ba646329f7c53edc04fe776f1adbe9d1ea042a90980dc88974ec2c93",
+        "bytes": 76658
+      },
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/wheel-identity.json",
+        "sha256": "1b332785292be64d3b72c128272baf4e848c60116b7d729ac887cb8b6be0620c",
+        "bytes": 361
+      },
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/urgent-notification.json",
+        "sha256": "4fab00655e633cf30a8e548b006be1949818ddeb14b5049d820c6a25c5a2411b",
+        "bytes": 1488
+      },
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/binary-prepare-millisecond-disassembly.txt",
+        "sha256": "bd1d1eaca0d4b015e08c1e0de649009cb509740ab9f914ebab5a6628eed8effe",
+        "review": "Selected call inventory and direct lock-release symbols; not an exhaustive static call-graph proof."
+      }
+    ],
+    "source_binding": "Exact serving Python bytes and manifest/wheel/native identity. Not independent reproducible-build provenance or whole-program qualification.",
+    "root_cause_limit": "No userspace stack captured; native lock retention is a concrete source/binary hazard consistent with live waits, not exclusive dynamic attribution."
+  },
+  "complete_reconciliation": false
+}

@@ -1,0 +1,13 @@
+{
+  "schema": "guala.complete_memory_document_read_receipt.v1",
+  "sources": 8,
+  "paths": 5,
+  "latest_lines": 2040,
+  "historical_only_passages": 1,
+  "historical_only_lines": 1,
+  "source_hashes_validated": true,
+  "all_latest_and_old_content_read": true,
+  "product_execution": false,
+  "product_qualification": false,
+  "full_bibliography_review": false
+}

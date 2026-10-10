@@ -1,0 +1,244 @@
+{
+  "schema": "guala.reconciliation_mechanism_supplement.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-09T22:14:50.618852+00:00",
+  "task_definition": "dsf-ai-task:1598",
+  "image_digest": "sha256:fa39dad6277cf849a8952bd8e8f43f0f1d39e22eba68bf2fe114679ae0594fe1",
+  "predecessor_registry": "docs/GUALA_LEARNING_DECISION_CLASSIFICATION_TASK1593_2026-10-09.json",
+  "claim_scope": {
+    "controller_retirement": "FAIL",
+    "shipped_artifact_ml_free": "FAIL",
+    "live_model_inference": "NOT_ESTABLISHED",
+    "exhaustive_classification": false
+  },
+  "mechanisms": [
+    {
+      "id": "M01",
+      "name": "Procedural controller remains ordinary serving authority",
+      "algorithm_classes": [
+        "hand_authored_policy"
+      ],
+      "architecture_disposition": "forbidden",
+      "observed_mechanism": "Startup restores FunctionalOrganism and mounts FunctionalPhysicalLoop. _choose still contains threshold veto, serialized plan, turn-counter filter, quiet-gap speech and dwell-score portal/feeding priorities.",
+      "replacement": "Retire every procedural authority in the full startup/action/restore/package closure; preserve history and use the authorized native64 causal loop.",
+      "refs": [
+        {
+          "path": "backups/runtime/a1-architecture-reconciliation-20261009/task1598-image-root/app/dsf_ai_service/lean_production_app.py",
+          "sha256": "c9dc76c71f090a733e88be2dc088418c075ff446ad77fe9a0b50a3b2daf3c09e",
+          "start": 195,
+          "end": 277,
+          "scope": "exact Task1598 image; not host working copy"
+        },
+        {
+          "path": "backups/runtime/a1-architecture-reconciliation-20261009/task1598-image-root/app/dsf_ai_service/guala_functional_loop.py",
+          "sha256": "6e62f0edc5e2acb2e3d5deda7242467257d6d0a0f6f99c73a8bacd37c0b38b95",
+          "start": 390,
+          "end": 420,
+          "scope": "exact Task1598 image; not host working copy"
+        },
+        {
+          "path": "backups/runtime/a1-architecture-reconciliation-20261009/task1598-image-root/app/dsf_ai_service/guala_functional_organism.py",
+          "sha256": "99e971c3039cd1d4c9652755e529b9358d87af7403e1c3ccfcebe22d2ad844e0",
+          "start": 3370,
+          "end": 3555,
+          "scope": "exact Task1598 image; not host working copy"
+        }
+      ],
+      "required_unit": "Expose authored rule selection without treating option count as the criterion.",
+      "required_module": "Bind independent effector commands to actual native producers and world settlement.",
+      "required_system": "Same preserved cold-restored organism acts, senses consequences and continues without rejected controller authority.",
+      "evidence_limits": "Startup and branch source verified; individual branch execution not isolated by the single live sample.",
+      "qualification": "not_passed",
+      "implementation_owner": "G1",
+      "verification_owner": "A1"
+    },
+    {
+      "id": "M02",
+      "name": "Reward/example speech selection",
+      "algorithm_classes": [
+        "reward_learning",
+        "example_matching",
+        "hand_authored_policy"
+      ],
+      "architecture_disposition": "forbidden",
+      "observed_mechanism": "Spectral-cosine threshold and learned mean_worth rank catalog syllables; native articulation exception is swallowed before catalog fallback.",
+      "replacement": "Native ordered articulation and self-hearing with retained physical learning; old records remain read-only evidence.",
+      "refs": [
+        {
+          "path": "backups/runtime/a1-architecture-reconciliation-20261009/task1598-image-root/app/dsf_ai_service/guala_functional_organism.py",
+          "sha256": "99e971c3039cd1d4c9652755e529b9358d87af7403e1c3ccfcebe22d2ad844e0",
+          "start": 3090,
+          "end": 3096,
+          "scope": "exact Task1598 image; not host working copy"
+        },
+        {
+          "path": "backups/runtime/a1-architecture-reconciliation-20261009/task1598-image-root/app/dsf_ai_service/guala_functional_organism.py",
+          "sha256": "99e971c3039cd1d4c9652755e529b9358d87af7403e1c3ccfcebe22d2ad844e0",
+          "start": 3226,
+          "end": 3255,
+          "scope": "exact Task1598 image; not host working copy"
+        },
+        {
+          "path": "backups/runtime/a1-architecture-reconciliation-20261009/task1598-image-root/app/dsf_ai_service/guala_functional_organism.py",
+          "sha256": "99e971c3039cd1d4c9652755e529b9358d87af7403e1c3ccfcebe22d2ad844e0",
+          "start": 3328,
+          "end": 3368,
+          "scope": "exact Task1598 image; not host working copy"
+        }
+      ],
+      "required_unit": "Show returned drives depend on the prohibited learned worth/catalog and expose fallback.",
+      "required_module": "Prove native articulatory trajectory causes PCM and actual self-heard return.",
+      "required_system": "Varied-context learned use, severed-path control, cold continuation and no score/catalog decision fallback.",
+      "evidence_limits": "The exact serving method is inspected; reward branch execution was not isolated in the live observation.",
+      "qualification": "not_passed",
+      "implementation_owner": "G1",
+      "verification_owner": "A1"
+    },
+    {
+      "id": "M07",
+      "name": "Procedural dream/consolidation",
+      "algorithm_classes": [
+        "hand_authored_policy",
+        "field_projection"
+      ],
+      "architecture_disposition": "forbidden",
+      "observed_mechanism": "Most-visited/recent action record is moved to coarse-key learned totals; moments are selected by eligibility/count/tick.",
+      "replacement": "Actual native retained-relation re-entry/reorganization with explicit origin and subsequent recall/use.",
+      "refs": [
+        {
+          "path": "backups/runtime/a1-architecture-reconciliation-20261009/task1598-image-root/app/dsf_ai_service/guala_functional_organism.py",
+          "sha256": "99e971c3039cd1d4c9652755e529b9358d87af7403e1c3ccfcebe22d2ad844e0",
+          "start": 3098,
+          "end": 3160,
+          "scope": "exact Task1598 image; not host working copy"
+        }
+      ],
+      "required_unit": "Separate silent steps, preserved state and actual retained structural change.",
+      "required_module": "Prove sleep/internal cause reaches the specified local retained relation.",
+      "required_system": "Experienced same organism shows later recall/use and cold continuity; causal ablation removes the claimed contribution.",
+      "evidence_limits": "No current sleep transition was isolated; source is not evidence of completed consolidation.",
+      "qualification": "not_passed",
+      "implementation_owner": "G1",
+      "verification_owner": "A1"
+    },
+    {
+      "id": "M37",
+      "name": "Packaged YOLO neural-network model",
+      "algorithm_classes": [
+        "ml_model_asset"
+      ],
+      "architecture_disposition": "forbidden",
+      "observed_mechanism": "Exact image retains 12851097 model bytes, SHA256 f63fb6402b62f71f218d3be38cdc48ed1e5520f27948d3ca86149a427e9dd7d3, matching the previously parsed neural model.",
+      "replacement": "Remove model asset from every inherited image layer and qualify loader/process exclusion.",
+      "refs": [
+        {
+          "path": "backups/runtime/a1-architecture-reconciliation-20261009/task1598-image-root/app/dsf_ai_service/models/yolov8n.onnx",
+          "sha256": "f63fb6402b62f71f218d3be38cdc48ed1e5520f27948d3ca86149a427e9dd7d3",
+          "bytes": 12851097,
+          "scope": "exact Task1598 image"
+        }
+      ],
+      "required_unit": "Inspect final artifact bytes and model inventory.",
+      "required_module": "Trace all loaders and imported/external inference paths.",
+      "required_system": "Verify the loaded release has neither the forbidden asset nor an alternate inference path.",
+      "evidence_limits": "Model presence is confirmed; execution of YOLO inference is not established.",
+      "qualification": "not_passed",
+      "implementation_owner": "G1",
+      "verification_owner": "A1"
+    },
+    {
+      "id": "M38",
+      "name": "Packaged Whisper speech-recognition source",
+      "algorithm_classes": [
+        "ml_inference_code"
+      ],
+      "architecture_disposition": "forbidden",
+      "observed_mechanism": "Exact image retains speech_transducer.py; its hash matches the known Whisper implementation.",
+      "replacement": "Exclude obsolete inference implementation and all reachable alternate loaders while preserving actual receptor transduction.",
+      "refs": [
+        {
+          "path": "backups/runtime/a1-architecture-reconciliation-20261009/task1598-image-root/app/dsf_ai_service/speech_transducer.py",
+          "sha256": "fdad4926f42394d0b0a76faaf74827915016ac10af18e2a798c50ae7149b1b7d",
+          "start": 1,
+          "end": 726,
+          "scope": "exact Task1598 image; not host working copy"
+        }
+      ],
+      "required_unit": "Identify actual recognition-model construction independently of filename.",
+      "required_module": "Resolve imports and dynamic loaders from the actual entrypoint.",
+      "required_system": "Qualify pupil and external-process scope separately.",
+      "evidence_limits": "Package presence is verified; lean-entry runtime use was not established.",
+      "qualification": "not_passed",
+      "implementation_owner": "G1",
+      "verification_owner": "A1"
+    },
+    {
+      "id": "M45",
+      "name": "Native source-to-binary and adaptive mechanism closure",
+      "algorithm_classes": [
+        "unknown"
+      ],
+      "architecture_disposition": "unverified",
+      "observed_mechanism": "Complete source/compiler inputs and loaded native binary remain unqualified for Task1598.",
+      "replacement": "Complete source-bound semantic classification and causal evidence; unknown must not become ML-free.",
+      "refs": [],
+      "required_unit": "Classify each state-changing operator and its derivation.",
+      "required_module": "Bind every transformation and retained-state consumer across language boundaries.",
+      "required_system": "Same-image live system acceptance with no unclassified decision/learning authority.",
+      "evidence_limits": "This audit exported six successful selected files, not a complete image/module/process census.",
+      "qualification": "not_passed",
+      "implementation_owner": "G1",
+      "verification_owner": "A1"
+    },
+    {
+      "id": "M46",
+      "name": "Remaining dynamic/external mechanism closure",
+      "algorithm_classes": [
+        "unknown"
+      ],
+      "architecture_disposition": "unverified",
+      "observed_mechanism": "All other Python, dynamic import, dependency and external-process paths remain unqualified for Task1598.",
+      "replacement": "Complete source-bound semantic classification and causal evidence; unknown must not become ML-free.",
+      "refs": [],
+      "required_unit": "Classify each state-changing operator and its derivation.",
+      "required_module": "Bind every transformation and retained-state consumer across language boundaries.",
+      "required_system": "Same-image live system acceptance with no unclassified decision/learning authority.",
+      "evidence_limits": "This audit exported six successful selected files, not a complete image/module/process census.",
+      "qualification": "not_passed",
+      "implementation_owner": "G1",
+      "verification_owner": "A1"
+    }
+  ],
+  "lifecycle": {
+    "specification": {
+      "status": "not_qualified",
+      "receipts": []
+    },
+    "development": {
+      "status": "not_qualified",
+      "receipts": []
+    },
+    "unit": {
+      "status": "not_qualified",
+      "receipts": []
+    },
+    "module": {
+      "status": "not_qualified",
+      "receipts": []
+    },
+    "system": {
+      "status": "not_qualified",
+      "receipts": []
+    },
+    "rehearsal": {
+      "status": "not_qualified",
+      "receipts": []
+    },
+    "live": {
+      "status": "not_qualified",
+      "receipts": []
+    }
+  },
+  "qualification": "REJECTED",
+  "caveat": "Seven scoped records are neither seven new violations nor complete revalidation of predecessor49. Source/artifact read only; no organism test, code repair or deployment by A1."
+}

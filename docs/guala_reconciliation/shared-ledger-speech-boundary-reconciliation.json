@@ -1,0 +1,734 @@
+{
+  "schema": "guala.selected_shared_ledger_speech_boundaries.v1",
+  "at_utc": "2026-10-10T12:56:42.813408+00:00",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "sources": [
+    {
+      "id": "SB01",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 11032,
+      "original_line_end": 11141,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB01.txt",
+      "sha256": "b3c55e8edd4586c931f2c8bb31f1f951667a02eded37c45614e1e298a69d4e4f",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB02",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 11144,
+      "original_line_end": 11265,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB02.txt",
+      "sha256": "ad2699a6afc52a38e3e77f1fbf981b4df5a1ffbe9fc84d002b0545f044c195b6",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB03",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 11271,
+      "original_line_end": 11383,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB03.txt",
+      "sha256": "c8627876284d69bd72111398fe53fb6373531a63e4aa97f77507f0f209a87fa0",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB04",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 11423,
+      "original_line_end": 11488,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB04.txt",
+      "sha256": "194232506a902ed820a47370d5f3fd6b815bd229a58432e89aadbdcbaa36763e",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB05",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 11720,
+      "original_line_end": 11808,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB05.txt",
+      "sha256": "8b619b1976ff8c44e1a3fcf3abff4924e62300ffce54086db73647a6a0ef911b",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB06",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 11811,
+      "original_line_end": 12075,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB06.txt",
+      "sha256": "3569dbb31fca5936e4abcd28a59f235081929c418b2e43d4ec97ca442fd27037",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB07",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 12077,
+      "original_line_end": 12280,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB07.txt",
+      "sha256": "b2a855f4ccd852bf505dac65ea62c04697b55d8d5cf16bcc97d3ca4c5a1ccb56",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB08",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 12285,
+      "original_line_end": 12575,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB08.txt",
+      "sha256": "8d88f8dfcbd0c0487d077b188e043fbb365545781ce8743ea03b1a923ae8d276",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB09",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 12577,
+      "original_line_end": 12720,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB09.txt",
+      "sha256": "9a004ccb48abee3054ba46b298dc4a70f98695093a69992218d2f25713d53104",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB10",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 13635,
+      "original_line_end": 13668,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB10.txt",
+      "sha256": "e3f2e4fa3bb705297cd2184d88f1dfe822d867f9b5b48d55fd69a7cf16bfb876",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB11",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 13758,
+      "original_line_end": 13768,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB11.txt",
+      "sha256": "b74bc950a592b96bce28f17a6b226ad08d39be5217740c4ebeba4a4204562d82",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB12",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 15178,
+      "original_line_end": 15192,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB12.txt",
+      "sha256": "64a4185f3f2c1fc2ff07e846a4a00b4a62eb403fbf3dd0d974999b81cd672937",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB13",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 15212,
+      "original_line_end": 15227,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB13.txt",
+      "sha256": "bd0404d2a744f939a08ff93edbacdcea945f28fe683e6aa4fcf7464d690e8d6f",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB14",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 15248,
+      "original_line_end": 15265,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB14.txt",
+      "sha256": "5400b0736a729610751e9075ccfb186c73aa306997c769577858530bd58c5930",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB15",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 15291,
+      "original_line_end": 15294,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB15.txt",
+      "sha256": "893116f5398119d2267fb14fec214a4cbe3ec9051b58d97b994c73192366d6ac",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB16",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 15477,
+      "original_line_end": 15495,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB16.txt",
+      "sha256": "4019f63dc59f8331d4c52d3ea05d4c3ea02465978a4e71391f637eded6ed8fce",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB17",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 15582,
+      "original_line_end": 15598,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB17.txt",
+      "sha256": "3628de1993652200613d3c213981982955848b98c08b293b4eb216726bb5ff8a",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB18",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 15610,
+      "original_line_end": 15622,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB18.txt",
+      "sha256": "d50e249bb887ea5ca1c39080a6bc3ab47d952b3452af9312b7de0ae9562a3e65",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB19",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 15666,
+      "original_line_end": 15713,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB19.txt",
+      "sha256": "b776afdf072b6e59b758081b3202ebd6f0955232c42645deaeada2393ff329c6",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB20",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 15737,
+      "original_line_end": 15761,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB20.txt",
+      "sha256": "8ba68faca010a05d7913329c4f18f63bad9927ae38369a2ff6c9ccb3efb7743f",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB21",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 15637,
+      "original_line_end": 15641,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB21.txt",
+      "sha256": "a2c7b4418b2808f0376eb25d3264e8d801b10194ff3df0cd3a0b5b85aeea0879",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB22",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 15940,
+      "original_line_end": 15955,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB22.txt",
+      "sha256": "9584771cd02ceeed92c6d9b8a68466c755975bd43885a4a22d9f16cba8226829",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB23",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 15957,
+      "original_line_end": 15983,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB23.txt",
+      "sha256": "ac9989890340a88ca50713355ef072d6a45b04a962f5eb831790d074a8f70219",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB24",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 16246,
+      "original_line_end": 16252,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB24.txt",
+      "sha256": "2fb86a1bf6e84a95198805af7907287d9e944be33d7b97722fa607f173ec1813",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB25",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 16354,
+      "original_line_end": 16360,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB25.txt",
+      "sha256": "f01aef46c602cf432727abb8f730276943f366097830692925c1629f76bd4ced",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB26",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 16465,
+      "original_line_end": 16478,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB26.txt",
+      "sha256": "e577027991e1d74fadd3083dd9e6d94fb970e4375a1085d131f187af041e279d",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB27",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 16211,
+      "original_line_end": 16233,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB27.txt",
+      "sha256": "e02562ce0a0f55b27b15470a657a18f796a1a1703e929aecf46282c3723d8c34",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB28",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 16278,
+      "original_line_end": 16288,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB28.txt",
+      "sha256": "2359a65b03dc7b3df66f2f3095dbfc6bf3878257aa66e1fe39572663c70c5ed6",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB29",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 15989,
+      "original_line_end": 16006,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB29.txt",
+      "sha256": "9ab4316a7ba2b006ce193be3669a63fe59b4821660b284fe9a136239d4ccd674",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB30",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 16338,
+      "original_line_end": 16342,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB30.txt",
+      "sha256": "95b5ce0f7bc02e82c92ee437f8e06a93efcc35e81a8a50b9d119e63eedecef15",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB31",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 18508,
+      "original_line_end": 18543,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB31.txt",
+      "sha256": "fd1ed1c3a906450017f53b1e4c53d5275cc91e4f02b9fbce5805aed784a35bf9",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB32",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 18544,
+      "original_line_end": 18569,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB32.txt",
+      "sha256": "39e30507f91003ed9c8bc0a6f994f5e0b238890bddd977a1523c83218687ae79",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB33",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 18576,
+      "original_line_end": 18631,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB33.txt",
+      "sha256": "8bf1c0c00b60ac0897d10441eca5c3b83ebf4ecf9dc5b32bf1c31060ea408407",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB34",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 18632,
+      "original_line_end": 18656,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB34.txt",
+      "sha256": "020c12f8642cc46e7f66bb41e5e8a8abb28ce807c43c0928a77b6e09bd1c9838",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB35",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 21724,
+      "original_line_end": 21758,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB35.txt",
+      "sha256": "cf136ef6f82c5b779baa2ee521e5f11e95fcfe556db589592ade4141177a36f6",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "SB36",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 21765,
+      "original_line_end": 21804,
+      "preserved_copy": "docs/guala_reconciliation/sources/shared-ledger-speech-boundaries/SB36.txt",
+      "sha256": "44248836291a69f0f45d53b2ded43c53f3b445b51fa2c6284e7e07cb30c37c36",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    }
+  ],
+  "findings": [
+    {
+      "id": "SBC01",
+      "existing_findings": [
+        "ST02",
+        "ST04",
+        "ST52"
+      ],
+      "sources": [
+        "SB01",
+        "SB02"
+      ],
+      "classification": "Preserve component learning and transport; reject lexical overclaim.",
+      "finding": "The ledger records live1457 MIN→MAX structure after a second presentation, real136000-sample sound/self-hearing/cessation, and Joe hearing the same toots. The accepted Mama-A sound was driven by externally supplied geometry and timing. Neither structure, sound nor that reference establishes acquired intelligible speech.",
+      "remedy": "Require ordinary retained experience to control later unguided output on the preserved organism; qualify intelligibility separately from structure and audio delivery. Keep the accepted reference external."
+    },
+    {
+      "id": "SBC02",
+      "existing_findings": [
+        "ST03",
+        "ST04"
+      ],
+      "sources": [
+        "SB01",
+        "SB02",
+        "SB05"
+      ],
+      "classification": "Concrete historical motor/timing limitation; current reachability requires a new source-bound trace.",
+      "finding": "The historical runtime applied one1ms drive and rendered250ms with passive evolution. Two-posture recall contained eight learned motor events; it did not provide repeated within-window commands or prove achieved reference positions. Smooth millisecond physics alone was incorrectly offered as resolving this distinction.",
+      "remedy": "Specify the actual shared guide/learned actuator and its time/work correspondence. Demonstrate finite, endogenous control sufficient for recognizable output without imposing exact reference-waveform matching, guide-only HOLD, a pose controller or duplicated sensory intervals."
+    },
+    {
+      "id": "SBC03",
+      "existing_findings": [
+        "ST06",
+        "ST08",
+        "ST30",
+        "ST31"
+      ],
+      "sources": [
+        "SB03",
+        "SB04",
+        "SB07"
+      ],
+      "classification": "Confirmed caller defect followed by a scoped correction; dose-learning remains unqualified.",
+      "finding": "Generic plasticity did not reach vocal endpoints because the caller supplied Quiescent directions there. C125 later changed119channelpopulations. Saturated750/1500 was an invalid contrast; valid32/128 movement differed but resulting vocal-contact transitions did not. Keeping overwritten identical provisional updates would not establish quantitative learning and could violate conservation.",
+      "remedy": "Trace actual endpoint input, admission, paid local adaptation and later authorized work separately. Compare matched ordinary trajectories; do not demand every control bond remain unchanged, lower an arbitrary threshold, or retain unpaid plasticity to force success."
+    },
+    {
+      "id": "SBC04",
+      "existing_findings": [
+        "ST17",
+        "ST20",
+        "ST30"
+      ],
+      "sources": [
+        "SB07",
+        "SB08"
+      ],
+      "classification": "Missing timed sensory history identified and later input participation reported; learning not thereby proved.",
+      "finding": "Initial1ms position sources omitted the subsequent129/173ms trajectories. The saved-boundary receptor observation was below opening energy, and full-field tuples were equal for the two initial sources. The proposed/qualified compact passive return preserved actual later positions as a separate episode, not a longer fabricated impulse. C131 evidence reaches receptor participation, not learned strengths.",
+      "remedy": "Preserve real timed full-field sensory distinctions, source epochs, zero-load coordinates, passive-only authority and canonical pending custody. Verify actual delivery before interpreting a learning failure. Require a further causal retained-state-to-action demonstration."
+    },
+    {
+      "id": "SBC05",
+      "existing_findings": [
+        "ST09",
+        "ST11",
+        "ST12",
+        "ST52"
+      ],
+      "sources": [
+        "SB04",
+        "SB06"
+      ],
+      "classification": "Genuine continuity repair, with rejected candidates and exact scope preserved.",
+      "finding": "The predecessor omitted physical recovery/contact progress. C127 was rejected despite equal warm/cold outputs because both missed a real passive-return event. C129 subsequently proved full canonical mature-body/world/causal continuation on named paths; delivery used the final stopped predecessor. Cold-next alone and unchanged topology are weaker than full warm/cold or active-learning preservation.",
+      "remedy": "Retain canonical physical-progress custody and verify correct events as well as equal bytes. Migrate only known state, explicitly disclose unrecoverable history, and qualify the actual current preserved organism; never import a taught rehearsal as live development."
+    },
+    {
+      "id": "SBC06",
+      "existing_findings": [
+        "ST52"
+      ],
+      "sources": [
+        "SB08",
+        "SB09"
+      ],
+      "classification": "Claim retractions and unsupported generalizations must remain visible.",
+      "finding": "Quiet card response was described as quiet memory without accepted-input or retention evidence; C1 withdrew it. The queued life charter also called the prior guided vocal result mama, exceeding the two-posture evidence. Four sampled reads and repeated object positions do not alone establish every moment of two days had no autonomous behavior. The page regions-only claim was withdrawn.",
+      "remedy": "Require exact occurrence, retained change and later causal use for memory claims. Report sampled inactivity over its measured windows, complete caller analysis separately, and verify UI behavior before claiming absence. Preserve withdrawal links beside original claims."
+    },
+    {
+      "id": "SBC07",
+      "existing_findings": [
+        "ST55",
+        "ST58"
+      ],
+      "sources": [
+        "SB10"
+      ],
+      "classification": "Explicitly limited evolution/exception, not a passed requirement.",
+      "finding": "The ledger reports Joe ordered the903-site inspection release while its measured latency remained about1second. This explicitly deferred that release hold; it did not pass250ms, authorize arbitrary future exceptions, or qualify recognition/speech.",
+      "remedy": "Carry the limited release authority and still-open latency requirement together. Keep exact state-preserving optimizations distinct from cognitive reductions; original-source authority and current candidate qualification remain required."
+    },
+    {
+      "id": "SBC08",
+      "existing_findings": [
+        "ST52"
+      ],
+      "sources": [
+        "SB06",
+        "SB11"
+      ],
+      "classification": "An overbroad negative capability claim contradicts an explicit prior live receipt.",
+      "finding": "The later C1 entry says production articulation happened only under external guided drives and describes the hearing-to-voice hop as absent. The earlier Task1458 receipt explicitly records sound-only4000-sample cue670400 with no guided drives, followed by34pressureblocks, sampled self-hearing and silence. This refutes the categorical guided-only statement. It does not prove exact motor ancestry, a learned word, unguided word choice or general autonomy.",
+      "remedy": "Withdraw the categorical denial and preserve the measured sound-only response. Trace the current actual cue-to-retained-state-to-vocal cause before replacing the path. Keep acoustic response, learned control, recognizability and grounded language as separate qualification claims."
+    },
+    {
+      "id": "SBC09",
+      "existing_findings": [
+        "FBR02",
+        "ST02",
+        "ST52"
+      ],
+      "sources": [
+        "SB14",
+        "SB15"
+      ],
+      "classification": "Authored reference-voice and response-policy substitution; historical release declaration, not current serving proof.",
+      "finding": "The Task1468 entry explicitly says the accepted v17 reference was used as the voice, naming five vowel/formant recipes, syllabic onsets, imposed expressiveness, five-syllable bouts/twelve-second quiet and nearest-own-syllable responses. It says old-airway sound memories were forgotten on restore. Task1469 then adds an ambient-level×2 response threshold and last-sound suppression. The qualification limit “not words” does not make those authored cognitive choices comply with the charter. Deterministic synthesis alone is not a violation; the semantic recipes, prescribed behavior and destructive learning substitution are the relevant authority boundaries.",
+      "remedy": "Retire authored pupil syllable selection, reference-word recipes, response thresholds and prescribed bouts from cognitive authority. Keep an approved functional acoustic actuator and external references separately classified. Preserve every recoverable learned predecessor and require an explicit operative-state migration; do not forget acquired state to make the replacement sound consistent. Prove experience-dependent later control without expected answers or imitation selected by nearest-example code."
+    },
+    {
+      "id": "SBC10",
+      "existing_findings": [
+        "FBR02",
+        "ST52"
+      ],
+      "sources": [
+        "SB12",
+        "SB13"
+      ],
+      "classification": "Functional-emulation direction was expanded into a different cognitive controller; identity continuity did not qualify learned continuity.",
+      "finding": "The September14 account replaces neuronal/contact action authority with declared hunger/food/novelty rules in guala_functional_organism.py and guala_functional_loop.py. It reports a411MB native body converted to a602-byte functional body with the same identity/tick, retaining the old envelope as a predecessor archive. Its400-beat proof counts scripted-controller actions and nearest-syllable responses; DSF is summarized by selected regimes and signs. Those receipts demonstrate neither operative preservation of acquired neuronal state nor sensory-driven cognition through the former architecture.",
+      "remedy": "Use the permanent prohibition on the retired controller and renamed equivalents. G1 must map active acquired state and causal mechanism across any migration, explicitly identify missing/unmapped capability, and qualify actual current64 sensory→retained substrate→decision/action behavior. Historical archives and matching identity/tick cannot replace that mapping. Never restore an old controller or invent a new scalar policy to pass a behavior test."
+    },
+    {
+      "id": "SBC11",
+      "existing_findings": [
+        "SC39",
+        "FBR02"
+      ],
+      "sources": [
+        "SB16",
+        "SB17",
+        "SB18",
+        "SB19",
+        "SB21"
+      ],
+      "classification": "Removing named constants did not remove the reward-based decision policy or field reduction.",
+      "finding": "Task1476 declares regime-keyed act/payoff tables, ordered first trials, every-eighth-visit exploration and otherwise highest recorded value. Later instructions replace fixed weights with measured-need weighted sums, add dominant-successor value and describe Dyna-style night propagation. Both agents subsequently retract their full-field-key assertion: the choice key remained regime letters while seven signs were stored elsewhere. Determinism, measured inputs, fewer named constants and passing tests do not establish full-field physical decision authority.",
+      "remedy": "Classify update and choice laws by their actual mathematics and consumers. Remove scalar action values, table exploration/argmax and successor-value policy from pupil authority. Preserve the full joint field and approved local retained physical adaptation; G1 must specify the direct lawful causal path before replacing it. Keep ordered tests bound to the charter, not merely to assertions that the prohibited policy operates as written."
+    },
+    {
+      "id": "SBC12",
+      "existing_findings": [
+        "SC39",
+        "ST02",
+        "ST52"
+      ],
+      "sources": [
+        "SB17",
+        "SB19",
+        "SB20"
+      ],
+      "classification": "False self-hearing attribution and answer-injected testing were explicitly exposed; the replacement remained a response-count policy.",
+      "finding": "A1 claimed resonance between incoming waveforms and self-heard syllables, but C1 found that the stored tokens came from room sound: the voice never entered those sound streams. The original test supplied the target manually. The later64-context speech table selected among ten fixed-pitch syllables using tries/answered counts and a four-beat external-response window. A periodic room tone answered36of40 syllables in the replay; that does not establish a response caused by the pupil or any meaning/syntax. Fixed pitch was initially undeclared.",
+      "remedy": "Require occurrence-bound self-hearing from actual emitted pressure, and intervention evidence linking retained experience to later unguided control. Exclude target text, expected waveform/token and programmed answer rewards from pupil authority. Separate external tutor timing from endogenous speech choice; use genuine negative/control conditions and preserve the original false-positive test as evidence. A corrected table-policy test cannot certify sensory-driven language."
+    },
+    {
+      "id": "SBC13",
+      "existing_findings": [
+        "FBR02",
+        "ST11",
+        "SC39"
+      ],
+      "sources": [
+        "SB22",
+        "SB23",
+        "SB27"
+      ],
+      "classification": "Terminology and reported approval did not establish recovery of neuronal memory.",
+      "finding": "The September15 ledger explicitly describes the functional replacement as starting from genesis with the previous identity and tick, without translating the predecessor neuronal contents. Agents then redefine mosaic as a hashable gate tuple and tapestry as counted, physically valued transitions; A1 calls the reset correct and necessary. Later entries report Joe ratifying a specific moment specification. These are historical claims and reported authorizations, not original approval transcripts, proof that every earlier neuron mechanism was invalid, or evidence that a tuple/count store implements the current post-quiescence memory architecture.",
+      "remedy": "Keep dated definitions and reported authorizations distinct from current charter terms and active implementation. Reconcile each memory formation by its actual state, update law, caller and retained causal use; do not rename count tables as neuronal formations. G1 must preserve and use acquired state or explicitly expose the missing migration. Historical approval of a scoped specification cannot certify later implementation or authorize a present reset."
+    },
+    {
+      "id": "SBC14",
+      "existing_findings": [
+        "SC39",
+        "ST52",
+        "FBR02"
+      ],
+      "sources": [
+        "SB24",
+        "SB25",
+        "SB26",
+        "SB29"
+      ],
+      "classification": "Exact recording identity was overextended into sound recognition; command-key recurrence did not repair auditory recognition.",
+      "finding": "The recorded assay found zero of ten syllables retaining one acoustic event key across six renditions. The same caretaker recording could repeat exactly, but a new human utterance was not thereby recognized. A later capture held256moments, none met twice;112were from the pupil voice. Task1503 changed own-voice moment identity to the authored vocal command. The subsequent58recurrences included53own-command moments. Those counts establish recurrence under the changed indexing law, not recognition across acoustic variation, learned pronunciation or syntax.",
+      "remedy": "Retain exact occurrence identity as provenance, not semantic recognition. Qualify distributed recognition through the approved retained substrate dynamics using repeated utterances with lawful variation and contrasting sounds, without expected-word labels, authored syllable IDs or answer keys deciding the result. Separate efferent action history from auditory memory. If the required recognition mechanism is absent or fails, expose that boundary; command-key bookkeeping cannot close it."
+    },
+    {
+      "id": "SBC15",
+      "existing_findings": [
+        "SC39",
+        "FBR02",
+        "ST52"
+      ],
+      "sources": [
+        "SB27",
+        "SB28",
+        "SB30"
+      ],
+      "classification": "Selective moment keys and count-based sleep retention qualified their own policy, not complete multisensory memory.",
+      "finding": "The moment design formed entries only at acoustic closure, omitted visceral context from identity, and later omitted the visual figure whenever an object was held so a one-key test would pass through a gaze transition. Music then filled the256-entry moment store. Frequency/recency retention and a night operation that moves the most recurrent entries into64meanings were introduced. Context separation and bounded storage are not inherently fraudulent; the unsupported step is treating these policies and their green tests as complete experiential binding, neuronal reinforcement or acquired meaning.",
+      "remedy": "Specify the complete experience and its internal/external context separately from exact indexing and observer summaries. Demonstrate that silent experience, changing gaze and body state remain available to the intended retained formations. Qualify sleep by its physical retained effect on later recognition/recall and control, including a matched no-consolidation comparison and capacity-pressure preservation/refusal evidence. Do not equate frequency, a label called meaning or successful serialization with learned meaning."
+    },
+    {
+      "id": "SBC16",
+      "existing_findings": [
+        "SC39",
+        "ST52",
+        "FBR02"
+      ],
+      "sources": [
+        "SB31",
+        "SB32",
+        "SB33",
+        "SB34"
+      ],
+      "classification": "A contradictory speech-learning pass was withdrawn; corrected units did not close the retained material or energy law.",
+      "finding": "The September23 four-pass receipt conflicted with its submitted pair: source conductivity0.05, test conductivity0.10. The receipt was withdrawn. The first claimed radial return shortened contact length while increasing its own yield violation. Its Pa·µm³ work was mislabeled microjoules; the correct conversion is10^-18joules. The revised source corrected the conductivity mismatch, volume identity and unit conversion. Its residual helper still solved a replacement state rather than checking the committed contact, and failed interior solves became a lower-stop state without a demonstrated stability law. Positive plastic-work counters still omitted incoming supply/debit and a consistent stored-energy/output/dissipation balance. These are dated source-review findings, not a new execution or a claim the rejected Python candidate is active today.",
+      "remedy": "Preserve the withdrawal and keep corrected local defects closed. Qualify the approved contact law against actual committed length, actual chronological loading, unloading history, stop reactions and complementarity; solver failure must remain failure unless an approved transition law establishes a successor. Independently check dimensions and supplied energy against retained energy, actuator work and dissipation. Bind executed tests to the actual imported source/native artifact. Do not select material parameters merely to obtain mah rather than ah, or introduce a new physical model without architectural agreement."
+    },
+    {
+      "id": "SBC17",
+      "existing_findings": [
+        "SC39",
+        "ST17",
+        "ST52"
+      ],
+      "sources": [
+        "SB32",
+        "SB33",
+        "SB34"
+      ],
+      "classification": "Within-call leaky arithmetic, event peaks and repeated cue reads were overstated as full continuous physical learning.",
+      "finding": "The revised receipt claimed full field and continuous RC dynamics. The audit found six normalized bands, fresh zero voltage at each propagate_frames call, unused C_NODE, separate group peak/argmax choices and repeated evaluation of retained target envelopes until speech selection. The declared10nF/0.33mS circuit has an approximately30µs virgin time constant, not the authored20ms. Different peak times do not establish simultaneous physical actuation. The revised source genuinely removed the fixed eight-frame split and synchronized polarization state, but did not thereby preserve continuous circuit state, binaural/channel structure, amplitude and complete event ordering or evaluate the full seven-field DSF.",
+      "remedy": "Use the approved persistent circuit/neuron state as the causal owner, advancing each actual sensory arrival once on its clock and carrying lawful quiet-time evolution through canonical persistence. Derive any circuit time constant from the declared law, or explicitly reconcile the different approved model; do not tune a decay to the cue expiration window. Preserve the input dimensions required by the approved transduction and classify any projection. Establish direct ordered actuator coupling and rest rather than treating peak ranking as cognition. Unit proofs must inspect retained state across input boundaries; module proofs must include quiet time, repeated transport, delayed actuation and exact cold continuation."
+    },
+    {
+      "id": "SBC18",
+      "existing_findings": [
+        "ST02",
+        "ST17",
+        "ST20",
+        "ST52",
+        "FBR02"
+      ],
+      "sources": [
+        "SB32",
+        "SB33",
+        "SB34",
+        "SB35",
+        "SB36"
+      ],
+      "classification": "Textual command descriptions, paired histories and fixed speech timing did not establish actual learned audio or turn-taking.",
+      "finding": "The first practice test injected mah scores and action totals and called the selector directly. The revision removed those insertions and obtained ordinary-loop practice and a later say after restore, which is real source-level progress. However the compared organisms had different histories/worlds, not one predecessor differing only in retained contact change. The alleged emitted-audio observation said was a description of decision.drive; PCM followed a separate path. September26 evidence separately identified an authored one-beat quiet-gap release, a220-syllable matcher in the dirty candidate, and sensory ingress that combined different capture times while reporting superseded frames as successes. None of those observations certifies learned pronunciation, dialogue timing or synchronized multisensory experience.",
+      "remedy": "Retain the improved ordinary-practice witness and describe its actual scope. Qualify physical retained causation with matched lawful controls and independently inspect actual emitted PCM and resulting self-hearing, not the selected command string. Separate intelligibility, grounded use and syntax from pressure production. Preserve modality capture times and honest superseded/settled receipts so claimed experience has valid ancestry. Remove or explicitly reject authored pupil speech recipes/timing as learning authority; an external tutor schedule remains external stimulus. Carry the unit→module→system→immutable-release/live gates below without claiming that a passing mah example proves the architecture can already speak."
+    }
+  ],
+  "acceptance": {
+    "unit": "Demonstrate the approved sensory/actuator law, exact timing and finite work; admitted quantitative differences must actually reach the intended receptor/contact. Preserve malformed-input refusals, silent movement and complete physical-progress custody. Supplied reference controls qualify only the component.",
+    "module": "From the same authenticated predecessor, compare actual experience with a matched ordinary control. Trace retained physical change through authorization to later unguided ordered output, pressure and self-hearing. Do not replace measured absence with a prescription or expected-answer input.",
+    "system": "On the preserved organism, independently distinguish audibility, intelligibility, retained production, grounded use and novel composition. Record Joe’s listening report and independent uninformed intelligibility evidence where claimed. State the first failed boundary and unrun gates.",
+    "release_live": "Bind source/native/image/configuration and the final predecessor to the ordered evidence; verify correct cold continuation, active acquired-state use, actual transport and live behavior. No copied learned practice state, reset, classifier/word-table fallback or no-ML certificate from documentation."
+  },
+  "scope": "Selected historical ledger corroboration and counterevidence for existing speech/controller findings; dated deployment declarations are not independently re-executed historical or current live proof.",
+  "counts_changed": false,
+  "whole_ledger_read_complete": false,
+  "whole_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false
+}

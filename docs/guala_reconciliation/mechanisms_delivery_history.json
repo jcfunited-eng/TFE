@@ -1,0 +1,1218 @@
+{
+  "schema": "guala.documentary_mechanisms.v1",
+  "at_utc": "2026-10-10T10:48:30.763493+00:00",
+  "scope": "All171captured versions/one path fully covered by2023latest lines and175older-only passages/983lines, all read. Exact line reconstruction and source hashes verified. Historical executions, referenced programs, original approvals and scientific premises are attributed/unqualified unless separately audited. No product execution or current serving refresh.",
+  "mechanisms": [
+    {
+      "id": "VDL01",
+      "name": "Physical voice output versus an acquired intelligible word",
+      "classification": "narrow_physical_accomplishment_with_open_speech",
+      "finding": "DLR01",
+      "observed_mechanism": "Task1429/attempt44 reports actual native vocal motor, respiration,4000 pressure samples and34 ear receptors. Changing pressure hashes support nonfrozen output. Apple-associated route reuse was reported but the report expressly did not establish an audible apple.",
+      "evidence_limits": "An audible organ or cue-associated pressure is not acquired lexical articulation. Quiet output at-58.1dBFS and observer-only49dB playback gain are separate from native motor causation.",
+      "replacement": "Preserve the genuine organ and exact pressure/self-hearing path. Require retained experience to cause context-appropriate intelligible articulation through native dynamics; no word lookup, trajectory replay, authored motor target or external TTS as substrate speech.",
+      "acceptance": {
+        "unit": "Conserve finite breath/work and prove motor-dependent pressure, silence controls and exact self-hearing without authored word outputs.",
+        "module": "Trace ordinary acquired state through actual motor timing, body and pressure; compare learned/unlearned and severed controls.",
+        "system": "Capture complete unaltered emitted audio with exact state/input provenance and independent blinded intelligibility; report observer gain and all failures separately.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 218,
+          "anchor": "- Live learned vocal-motor discharge recruited the isolated layer-13 respiratory",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 273,
+          "anchor": "- Exact topology decoding resolves the lexical association more narrowly: the",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 287,
+          "anchor": "  peaks at only `-58.1 dBFS`, explaining why ordinary browser playback is",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A08",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL02",
+      "name": "Recognition claims across bear, changed cue and apple controls",
+      "classification": "explicit_retractions_and_distinct_narrow_evidence",
+      "finding": "DLR02",
+      "observed_mechanism": "Tasks1231/1232 bear recognition was invalidated when V33 removed coincidence-grown motor anatomy. Task1298 changed-cue physical route was first called first word, then narrowed. Task1322 reports two human apple pronunciations with a different bee control.",
+      "evidence_limits": "Later recognition evidence must not erase earlier invalidation or be promoted to emitted speech. Physical pressure alone did not identify the recognized word. Original experiments and current equivalent behavior remain separately required.",
+      "replacement": "Keep each stimulus, retained-state mechanism, counterfactual and retraction bound to its exact release. Requalify native recognition on preserved state without lexical labels driving the answer, then test emitted speech separately.",
+      "acceptance": {
+        "unit": "Separate stimulus identity, acquired route and response measures; reject injected word labels as a recognition oracle.",
+        "module": "Matched experience/withheld-experience and changed-pronunciation/changed-source controls must interrogate genuine retained dynamics.",
+        "system": "Demonstrate recognition generalization on held-out physical occurrences and independently assess articulation; no promotion of one into the other.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL058",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL058--GUALA_DELIVERY_LEDGER.md",
+          "line": 639,
+          "anchor": "  **Live-closed 2026-08-25:** one grounded sight+sound+layer-7 formation retained",
+          "sha256": "466b48b1700127514a35037d58ef053e8fb4451e3b71d011e16cb0ba805ed8a8"
+        },
+        {
+          "source_id": "DL061",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL061--GUALA_DELIVERY_LEDGER.md",
+          "line": 26,
+          "anchor": "- **Active item:** L-005 is reopened; L-006 is complete.",
+          "sha256": "96f7aa93369c2e11591a9608825b64e8af1743d48b9f6ff58c2666e7ed531a11"
+        },
+        {
+          "source_id": "DL064",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL064--GUALA_DELIVERY_LEDGER.md",
+          "line": 682,
+          "anchor": "  Task 1298 supplied fresh visual-partial and pressure-only changed-cue",
+          "sha256": "3905ec5bef15f549c6e619e694e51e579b6f9d70c7a1cb7a97a413734eceb74b"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 410,
+          "anchor": "- Task 1298 adds one constant-sized read-only projection of causal evidence",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1079,
+          "anchor": "  Two different human `apple` pressure bodies reached the same task-1322",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A06",
+        "A09",
+        "A10",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL03",
+      "name": "Externally gestured Mama and unnecessary pitch expansion",
+      "classification": "organ_capacity_preserved_without_learned_control_claim",
+      "finding": "DLR03",
+      "observed_mechanism": "Attempt46 reported Joe accepting Mama under externally supplied physical gestures. Attempt48 later proposed a new tension axis, then deferred it because neutral tension in the existing organ already supported the accepted example; learned spatial/temporal coordination was the actual open boundary.",
+      "evidence_limits": "This proves reported organ capacity under supplied input, not native learned gesture selection. The historical report does not prove present activation, inevitable success or impossibility.",
+      "replacement": "Use the already sufficient mounted organ where applicable. Qualify experience-dependent temporal and spatial motor coordination before expanding pitch range; keep supplied gestures solely as declared component controls.",
+      "acceptance": {
+        "unit": "Demonstrate existing organ range under declared physical input with conserved work and no hidden acoustic synthesis.",
+        "module": "Verify ordinary retained-state motor ordering, overlapping tissue duration and feedback without replaying the successful supplied gesture.",
+        "system": "Qualify a new acquired intelligible utterance on preserved state; separately scope later intonation/singing expansion.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1255,
+          "anchor": "- A passing control proves only organ capacity. The exact copied production",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1266,
+          "anchor": "- Joseph subsequently accepted all five candidates as recognizable `ma-ma`",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL107",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL107--GUALA_DELIVERY_LEDGER.md",
+          "line": 1423,
+          "anchor": "- Joseph challenged whether the accumulated mechanics were necessary. The",
+          "sha256": "40dbd50c91d42e8446295269196ccdf3d20c78a7838307258fa4bcde8e7ad7f4"
+        },
+        {
+          "source_id": "DL107",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL107--GUALA_DELIVERY_LEDGER.md",
+          "line": 1431,
+          "anchor": "- The unshipped tension-axis source is therefore deferred from the immediate",
+          "sha256": "40dbd50c91d42e8446295269196ccdf3d20c78a7838307258fa4bcde8e7ad7f4"
+        }
+      ],
+      "repair_actions": [
+        "A08",
+        "A09",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL04",
+      "name": "Thermal headroom and lawful finite recovery",
+      "classification": "physical_repair_distinguished_from_manufactured_energy",
+      "finding": "DLR04",
+      "observed_mechanism": "Attempt45 identifies respiratory co-recruitment bypassing heat export:0.32014zJ required against0.24426 headroom. A later512-hop repair produced reusable voice at constant posture. Attempt47D manufactured availability from source work;47E instead debited existing local material plus accounted source heat shortfall.",
+      "evidence_limits": "A thermal correction is useful but does not supply phoneme selection or changing learned posture. Numerical energy assignments require their actual units and conservation, not merely plausible magnitudes.",
+      "replacement": "Maintain one finite source/recovery/material ledger through motor, respiratory and acoustic consequences. Retire the rejected energy-manufacturing branch; retain demonstrated conservation without promoting constant output to speech.",
+      "acceptance": {
+        "unit": "Account input, reservoir debit, useful work and heat including co-recruited respiration; reject unauthorized source-to-reservoir gains.",
+        "module": "Verify repeated native recruitment respects thermal recovery and exact persistence without forced gate opening.",
+        "system": "Run bounded ordinary preserved-state activity with audible output, recovery and changing acquired gestures independently measured.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1221,
+          "anchor": "- Exact cause is closed: the two-carrier respiratory discharge releases",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1229,
+          "anchor": "- The bounded repair is ordinary metabolic settlement of the actually",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1301,
+          "anchor": "### 2026-09-05 — Speech attempt 47D/47E: real source work closes the energy gap, coupling still open",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1306,
+          "anchor": "- 47E pays each motor pump from existing local recovery material plus only the",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A08",
+        "A10",
+        "A11",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL05",
+      "name": "Receptor coupling, intrinsic gate and full-path attenuation",
+      "classification": "measured_boundary_repair_with_rejected_gain_shortcuts",
+      "finding": "DLR05",
+      "observed_mechanism": "47F real500pS coupling produced zero vocal carriers; a2x diagnostic was not an authorized gain.47G receptor-population use failed GatePopulationExceeded on a one-gate intrinsic motor.47H isolated intrinsic-gate work reports1475/1447carriers at1433; the later1475/1446summary at1487 differs by one carrier and must be resolved from its raw artifact.47I ordinary full-path output was only five.",
+      "evidence_limits": "An isolated range pass is not the ordinary path. Increasing source strength, reusing the wrong population API or quoting isolated carrier counts cannot establish learned articulation. The one-carrier documentary discrepancy is retained, not silently harmonized; it does not alter the missing full-path coordination boundary.",
+      "replacement": "Use the correct intrinsic gate/material interface and trace exact ordinary source work into motor recruitment. Resolve attenuation and recruitment with ratified physical dynamics; preserve rejected gain/proxy candidates.",
+      "acceptance": {
+        "unit": "Verify each gate type, finite work, carrier quantization and severed/no-input controls.",
+        "module": "Measure complete ordinary source→retained formation→contact→intrinsic gate→motor path rather than a synthesized drive.",
+        "system": "Require actual body pressure and self-hearing from the preserved organism at real source strength; keep isolated diagnostics labeled.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1357,
+          "anchor": "### 2026-09-05 — Speech attempt 47F: absolute equal-load coupling rejected",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1400,
+          "anchor": "### 2026-09-05 — Speech attempt 47G rejected; task-1054 principle re-run on exact body",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1433,
+          "anchor": "  events 53 and 52 at 1,475 and 1,447 carriers. Quarter and quadruple source",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1487,
+          "anchor": "- The five-carrier full-path output is not the 47H isolated 1,446/1,475 result.",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A08",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL06",
+      "name": "Open gate, tissue duration and sparse vocal progression",
+      "classification": "real_timing_defect_distinguished_from_sequence_learning",
+      "finding": "DLR06",
+      "observed_mechanism": "47J held-open-gate proposal failed: a gate state is not maintained physical work.47K repaired1ms tissue unfolding/duration. Sparse progression still produced6pulses over18–20clocks dominated by return; duration correction did not create learned coordinated articulation.",
+      "evidence_limits": "Fixing a clock/body integration defect is not evidence that experience controls the required sequence.",
+      "replacement": "Preserve causal tissue duration and finite motor work. Qualify native retained-state ordering across actual elapsed material time; forbid semantic schedules and fixed carrier sequences.",
+      "acceptance": {
+        "unit": "Check physical duration, return and conservation with exact boundary/refusal behavior.",
+        "module": "Verify ordered coupled motor recruitment and respiratory overlap from ordinary formation activity.",
+        "system": "Demonstrate the acquired sequence survives cold continuation and changed cue timing without an authored gesture template.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1499,
+          "anchor": "### 2026-09-05 — Speech attempt 47J rejected: open gate is not a gesture hold",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1519,
+          "anchor": "### 2026-09-06 — SPEECH-049: existing-organ-only correction authorized for copy proof",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1560,
+          "anchor": "### 2026-09-06 — Speech attempt 47K closes duration; attempt 50 corrects the vocal causal boundary",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        }
+      ],
+      "repair_actions": [
+        "A08",
+        "A09",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL07",
+      "name": "Complete-body calibration and contact-only speech candidates",
+      "classification": "rejected_fabricated_cause_and_bounded_negative",
+      "finding": "DLR07",
+      "observed_mechanism": "Attempt49 added12 calibration bindings from complete-body observation but duplicated existing legitimate motion and was removed. Attempt50 diagnostic contacts yielded no target motors through128 exposures, open phase at236, and eventually closed phase at335. Earlier256-exposure conclusion was superseded.",
+      "evidence_limits": "Observer-shaped body snapshots are not motor experience. Contacts alone and a bounded lack of output do not prove permanent impossibility. Test-only4x pressure is not real source delivery or releasable speech.",
+      "replacement": "Keep observation outside motor authority and reject diagnostic contact/gain injection as product learning. Implement only ratified finite recruitment/contact formation from actual experienced dynamics; retain full positive and negative timelines.",
+      "acceptance": {
+        "unit": "Refuse out-of-band bindings and gain injection; preserve correct existing motor paths.",
+        "module": "Compare lawful contact formation and finite work distribution with severed and matched controls through complete exposure history.",
+        "system": "Qualify ordinary acquired temporal coordination, with explicit resource horizon and no extrapolated impossibility from a cutoff.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1524,
+          "anchor": "- The old one-shot vocal calibration is both causally false and ineffective.",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1541,
+          "anchor": "- **COPY GATE PASSED; PRODUCTION UNCHANGED.** The exact raw task-1429 V8 body",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL110",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL110--GUALA_DELIVERY_LEDGER.md",
+          "line": 1392,
+          "anchor": "- Range result: `0/8` target motors through exposure 128; at exposure 236 all",
+          "sha256": "7014712401730a4d6601e1d6c99afdf3965211ed6a6ddcc7e04a2f87ee36e16f"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1574,
+          "anchor": "- First range result: `0/8` target motors through exposure 128; at exposure 236",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        }
+      ],
+      "repair_actions": [
+        "A05",
+        "A08",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL08",
+      "name": "Young-motor pump hypothesis and closed intrinsic gate",
+      "classification": "hypothesis_corrected_then_falsified_candidate_retired",
+      "finding": "DLR08",
+      "observed_mechanism": "48E first proposed a missing developmental reaction; exact tracing found an existing pump omitted from the reached set. Test-only birth admission pumped six carriers with exact reservoir debit and cold encoding, yet all16 clocks had zero gate work, contact transfer, recruitment, movement or pressure, identical to severed routes. The report identifies zero sensing charge, opening bias and Psi contact.",
+      "evidence_limits": "The pump candidate was safe but insufficient and rejected. This precise historical gate failure is not proof of the same present defect or inability of any lawful architecture to speak.",
+      "replacement": "Preserve the failed causal trace and do not ship the insufficient pump admission. Under current functional emulation, identify the actual native excitability/recruitment law and its authorized parameters before any replacement; defer unnecessary pitch expansion.",
+      "acceptance": {
+        "unit": "Prove finite membrane work and gate-opening conditions separately; connected/severed equality must remain a negative result.",
+        "module": "Trace actual current gate anatomy and work consumers, persistence and maturation without random pulses or fabricated charges.",
+        "system": "Qualify normal experienced-state recruitment through the existing organ; do not use an unshipped new motor as a speech prerequisite.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL104",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL104--GUALA_DELIVERY_LEDGER.md",
+          "line": 1351,
+          "anchor": "- Primary biological evidence fixes the replacement class: finite spontaneous",
+          "sha256": "8ff37c05b27b60ed32d980e3edfbce33bc1d2e86f5901e446d04aa6ceee626ee"
+        },
+        {
+          "source_id": "DL105",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL105--GUALA_DELIVERY_LEDGER.md",
+          "line": 1372,
+          "anchor": "- The native energy trace corrected the prior apparent requirement for a new",
+          "sha256": "23a099c8681ae4014519cd6f75a5aa441049f5d7d27181ea7df869dc788cdb95"
+        },
+        {
+          "source_id": "DL106",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL106--GUALA_DELIVERY_LEDGER.md",
+          "line": 1397,
+          "anchor": "- The test-only candidate admitted each quiescent tension motor once to the",
+          "sha256": "3e4644f6c34893ce67fd1a05393d6b05fa605c0355adcc62266064a32399e63e"
+        },
+        {
+          "source_id": "DL106",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL106--GUALA_DELIVERY_LEDGER.md",
+          "line": 1416,
+          "anchor": "- Exact next boundary: trace a finite, general young-motor gate-excitability",
+          "sha256": "3e4644f6c34893ce67fd1a05393d6b05fa605c0355adcc62266064a32399e63e"
+        },
+        {
+          "source_id": "DL107",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL107--GUALA_DELIVERY_LEDGER.md",
+          "line": 1423,
+          "anchor": "- Joseph challenged whether the accumulated mechanics were necessary. The",
+          "sha256": "40dbd50c91d42e8446295269196ccdf3d20c78a7838307258fa4bcde8e7ad7f4"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A08",
+        "A10",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL09",
+      "name": "Feedback residue, learned strength and causal mediation",
+      "classification": "corrected_counterfactual_interpretation_with_open_expression",
+      "finding": "DLR09",
+      "observed_mechanism": "C131 records distinct retained feedback residues and heat. S122289 reports both dose arms transferring the same1540 local carriers. S122295/296 corrects an earlier interpretation: same predecessor/cue/sky/sound makes later changed self-hearing a downstream mediator, not an independent confound of the total demonstration effect.",
+      "evidence_limits": "A retained difference need not alter quantized action at that interval. The ledger does not isolate a proprioception-only effect or establish quantitative learned strength expressed as articulation.",
+      "replacement": "Retain total causal effect and mediator provenance. Use matched saved-state interventions to identify the missing plasticity-to-action reader, without conditioning away downstream feedback or requiring every state change to change action.",
+      "acceptance": {
+        "unit": "Validate exact dose/predecessor/input equality and carrier/heat accounting; preserve zero action difference.",
+        "module": "Trace retained material change into the actual contact/gate consumer; isolate direct versus total effects only with explicit intervention design.",
+        "system": "Show retained experience produces a reproducible native behavioral change and acquired audible articulation, beyond residue/counter divergence.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 99,
+          "anchor": "S122295/296 corrects the interpretation: C131 dose arms share the SAME",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 140,
+          "anchor": "not another C132 rebuild. R122282 establishes distinct saved feedback residues",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 151,
+          "anchor": "diagnostic-only exact-consumption trace, now CLOSED in S122289: both arms",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 159,
+          "anchor": "This proves differentiated retention, not quantitative vocal use; unequal",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL10",
+      "name": "Local vocal refusal, recovery and caretaker lessons",
+      "classification": "narrow_runtime_containment_not_cognition_completion",
+      "finding": "DLR10",
+      "observed_mechanism": "C132 explicitly refuses an ambiguous new vocal start while preserving ordinary activity, prior lawful action and genuine integrity errors. C131 task replacement alone did not close feedback; later real feedback did. Reported602passes/19failures/14ignored remain test debt. Caretaker accepted apple blocks are delivery receipts.",
+      "evidence_limits": "Health, local refusal, process replacement, lesson acceptance and feedback custody do not prove learning, speech, autonomy or caretaker noninterference. No current latency cause follows from these historical runs.",
+      "replacement": "Preserve local atomic refusal and ordinary progress. Keep caretaker source/process/rate/queue provenance distinct from native experience, and evaluate interference against matched actual execution and resource measurements.",
+      "acceptance": {
+        "unit": "Check refusal scope and no mutation on failed starts; preserve original integrity errors and failed tests.",
+        "module": "Verify actual caretaker delivery, queue/backpressure and native sensory custody without lesson counters becoming learning scores.",
+        "system": "Use preserved-state source-attributed telemetry to separate environmental delivery, native processing and response latency; speech requires acquired output evidence.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL112",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL112--GUALA_DELIVERY_LEDGER.md",
+          "line": 25,
+          "anchor": "The original C131 task failed after a later guided check; AWS automatically",
+          "sha256": "77a2606571f373fc02e89cef5a05dcf7c071c2c416523540470109b08711caf6"
+        },
+        {
+          "source_id": "DL114",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL114--GUALA_DELIVERY_LEDGER.md",
+          "line": 29,
+          "anchor": "The one active speech item is C132: explicitly refuse an ambiguous new vocal",
+          "sha256": "55fdff0d7b03be5598ba4a6a8e081005e6e1b06d264a3e50a3b8f755e6311a9a"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 126,
+          "anchor": "Verified production on 2026-09-13 after C132 release: task definition1460,",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 134,
+          "anchor": "Caretaker restarted; subsequent C1-lane source8551fbe9/PID381 replacedPID98920",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        }
+      ],
+      "repair_actions": [
+        "A10",
+        "A12",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL11",
+      "name": "Fractal, mosaic, tapestry, thought and cognitive-capital labels",
+      "classification": "structural_witnesses_do_not_prove_named_cognitive_functions",
+      "finding": "DLR11",
+      "observed_mechanism": "C003–C012 report recurrent formations, cross-context digests, ordered paths and relations, including34 two-contact paths called tapestries and35 relations called expressive thought. C023/C024 later narrow to partial39x10 capital with79cells/87receipts; C013weave remains open.",
+      "evidence_limits": "Counts and structural recurrence are useful evidence but do not independently establish sentence planning, concepts, episodic narrative, full brain or meaningful cognitive capital. Metaphorical labels must map to actual retained states and consumers.",
+      "replacement": "Canonicalize formation substrate, formation scale and demonstrated function separately. Preserve multi-sensory/internal context and episode order; require actual recall, prediction, planning and action witnesses for each claimed cognitive mechanism.",
+      "acceptance": {
+        "unit": "Verify actual causal formation state and recurrence, not labels or counters substituted for content.",
+        "module": "Trace experience context, native retention/indexing, reconstructive recall and each downstream consumer without a semantic registry as decision authority.",
+        "system": "Demonstrate held-out contextual recall and functional consequences on preserved state, with missing functions visible as open requirements.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 617,
+          "anchor": "  bonds: 88 sensory, two body, two layer-7 association, four layer-9 retention,",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 650,
+          "anchor": "  a duplicate experience, and autonomous revision 1181 advanced from the exact",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 654,
+          "anchor": "- [x] **C-011** Prove ordered recurrent formations can produce tapestry-level",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 664,
+          "anchor": "- [x] **C-012** Prove relationships among ordered formations can persist as",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 820,
+          "anchor": "  preserved the same organism and exposed the exact 39-capability by",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A10",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL12",
+      "name": "Recovery, internal formations and varied actions versus sleep and play",
+      "classification": "broad_closures_explicitly_narrowed",
+      "finding": "DLR12",
+      "observed_mechanism": "Early A011/A012 reports closed play/laughter and sleep/dream/wake. Later records distinguish varied actions, physical recovery, internal formations and recurrence from genuine play/fun/social joy/body laughter and an actual sleep/consolidation/dream/wake cycle. Joe accepted narrower progress without erasing broader goals.",
+      "evidence_limits": "Quiet intervals, metabolism, internal provenance and varied motion do not prove the requested broader mechanisms. Do not resurrect deleted sleep/random-reinforcement shortcuts.",
+      "replacement": "Keep separate explicit specifications for rest/recovery, sleep-owned consolidation, dream mechanisms, play and body-owned joy/laughter. Retain sensory episode/story context through actual sleep-dependent physical changes and useful later recall.",
+      "acceptance": {
+        "unit": "Differentiate quiet/rest from actual sleep transition and varied motion from functional play; verify finite state/energy and no random replay authority.",
+        "module": "Verify genuine mechanism callers, complete active-state retention and causal post-sleep recall/use.",
+        "system": "Compare matched experience with and without the claimed consolidation pathway and demonstrate each named play/social function independently.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL041",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL041--GUALA_DELIVERY_LEDGER.md",
+          "line": 483,
+          "anchor": "- [x] **A-011** Prove genuine self-selected play, fun, social joy, and",
+          "sha256": "d77b6741f5ab061d3a81a7ffc226f381add41c8d7636917c733a69ee0af6ce43"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 955,
+          "anchor": "- [x] **A-011 — DIRECT LIVE-CLOSED 2026-08-24:** the same current retained",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 969,
+          "anchor": "- [ ] **A-012 — RECONCILED PARTIAL 2026-08-29:** Prove self-selected rest,",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        }
+      ],
+      "repair_actions": [
+        "A09",
+        "A10",
+        "A11",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL13",
+      "name": "Thermal embodiment, sensory return and useful navigation",
+      "classification": "physical_mounts_are_narrow_prerequisites",
+      "finding": "DLR13",
+      "observed_mechanism": "The ledger differentiates actual body return,74-axis proprioception, thermal mounting and phase-one37-axis embodiment from later gait/navigation. Simulated250ms intervals and thirteen ticks in35seconds do not establish real-time autonomy.",
+      "evidence_limits": "Physical sensing and actuation are legitimate gains, but independent integrated foraging, needs, navigation and broad embodiment remain unproved by mounting/counts.",
+      "replacement": "Retain actual body/world return and bounded native cause. Qualify useful closed-loop navigation and nourishment from experience with actual object depletion/return; no preselected Python actions or authored food-seeking policy.",
+      "acceptance": {
+        "unit": "Verify measured receptors and physical motor/world consequences rather than requested commands.",
+        "module": "Trace internal need, contextual recall and real action/consequence with finite objects and actual sensory return.",
+        "system": "Demonstrate extended self-directed navigation/foraging without repeated-turn traps and report wall-clock latency separately from material time.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 853,
+          "anchor": "  was required because this exact mechanism was already live in task 1050.",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 909,
+          "anchor": "  digest `sha256:947615882ac4631ac40d37560ab37c2a85310cb25c1b9a88ca39e40f7bb1dda5`",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 958,
+          "anchor": "  its exact body/sensory consequence to the same resident organism. Task 1222",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 993,
+          "anchor": "- [x] **A-013 original non-thermal boundary — DIRECT LIVE-CLOSED 2026-08-24:** Complete truthful persistent embodiment: pose, gaze, eyes,",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        }
+      ],
+      "repair_actions": [
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A11",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL14",
+      "name": "Media custody, curricula and autonomous book selection",
+      "classification": "ingress_improvements_with_false_choice_claim_corrected",
+      "finding": "DLR14",
+      "observed_mechanism": "L002/L003/L004 card/count/song deliveries reported zero full recurrent fractals. L008 later obtains real custody for six media types and bounded duplicate handling. L009 initially called five flat offers choices, then exposes missing native grip/world pick/touch; task1334 wiring still did not prove actual self-selection.",
+      "evidence_limits": "Delivery, idempotence, rendered glyphs and offered menus are not reading, counting, comprehension, learning or autonomous selection. An endpoint accepting an opportunity is not an organism choosing it.",
+      "replacement": "Preserve lawful media transduction and source custody, remove Python choice authority, and connect actual native manipulation and sensory return. Require acquired use independently from ingestion and curriculum quantity.",
+      "acceptance": {
+        "unit": "Check real physical samples, source bounds, duplicates and absence of token/dictionary cognitive injection.",
+        "module": "Verify ordinary native grip/contact/world pick and complete lawful touch return; refusal remains until the physical path exists.",
+        "system": "Demonstrate actual unprompted source selection, acquired recognition/use and retained function with withheld-source controls.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1041,
+          "anchor": "  **Live-closed 2026-08-16 at the teaching-and-analysis boundary:** task 1104",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1096,
+          "anchor": "  physical sensory structure. On task 1322, a Chromium-rendered capital `A`",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1112,
+          "anchor": "  exist for picture, book, ordinary audio, and song; the task-1322 audio occurrence",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL085",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL085--GUALA_DELIVERY_LEDGER.md",
+          "line": 931,
+          "anchor": "  manipulation of the real persistent-world book. Guala's native closing grip",
+          "sha256": "00fc1833f0985634ef16e7c295ae85bbeb8590449c2f7738dad4baa5071f3fdc"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1133,
+          "anchor": "  after no exact thought-owned grip closure selected it. Later source inspection",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        }
+      ],
+      "repair_actions": [
+        "A05",
+        "A06",
+        "A08",
+        "A09",
+        "A10",
+        "A12",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL15",
+      "name": "Checkpoint ownership, shutdown seal and exact native bytes",
+      "classification": "reported_real_runtime_corrections_with_preservation_obligations",
+      "finding": "DLR15",
+      "observed_mechanism": "Task1260 independent custodian published unsealed CURRENT without advancing resident predecessor and caused stale four-interval seal failures. An asynccontextmanager decoration on a synchronous shutdown function prevented seal entry. Task1261 then exposed native bytes versus wrapper integer-list mismatch.",
+      "evidence_limits": "Single writer and correct bytes are genuine custody fixes, not proof that every historical transition preserved acquired competence. Correct identity and shorter state alone are insufficient.",
+      "replacement": "Maintain one atomic canonical publisher, actual bounded shutdown and exact native binary transport. Require predecessor/current lineage, no overlapping writers, active acquired-state mapping and fresh-process next-step proof.",
+      "acceptance": {
+        "unit": "Check atomic failure, exact bytes and shutdown invocation with preserved predecessor.",
+        "module": "Exercise real publisher lifecycle and cold next-step equality without sidecar or compatibility fallback.",
+        "system": "Verify exact latest live state transfers once with active retained learning and no rewind, duplicate ownership or reset.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL059",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL059--GUALA_DELIVERY_LEDGER.md",
+          "line": 29,
+          "anchor": "- **Exact blocker:** the background custodian independently published an",
+          "sha256": "c7cd53d4b8a2057c27705f6155ffdbdf66aa4611ac075a4b591d5969aa248686"
+        },
+        {
+          "source_id": "DL059",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL059--GUALA_DELIVERY_LEDGER.md",
+          "line": 35,
+          "anchor": "- **Frozen correction:** delete the custodian writer and its raw-state staging",
+          "sha256": "c7cd53d4b8a2057c27705f6155ffdbdf66aa4611ac075a4b591d5969aa248686"
+        },
+        {
+          "source_id": "DL060",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL060--GUALA_DELIVERY_LEDGER.md",
+          "line": 44,
+          "anchor": "- **First cutover result:** task `1261` deployed the sole-writer correction and",
+          "sha256": "c1db4f02149c798bb4bec36492487fd7a2a9607d8492b6276f0703f5eaf0264c"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL16",
+      "name": "Motor identity cleanup and retirement of coincidence growth",
+      "classification": "architectural_correction_requiring_explicit_state_loss_accounting",
+      "finding": "DLR16",
+      "observed_mechanism": "V26 one-way terminal motor identity shrank state131697766→95060017bytes; V33 removed coincidence-grown motor anatomy and invalidated bear recognition. Later growth should follow actual causal physical transfer, not shared participation alone.",
+      "evidence_limits": "Cleanup can be lawful evolution while also deleting mechanisms supporting earlier claims. Same UUID, preserved file or smaller checkpoint does not prove all useful learned state remained active.",
+      "replacement": "Recover original approval and exact before/after neuron/contact/formation mappings. Preserve valid acquired dynamics in active native state; explicitly invalidate dependent claims when their causal support was retired.",
+      "acceptance": {
+        "unit": "Classify every removed/rebound physical state and affected consumer, with no silent unknown-state deletion.",
+        "module": "Prove cold continuation and meaningful retained function across approved migration; archival bytes alone fail active-preservation acceptance.",
+        "system": "Requalify dependent recognition, memory and speech on the actual successor; forbid claims inherited solely from predecessor labels.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL053",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL053--GUALA_DELIVERY_LEDGER.md",
+          "line": 16,
+          "anchor": "Current production baseline: task definition `dsf-ai-task:1176`, commit",
+          "sha256": "d6a3a78c5e0d843d6be18bc3cb21095db88fb0faf0eb89bfbefa097a421cf6ac"
+        },
+        {
+          "source_id": "DL055",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL055--GUALA_DELIVERY_LEDGER.md",
+          "line": 16,
+          "anchor": "Current production baseline: task definition `dsf-ai-task:1198`, commit",
+          "sha256": "71de8d74bd22c8522e65a2cfc7a8c6504a94b600239a56ca48d67e15fb22a1b8"
+        },
+        {
+          "source_id": "DL061",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL061--GUALA_DELIVERY_LEDGER.md",
+          "line": 26,
+          "anchor": "- **Active item:** L-005 is reopened; L-006 is complete.",
+          "sha256": "96f7aa93369c2e11591a9608825b64e8af1743d48b9f6ff58c2666e7ed531a11"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 440,
+          "anchor": "  cleanup. Task 1298 later supplied a lawful changed-cue causal-recognition",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL17",
+      "name": "903-site vision expansion and exact retained anatomy",
+      "classification": "legitimate_extension_with_open_latency_and_function",
+      "finding": "DLR17",
+      "observed_mechanism": "V302/V303 preserve135 original retinal sites and append768 for903 total, retaining220 preexisting ports and988 total. Exact paired body/world successor and cold continuation were reported. More detail was explicitly not recognition,20/20 or speech.",
+      "evidence_limits": "State expansion with mapped identity and equal successor controls is relevant evolutionary evidence, not automatic sensory quality or latency acceptance. A removed duplicate fixture is not a parallel witness.",
+      "replacement": "Preserve original receptor identities, acquired lineages and full joint-field participation while adding approved physical acquisition. Qualify perceptual detail, organism-directed view and actual latency separately.",
+      "acceptance": {
+        "unit": "Verify identities, correct dimensions/ports and no duplicate/zero-placeholder anatomy.",
+        "module": "Compare complete body/world/observations on matched source and cold next step; audit actual original-state mapping.",
+        "system": "Measure detailed vision under ordinary/noisy/full-change load with genuine organism aim and real retained recognition separately.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1675,
+          "anchor": "Full declaration now988ports,903retinal; original220 serialized port records retain SHA5a1095388ebaf12b0d5c21a4f88d5edb7c8376581d22af8017a985e9eeb75495 across95972bytes. New static asset439432B SHA d37dc4223aac3c8ce2988c7fd7fb1b1ba95ef83baacbb03262e9fbd3d1e70384,3952zeroanatomysamples/oneoccurrence/fourframes. Full-source order is original220 then768focal, including all projected senses; no regrouping bysense. Source template220 or988 is selected ONLY from explicit sensorium focal coverage, never retry/fallback. Full sensorium carries768focal; authenticated old return can carrynone. A legacy405RGB presentation replacesonly135oldvalues; existingworldfocal values remain when present. Observercounts actualexternalpayload sites, not wholeprimaryretina.",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1677,
+          "anchor": "World: allold135 apertures unchanged; focal32x24 coverssame180x90degree field. Horizontalhalfaperture5625/2millidegrees exact; integer2812wouldcreategaps, so newgeometryusesexistingrationalmath (no new optical law). Both portal and surface loops use exactselectedgeometry and rawoptical output retainedsixbands beforeexistingachromaticconversion. Fullworld capture903; old spectralauditAPI stays135/default, not activecoloringress.",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1937,
+          "anchor": "Joe explicitly deferred the250ms hold to see current vision. One clean reviewed release4a28883ecd5de3b5f3a440ea2d52cbadc951c40a, image sha256:d293311d9adeaf5d91975718192191ad430d003ca3286b052fa15dd8e58837cf, task1461/aad26742cfc049bda51f811053a73a3d.903sites (135 preserved +768 new32x24) and integrated sampling/ingress/UI/proven cleanup now live. More detail, not recognition or speech completion. Exact-image ordinary processing1.20–1.22s, sensory1.349s; NOT250ms.",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1939,
+          "anchor": "Fresh authenticated backup698812, full local+exact-image903growth/ingress/preservedlineages/freshrestart/next proofs,219-file package and actual runtimefile equality. Same copied successors byte-exact across local and image. Firstimagebuild compilerthreadlimit corrected via builderCPUaffinity0-3, same source and all successes retained. No broad speech retest. Detailed contract, mistakes, closed checks and measures in canonicalAttempt54.",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A06",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL18",
+      "name": "Exact optimization versus absent or unmeasured performance gain",
+      "classification": "evolutionary_cleanup_distinguished_from_effectiveness",
+      "finding": "DLR18",
+      "observed_mechanism": "The ledger preserves exact arithmetic/address/parser/allocation cleanups, rejects parallelization without meaningful gain, corrects stale hypotheses about already-shared anatomy and already-prioritized queues, and reports millisecond savings still above250ms.",
+      "evidence_limits": "Exactness is necessary but does not establish faster execution; one timed pair is not sustained gain. Historical bottlenecks cannot diagnose the current stalled task. Required physical state and useful dependencies are not bloat merely by size.",
+      "replacement": "Retain only justified exact cleanup with original error order, units, ownership and field/state preservation. Measure actual current critical path and workload; remove ineffective candidates without inventing caches that drop causal work.",
+      "acceptance": {
+        "unit": "Prove signed arithmetic, parser/refusal ordering and full-state equivalence at boundaries.",
+        "module": "Measure matching ordinary native/body/world successors and complete relevant costs without instrumented timing as ordinary authority.",
+        "system": "Validate current end-to-end sensory latency and bounded resources under full change and cold operation; do not call a small local comparison real-time completion.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1703,
+          "anchor": "V122304 modifiesonlycomplete_neuron.rs: calculateanatomy/target ringenergiesonceacrossthethreepredecessorwindings; keepseparateResults/refusals. Fourproductioninteger-floor sites useexistingnum_traits::Euclid onexactBigIntcross-products, avoidingdiscardedBigRationalintermediates. Positivedivisorsprovenatcallers; signedfloor(includingnegatives),guards,widthrefusals,capacityorder,finalcanonicalresiduesunchanged. No newdependency,state,law,orL0-L4change. Source-reviewPASSfrozen1382df2e79290c7da923935f4ffbffc81eddfbb26a820766027e369dc057dc7f verifiedunchangedafterexecution. Nativeexacttests prepared_ring_targets_and_integer_floors_preserve_exact_arithmetic1PASS0.00s; prepared_gate_descent_matches_direct_capacity_bounded_settlement1PASS0.07s. Ordinarywheel3e90ea0fd787dba8d4072722b840ae7a9b35e77e3be7a2386b387be4a73a47ea/nativenew975d9dde6ec00c21127f4271b5d84d67104fc0569a11f6bfdf74f0fc45ee015d.",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1705,
+          "anchor": "Source-reviewedcallercompare_arithmetic.pySHAe7a8c1e606db88da6a2144d07eb5921d6fda5f28db428ea6c3e5f25747297cc4, oneunprofiled903ordinarysuccessor669739->669740, private4CPU16GiB/no-swap/pids128/networknone,loadedPythonoverlaysbyteverified. Exactbodyfa558c213f110021f1b6998ba1e4a358bad317bdc69f3266d1801c6da1d984ee/world0e59af03c65b0197500ea72218ce8bcb030d4e15e9cdd5054838c8531f0f6af9 equalheldreference; sourceCURRENTunchanged. Measured2.414192039s,RSS2764808KiB,exit0/noOOM. No matchedunprofiledpredecessorbenchmark or demonstratedspeedupclaim; real-timegateNOTmet. Arithmeticredundancyremovedandbehaviorpreserved, notvisionrelease. Productionunchangedtask1460,pre/posthealthrecorded.",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1717,
+          "anchor": "Refuted cost hypothesis: CURRENT GLCOG046 cold restore already uses one decoded global heavy-anatomy table and Arc sharing, retaining individual capacitance. The2.414s measurement is after cold restore. Fresh-mount duplication or the unused share_heavy_anatomy_from method cannot explain that result; no sharing repair is authorized by this evidence.",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1907,
+          "anchor": "One existing route test PASS, ordinary wheel, both exact903 body/world successors PASS. Cold0.980073166s; warm1.068305423s versusV325warm1.071776968s: only3.471545ms (~0.324%) observed difference, NOT meaningful speed evidence. Peak2765440KiB; noOOM. Code removes duplicate route resolution, transition clones and two unread containers, with original refusal and authority preserved. No new tests/diagnostics/state/laws.",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1923,
+          "anchor": "P329 closed9d9389d99. One receptor-input correction in core/cohort input: retain original catalyst member address for transduction; resident_gate_work_bits resolves once with original checks, then moves validated indices into existing transient option. No new index/schema/law; unchanged anatomy lifetime only. Preserve from_episode, original duplicate/source/duration errors, later bounds/perspective checks. One existing source-anatomy fixture extended, frozen review, ordinary903two-successor proof and measured cost. Full contract in Attempt54 before code. Production1460 unchanged; whole250ms gate remains. Vision first,self-life next,speechparked.",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL157",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL157--GUALA_DELIVERY_LEDGER.md",
+          "line": 15,
+          "anchor": "The suggested queued-input-before-unattended rule already exists in _run;",
+          "sha256": "6f1471eb7147bd84b90c73011dd736e7671fa0392e623bb0fff39d126bccb509"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 2000,
+          "anchor": "7f596389b archives the exact but unearned receptor-parallel candidate.",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL19",
+      "name": "Sparse focal acquisition versus skipped physical participation",
+      "classification": "authorized_input_domain_change_not_equivalent_dense_physics",
+      "finding": "DLR19",
+      "observed_mechanism": "K6 found3969–3985selected members and zero removable whole cohorts. Sparse GLJSRC07 preserves site/group identity and treats missing light as unacquired, explicitly changing input domain. Steady illumination still transfers energy; net-zero state does not mean no physical cause.",
+      "evidence_limits": "Recipient thinning was empirically unhelpful and unratified. Sparse acquisition codec success does not establish mature-body wiring, organism-directed fovea, complete-settlement barrier removal or250ms.",
+      "replacement": "Preserve dependency-complete native physical participation. Define approved acquisition geometry/time and missing-sample semantics explicitly; implement genuine local due scheduling and independently timed senses without stale/dark substitutions.",
+      "acceptance": {
+        "unit": "Verify sparse site custody, joint occurrence membership and unchanged old formats; distinguish absent from zero exposure.",
+        "module": "Trace acquired physical input through full joint field and all causally due consumers, with original material clocks/conservation.",
+        "system": "Qualify actual detailed organism-directed sensing and full-load latency on preserved state; no preview or dropped work as substitute.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL167",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL167--GUALA_DELIVERY_LEDGER.md",
+          "line": 10,
+          "anchor": "The required K6 measurement CLOSED the consulted-only recipient avenue:",
+          "sha256": "2f40bb3276d7755a3420a1c6326c1005259518c45dd0ece9d644173013e717da"
+        },
+        {
+          "source_id": "DL167",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL167--GUALA_DELIVERY_LEDGER.md",
+          "line": 24,
+          "anchor": "Current native candidate is uncommitted in joint_source_episode.rs and",
+          "sha256": "2f40bb3276d7755a3420a1c6326c1005259518c45dd0ece9d644173013e717da"
+        },
+        {
+          "source_id": "DL167",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL167--GUALA_DELIVERY_LEDGER.md",
+          "line": 35,
+          "anchor": "Requested architecture: bounded focal acquisition, one genuine joint field,",
+          "sha256": "2f40bb3276d7755a3420a1c6326c1005259518c45dd0ece9d644173013e717da"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1981,
+          "anchor": "Joe requires function, not human biological duplication. Source review closes",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 2007,
+          "anchor": "every local neuronal delivery, even when net transfer iszero. Zero net does",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL20",
+      "name": "Inspection releases and explicit unmet real-time requirement",
+      "classification": "scoped_authorization_not_acceptance_waiver",
+      "finding": "DLR20",
+      "observed_mechanism": "Joe explicitly authorized task1461/1464 vision inspection despite unmet250ms. Task1461 reports1.20–1.22s ordinary and1.349s sensory. Actual latest699124 rather than the test copy was preserved through one-writer cutover. Later1463 continuity retained behavioral acceptance as pending.",
+      "evidence_limits": "A scoped inspection exception is neither a general release waiver nor proof of250ms,20/20, cognition or speech. Healthy deployment and lineage are separate from functional acceptance.",
+      "replacement": "Carry the exact exception, unchanged requirement and missing acceptance visibly in configuration and release records. Bind any subsequent proof to the actual successor, not an older copied predecessor.",
+      "acceptance": {
+        "unit": "Validate exact package/source/state identity and original release controls.",
+        "module": "Prove authenticated latest predecessor, zero writers before successor and cold continuation with active learned-state mapping.",
+        "system": "Measure actual viewing and native receptor reception against the full requirement; record user inspection separately from capability qualification.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 3,
+          "anchor": "332d81f05 / image74cf6218 / taskd12bafde, identitypreserved fromliveshutdown710068.",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1932,
+          "anchor": "Joe now explicitly orders currentvision into production so he can judge it. D122331 ACTIVE supersedes250ms releasehold for thisrelease; no real-timeclaim. Stopoptimization. Releaseexisting903eye/integratedtransport/UI/provencleanup withfreshbackup/identity/fullDSF/current-only/restart/onewriter/livebrowser/resourceproof. Self-lifenext,speechparked. No new speechgates or newuserdecision. SharedC1recordb09476b17. Next exactrelease step: authenticated newest production pairedcopy and existing903growth/restart path under reviewedcandidate beforeimmutablepackage.",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1937,
+          "anchor": "Joe explicitly deferred the250ms hold to see current vision. One clean reviewed release4a28883ecd5de3b5f3a440ea2d52cbadc951c40a, image sha256:d293311d9adeaf5d91975718192191ad430d003ca3286b052fa15dd8e58837cf, task1461/aad26742cfc049bda51f811053a73a3d.903sites (135 preserved +768 new32x24) and integrated sampling/ingress/UI/proven cleanup now live. More detail, not recognition or speech completion. Exact-image ordinary processing1.20–1.22s, sensory1.349s; NOT250ms.",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 1941,
+          "anchor": "Controller dryrun/onecutover PASS: oldtaskSTOPPED/exit0 beforezero/new; latestlive699124 preserved, not testcopy. New healthy1/1/0, public699170/903sites, persisted699156 and no custodyerrors. BothHTML live/browserHTTP200/exacthash/noJSerrors,903field visibly inspected. CloudFront invalidation complete. Initial15:37 CPUavg48.5553/max49.9413%, RAMavg11.4899/max11.6364%; resource/refusalalarmsOK; historicalclockALARMstillopen. C1 notified to activate chartered focalcaretakerlessonsonlyafterconfirmedlive903; completionnotassumed.",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        },
+        {
+          "source_id": "DL169",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL169--GUALA_DELIVERY_LEDGER.md",
+          "line": 5,
+          "anchor": "C1 controller completed exit0, statuscontinuity_health_verified, source",
+          "sha256": "76bda5835ba4834095b4a24eaf1187ce72281f6e6a5f74603e865b5dc55004b3"
+        },
+        {
+          "source_id": "DL169",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL169--GUALA_DELIVERY_LEDGER.md",
+          "line": 12,
+          "anchor": "Sol camera correction23fc6030a and ledger head457e73c23 are on origin (verified),",
+          "sha256": "76bda5835ba4834095b4a24eaf1187ce72281f6e6a5f74603e865b5dc55004b3"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A06",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDL21",
+      "name": "Aggregate needs, environment and caretaker authority",
+      "classification": "documented_authority_conflict_remains_open",
+      "finding": "DLR21",
+      "observed_mechanism": "The late history records C1 withdrawing sensorium-appended needs in favor of nativeGLJSRC08, while aggregate-need authority remained explicitly unresolved. Caretaker control and speech/vision release ownership were separate lanes.",
+      "evidence_limits": "A native packet format alone does not authorize the need law, prove full internal sensing or establish caretaker interference as the cause of present symptoms.",
+      "replacement": "Trace each internal need to retained physical state, exact law/units and actual decision consumer. Classify environment/caretaker contributions and rate limits separately; reconcile original approval before any scalar aggregate becomes cognitive authority.",
+      "acceptance": {
+        "unit": "Verify need-state producer, units, field custody and absence of direct semantic motor overrides.",
+        "module": "Trace native need plus contextual experience into lawful action selection with environment contributions measured independently.",
+        "system": "Use actual current telemetry and matched preserved-state causal controls to explain hunger, loops and latency; no inference solely from caretaker mode labels.",
+        "release": "Authenticate current source, binary, active preserved state and real callers; qualify exact serving behavior and resources. Historical ledger reports are attributed evidence, not independently replayed execution, current activation, learned speech or an ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DL168",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL168--GUALA_DELIVERY_LEDGER.md",
+          "line": 25,
+          "anchor": "C1 is deploying its separately owned bfe7ec9e / digest59b20005...: exact",
+          "sha256": "ece8597f55518c50d304a216e84c69517f2848e5f2afd8e668f8c7fcfbb06a7a"
+        },
+        {
+          "source_id": "DL168",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL168--GUALA_DELIVERY_LEDGER.md",
+          "line": 30,
+          "anchor": "appended need design in favor of a nativeGLJSRC08 source; previous packing",
+          "sha256": "ece8597f55518c50d304a216e84c69517f2848e5f2afd8e668f8c7fcfbb06a7a"
+        },
+        {
+          "source_id": "DL169",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL169--GUALA_DELIVERY_LEDGER.md",
+          "line": 12,
+          "anchor": "Sol camera correction23fc6030a and ledger head457e73c23 are on origin (verified),",
+          "sha256": "76bda5835ba4834095b4a24eaf1187ce72281f6e6a5f74603e865b5dc55004b3"
+        },
+        {
+          "source_id": "DL171",
+          "path": "docs/guala_reconciliation/sources/delivery-history/DL171--GUALA_DELIVERY_LEDGER.md",
+          "line": 134,
+          "anchor": "Caretaker restarted; subsequent C1-lane source8551fbe9/PID381 replacedPID98920",
+          "sha256": "4cb9ed867ee6b68f34f10339808ac7aa8eb639034eef608fd97a9b9b8e6dfef6"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A05",
+        "A07",
+        "A11",
+        "A12",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

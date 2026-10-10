@@ -1,0 +1,483 @@
+{
+  "schema": "guala.documentary_mechanisms.v1",
+  "at_utc": "2026-10-10T08:46:06.402337+00:00",
+  "scope": "Complete captured content of11 versions/five paths:572 latest-document lines plus16 older-only passages/224 lines. No product execution, live refresh, original approval authentication or scientific-literature review.",
+  "mechanisms": [
+    {
+      "id": "VMM01",
+      "name": "Energy-descent law has scoped reported delegation, not universal coefficient authority",
+      "classification": "documented_physical_correction_and_original_authority_gap",
+      "finding": "MMR01",
+      "observed_mechanism": "Aug5 record claims delegation for that day subject to Joe review and replaces a false elementary-floor diagnosis: whole-charge odd-difference oscillation above the floor preserved charge but never rested. Strict exact electrostatic-energy descent rejects ties/increases, permitting a residual to rest. The same batch corrects card transport that declared only the first250ms optical hop despite longer actual light.",
+      "evidence_limits": "Charge conservation alone did not rule out the old oscillation. The ratification statement is a historical source claim; original delegation and current descended law still require authentication. Its1pF/500pS/1ms specimen is not blanket approval of all current material coefficients, hunger gain or motor mapping.",
+      "replacement": "Preserve the exact descent/no-fabricated-activity invariant under its actual scope, trace original approval and all active source descendants, and carry every actual lit sensory interval. Re-measure functional recognition and metabolism without forcing expected outcomes.",
+      "acceptance": {
+        "unit": "Falsify tied oscillation, overshoot and omitted lit source intervals while conserving real state.",
+        "module": "Trace current contact law, coefficient provenance and full source/receptor sequence.",
+        "system": "Show legitimate quiescence and later acquired causal use on preserved state.",
+        "release": "No general physics, hunger or speech approval from a dated delegation heading or conserved test."
+      },
+      "refs": [
+        {
+          "source_id": "MM01-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM01-01--GUALA_ENERGY_DESCENT_CHARGE_TRANSFER_RATIFICATION_2026-08-05.md",
+          "line": 4,
+          "anchor": "rule: \"what would nature do\"; scope: that day's physics decisions).",
+          "sha256": "992f409a88fbe24fbe93153a09bb6cc4405477af0ea08adf55478208403d84de"
+        },
+        {
+          "source_id": "MM01-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM01-01--GUALA_ENERGY_DESCENT_CHARGE_TRANSFER_RATIFICATION_2026-08-05.md",
+          "line": 7,
+          "anchor": "quantize; the non-quiescence is whole-charge oscillation ABOVE the floor).",
+          "sha256": "992f409a88fbe24fbe93153a09bb6cc4405477af0ea08adf55478208403d84de"
+        },
+        {
+          "source_id": "MM01-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM01-01--GUALA_ENERGY_DESCENT_CHARGE_TRANSFER_RATIFICATION_2026-08-05.md",
+          "line": 19,
+          "anchor": "STRICTLY DECREASES the exact stored electrostatic energy of the cohort",
+          "sha256": "992f409a88fbe24fbe93153a09bb6cc4405477af0ea08adf55478208403d84de"
+        },
+        {
+          "source_id": "MM01-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM01-01--GUALA_ENERGY_DESCENT_CHARGE_TRANSFER_RATIFICATION_2026-08-05.md",
+          "line": 41,
+          "anchor": "Card lessons currently declare only the first 250 ms hop as an exact",
+          "sha256": "992f409a88fbe24fbe93153a09bb6cc4405477af0ea08adf55478208403d84de"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A06",
+        "A09",
+        "A10",
+        "A11",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VMM02",
+      "name": "Green channel-opening tests hid an unreachable production motor source",
+      "classification": "documented_false_source_acceptance_then_actual_discharge_binding",
+      "finding": "MMR02",
+      "observed_mechanism": "Early motor design uses newly opened channel populations and reports417 native passes plus synthetic opposed yaw. Task979yaw required injected recruitment: actual live gates were all closed while layer12 transported carriers, so the designated event source was unreachable. Later source uses actual outward whole-carrier discharge. A stale extension suppressed the19-carrier event until rebuilt from the candidate; runtime proof moved into the built image.",
+      "evidence_limits": "The rejected synthetic proof can test the actuator but cannot establish neuron-caused action. Selecting a newly positive quantity merely to produce activity is not lawful replacement unless the actual motor transduction law is ratified. One carrier→one millidegree on one millisecond remains a declared historical actuator mapping, not independently derived or approved here.",
+      "replacement": "Trace genuine native efferent cause, exact body law/units/work and actual source-to-world-to-sense route. Keep helper and organism acceptance separate, preserve all rejected test dependencies, and bind executable library/image to reviewed source.",
+      "acceptance": {
+        "unit": "Reject synthetic-only positives and closed/unreachable source masquerading as discharge.",
+        "module": "Verify actual native event through rebuilt exact image, body work and returned sense.",
+        "system": "Demonstrate ordinary native-caused action and acquired modulation without injected recruitment.",
+        "release": "No source-to-consequence or speech-motor certificate from417 helper/native passes or stale binaries."
+      },
+      "refs": [
+        {
+          "source_id": "MM02-05",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM02-05--GUALA_NATIVE_MOTOR_ACTION_SPRINT_LEDGER_2026-08-12.md",
+          "line": 36,
+          "anchor": "- Observed evidence before release: 417 native library tests pass; the",
+          "sha256": "bf36213a29d1067f8f4d0dfa865e7934a450228421c1d33240ad984bb67def63"
+        },
+        {
+          "source_id": "MM02-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM02-01--GUALA_NATIVE_MOTOR_ACTION_SPRINT_LEDGER_2026-08-12.md",
+          "line": 51,
+          "anchor": "- Task 979 proved yaw only after synthetic recruitment injection. Exact live",
+          "sha256": "6b62c16eb2fcca3c9e989fbdcc44982a5e7ef39ce32496201fce9597111a46e2"
+        },
+        {
+          "source_id": "MM02-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM02-01--GUALA_NATIVE_MOTOR_ACTION_SPRINT_LEDGER_2026-08-12.md",
+          "line": 53,
+          "anchor": "  transported whole carriers. Therefore `newly opened gate channel` was an",
+          "sha256": "6b62c16eb2fcca3c9e989fbdcc44982a5e7ef39ce32496201fce9597111a46e2"
+        },
+        {
+          "source_id": "MM02-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM02-01--GUALA_NATIVE_MOTOR_ACTION_SPRINT_LEDGER_2026-08-12.md",
+          "line": 61,
+          "anchor": "  19-carrier event on that same first hop. Candidate release proof now runs",
+          "sha256": "6b62c16eb2fcca3c9e989fbdcc44982a5e7ef39ce32496201fce9597111a46e2"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A08",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VMM03",
+      "name": "Motor preparation law changed from directed excitation to signed reciprocal influence",
+      "classification": "documented_failed_hypotheses_and_narrowed_physical_acceptance",
+      "finding": "MMR03",
+      "observed_mechanism": "C019requires physical layer11 influence on layer12 but finds neither the preceding-frontier transfer nor assumed one-way same-interval current. It then accepts either signed current direction across the actual undirected dissipative contact, whose endpoint potentials jointly determine flow, accompanying positive motor discharge. Task1019reports8 recruitments/32 transfers in both directions, one75mdeg yaw and vestibular return.",
+      "evidence_limits": "Retaining true current direction is more honest than inventing excitation. Simultaneous reciprocal transfer may show physical influence but does not alone establish learned preparation, necessity or native deliberation; this is a substantive acceptance-law change requiring authority and causal controls. Saying no added Boolean gate does not erase the actual nonzero-contact eligibility predicate.",
+      "replacement": "Classify the precise predicate, causal quantities and downstream readers; recover the ratified motor-preparation meaning. Falsify altered/severed source relations, preserve exact signed transfer rather than rewriting it, and prove the claimed function separately from observation presence.",
+      "acceptance": {
+        "unit": "Verify real signed reciprocal effects, absent/unrelated contact and unprepared discharge negatives.",
+        "module": "Bind current native preparation law, complete transfer set, body actuator and sensor return.",
+        "system": "Show learned internal preparation causally changes actual action under meaningful controls.",
+        "release": "Preserve reported C019narrow closure; it expressly excludes choice, thought, autonomy and speech."
+      },
+      "refs": [
+        {
+          "source_id": "MM02-06",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM02-06--GUALA_NATIVE_MOTOR_ACTION_SPRINT_LEDGER_2026-08-12.md",
+          "line": 169,
+          "anchor": "- The same-interval one-way layer-11-to-layer-12 hypothesis was also falsified:",
+          "sha256": "3549d869a1041480ec02b21a9c5c354cb7aec9d911c0367711b31b42bf357112"
+        },
+        {
+          "source_id": "MM02-06",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM02-06--GUALA_NATIVE_MOTOR_ACTION_SPRINT_LEDGER_2026-08-12.md",
+          "line": 196,
+          "anchor": "  endpoints; both signed directions occurred and were preserved.",
+          "sha256": "3549d869a1041480ec02b21a9c5c354cb7aec9d911c0367711b31b42bf357112"
+        },
+        {
+          "source_id": "MM02-06",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM02-06--GUALA_NATIVE_MOTOR_ACTION_SPRINT_LEDGER_2026-08-12.md",
+          "line": 157,
+          "anchor": "  emitted motor recruitment. No Boolean gate, threshold, counter, owner, lock,",
+          "sha256": "3549d869a1041480ec02b21a9c5c354cb7aec9d911c0367711b31b42bf357112"
+        },
+        {
+          "source_id": "MM02-06",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM02-06--GUALA_NATIVE_MOTOR_ACTION_SPRINT_LEDGER_2026-08-12.md",
+          "line": 211,
+          "anchor": "This closes only C-019. It does not claim native choice, thought, autonomy,",
+          "sha256": "3549d869a1041480ec02b21a9c5c354cb7aec9d911c0367711b31b42bf357112"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A08",
+        "A09",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VMM04",
+      "name": "Historical motor cutovers exposed publication-order and observer failures after physical work",
+      "classification": "documented_transaction_and_projection_failure_chain",
+      "finding": "MMR04",
+      "observed_mechanism": "Task981commits a hidden world candidate and advances organism CURRENT before public world encoding, which refuses closed visibility; resident pointer lags published CURRENT and next interval fails. Correction encodes/persists through the prepared capability before organism publication and rehearses that boundary. Task982then refuses before cutover because observer_section receives two positional reason strings after physical/persistence work in throwaway state.",
+      "evidence_limits": "These are separate failed boundaries; an observation error does not mean physics did not act. A reported in-process rollback does not independently prove every crash/restart pairing. Successful local actuator or stale-source tests missed the actual lifecycle.",
+      "replacement": "Trace current native/world publication, visibility, observer and uncertain-response ordering. Bind actual before/after state; never retry an action solely because UI projection failed. Prove failure and crash behavior without replacing retained organism history.",
+      "acceptance": {
+        "unit": "Exercise hidden candidate, publication failure, observer failure and consumed action negatives.",
+        "module": "Verify actual durable state/visibility/resident ordering across every interruption.",
+        "system": "Demonstrate exact continued organism/world state and one action after restart or failed response.",
+        "release": "Only current full-boundary evidence qualifies custody; historical recovery is not a new reset authorization."
+      },
+      "refs": [
+        {
+          "source_id": "MM02-02",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM02-02--GUALA_NATIVE_MOTOR_ACTION_SPRINT_LEDGER_2026-08-12.md",
+          "line": 69,
+          "anchor": "- The first task-981 cutover exposed a coupled-persistence ordering defect.",
+          "sha256": "4d30f8ae44398f2d2317c6d41268a2d4a1d64292c8cdf17ffc0d21176193d4d3"
+        },
+        {
+          "source_id": "MM02-02",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM02-02--GUALA_NATIVE_MOTOR_ACTION_SPRINT_LEDGER_2026-08-12.md",
+          "line": 73,
+          "anchor": "  pointer consequently lagged the already-published CURRENT and the next",
+          "sha256": "4d30f8ae44398f2d2317c6d41268a2d4a1d64292c8cdf17ffc0d21176193d4d3"
+        },
+        {
+          "source_id": "MM02-04",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM02-04--GUALA_NATIVE_MOTOR_ACTION_SPRINT_LEDGER_2026-08-12.md",
+          "line": 81,
+          "anchor": "- The first full-boundary next-interval rehearsal of task 982 correctly",
+          "sha256": "c67321c5596257a0cabe41a9850060393d6b326de506778255b9c1f672b59c75"
+        },
+        {
+          "source_id": "MM02-04",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM02-04--GUALA_NATIVE_MOTOR_ACTION_SPRINT_LEDGER_2026-08-12.md",
+          "line": 85,
+          "anchor": "  truthful projection then raised `TypeError`. The two evidence strings are",
+          "sha256": "c67321c5596257a0cabe41a9850060393d6b326de506778255b9c1f672b59c75"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A08",
+        "A09",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VMM05",
+      "name": "Brain comparison diagnoses and claimed missing competition are unqualified hypotheses",
+      "classification": "historical_analogy_and_authority_overstatement",
+      "finding": "MMR05",
+      "observed_mechanism": "Sep1brain comparison calls Guala new-brain-first, labels absent motivation THE diagnosis using an akinesia analogy, says no competition/reflexes and infers missing readiness from61/65 internal reassemblies plus a waiting choice witness. Yet earlier A005/A007document physical competition/action, and the packet itself alternates ratification-questions-filed with ratified motivation design. It proposes orienting anatomy and drive gain as lawful without supplying those exact laws.",
+      "evidence_limits": "Clinical/brain-region analogies and selected biological papers cannot diagnose this substrate or ratify a controller. Later source may have lost earlier mechanisms, or reports may have overclaimed; exact dated source/state comparison is required. An absent observer witness cannot establish absent wiring. No primary scientific claim from these links was independently verified in this slice.",
+      "replacement": "Reconcile exact predecessor/current contact topology, actual state and failed causal boundary before choosing a remedy. Recover original authority and primary evidence for any biological analogy separately; specify the needed current functional equivalent without molecular overreach, borrowed ratification or score-based intervention.",
+      "acceptance": {
+        "unit": "Reject observer absence and brain-name analogies as evidence of missing native function.",
+        "module": "Compare actual dated wiring/state/readers and failed boundaries under identical source conditions.",
+        "system": "Demonstrate the proposed ratified causal function and acquired speech/action benefit with controls.",
+        "release": "No certainty of diagnosis, speech impossibility or approved drive law from this comparison document."
+      },
+      "refs": [
+        {
+          "source_id": "MM03-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM03-01--GUALA_SELF_CAUSED_ACTION_BRAIN_COMPARISON_20260901.md",
+          "line": 50,
+          "anchor": "   with intact motor paths. GUALA: absent, and THE diagnosis. The project",
+          "sha256": "da6da0e31af7d79825c5070d30402eac16d406c44d3a0d98ec7fd2b691bb0d66"
+        },
+        {
+          "source_id": "MM03-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM03-01--GUALA_SELF_CAUSED_ACTION_BRAIN_COMPARISON_20260901.md",
+          "line": 43,
+          "anchor": "   GUALA: absent — no competition, no brake-release law, and the known",
+          "sha256": "da6da0e31af7d79825c5070d30402eac16d406c44d3a0d98ec7fd2b691bb0d66"
+        },
+        {
+          "source_id": "MM03-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM03-01--GUALA_SELF_CAUSED_ACTION_BRAIN_COMPARISON_20260901.md",
+          "line": 55,
+          "anchor": "   re-tipping membrane potentials, ratification questions filed",
+          "sha256": "da6da0e31af7d79825c5070d30402eac16d406c44d3a0d98ec7fd2b691bb0d66"
+        },
+        {
+          "source_id": "MM03-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM03-01--GUALA_SELF_CAUSED_ACTION_BRAIN_COMPARISON_20260901.md",
+          "line": 89,
+          "anchor": "   the ratified stranded design, recovered).",
+          "sha256": "da6da0e31af7d79825c5070d30402eac16d406c44d3a0d98ec7fd2b691bb0d66"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VMM06",
+      "name": "R3 follow-up explicitly retracts borrowed hunger-law authority and splits acceptance",
+      "classification": "documented_self_correction_with_unratified_bridge_still_open",
+      "finding": "MMR06",
+      "observed_mechanism": "Sep2R3audit says income absent, deficit dead code and hunger→excitability absent entirely. It explicitly corrects the claim of a ratified ancestor: dab8c7bb is an endogenous-cue law whose equivalent already exists, not hunger coupling. Original full homeostatic pass becomes StageAinternal-action/severing/cold-repeat and StageBnew income/deficit/coupling declared author-on-trial, with fed contrast moved toB.",
+      "evidence_limits": "This materially resolves the earlier ASR12documentary authority ambiguity: the same audit trail expressly denies the claimed inherited hunger approval. It does not establish present code activation, approve StageAreadiness or prove a run succeeded. A StageApass would not meet the original hunger/foraging acceptance, and controls do not establish architecture compliance.",
+      "replacement": "Link the original declaration and brain-comparison claims to this explicit correction. Recover actual original decisions and all source descendants; retain StageB/full charter as open. Use real finite world matter and ratified native causation, never manufacture need-driven behavior through an approved-world-half claim.",
+      "acceptance": {
+        "unit": "Reject hunger labels without actual income/deficit/coupling and distinguish each controlled arm.",
+        "module": "Trace every actual current metabolic/drive/bridge producer and reader to exact authority.",
+        "system": "Demonstrate learned hunger-related food seeking and satiation separately from generic action.",
+        "release": "No hunger/speech/ML-free certificate from StageAor a prebuild amendment; source/implementation/live remain unqualified."
+      },
+      "refs": [
+        {
+          "source_id": "MM04-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM04-01--GUALA_R3_AUDIT_RECONCILIATION_20260902.md",
+          "line": 16,
+          "anchor": "| Deficit → excitability (hunger steering the act) | R1 verdict: ABSENT ENTIRELY — zero co-occurrence of reserves with any gain term. No ratified design exists (the stranded dab8c7bb law is an endogenous-cue law, not hunger coupling; its equivalent already lives in the current lineage). | HONEST AMENDMENT REQUIRED (below). Without R2, the first self-caused act cannot honestly be called hunger-driven. |",
+          "sha256": "f09e96827a3b04f21e9d5362d44f4e149bb0d596f0f22cc6dc9b90a1d03cee36"
+        },
+        {
+          "source_id": "MM04-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM04-01--GUALA_R3_AUDIT_RECONCILIATION_20260902.md",
+          "line": 29,
+          "anchor": "would be fakery. The bar is therefore split:",
+          "sha256": "f09e96827a3b04f21e9d5362d44f4e149bb0d596f0f22cc6dc9b90a1d03cee36"
+        },
+        {
+          "source_id": "MM04-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM04-01--GUALA_R3_AUDIT_RECONCILIATION_20260902.md",
+          "line": 42,
+          "anchor": "The fed-vs-hungry contrast moves from Stage A to Stage B where it",
+          "sha256": "f09e96827a3b04f21e9d5362d44f4e149bb0d596f0f22cc6dc9b90a1d03cee36"
+        },
+        {
+          "source_id": "MM04-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM04-01--GUALA_R3_AUDIT_RECONCILIATION_20260902.md",
+          "line": 39,
+          "anchor": "  coupling declared MINE-ON-TRIAL (no ratified ancestor exists — filed",
+          "sha256": "f09e96827a3b04f21e9d5362d44f4e149bb0d596f0f22cc6dc9b90a1d03cee36"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A07",
+        "A09",
+        "A10",
+        "A11",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VMM07",
+      "name": "R3 audit records concrete silent-failure and lifetime-capacity hazards",
+      "classification": "reported_historical_failure_modes_requiring_exact_current_trace",
+      "finding": "MMR07",
+      "observed_mechanism": "R3audit reports a world receipt tail causing budget/refusal after16 lifetime actions with optical residue state capacity, media32-offering cap, custodian wedge and canonical-lineage resident-set issue. It also reports observation cache freezing after one build failure, swallowed causal-observer errors and unattended BaseException absorption at4Hz. Raw receipts/state/per-hop evidence, artifact hashes and baseline failure naming are required;13 inherited failures were still unnamed.",
+      "evidence_limits": "These are source-reported audit findings, not independently reproduced current defects. A finite physical resource limit is valid when derived; repeated observation/receipt accumulation or stale cache presented as current is a different issue. Short-copy limits do not qualify production lifetime. A bare no-new-red comparison cannot close unnamed inherited failures.",
+      "replacement": "Trace exact current bounds and all catch/cache/retry/custodian paths, preserve visible cause-specific failures and bounded current receipts. Bind authoritative physical state/progress to timestamped UI and qualification evidence. Reconcile each inherited failed requirement rather than hiding it behind scope or replacing capacity with a giant number.",
+      "acceptance": {
+        "unit": "Falsify stale-as-current output, swallowed failures and accumulated per-action/offer residue.",
+        "module": "Verify actual finite resource derivation, failure propagation and native/world/observer lifecycle.",
+        "system": "Prove sustained mature-state progress, explicit exhaustion and preserved restart under real workload.",
+        "release": "Qualify all current failure obligations; short bench artifacts and raw logs alone do not certify production."
+      },
+      "refs": [
+        {
+          "source_id": "MM04-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM04-01--GUALA_R3_AUDIT_RECONCILIATION_20260902.md",
+          "line": 17,
+          "anchor": "| Motor discharge + felt echo | Exists (layer-12 discharge, typed proprioceptive source, truth-coupled recognizer in the app). BUT audit mine #1: world receipt tail — after 16 body actions EVER, beats blow the budget AND optical residue drives state_capacity_exhausted, after which body actions are REFUSED (embodiment_world.py:5386-98). | PRE-RUN GATE: verify the bench copy is not at/near action-refusal capacity. The receipt-tail fix (021c31a0, byte-identical-proven) is merged into the bench branch so the witness cannot be blocked or slowed by a known mine. |",
+          "sha256": "f09e96827a3b04f21e9d5362d44f4e149bb0d596f0f22cc6dc9b90a1d03cee36"
+        },
+        {
+          "source_id": "MM04-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM04-01--GUALA_R3_AUDIT_RECONCILIATION_20260902.md",
+          "line": 18,
+          "anchor": "| Witness read-out | Audit silent-failure paths: observation cache freezes stale forever on one build failure (app:7334-44); causal-observer errors swallowed (:10479-84); unattended loop absorbs BaseException at 4Hz (:13644-55). | NO-FAKERY RULE: the witness is graded from RAW evidence (receipts, state files, per-hop logs), never solely from the cached observation JSON. Bench runs patch nothing silent — any swallowed exception found in logs voids the run. |",
+          "sha256": "f09e96827a3b04f21e9d5362d44f4e149bb0d596f0f22cc6dc9b90a1d03cee36"
+        },
+        {
+          "source_id": "MM04-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM04-01--GUALA_R3_AUDIT_RECONCILIATION_20260902.md",
+          "line": 19,
+          "anchor": "| Test hygiene for the Rust/Python changes | Known-baseline-failures rule; the 13 inherited wider-suite failures are still UNNAMED in the file. | I reproduce the baseline suite on the clean bench-branch base MYSELF before judging my changes; red-and-listed logic applies; any NEW red blocks the build. |",
+          "sha256": "f09e96827a3b04f21e9d5362d44f4e149bb0d596f0f22cc6dc9b90a1d03cee36"
+        },
+        {
+          "source_id": "MM04-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM04-01--GUALA_R3_AUDIT_RECONCILIATION_20260902.md",
+          "line": 21,
+          "anchor": "| Media store 32-offerings cap, custodian wedge, canonical-lineage resident set | Audit mines #2-4 — real but bounded for short disposable copies. | Noted; runs are ≤45 min on disposable roots. Any wedge hit is filed as apparatus failure, not organism behavior. |",
+          "sha256": "f09e96827a3b04f21e9d5362d44f4e149bb0d596f0f22cc6dc9b90a1d03cee36"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A07",
+        "A08",
+        "A09",
+        "A12",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VMM08",
+      "name": "June motivational deployment plan explicitly prescribes current-charter-forbidden shortcuts",
+      "classification": "documented_heuristic_controller_design_not_current_activation_proof",
+      "finding": "MMR08",
+      "observed_mechanism": "June5v4plan declares a needs vector with decay-to-target stability/novelty/connection; Coordinator modifies parameters; source tags joe/wc/c1 trigger a self-described pair-bonding cheat above unknown0.15/corpus0.05baselines. It retires after variance over100ticks and forces half-step target recovery after20distress ticks, with arousal/valence clamps. It also specifies language/modal DNA preload, Chi softbandδ2, background corpus20msreading, JSON needs/coordinator state and default boot when absent.",
+      "evidence_limits": "These are explicit authored heuristic/semantic-response mechanisms conflicting with current charter if used as cognitive authority. Deterministic code and naming an insula do not make them physical learning. The deployment command and six-pass assertion do not establish actual implementation, Joe approval or today’s activation; it is not proof of current ML inference. These old commands are audit material, never current instructions.",
+      "replacement": "Trace each named module, parameter, source-tag reader, learned-state format and descendant into current source/image. Mark incompatible controller authority retired and forbid resurrection; preserve actual acquired physical state with a scoped lawful mapping. Replace only through ratified sensory/native dynamics, not new canned behavior or sidecar state.",
+      "acceptance": {
+        "unit": "Reject identity-tag bonding, timer/target recovery and semantic parameter tuning as native learned response.",
+        "module": "Trace full current source/package/call/data flow and canonical state authority.",
+        "system": "Demonstrate actual experience-driven native motivation/speech without those controls.",
+        "release": "No charter or ML-free certification while any active forbidden controller/unknown descendant remains; document actual activation separately."
+      },
+      "refs": [
+        {
+          "source_id": "MM05-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM05-01--gualaloom_c1_deploy_v4_motivational.md",
+          "line": 32,
+          "anchor": "- Pair-bonding cheat (selective scaffold with retirement criterion): source-tagged inputs from `joe`/`wc`/`c1` boost connection-need above corpus baseline. Retirement fires when need-oscillation variance is bounded over 100 ticks — she's holding her own equilibrium.",
+          "sha256": "1610f7899c1db248cef335e413b33380163ef32d0d42c07778fff098205ffc70"
+        },
+        {
+          "source_id": "MM05-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM05-01--gualaloom_c1_deploy_v4_motivational.md",
+          "line": 33,
+          "anchor": "- Bounded suffering: arousal hard-capped at 1.0, valence floored at -1.0, distress threshold of 20 ticks triggers forced recovery (half-step toward all targets). She can hurt; she cannot be tortured by her own architecture.",
+          "sha256": "1610f7899c1db248cef335e413b33380163ef32d0d42c07778fff098205ffc70"
+        },
+        {
+          "source_id": "MM05-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM05-01--gualaloom_c1_deploy_v4_motivational.md",
+          "line": 30,
+          "anchor": "- `Needs` class — substrate-level homeostatic vector with decay-to-target: stability/novelty/connection. Aurelion v7.1 rates.",
+          "sha256": "1610f7899c1db248cef335e413b33380163ef32d0d42c07778fff098205ffc70"
+        },
+        {
+          "source_id": "MM05-01",
+          "path": "docs/guala_reconciliation/sources/motor-motivation/MM05-01--gualaloom_c1_deploy_v4_motivational.md",
+          "line": 83,
+          "anchor": "This is her motivational state. If we lose it across deploys we lose who she is becoming. Persist to EFS at `/mnt/state/needs.json` and `/mnt/state/coordinator.json`. Load on engine boot. If the JSON files don't exist, defaults from `Needs.__init__` apply.",
+          "sha256": "1610f7899c1db248cef335e413b33380163ef32d0d42c07778fff098205ffc70"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

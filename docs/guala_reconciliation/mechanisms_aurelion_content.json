@@ -1,0 +1,497 @@
+{
+  "schema": "guala.documentary_mechanisms.v1",
+  "at_utc": "2026-10-10T06:49:04.508732+00:00",
+  "scope": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read.",
+  "mechanisms": [
+    {
+      "id": "VAC01",
+      "name": "Pretrained semantic encoder and statistical fallback",
+      "classification": "implemented_ML_and_statistical_proxy",
+      "finding": "ACR01",
+      "observed_mechanism": "AC01 constructs SentenceTransformer/all-MiniLM-L6-v2 and otherwise sklearn TF-IDF; AC02 directly constructs the pretrained sentence model and clusters normalized embeddings. AC18 explicitly instructs installing sentence-transformers and scikit-learn. These are actual ML implementations, regardless of the names field, resonance or mosaic.",
+      "evidence_limits": "Presence and intended callers are established. Successful historical model execution, present package contents and current native serving invocation are not independently established by these captures. A statement that this repository contains no ML is false; a statement that ML was never executed is unverified.",
+      "replacement": "Exclude these competing semantic authorities from the pupil and every release dependency. Preserve historical evidence separately. Recover actual dependency/build/import/invocation records; do not substitute TF-IDF, a hand dictionary or another model as the native cognition repair.",
+      "acceptance": {
+        "unit": "Classify exact dependencies, model files and fallback branches by content and behavior, not naming.",
+        "module": "Trace every reachable constructor/call and packaged artifact on the frozen candidate, including dynamic routes.",
+        "system": "With external text/meaning withheld, prove authentic sensory retention and later native causal use; no model or statistical text proxy may supply the answer.",
+        "release": "Certify only the named artifact/configuration after independent source, binary, dependency and live-route closure."
+      },
+      "refs": [
+        {
+          "source_id": "AC01",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC01--embeddings.py",
+          "line": 13,
+          "anchor": "            self.model = SentenceTransformer(model_name)",
+          "sha256": "2559dd062534dab0b195202c4badeb144d8fd60fddc3e1ccd27c24f0e6d99e38"
+        },
+        {
+          "source_id": "AC01",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC01--embeddings.py",
+          "line": 22,
+          "anchor": "            self.vectorizer = TfidfVectorizer(max_features=4096, ngram_range=(1,2))",
+          "sha256": "2559dd062534dab0b195202c4badeb144d8fd60fddc3e1ccd27c24f0e6d99e38"
+        },
+        {
+          "source_id": "AC02",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC02--semantic_mosaic.py",
+          "line": 7,
+          "anchor": "from sentence_transformers import SentenceTransformer",
+          "sha256": "a47190465d18dd8935a3c72800081e7dbe1a28fc0ec233b1a0ff9454195a9259"
+        },
+        {
+          "source_id": "AC18",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC18--README_v36.txt",
+          "line": 19,
+          "anchor": "python -m pip install sentence-transformers scikit-learn numpy pandas matplotlib",
+          "sha256": "fb93f19063611253796222360b7f1a3e5747c508bb395cf4c7dd3910a0cd144d"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A10",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VAC02",
+      "name": "Optional LLM bridge and authored default response",
+      "classification": "implemented_LLM_route_and_canned_fallback",
+      "finding": "ACR02",
+      "observed_mechanism": "AC03 implements Ollama HTTP generation and GPT4All generation; its none backend returns an authored learning-themed reply. AC13 chat calls bridge.reply and permits a backend CLI override. AC16 config defaults backend to none, while AC17 advertises the optional LLM bridge.",
+      "evidence_limits": "Default none is evidence of this file value, not proof of effective runtime configuration or exclusion. The CLI computes a model variable but does not pass that variable into the bridge. This is neither native articulation nor a verified live route.",
+      "replacement": "Retire the LLM and canned-reply routes from pupil speech authority. Keep external tutor identity/provenance separate if an authorized tutor exists. Bind all effective CLI/config/environment values and show their actual consumers.",
+      "acceptance": {
+        "unit": "Prove no approved pupil output path can select the none template, Ollama or GPT4All branch.",
+        "module": "Resolve CLI/config precedence and exact consumers; detect unused controls and imported backends.",
+        "system": "Demonstrate body-generated acoustics from native state with no external response substitution.",
+        "release": "Close all shipped and external generation routes on the exact candidate; a disabled default alone cannot pass exclusion."
+      },
+      "refs": [
+        {
+          "source_id": "AC03",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC03--bridge_llm.py",
+          "line": 10,
+          "anchor": "class LLMBridge:",
+          "sha256": "304f975955681c5d72ffecce83189f31fc4f241d2f86905b9f0bc29cf693d73c"
+        },
+        {
+          "source_id": "AC13",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC13--bridge_cli.py",
+          "line": 81,
+          "anchor": "            reply = bridge.reply(user)",
+          "sha256": "8f9f6f48b3c518b9b3661e6633b3dbb09adf0dbd38cc8d691e5ea5c681dc6c14"
+        },
+        {
+          "source_id": "AC13",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC13--bridge_cli.py",
+          "line": 33,
+          "anchor": "    model = args.model or llm_cfg.get(\"ollama_model\", \"mistral\")",
+          "sha256": "8f9f6f48b3c518b9b3661e6633b3dbb09adf0dbd38cc8d691e5ea5c681dc6c14"
+        },
+        {
+          "source_id": "AC16",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC16--config.json",
+          "line": 24,
+          "anchor": "    \"backend\": \"none\",",
+          "sha256": "8271c22ce83a12cbd670636bfd80982ec9a721472ef7e7ea4afc9e0c1dd647ac"
+        },
+        {
+          "source_id": "AC17",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC17--README.txt",
+          "line": 7,
+          "anchor": "1) Talk through a local LLM (optional; supports Ollama or GPT4All).",
+          "sha256": "aa2db7b6feece9e7bc3d61decd77a1275aed197f8fd033d094b80e89c6137baf"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A05",
+        "A10",
+        "A12",
+        "A13",
+        "A15"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VAC03",
+      "name": "Text-derived random vectors masquerading as multiple senses",
+      "classification": "synthetic_multisensory_substitution",
+      "finding": "ACR03",
+      "observed_mechanism": "AC07 hashes text into random visual/auditory/smell/taste/touch vectors and uses authored positive/negative words for emotion. AC12 generates all seven modalities from the same text hash. These functions label text-derived numbers as sensory experiences without corresponding external or internal physical events.",
+      "evidence_limits": "Hash seeding is not proof of cross-process determinism; seed configuration was not recovered. Even repeatable vectors would not make them genuine sensory measurements. External text stimulus is permissible only through its actual specified sensing boundary.",
+      "replacement": "Replace these authorities with measured external signals and actual body/internal state through ratified transduction, keeping occurrence time, context and provenance. Do not pad missing experiences with invented modalities.",
+      "acceptance": {
+        "unit": "For each channel prove a change is caused only by its physical input and derived transducer law.",
+        "module": "Verify time-aligned genuine multimodal occurrences and explicit missing-channel handling; no token-to-sense synthesis.",
+        "system": "Show later behavior depends on retained authentic co-experience, including negative controls with missing or rearranged physical context.",
+        "release": "Audit every input producer and restore route; preserve contaminated historical artifacts without treating them as acquired native experience."
+      },
+      "refs": [
+        {
+          "source_id": "AC07",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC07--primitive_sensory_pack.py",
+          "line": 24,
+          "anchor": "def _visual_features(text: str) -> np.ndarray:",
+          "sha256": "9ff6d47622efdc2bc844a3ee42cc5f20687e8e7620e25b67995c1ad527d7c1ec"
+        },
+        {
+          "source_id": "AC07",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC07--primitive_sensory_pack.py",
+          "line": 49,
+          "anchor": "def _emotion_features(text: str) -> np.ndarray:",
+          "sha256": "9ff6d47622efdc2bc844a3ee42cc5f20687e8e7620e25b67995c1ad527d7c1ec"
+        },
+        {
+          "source_id": "AC12",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC12--morphospace_multimodal.py",
+          "line": 53,
+          "anchor": "    rng = np.random.default_rng(abs(hash(text)) % (2**32))",
+          "sha256": "6f7c7596202a46d05a5fa03a06edd7648a25ba821920466763588d29bed062ec"
+        },
+        {
+          "source_id": "AC12",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC12--morphospace_multimodal.py",
+          "line": 51,
+          "anchor": "    Produces normalized random-hash vectors per modality.",
+          "sha256": "6f7c7596202a46d05a5fa03a06edd7648a25ba821920466763588d29bed062ec"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A05",
+        "A06",
+        "A09",
+        "A10"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VAC04",
+      "name": "Scalar coherence, entropy and synthetic energy drive decisions",
+      "classification": "reduced_statistical_authority_not_DSF",
+      "finding": "ACR04",
+      "observed_mechanism": "AC02 derives phi from average within-cluster cosine similarity, H from cluster-label frequencies and energy=phi*exp(-H/10). AC14/15 pass those three scalars into intent.decide. AC06 adjusts alpha with sensitivity0.35 times phi drift and clips it to0.25..0.85. AC12 smooths and pads/truncates modality vectors.",
+      "evidence_limits": "These are reduced text/cluster proxies, not evaluation of the joint D,M,R,U,C,P,B field and global S(UF), physical work or yield-state dynamics. Full field relationships, temporal cause, units and body/context lineage are absent from the inspected authority. Same Greek symbols do not establish equivalence.",
+      "replacement": "Remove the scalar proxy as cognitive authority. Require the authorized full-field and contact/state dynamics with explicit units, conservation/accounting and bounded execution. Keep descriptive observer statistics separate and read-only.",
+      "acceptance": {
+        "unit": "Verify complete field delivery, units and exact derived transition predicates without statistical or smoothing substitution.",
+        "module": "Prove observer summaries cannot feed selection or native-state mutation.",
+        "system": "Preserved-state controlled sensory interventions must change native state and behavior through the full authorized causal path.",
+        "release": "Bind native laws, compiled implementation and effective values; unproved equivalence remains failed or unimplemented."
+      },
+      "refs": [
+        {
+          "source_id": "AC02",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC02--semantic_mosaic.py",
+          "line": 52,
+          "anchor": "    \"\"\"Compute coherence φ, entropy H, and synthetic energy.\"\"\"",
+          "sha256": "a47190465d18dd8935a3c72800081e7dbe1a28fc0ec233b1a0ff9454195a9259"
+        },
+        {
+          "source_id": "AC02",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC02--semantic_mosaic.py",
+          "line": 66,
+          "anchor": "    energy = float(phi * np.exp(-H / 10))",
+          "sha256": "a47190465d18dd8935a3c72800081e7dbe1a28fc0ec233b1a0ff9454195a9259"
+        },
+        {
+          "source_id": "AC14",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC14--aurelion_core_v36.py",
+          "line": 63,
+          "anchor": "        decision = intent.decide(phi, H, energy)",
+          "sha256": "8ee3e24a68a9d12866aee78e62103df3088ef48acbb8b0fbb2ccba010361596b"
+        },
+        {
+          "source_id": "AC06",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC06--learning_harness_adaptive.py",
+          "line": 46,
+          "anchor": "            alpha = np.clip(alpha + sensitivity * delta, alpha_min, alpha_max)",
+          "sha256": "a202a9c9a007e8ff8eebc0836b678cfdab37543c227546f79cc2788f985d2c9c"
+        },
+        {
+          "source_id": "AC12",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC12--morphospace_multimodal.py",
+          "line": 23,
+          "anchor": "        self.state = (1 - alpha) * self.state + alpha * v",
+          "sha256": "6f7c7596202a46d05a5fa03a06edd7648a25ba821920466763588d29bed062ec"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A05",
+        "A11",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VAC05",
+      "name": "Authored speech templates and arbitrary word-vector retrieval",
+      "classification": "heuristic_speech_authority",
+      "finding": "ACR05",
+      "observed_mechanism": "AC08 assigns random128-dimensional vectors to tokens, averages text, ranks cosine neighbors, takes token prefixes and selects one of five authored templates using random.choice. AC09 combines cleaned tokens, top modality norms, supplied intent labels and fixed question/reply templates; learner and conversational context arguments do not drive its reply formation.",
+      "evidence_limits": "No external model in a responder does not imply no heuristic. The10**9 expression is a hash-seed modulus, not a physical energy/work multiplier. Current invocation is not established.",
+      "replacement": "Retire these fabricated pupil utterances. Required speech must be produced by retained native state through motor/respiratory/acoustic dynamics and authentic self-hearing; expose unavailable language honestly until verified.",
+      "acceptance": {
+        "unit": "Trace each speech-producing branch and reject authored pupil replies, word ranking and random template selection.",
+        "module": "Prove vocal state/airflow/body work produce the recorded signal and retained state causally affects it.",
+        "system": "Test blinded intelligibility and learned contextual use separately from nonzero or different sounds, with preserved-state matched controls.",
+        "release": "The served audio and labels must have complete native provenance; no fallback may manufacture a passed capability."
+      },
+      "refs": [
+        {
+          "source_id": "AC08",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC08--language_bridge.py",
+          "line": 43,
+          "anchor": "    def phrase_from_state(self, v):",
+          "sha256": "4aaee933ac6da1d3739331fbd60767d15d72acd5c0708f5bc5aff4319b5c0eb5"
+        },
+        {
+          "source_id": "AC08",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC08--language_bridge.py",
+          "line": 19,
+          "anchor": "            h = abs(hash(token)) % (10**9)",
+          "sha256": "4aaee933ac6da1d3739331fbd60767d15d72acd5c0708f5bc5aff4319b5c0eb5"
+        },
+        {
+          "source_id": "AC09",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC09--proto_responder.py",
+          "line": 46,
+          "anchor": "def generate_reply_v48(",
+          "sha256": "37908fc36fd8ead0bca4d983136087783f3f8d800077ecd32bb10dd2955ee917"
+        },
+        {
+          "source_id": "AC09",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC09--proto_responder.py",
+          "line": 20,
+          "anchor": "def _soft_paraphrase(tokens: List[str]) -> str:",
+          "sha256": "37908fc36fd8ead0bca4d983136087783f3f8d800077ecd32bb10dd2955ee917"
+        }
+      ],
+      "repair_actions": [
+        "A05",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VAC06",
+      "name": "Token averages and schema inversion are not episodic neuronal memory",
+      "classification": "flattened_memory_and_unvalidated_schema",
+      "finding": "ACR06",
+      "observed_mechanism": "AC04 stores token→modality→vector, half-blends each update and averages recalled tokens, losing ordering and occurrence relations. AC10 instead stores modality→token→vector with fixed0.9/0.1 updates. AC04 accepts loaded JSON without validating this distinction and labels len(root) learned tokens. AC07 supplies six senses although its DIMS includes lexical, while AC04 indexes every DIMS entry.",
+      "evidence_limits": "The two large recovered snapshots use the modality-first shape and heterogeneous dimensions8/6/4/16; current AC07 declares all seven dimensions8. Neither successful JSON parsing nor those dictionaries establishes a native formation, episode, sleep consolidation or lossless migration. Exact original producer remains unverified.",
+      "replacement": "Preserve artifacts and fail incompatible schemas explicitly. Recover original producers and physical state lineage before any migration. Retained native causal relationships must carry actual multimodal context and body state; never repair a schema by invented vectors or relabelled counts.",
+      "acceptance": {
+        "unit": "Validate versioned schema, dimensions, provenance and exact state custody; missing channels and incompatible shape must remain visible failures.",
+        "module": "Demonstrate sanctioned lossless persistence/restore of native causal state, with no dictionary-to-neuron invention.",
+        "system": "Show recall and later action distinguish experience order and context and survive lawful sleep/restart.",
+        "release": "No migration or preservation claim without before/after physical-state mapping and independent evidence; no reset for demonstration convenience."
+      },
+      "refs": [
+        {
+          "source_id": "AC04",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC04--language_field.py",
+          "line": 17,
+          "anchor": "        self.memory: Dict[str, Dict[str, list]] = {}",
+          "sha256": "c2cb2a4f03645c1737c6b54a2bd3dbdcd01b0364f5d188de5c98481c46e605fe"
+        },
+        {
+          "source_id": "AC04",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC04--language_field.py",
+          "line": 38,
+          "anchor": "                self.memory[tok] = {m: senses[m].tolist() for m in DIMS.keys()}",
+          "sha256": "c2cb2a4f03645c1737c6b54a2bd3dbdcd01b0364f5d188de5c98481c46e605fe"
+        },
+        {
+          "source_id": "AC04",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC04--language_field.py",
+          "line": 43,
+          "anchor": "                    self.memory[tok][m] = ((prev + newv) / 2.0).tolist()",
+          "sha256": "c2cb2a4f03645c1737c6b54a2bd3dbdcd01b0364f5d188de5c98481c46e605fe"
+        },
+        {
+          "source_id": "AC10",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC10--intent_field.py",
+          "line": 10,
+          "anchor": "class LanguageFieldLearner:",
+          "sha256": "3284169fb3f29fde89c4d8371b34a217c73b9d19338327cf5ef738cc3551dee5"
+        },
+        {
+          "source_id": "AC07",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC07--primitive_sensory_pack.py",
+          "line": 6,
+          "anchor": "DIMS = {",
+          "sha256": "9ff6d47622efdc2bc844a3ee42cc5f20687e8e7620e25b67995c1ad527d7c1ec"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A06",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VAC07",
+      "name": "Claimed prototype growth is disconnected from the supplied payload",
+      "classification": "heuristic_prototype_memory_and_missing_consumer",
+      "finding": "ACR09",
+      "observed_mechanism": "AC18 advertises persistent prototypes, warm-start attraction and mosaic growth. AC19 merges prototypes by Jaccard token overlap>=0.5, retains at most16 tokens, averages phi and ranks phi/count seeds. AC14 calls add_meta_mosaics only when payload.meta_mosaics exists, but AC02 returns sentences/labels/centroids/embedder and no meta_mosaics. Its --seed threshold is parsed but unused. The v36 CSV has GROW labels with empty token/meta-token columns.",
+      "evidence_limits": "A GROW label is not evidence that prototypes were created, let alone neuronal growth. The supplied caller/payload mismatch is direct source evidence; the CSV is an unauthenticated historical report. The CLI JSON serialization also includes a live model object, whose serialization is not supplied.",
+      "replacement": "Retract growth/consolidation equivalence for this route. Preserve the evidence and trace authentic native formation changes separately; use structural identities and derived relationships rather than token overlap, scalar ranking or labels as proof.",
+      "acceptance": {
+        "unit": "Verify actual payload contracts and every claimed output/state mutation; labels alone cannot satisfy growth predicates.",
+        "module": "Require complete causative formation membership, contact changes and persistence; compare before/after state.",
+        "system": "Demonstrate learned reuse across genuine contexts and sleep without token-centroid or canned decision authority.",
+        "release": "Qualify the actual physical formation path in the shipped candidate, with independent evidence of both changed state and changed causal use."
+      },
+      "refs": [
+        {
+          "source_id": "AC18",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC18--README_v36.txt",
+          "line": 7,
+          "anchor": "- Mosaic growth: prototypes merge/expand via token overlap and re-embedding.",
+          "sha256": "fb93f19063611253796222360b7f1a3e5747c508bb395cf4c7dd3910a0cd144d"
+        },
+        {
+          "source_id": "AC19",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC19--mosaic_memory.py",
+          "line": 63,
+          "anchor": "        if best_j >= 0.5 and best_i is not None:",
+          "sha256": "22dc76e45de35a6e4ba49b4f3ef6be952d9996d70b75284933f5b8adff5f78e4"
+        },
+        {
+          "source_id": "AC19",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC19--mosaic_memory.py",
+          "line": 41,
+          "anchor": "                \"tokens\": toks[:16],",
+          "sha256": "22dc76e45de35a6e4ba49b4f3ef6be952d9996d70b75284933f5b8adff5f78e4"
+        },
+        {
+          "source_id": "AC14",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC14--aurelion_core_v36.py",
+          "line": 70,
+          "anchor": "        if payload.get(\"meta_mosaics\"):",
+          "sha256": "8ee3e24a68a9d12866aee78e62103df3088ef48acbb8b0fbb2ccba010361596b"
+        },
+        {
+          "source_id": "AC14",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC14--aurelion_core_v36.py",
+          "line": 74,
+          "anchor": "        if payload.get(\"meta_mosaics\"):",
+          "sha256": "8ee3e24a68a9d12866aee78e62103df3088ef48acbb8b0fbb2ccba010361596b"
+        },
+        {
+          "source_id": "AC02",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC02--semantic_mosaic.py",
+          "line": 98,
+          "anchor": "        \"embedder\": model  # <-- critical for Aurelion_core_v36.py",
+          "sha256": "a47190465d18dd8935a3c72800081e7dbe1a28fc0ec233b1a0ff9454195a9259"
+        },
+        {
+          "source_id": "AC22",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC22--cognition_semantic_v36_20251109_054446.csv",
+          "line": 2,
+          "anchor": "finance_news.txt,finance,0.6370834112167358,0.99999999711461,0.5764569090452231,GROW,High coherence (0.64) and energy (0.58).,,",
+          "sha256": "078e2a96bc81a671b5b4e3c45650573c74c90375590609a7b4e7cfca7e8f4596"
+        }
+      ],
+      "repair_actions": [
+        "A05",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VAC08",
+      "name": "Bounded lists hide unbounded logs and lossy recovery",
+      "classification": "resource_and_persistence_claim_gap",
+      "finding": "ACR10",
+      "observed_mechanism": "AC20 bounds in-memory short/mid/long lists but appends each event to three on-disk logs indefinitely; restore reads each complete file before trimming and skips malformed entries. Its aggregate snapshots use wall-clock half-life weighting. AC19 silently skips malformed prototype rows and rewrites a truncated JSONL store. AC11 uses regex to salvage fragments from a corrupt backup and writes a replacement sidecar.",
+      "evidence_limits": "Finite list lengths do not establish bounded disk, bounded load-time memory or lossless recovery. These are historical utilities, not proved current native checkpoint readers. Calendar decay and aggregate statistics are not automatically physical sleep or memory.",
+      "replacement": "Use the canonical bounded native persistence/state accounting and explicit corruption failure. Preserve damaged evidence; any approved recovery must enumerate exact retained/lost state and prove lawful continuity. No silent dropping, sidecar substitution or wall-clock heuristic as pupil authority.",
+      "acceptance": {
+        "unit": "Measure worst-case state/storage/load bounds and validate every record/version; corrupt or incomplete state must fail visibly.",
+        "module": "Exercise canonical checkpoint atomicity and exact cold restore with causative state retained.",
+        "system": "Verify bounded unattended behavior including disk and restore cost, while actual learned causal effects persist.",
+        "release": "Bind deployed writers/readers and recovery procedures; a list cap cannot qualify the whole runtime."
+      },
+      "refs": [
+        {
+          "source_id": "AC20",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC20--memory_ring.py",
+          "line": 29,
+          "anchor": "                    lines = path.read_text(encoding=\"utf-8\", errors=\"ignore\").splitlines()",
+          "sha256": "30f05483e08f112d584aa9c0e4f646be9b3c05e3ad9cd9b0f278fc80eb9fc451"
+        },
+        {
+          "source_id": "AC20",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC20--memory_ring.py",
+          "line": 47,
+          "anchor": "        self.short_path.open(\"a\", encoding=\"utf-8\").write(json.dumps(item) + \"\\n\")",
+          "sha256": "30f05483e08f112d584aa9c0e4f646be9b3c05e3ad9cd9b0f278fc80eb9fc451"
+        },
+        {
+          "source_id": "AC20",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC20--memory_ring.py",
+          "line": 58,
+          "anchor": "        return 0.5 ** (dt_hours / self.half_life)",
+          "sha256": "30f05483e08f112d584aa9c0e4f646be9b3c05e3ad9cd9b0f278fc80eb9fc451"
+        },
+        {
+          "source_id": "AC19",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC19--mosaic_memory.py",
+          "line": 19,
+          "anchor": "        self.items = self.items[-self.max_keep:]",
+          "sha256": "22dc76e45de35a6e4ba49b4f3ef6be952d9996d70b75284933f5b8adff5f78e4"
+        },
+        {
+          "source_id": "AC11",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC11--repair_language_memory.py",
+          "line": 5,
+          "anchor": "import json, re, os",
+          "sha256": "57235dbdd68a5d5f8670545698578959452a68258a70652ac291fecfc849d818"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schema": "guala.complete_formation_sleep_document_read_receipt.v1",
+  "sources": 20,
+  "paths": 8,
+  "latest_lines": 2432,
+  "historical_only_passages": 50,
+  "historical_only_lines": 132,
+  "source_hashes_validated": true,
+  "all_latest_and_old_content_read": true,
+  "product_execution": false,
+  "product_qualification": false,
+  "arithmetic": {
+    "dissipation_drop_zJ": "61/16",
+    "headroom_increase_zJ": "61/16"
+  }
+}

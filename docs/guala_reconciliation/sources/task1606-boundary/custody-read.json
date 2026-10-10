@@ -1,0 +1,6 @@
+{
+  "at_utc": "2026-10-10T09:42:49.176361+00:00",
+  "exit_code": 0,
+  "stdout": "\nThe Session Manager plugin was installed successfully. Use the AWS CLI to start a session.\n\n\nStarting session with SessionId: ecs-execute-command-klf4x2bvyb5le4cuyjtozo8vni\n{\"body_bytes\": 59776558, \"body_file_bytes\": 11555015, \"body_header_hex\": \"474c36344f5247310100ccb8700300000000ef08100000000000515c0f0000000000\", \"body_magic\": \"GL64ORG1\", \"body_sha256\": \"27a5d538351e62a4f6030e728bc8339ce430f0c06030bc878c60b871648af99a\", \"current_mtime_ns\": 1791599457716000000, \"current_sha256\": \"79505df215e9e2b23d56dc8e55869d7505023836766e6e569654cb1c4e186771\", \"descriptor_unchanged_during_read\": true, \"functional64_sections\": {\"native_bytes\": 1006673, \"original_body_bytes\": 57718988, \"original_world_bytes\": 1050863, \"version\": 1}, \"has_predecessor\": 1, \"identity\": \"1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1\", \"predecessor_tick\": 4234925, \"root\": \"/app/guala/paired-current-gen2\", \"scope\": \"read-only descriptor and first34 decompressed body bytes; no organism decode\", \"tick\": 4234925, \"world_bytes\": 1057331, \"world_sha256\": \"5ca9c6b980073d3e349a65561fef3de711a5299427d9fd06c5f00227970e20bd\"}\nCannot perform start session: EOF\n",
+  "stderr": ""
+}

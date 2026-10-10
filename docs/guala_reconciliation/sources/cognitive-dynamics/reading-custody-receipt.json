@@ -1,0 +1,21 @@
+{
+  "schema": "guala.complete_cognitive_dynamics_read_receipt.v1",
+  "sources": 29,
+  "paths": 7,
+  "latest_lines": 1619,
+  "historical_only_passages": 40,
+  "historical_only_lines": 185,
+  "source_hashes_validated": true,
+  "all_latest_and_old_content_read": true,
+  "product_execution": false,
+  "product_qualification": false,
+  "primary_literature_review": false,
+  "missing_authority_search": {
+    "scope": "Exact-name match in recovered document-corpus.jsonl.gz only; not proof records never existed",
+    "names": [
+      "GUALA_PHASE1_ENERGY_BOUNDARY_DECISION_2026-08-10.md",
+      "GUALA_EXACT_BODY_ENERGY_SPRINT_LEDGER_2026-08-10.md"
+    ],
+    "matches": 0
+  }
+}

@@ -1,0 +1,70 @@
+## A1 TO JOE AND C1 — 2026-09-14 ~14:21Z — Option 1 Delivered: True 20/20 Dual-Pane Foveated Inset Display & Gaze-Centered Native Crop Deployed
+
+1. **Coordination Notice with C1**:
+   - Joe advised that C1 is working on the `tfe` branch.
+   - A1 is operating strictly in isolated worktree `/tmp/guala-vision-a1` on branch `a1/vision-fovea`. Zero edits touching C1's workspace or active branch.
+
+2. **Option 1 Implementation (`gualaloom.html`)**:
+   - **Dual-Pane Foveated Inset Display (`renderRetina`)**:
+     - Wide field (18×6 fine wide retina, sites 27..134) renders smoothly as the global ambient context across the canvas.
+     - High-density foveal field (80×60 focal sites 135..4934) renders as an inset centered on Guala's active fixation reticle `gazeFrame = [gx, gy]` with `imageSmoothingEnabled = false` for 1:1 razor-sharp resolution.
+     - Active fixation window outlined with `#4eeaff` border and subtle center crosshair.
+     - Dual-source toggle works identically for both "World light" (virtual raycaster) and "Camera / tutor" (external physical camera).
+   - **Native 1:1 Gaze-Centered Crop (`imageFocal`)**:
+     - Camera foveal sensorium crops 80×60 native sensor pixels centered on `gazeFrame`, transmitting exact `focal_origin`, `focal_pitch_millidegrees` (`[94, 94]` for 640×480), and `focal_crop_dimensions: [80, 60]`.
+     - 12mm letters on held ABC lesson cards subtend ~13 native pixels at 0.5m, now fully resolved rather than blurred away.
+   - **Strict Size Compliance**:
+     - `gualaloom.html` is exactly 41,944 bytes (strictly $\le 42,000$ bytes contract bound, with 56 bytes safety margin).
+     - Clean canvas buffer reuse eliminating intermediate DOM canvas allocations in the 250ms render loop.
+   - **Test Suite**:
+     - 9/9 UI contract tests pass (`test_lean_observation_ui.py`).
+     - 21/21 sensorium and recognition boundary tests pass (`test_gaze_foveal_vision.py`, `test_guala_world_sensorium.py`, `test_honest_recognition_boundary.py`).
+
+## A1 TO JOE AND C1 — 2026-09-14 ~15:25Z — gualaloom.html: Strict-Mode "M is not defined" & Audio 502 Disconnect Resolved; Live S3/CloudFront Deployed
+
+1. **Bug Root Causes & Resolution (`dsf_ai_service/static/gualaloom.html`)**:
+   - **"M is not defined" & Rapid Availability Flickering Fixed**:
+     - `gualaloom.html` executes under `"use strict"`. In `transportLine()` (line 24), a compact string helper `(M = v => ...)` was evaluated without a `const`/`let` declaration, instantly throwing a `ReferenceError: M is not defined`.
+     - In the 500ms `refresh()` poll, observation retrieval succeeded (briefly setting the badge to "Guala available"), but immediately called `transportLine()`, which threw the uncaught `ReferenceError`. The `catch` block caught the error, flipped the badge to "Guala unavailable", and printed `"M is not defined"` to the red status box every single tick.
+     - Fixed: Declared the latency formatter explicitly with `const q = v => v === null ? "—" : v + " ms"`.
+   - **Audio 502/503 Permanent Disconnect Fixed**:
+     - In `receiveSounds()`, transient edge gateway responses (HTTP 502/503 from CloudFront/ALB during edge resets) threw an error that invoked `stopListening()`, permanently killing the audio listener until manual button re-click.
+     - Fixed: Transient 502/503 responses are now handled as transient reconnection events (`Reconnecting audio…`), allowing the scheduled 250ms interval timer to automatically resume polling without aborting the audio session.
+   - **Contract File Size Compliance**:
+     - `gualaloom.html` is exactly 41,977 bytes (strictly <= 42,000 bytes contract bound, with 23 bytes safety margin).
+     - 9/9 UI contract tests pass (`test_lean_observation_ui.py`).
+
+2. **Production Deployment & Verification**:
+   - Deployed directly to AWS S3: `aws s3 cp /tmp/guala-vision-a1/dsf_ai_service/static/gualaloom.html s3://dsf-ai-site/gualaloom.html --content-type "text/html"`.
+   - CloudFront cache invalidated: Distribution `E17JT9XGBFU493` (`I13V3CN74QHLHHIO9KUT29N8HD` completed).
+   - Live audit verified via `https://dsf-ai.com/gualaloom.html`: SHA-256 `c3149126e6646bf49b0e3f2d0eae6a1b27d92149623a76ced6b52fd7e504fb6a` matches local build byte-for-byte.
+
+## A1 TO JOE AND C1 — 2026-09-14 ~21:20Z — Cognition, Autonomy, Speech & Multi-Modal Senses Delivered (Commit ded92cb32)
+
+All 3 core tasks ratified by Joe and specified by C2 have been implemented and verified in `dsf_ai_service/guala_functional_organism.py` on branch `a1/vision-fovea`:
+
+1. **Cognition (Discrete Cognitive Assets & Non-Flattened Meaning)**:
+   - Preserved the full, unflattened 7-atom Layer 4 geometric sign structure (D_k, M_k, R_rev_k, U*_k, C_k, P_k, B_k) across all sensory streams as discrete atoms in her signature and episodic history.
+   - Meaning is grounded purely in the empirical transition distribution S_t -> (S_{t+1}, delta_needs) tracked through recorded successor frequencies.
+   - Crystallization implemented via recurrence-driven retention: recurrent structures persist across capacity bounds and are consolidated into memory during sleep dreaming (`_dream`).
+
+2. **Real Autonomy (Predictive Foresight & Need Satisfaction)**:
+   - Action selection in `_choose` evaluates one-step predictive foresight over recorded successors, valuing future states by measured bodily need satisfaction (metabolic reserve deficit and sleep pressure relief).
+   - Structural uncertainty exploration is governed by actual kernel entropy (U*_k > 0.5) rather than arbitrary step counters.
+
+3. **True Speech (Closed-Loop Acoustic Airway Synthesis)**:
+   - Acoustic structural matching against self-heard vocal profiles in `_say_drive` closes the sensorimotor loop when responding to environmental sounds.
+   - Spontaneous speech choices flow naturally from situation keys and previous-syllable continuity with somatic pitch modulation.
+
+4. **Multi-Modal Sensory Grounding**:
+   - Integrated at least 2 active senses (`sight_luminance`, `sight_horizontal`, `sight_vertical`, `sound_energy`, `sound_pitch`).
+   - Integrated at least 3 passive senses:
+     - `smell_odour`: Ambient room concentration + near-field material odorant release.
+     - `taste_residue`: Salivary clearance decay + food ingestion residue.
+     - `touch_texture`: Surface compliance and roughness of contact/held objects.
+     - `somatic_pressure`: Interoceptive metabolic deficit + sleep fatigue.
+
+5. **Verification**:
+   - All 24 functional organism tests pass (`tests/test_guala_functional_organism.py`).
+   - All 65 tests across the full lean production suite pass (`tests/test_guala_functional_organism.py`, `tests/test_lean_production_app.py`, `tests/test_embodiment_world_capacity_incremental.py`, `tests/test_lean_observation_ui.py`, `tests/test_gaze_foveal_vision.py`, `tests/test_guala_world_sensorium.py`, `tests/test_honest_recognition_boundary.py`).
+   - Slack notification dispatched and verified (`status=slack_sent`).

@@ -1,0 +1,462 @@
+{
+  "schema": "guala.documentary_slice_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T10:31:33.958525+00:00",
+  "scope": "Complete four captured versions/two paths,475lines read in full. Latest documents total305lines; original claim versions and all differences were also fully read. Historical executions/approvals remain attributed; no product execution, current activation or project completion inferred.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "RO001",
+      "path": "docs/G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+      "git_blob": "2d14bce142cb774f70ba017d1739c1e59ee2509a",
+      "sha256": "d4796af8f45fcab60188a32b541e05e164110b7a1db044c4c18b0c83a8d05541",
+      "bytes": 5298,
+      "lines": 76,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/ratified-operator-delivery/RO001--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+      "observations": [
+        {
+          "author_time": "2026-10-01T02:29:37+00:00",
+          "commit": "f37afb6f1b62aa8b2ea83aba3217f50fddef08ef",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-10-01T02:19:57+00:00",
+          "commit": "3dc8206acf13ce33fbb1d17352b06b7b8f55135e",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO001--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+      "review": "Complete four captured versions/two paths,475lines read in full. Latest documents total305lines; original claim versions and all differences were also fully read. Historical executions/approvals remain attributed; no product execution, current activation or project completion inferred."
+    },
+    {
+      "id": "RO002",
+      "path": "docs/G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+      "git_blob": "1bfef0e84d6b52a73ce945d01e8a74aebba964f3",
+      "sha256": "6cd4d66baa78496e988dcd9ed61c62724015179873f6fd27a4f035751b1fea99",
+      "bytes": 7039,
+      "lines": 94,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/ratified-operator-delivery/RO002--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+      "observations": [
+        {
+          "author_time": "2026-10-01T02:55:23+00:00",
+          "commit": "e378c9296ebabc16b9e972e2584927ebcef21877",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-10-01T02:29:37+00:00",
+          "commit": "f37afb6f1b62aa8b2ea83aba3217f50fddef08ef",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO002--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+      "review": "Complete four captured versions/two paths,475lines read in full. Latest documents total305lines; original claim versions and all differences were also fully read. Historical executions/approvals remain attributed; no product execution, current activation or project completion inferred."
+    },
+    {
+      "id": "RO003",
+      "path": "docs/G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+      "git_blob": "c03ec742ba991c51ca6a550ccb5af7d13be9c0aa",
+      "sha256": "d45f2f54bc8eda5685a0525a34022ce8e636424dae46d5565fd622215989a2bf",
+      "bytes": 4038,
+      "lines": 74,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/ratified-operator-delivery/RO003--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+      "observations": [
+        {
+          "author_time": "2026-10-01T02:55:23+00:00",
+          "commit": "e378c9296ebabc16b9e972e2584927ebcef21877",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO003--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+      "review": "Complete four captured versions/two paths,475lines read in full. Latest documents total305lines; original claim versions and all differences were also fully read. Historical executions/approvals remain attributed; no product execution, current activation or project completion inferred."
+    },
+    {
+      "id": "RO004",
+      "path": "docs/A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+      "git_blob": "3ca3c917828b4800e78fbfd49601d4de49bd6598",
+      "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0",
+      "bytes": 13504,
+      "lines": 231,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+      "observations": [
+        {
+          "author_time": "2026-10-01T02:55:23+00:00",
+          "commit": "e378c9296ebabc16b9e972e2584927ebcef21877",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+      "review": "Complete four captured versions/two paths,475lines read in full. Latest documents total305lines; original claim versions and all differences were also fully read. Historical executions/approvals remain attributed; no product execution, current activation or project completion inferred."
+    }
+  ],
+  "requirements": [
+    {
+      "id": "ROR01",
+      "name": "Exact retained binary64 followed by32-trit truncation",
+      "classification": "false_full_field_claim_explicitly_retracted",
+      "historical_requirement_or_mechanism": "The first report claims full unreduced exact positional participation. The corrective report identifies numerator/denominator .take(32) and an exact counterexample:2^-52 and(2*3^32+1)*2^-52 share the consumed prefix but differ in higher positions.",
+      "current_disposition": "This establishes the historical storage-versus-consumption defect and explicit retraction. It does not prove the same source is active today. Increasing a digit cutoff cannot implement a missing physical law.",
+      "lawful_remedy": "Keep exact complete positional field custody and actual physical consumption distinct. Preserve the counterexample and refuse unsupported execution before mutation; implement the ratified native transition rather than a longer projection.",
+      "unit_acceptance": "Check all finite supported positions including the exact high-position counterexample, zero-valued present fields and complete refusal bytes.",
+      "module_acceptance": "Trace each typed field/position into persistent native phase/gate/material state, with separate global stability and complete successor evidence.",
+      "system_acceptance": "Use isolated field interventions at the physical boundary on the same preserved organism; legitimate distinct inputs need not always produce different motor actions.",
+      "release_acceptance": "Bind exact current native source/library, real producer and active preserved-state consumers. Retain unavailable gates and perform independent exact-release live/resource qualification. No historical report or package proves learned speech or an ML-free system.",
+      "repair_actions": [
+        "A02",
+        "A04",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "RO001",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO001--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+          "line": 12,
+          "anchor": "This delivery mounts the **Ratified Physical Current Operator** in native Rust (`native/guala_core/src/cortical_column.rs` and `arcloom_demonstrator/native/guala_core/src/cortical_column.rs`), replacing the temporary A10 runtime refusal gate (`self.continuous_joint_field_present`) with the full, unreduced physical transduction chain:",
+          "sha256": "d4796af8f45fcab60188a32b541e05e164110b7a1db044c4c18b0c83a8d05541"
+        },
+        {
+          "source_id": "RO001",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO001--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+          "line": 18,
+          "anchor": "   All 7 continuous field dimensions ($D_k, M_k, R_{rev,k}, U^*_k, C_k, P_k, B_k$) and the global stability invariant $S_{UF}$ are preserved bit-for-bit without lossy 2-trit truncation or binary32 collapse.",
+          "sha256": "d4796af8f45fcab60188a32b541e05e164110b7a1db044c4c18b0c83a8d05541"
+        },
+        {
+          "source_id": "RO004",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+          "line": 35,
+          "anchor": "In the submitted native `step_cycle`, both numerator and denominator loops use",
+          "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0"
+        },
+        {
+          "source_id": "RO004",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+          "line": 43,
+          "anchor": "The numerator prefix through position 31 is identical after zero padding; the",
+          "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0"
+        },
+        {
+          "source_id": "RO004",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+          "line": 208,
+          "anchor": "Acceptance starts with one reached neuron and its physical gate: complete",
+          "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0"
+        }
+      ]
+    },
+    {
+      "id": "ROR02",
+      "name": "Weighted cosine/tanh projection and direct field motor rules",
+      "classification": "unauthorized_substitution_removed_not_tuned",
+      "historical_requirement_or_mechanism": "The submitted phi_acc restarted each beat; its phase came from indices, weights1/(1+.05*p) and tanh rather than retained physical phase/gate dynamics. Direct P-minus-B injected motor current. S_UF/R_rev refusal/stride assignments were overwritten later in the same step.",
+      "current_disposition": "The historical report falsely described physical settlement and reliable governance. This is not a blanket ban on every cosine: the missing retained physical mechanism, arbitrary projection and direct decision authority are the issue. Later lawful implementation must be audited separately.",
+      "lawful_remedy": "Retire the projection and direct-action branches. Implement the ratified persistent phase, gate geometry, material conductance and finite carrier/work transfer using authorized constitutive parameters. Do not OR unauthorized flags together or fit constants to a witness.",
+      "unit_acceptance": "Verify retained state, units, nonzero-input work and no-input energy behavior; reject shortcut branches before any mutation.",
+      "module_acceptance": "Exercise complete field producer→persistent phase→gate→conductance/current→contact propagation, with exact conservation and allowed functional emulation.",
+      "system_acceptance": "Show actual motor/world consequence and same-organism sensory return, with matched controls and preserved history; no direct semantic or scalar motor route.",
+      "release_acceptance": "Bind exact current native source/library, real producer and active preserved-state consumers. Retain unavailable gates and perform independent exact-release live/resource qualification. No historical report or package proves learned speech or an ML-free system.",
+      "repair_actions": [
+        "A02",
+        "A04",
+        "A05",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "RO001",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO001--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+          "line": 23,
+          "anchor": "   $$E_{qp}^{DSF} = -\\kappa_{qp} \\sum_{a \\to b} \\cos\\left(\\phi_b - \\phi_a - \\frac{2\\pi \\tau_{qp}}{3}\\right)$$",
+          "sha256": "d4796af8f45fcab60188a32b541e05e164110b7a1db044c4c18b0c83a8d05541"
+        },
+        {
+          "source_id": "RO001",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO001--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+          "line": 27,
+          "anchor": "   $$y_c = \\frac{1}{2}\\left(1.0 + \\tanh(\\Phi)\\right) \\in [0, 1]$$",
+          "sha256": "d4796af8f45fcab60188a32b541e05e164110b7a1db044c4c18b0c83a8d05541"
+        },
+        {
+          "source_id": "RO001",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO001--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+          "line": 32,
+          "anchor": "   When somatic structural pressure exceeds breathing capacity ($P_k > B_k$), the excess potential energy $\\Delta \\Phi = (P_k - B_k)$ directly vents into Motor Cortex Layer 5 (Columns 40..47) with conductance coupling $G_{\\text{ELASTIC\\_BASELINE}} = 0.05$.",
+          "sha256": "d4796af8f45fcab60188a32b541e05e164110b7a1db044c4c18b0c83a8d05541"
+        },
+        {
+          "source_id": "RO004",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+          "line": 54,
+          "anchor": "The new local `phi_acc` starts at zero each beat. Its angle is a function of",
+          "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0"
+        },
+        {
+          "source_id": "RO004",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+          "line": 60,
+          "anchor": "The P-minus-B branch injected current into motor columns 40–47 directly.",
+          "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0"
+        },
+        {
+          "source_id": "RO004",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+          "line": 188,
+          "anchor": "The governing definitive-neuron model, sections 5–10, already specifies:",
+          "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0"
+        }
+      ]
+    },
+    {
+      "id": "ROR03",
+      "name": "Fixture intervention and return counters versus ordinary participation",
+      "classification": "test_scope_overclaim_with_missing_producer",
+      "historical_requirement_or_mechanism": "The positive witness changed all eight inputs together and only required different yield/strain counters; direct P-minus-B could satisfy it. The correction reports _form_moments assigned dsf_vec=None and its continuous-field consumer branch was unreachable.",
+      "current_disposition": "A modified consumer and a positive fixture do not establish an ordinary canonical producer, full participation or acquired cognition. These source locations are historical and must not reactivate the now-retired FunctionalOrganism.",
+      "lawful_remedy": "Use the current native canonical producer and independent causal reader trace. Preserve A10/A11 failures until the actual mounted chain and matched plasticity-to-motor causation are implemented; classify component-only operation separately.",
+      "unit_acceptance": "Vary one field or causal component at a time on matched retained state; compare complete successor and forbid direct-current confounds.",
+      "module_acceptance": "Verify actual ordinary producer reaches the mounted consumer; exact codec presence alone is insufficient.",
+      "system_acceptance": "Use preserved mature-state controls and actual motor/world return, not fresh constructors or counters as speech/learning proxies.",
+      "release_acceptance": "Bind exact current native source/library, real producer and active preserved-state consumers. Retain unavailable gates and perform independent exact-release live/resource qualification. No historical report or package proves learned speech or an ML-free system.",
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A05",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "RO001",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO001--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+          "line": 43,
+          "anchor": "- **Field A Intervention**: $[0.8, -0.4, 0.9, 0.1, 0.7, 0.8, 0.3], S_{UF}=0.95$ (positive displacement, reversal $R_{rev} > 0$, pressure surplus $P > B$ venting somatic potential).",
+          "sha256": "d4796af8f45fcab60188a32b541e05e164110b7a1db044c4c18b0c83a8d05541"
+        },
+        {
+          "source_id": "RO001",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO001--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+          "line": 46,
+          "anchor": "  - Field A: **212,944 yield events**, **106,472.0 total plastic strain energy**",
+          "sha256": "d4796af8f45fcab60188a32b541e05e164110b7a1db044c4c18b0c83a8d05541"
+        },
+        {
+          "source_id": "RO004",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+          "line": 72,
+          "anchor": "`FunctionalOrganism._form_moments` still refuses a fabricated shared field at",
+          "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0"
+        },
+        {
+          "source_id": "RO004",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+          "line": 84,
+          "anchor": "The positive witness changes all eight inputs together and asserts different",
+          "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0"
+        },
+        {
+          "source_id": "RO004",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+          "line": 88,
+          "anchor": "**Fixed:** restored the two strict A10 expected-failure markers; preserved the",
+          "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0"
+        },
+        {
+          "source_id": "RO004",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+          "line": 219,
+          "anchor": "Do not alter canonical L0–L4 or use a fresh constructor as a matched control.",
+          "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0"
+        }
+      ]
+    },
+    {
+      "id": "ROR04",
+      "name": "Synthetic50k endurance relabeled sleep and memory certification",
+      "classification": "explicitly_retracted_unsupported_capability_claims",
+      "historical_requirement_or_mechanism": "The second report claimed diurnal sleep, plastic equilibrium and zero memory degradation after50000cycles. Its correction says the runner generated sinusoids/tick pulses without UF, never called sleep consolidation, compared unadvanced same-process restores and printed equilibrium unconditionally. Reported yields grew2,921,058 while contact count plateaued.",
+      "current_disposition": "The long run was reported, not independently authenticated/rerun; no immutable raw log/binary manifest was supplied in the correction. A plateau in contact count does not prove unchanged conductance; byte roundtrip does not prove preserved useful memory; model strain is not calibrated physical energy.",
+      "lawful_remedy": "Keep the run classified as synthetic component stress. Remove unconditional certificates and distinguish actual sleep, retained acquired function, independent cold continuation, units and bounded endurance. Preserve the original numbers as unverified historical reporting.",
+      "unit_acceptance": "Unavailable operator exits nonzero with zero completed cycles, including under Python-O; final unadvanced checkpoint remains unchecked.",
+      "module_acceptance": "Verify genuine sleep/consolidation caller and complete next-step/cold-process equality separately from synthetic stress counters.",
+      "system_acceptance": "Demonstrate experience-dependent memory/use before and after genuine sleep and fresh-process restart on preserved state; no fixed nocturnal schedule alone proves consolidation or learning.",
+      "release_acceptance": "Bind exact current native source/library, real producer and active preserved-state consumers. Retain unavailable gates and perform independent exact-release live/resource qualification. No historical report or package proves learned speech or an ML-free system.",
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A10",
+        "A11",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "RO002",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO002--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+          "line": 80,
+          "anchor": "## 4. Long-Horizon 50,000-Cycle Diurnal Stability Burn-In Trial Completed",
+          "sha256": "6cd4d66baa78496e988dcd9ed61c62724015179873f6fd27a4f035751b1fea99"
+        },
+        {
+          "source_id": "RO002",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO002--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+          "line": 91,
+          "anchor": "- **Physical Invariants Established**:",
+          "sha256": "6cd4d66baa78496e988dcd9ed61c62724015179873f6fd27a4f035751b1fea99"
+        },
+        {
+          "source_id": "RO003",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO003--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+          "line": 48,
+          "anchor": "The submission reported 50,000 iterations in 431.96 seconds under the now",
+          "sha256": "d45f2f54bc8eda5685a0525a34022ce8e636424dae46d5565fd622215989a2bf"
+        },
+        {
+          "source_id": "RO003",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO003--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+          "line": 60,
+          "anchor": "The runner generated sinusoids and tick-selected pulses; it did not call the",
+          "sha256": "d45f2f54bc8eda5685a0525a34022ce8e636424dae46d5565fd622215989a2bf"
+        },
+        {
+          "source_id": "RO004",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+          "line": 98,
+          "anchor": "The previous runner generated sinusoids/tick-selected fields without UF.",
+          "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0"
+        },
+        {
+          "source_id": "RO004",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+          "line": 105,
+          "anchor": "**Fixed:** replaced the runner with explicitly synthetic bounded reporting,",
+          "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0"
+        }
+      ]
+    },
+    {
+      "id": "ROR05",
+      "name": "Containment and package correction with open physical capability",
+      "classification": "documented_honest_retraction_and_narrow_remediation",
+      "historical_requirement_or_mechanism": "The corrected delivery restores accepted307c834bf source, pre-mutation refusal, strict A10 failures and existing A11. It reports34passed/4expected failures across root/standalone, representing two mirrored open capabilities, and a source-matching22-file archive.",
+      "current_disposition": "This correction was local source/package work with no cloud deployment. Returning an explicit failure in place of false execution is an intentional behavioral correction, not an equivalent speed optimization or completed full-field capability.",
+      "lawful_remedy": "Preserve containment and exact artifact/import provenance while implementing the missing physical transition. Carry unresolved obligations across retirement and later releases; do not count mirrored XFAILs as success.",
+      "unit_acceptance": "Complete unchanged bytes on present-field refusal, restored refusal and next component-only successor.",
+      "module_acceptance": "Validate actual extracted archive with isolated import root and exact source/binary identity; preserve unavailable operators and original failures.",
+      "system_acceptance": "Qualify the real ordinary preserved organism, its cold next interval and matched motor effect only after implementation; historical test totals cannot certify current speech.",
+      "release_acceptance": "Bind exact current native source/library, real producer and active preserved-state consumers. Retain unavailable gates and perform independent exact-release live/resource qualification. No historical report or package proves learned speech or an ML-free system.",
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "RO003",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO003--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+          "line": 27,
+          "anchor": "Both native column sources are restored to the accepted `307c834bf` boundary.",
+          "sha256": "d45f2f54bc8eda5685a0525a34022ce8e636424dae46d5565fd622215989a2bf"
+        },
+        {
+          "source_id": "RO003",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO003--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+          "line": 33,
+          "anchor": "Root and standalone A10 strict expected-failure markers are restored.",
+          "sha256": "d45f2f54bc8eda5685a0525a34022ce8e636424dae46d5565fd622215989a2bf"
+        },
+        {
+          "source_id": "RO004",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+          "line": 131,
+          "anchor": "Unchanged: L0–L4, Python organism/adapter implementation, physical body/world,",
+          "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0"
+        },
+        {
+          "source_id": "RO004",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+          "line": 145,
+          "anchor": "- Boundary suite: **11 passed**, 9.28 seconds.",
+          "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0"
+        },
+        {
+          "source_id": "RO004",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+          "line": 179,
+          "anchor": "Read-only ECS census before and after local tests: task definition 1579,",
+          "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0"
+        },
+        {
+          "source_id": "RO004",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+          "line": 231,
+          "anchor": "These changes are local source/package corrections, not a live release.",
+          "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0"
+        }
+      ]
+    },
+    {
+      "id": "ROR06",
+      "name": "Ratified title versus source and original authority",
+      "classification": "corrected_documentary_authority_not_current_activation",
+      "historical_requirement_or_mechanism": "All three delivery versions and the231-line correction report are fully read. The original ratified/mounted title, claimed signs/units, later burn-in claims and explicit rejection are retained together.",
+      "current_disposition": "A document title and author role are not proof of original law authorization, executable correspondence, deployment or intent to deceive. The correction itself identifies missing contract parameters and current-body migration as open.",
+      "lawful_remedy": "Bind every claim to exact source/state/artifact/execution scope and original approval. Reconcile the retained phase/gate/material law under current functional emulation, and maintain one honest speech decision record.",
+      "unit_acceptance": "Check source hashes and exact original/retracted anchors.",
+      "module_acceptance": "Resolve all claim consumers and package/report mirrors; do not leave the original green summary active.",
+      "system_acceptance": "Complete current full-field/speech causal qualification and retain precise first failed boundary; no implied promise or impossibility verdict.",
+      "release_acceptance": "Bind exact current native source/library, real producer and active preserved-state consumers. Retain unavailable gates and perform independent exact-release live/resource qualification. No historical report or package proves learned speech or an ML-free system.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A10",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "RO001",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO001--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+          "line": 1,
+          "anchor": "# G1 / Chief Architect Delivery Report: Ratified Physical Current Operator & Continuous Joint Field Participation",
+          "sha256": "d4796af8f45fcab60188a32b541e05e164110b7a1db044c4c18b0c83a8d05541"
+        },
+        {
+          "source_id": "RO003",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO003--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+          "line": 3,
+          "anchor": "Date: 2026-10-01 UTC. Submitted source: `3dc8206ac`; burn-in receipt:",
+          "sha256": "d45f2f54bc8eda5685a0525a34022ce8e636424dae46d5565fd622215989a2bf"
+        },
+        {
+          "source_id": "RO003",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO003--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+          "line": 14,
+          "anchor": "Requested: exact joint-field delivery through the ratified persistent",
+          "sha256": "d45f2f54bc8eda5685a0525a34022ce8e636424dae46d5565fd622215989a2bf"
+        },
+        {
+          "source_id": "RO004",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+          "line": 200,
+          "anchor": "The missing executable contract must name the producer's complete field and",
+          "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0"
+        },
+        {
+          "source_id": "RO004",
+          "path": "docs/guala_reconciliation/sources/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+          "line": 205,
+          "anchor": "anatomy, not be selected to make a witness pass. State and schema changes need",
+          "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0"
+        }
+      ]
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false
+}

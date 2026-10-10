@@ -1,0 +1,45 @@
+{
+  "scope": "Byte identity to Git objects and presence in named recovery commits, not original creation/run authentication or complete semantic content review.",
+  "artifacts": [
+    {
+      "path": "docs/Aurelion/learning_runs/20251109_152133/language_memory.json",
+      "git_blob": "c88fefe6aa1f7e8793b90b91d5ed9ea156307f95",
+      "captured_copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/20251109_152133--language_memory.json",
+      "sha256": "12fcd7b86fe8f6d99d3cbfd728bd07da0b5098525ff6f6018a28324449ad6259",
+      "commits": [
+        {
+          "commit": "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+          "blob": "c88fefe6aa1f7e8793b90b91d5ed9ea156307f95",
+          "matches": true
+        },
+        {
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "blob": "c88fefe6aa1f7e8793b90b91d5ed9ea156307f95",
+          "matches": true
+        }
+      ],
+      "semantic_read_complete": false,
+      "producer_identified": false
+    },
+    {
+      "path": "docs/Aurelion/learning_runs/20251109_153751/language_memory.json",
+      "git_blob": "2248a4445c63957d420247d120afc89dd37e767f",
+      "captured_copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/20251109_153751--language_memory.json",
+      "sha256": "34c8cf837abea25e5ac664461295373733c0f8eb107d0d29cba2dc738efd7be6",
+      "commits": [
+        {
+          "commit": "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+          "blob": "2248a4445c63957d420247d120afc89dd37e767f",
+          "matches": true
+        },
+        {
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "blob": "2248a4445c63957d420247d120afc89dd37e767f",
+          "matches": true
+        }
+      ],
+      "semantic_read_complete": false,
+      "producer_identified": false
+    }
+  ]
+}

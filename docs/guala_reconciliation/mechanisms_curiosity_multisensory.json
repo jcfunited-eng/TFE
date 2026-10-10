@@ -1,0 +1,654 @@
+{
+  "schema": "guala.documentary_mechanisms.v1",
+  "at_utc": "2026-10-10T07:23:04.223619+00:00",
+  "scope": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+  "mechanisms": [
+    {
+      "id": "VCM01",
+      "name": "New sensory impression to action is a real but bounded historical claim",
+      "classification": "historical_causal_path_and_corrected_claim_scope",
+      "finding": "CMR01",
+      "observed_mechanism": "A006 records new impressions later traversing exact carrier paths to motor action and sensed consequence on tasks1051/1052, later1184 and1198. The observer excludes an impression’s own antecedent transfers and supports distinct retained-recurrence/new-impression root classes in one frontier query. Early whole-item closure was later narrowed because social participation was absent. Final1198 reports a separate authenticated other-body causal occurrence in the same organism.",
+      "evidence_limits": "These are detailed historical reports, not newly replayed results or proof of current64-column capability. Native causal novelty-to-action supports a narrower accomplishment; it does not by itself establish every need, affection, curiosity capability, learned speech or enduring history continuity. Same-action/same-tick coincidence is stronger evidence when present, not automatically a ratified necessary condition.",
+      "replacement": "Recover original candidate/state/witness artifacts, retain their narrow accomplishments, and map equivalent native causal boundaries to the preserved current candidate. Derive each acceptance condition from authorized causal requirements, not the observer’s output shape or desired label.",
+      "acceptance": {
+        "unit": "Verify origin time, exact transfer direction, motor cause and actual sensed return; reject missing or reversed links.",
+        "module": "Prove the observer cannot choose actions or mutate/persist cognitive authority, including across intake boundaries.",
+        "system": "Measure each required influence through exact causal occurrences in the same preserved candidate; distinguish social occurrence from affection and broader development.",
+        "release": "Fresh current release evidence must close the stated scope; historical labels or zero Python callbacks cannot certify current learning or ML exclusion."
+      },
+      "refs": [
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 75,
+          "anchor": "- A new impression becomes a root only after the interval that formed it. It",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 674,
+          "anchor": "Status: **the intrinsic novelty-to-action subpath is live-verified; full A-006",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 929,
+          "anchor": "### Final live A-006 closure — 2026-08-24",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 947,
+          "anchor": "  social and novelty paths to fabricate one shared action.",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A05",
+        "A09",
+        "A11",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCM02",
+      "name": "Authentic action consequences include lawful unchanged senses",
+      "classification": "genuine_multisensory_boundary_and_rejected_substitution",
+      "finding": "CMR02",
+      "observed_mechanism": "A009 distinguishes exact action-caused world/body return from preceding ambient input. Early109-port sensing used27 sight,34 sound,27 touch,8 smell,5 taste and8 body ports. Later37-axis/74-terminal body development changed the roster. Global XYZ/yaw coordinates were rejected as substitute proprioceptors; genuine local receptors could be quiescent during rigid yaw while vestibular rotation remained active. The document explicitly reports no learned fractal from a single newborn action.",
+      "evidence_limits": "The cited biological papers and original executions were not independently revalidated by this documentary review. A reached channel is not necessarily changed, and a changed channel is not necessarily retained learning. Roster counts and anatomy are version-specific, not reusable current64-column constants.",
+      "replacement": "Preserve actual per-channel laws, time/units and action-bound before/after state. Reject synthetic all-senses-changed flags and invented modality mappings. Reconcile current body/sense mount configuration with actual native consumers and truthful changed/quiescent/unavailable reports.",
+      "acceptance": {
+        "unit": "For each channel verify its real producer, physical units, anatomy, changed/quiescent predicate and unavailable boundary.",
+        "module": "Bind native action, exact world/body predecessor/successor and all physically applicable receptor return to one occurrence.",
+        "system": "Verify ordinary self-initiated actions and continued processing, with genuine silence/no-contact/unchanged inputs accepted without fake changes.",
+        "release": "Prove the actual mounted roster and effective configuration on the frozen release; do not substitute an older roster or observation flag."
+      },
+      "refs": [
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 23,
+          "anchor": "3. Conflict: yes. Ambient lanes in the preceding interval are not proof of",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 85,
+          "anchor": "- Rejected after candidate-native falsification: treating global XYZ/yaw",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 134,
+          "anchor": "  A-009 does not claim learning from this single action.",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 221,
+          "anchor": "  smell 8, taste 5, and body 8. Four local proprioceptive receptors re-entered",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A08",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCM03",
+      "name": "Chronological consequence delivery must survive transport redesign",
+      "classification": "conflicting_transport_contracts_require_causal_reconciliation",
+      "finding": "CMR03",
+      "observed_mechanism": "Older A009 revisions demand pause/consequence/resume immediately after every native discharge and before later original sources. Later records retire that Python/native pause architecture and say the next ordinary application occurrence carries the actual body plus world sensorium. The final continuous lived-intake change removes intermediate seals and reports identical final bytes in focused tests. Self-hearing/vestibular motor rows were initially omitted from cumulative action evidence; another wrapper mistook changed carrier counts6 then3 for conflicting anatomy although axis/direction remained stable.",
+      "evidence_limits": "The documents describe materially different transport contracts. Neither restoring a rejected pause helper nor a final receipt alone establishes complete physically timed causality for every intervening action. Ordered discharge strength is not a static motor identity. Exact current source/timeline equivalence remains unproved.",
+      "replacement": "Ratify one clocked native/world feedback contract and trace every action and subsequent sensory event against it. Preserve all ordered discharges with stable terminal identity and exact strength. Keep the sole continuous native authority and canonical final publication; do not fabricate missing consequences or require a rejected implementation by name.",
+      "acceptance": {
+        "unit": "Distinguish stable axis/direction identity from event carrier strength and retain exact time order.",
+        "module": "Verify every discharge, world commit, body/vestibular/self-hearing return, later source and final publication against the authorized timeline.",
+        "system": "On preserved mature state, demonstrate consecutive real actions with correct intermediate consequences and exact failure/restart custody.",
+        "release": "Close production reachability of conflicting helpers and show the served candidate’s actual chronology, not only final aggregate counts."
+      },
+      "refs": [
+        {
+          "source_id": "CM02-08",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-08--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 408,
+          "anchor": "Acceptance condition: each actual layer-12 discharge pauses the same unsealed",
+          "sha256": "b5e0f2df88130af808edf3a49dd5db977fbdabf323e2786b08afe1550a430608"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 325,
+          "anchor": "  resident body, and the next ordinary application occurrence carries that",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 407,
+          "anchor": "3. Carrier count is event strength, not static effector identity. The wrapper",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 386,
+          "anchor": "evidence emitted by the self-hearing continuation was left only in `last_hop`",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 520,
+          "anchor": "serialized the complete organism between causal segments. That serialization",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A06",
+        "A08",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCM04",
+      "name": "Mutable topology identities and background growth caused historical runaway",
+      "classification": "documented_topology_defects_and_narrow_corrections",
+      "finding": "CMR04",
+      "observed_mechanism": "A006 task1175 had623 layer12 cells for70 mounted terminals and98053 layer11→12 contacts because motor identity used changing participant sets. Task1176 migration removed553 generated motor artifacts; later72 motors were distinct terminals. Layer11 identity then used mutable neighbor sets, causing repeated route creation and full-fabric extensions. The later growth path also admitted static neighbors or background activity rather than actual conducting paths. A009 reports a global Cartesian-product motor recruitment that grew62551 spurious contacts.",
+      "evidence_limits": "These explain specific pre64 historical stalls; they do not diagnose the current latency or left-turn loop. A static identity repair, causal growth restriction and batching may be genuine improvements, but migration losses and original authority need separate proof.",
+      "replacement": "Use exact persistent terminal/physical-bond identity independent of changing activity, and derive growth only from authorized causative physical transitions. Batch exact structural extensions while preserving existing learned state. Measure current identities and growth paths before attributing today’s failures to the same defect.",
+      "acceptance": {
+        "unit": "Enrich an existing route and re-reach its founding bond without duplicating its identity or contacts.",
+        "module": "Verify only actual lawful source/carrier causality can recruit growth; quiet local physiology still settles.",
+        "system": "Measure mature ordinary intervals, topology changes and behavior under realistic input without combinatorial contact growth.",
+        "release": "Bind identity/migration invariants to the actual source, format and serving candidate; old repair reports cannot prove present bounds."
+      },
+      "refs": [
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 154,
+          "anchor": "  `623` layer-12 motor cells for only `70` exact mounted body-effector",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 158,
+          "anchor": "  complete, changing set of reached layer-11 participants. Each new participant",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 292,
+          "anchor": "  neighbour set. Later lawful recurrence, motor, or articulation contacts",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 404,
+          "anchor": "  successor added one layer-12 cell and `2,628` layer-11-to-layer-12 contacts.",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 327,
+          "anchor": "- Motor recruitment no longer forms the global Cartesian product of every",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A08",
+        "A11",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCM05",
+      "name": "One-way topology retirement erased retained formations despite identity continuity",
+      "classification": "authorized_lossy_retirement_with_unresolved_preservation_scope",
+      "finding": "CMR05",
+      "observed_mechanism": "A006 first requires refusing motor-duplicate repair if retained evidence/mosaics/frontier would be discarded. A later ordering repair explicitly removes dependent formations and reports200→175 retained records. GLCOG027 then retires layers9,10,11,13, their dependent evidence/frontiers/mosaics and the hippocampal checkpoint while preserving source/body structures and organism identity. The reported body changes2105→551 neurons,46770→2104 contacts and113474571→48025872 bytes; retained mosaics become zero. The record calls this a one-way authority correction.",
+      "evidence_limits": "The original Aug23 public proposal and Joe’s direction to proceed are recovered in MGR06/MG05. The disclosed cleanup was contextually authorized. Approval does not prove every removed structure invalid, justify unaccounted surviving-cohort experience loss, or establish complete history preservation. Source review confirms broad custody clearing while preserving physical state in surviving cohorts. Later new acquisition does not restore the old experiences; historical permission does not authorize a current reset.",
+      "replacement": "Bind recovered original approval and exact V27 code to a complete per-owner loss/preservation inventory. Identify which invalidity claims are supported and which useful causal effects were lost. Any recovery requires an authorized direct physical mapping and ordered requalification; do not fabricate memory or infer continuity from identity.",
+      "acceptance": {
+        "unit": "Account for every removed/retained neuron, contact, formation and dependent causal relationship by original identity and bytes.",
+        "module": "Compare the authenticated approved proposal with actual migration scope, including surviving-cohort custody, and account for every sanctioned and unresolved loss.",
+        "system": "Compare retained learned effects before/after where authentic artifacts allow; separate new acquisition from preservation.",
+        "release": "No history-preservation or performance-equivalence claim without explicit losses, sanctioned transition and independent exact-candidate proof."
+      },
+      "refs": [
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 168,
+          "anchor": "| One-way repair | Keep the oldest stable lineage for each exact mounted terminal; retire later duplicate/unspecialized layer-12 artifacts and every incident generated contact; release their claimed resting places; refuse repair if retained evidence, a mosaic, or an active frontier would be discarded |",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 383,
+          "anchor": "  `83,437 -> 36,242`; retained formations `200 -> 175`. No DSF field, neuron",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 889,
+          "anchor": "  seven-field DSF authority. It retires unauthenticated layers 9, 10, 11, and",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 901,
+          "anchor": "  `0-8` plus `74` layer-12 terminal motors; retained mosaics are zero.",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 899,
+          "anchor": "  from `113,474,571` to `48,025,872` bytes, contacts from `46,770` to `2,104`,",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A09",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified",
+      "authority_correction": {
+        "at_utc": "2026-10-10T07:23:04.223619+00:00",
+        "evidence": "migration-v27-reconciliation.json",
+        "ids": [
+          "MGR01",
+          "MGR06"
+        ],
+        "original_authority_recovered": true,
+        "current_reset_authorized": false
+      }
+    },
+    {
+      "id": "VCM06",
+      "name": "Exact recurrence and unresolved-original replacement need different proofs",
+      "classification": "physical_pattern_correction_with_unqualified_retention_bound",
+      "finding": "CMR06",
+      "observed_mechanism": "The historical organism-wide recurrence path reduced exact physical deltas to changed lineages, permitting different co-activity to count as recurrence. Exact retained-delta matching reportedly changed partial-cue reassemblies313→0 and endogenous reassemblies131→0 without structural growth. A later rule replaces older original_only custody sharing a member neuron or conducting bond, leaving recognized formations. Two identical occurrences reduced pending originals7→6→4. Thirty-seven receptor bodies expanded once from2228 to32258 bytes and were unchanged on the second occurrence. Another optimization directly computes five retained coordinate families and excludes transient DNA waste.",
+      "evidence_limits": "The exact-pattern correction is narrower than a current recall qualification. Two/three repeats do not prove a lifetime bound for all distinct disjoint unresolved paths. Shared member/bond overlap does not itself prove that discarding an earlier unresolved experience follows a ratified physical retention law. Five-coordinate retained-state projection is not automatically DSF flattening, but its authority and sufficiency must be recovered.",
+      "replacement": "Preserve exact physically retained patterns and their relations. Derive pending-original custody, replacement and resource bounds from authorized native laws with explicit loss semantics. Separately qualify source-clock capacity and retained-versus-transient coordinates; do not tune recurrence counts or force growth positive.",
+      "acceptance": {
+        "unit": "Reject same-lineage/different-pattern false recurrence and verify distinct patterns on shared neurons.",
+        "module": "Prove authorized retained-coordinate sufficiency and every unresolved-custody retirement with exact causal provenance.",
+        "system": "Stress distinct/shared/disjoint physical paths over bounded resources while preserving later legitimate recurrence and sleep use.",
+        "release": "No global retention/bound claim from a few repeated inputs; bind actual laws, limits and memory-loss accounting to the release."
+      },
+      "refs": [
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 426,
+          "anchor": "  physical deltas, reduced them to changed lineage identities, and therefore",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 439,
+          "anchor": "  `6.517794` seconds. False partial-cue reassemblies fell `313 -> 0`, false",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 475,
+          "anchor": "  only older `original_only` custody sharing an exact member neuron or",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 480,
+          "anchor": "  `7 -> 6 -> 4` and total formation records changed `182 -> 181 -> 179`",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 524,
+          "anchor": "- The corrected projection computes exactly the five authorized retained",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 468,
+          "anchor": "  receptor-state bodies are one-time source-clock capacity: their second",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A09",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCM07",
+      "name": "Exact representation improvements must preserve mature behavior and scope",
+      "classification": "legitimate_optimization_distinguished_from_reduced_workload",
+      "finding": "CMR07",
+      "observed_mechanism": "A009 reports156786093 duplicate anatomy bytes, including one135981-byte body repeated1154 times, and a later exact shared-anatomy format. Other changes remove redundant scans/copies and intermediate seals. A006 fused canonical seal/observation proves identical bytes and reports only0.130864s gain; a rational-aggregation draft regressed and was rejected. Source indexing and a zero-current local shortcut were explicitly not dominant cadence fixes. The much faster1.448848s roster run follows GLCOG027 removal of retained higher layers.",
+      "evidence_limits": "Exact sharing of immutable anatomy and identical-state computation can be genuine improvements. The post-retirement run is a materially changed workload and cannot demonstrate preserving the mature cognitive capability while accelerating it. All timings are historical reports, not current measurements.",
+      "replacement": "Preserve proven exact sharing/batching/one-seal design where it maps to current authority. Compare identical full occurrences on identical preserved state, including all consequences and persistence. Report retained-state loss and workload changes separately from optimization.",
+      "acceptance": {
+        "unit": "Prove identical canonical state, exact physical observations and unchanged untouched bytes for each representation optimization.",
+        "module": "Measure the complete producer-reachable path, including seal/observation/restore and resource peaks.",
+        "system": "Compare matched mature states, rosters and histories; show actual progress and unchanged learned effects.",
+        "release": "Bind before/after artifacts and scope; never claim speedup from deleting cognitive state or omitting required physiology."
+      },
+      "refs": [
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 250,
+          "anchor": "- exact duplicate anatomy bodies: 156,786,093 bytes;",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 300,
+          "anchor": "  227,509,619-byte production predecessor migrates to 103,858,436 bytes, a",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 594,
+          "anchor": "- The exact gain is `0.130864` seconds. This closes the duplicate terminal",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 510,
+          "anchor": "  not presented as A-006 closure or a performance success.",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 915,
+          "anchor": "  roster in `1.448848` seconds with `760` physical neuron transitions.",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCM08",
+      "name": "Solver independence and quiet physiology limit safe parallelization",
+      "classification": "conditional_exact_optimization_and_rejected_shortcut",
+      "finding": "CMR08",
+      "observed_mechanism": "A006 reports active electrical pathways formed after raw exact contact transfer is derived; zero-transfer topological bridges then do not merge that interval’s independent energy settlement. Sparse contact replacement validates all indices before writes. Cohort/formation work is prepared independently against immutable state and committed canonically. A draft removing quiet receptor settlement was rejected because relaxation, fractal timing and full-field delivery changed; the discarded result had4145 transitions/hash996542..., while the final matched1/4-worker result has4153/hashd49227....",
+      "evidence_limits": "The zero-current argument is specific to this solver phase and interval, not a general law that a conducting contact can be removed from a network. Current implementation, independent-law derivation and all concurrency/boundary cases remain unqualified by documentary reading.",
+      "replacement": "Keep every physical relaxation and shared conservation reconciliation required by the law. Parallelize only proved-independent preparation, apply deterministically, and preserve exact source-clock/full-field effects. Carry rejected counterexamples forward without adopting their apparent speed gain.",
+      "acceptance": {
+        "unit": "Prove phase-specific independence, all-before-write validation and exact shared energy/carrier constraints.",
+        "module": "Compare serialized and concurrent successors/receipts byte-for-byte, including quiet receptors and failed preparation.",
+        "system": "Use identical mature full sensory occurrences and verify work/resource bounds and causal behavior.",
+        "release": "Ship only the matched candidate; changed successor hashes or delivery counts require explicit physical review, not a performance waiver."
+      },
+      "refs": [
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 807,
+          "anchor": "  raw per-contact transfer is derived before pathway components, so a contact",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 615,
+          "anchor": "  and malformed sparse contact replacements refuse without any mutation while",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 835,
+          "anchor": "  release. Quiet mounted receptors must still relax locally so quiescence,",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 815,
+          "anchor": "  `d49227ffdc296dccdf449f738753cf202f96878a10e4ebf16bfaa20f72e2a704`,",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 853,
+          "anchor": "  `d49227ffdc296dccdf449f738753cf202f96878a10e4ebf16bfaa20f72e2a704`,",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-22",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-22--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 854,
+          "anchor": "  `99654202744049b2040ee9859d89d4cb853e393cbf99d4c856cf767348bd4619`,",
+          "sha256": "6210a1664168efccb4ebd74dd19a44387d2b340fca7f0d5759d506ffced103fd"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCM09",
+      "name": "Observer failures can hide real action or imply health without progress",
+      "classification": "read_only_observation_repair_and_activation_limits",
+      "finding": "CMR09",
+      "observed_mechanism": "Historical observer defects dropped still-advancing new-impression paths at intake boundaries, required vestibular change for non-rotating actions, omitted native action evidence from continuations, and exported multi-megabyte repeated graphs. A display exception cleared readiness despite advancing CURRENT. Corrections preserve real changed-body returns, exact counts/receipts and independent native readiness; response reductions169k/280k remain whole-response measurements, not automatic worst-case bounds.",
+      "evidence_limits": "Observer correction can legitimately expose an existing physical event; it cannot manufacture the event or prove new learning. Historical healthy services on tasks1146–1148/1178–1180 sometimes never committed an ordinary successor. HTTP200, healthy ECS and zero Python callbacks are insufficient behavioral or ML-free evidence.",
+      "replacement": "Separate native progress, causal capability and display availability. Keep observation read-only with bounded output and exact source/state identity. Require actual timed successors and accurate unknown/failed capability reporting in GualaLoom.",
+      "acceptance": {
+        "unit": "Prove display failure cannot alter native state/readiness; verify conditional changed/quiescent and root-time predicates.",
+        "module": "Trace observed evidence to the exact settled transition and preserve ordered action/consequence fields.",
+        "system": "Measure real time-separated advancement and causal behavior independently of HTTP/UI health under normal load.",
+        "release": "Verify served UI and native observations agree on state/time/scope; do not infer system health or absence of prohibited mechanisms from a green endpoint."
+      },
+      "refs": [
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 258,
+          "anchor": "  neuron or DSF physics: it discarded a still-advancing",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 274,
+          "anchor": "  rotating the body, but the A-006 projector still required a positive",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 503,
+          "anchor": "display body before the native readiness body and cleared both on any display",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 497,
+          "anchor": "was 280,306 bytes; its bounded latest-transition witness was 1,729 bytes.",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM02-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-17--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 674,
+          "anchor": "The exact unchanged-state delta traversal is delivered, but the five-minute",
+          "sha256": "99e84065ef3d199c9474b2658d488aa6d0200492042a47318b6aec6cee6cc819"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 286,
+          "anchor": "  interval remained CPU-active for more than 40 minutes without publishing a",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A08",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCM10",
+      "name": "Caretaker/media transport can alter timing without being cognitive authority",
+      "classification": "historical_external_ingress_and_borrow_race",
+      "finding": "CMR11",
+      "observed_mechanism": "Task1188’s participant approach and separately requested apple lesson were separated by lawful unattended intervals, so the participant frontier no longer caused the later action. Combined invite-card preparation later hit Already mutably borrowed while reading retinal/body axes outside the existing transition lock. The documented correction prepares under that existing short lock and keeps external-intake admission active through the real contiguous invitation/presentation, with bounded replies.",
+      "evidence_limits": "This establishes historical transport interference and a race, not a diagnosis that today’s high-care caretaker causes latency or turn loops. Continuous external signals, locks and scheduling must be measured in the current candidate; an external teaching event cannot be mislabeled spontaneous pupil choice.",
+      "replacement": "Reconstruct exact current external program/configuration/ingress timing and ownership alongside native progress. Preserve actual social/sensory continuity without synthetic context retention or directing the pupil’s action. Bound admission occupancy and concurrent read access under the authorized native owner.",
+      "acceptance": {
+        "unit": "Verify common body reads use correct ownership and no concurrent mutable alias; expose admission timing and failures.",
+        "module": "Trace invitation, media preparation, delivery and autonomous intervals with exact actor/source/tick identity.",
+        "system": "Compare real native cadence and behavior under measured caretaker/environment loads without changing preserved pupil state to force success.",
+        "release": "Report actual effective programs and observed interference; historical races alone cannot certify or condemn current behavior."
+      },
+      "refs": [
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 712,
+          "anchor": "  the two HTTP requests. The full lesson committed at tick `152849` with 1,795",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 737,
+          "anchor": "  CloudWatch recorded `RuntimeError: Already mutably borrowed` at",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 773,
+          "anchor": "  admission signal on every physical media intake route. This serializes one",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 801,
+          "anchor": "  transport lock, and every physical media intake route uses the existing",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 723,
+          "anchor": "- This is transport continuity only. It does not retain a social context,",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A06",
+        "A11",
+        "A12",
+        "A13",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

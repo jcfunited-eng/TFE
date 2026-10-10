@@ -1,0 +1,68 @@
+{
+  "at_utc": "2026-10-10T09:40:40.663944+00:00",
+  "task": [
+    {
+      "task": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/7a13bf3c08ed4328bd4249531dcc277e",
+      "definition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1606",
+      "status": "RUNNING",
+      "health": "UNHEALTHY",
+      "started": "2026-10-10T09:06:27.397000+00:00",
+      "cpu": "2048",
+      "memory": "8192",
+      "containers": [
+        {
+          "name": "dsf-ai",
+          "status": "RUNNING",
+          "health": "UNHEALTHY",
+          "image": "418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:91640805ccc0548ccb10d55e97598812684112047bbabdd4ecd5415b25c0b69f",
+          "digest": "sha256:91640805ccc0548ccb10d55e97598812684112047bbabdd4ecd5415b25c0b69f",
+          "agents": [
+            {
+              "lastStartedAt": "2026-10-10T09:06:22.510000+00:00",
+              "name": "ExecuteCommandAgent",
+              "lastStatus": "RUNNING"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "service": [
+    {
+      "definition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1606",
+      "desired": 1,
+      "running": 1,
+      "pending": 0,
+      "deployments": [
+        {
+          "id": "ecs-svc/4665585932225088048",
+          "status": "PRIMARY",
+          "state": "COMPLETED",
+          "definition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1606"
+        }
+      ]
+    }
+  ],
+  "logs": [
+    {
+      "timestamp": 1791623169979,
+      "message": "INFO:     Started server process [1]",
+      "ingestionTime": 1791623174238
+    },
+    {
+      "timestamp": 1791623169979,
+      "message": "INFO:     Waiting for application startup.",
+      "ingestionTime": 1791623174238
+    },
+    {
+      "timestamp": 1791623176459,
+      "message": "INFO:     Application startup complete.",
+      "ingestionTime": 1791623179178
+    },
+    {
+      "timestamp": 1791623176460,
+      "message": "INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)",
+      "ingestionTime": 1791623179178
+    }
+  ]
+}

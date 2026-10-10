@@ -1,0 +1,35 @@
+**H24-06 — High: new sensory lanes are not fully time-aligned or bounded.**
+622b22784's live actor:352–395 prioritizes caregiver and legacy traffic ahead
+of browser senses; sustained priority traffic can starve those senses. It
+merges newest staged image with oldest queued audio without comparing their
+capture times, then preserves only the audio timestamp. Camera supersession
+accumulates an unbounded list of waiting futures (:192–197), and all callers
+receive success for the last frame even when their own frame was superseded.
+The HTTP handler echoes each request's timestamp, not proof of its settlement.
+Correction: preserve both modality times at one-clock settlement; give every
+due modality an explicit bounded service rule; distinguish superseded from
+settled receipts and release superseded waiters immediately. Preserve ordered
+audio and report gaps. Current mock tests accept merging1002ms imagery with
+2001ms audio and do not prove synchronized receptors under concurrent care.
+No camera/microphone stimuli were sent by this audit; live concurrent latency
+remains unverified.
+
+**H24-07 — High: the UI fabricates reassuring evidence.** Served page SHA256
+bbf5268f70b930a469b49212dc6ee5ecdadc0b89985d440ef9f103c805f480f8,
+last modified25Sep23:52:21. gualaloom.html:534 unconditionally says
+`Reserve Sated`, even at0%;:529–542 substitutes invented deficits, stride/
+syllable counts, toy-bear gaze and4935 retinal sites for absent or zero fields.
+Correction: display real zero as zero; unknown as unknown; distinguish depleted,
+hungry and sated using actual state. ALB health must not be displayed as
+organism nutritional/behavioral health.
+
+**H24-08 — Architectural: deployed cognitive claims exceed their mechanism.**
+3e02b4e3d introduces scalar curiosity bonus0.50*surplus/sqrt(1+count), added to
+mean reward and0.5*successor value. The boredom floor0.35 remains active after
+tick100 even at zero reserve and can force toward_door; successful unrelated
+actions clear last_refusal. 5f3300a46 adds a hardcoded one-beat quiet-gap speech
+release. These are authored policies, not evidence that full-field cognition
+or learned conversational turn-taking emerged. Correction: stop certifying
+them as zero-heuristic/full-field emergence, separately reconcile their
+authorization and demonstrated role. Do not grow a new cognition redesign
+inside the urgent physical care repair, or cure collisions with another score.

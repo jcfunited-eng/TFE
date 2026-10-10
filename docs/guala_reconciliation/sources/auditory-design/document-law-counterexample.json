@@ -1,0 +1,62 @@
+{
+  "scope": "Audit arithmetic on a proposed historical written law. No organism import, execution, physical experiment or current-code verdict.",
+  "source": "AD02",
+  "conflicts": [
+    {
+      "lines": [
+        340,
+        364,
+        493,
+        542,
+        546,
+        547,
+        566
+      ],
+      "finding": "At the stated zero-residue amplitude experiment, half amplitude supplies13 quanta, below17-quanta threshold; it cannot deliver the13 quanta printed in the table. P2 delivered ratios cannot hold universally under thresholded delivery."
+    },
+    {
+      "lines": [
+        665,
+        670,
+        671
+      ],
+      "finding": "An exact retained residue of33/32 zJ equals16.5 quanta, greater than the asserted16-quanta/1zJ maximum and below the17-quanta delivery threshold. No integral-residue restriction is established; prior printed residue is fractional."
+    }
+  ],
+  "amplitude_rows": [
+    {
+      "amplitude": "1",
+      "incident_energy_zJ": "13/4",
+      "energy_in_quanta": "52",
+      "opening_threshold_zJ": "17/16",
+      "below_opening_threshold": false,
+      "necessary_delivery_quanta_if_no_predecessor_residue": 52,
+      "scope": "Exact inference from AD02 stated threshold and full-scale cap, not execution of a quantizer implementation."
+    },
+    {
+      "amplitude": "1/2",
+      "incident_energy_zJ": "13/16",
+      "energy_in_quanta": "13",
+      "opening_threshold_zJ": "17/16",
+      "below_opening_threshold": true,
+      "necessary_delivery_quanta_if_no_predecessor_residue": 0,
+      "scope": "Exact inference from AD02 stated threshold and full-scale cap, not execution of a quantizer implementation."
+    },
+    {
+      "amplitude": "1/10",
+      "incident_energy_zJ": "13/400",
+      "energy_in_quanta": "13/25",
+      "opening_threshold_zJ": "17/16",
+      "below_opening_threshold": true,
+      "necessary_delivery_quanta_if_no_predecessor_residue": 0,
+      "scope": "Exact inference from AD02 stated threshold and full-scale cap, not execution of a quantizer implementation."
+    }
+  ],
+  "residue_counterexample": {
+    "residue_zJ": "33/32",
+    "residue_quanta": "33/2",
+    "asserted_max_zJ": "1",
+    "threshold_zJ": "17/16"
+  },
+  "lawful_acceptance": "Verify prequantization K*integral(squared pressure) proportionality separately from actual threshold/cap delivery and exact retained remainder, each with its ratified scope. Derive bounds from complete admission/interval/energy rules, not threshold-minus-one borrowed from integer storage."
+}

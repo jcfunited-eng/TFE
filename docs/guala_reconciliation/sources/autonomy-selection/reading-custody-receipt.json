@@ -1,0 +1,14 @@
+{
+  "schema": "guala.complete_autonomy_selection_read_receipt.v1",
+  "sources": 26,
+  "paths": 10,
+  "latest_lines": 2147,
+  "historical_only_passages": 45,
+  "historical_only_lines": 227,
+  "source_hashes_validated": true,
+  "all_latest_and_old_content_read": true,
+  "product_execution": false,
+  "product_qualification": false,
+  "primary_literature_review": false,
+  "original_authority_authenticated": false
+}

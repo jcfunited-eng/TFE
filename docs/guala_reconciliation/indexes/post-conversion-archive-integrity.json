@@ -1,0 +1,79 @@
+{
+  "key": "captures/0914e/current.zip",
+  "receipt": {
+    "AcceptRanges": "bytes",
+    "LastModified": "2026-09-14T04:51:27+00:00",
+    "ContentLength": 34342,
+    "ETag": "\"a3c200f65ec7e09d02063ecb72f45170\"",
+    "ChecksumCRC64NVME": "eyBncqydL14=",
+    "ChecksumType": "FULL_OBJECT",
+    "ContentType": "application/zip",
+    "ServerSideEncryption": "AES256",
+    "Metadata": {}
+  },
+  "archive_sha256": "263241926bcb462e3997c18f994ea4d00abb265d7a959e9f5dcb8dfb40d12769",
+  "pointer": {
+    "current": {
+      "body_bytes": 30624,
+      "body_sha256": "580d2341333e63a637291c46e56e0e67bab49a5741c62289fd6aba58d6866848",
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "organism_tick": 715775,
+      "world_bytes": 63671,
+      "world_sha256": "36ddeeb225aa592c904ceab478b96297c7a9c98337b667bb5a91b963fa6135d4"
+    },
+    "predecessor": {
+      "body_bytes": 30631,
+      "body_sha256": "105534164361842815efabf1195e7f26c107fa3652754ba1ffa974fbbd8c1fd1",
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "organism_tick": 715743,
+      "world_bytes": 63675,
+      "world_sha256": "f644172cd0ecf4fedb71f310e546f6656ddd45687bef76a7ffbc77a31e6546da"
+    }
+  },
+  "body_bytes": 30624,
+  "body_sha256": "580d2341333e63a637291c46e56e0e67bab49a5741c62289fd6aba58d6866848",
+  "world_bytes": 63671,
+  "world_sha256": "36ddeeb225aa592c904ceab478b96297c7a9c98337b667bb5a91b963fa6135d4",
+  "body_prefix_hex": "474c46554e4330317b22617070726f6163686564223a7b226170706c652d34223a3731343934352c22736f6661223a3731343936312c2274656c65766973696f6e223a3731343939",
+  "scope": "Only bytes, header and pointer; no deserializer with execution, no organism restore.",
+  "body_magic": "GLFUNC01",
+  "top_level_state_fields": [
+    "approached",
+    "bites",
+    "episodes",
+    "familiarity",
+    "feeding",
+    "goal",
+    "goal_beats",
+    "goal_refusals",
+    "heard",
+    "identity",
+    "idle_beats",
+    "last_act",
+    "last_spoke_tick",
+    "meals_micrograms",
+    "pending_drive",
+    "pending_voice",
+    "refusals",
+    "reserve_micrograms",
+    "schema",
+    "streams",
+    "strides",
+    "syllables",
+    "tick",
+    "voice"
+  ],
+  "state_identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+  "state_tick": 715775,
+  "state_schema": "guala.functional_organism.v1",
+  "codec_source": {
+    "commit": "466775c087b52fdbfd5e890bb196a0003dff3346",
+    "path": "dsf_ai_service/guala_functional_organism.py",
+    "sha256": "bc67da693f03f76320586d486d161111f7550e50d09cb7b4f7e24a18a5c7a342",
+    "tick_key_source_lines": [
+      358,
+      385
+    ]
+  },
+  "audit_parser_correction": "Initial validation assumed organism_tick in JSON and failed KeyError before writing. Inspected exact historical source: the stored JSON key is tick; pointer key is organism_tick. Corrected validation passes."
+}

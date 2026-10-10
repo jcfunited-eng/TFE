@@ -1,0 +1,891 @@
+{
+  "scope": "Seven selected document paths, exact original versions and parent-side edges; repeated branch edges remain explicit. Not the entire documentation history.",
+  "versions": {
+    "36ef263ad45c4c4b92c1b4842c21ca7e55bea85e": {
+      "path": "docs/guala_reconciliation/sources/version-history/36ef263ad45c--GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md",
+      "bytes": 8452,
+      "sha256": "0974b1c601edacfa3395de472b3df80dc665860d826580bfc54a4b8af80318b8"
+    },
+    "65bbf6a2d6f99bbca6278e3b924ec422964f188f": {
+      "path": "docs/guala_reconciliation/sources/version-history/65bbf6a2d6f9--GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md",
+      "bytes": 7617,
+      "sha256": "c1a62b49557d24609f5feb6b906e64b2c41a8331ca405ca2c3d155973e90bf05"
+    },
+    "ced897f153ea392a83a35257a3ef8385c02d4e39": {
+      "path": "docs/guala_reconciliation/sources/version-history/ced897f153ea--GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md",
+      "bytes": 8891,
+      "sha256": "91631e5428894877af6ca768570612ac6d9cab5dc54a624ad1355a6302b0c06b"
+    },
+    "efd7a1d2e570cad83e590f7ed9590f44d943c683": {
+      "path": "docs/guala_reconciliation/sources/version-history/efd7a1d2e570--GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md",
+      "bytes": 6904,
+      "sha256": "0d1e4aa7d8991c9c1ee9b4861d02a8c61b51384fcaecd069288a950ed2f2137b"
+    },
+    "2324eee5968be10b38e2de2c71ef1a8074ff5036": {
+      "path": "docs/guala_reconciliation/sources/version-history/2324eee5968b--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+      "bytes": 11722,
+      "sha256": "7761df54d52a3d1db2f0037e7bc0f56ca624ac16b4046a6d72038706145f1279"
+    },
+    "3de831cec0efd58b8f381e9de56ea3110492958b": {
+      "path": "docs/guala_reconciliation/sources/version-history/3de831cec0ef--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+      "bytes": 9878,
+      "sha256": "75583ec90a5884ccd67f8b934aebc9f7548ed407ecbefbe0e16121e6d61a15ea"
+    },
+    "ad756acb706dea2c1a05172710a445e3bde8757f": {
+      "path": "docs/guala_reconciliation/sources/version-history/ad756acb706d--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+      "bytes": 11969,
+      "sha256": "520128cd93d64c3519a5ee6d59a95c56494f30469d5f15d2dad3da52fd1675b2"
+    },
+    "af81fccc6e8aad195345937c90d7a6d3b9362976": {
+      "path": "docs/guala_reconciliation/sources/version-history/af81fccc6e8a--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+      "bytes": 7425,
+      "sha256": "5545b32261824c0093f938e89b5cca8cc96dfa45f1bda6129ac02f97ffd21b08"
+    },
+    "eb5cc021ad0bc23a7f445d2c0dec1a70a82f63ec": {
+      "path": "docs/guala_reconciliation/sources/version-history/eb5cc021ad0b--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+      "bytes": 6345,
+      "sha256": "5e07de5ae7a8c4bdc47c5a39d88c9fe0a59a39a3689635009a7bbabef0eb92a7"
+    },
+    "efe8da63e0b2498a060f40182a57804582eda510": {
+      "path": "docs/guala_reconciliation/sources/version-history/efe8da63e0b2--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+      "bytes": 9617,
+      "sha256": "04bf7521c96ed4382d778890b2f91533f06d1a5e4f3958fc6cf08a8929976fdb"
+    },
+    "f6b7a5c4aa1af1b20dcf7c5de20c14f10447e246": {
+      "path": "docs/guala_reconciliation/sources/version-history/f6b7a5c4aa1a--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+      "bytes": 5139,
+      "sha256": "e8cb164227f707e035a3d714ce07e02ad724de461a0d92c6f5bc9cef26320d61"
+    },
+    "56701c90dc6de2e71af45561c4b51cdb24e86f75": {
+      "path": "docs/guala_reconciliation/sources/version-history/56701c90dc6d--GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md",
+      "bytes": 4230,
+      "sha256": "34464d1d1358dd3617afefd01542438ad6c84b1286b18e20cbf13a89fb5292c1"
+    },
+    "dec9bb683deb0ed2347d6ea1e5ba2e41e05458a5": {
+      "path": "docs/guala_reconciliation/sources/version-history/dec9bb683deb--GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md",
+      "bytes": 6937,
+      "sha256": "26efc4e9840fa7439556a4c9da41765856b105d3ba33336c832acc823acb4569"
+    },
+    "fa999ca46b105d1c587986c41aeef60034925d4b": {
+      "path": "docs/guala_reconciliation/sources/version-history/fa999ca46b10--GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md",
+      "bytes": 9206,
+      "sha256": "8b24f86ead6242fc68c707e304599a5e8432f07b2a5ee74b226a9010411d3e54"
+    },
+    "fb6f78c0bc14e8334251b221b357b1c1620afdb9": {
+      "path": "docs/guala_reconciliation/sources/version-history/fb6f78c0bc14--GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md",
+      "bytes": 7751,
+      "sha256": "ec6dee61e8fe848ebaac468823dd99ca2bd181a1fd2655cd200396441dc8cb25"
+    },
+    "fdb7ae32e2a8012c14777095ecf9219964447797": {
+      "path": "docs/guala_reconciliation/sources/version-history/fdb7ae32e2a8--GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md",
+      "bytes": 6074,
+      "sha256": "1e0ee4e0fefa15021dbd7b0e2651ade2a233bd8c0a5cb12662336ef8a060f364"
+    },
+    "c279ab2bd3d4eaf14fd8d6d36c25906f26d44fc7": {
+      "path": "docs/guala_reconciliation/sources/version-history/c279ab2bd3d4--GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3.tex",
+      "bytes": 35565,
+      "sha256": "82108361828ed3796c448442d736c92e8814def2d8c3706664f07d0bc85447e4"
+    },
+    "d6f9e923a9b85748c1dcb31062038c581283d89a": {
+      "path": "docs/guala_reconciliation/sources/version-history/d6f9e923a9b8--GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3.tex",
+      "bytes": 36903,
+      "sha256": "2c3f13525bd4327194803aaa98fded5da2d9d7c00ebc82f71795f0684fd4d94c"
+    },
+    "0cbaa924c7daffe11704b2ff84ea14fe32514d96": {
+      "path": "docs/guala_reconciliation/sources/version-history/0cbaa924c7da--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+      "bytes": 8092,
+      "sha256": "a070ebc2c0765bcbc990cddfa3b7635b0ab32d271b9307d0248b02522bef8a46"
+    },
+    "38324d1a33242e62483b408bee60d446b5090464": {
+      "path": "docs/guala_reconciliation/sources/version-history/38324d1a3324--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+      "bytes": 15833,
+      "sha256": "cb6a310f38b1ae6d8951deaa1b18032a7de2c69a88e32bf6186c8283e10a7a5b"
+    },
+    "6d4154e2261979f98fcf60cb17b65d36454b348f": {
+      "path": "docs/guala_reconciliation/sources/version-history/6d4154e22619--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+      "bytes": 5013,
+      "sha256": "e05d81c68a546695e57e94e55ae65a3f1b75f4040b5c1e2a86c7f141d31c851f"
+    },
+    "6feed0aebf58e5633668efccad4010118eee03db": {
+      "path": "docs/guala_reconciliation/sources/version-history/6feed0aebf58--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+      "bytes": 14800,
+      "sha256": "e505eb20da5796878639cafe39fa47e2b3e9864c21f4723cdd081222d5dfc146"
+    },
+    "bf2243b8cc6e28a0142acba4f34ed3f1d67f35a0": {
+      "path": "docs/guala_reconciliation/sources/version-history/bf2243b8cc6e--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+      "bytes": 10806,
+      "sha256": "f10f12f0248f5d74562c5ce81dcedd697949c916e7088f99cd66775d0b2db2f6"
+    },
+    "c022195738dd12a35519a1924bb3af63a4235fd9": {
+      "path": "docs/guala_reconciliation/sources/version-history/c022195738dd--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+      "bytes": 4073,
+      "sha256": "db9c329101775018ffe229460eb412ba85b898b01016d5396caff973ede6e6e5"
+    },
+    "cdc1d6362871bd7127fee4282363d5a3b512bccf": {
+      "path": "docs/guala_reconciliation/sources/version-history/cdc1d6362871--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+      "bytes": 4534,
+      "sha256": "cb9900cb143464023ac731081dd241bf81bd09dc9ad3207d4c0ea1818a8fdeed"
+    },
+    "e8ea3cb502ed4fdc78fdb6f743f46935fde9deea": {
+      "path": "docs/guala_reconciliation/sources/version-history/e8ea3cb502ed--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+      "bytes": 12175,
+      "sha256": "fd7a73d79e249224aa2d7826e29f7274585bfd1240f9cb9524a84c56ac4532f1"
+    },
+    "402b7e5d709ded46c932e558496d23bae26771cc": {
+      "path": "docs/guala_reconciliation/sources/version-history/402b7e5d709d--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+      "bytes": 5199,
+      "sha256": "30ecc20777e8f4203c51887c32d923b6995c74f50d791674cc24c43a6170101e"
+    },
+    "a236801aa9f8de3cd67606e3b831e9413e522190": {
+      "path": "docs/guala_reconciliation/sources/version-history/a236801aa9f8--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+      "bytes": 5026,
+      "sha256": "5540fc5e670ebcab77afa41dd3a93c3ae7421c8142ed3bf362a0c93e97062e28"
+    },
+    "b117b431e8c267cb43f31dec9650528b79218243": {
+      "path": "docs/guala_reconciliation/sources/version-history/b117b431e8c2--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+      "bytes": 5054,
+      "sha256": "16185d6cb0aa3950ce13a0d3a2f530ee6e13efe3634fd3f94a6fd9061e69d6e1"
+    },
+    "cac25066af4240c3ba18406d088e852d12abeb8a": {
+      "path": "docs/guala_reconciliation/sources/version-history/cac25066af42--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+      "bytes": 15001,
+      "sha256": "6ad32eea3addc93d414eb9ed64e495d9e79fae656a402902374dcf137cd9c101"
+    },
+    "f4827f4de9e514ae1bfc94aaa2330c22d6fca3ba": {
+      "path": "docs/guala_reconciliation/sources/version-history/f4827f4de9e5--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+      "bytes": 15417,
+      "sha256": "de642b233d3b62a48a87dd71d19288136b91fa86c4e179f161214c46420f5184"
+    }
+  },
+  "edges": [
+    {
+      "author_time": "2026-09-15T23:31:35+00:00",
+      "commit": "e12c06e957f70c4f643b60ddc43a267c73e15453",
+      "commit_time": "2026-09-15T23:31:35+00:00",
+      "new_blob": "ced897f153ea392a83a35257a3ef8385c02d4e39",
+      "new_mode": "100644",
+      "old_blob": "36ef263ad45c4c4b92c1b4842c21ca7e55bea85e",
+      "old_mode": "100644",
+      "parents": [
+        "e6f37a4ffaf3aba6769e9e8fbd06876a159e8a5a"
+      ],
+      "path": "docs/GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md",
+      "status": "M",
+      "subject": "Specs: her own voice as events of its own; syllables valued by measured worth; the airway's forty syllables",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/36ef263ad45c--GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md",
+        "bytes": 8452,
+        "sha256": "0974b1c601edacfa3395de472b3df80dc665860d826580bfc54a4b8af80318b8"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/ced897f153ea--GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md",
+        "bytes": 8891,
+        "sha256": "91631e5428894877af6ca768570612ac6d9cab5dc54a624ad1355a6302b0c06b"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/e12c06e957f7--GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.diff",
+      "diff_sha256": "bc585af05c2fb55021349a0046215251e7956b04c6254fbf2cb103bbc2e9fb54",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-09-15T16:45:20+00:00",
+      "commit": "aab1a0e65368d790898354dc84fd2b931954a025",
+      "commit_time": "2026-09-15T16:45:20+00:00",
+      "new_blob": "36ef263ad45c4c4b92c1b4842c21ca7e55bea85e",
+      "new_mode": "100644",
+      "old_blob": "65bbf6a2d6f99bbca6278e3b924ec422964f188f",
+      "old_mode": "100644",
+      "parents": [
+        "ea641ce4a87b77443570a0d3d0bf695d10944d9c"
+      ],
+      "path": "docs/GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md",
+      "status": "M",
+      "subject": "Acoustic gate spec: hearing law amended after measurement on her live body; what is stored as built",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/65bbf6a2d6f9--GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md",
+        "bytes": 7617,
+        "sha256": "c1a62b49557d24609f5feb6b906e64b2c41a8331ca405ca2c3d155973e90bf05"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/36ef263ad45c--GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md",
+        "bytes": 8452,
+        "sha256": "0974b1c601edacfa3395de472b3df80dc665860d826580bfc54a4b8af80318b8"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/aab1a0e65368--GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.diff",
+      "diff_sha256": "bd107263b741e8d8584d5e3c60b2a249c8ad5285c3906b1f7bb6cc644925262d",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-09-15T16:04:12+00:00",
+      "commit": "ff21b37b1f02cc2e69e863e5740e21caaf16d85b",
+      "commit_time": "2026-09-15T16:04:12+00:00",
+      "new_blob": "65bbf6a2d6f99bbca6278e3b924ec422964f188f",
+      "new_mode": "100644",
+      "old_blob": "efd7a1d2e570cad83e590f7ed9590f44d943c683",
+      "old_mode": "100644",
+      "parents": [
+        "c332d0e3ccc3af27298f4612f71aeb6ef4b7d376"
+      ],
+      "path": "docs/GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md",
+      "status": "M",
+      "subject": "Ledger: A1 — Level 1 acoustic gate §8 co-draft filed; joint coordination on pure structural hierarchy",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/efd7a1d2e570--GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md",
+        "bytes": 6904,
+        "sha256": "0d1e4aa7d8991c9c1ee9b4861d02a8c61b51384fcaecd069288a950ed2f2137b"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/65bbf6a2d6f9--GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md",
+        "bytes": 7617,
+        "sha256": "c1a62b49557d24609f5feb6b906e64b2c41a8331ca405ca2c3d155973e90bf05"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/ff21b37b1f02--GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.diff",
+      "diff_sha256": "624c3ac34e7ef0a16d9af77b5a925e6422e07056bc3088e320cc2d7dde5b16e9",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-09-15T19:16:32+00:00",
+      "commit": "a1758d4f30e145c720e8d9aab34b7fe215c3329e",
+      "commit_time": "2026-09-15T19:16:32+00:00",
+      "new_blob": "ad756acb706dea2c1a05172710a445e3bde8757f",
+      "new_mode": "100644",
+      "old_blob": "2324eee5968be10b38e2de2c71ef1a8074ff5036",
+      "old_mode": "100644",
+      "parents": [
+        "3f5544bc063b9a0c497b32833fe52d171638bc1a"
+      ],
+      "path": "docs/GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+      "status": "M",
+      "subject": "Eye spec §8: the stability of a look on a quarter's boundary, as measured; Level 3 counts both keys",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/2324eee5968b--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+        "bytes": 11722,
+        "sha256": "7761df54d52a3d1db2f0037e7bc0f56ca624ac16b4046a6d72038706145f1279"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/ad756acb706d--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+        "bytes": 11969,
+        "sha256": "520128cd93d64c3519a5ee6d59a95c56494f30469d5f15d2dad3da52fd1675b2"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/a1758d4f30e1--GL-SPC-EYE-FIGURE-C1-20260915-v1.diff",
+      "diff_sha256": "c817500883b0487684148942eecd601274608ae05590ee190a7ce3fb92af3301",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-09-15T19:11:28+00:00",
+      "commit": "3f5544bc063b9a0c497b32833fe52d171638bc1a",
+      "commit_time": "2026-09-15T19:11:28+00:00",
+      "new_blob": "2324eee5968be10b38e2de2c71ef1a8074ff5036",
+      "new_mode": "100644",
+      "old_blob": "3de831cec0efd58b8f381e9de56ea3110492958b",
+      "old_mode": "100644",
+      "parents": [
+        "34c9f0e085e870522b652e93217cd1b3f1920bef"
+      ],
+      "path": "docs/GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+      "status": "M",
+      "subject": "Eye spec §8 (the figure is the thing's look, rings in quarters, measured); moment spec §7 as built",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/3de831cec0ef--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+        "bytes": 9878,
+        "sha256": "75583ec90a5884ccd67f8b934aebc9f7548ed407ecbefbe0e16121e6d61a15ea"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/2324eee5968b--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+        "bytes": 11722,
+        "sha256": "7761df54d52a3d1db2f0037e7bc0f56ca624ac16b4046a6d72038706145f1279"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/3f5544bc063b--GL-SPC-EYE-FIGURE-C1-20260915-v1.diff",
+      "diff_sha256": "827619bd0e0f4c8b847dc67f4d2a414d3acc0e7d653088e001f1b21a0f028ce5",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-09-15T17:55:18+00:00",
+      "commit": "4e96fe5ad684d729b97677b13d499e43d2ca490d",
+      "commit_time": "2026-09-15T17:55:18+00:00",
+      "new_blob": "3de831cec0efd58b8f381e9de56ea3110492958b",
+      "new_mode": "100644",
+      "old_blob": "efe8da63e0b2498a060f40182a57804582eda510",
+      "old_mode": "100644",
+      "parents": [
+        "214683a68d9c961996ac4c71e99f3de901176a3b"
+      ],
+      "path": "docs/GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+      "status": "M",
+      "subject": "Eye spec: C1's section labelled 'as built and measured' under A1's ratified §6; the neck range as declared",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/efe8da63e0b2--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+        "bytes": 9617,
+        "sha256": "04bf7521c96ed4382d778890b2f91533f06d1a5e4f3958fc6cf08a8929976fdb"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/3de831cec0ef--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+        "bytes": 9878,
+        "sha256": "75583ec90a5884ccd67f8b934aebc9f7548ed407ecbefbe0e16121e6d61a15ea"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/4e96fe5ad684--GL-SPC-EYE-FIGURE-C1-20260915-v1.diff",
+      "diff_sha256": "e180428a8f390ddfa6404a9584736b50ad5d2c338619536356d952aec697b868",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-09-15T17:54:33+00:00",
+      "commit": "214683a68d9c961996ac4c71e99f3de901176a3b",
+      "commit_time": "2026-09-15T17:54:33+00:00",
+      "new_blob": "efe8da63e0b2498a060f40182a57804582eda510",
+      "new_mode": "100644",
+      "old_blob": "af81fccc6e8aad195345937c90d7a6d3b9362976",
+      "old_mode": "100644",
+      "parents": [
+        "1a8ac329eb028845f9800dc374016f205a41dcc7"
+      ],
+      "path": "docs/GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+      "status": "M",
+      "subject": "Eye spec: §6 where she looks (built, measured); §7 what the world eye shows, the open part",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/af81fccc6e8a--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+        "bytes": 7425,
+        "sha256": "5545b32261824c0093f938e89b5cca8cc96dfa45f1bda6129ac02f97ffd21b08"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/efe8da63e0b2--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+        "bytes": 9617,
+        "sha256": "04bf7521c96ed4382d778890b2f91533f06d1a5e4f3958fc6cf08a8929976fdb"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/214683a68d9c--GL-SPC-EYE-FIGURE-C1-20260915-v1.diff",
+      "diff_sha256": "c80bcc9af92ae0eebafde81f43be3c90806c098d59858e18619ed32a0ae90419",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-09-15T17:52:45+00:00",
+      "commit": "4f7e9f25b001dde3ca3b835e1baf0b594250e309",
+      "commit_time": "2026-09-15T17:52:45+00:00",
+      "new_blob": "af81fccc6e8aad195345937c90d7a6d3b9362976",
+      "new_mode": "100644",
+      "old_blob": "eb5cc021ad0bc23a7f445d2c0dec1a70a82f63ec",
+      "old_mode": "100644",
+      "parents": [
+        "05bebb54616a7ac7900c7dc15b68a4303f5a66ff"
+      ],
+      "path": "docs/GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+      "status": "M",
+      "subject": "Ledger: A1 — Joe approval ratified; Section 6 Gaze Law & Kinematics filed in eye spec",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/eb5cc021ad0b--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+        "bytes": 6345,
+        "sha256": "5e07de5ae7a8c4bdc47c5a39d88c9fe0a59a39a3689635009a7bbabef0eb92a7"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/af81fccc6e8a--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+        "bytes": 7425,
+        "sha256": "5545b32261824c0093f938e89b5cca8cc96dfa45f1bda6129ac02f97ffd21b08"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/4f7e9f25b001--GL-SPC-EYE-FIGURE-C1-20260915-v1.diff",
+      "diff_sha256": "83680f71719abf6e382381a507f04481cec98be996986782c77db1b733683611",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-09-15T17:19:30+00:00",
+      "commit": "2608837219c7a8d3b4c396657599a2543fc239ee",
+      "commit_time": "2026-09-15T17:19:30+00:00",
+      "new_blob": "eb5cc021ad0bc23a7f445d2c0dec1a70a82f63ec",
+      "new_mode": "100644",
+      "old_blob": "f6b7a5c4aa1af1b20dcf7c5de20c14f10447e246",
+      "old_mode": "100644",
+      "parents": [
+        "e81cf71e98ca4145a016aaa3330f26357d44ab6e"
+      ],
+      "path": "docs/GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+      "status": "M",
+      "subject": "Ledger: A1 — Level 1 acoustic gate in her (1495) confirmed; Eye Level 1 figure spec §5 co-draft filed",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/f6b7a5c4aa1a--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+        "bytes": 5139,
+        "sha256": "e8cb164227f707e035a3d714ce07e02ad724de461a0d92c6f5bc9cef26320d61"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/eb5cc021ad0b--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+        "bytes": 6345,
+        "sha256": "5e07de5ae7a8c4bdc47c5a39d88c9fe0a59a39a3689635009a7bbabef0eb92a7"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/2608837219c7--GL-SPC-EYE-FIGURE-C1-20260915-v1.diff",
+      "diff_sha256": "5aed0b77a76afb8e2800975d50dc0580d1e90dfe1d98b42fc0543375fea081f9",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-09-15T23:31:35+00:00",
+      "commit": "e12c06e957f70c4f643b60ddc43a267c73e15453",
+      "commit_time": "2026-09-15T23:31:35+00:00",
+      "new_blob": "fa999ca46b105d1c587986c41aeef60034925d4b",
+      "new_mode": "100644",
+      "old_blob": "fb6f78c0bc14e8334251b221b357b1c1620afdb9",
+      "old_mode": "100644",
+      "parents": [
+        "e6f37a4ffaf3aba6769e9e8fbd06876a159e8a5a"
+      ],
+      "path": "docs/GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md",
+      "status": "M",
+      "subject": "Specs: her own voice as events of its own; syllables valued by measured worth; the airway's forty syllables",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/fb6f78c0bc14--GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md",
+        "bytes": 7751,
+        "sha256": "ec6dee61e8fe848ebaac468823dd99ca2bd181a1fd2655cd200396441dc8cb25"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/fa999ca46b10--GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md",
+        "bytes": 9206,
+        "sha256": "8b24f86ead6242fc68c707e304599a5e8432f07b2a5ee74b226a9010411d3e54"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/e12c06e957f7--GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.diff",
+      "diff_sha256": "dd9a45ffd9e9a987db7d15989094f10eec404c5ad6925bb14ad5fd37aeea54f7",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-09-15T20:17:32+00:00",
+      "commit": "ac14cc9ec6e5ce6c65257e3e78dc93df1296690c",
+      "commit_time": "2026-09-15T20:17:32+00:00",
+      "new_blob": "fb6f78c0bc14e8334251b221b357b1c1620afdb9",
+      "new_mode": "100644",
+      "old_blob": "dec9bb683deb0ed2347d6ea1e5ba2e41e05458a5",
+      "old_mode": "100644",
+      "parents": [
+        "7e99f8e79f2e1bd5d30cfd788dca2c898ddcb126"
+      ],
+      "path": "docs/GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md",
+      "status": "M",
+      "subject": "Moment spec §8: a held thing is named by the hand alone (A1's transit finding, second option), measured",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/dec9bb683deb--GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md",
+        "bytes": 6937,
+        "sha256": "26efc4e9840fa7439556a4c9da41765856b105d3ba33336c832acc823acb4569"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/fb6f78c0bc14--GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md",
+        "bytes": 7751,
+        "sha256": "ec6dee61e8fe848ebaac468823dd99ca2bd181a1fd2655cd200396441dc8cb25"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/ac14cc9ec6e5--GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.diff",
+      "diff_sha256": "3a273447b25ffa79e5ab7cf0d608125fa04dddeb8356ca99d0e134e644dffc6b",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-09-15T19:11:28+00:00",
+      "commit": "3f5544bc063b9a0c497b32833fe52d171638bc1a",
+      "commit_time": "2026-09-15T19:11:28+00:00",
+      "new_blob": "dec9bb683deb0ed2347d6ea1e5ba2e41e05458a5",
+      "new_mode": "100644",
+      "old_blob": "fdb7ae32e2a8012c14777095ecf9219964447797",
+      "old_mode": "100644",
+      "parents": [
+        "34c9f0e085e870522b652e93217cd1b3f1920bef"
+      ],
+      "path": "docs/GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md",
+      "status": "M",
+      "subject": "Eye spec §8 (the figure is the thing's look, rings in quarters, measured); moment spec §7 as built",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/fdb7ae32e2a8--GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md",
+        "bytes": 6074,
+        "sha256": "1e0ee4e0fefa15021dbd7b0e2651ade2a233bd8c0a5cb12662336ef8a060f364"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/dec9bb683deb--GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md",
+        "bytes": 6937,
+        "sha256": "26efc4e9840fa7439556a4c9da41765856b105d3ba33336c832acc823acb4569"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/3f5544bc063b--GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.diff",
+      "diff_sha256": "bdff58ffbce324a8628d17def61117555b2ff42be42d280656d7f529bc72d065",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-09-15T18:45:34+00:00",
+      "commit": "d5e18d1a5809325c071d584b61a688838d602b1f",
+      "commit_time": "2026-09-15T18:45:34+00:00",
+      "new_blob": "fdb7ae32e2a8012c14777095ecf9219964447797",
+      "new_mode": "100644",
+      "old_blob": "56701c90dc6de2e71af45561c4b51cdb24e86f75",
+      "old_mode": "100644",
+      "parents": [
+        "de8459dde09fddbff82cfb5add9b22252ade13b1"
+      ],
+      "path": "docs/GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md",
+      "status": "M",
+      "subject": "Ledger & Spec: A1 — Level 2 Moment specification co-draft complete",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/56701c90dc6d--GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md",
+        "bytes": 4230,
+        "sha256": "34464d1d1358dd3617afefd01542438ad6c84b1286b18e20cbf13a89fb5292c1"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/fdb7ae32e2a8--GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md",
+        "bytes": 6074,
+        "sha256": "1e0ee4e0fefa15021dbd7b0e2651ade2a233bd8c0a5cb12662336ef8a060f364"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/d5e18d1a5809--GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.diff",
+      "diff_sha256": "0badf0dd90e53a559608ae55d596e251c31e9699a9b9c6fbc2124414e37d6b0b",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-07-16T05:22:51+00:00",
+      "commit": "4050e87f3cf08e822f65f59754f8ea25fc3938c4",
+      "commit_time": "2026-07-16T05:22:51+00:00",
+      "new_blob": "d6f9e923a9b85748c1dcb31062038c581283d89a",
+      "new_mode": "100644",
+      "old_blob": "c279ab2bd3d4eaf14fd8d6d36c25906f26d44fc7",
+      "old_mode": "100644",
+      "parents": [
+        "ddd57d7645d74ae94c004694d450eeeaa01cb120",
+        "6cf4b1b9b93f5da0cc020b159cfb843748b6b1e5"
+      ],
+      "path": "docs/GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3.tex",
+      "status": "M",
+      "subject": "Merge origin/guala-live (7663da6, Change 1: disk-resident window store + one-boot + cached composer) into Change-4 voice branch",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/c279ab2bd3d4--GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3.tex",
+        "bytes": 35565,
+        "sha256": "82108361828ed3796c448442d736c92e8814def2d8c3706664f07d0bc85447e4"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/d6f9e923a9b8--GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3.tex",
+        "bytes": 36903,
+        "sha256": "2c3f13525bd4327194803aaa98fded5da2d9d7c00ebc82f71795f0684fd4d94c"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/4050e87f3cf0--GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3.diff",
+      "diff_sha256": "67bfbbfd87d839b2a27f887c1a5b285cfca5bd985b8e7f7bd8cd409b00668c74",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-07-16T02:38:19+00:00",
+      "commit": "69db8d04fffa487863ee217089f8c4e05bd04a4c",
+      "commit_time": "2026-07-16T02:41:29+00:00",
+      "new_blob": "d6f9e923a9b85748c1dcb31062038c581283d89a",
+      "new_mode": "100644",
+      "old_blob": "c279ab2bd3d4eaf14fd8d6d36c25906f26d44fc7",
+      "old_mode": "100644",
+      "parents": [
+        "8660229a8082f5b1d6cef298170a756086514d3e"
+      ],
+      "path": "docs/GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3.tex",
+      "status": "M",
+      "subject": "docs: spec v3.1 — P3 extended per Joe: salience-gated intake, distill-then-fade forgetting, affect-weighted persistence (essence not tape); forgetting = loud mechanism lane, full semantics to Eve with Change 3",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/c279ab2bd3d4--GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3.tex",
+        "bytes": 35565,
+        "sha256": "82108361828ed3796c448442d736c92e8814def2d8c3706664f07d0bc85447e4"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/d6f9e923a9b8--GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3.tex",
+        "bytes": 36903,
+        "sha256": "2c3f13525bd4327194803aaa98fded5da2d9d7c00ebc82f71795f0684fd4d94c"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/69db8d04fffa--GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3.diff",
+      "diff_sha256": "67bfbbfd87d839b2a27f887c1a5b285cfca5bd985b8e7f7bd8cd409b00668c74",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-07-16T02:38:19+00:00",
+      "commit": "a52bd79673c958b623a93071ecbc44ceceba0c52",
+      "commit_time": "2026-07-16T02:38:19+00:00",
+      "new_blob": "d6f9e923a9b85748c1dcb31062038c581283d89a",
+      "new_mode": "100644",
+      "old_blob": "c279ab2bd3d4eaf14fd8d6d36c25906f26d44fc7",
+      "old_mode": "100644",
+      "parents": [
+        "8660229a8082f5b1d6cef298170a756086514d3e"
+      ],
+      "path": "docs/GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3.tex",
+      "status": "M",
+      "subject": "docs: spec v3.1 — P3 extended per Joe: salience-gated intake, distill-then-fade forgetting, affect-weighted persistence (essence not tape); forgetting = loud mechanism lane, full semantics to Eve with Change 3",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/c279ab2bd3d4--GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3.tex",
+        "bytes": 35565,
+        "sha256": "82108361828ed3796c448442d736c92e8814def2d8c3706664f07d0bc85447e4"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/d6f9e923a9b8--GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3.tex",
+        "bytes": 36903,
+        "sha256": "2c3f13525bd4327194803aaa98fded5da2d9d7c00ebc82f71795f0684fd4d94c"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/a52bd79673c9--GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3.diff",
+      "diff_sha256": "67bfbbfd87d839b2a27f887c1a5b285cfca5bd985b8e7f7bd8cd409b00668c74",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-09-16T09:02:50+00:00",
+      "commit": "c9245a02da2da950c13a31e167fa8377ef7b4979",
+      "commit_time": "2026-09-16T09:02:50+00:00",
+      "new_blob": "38324d1a33242e62483b408bee60d446b5090464",
+      "new_mode": "100644",
+      "old_blob": "6feed0aebf58e5633668efccad4010118eee03db",
+      "old_mode": "100644",
+      "parents": [
+        "de86ea161aebae1e9e1063f10fccbe09fef83ff6"
+      ],
+      "path": "docs/GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+      "status": "M",
+      "subject": "The camera at her eye's grain: the page sends the whole frame as her 160 x 120 field, the server keeps it at her grain, her beat takes it as sent; the page keeps her world field beside the camera",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/6feed0aebf58--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+        "bytes": 14800,
+        "sha256": "e505eb20da5796878639cafe39fa47e2b3e9864c21f4723cdd081222d5dfc146"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/38324d1a3324--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+        "bytes": 15833,
+        "sha256": "cb6a310f38b1ae6d8951deaa1b18032a7de2c69a88e32bf6186c8283e10a7a5b"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/c9245a02da2d--GL-SPC-WORLD-LIGHT-C1-20260916-v1.diff",
+      "diff_sha256": "7ae80cf35f38d1bc5d4e405dc98633740b623f6c48bba3a26dfd86427b2f948c",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-09-16T04:14:07+00:00",
+      "commit": "d407ccc709569db802e717f9e1f1c6f58fdb21ae",
+      "commit_time": "2026-09-16T04:14:07+00:00",
+      "new_blob": "6feed0aebf58e5633668efccad4010118eee03db",
+      "new_mode": "100644",
+      "old_blob": "e8ea3cb502ed4fdc78fdb6f743f46935fde9deea",
+      "old_mode": "100644",
+      "parents": [
+        "939c49e3fec1d7aad2e0cea12d8a014b37428acf"
+      ],
+      "path": "docs/GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+      "status": "M",
+      "subject": "Inside the clock with the colour eye and the parts: the retina converted in one array, four retained receipts (a longer recorded tail restores keeping its latest), parts cast only on the rays that enter a thing's bounding sphere",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/e8ea3cb502ed--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+        "bytes": 12175,
+        "sha256": "fd7a73d79e249224aa2d7826e29f7274585bfd1240f9cb9524a84c56ac4532f1"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/6feed0aebf58--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+        "bytes": 14800,
+        "sha256": "e505eb20da5796878639cafe39fa47e2b3e9864c21f4723cdd081222d5dfc146"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/d407ccc70956--GL-SPC-WORLD-LIGHT-C1-20260916-v1.diff",
+      "diff_sha256": "d9ab6957176ba5dc57f6bb7d3c00c40f7e61f0e70f662bf687176dd1d0ea04d8",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-09-16T03:15:40+00:00",
+      "commit": "4c985885611b562c133637f84349a4f0102d2842",
+      "commit_time": "2026-09-16T03:15:40+00:00",
+      "new_blob": "e8ea3cb502ed4fdc78fdb6f743f46935fde9deea",
+      "new_mode": "100644",
+      "old_blob": "bf2243b8cc6e28a0142acba4f34ed3f1d67f35a0",
+      "old_mode": "100644",
+      "parents": [
+        "9a44c8354befb844e61790cbee790e7f8740e34b"
+      ],
+      "path": "docs/GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+      "status": "M",
+      "subject": "Light spec: fourth build (whole house in shape, lamp heights, nightlight, cap)",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/bf2243b8cc6e--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+        "bytes": 10806,
+        "sha256": "f10f12f0248f5d74562c5ce81dcedd697949c916e7088f99cd66775d0b2db2f6"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/e8ea3cb502ed--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+        "bytes": 12175,
+        "sha256": "fd7a73d79e249224aa2d7826e29f7274585bfd1240f9cb9524a84c56ac4532f1"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/4c985885611b--GL-SPC-WORLD-LIGHT-C1-20260916-v1.diff",
+      "diff_sha256": "ecb73be9ae3865fd117b20ff5db50784b0e7342e657da0b03f1ad6e5c875344d",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-09-16T02:55:07+00:00",
+      "commit": "8a1a854eac71cf94d6bcfcf7f12c44cf7036bb9a",
+      "commit_time": "2026-09-16T02:55:07+00:00",
+      "new_blob": "bf2243b8cc6e28a0142acba4f34ed3f1d67f35a0",
+      "new_mode": "100644",
+      "old_blob": "0cbaa924c7daffe11704b2ff84ea14fe32514d96",
+      "old_mode": "100644",
+      "parents": [
+        "a3e9dd80ebab8566f216fc1d4bd6646f01c988b3"
+      ],
+      "path": "docs/GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+      "status": "M",
+      "subject": "The shape law: a thing may be a box the eye meets face by face, lit by its normals, in front of and behind other things; boxes block light as boxes; the lamp law at one metre",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/0cbaa924c7da--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+        "bytes": 8092,
+        "sha256": "a070ebc2c0765bcbc990cddfa3b7635b0ab32d271b9307d0248b02522bef8a46"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/bf2243b8cc6e--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+        "bytes": 10806,
+        "sha256": "f10f12f0248f5d74562c5ce81dcedd697949c916e7088f99cd66775d0b2db2f6"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/8a1a854eac71--GL-SPC-WORLD-LIGHT-C1-20260916-v1.diff",
+      "diff_sha256": "c387ba268a77198dc64580ffb7dc307503fe88927ed74164d4269c320989b0f8",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-09-16T02:31:36+00:00",
+      "commit": "a3e9dd80ebab8566f216fc1d4bd6646f01c988b3",
+      "commit_time": "2026-09-16T02:31:36+00:00",
+      "new_blob": "0cbaa924c7daffe11704b2ff84ea14fe32514d96",
+      "new_mode": "100644",
+      "old_blob": "6d4154e2261979f98fcf60cb17b65d36454b348f",
+      "old_mode": "100644",
+      "parents": [
+        "35e974f6e96c6dc2e5949e034306bc20e23a1399"
+      ],
+      "path": "docs/GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+      "status": "M",
+      "subject": "Light in her rooms as one law: lamps and the screen light their rooms and cast shadows, things are lit on the side facing a light, one bounce lets a lit room glow, looks on walls and floors; all 4,800 focal rays at once",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/6d4154e22619--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+        "bytes": 5013,
+        "sha256": "e05d81c68a546695e57e94e55ae65a3f1b75f4040b5c1e2a86c7f141d31c851f"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/0cbaa924c7da--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+        "bytes": 8092,
+        "sha256": "a070ebc2c0765bcbc990cddfa3b7635b0ab32d271b9307d0248b02522bef8a46"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/a3e9dd80ebab--GL-SPC-WORLD-LIGHT-C1-20260916-v1.diff",
+      "diff_sha256": "4390b643396994fa16098ff349c9d6880ed6c1f6d7e7661e42862fa5c4f9663c",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-09-16T01:49:31+00:00",
+      "commit": "35e974f6e96c6dc2e5949e034306bc20e23a1399",
+      "commit_time": "2026-09-16T01:49:31+00:00",
+      "new_blob": "6d4154e2261979f98fcf60cb17b65d36454b348f",
+      "new_mode": "100644",
+      "old_blob": "cdc1d6362871bd7127fee4282363d5a3b512bccf",
+      "old_mode": "100644",
+      "parents": [
+        "38d850ceb3baa5ef69694db3853c6e0274ff30e8"
+      ],
+      "path": "docs/GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+      "status": "M",
+      "subject": "The sun reaches her eye on the path her beat uses: the loop's retina takes the sun from the real clock",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/cdc1d6362871--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+        "bytes": 4534,
+        "sha256": "cb9900cb143464023ac731081dd241bf81bd09dc9ad3207d4c0ea1818a8fdeed"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/6d4154e22619--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+        "bytes": 5013,
+        "sha256": "e05d81c68a546695e57e94e55ae65a3f1b75f4040b5c1e2a86c7f141d31c851f"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/35e974f6e96c--GL-SPC-WORLD-LIGHT-C1-20260916-v1.diff",
+      "diff_sha256": "3c926aa3c37d50b6bb9a04ffc6c3232d77a566edf2b560db853b8521a088a0dc",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-09-16T00:58:01+00:00",
+      "commit": "1186d9cc3f7c9a0af4ce0c3c92bfce990bee9cbb",
+      "commit_time": "2026-09-16T00:58:01+00:00",
+      "new_blob": "cdc1d6362871bd7127fee4282363d5a3b512bccf",
+      "new_mode": "100644",
+      "old_blob": "c022195738dd12a35519a1924bb3af63a4235fd9",
+      "old_mode": "100644",
+      "parents": [
+        "c8316a575ba56674a1ceb5b4a288dad1c0f81805"
+      ],
+      "path": "docs/GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+      "status": "M",
+      "subject": "Light spec: the shaft measured on the Zone V ground as released",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/c022195738dd--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+        "bytes": 4073,
+        "sha256": "db9c329101775018ffe229460eb412ba85b898b01016d5396caff973ede6e6e5"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/cdc1d6362871--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+        "bytes": 4534,
+        "sha256": "cb9900cb143464023ac731081dd241bf81bd09dc9ad3207d4c0ea1818a8fdeed"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/1186d9cc3f7c--GL-SPC-WORLD-LIGHT-C1-20260916-v1.diff",
+      "diff_sha256": "aabe239fef1286fcd5dc12ba9361f8bc3944532aa00de7315dcc2476f8b73139",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-08-15T17:59:32+00:00",
+      "commit": "cbe0122418c991f6430c06e0b1d3586aecbfdf15",
+      "commit_time": "2026-08-15T17:59:32+00:00",
+      "new_blob": "402b7e5d709ded46c932e558496d23bae26771cc",
+      "new_mode": "100644",
+      "old_blob": "b117b431e8c267cb43f31dec9650528b79218243",
+      "old_mode": "100644",
+      "parents": [
+        "f3e42daf1194a9faa8da55f878b53b31c4b4f7d7"
+      ],
+      "path": "docs/GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+      "status": "M",
+      "subject": "Preserve exact A-011.6 transition phase",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/b117b431e8c2--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+        "bytes": 5054,
+        "sha256": "16185d6cb0aa3950ce13a0d3a2f530ee6e13efe3634fd3f94a6fd9061e69d6e1"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/402b7e5d709d--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+        "bytes": 5199,
+        "sha256": "30ecc20777e8f4203c51887c32d923b6995c74f50d791674cc24c43a6170101e"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/cbe0122418c9--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.diff",
+      "diff_sha256": "dc02bf517bb3dbf215984239fe6e081e9949bda15e3e8a44279a73ebc5a8715d",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-08-15T16:31:32+00:00",
+      "commit": "d82918c7add06e6c2638885d064ed04ef38fadb7",
+      "commit_time": "2026-08-15T16:31:32+00:00",
+      "new_blob": "b117b431e8c267cb43f31dec9650528b79218243",
+      "new_mode": "100644",
+      "old_blob": "a236801aa9f8de3cd67606e3b831e9413e522190",
+      "old_mode": "100644",
+      "parents": [
+        "5dd2daf08aa784b6b4bfb77f0941d2ae48dcf4cc"
+      ],
+      "path": "docs/GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+      "status": "M",
+      "subject": "Implement A-011.6 contact-local junction physics",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/a236801aa9f8--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+        "bytes": 5026,
+        "sha256": "5540fc5e670ebcab77afa41dd3a93c3ae7421c8142ed3bf362a0c93e97062e28"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/b117b431e8c2--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+        "bytes": 5054,
+        "sha256": "16185d6cb0aa3950ce13a0d3a2f530ee6e13efe3634fd3f94a6fd9061e69d6e1"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/d82918c7add0--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.diff",
+      "diff_sha256": "abfcd5c8944a7e2aed5869d80eef8cd70f2b8050502fad11965bd0d41d47d30c",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    },
+    {
+      "author_time": "2026-08-29T03:54:55+00:00",
+      "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+      "commit_time": "2026-08-29T03:54:55+00:00",
+      "new_blob": "f4827f4de9e514ae1bfc94aaa2330c22d6fca3ba",
+      "new_mode": "100644",
+      "old_blob": "cac25066af4240c3ba18406d088e852d12abeb8a",
+      "old_mode": "100644",
+      "parents": [
+        "d0364541035da890f7ff65017bdd5327e97080cc"
+      ],
+      "path": "docs/GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+      "status": "M",
+      "subject": "Publish current Guala architecture baseline",
+      "before": {
+        "path": "docs/guala_reconciliation/sources/version-history/cac25066af42--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+        "bytes": 15001,
+        "sha256": "6ad32eea3addc93d414eb9ed64e495d9e79fae656a402902374dcf137cd9c101"
+      },
+      "after": {
+        "path": "docs/guala_reconciliation/sources/version-history/f4827f4de9e5--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+        "bytes": 15417,
+        "sha256": "de642b233d3b62a48a87dd71d19288136b91fa86c4e179f161214c46420f5184"
+      },
+      "diff": "docs/guala_reconciliation/sources/version-history/714cd6b9feff--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.diff",
+      "diff_sha256": "a6f2b4c1296608a3fa0b8239f9f28dad9ae6fc999bcd156063d61b3539e2da9d",
+      "proof": "exact textual edge; semantic disposition is in version-evolution.md"
+    }
+  ]
+}

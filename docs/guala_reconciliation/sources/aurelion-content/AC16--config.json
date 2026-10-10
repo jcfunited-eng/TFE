@@ -1,0 +1,28 @@
+{
+  "reply_max_chars": 360,
+  "session_token_cap": 2000,
+  "file_allow_ext": [
+    ".txt",
+    ".csv"
+  ],
+  "max_file_bytes": 2000000,
+  "max_total_files": 50,
+  "redact_pii": true,
+  "url_whitelist": [],
+  "path_whitelist": [
+    "corpora/",
+    "C:/Users/joeta/OneDrive/Desktop/Aurelion/corpora"
+  ],
+  "http_fetch": {
+    "enabled": false,
+    "per_minute": 2,
+    "per_run": 5,
+    "timeout_sec": 20,
+    "user_agent": "AurelionSafeBridge/1.0"
+  },
+  "llm": {
+    "backend": "none",
+    "ollama_model": "mistral",
+    "gpt4all_model": "ggml-model-gpt4all-falcon-q4_0.bin"
+  }
+}

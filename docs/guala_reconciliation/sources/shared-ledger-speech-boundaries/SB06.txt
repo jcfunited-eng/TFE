@@ -1,0 +1,265 @@
+## Sol TO C1 — restart repair contract closed from source, not another assay
+
+Canonical R122147 continues the known warm/cold discrepancy;126 direct-control
+wins remain untouched. Independent lifecycle/reconstruction source review done.
+Minimum repair: one physical-progress component inside the EXISTING cognitive
+successor, retaining exact event clock, recovery fractions/integration clocks,
+and contact integration clocks by full stable neuron/bond identity. No scheduler
+heap, new semantic state, duplicate contact phase or checkpoint physiology.
+Prepared failures/abort/growth must preserve this component, not reset it.
+
+Two concrete reconstruction defects must be corrected in the SAME patch:
+warm24059 uses rawOhmic recheck permission while cold uses fullstanding law;
+unify on fullstanding. Also20216 returns before cold rebuild and before its own
+future-event skip, including an overbroad fabric-contact-count guard.
+Rebuild first, return only on no local settlement and no scheduled events.
+O(1) earliest from heap root/nextfrontier replaces scheduled-population scans.
+Deterministic existing drain order unchanged.
+
+GLCOG046 one-way physical-progress codec; existingV45 pose/proprioception and
+learned migrations must remain closed. Missing old progress cannot be recovered:
+initialize once at the authenticated predecessor cold boundary, explicitly,
+never claim reconstructed history. Backup/old-image incompatibility rules apply.
+Stable path-copy storage, not whole-vector/map cloning per interval or history.
+Full fields/L0-L4/acoustic126/learning laws unchanged. No new tests run.
+Next is this implementation, then frozen source review and one exact mature
+warm/cold path; no re-litigation of prior speech parts. GoalACTIVE, no live write.
+
+
+## Sol TO C1 — Candidate127 source frozen for independent review; no test or live claim
+
+Canonical R122147/S/H122148 continues the known physical restart omission.
+Current worktreeHEAD38c695ec, frozen0f086e4974fe5f11a311621231d2fe0bdb100628a4e7583fa449c277aaab3e82.
+Source owner stopped; existing independent reviewer now checks this exact tree.
+No compilation, harness, lesson, production mutation or fresh AWS claim.
+
+One canonical physical-progress component travels inside the cognitive successor:
+exact recovery fractions and integration clocks, stable neuron/bond identities,
+GLCOG046. Schedules remain derived; no heap or contact-phase duplication.
+Full-standing law now common to warm/cold; rebuild precedes no-work guard and
+uses O(1) earliest due. Growth keeps old state and initializes only new members.
+The already scoped prepare_typed caller also needed transactional schedule
+take/return: only success retains the schedule; late failure discards it while
+the cognitive predecessor is unchanged. Snapshot/seal do no physiology.
+
+Focused proof sources are written for fractions/parallel wires, growth/discard,
+malformed codec, future-only recovery, cohort-local contacts, idle, V45 migration,
+warm/cold quiet tail, snapshot/abort/late failure and next interval. UNRUN.
+Encoded additional layout24+56*N+44*E; allocation/peak still unmeasured.
+C126 existing direct-control and copied-body successes remain preserved.
+1457 remains last verified production baseline; speech NOT fixed.
+Next only: source-review result, then the named proof if review passes.
+Browserclosed/caretakerSTOP; full AE goalACTIVE. No response requested from Joe.
+
+
+## Sol TO C1 — Candidate127 final source review PASS; focused execution next
+
+Final frozen022008abf0adbc7ac0dd52ef49d789db89f198b64e63de51cbe9f7d5911b98db
+verified before/after review. One localized V26 historical-fixture writer defect
+was corrected in one batch (S/H122149): production refuses downgrade, test-only
+fixture writing refuses any lived progress and strips its exact temporary
+progress suffix. No physical state is discarded or initialized by live encoding.
+Independent final review PASS; prior reviewed physical path stands.
+Next: AWS read-only bracket, compile exact native test artifact and execute only
+declared physical-progress/scheduler/lifecycle proofs. No word lessons or broad
+matrix; no source changes while these frozen bytes are checked. GoalACTIVE.
+
+
+## Sol TO C1 — Candidate127 REJECTED after five passes; source archived and accepted126 restored
+
+2026-09-12. Supersedes prior final-review PASS as candidate acceptance.
+Canonical S/H/F122150 and S122151; rejected source ad52b513, restoration
+351eb78d972059d8bef35dcad2d93c81c06b115b. No production change.
+
+Compile PASS26.55s,99warnings. Exact listed tests: five supporting PASS
+(progress codec/growth/discard; malformed custody; historical V26 downgrade
+refusal; earliest due; genuinely empty work). Preserve these successes.
+Sixth test, recovery-only future event, FAILED: actual returned lineage absent.
+Four remaining tests UNRUN; stopped first failure. No mature-body run followed.
+Before failure, warm/cold neuron/fluid/fabric/progress equality DID pass and
+clock reached exact future due. Equal wrong continuation is not acceptance.
+
+Independent source confirmation: selected.is_empty return after passive return
+settlement discards actual returned/predecessor evidence and bypasses common
+wake/recovery rescheduling. Both owner and initial source review missed it.
+This is architectural under the frozen-candidate rule, not a thermal hypothesis
+and not an excuse to weaken the fixture. New progress module removed from active
+source only AFTER full rejected commit; everything recoverable at ad52b513.
+All native sources now exactly match accepted38c695ec/C126. Rejected compiled
+binary c8849c4e is evidence only, not a rebuilt126 artifact.
+
+Next single item: amend R122147 so actual passive-return settlement always
+reaches shared physical finalization, retaining actual predecessor/lineage and
+rescheduling from accepted successor even with no contact/DSF selection.
+Read BOTH intermediate early returns and final wake/recovery path as one unit.
+No fake external seed, injected pump, duplicated settlement, new vocal anatomy,
+or reopening126 wins. Focus your review on that missing lifecycle branch.
+
+Read-only AWS before09:22:44/after09:24:29UTC: same1457/41d3db93/image80755ca0,
+service1/1/0; CPUmax46.0459->40.5309%,RAMmax11.1847->10.5072%. Resource/storage/
+refusal alarmsOK; historicalclockALARM remains. Not native timing proof.
+No harness orphan, no live write; browserclosed/caretakerSTOP. Speech NOT fixed.
+Full AE goalACTIVE. Joe/C1 collaborate; questions/commentary are not stop orders.
+
+
+## Sol TO C1 — Candidate128 amended finalization contract closed; implementation starts
+
+Canonical R122152, independently reviewed BEFORE source edits. Same physical
+restart item; C126 wins and five127 support passes preserved. One extracted
+physical_event_finalization.rs replaces the existing core tail; both early
+returns also call it. Covers consumed due events even without material change,
+actual pump observations, earliest pre-ingress/pre-return/pre-pump endpoint
+holds, and exact next schedules. No fabricated seed, extra pump, empty DSF,
+voice/learning/chemistry redesign, retained marker, or population-wide hot work.
+
+One important pre-code refinement: refused coupled return retains material and
+its exact predecessor fraction but accounts this examined span as ZERO accepted
+flow at current integration clock. It never commits the rejected candidate
+fraction. This prevents later pump/contact change from applying a new rate
+retroactively. Reviewer agrees this follows existing coupled deposit refusal;
+older integration-clock retention was withdrawn before coding.
+
+Scope same127 files plus extracted finalizer; source owner Sol only. Frozen
+source review precedes compile; first test is the actual failed recovery-only
+case with NEXT event continuation, not a repeat of five unchanged passes.
+One normal copied-body warm/cold proof still required; no speech/deploy claim.
+Browserclosed/caretakerSTOP; goalACTIVE; no production mutation.
+
+
+## Sol TO C1 — Candidate128 frozen source PASS; focused execution now
+
+Source-only independent review found no architectural/localized blocker at
+0f77288e6d9fd9cebc8949163f693d2b083f310b7d432c17b0d0203daeb46c8f;
+fingerprint verified before/after and again by owner before compilation.
+Review covers both early exits, consumed-event continuation, refusal/checked
+zero flow, earliest held states, actual applied contacts, isolated L13 without
+DSF expansion, unchanged staged/abort/cold custody. No source edits during review.
+AWS read-only09:45:02UTC same1457/41d3db93/image80755ca0,1/1/0; resource alarmsOK,
+historicalclockALARM remains. Compile exact normal native-test artifact running;
+failed recovery-only proof with SECOND event runs first. Five unchanged passes
+not repeated. No live write, speech claim or mature-body acceptance yet.
+
+
+## 2026-09-12 Sol — C128 supporting successes preserved; exact sealing diagnostic only
+
+Checkpoint source 9ddbe721 preserves C128. S/H-054-122-154/155 in the canonical Attempt54 ledger: recovery-only first AND second return PASS; fraction-only acceptance plus two thermal-refusal continuation events PASS. Warm/cold successors match in both tests. Five unchanged C127 support passes retained, not rerun. These do not prove speech or deployment.
+
+Migration/local-contact fixture initially failed a pre-existing missing-population genesis precondition (RetiredCognitiveState). One localized fixture correction used existing explicit genesis admission before any lesson; no learned state erased, no production law edited. Final review b55c01f7 PASS, but first prepare now refuses NoncanonicalState at observation-return before sealing completes; migration/local-contact proof and three downstream tests still UNRUN. Cause UNKNOWN, not declared a physics failure or a false test.
+
+Single next S155 action underway: 42 cfg(test)-only stage lines in encode_current using existing NativePreparationPhaseTrace. Frozen ac68ea10bf3073ecaaae99706ae03fde5685f0d3f9f34d50e903567471a8982d independently reviewed PASS before/after; source changes nothing about input, error, state, output or assertion. One unchanged failed fixture, once. Remove diagnostic before normal-artifact acceptance. No second corrective batch authorized on unknown cause.
+
+One tempting hypothesis already refuted by source: exact_transition_physical_deltas extends predecessor anatomy/state to successor positions before comparing, so pre-pump predecessor width alone is not proof of a new mismatch. Await the actual error stage, not another speculative fix.
+
+AWS read-only 10:00:52.636285UTC: production1457, sole41d3db93, image80755ca0, 1/1/0, latest CPUmax39.3677%, memorymax10.1318%; CPU/RAM/storage/refusal alarmsOK, historical clockALARM remains. No live mutation, browserclosed, caretakerSTOP. Full AE goal ACTIVE; speech NOT fixed. Owner Sol; reviewer source-only, no speech-file edits by others.
+
+
+## 2026-09-12 Sol — C129 exact-index correction PASS; ordinary copied-body proof next
+
+Source5c8dcd03 PUSHED; archive40dca27e retains C128 stage diagnostic. No live deployment. The decisive error was the save/restore progress consumer treating anatomical/cohort ID order as lexicographically sorted. Existing flat_by_lineage is sorted. Two consumers now use that existing view: exact membership and decoder order. Anatomical order, encoded wire format, physical state, energy, DSF and voice laws unchanged; no new index or heuristic. Joe asked directly about indexing: this is exact mechanical state addressing, never meaning/relevance/output selection. Mature-body cost is not yet proved lean.
+
+Independent frozen source review6d830360 PASS before/after. Native build7.6948s/99warnings. ALL SIX focused checks PASS: previously failing V45 migration/local-contact0.32894s; changed nonmonotonic-order codec/growth/discard0.00299s; corruption/missing/foreign/duplicate/future/fraction refusal0.00332s; exact incident-contact wake0.18073s; snapshot/abort/failed-prepare warm/cold0.23268s; scheduler successor/rollback0.06110s. Testbinaryfe9589b2. Two C128 physical passes and other unchanged C127 supports preserved, not repeated. This is a real local fix, not speech completion.
+
+Ordinary release wheel built82.0159s with python-extension only, no diagnostic-api; buildpeak1,323,776KiB,190warnings. Next ONE preserved663372 body chronology and full canonical warm/cold next-event equality under that artifact; external caller /tmp/guala-c129-physical-continuation.py SHA82fbed78e31f260dabed86809f6d775d58d48016c06937fdbd9d103c0033027b is under source-only review before run. No new lessons or wide matrix. R122147 mature proof and release gates remain intact.
+
+LastAWS10:06:36.708378UTC same1457/41d3db93/image80755ca0,1/1/0; latestCPUmax39.8558%,RAM10.1135%; resource/storage/refusal alarmsOK, oldclockALARM. Native test/build sessions terminal, no production mutation. Browserclosed/caretakerSTOP. Full AE goalACTIVE; speech NOT fixed.
+
+
+## 2026-09-12 Sol — C129 mature continuation PASS; do not rediscover this success
+
+S122159 canonical ledger: ordinary release artifact source5c8dcd03, wheelc84b9104/native06c374fd, external caller82fbed78 independently source-reviewed. ONE authentic saved1457body663372 run, explicit V45→V46 migration, baseline8/4000sample cue/tail8, actual paired publication/adoption at663389, warm vs cold ordinary next663390. Full canonical body165983970bytes EXACTLY EQUAL (b7dae11a647b06105a0e4af31717164ea85cb8b3675a08633c5485db013f7ddd); full world EXACTLY EQUAL (56bdde00); full returned causal evidence/bindings EQUAL; physical rows EQUAL except time/label. Session18166exit0, no remaining child. Recorded F122130 discrepancy closed on this saved-body path. Do not relabel it as merely an encoder helper pass.
+
+Prior vocal success preserved: MIN663383/MAX663384, four acoustic motors each, breath both,24000 self-heard samples,27979 nonzero pressure samples; all17 existing row fields exactly match archived126. Tail still sounding at8 as previously disclosed; no clean-stop or recognizable-word claim. Six local129 checks/two128 recovery proofs/unchanged127 supports stay preserved.
+
+Resource truth:17intervals21.358s vs prior18.928s, NOT controlled comparison and no speedup claim. Two-runtime comparison peak2,673,460KiB; migration adds873972encodedbytes. Exact addressing remains mechanical, not semantic cognition; its cost is not excused by correct output. Long-run resource closure remains required. Full raw body/world/cue/result/artifact/caller backup24MiB at /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-exact-continuation.1QRG26; resultSHA6ce4f46423482cee7a8f799203654c4a288d6005408a59d996b0afd986d1f546.
+
+AWS bracket10:11:35.567111/10:13:13.554653UTC production1457/41d3db93/image80755ca0/1/1/0 unchanged. Resource/storage/refusal alarmsOK, oldclockALARM persists. Browserclosed/caretakerSTOP. Nothing deployed. Next SINGLE item: newestCURRENT release-readiness for this same slice, startup/explicit migration/one-way backup/resource controls. No repeated voice-law campaign and no cloud cutover before current-body gate. Full AE goal ACTIVE, speech NOT fixed.
+
+
+## SOL — 2026-09-12 C129 newest CURRENT release gate PASSED; image build next
+
+Canonical Attempt54 S122161-165/R122166, commit71c45e91 PUSHED on
+sol/speech-existing-organ. SPEECH NOT FIXED; live remains1457/41d3db93/
+image80755ca0, no production mutation; browserCLOSED/caretakerSTOP.
+New current capture669708/body179cffc2 authenticated, not an old fixture.
+Real production startup/migration preserved identity/tick/world; baseline8quiet,
+one4000sample cue, fourMIN669719/fourMAX669720, breath and nonzero pressure
+EACH,24000selfheard. Actual pairedsave/coldrestart/ordinarynext669726:
+FULLbody/world/causalevidence EXACT. Result19a9daff, backedup with capture and
+release package at /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-current-release.59nFXh/.
+Two-runtime peakRSS2706060KiB, first17intervals20.8767s; no speedup/prodpeakclaim.
+Tail8 stillpressure per oldproof, not a new silence gate or recognizableword.
+Source5c8dcd03/native06c374fd unchanged; all earlier126/129 passes preserved.
+
+Manifestmissing2modules corrected, ordinarypackageverified217files;
+all67compilerinputs matchstagedbytes. Packagecommit
+bad5eeb907f61e1c59248ed731914de812b1a1d3 (NOT laterledgerHEAD),
+archive0ab6fccb. Independentreadinessreview agrees no newphysiologytests
+before imagebuild. CurrentDockerfile is dsf_ai_service/Dockerfile, NOT
+retiredDockerfile.lean. Runtime closure excludes oldshell.
+ONE local build started 2026-09-12T10:39:03Z, exactsession76976,
+localtagguala-c129:bad5eeb9, builderguala-c129-bad5eeb9.
+Builderactualbounds verified4CPU/16GiB/noextraSwap/restartno, nohostorEFSbinds.
+No newcloudimage/task/cutover yet. Exact-image proof, final backup,
+zero-writer cutover and liveverification still required. FullAEgoalACTIVE.
+
+
+## SOL — 2026-09-12 10:52:21 UTC: C129 exact-image PASS, dry run PASS, ONE cutover started
+
+Canonical Attempt54 S122169-171/D122172, cleanpushedcommit62a99b01.
+Imagefd6e44defbc83a305a52229822c9f77155d0a640c8ffa8a7dc00265d7d1fec77,
+package/sourcebad5eeb9, ordinaryimage-nativecebdfaca. SAME image builtonce,
+proved on authenticated669708 via realstartup/quiet8/cue/twofourmotoracts/
+breath/sound/selfhearing/pairedsave/coldrestore/fullnextbodyworldcausalityexact.
+Imageproof8b5f6e07, backedup, imagearchive15c55947.
+Fullfreshbackup670092, ZIPdb940f29 (samebody/world andidentityhashes).
+Actualcontrollerdryrun37744exit0 PASS, source1457/41d3db93, live670179.
+No orphanbuild/rehearsal remains; removed onlyownedtemporarycontainers.
+
+Singlecutovernow session80467 using SAME reviewedcontroller/image/backup.
+DO NOT startanothercontroller, actor, registration, caretakerorlesson.
+Controller handlesexactsourceSTOPPED/exit0/finalsave/zerowriters beforecandidate
+and validatesactualfinalCURRENT atstartup. No automaticoldrollback after046.
+This line is STARTED, NOT success: followactualsession/cloudstate untilterminal.
+SpeechNOTfixed; browserCLOSED/caretakerSTOP; fullAEgoalACTIVE.
+
+
+## SOL — 2026-09-12 11:03 UTC: C129 cutover terminal SUCCESS; live sound verification next
+
+Supersedes preceding STARTED entry. Session80467exit0, continuity_health_verified.
+ONE new definition1458/task71289e2b95be4d79a5c9f74ac2708b7d/imagefd6e44de,
+sourcebad5eeb9. Old1457 STOPPED exit0 at10:54:32.074; new started10:56:00.146.
+Actual final predecessor670250/bodyae371d7e/world2f3d16e3 restored, same identity;
+new clock670259 advanced. AWS11:02:53 confirms exacttask HEALTHY and1/1/0.
+Post-start CPU/RAM bounded; resource alarmsOK; historicalclockALARM remains.
+Do NOT restart controller or create another actor. No automatic oldschema rollback.
+S122173/R122174 in canonical Attempt54: next ONE reviewed existing sound-only
+live cue4000samples, no teaching, no retry, bounded gap-checked audio observation.
+Full raw proof retained. Pressure/self-hearing is not exact motor-order proof or
+recognizable speech. BrowserCLOSED/caretakerSTOP. SpeechNOTfixed, fullAEgoalACTIVE.
+
+
+## SOL TO C1 — 2026-09-12 11:10 UTC: C129 live cue produced sound, self-hearing, then silence
+
+Canonical Attempt54 S122175/H122176/R122177, commit efb55b10.
+Same1458/71289e2b/imagefd6e44de HEALTHY. ONE sound-only4000sample cue670400,
+no guided drives/no teaching/no retry.34realpressureblocks670402–435,
+136000samples, fullPCM SHA88c1d744d64e664a6da69255261fe5af61222d5cdd35e47558fbbf147fcff5ab.
+Sampled self-hearing120000 (not exhaustive total); acoustic quiet observed
+670437–464, saved670442. Livecheck45716exit0. All raw audio recovered and
+hash-verified after terminal truncation; observer failure recorded, no false
+organism rejection or duplicate cue. Exact unamplified WAV and all receipts
+backed up under c129-current-release.59nFXh. Publicpages200; CPU/RAM bounded
+in post-start window, resource alarmsOK, oldclockALARM. No browser ears.
+
+Recognizable speech remains UNPROVED; publiccounts do not prove exact per-motor
+order. This is not a four-year-old or wholeAE completion. GoalACTIVE.
+Next narrower boundary: actual different demonstrations retained and used in
+recall. Preserve C125119changed-contact result and invalid750/1500 saturation
+contrast: do NOT reopen range assay or reject learning from that contrast.
+Independent reviewer points to EXISTING S122109 MAX32vs128: zero stalls,
+initial displacement+1vs+4, peak+18vs+57 on axes37/38/39/44. MIN1vs32 has
+sameinitialdisplacement and is a known sampled-feedback trap. Verify actual
+admitted demonstration differences on chosenbody before interpreting learning.
+No new physiology or code yet; same approved law/input path, source review next.
+CaretakerSTOP/browserCLOSED; no lesson or parallel speech-file changes by others.
+

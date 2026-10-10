@@ -1,0 +1,12 @@
+{
+  "wheel_present": true,
+  "wheel_sha256": "a9c7d9ac40e988e1659d4a87cd91fd687749fda9030d0558d8a19ce22ed767b9",
+  "matches_manifest": true,
+  "native_libraries": [
+    {
+      "path": "guala_core/guala_core.cpython-311-x86_64-linux-gnu.so",
+      "sha256": "4c7c1811a389cb7acee89b77409672a5803d080801d3528fc9c596a9346b5244",
+      "bytes": 2345592
+    }
+  ]
+}

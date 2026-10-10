@@ -1,0 +1,1150 @@
+{
+  "result": "ALL_121_OLD_PASSAGES_BOUND_TO_SOURCE_AND_READING_BASIS",
+  "source_versions": 55,
+  "latest_lines": 1538,
+  "old_hunks": 121,
+  "old_lines": 1146,
+  "reading_basis_hunks": 119,
+  "reading_basis_lines": 1116,
+  "source_hashes": {
+    "CM01-01": "cd6236384cfc17312c93adf70bcf1d64e6661352843dd356d112975f861d0428",
+    "CM01-02": "5b05eb1dbf725fb6caaf4697331616b3bcff3bb15cf7a3b54ba5a341b4906ba7",
+    "CM01-03": "33703813584bcda6af6e852842ed6e8e3f495ed756e4ccd090298140eb2e7f64",
+    "CM01-04": "e0f9d1a440df68d51c1a6c12beabe074c51733fdaaed5df2f7018d8c2c776fb5",
+    "CM01-05": "ae226fa12ff3a5734adbef1f27fc15a58522577aedfbb8f7cd4d4a6557977a2c",
+    "CM01-06": "5773618b582cd83f1f2fa3967c1fe7a5ebc6386243827675e55952da1d15a241",
+    "CM01-07": "670b47b9cda344467c4e62185f366853b0162119b8ca61dd44de60be966b1448",
+    "CM01-08": "88434eadd27bf89052f69aeabde02f79bfd326939eb4cf414cb830cb40aee0ae",
+    "CM01-09": "5fab971ba23775c921d3650130e89b18a9c32869ca3e5ed6f872252f3af320ec",
+    "CM01-10": "c194c4f4b2d4f6317fb0f3f23cee78b672d5135b3eecd3c6e0baa44d76c37c0e",
+    "CM01-11": "0981ca25252347c8a64c94f934f55c1d6b32b1cdcaae21bca1d44b5e7a102bd4",
+    "CM01-12": "669fa51d34d3fcde2b5fb352cf6815cee4af458a86a520450da7f09a716e7447",
+    "CM01-13": "91c35ed9b7cf72522acacee82a04ef3ceec7b16f0a35bc3237e1d6e5e34c01e4",
+    "CM01-14": "dd554cfad7113fc72d7ab5522ef5571e1bcf689a8f97f89c5e5ca112e4c833ee",
+    "CM01-15": "10d5cef2a77813b22cb279844c8175a905cd44da6e034853a318b0196f457a48",
+    "CM01-16": "c90b1352e5a7f49634e3b7bd5488775303e66a8428faa853ce254f731364a033",
+    "CM01-17": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e",
+    "CM01-18": "fa0bc983902a8319fde88acbd1d31a96cb4c77e8b0aa5af06b9a9456de55b98d",
+    "CM01-19": "aeae5e6d3dbd719434fb7fa95462d69dbcb7d46daf8bf73491b95e4dfd3f85f1",
+    "CM01-20": "cb468b4d2741ab612bd98c2aef955f9232ab94d8b8cba7dda2ffe21200366208",
+    "CM01-21": "bf0bbe29d2a892817d7e965d6ffbce80803b6df692c261bf8a21418097023d7c",
+    "CM01-22": "6210a1664168efccb4ebd74dd19a44387d2b340fca7f0d5759d506ffced103fd",
+    "CM01-23": "054b330db84c564d7026264e822da8146035189cc1e96acfb5c835e9fe46b202",
+    "CM01-24": "a1364f82e9a9d5f095c2b464fad0b72e860dfc6dfb4f7c7af5890e0ad8fe9a62",
+    "CM01-25": "fa6f7838ef91519a7cdfdc19a1627000e0b1fcbdc1d7575feea5e1f7fcac8cf2",
+    "CM01-26": "3e7c4e66bd05475dcbb05c364a180196251f1adca84a3f2b1ffd3162e7044e9d",
+    "CM01-27": "cf828820f962acdbb1cab9bbed01646935b33c10e441427eb66fd9d0ebadf7d5",
+    "CM01-28": "d593743f425fb23d085795a9144571645bcd522bddf21cb8c7a458021d7c1d55",
+    "CM01-29": "3abe8b5ff7da71681afad007bbfbb4f14f4cd5be8e55fb2c3ca55c095778dd9d",
+    "CM01-30": "3bd18d56e13fae4bbc7a174f06c6b6bb870a1f6d38891be67c32257592b6823f",
+    "CM01-31": "d0160b6242141318d225bdcc88175cb1b9bf42042ab1081f83fe00e5dc91ef4b",
+    "CM02-01": "8d16772c8d8728c8b4f6e19f3653a54c865ffc5a1b147fa6a3fc5463e75051ad",
+    "CM02-02": "5e8ed420628ae5519239579f7803287f32cbceba964f38f41796a70fa09b78d1",
+    "CM02-03": "27ee97f01f3ffb4c616711b8127bbe3629127f8e8c830baf181b078357cbe264",
+    "CM02-04": "3553e78d0180b5b542c0f47c4a598d4e7e0b6610c13876588975d462ebae0c9d",
+    "CM02-05": "ae9917717a83c32ecb334b69993f76ef935df8e4da64e51fe0acd146fe12cb5d",
+    "CM02-06": "c24721892d3b6398d28e5ad7ff393af311ccc929d2ecc18961e6357cb6c6d574",
+    "CM02-07": "ed3ad27109355920f85afa8813b8fd26f759aac562eb93abdeb94e092b88d46a",
+    "CM02-08": "b5e0f2df88130af808edf3a49dd5db977fbdabf323e2786b08afe1550a430608",
+    "CM02-09": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5",
+    "CM02-10": "da86c204793f680aa2a4d96e616153d974b57a122b620044337a3392ff607a7c",
+    "CM02-11": "14bf01906e8721699c844e948a3c3a604674c5457b563a024c9152a573f56fd0",
+    "CM02-12": "7cf3fdecc8e262b5f4846c2066befee91032e0c007e00bf8dcba6f7c5498d687",
+    "CM02-13": "b8cd697b4dfd27e4dbdb4399e90db68a6432f29a5e3d43c59e67c15c440a6590",
+    "CM02-14": "5c1fe0e802571df16d6b224bea1c4673b7ec225d1ea1dde539ee8c6c329bb664",
+    "CM02-15": "e303dcb3b697ec79b0a5aa5081d1a9dde47c1080e08b1df7d8b46ade2ab20654",
+    "CM02-16": "8398c680869693fd6e7e6c83a8337f32002c29e245ff181c46d0c2db2cb88494",
+    "CM02-17": "99e84065ef3d199c9474b2658d488aa6d0200492042a47318b6aec6cee6cc819",
+    "CM02-18": "8475dec751158356b321ca0e6dceabb5166dbf191b3ca218e8cd502f28ae03ee",
+    "CM02-19": "8f3d8e4d855a628579341f41f066bf397e906bcc43b4894555e8031c3559f8de",
+    "CM02-20": "06fc5d4764a025905d461f2bbcf391cf3ba7290c2d2e265adbec1c2bde2fb72e",
+    "CM02-21": "86b0bbd0ee11d8a0b360538345363b98d2a4f568d68c50faa516f4ecd5f015c9",
+    "CM02-22": "4ae72e2b763cfef1c0532ae7b2f96b88381c1b796b6d9669060d2f86088be19d",
+    "CM02-23": "ba7f494403a7602caf199aae9832f5cefa90a78a04aa41cc4b7178f00f68539d",
+    "CM02-24": "db1fc7a2f3fd283bd20b4e5c210f58a8462c06a0aecf63242870efb6dac049a6"
+  },
+  "basis": {
+    "scope": "Exact string containment within the same source path; no semantic approximation. Reading every basis hunk covers every unique old-only string; source/context references remain in old-only.json.",
+    "original_hunks": 121,
+    "original_lines": 1146,
+    "basis": [
+      {
+        "index": 116,
+        "source_id": "CM02-12",
+        "start_line": 555,
+        "end_line": 988,
+        "latest_id": "CM02-09",
+        "text": "The exact correction is GLCOG024. The resident cognitive state owns one `u32`\nparallel ordinal aligned with every physical contact in canonical physical-owner\norder. V24 persists only that ordinal vector after cohort cells and before\nretained mosaics; endpoints and contact states remain solely in their existing\ncohort/fabric owners. Validation requires exact vector width and, for each\ncanonical endpoint pair, unique contiguous ordinals `0..n-1`. Lawful growth\nassigns `max(existing pair ordinal) + 1`, independent of storage insertion\nposition. No contact database, history, hash identity, owner tag, duplicated\nendpoint body, or second physical-state authority is introduced.\n\nV23 remains readable only through the explicit one-way migration boundary:\nauthenticate its historical bytes, derive the ordinal vector once with the\nhistorical encounter law, then emit canonical V24. Ordinary current restore\nrequires V24. This migration changes no L0-L4/DSF field, neuron equation,\ncontact equation, state value, formation meaning, or causal order; it preserves\nthe exact stable bond needed by sparse evidence, recurrence, rollback, and the\nnew fixed-address topology index.\n\n### 2026-08-18 single-owner continuation — sparse evidence contract\n\nOnly the root implementation owner is active. No delegated implementation or\nparallel review is authorized for this continuation.\n\nThe GLCOG024 prerequisite is source-present and locally focused-tested. It is\nnot packaged, deployed, or live. The same local candidate also replaces the\nordinary membrane-pump full-cohort scan/clone with a reached-index preparation:\nonly reached neuron successors and one cohort recovery-reservoir successor are\nprepared, exact per-neuron carrier and reservoir-energy conservation is checked\nbefore mutation, and application is known-in-bounds assignment. This is a\nproduction source correction, but it is not A-009 closure while dense experience\ncustody and the wider settlement path remain reachable.\n\nThe next and only implementation boundary is the complete-cohort evidence\ncustody named in the clean-baseline contract. Its exact current representation\nis:\n\n- pending original evidence owns a complete predecessor `ReachedCohortState`,\n  an optional complete post-rest state, cohort-width neuron masks/options, and a\n  contact-width activity mask;\n- retained original evidence keeps those complete bodies after the sparse\n  fractal is already derivable; and\n- pending recurrence owns cohort-width cue/change/excitation masks plus a\n  contact-width activity mask.\n\nThe replacement representation is fixed before edits:\n\n- one pending-original member is keyed by stable neuron lineage and owns the\n  exact predecessor neuron anatomy/state only while unresolved; when one later\n  exact unchanged retained-coordinate interval closes it, that predecessor is\n  replaced by the exact nonzero `SparsePhysicalStateDelta`, or the member is\n  removed if its net retained delta is zero;\n- a retained original owns only sorted `(lineage, sparse delta)` members, sorted\n  stable physical bonds, reached source excitation where it physically exists,\n  and the later-local-relaxation fact;\n- a pending recurrence owns only its physical origin, sorted cue lineages,\n  sorted current nonzero physical-change lineages/deltas, reached excitation,\n  and sorted active stable bonds; and\n- recovery reservoir, contact phase, transient membrane state, full DSF bodies,\n  and untouched neuron state remain solely in the one current resident physical\n  state. They are never copied into learning evidence.\n\nAll arrays are canonical sorted unique sparse arrays. Composition uses the\nexisting exact retained-delta composition law; cancellation removes a member.\nPsi positional growth rekeys an unresolved predecessor against its saved exact\nanatomy before comparison. Contact identity is the GLCOG024 stable endpoint pair\nplus persisted parallel ordinal. No receipt, hash, label, score, history, or\nsemantic key participates.\n\nCurrent evidence encoding advances to a sparse layout and cannot emit a whole\ncohort state or width mask. GLEXP01-GLEXP06 and the existing dense recurrence\nlayouts remain accepted only inside explicit authenticated cold migration.\nMigration resolves each set bit/index against the restored cohort anatomy,\nderives the exact sparse lineage/delta/bond body once, then drops every decoded\nfull predecessor/post state and dense mask before the resident current state is\nadmitted. Ordinary current restore refuses the legacy evidence layout.\n\nPreparation reads the unchanged resident state and produces all sparse member,\nbond, and evidence replacements before mutation. Commit/rollback ownership is\nunchanged from the clean-baseline contract: no allocation, comparison, encoding,\nlookup insertion, physics, or `Result` may occur after the first write. Ordinary\nevidence work is `O(N_E + C_E)` for reached members and active reached contacts;\nadding unrelated cohort members or contacts cannot alter visits or bytes.\n\nThis boundary must retire production reachability of full pre/post evidence,\ncohort-width evidence masks/options, full-cohort quiescence scans, and the\n`cohort_interval_predecessors` evidence snapshot. No compile, broad test, mature\nprobe, package, or deployment runs until the resulting source is frozen and has\npassed the one-owner source review.\n\n### 2026-08-18 Arc-sharing candidate rejection — full successor cognition remains\n\nThe single-owner source review rejected the next local candidate before any\nadditional focused, full-suite, mature-state, package, deployment, or live run.\nOrdinary preparation still called `self.clone()` in\n`ResidentCognitiveFormationState::prepare_typed_admitted_transition`, and\n`PreparedCognitiveFormationTransition` still owned a complete\n`ResidentCognitiveFormationState` successor. Making neuron, contact, anatomy,\nevidence, mosaic, and structural-index bodies `Arc`-shared reduced deep-copy\nbytes, but it did not satisfy the required ownership or work law: every\nordinary preparation still copied the population-width cohort/mosaic wrapper\narrays and retained a second complete cognitive-state owner rather than a\nreached-only forward/inverse journal.\n\nThis is an architectural rejection, not a localized clone optimization. The\ncandidate also violated the required gate order by being compiled before its\nsource review: `cargo check --lib` and `cargo test --lib --no-run` passed, but\nthose results do not mitigate the ownership defect and are not acceptance\nevidence. No mature body, package, deployment, or live system was exercised.\n\nThe native diff is preserved only in the recoverable stash named\n`rejected-a009-arc-sharing-full-successor-2026-08-18` and may not be patched,\nreapplied, or mined for implementation code. The next candidate starts from\naccepted native HEAD and must implement the already-recorded sparse journal\ncontract directly: borrowed unchanged cognition during every fallible prepare,\none reached-only forward/inverse journal, one final projected seal, and\nallocation-free token-validated commit/rollback.\n\n### 2026-08-18 GLCOG024 single-owner source boundary\n\nOnly the root implementation owner is active. The current source change is\nlimited to `resident_cognitive_formation.rs`; it is a prerequisite and is not\nan A-009 runtime fix, package, deployment, or live result.\n\nThe exact translation is:\n\n```text\nexisting cohort-local contacts in cohort/contact order\n+ existing resident-fabric contacts in fabric order\n-> one immutable Arc-backed u32 parallel-ordinal vector\n-> GLCOG024 writes [count, ordinals] after cohort cells and before mosaics\n-> cold decode validates exact width and per-endpoint contiguous 0..n-1\n-> stable bond references used by frontier/evidence/mosaic settlement\n```\n\nEndpoints, conductance, carrier phase, and contact state remain solely in the\nexisting cohort/fabric physical owners. The vector carries identity only; it\ndoes not choose settlement, duplicate topology, or retain history. Ordinary\nstate clones share the immutable vector and do not copy population-width\ncontact identity. A topology-growing successor allocates a new vector during\nfallible preparation; unchanged topology reuses the exact Arc. Existing owner\nprefixes retain their ordinals, while each new same-endpoint contact receives\n`max(existing ordinal)+1` independent of where its owner appears in physical\nserialization order.\n\nV23 remains accepted only by the explicit one-way migration entry. Migration\nfirst proves canonical V23 bytes, derives the historical encounter ordinals\nonce, emits V24, and then ordinary V24 restore proves byte-canonical state.\nOrdinary restore refuses V23. No L0-L4 operator, joint seven-field value,\nMathLoom/Psi/Krimelack state, neuron/contact equation, material, energy,\nformation, causal order, or organism identity changes.\n\nSource-only review before freeze found and removed one repeat-class defect: the\nfirst draft stored the vector in an owned `Box`, which would have deep-copied it\nthrough the still-rejected full-successor path. Immutable Arc custody now makes\nthat added identity cost O(1) on unchanged ordinary clones. The broader\nfull-successor cognition remains explicitly unfixed and is still the next\nA-009 owner boundary.\n\nFocused falsifiers required after source freeze/PASS are: ordinary V23 refusal\nplus explicit V23->V24 exact migration; corrupt width/gap/duplicate rejection;\nexisting fabric-contact identity unchanged when a same-pair local contact is\nlater inserted earlier in physical owner order; canonical cold round trip; and\nunchanged legacy migration behaviour. No mature-current run is authorized for\nthis prerequisite.\n\nSequential one-agent source review result: PASS for this GLCOG024 prerequisite.\nThe review traced current encode/decode, explicit one-way migration, ordinary\nrestore refusal, local/fabric settlement bond construction, authored and\ndevelopmental topology growth, retained mosaic codec use, state equality, and\nthe no-growth clone path. One localized `u32::MAX` continuity-overflow defect\nwas corrected fail-closed before the final freeze. No architecture finding\nremains within this prerequisite; the known full-successor cognition remains\noutside this PASS and explicitly blocks A-009 closure.\n\n\n## 2026-08-20 current-candidate rejection — repeated full-successor design\n\nThe in-flight dirty candidate was rejected at source review and preserved in the\nrecoverable stash named\n`rejected-a009-full-successor-mosaic-hot-path-2026-08-20`. Its exact binary-diff\nSHA-256 is\n`97dc03194a698fa56069b3c3484e8c735d64fd0b9386d37d46ca930c2209ef0b`.\n\nThe candidate made real localized corrections to sparse source/contact lookup,\nselected-contact projection, already-wide positional handling, and duplicate\ncontact settlement, but retained the previously rejected architecture:\n`PreparedCognitiveFormationTransition` still owned a complete successor\n`ResidentCognitiveFormationState`; ordinary preparation still reached\n`self.clone()`; retained-formation reassembly still scanned the complete\nmosaic population. It therefore could not satisfy the single-owner reached-only\njournal contract. Continuing to patch that candidate would repeat the recorded\nrejection loop.\n\nThe owner also ran `cargo check --lib` and `cargo test --lib --no-run` before a\nfrozen source-only PASS. Both compiled, but those results are explicitly not\nacceptance evidence and the ordering violated this ledger's gate. No unit suite,\nmature-state probe, package, deployment, or live mutation ran.\n\nDisposition: executable source returned to accepted HEAD\n`d454036f4be9a36ccacf6e0ae8633770fd02202c`; only this ledger remains modified.\nThe next candidate must begin with resident single-owner sparse formation and\nphysical patch ownership, allocation-complete read-only preparation, one final\nprojected seal, and infallible token-validated commit/rollback. No full successor\ncognition, population seed, hot migration/filter, commit-time map insertion, or\nproduction-reachable dense predecessor path may exist before freeze.\n\n### 2026-08-20 one-owner restart — stable contact identity source boundary\n\nThe later incomplete four-file candidate was stopped before compilation because\nit still contained the already-rejected ordinary `self.clone()` and complete\nsuccessor cognition. It is preserved only as the recoverable stash\n`rejected-a009-incomplete-full-successor-cycle-2026-08-20`; it is not active\nsource and may not be patched forward.\n\nThe clean accepted Rust source now contains only the first prerequisite owner\nchange: GLCOG024 persists one immutable `u32` parallel ordinal per physical\ncontact in canonical cohort-local-then-fabric owner order. Endpoints, anatomy,\nand contact state remain solely in their existing physical owners. Current\nrestore requires V24; authenticated V23 and older bodies enter only through the\nexplicit one-way migration, which derives the historical encounter ordinals\nonce and emits V24.\n\nOrdinary contact settlement, retained-mosaic codecs, frontier validation, and\nread-only contact observation now consume the persisted ordinals. Lawful append\ngrowth carries every existing owner-position ordinal and assigns only new\nsame-endpoint contacts `max + 1`, so inserting a new local contact before an\nexisting fabric contact cannot rename that fabric bond after restart. The\nvector is `Arc`-shared across unchanged state clones and is validated for exact\nwidth plus unique contiguous `0..n-1` ordinals per endpoint pair.\n\nThis is source-present only. `git diff --check` passes. No compile, test,\nbenchmark, mature-state probe, package, deployment, or live mutation has run.\nThe full-successor cognition and reached-frontier transaction remain unfixed;\ntherefore A-009 is not fixed or live.\n\n## 2026-08-20 one-owner sparse composition boundary\n\nOnly the root agent is running. The current source is an in-progress candidate,\nnot a reviewed, compiled, packaged, deployed, or live result.\n\nThe reached cohort and electrical-fabric owners now support cumulative sparse\npreparation against one unchanged resident predecessor. A later causal hop\nreplaces only repeated reached neuron/contact addresses, preserves unrelated\nprepared addresses, and removes an address when the final value exactly equals\nthe resident predecessor. Recovery-fluid custody composes as the one ordered\ncohort reservoir. The internal pump, contact-modulated gate-energy, and neuron\ninterval stages read through this projected journal and do not need an\nintermediate full cohort successor.\n\nThe next exact boundary remains unchanged: remove the complete\n`ResidentCognitiveFormationState` successor from\n`PreparedCognitiveFormationTransition`, carry the cumulative physical/evidence/\nformation journal through the admitted trajectory, and mount allocation-free\ncommit/rollback in `organism_runtime.rs`. No source review or execution is\nauthorized while the full successor and `self.clone()` entry remain reachable.\n\n## 2026-08-20 root cycle break\n\nThe root owner stopped the in-progress resident draft after measuring 4,267\nadded lines while the forbidden complete successor and `self.clone()` entry\nstill remained. That rejected source is preserved recoverably as\n`rejected-a009-repeated-full-successor-2026-08-20-root`; it was not compiled,\ntested, benchmarked, packaged, or deployed.\n\nOnly the three bounded physical owner primitives were retained for the clean\ncandidate: sparse reached-neuron/contact/reservoir custody, sparse resident-\nfabric contact custody, and their exact cumulative composition. Their forward\nvalidation now compares every reached resident value with the exact prepared\npredecessor value, not merely its array position. Commit and inverse remain\nallocation-free swaps. No resident cognitive caller is mounted yet, so this is\nimplemented source infrastructure and not an A-009 fix or production claim.\n\nThe clean candidate now also contains the fixed-depth lineage owner required\nto prevent the prior commit-time `BTreeMap::insert` rejection. It is a 32-\nnibble radix over the exact 16-byte lineage. Preparation groups new keys by\ntheir first absent resident prefix and allocates each complete missing subtree;\nforward commit validates the predecessor directory length and empty target\nslots, then swaps those already-built subtrees into place. Inverse swaps them\nback in reverse order. No lookup table, semantic key, hash identity, path-copy\nhistory, or commit-time allocation was introduced. The radix is not mounted in\n`ResidentCognitiveFormationState` yet, so this remains an implementation\nboundary rather than a production result.\n\n### 2026-08-20 root reached-contact cutover\n\nThe runtime-only lineage/contact directory is now mounted in resident state,\nderived at genesis, authenticated cold restore, and explicit topology-changing\nsuccessor construction. Internal contact settlement no longer reconstructs the\ncomplete resident lineage/contact topology. It resolves the current causal\nseeds through exact lineage leaves, visits only their incident contact\nordinals, and preserves the historical one-interval endpoint closure and\nstable contact order.\n\nThe same production boundary now uses sparse reached-owner journals for\nmembrane pumping, contact-modulated reservoir work, the neuron interval, local\ncontact successors, and resident-fabric contact successors. The former full\nlocal-contact successor arrays, complete fabric-contact state clone,\nfull-cohort pump successor, and second `settlement_predecessor` cohort clone\nare absent from this path. Exact predecessor validation precedes every\nswap-only application.\n\nThis is still an in-progress source candidate. The remaining complete cohort\ncopy is isolated to the legacy learning-evidence boundary named\n`cohort_interval_predecessors`; original and recurrence evidence still retain\ncomplete cohort states and dense masks. A-009 remains unproved and no compile,\ntest, benchmark, package, deployment, or live action is authorized until that\nevidence boundary and the full cognitive successor owner are removed and the\nsource is frozen.\n\n### 2026-08-20 sparse evidence cutover in progress\n\n`cohort_interval_predecessors` and the external\n`interval_predecessor_neurons = cohort.state.neurons().to_vec()` custody are\nnow absent from the ordinary path. External source settlement and the coupled\ninternal-contact consequence both use reached-state journals and retain only\nthe exact changed member predecessors. Current experience and recurrence\ncustody is lineage/bond sparse (`GLEXP07` / `GLREC08`); V1-V6 full cohort\nevidence is named legacy input and is converted only while cold decoding.\nThe owned direct trajectory also no longer clones an existing selected cohort\ninto `cohort_targets`: targets carry only the resident cohort index and the\nalready-owned successor cohort is changed in place.\n\nThis is not a fix or a freeze claim. The source conversion is still being\nmade coherent, and `PreparedCognitiveFormationTransition` still owns a full\nsuccessor reached cognition while the borrowed prepare entry still reaches\n`self.clone()`. No compile, test, benchmark, package, deployment, or live\naction is authorized at this boundary.\n\n### 2026-08-20 clean restart: stable physical-contact identity\n\nThe rejected resident drafts were removed from the active Rust source and\npreserved only in explicitly rejected stashes. From accepted HEAD, the first\nrequired ownership prerequisite is now source-complete: canonical GLCOG024\npersists one `u32` parallel ordinal for each physical contact in physical-owner\norder. Existing contact identities are carried unchanged across lawful local\nor fabric append growth; new same-endpoint contacts receive the next exact\nordinal. Validation requires exact width and a unique contiguous `0..n`\nordinal set for every canonical endpoint pair.\n\nOrdinary restore accepts only GLCOG024. Authenticated historical GLCOG012-023\nbodies enter solely through `migrate_to_current_format`, which derives their\nhistorical encounter-order identities once and emits GLCOG024. Legacy receptor,\nintegrator, and recurrent-retention corrections are confined to that explicit\nmigration boundary and are absent from ordinary preparation/current restore.\n\nFrozen source-only review passed for fingerprint\n`485cca2a6c96c9c1d17e120053e517c486f1e973f6463ce4b40d815163ba7c38` before\nthis ledger entry. `git diff --check` passed. No compile, test, benchmark,\npackage, deployment, or live action had run at that review boundary. A-009 is\nstill open: the next exact item is replacing the complete prepared cognitive\nsuccessor and `self.clone()` entry with the borrowed reached-only forward/\ninverse transaction and allocation-free commit/rollback.\n\nExecutable boundary after the source review:\n\n- `cargo check --lib`: PASS.\n- `v24_preserves_contact_identity_across_earlier_local_growth`: PASS. The old\n  fabric bond retained its exact ordinal after an earlier local same-endpoint\n  contact was appended; V24 cold round trip was byte-exact; malformed width,\n  duplicate ordinal, and ordinal gap were rejected.\n- `ordinary_restore_requires_explicit_v23_to_v24_migration`: PASS. Ordinary\n  restore rejected V23; explicit migration emitted canonical V24; cold restore\n  and repeat migration were byte-exact.\n\nThe first test compile exposed one stale test-only reservoir-probe callsite;\nthe missing persisted-ordinal argument was added and the same focused test was\nrerun successfully. The migration test initially asserted equality with an\nunmigrated empty V23 struct, but the ratified one-way migration law correctly\nadds its compact resting population. The assertion was corrected to the real\ncanonical-byte and migration-idempotence invariants, then passed. No broad\nsuite, mature-organism probe, benchmark, package, deployment, or live action\nran.\n\n### 2026-08-20 first reached-owner production cutover\n\nThe membrane-pump stage inside ordinary coupled internal-contact settlement\nnow calls `prepare_reached_cohort_membrane_pumps_sparse`. It allocates and\nsettles exactly the sorted reached neuron indices plus the cohort's single\nrecovery reservoir, then applies those prepared values by swap. Untouched\nneuron material cancels algebraically; production performs no complete-cohort\nneuron clone, complete-cohort material scan, or cohort-width mask at this pump\nboundary. The old full-successor pump is `cfg(test)` and has no production\ncaller.\n\nFocused executable evidence passed:\n`active_frontier_pumps_only_the_reached_neuron` proves the sparse journal\ntouches exactly one selected neuron, produces the exact same successor and\nmetabolic observation as the predecessor law, leaves the unrelated neuron\nunchanged, and restores the exact predecessor when the carried inverse is\napplied. `cargo check --lib` and `git diff --check` also passed. This closes\nonly the pump clone inside A-009; full interval/evidence/cognitive-successor\ncustody remains open and therefore A-009 is not yet fixed or deployable.\n\nThe same reached-owner journal is now mounted through the following neuron\ninterval. The one coupled local+resident-fabric contact solution is passed in\nonce; only its sorted reached neuron inputs are settled. Carrier conservation\nis proven over reached predecessor/successor material plus exact external net\ntransfer because every untouched term is byte-identical and cancels. The\nformer complete recovered-neuron copy and second complete successor-neuron\ncopy are absent from this production boundary.\n\nLayer-10 contact-modulated gate energy also no longer returns a cloned\n`ReachedCohortState`. It prepares only the changed recovery-reservoir value and\nuses the same validated swap journal before the interval. `cargo check --lib`\npassed, and the existing production-path test\n`local_body_receptor_metabolism_enters_only_the_bounded_sparse_frontier`\npassed after both cutovers. The remaining dominant clone is now explicitly\nthe legacy full-cohort experience/recurrence evidence baseline and the outer\ncomplete cognitive successor; those are not closed by these results.\n\n### 2026-08-20 one-owner cycle break: current sparse evidence source boundary\n\nOnly the root agent is active. The rejected formation-index drafts remain\ndiscarded and are not being repaired or reviewed again.\n\nThe active production evidence owner now has a distinct current wire/body:\n`GLEXP07` retains only sorted reached member indices, stable lineages, one\nexact per-member predecessor until local retentive settlement, then the exact\nnonzero retained delta; `GLREC08` retains only sorted cue/changed member and\nactive local-contact indices. Full GLEXP01-06/GLREC02-07 cohort bodies exist\nonly as legacy decoder inputs and are converted immediately on historical\ntop-level migration. Ordinary GLCOG024 decode refuses legacy nested evidence.\n\nThe ordinary internal-contact path no longer builds\n`cohort_interval_predecessors`, no longer visits every cohort through\n`par_iter_mut`, and no longer allocates recovery catalyst lanes for unrelated\nmembers. It records baselines only for selected changed members and advances\nonly selected cohorts in canonical order. Member/contact append growth leaves\nsparse evidence unchanged because existing physical indices are append-stable;\npositional growth rekeys only retained member Psi coordinates.\n\nThis source is still in progress and has not passed the source gate or compile.\nThe external borrowed interval and the outer complete cognitive successor are\nstill open; A-009 is not fixed, packaged, deployed, or live."
+      },
+      {
+        "index": 118,
+        "source_id": "CM02-17",
+        "start_line": 634,
+        "end_line": 676,
+        "latest_id": "CM02-09",
+        "text": "Therefore the named deep-copy correction is delivered, but the required live\ngeneration advance did not occur in the first five minutes and Task 6C.1 is\nnot live-accepted.  This result must not be widened into a claim that the\nremaining population scans, evidence work, or final whole-body seal are fixed.\n\n## Task 6C.2 unchanged-state delta traversal\n\nTask 6C.2 is the next bounded correction.  The Task 6C.1 representation proves\nthat an unchanged predecessor/successor neuron pair shares one exact physical\nstate body.  The current `sparse_physical_state_delta` nevertheless allocates\nfor, then compares, every Psi and recovery coordinate before returning no\ndelta.  Ordinary evidence settlement invokes that function across the entire\nselected cohort, so unchanged mature neurons still contribute work\nproportional to their resident physical bytes.\n\nThe exact correction is an identity fast path: shared physical-state custody\nreturns the exact empty delta before allocation or coordinate traversal;\ndistinct bodies still execute the complete existing exact delta law.  No\nphysics equation, retained coordinate, evidence meaning, codec, or schema is\nchanged.  Acceptance is a focused large-state proof of shared-body zero delta\nand detached-body exact nonzero delta, followed by one compiled commit and one\nproduction cutover/live generation observation.\n\nTask 6C.2 source boundary on 2026-08-21: `cargo check --lib` passed, and the\nfocused large-state shared-zero/detached-nonzero delta plus codec proof passed\n1/1.  The candidate is not yet committed or deployed at this entry.\n\nTask 6C.2 production result on 2026-08-21:\n\n- reviewed and pushed commit:\n  `cc7cc3dfbcb6010aba2cb37567c19caf0a865ed2`;\n- production task: `dsf-ai-task:1148`;\n- immutable image:\n  `sha256:5d1d8ea296777240112e64e29dc69171c2502c7d8daf74f56f8357fd49ffa835`;\n- the deterministic controller completed one verified cutover with no\n  automatic legacy rollback; and\n- the healthy process started at `2026-08-21T01:30:40.537Z`, but public\n  observations through `2026-08-21T01:35:55Z` remained at generation\n  `147954`, `no_transition_this_process`.\n\nThe exact unchanged-state delta traversal is delivered, but the five-minute\nlive generation requirement did not pass.  Therefore the dominant remaining\nstall precedes or lies outside that delta traversal; A-009 remains open."
+      },
+      {
+        "index": 37,
+        "source_id": "CM02-08",
+        "start_line": 419,
+        "end_line": 450,
+        "latest_id": "CM02-09",
+        "text": "- input: one authenticated active organism, the already ordered Task-6B source\n  trajectory, and the exact native motor recruitments emitted by each settled\n  causal interval;\n- output: the existing final resident observation plus a bounded action record\n  whose causal-intent receipt binds the exact recruitment, world predecessor\n  and successor, consequence source, vestibular steps, and final organism\n  successor;\n- physical authorities: native `BodyEffectorTerminal` mounts and exact 37-axis\n  body settlement remain in `organism_runtime.rs`; the persistent world advances\n  its exact one-millisecond material interval; `_action_consequence_episode`\n  carries its before/after field; and only an actual `neck_yaw` consequence\n  enters `exact_native_yaw_trajectory` and the mounted vestibular law;\n- conserved state: one organism identity, one native predecessor, one world\n  predecessor, exact body carrier/material settlement, world revision, exact\n  sensory source evidence, full seven-field DSF delivery, and current-only\n  persistence;\n- preparation and mutation order: native interval settlement occurs first and\n  returns a custody-only pause; world preparation is fallible and precedes its\n  action commit; exact consequence construction precedes native resume; no\n  later native source executes while a pause is outstanding;\n- rollback: before final publication, native abort restores its authenticated\n  predecessor and committed in-memory world actions reverse in exact reverse\n  order.  A refused prepared world action is discarded and produces no sensory\n  substitute;\n- cold restore: no pause or intermediate body is persisted.  Restart restores\n  the old complete current or the one final complete successor;\n- work: one native interval, one reached body frontier, one world action, and\n  one fixed complete consequence roster per discharge.  No population scan,\n  action history, retry, or intermediate whole-organism seal is introduced;\n- retired path: the former post-seal `_prepare_motor_yaw_action` arrangement is\n  not restored.  No helper may apply or infer a motor action after native has\n  already continued past that discharge."
+      },
+      {
+        "index": 45,
+        "source_id": "CM02-08",
+        "start_line": 493,
+        "end_line": 519,
+        "latest_id": "CM02-09",
+        "text": "- `advance_unsealed_until_pause` now stops immediately after exact native\n  articulated-body settlement whenever a causal interval emits a layer-12\n  motor recruitment.  It retains the untouched later-source queue, the exact\n  recruitment, the exact per-axis body consequence, and the deferred 74-terminal\n  body source under one changing custody token;\n- `resume_unsealed_action_direct` accepts one complete consequence source plus\n  only the exact vestibular trajectory physically implied by a changed\n  `neck_yaw` axis.  It orders consequence, vestibular return, deferred native\n  body feedback, then the suspended later sources, and pauses again on any\n  later discharge;\n- live Python intake commits one authenticated one-millisecond persistent-world\n  interval inside the world visibility transaction, constructs the fixed\n  complete sensor roster from its before/after state and the native predecessor\n  and successor body axes, and resumes native before revealing the world;\n- the final causal interval evidence is checked against the ordered pause\n  ordinals.  Every and only motor-producing interval must have one committed\n  world consequence before publication;\n- final sealing retains the native predecessor.  Production validates the\n  entire action/consequence chain, publishes durable CURRENT, and only then\n  acknowledges the direct successor.  Any earlier failure reverses native and\n  every committed world interval to their authenticated predecessors;\n- the unused `_insert_native_action_consequences`, `_commit_vestibular_tick`,\n  and `_commit_vestibular_trajectory` production helpers are deleted.  The\n  legacy admitted definitions and production calls are mechanically required\n  to remain at zero matches before this item can be called retired;\n- no topology parity, motor index, fabricated yaw, Python action choice,\n  intermediate organism seal, DSF reduction, or neuron-law change is present."
+      },
+      {
+        "index": 23,
+        "source_id": "CM02-02",
+        "start_line": 304,
+        "end_line": 330,
+        "latest_id": "CM02-09",
+        "text": "- native begin moves the typed cognitive body into one exclusive unsealed\n  intake and settles optional vestibular intervals first, then the current\n  body, ordered admitted sources, and every exact body-feedback interval;\n- the only pre-seal FFI output is a 32-byte transaction token, provisional\n  tick, and exact layer-13 articulatory recruitments needed by the existing\n  non-cognitive body/acoustic transport;\n- native finalize optionally appends the one generated self-hearing batch to\n  that same typed successor, performs one cognitive encode, one fabric encode,\n  and one envelope seal, then installs the successor under the existing direct\n  predecessor acknowledgement boundary;\n- native abort and every begin/finalize failure restore the authenticated\n  predecessor envelope; durable `CURRENT` is untouched by this slice;\n- production `_perform_admitted_intake_locked_body` now invokes exactly one\n  begin and one finalize.  It no longer invokes the separate vestibular,\n  admitted, or self-hearing commit helpers;\n- exact field map: vestibular source and admitted sources enter the unchanged\n  native transition functions; initial layer-13 recruitments cross FFI to the\n  existing exact articulatory body solver; generated sound/body sources return\n  through finalize; final native evidence crosses the existing prepare\n  validator and production observation projection without defaults;\n- self-hearing-only transitioned-neuron, fractal, body-receptor, and deferred\n  articulation counts are retained from the appended native observation, not\n  inferred by subtracting aggregate counters;\n- source-only review found no duplicate physical settlement, DSF reduction,\n  intermediate full-organism seal, Python cognition, or durable intermediate\n  successor.  Under the explicit one-agent resource constraint, the same owner\n  performed this source review; no sub-agent or parallel reviewer was started."
+      },
+      {
+        "index": 20,
+        "source_id": "CM02-02",
+        "start_line": 277,
+        "end_line": 297,
+        "latest_id": "CM02-09",
+        "text": "- input: the authenticated active organism, optional exact vestibular steps,\n  ordered admitted native sources, and at most one subsequently generated\n  exact self-hearing source batch;\n- physical authority: existing vestibular, admitted-neuron, articulated-body,\n  and receptor laws execute unchanged and in causal order;\n- custody: an unsealed native transaction exclusively owns its typed cognitive,\n  vestibular, and articulated-body successor plus bounded interval evidence;\n- mutation order: the typed active cognition moves into exclusive transaction\n  custody before physical preparation, while the published active observation\n  and authenticated predecessor envelope remain unchanged; final commit is\n  token-validated owner motion and abort cold-restores that exact predecessor;\n- discard/rollback: discard drops the unsealed successor without touching the\n  active predecessor; a committed-but-unpublished successor retains the one\n  authenticated predecessor envelope for exact rollback;\n- crash/restart: no `CURRENT` changes before the one final envelope is durably\n  published; restart therefore restores either the old current or the one\n  complete successor, never an intermediate hop;\n- work bound: physical work is the sum of exact reached frontiers and whole-body\n  encoding occurs once, independent of the number of causal sub-intervals;\n- retired path: production intake no longer calls separate vestibular,\n  admitted, and self-hearing commit/seal operations."
+      },
+      {
+        "index": 40,
+        "source_id": "CM02-08",
+        "start_line": 461,
+        "end_line": 469,
+        "latest_id": "CM02-09",
+        "text": "| Fact | Producer | Required crossing | Final proof |\n|---|---|---|---|\n| Native action cause | layer-12 `MotorUnitRecruitment` | Rust pause -> FFI -> Python transport | exact recruitment carriers and pause ordinal |\n| Applied world action | persistent world `PreparedActionExecution` | prepared -> committed once | before/after revision, pose, state and intent receipts |\n| Complete consequence | `_action_consequence_episode` | Python source -> native resume | fixed roster, changed/quiescent lane truth and matching action receipt |\n| Vestibular return | actual native `neck_yaw` displacement + `exact_native_yaw_trajectory` + mounted canal | native resume before later source | exact ordered signed steps and reached vestibular intervals |\n| Local body return | native articulated-body settlement | pending feedback -> native resume | exact source tick/body-source extent before later original source |\n| Causal continuation | unsealed native transaction | pause/resume until empty -> one seal | interval order, one successor seal, exact cold restore |\n| Durable action | final world and organism publication | existing current-only stores | one live action, matching world/organism receipt, restart continuity |"
+      },
+      {
+        "index": 47,
+        "source_id": "CM02-08",
+        "start_line": 523,
+        "end_line": 539,
+        "latest_id": "CM02-09",
+        "text": "- production search is zero for `prepare_admitted_trajectory`,\n  `commit_admitted_trajectory_direct`, `prepare_admitted`,\n  `_insert_native_action_consequences`, `_commit_vestibular_tick`, and\n  `_commit_vestibular_trajectory`;\n- `cargo check --lib` passes; Python compilation passes for every changed\n  production and focused test file;\n- the four focused native unsealed-intake tests pass, including exact abort\n  rollback, one complete body observation per intake, combined vestibular plus\n  admitted plus self-hearing custody, and one final byte-exact seal;\n- the focused production-order proof passes and observes exactly\n  world-commit -> world-persist -> native-resume -> native-finalize ->\n  organism-publish -> native-acknowledge;\n- the release-native wheel builds successfully; the complete focused A-009\n  action-consequence file passes 4/4 against that exact wheel, and the focused\n  production orchestration file passes 14/14;\n- the retired-helper absence proof passes.  These are focused source, package,\n  and behavior boundaries, not a live-production claim."
+      },
+      {
+        "index": 30,
+        "source_id": "CM02-02",
+        "start_line": 364,
+        "end_line": 379,
+        "latest_id": "CM02-09",
+        "text": "- corrected image\n  `sha256:6041b7a9b8518cb513b2cd696088c2aaeb76490983c4fd92bb13fb13211e199a`\n  built and preflight passed; production again remained on task 1140;\n- the isolated task exceeded the controller's 15-minute stop window while\n  executing the generic mature-body A-013 successor replay.  This replay was\n  unrelated to current-state continuity, contradicted the controller's own\n  live-closed-witness rule, and repeated a population-scale transition on\n  every release;\n- generic cold rehearsal now proves the current identity/state byte-exactly,\n  then runs only the fresh full-roster A-009 action/consequence transaction.\n  It no longer mutates the mature restored body to replay closed A-013 proof;\n- focused cold-probe/controller validation passed 33 checks.  One pre-existing\n  deterministic-controller assertion still expects two ECS service-update\n  command sites although the accepted task-1140 controller already contains\n  four; this correction added none and does not treat that stale assertion as\n  A-009 evidence."
+      },
+      {
+        "index": 28,
+        "source_id": "CM02-02",
+        "start_line": 347,
+        "end_line": 360,
+        "latest_id": "CM02-09",
+        "text": "- image `sha256:c03beb0cd25d5fd74015dd2c1ea00fbff887cf3f7bf0b30129fdde143a66848c`\n  built and preflight passed; production remained on task 1140;\n- cold rehearsal rejected before cutover because the legacy single-source\n  `_commit_admitted_hop` path required 78,641,443 cognitive bytes while its\n  old fresh-body fixture admitted 73,398,909 bytes;\n- that helper had no production caller.  It was deleted rather than extended;\n  cold rehearsal and the A-009 consequence proof now use the same unsealed\n  begin/finalize transaction as ordinary production;\n- the fresh fixture now admits the smallest whole-MiB envelope tier above the\n  exact measured requirement: 75 MiB, with 78,642,336 cognitive/fabric bytes\n  and 893 bytes of exact headroom.  Production admission remains unchanged and\n  cgroup/persistence-derived;\n- the exact rebuilt-native 111-port A-009 consequence proof passes 1/1 through\n  begin/finalize.  There are zero remaining `_commit_admitted_hop` references."
+      },
+      {
+        "index": 50,
+        "source_id": "CM02-08",
+        "start_line": 545,
+        "end_line": 559,
+        "latest_id": "CM02-09",
+        "text": "- reviewed code commit:\n  `1f95a9f85c1d232592e282cf4eec315e43632fb5`;\n- task definition: `dsf-ai-task:1146`;\n- immutable image:\n  `sha256:940dc7e6960bfe718188060cdcc52b02c832ff99339fcf440ae31bec5faaa51b`;\n- the deterministic controller reported one verified cutover, verified native\n  state, and no automatic legacy rollback;\n- independent post-cutover census proved desired/running/pending `1/1/0`, one\n  completed PRIMARY deployment, one RUNNING/HEALTHY task on the exact task\n  definition and image, deep readiness on the exact commit, native tick\n  `147954`, native state receipt\n  `25548e85c33cb471948ceb1ed1519d28af3a3c04ca21b0c791d40e82a2f4efd6`,\n  and zero Python cognition callbacks;\n- `gualaloom.html` and `loomscan.html` both returned HTTP 200;\n- the checked Slack completion notification succeeded in `#general`."
+      },
+      {
+        "index": 43,
+        "source_id": "CM02-08",
+        "start_line": 477,
+        "end_line": 489,
+        "latest_id": "CM02-09",
+        "text": "- `prepare_admitted`, `prepare_admitted_trajectory`, and\n  `commit_admitted_trajectory_direct` were publicly reachable alternatives to\n  the unsealed transaction.  None had an ordinary production caller, but each\n  could seal or commit an admitted interval without the required native action\n  pause;\n- their Python wrapper methods, PyO3 exports, Rust runtime implementations, and\n  the private full-trajectory builder are deleted rather than retained as\n  compatibility paths;\n- the only remaining valid cold rehearsal caller now uses\n  `begin_unsealed_intake_direct` -> `finalize_unsealed_intake_direct`, and the\n  obsolete body-only direct rehearsal is deleted;\n- the unsealed begin/finalize boundary is therefore the sole production-facing\n  admitted-source route before the Task 6C pause/resume extension is mounted."
+      },
+      {
+        "index": 105,
+        "source_id": "CM02-12",
+        "start_line": 477,
+        "end_line": 486,
+        "latest_id": "CM02-09",
+        "text": "The corrected ownership contract is explicit: every fallible trajectory step,\nsparse physical preparation, topology preparation, projected successor encode,\nbody consequence, receipt, allocation, and invariant check must borrow the\nunchanged active cognition. Pending owns only the resulting sorted sparse patch\njournal and sealed successor envelope. Token validation precedes an infallible\nindexed journal commit. Direct acknowledgement discards the inverse journal;\ndirect rollback applies its already-prepared predecessor values infallibly and\nmoves the retained predecessor envelope back without parsing or reconstructing\nthe organism. `mem::take`, cold decode, full successor cognition, or any other\nfallible recovery operation is forbidden before or after a failed preparation."
+      },
+      {
+        "index": 80,
+        "source_id": "CM02-12",
+        "start_line": 334,
+        "end_line": 343,
+        "latest_id": "CM02-09",
+        "text": "The fourth file was added before candidate code existed after an ownership proof\nrejected a proposed persistent path-copy neuron/contact tree. The current main\npending runtime retains immutable active cognition and separately owns a complete\nsuccessor cognition, which necessarily duplicates population state. Runtime is\nauthorized only to make pending cognition a sorted prepared patch journal, then\ntoken-validated commit/discard/rollback by infallible indexed moves, following\nthe existing pending-contact-growth transaction shape. All fallible cognition,\nbody, encoding, receipt, allocation, and invariant work must finish before the\nfirst write. Runtime may not add a physical-state tree, overlay owner, database,\nevent journal, or second cognitive state."
+      },
+      {
+        "index": 71,
+        "source_id": "CM02-12",
+        "start_line": 279,
+        "end_line": 288,
+        "latest_id": "CM02-09",
+        "text": "Translation-boundary review located the first missing executable seam in\n`ResidentOrganismRuntime::build_admitted_trajectory`. Its private interval\nloop settles an action, constructs sparse body feedback, and continues through\nthat feedback and later sources before returning the exact per-tick body rows\nto Python. Python is therefore already too late to interleave the complete\nworld/body consequence. The accepted repair point is a native pause and\ncontinuation returned immediately after each settled action; the continuation\nmust accept that action's bound complete consequence occurrence before it can\nresume feedback or another source. No Python reconstruction, aggregate net\naction, or caller-authored lane account is accepted."
+      },
+      {
+        "index": 32,
+        "source_id": "CM02-02",
+        "start_line": 383,
+        "end_line": 393,
+        "latest_id": "CM02-09",
+        "text": "- image `sha256:317f5b3906282dd3add617dc8c34b8bfbea572c5092488948db2494b10277501`\n  built and the focused rehearsal exited promptly; production remained task\n  1140;\n- the fresh fixture still performed a separate articulated-body prepare/commit\n  before begin/finalize.  That duplicated the current-body interval and seal,\n  raising the successor requirement to 80,711,831 bytes;\n- the redundant prepare/commit is deleted.  The one unsealed transaction now\n  carries 74 current-body terminals plus the ten consequence-body ports, for\n  an exact body-ingress count of 84;\n- the exact rebuilt-native cold fixture passes locally: fresh complete roster,\n  111-port consequence, begin/finalize, and byte-exact cold restore."
+      },
+      {
+        "index": 107,
+        "source_id": "CM02-12",
+        "start_line": 490,
+        "end_line": 499,
+        "latest_id": "CM02-09",
+        "text": "The corrected implementation candidate froze at fingerprint\n`219a159050e6129fceb3a79f21a105359d51899cf90f1d4b06906b5b9905b207`.\nIndependent source-only physics/transaction review rejected it before\ncompilation. Every ordinary admitted source hop reached\n`CognitivePreparationSeed::from_active`, which copied the complete retained\nmosaic array through `active.mosaics.to_vec()`. The subsequent admitted\ntransition then iterated the complete predecessor mosaic population and cloned\nevery recognized mosaic before local occurrence settlement. Ordinary and\nmulti-hop work therefore still scaled with lifetime retained formations rather\nthan the causally reached formation frontier."
+      },
+      {
+        "index": 108,
+        "source_id": "CM02-12",
+        "start_line": 501,
+        "end_line": 509,
+        "latest_id": "CM02-09",
+        "text": "This is architectural, not a localized correction: the proposed prepared\ncognition remained a population-derived successor seed instead of a wholly\nsparse patch journal. Patching the two visible loops would leave the same\nfull-retained-array ownership premise available to later preparation stages.\nThe complete candidate is preserved only in the recoverable stash named\n`rejected-a009-borrowed-sparse-candidate-hot-mosaic-copy-2026-08-18` and may not\nbe reapplied or amended. Executable Rust returned exactly to accepted HEAD\n`d454036f4be9a36ccacf6e0ae8633770fd02202c`. No compile, test, formatter,\nbenchmark, mature-state probe, packaging, deployment, or live query ran."
+      },
+      {
+        "index": 74,
+        "source_id": "CM02-12",
+        "start_line": 297,
+        "end_line": 304,
+        "latest_id": "CM02-09",
+        "text": "The earlier codec-only prerequisite ordering is superseded by stronger clean-\nsource evidence. Compacting the final checkpoint cannot remove ordinary hot\nwork while `settle_resident_original_interval` clones a complete cohort state,\n`settle_reached_cohort_interval` copies complete neuron arrays and constructs\npopulation-wide masks and material arrays, and `settle_internal_contact_interval`\ncopies every selected cohort state and rebuilds whole resident topology. Those\nare causal-transition defects, not serialization defects. The final checkpoint\nstill requires later exact anatomy deduplication, but it is not the first repair."
+      },
+      {
+        "index": 62,
+        "source_id": "CM02-08",
+        "start_line": 622,
+        "end_line": 632,
+        "latest_id": "CM02-09",
+        "text": "- reviewed and pushed commit:\n  `635805a184e20c68523302350ed03c71e5fe6e21`;\n- production task: `dsf-ai-task:1147`;\n- immutable image:\n  `sha256:5e7f6d3e328cb5a1eaaab9289638d75bd38074d63c6b984541adfda3b27a33e2`;\n- the deterministic controller completed one verified cutover with no\n  automatic legacy rollback; ECS settled healthy at desired/running/pending\n  `1/1/0` with one completed PRIMARY deployment; and\n- the process started at `2026-08-21T01:01:48.858Z`, but repeated public\n  observations through `2026-08-21T01:06:37Z` remained at generation\n  `147954`, with `no_transition_this_process` and no unattended pause."
+      },
+      {
+        "index": 15,
+        "source_id": "CM02-02",
+        "start_line": 248,
+        "end_line": 256,
+        "latest_id": "CM02-09",
+        "text": "- tasks 1135-1138 removed the selected-cohort predecessor copy, dense gate\n  evidence, and retained full-cohort physical evidence while preserving the\n  unchanged seven-field DSF and exact current-state cold restore;\n- task 1139, commit `4f05c0b5`, derives resident lineage/layer/contact/bond\n  topology only at genesis, cold restore, or actual topology growth and reuses\n  it during ordinary reached-frontier settlement;\n- task 1140, commit `e0d4a593`, submits every ordinary admitted source in one\n  ordered native trajectory, including exact native body feedback before later\n  sources, and seals that trajectory once."
+      },
+      {
+        "index": 93,
+        "source_id": "CM02-12",
+        "start_line": 408,
+        "end_line": 415,
+        "latest_id": "CM02-09",
+        "text": "Pending original evidence retains only exact predecessor anatomy/state for\nunresolved reached members, accumulated exact retained deltas/fractals for\nresolved members, active stable bonds, source excitation where physically\npresent, and the later-rest fact. Retained originals keep only sorted lineage\ndeltas and stable bonds. Pending recurrence keeps only origin, cue lineages,\ncurrent nonzero physical deltas, and active bonds. V1-V6 full-state evidence is\ndecoded only as migration input and immediately converted; new/current encoding\nis sparse and cannot recreate complete cohort predecessor/post-state custody."
+      },
+      {
+        "index": 78,
+        "source_id": "CM02-12",
+        "start_line": 317,
+        "end_line": 324,
+        "latest_id": "CM02-09",
+        "text": "The sparse electrical owner file is authorized only for an indexed mutable\ncontact-state boundary. Both reached cohorts and the resident electrical fabric\ndelegate their exact contact-state custody to `SparseElectricalState`; without\nthat narrow owner operation they can replace contact state only by cloning and\nreconstructing the complete contact vector. It may not gain topology, cognition,\nhistory, lookup, receipt, or settlement authority. The coupled solver remains\nthe single physics authority; this boundary only validates and exchanges the\nalready-settled contact states at their existing stable indices."
+      },
+      {
+        "index": 91,
+        "source_id": "CM02-12",
+        "start_line": 392,
+        "end_line": 399,
+        "latest_id": "CM02-09",
+        "text": "- sorted reached member identities and exact predecessor/successor neuron state;\n- sorted reached contact origins and exact predecessor/successor transition;\n- one predecessor/successor recovery reservoir for each reached cohort;\n- exact external carrier balance, local zero-sum contact balance, work and heat;\n- positional growth for reached members only, including exact rekeying of any\n  retained Psi coordinate displaced by inserted MathLoom positions; and\n- sparse learning evidence keyed by stable neuron lineage and stable physical\n  bond, never cohort-width Boolean or optional arrays."
+      },
+      {
+        "index": 115,
+        "source_id": "CM02-12",
+        "start_line": 546,
+        "end_line": 553,
+        "latest_id": "CM02-09",
+        "text": "Clean accepted-source inspection found one persisted-identity defect that must\nbe removed before the allocation-complete topology index can be authoritative.\nThe current GLCOG023 body derives each contact's parallel ordinal from global\nencounter order: cohort-local contacts in cohort/contact order, followed by\nresident-fabric contacts. The lawful model can carry the same endpoint pair in\nboth owners. Appending a new local contact earlier in that order can therefore\nrenumber a pre-existing later contact after cold restore, even though that\ncontact's physical identity did not change."
+      },
+      {
+        "index": 103,
+        "source_id": "CM02-12",
+        "start_line": 461,
+        "end_line": 468,
+        "latest_id": "CM02-09",
+        "text": "The first implementation candidate froze at fingerprint\n`249acc55e425be69fcc3807bc7dbe2e6f20a7497a4eb06d95b7fa036a071ab06`\nwith four authorized Rust files changed. Independent source-only review rejected\nit before compilation. `commit_admitted_trajectory_direct` removed the active\nenvelope and cognition with `mem::take` before its fallible trajectory build;\nfailure then depended on another fallible full decode/restore. A failed prepare\ncould therefore leave the predecessor cognition absent. This is an architectural\nprepare-before-mutation violation, not a localized defect."
+      },
+      {
+        "index": 101,
+        "source_id": "CM02-12",
+        "start_line": 450,
+        "end_line": 457,
+        "latest_id": "CM02-09",
+        "text": "Only after source PASS may focused falsifiers prove: one coupled local+fabric\nsettlement; exact material/work/heat conservation; byte-identical untouched\nstate; failure-before-commit identity; sparse evidence cold round-trip and\nV1-V6 migration; and identical measured work after adding at least 1,024\nunrelated members and contacts. Then one mature-current run may measure the\nordinary settlement and one final seal. A successful local candidate still does\nnot close `A-009`; the native action pause/consequence/resume and direct live\nproduction evidence remain mandatory."
+      },
+      {
+        "index": 36,
+        "source_id": "CM02-08",
+        "start_line": 408,
+        "end_line": 415,
+        "latest_id": "CM02-09",
+        "text": "Acceptance condition: each actual layer-12 discharge pauses the same unsealed\nnative trajectory immediately after the existing articulated-body settlement.\nThe exact carrier-derived world action is applied at most once; one complete\nworld/body consequence occurrence and its exact vestibular trajectory re-enter\nthat same unsealed organism before its pending native body feedback and before\nany later original source.  A consequence-caused later discharge repeats the\nsame boundary.  The transaction seals and publishes once only after no action\nor causal source remains."
+      },
+      {
+        "index": 56,
+        "source_id": "CM02-08",
+        "start_line": 589,
+        "end_line": 596,
+        "latest_id": "CM02-09",
+        "text": "The exact Task 6C.1 correction is to make the complete mutable physical state\nof one neuron safe copy-on-write resident custody.  A predecessor/successor\nclone must share the unchanged state body; the first actual mutation of that\nneuron must detach its own exact body.  Full seven-field DSF delivery, every\nphysics equation, equality, logical resident-byte accounting, and canonical\nstate encoding must remain unchanged.  No sparse index, database, event log,\npersistence-format change, Python cognition, or fabricated input is\nauthorized by this item."
+      },
+      {
+        "index": 59,
+        "source_id": "CM02-08",
+        "start_line": 607,
+        "end_line": 615,
+        "latest_id": "CM02-09",
+        "text": "- `NeuronPhysicalState` now owns one `Arc`-shared exact physical body and uses\n  `Arc::make_mut` for the first actual mutation;\n- the three existing production cohort copies therefore retain one pointer per\n  unchanged neuron instead of duplicating its Psi rings, recovery lanes, and\n  exact-rational heaps;\n- value equality, debug fields, canonical encoding order, decoded values, and\n  logical resident-byte accounting remain value-exact;\n- `cargo check --lib` passed; and\n- the focused large-state clone/detach/codec falsifier passed 1/1."
+      },
+      {
+        "index": 79,
+        "source_id": "CM02-12",
+        "start_line": 326,
+        "end_line": 332,
+        "latest_id": "CM02-09",
+        "text": "The third file was added before candidate code existed. Source inspection proved\nthat `ResidentElectricalFabric` is the sole private owner of cross-cohort\ncontact state and currently exposes only full-vector `with_contact_states`\nreplacement. The sparse transition must add its validated indexed prepare/read\nand commit operation to that existing owner. A resident-side overlay or copied\nfabric implementation would create two physical-state authorities and is\nforbidden. The ordinary reached path must retire full-vector fabric replacement."
+      },
+      {
+        "index": 83,
+        "source_id": "CM02-12",
+        "start_line": 353,
+        "end_line": 359,
+        "latest_id": "CM02-09",
+        "text": "Input is one authenticated admitted occurrence, its unchanged complete joint\nseven-field DSF delivery, the one resident cognitive state owned by the pending\ntransition, and the exact current cohort-local plus cross-cohort contact\nanatomy/state. Source-mounted members are causal seeds. The electrical frontier\nis those seeds plus the exact one-interval incident-contact closure; a member\ncannot be admitted by a label, nonzero historical charge, retained contact\nphase, population scan, or fabricated zero-valued sensory occurrence."
+      },
+      {
+        "index": 34,
+        "source_id": "CM02-08",
+        "start_line": 397,
+        "end_line": 404,
+        "latest_id": "CM02-09",
+        "text": "Task `dsf-ai-task:1145`, commit\n`6d41c584c5ac68945653e39fabfa43af5926d6a3`, and image\n`sha256:e7085eb92be0a686fdec0098333a6f36bff4a373fac466537e8e7fc963801c0b`\nlive-closed `A-009-CADENCE-6B` on 2026-08-20.  The controller verified one\ncutover, exact native state, one desired/running task, zero pending tasks, and\none completed deployment.  The legacy `_commit_admitted_hop` helper and every\nreference to it are absent.  Ordinary intake now owns one unsealed native\nsuccessor and performs exactly one final whole-organism seal."
+      },
+      {
+        "index": 17,
+        "source_id": "CM02-02",
+        "start_line": 260,
+        "end_line": 266,
+        "latest_id": "CM02-09",
+        "text": "Acceptance condition: one external intake containing optional vestibular\nmotion, ordered admitted sources, data-dependent motor/body return, and\ndata-dependent articulatory self-hearing owns one native working successor and\nperforms exactly one final whole-organism encode/seal before the existing\natomic publication.  The active predecessor remains byte-identical until\nfinal commit; discard releases the working successor; rollback restores the\nauthenticated predecessor; cold restore accepts only the final sealed body."
+      },
+      {
+        "index": 69,
+        "source_id": "CM02-12",
+        "start_line": 264,
+        "end_line": 270,
+        "latest_id": "CM02-09",
+        "text": "The single prerequisite correction is one compact monolithic current\ncheckpoint that stores invariant neuron anatomy once and preserves every\nper-neuron lineage, mount, capacitance, full physical state, recovery,\nexperience, recurrence, contact, frontier, mosaic, and all seven DSF fields.\nThe resident runtime must share that invariant anatomy in memory as well. This\nis a persistence/representation correction outside cognition; it introduces\nno database, event history, selector, meaning, heuristic, or reduced field."
+      },
+      {
+        "index": 66,
+        "source_id": "CM02-12",
+        "start_line": 242,
+        "end_line": 248,
+        "latest_id": "CM02-09",
+        "text": "The old acceptance path did not prove the required native straight line. Its\nfocused test supplied an external/fabricated body displacement, admitted a\nseparate 74-terminal tonic-body occurrence, and did not commit one complete\npost-action world/body receptor occurrence before another causal source could\nadvance. The public four-site proprioception projection was also stale after\nthe 37-axis/74-terminal body became current. Those facts contradict the broad\nlive-closure claim above without reopening `A-008`."
+      },
+      {
+        "index": 109,
+        "source_id": "CM02-12",
+        "start_line": 511,
+        "end_line": 517,
+        "latest_id": "CM02-09",
+        "text": "The next design must make retained formations resident single-owner values and\nprepare only reached lineage/mosaic references, changed sparse formation facts,\nand exact forward/inverse moves. No preparation seed may copy, filter, hash, or\nscan the complete retained mosaic, fractal, evidence, or frontier arrays. The\nreached-formation index must be derived at cold restore/topology growth and\nupdated by exact formation admission; ordinary work must remain invariant when\nunrelated retained formations are added."
+      },
+      {
+        "index": 113,
+        "source_id": "CM02-12",
+        "start_line": 536,
+        "end_line": 542,
+        "latest_id": "CM02-09",
+        "text": "The next clean implementation must establish sparse topology-index ownership\nbefore writing transition code. Every potential new index key, tree node, and\nposting owner must be allocated and validated during read-only preparation.\nCommit may perform only prevalidated swaps or fixed-address moves and must not\ninsert, reserve, grow, compare, encode, or otherwise invoke a fallible\noperation. A whole-index clone, parallel overlay, second contact authority, or\ncommit-time compatibility fallback is forbidden."
+      },
+      {
+        "index": 67,
+        "source_id": "CM02-12",
+        "start_line": 250,
+        "end_line": 256,
+        "latest_id": "CM02-09",
+        "text": "The first ordinary current-organism interval also exposed a shared runtime\nblocker. The authenticated local predecessor snapshot is 227,509,619 bytes and\ncold-restored in 7.573 seconds with 1,421,628 KiB peak RSS. Exact codec\naccounting found 1,163 cohorts and 1,260 distinct neuron states, but\n156,786,093 bytes are duplicate immutable neuron-anatomy bodies. One identical\n135,981-byte anatomy body is serialized 1,154 times. This is repeated\nrepresentation, not distinct organism physics or learned state."
+      },
+      {
+        "index": 111,
+        "source_id": "CM02-12",
+        "start_line": 521,
+        "end_line": 527,
+        "latest_id": "CM02-09",
+        "text": "The next clean-baseline implementation froze at fingerprint\n`e95e87a723779bcd89b7efdba730762481948e3d3711fbb62ee5659be6bf9cec`.\nIndependent source-only review rejected it before compilation. Authored-contact\ncommit called `BTreeMap::insert` for new `contact_by_bond`, `bond_by_contact`,\nand `formations_by_bond` keys after cognitive mutation began. Those inserts can\nallocate. The method therefore could not truthfully be infallible, and an\nallocation failure could leave a partially committed organism."
+      },
+      {
+        "index": 87,
+        "source_id": "CM02-12",
+        "start_line": 375,
+        "end_line": 381,
+        "latest_id": "CM02-09",
+        "text": "Recovery-fluid exchange remains separate per cohort and settles reached members\nin canonical resident-member order. The same ordered reservoir successor feeds\nthe next reached member. Contact settlement reads one synchronous post-pump\npredecessor generation. Every incident neighbour admitted to the compact\nnetwork receives its real same-clock complete joint-field perspective; absent\ngate, recovery, DNA, or receptor work is explicit physical zero, not a\nsubstitute occurrence or a semantic default."
+      },
+      {
+        "index": 13,
+        "source_id": "CM02-02",
+        "start_line": 238,
+        "end_line": 244,
+        "latest_id": "CM02-09",
+        "text": "New live evidence reopened only A-009's execution boundary: the same lawful\naction/consequence circuit remained causal, but ordinary settlement copied\npopulation-sized resident state and one accepted Python intake could seal the\nwhole organism once for vestibular motion, once for admitted sources, and once\nagain for generated self-hearing.  The behavioral closure above is not\nreopened; this correction makes its already-accepted circuit bounded enough to\nremain usable for L-005/L-006 education."
+      },
+      {
+        "index": 54,
+        "source_id": "CM02-08",
+        "start_line": 573,
+        "end_line": 579,
+        "latest_id": "CM02-09",
+        "text": "Live production evidence from `dsf-ai-task:1146` on 2026-08-21 showed the\nnative tick and state receipt remained fixed at `147954` and\n`25548e85c33cb471948ceb1ed1519d28af3a3c04ca21b0c791d40e82a2f4efd6`\nwhile one native worker consumed approximately one complete CPU core for more\nthan twenty-two minutes.  No unattended interval committed.  The deployed\nTask 6C action pause/consequence/resume boundary is present, but its first\nmature interval is blocked before that behavioral witness can occur."
+      },
+      {
+        "index": 55,
+        "source_id": "CM02-08",
+        "start_line": 581,
+        "end_line": 587,
+        "latest_id": "CM02-09",
+        "text": "Committed-source reachability proves the immediate obstruction.  The live\ncohort interval, membrane-pump, and dark-rest settlers call\n`predecessor.neurons.to_vec()`, and the interval settler then clones the full\nrecovered neuron vector again.  `NeuronPhysicalState::clone` currently deep\ncopies every Psi ring, recovery lane, and exact-rational heap even when the\nneuron is unchanged.  Thus a selected mature cohort duplicates its complete\nresident physical state before sparse physical mutation."
+      },
+      {
+        "index": 98,
+        "source_id": "CM02-12",
+        "start_line": 433,
+        "end_line": 439,
+        "latest_id": "CM02-09",
+        "text": "- complete-state `clone`, `to_vec`, dense masks, and material scans in ordinary\n  interval and membrane-pump settlement;\n- complete cohort predecessor/post-state experience and recurrence evidence;\n- `interval_predecessor_neurons` and `cohort_interval_predecessors` custody;\n- whole-cohort `par_iter_mut` polling for a sparse selected frontier;\n- per-interval whole-lineage/contact/topology reconstruction; and\n- any legacy full-result interval/pump API that could be called by production."
+      },
+      {
+        "index": 5,
+        "source_id": "CM01-22",
+        "start_line": 834,
+        "end_line": 840,
+        "latest_id": "CM01-17",
+        "text": "- A zero, unchanged receptor was still entering electrical settlement merely\n  because its port appeared in the continuous sensory roster. The corrected\n  frontier begins only from exact delivered energy, measured local metabolic\n  change, newly reached developmental wiring, or the prior still-active\n  frontier. Eight unrelated transitions disappeared from the authenticated\n  mature occurrence; no receptor, DSF coordinate, or lawful continuation was\n  removed."
+      },
+      {
+        "index": 51,
+        "source_id": "CM02-08",
+        "start_line": 561,
+        "end_line": 566,
+        "latest_id": "CM02-09",
+        "text": "The new process reported `no_transition_this_process` immediately after\ncutover.  This proves that the corrected action pause/consequence/resume code\nis the sole deployed production code, but it does not claim that the mature\norganism has already emitted a post-cutover motor discharge.  That behavioral\nwitness remains the final live observation needed to call the full Task 6C\naction path live-exercised; it must not be fabricated by a test action."
+      },
+      {
+        "index": 92,
+        "source_id": "CM02-12",
+        "start_line": 401,
+        "end_line": 406,
+        "latest_id": "CM02-09",
+        "text": "Preparation is read-only. Commit begins only after every fallible calculation\nand invariant check succeeds, and then performs only validated indexed moves\nthat cannot fail. A preparation error leaves the owned predecessor unchanged.\nIf the wider resident transition later fails, the existing authenticated\nruntime predecessor envelope remains the sole rollback authority; this\ncandidate may not add another snapshot, journal, lock, or recovery owner."
+      },
+      {
+        "index": 95,
+        "source_id": "CM02-12",
+        "start_line": 419,
+        "end_line": 424,
+        "latest_id": "CM02-09",
+        "text": "Ordinary non-dark work is `O(N_E + C_E + R_E)`: reached neurons, reached\ncontacts, and reached cohort reservoirs. Adding unrelated cohorts, neurons, or\ncontacts must not change measured visits, cloned bytes, prepared bytes, or\nsettlement calls. Runtime structural lookup is derived once at genesis/cold\nrestore and updated only by exact topology growth; ordinary intervals may not\nrebuild or validate it by scanning resident population cardinality."
+      },
+      {
+        "index": 70,
+        "source_id": "CM02-12",
+        "start_line": 272,
+        "end_line": 277,
+        "latest_id": "CM02-09",
+        "text": "After that correction passes the real mature predecessor size/RSS/cold-restore\nfalsifier, the frozen A-009 change remains exactly one actual native action\nfollowed immediately by its full 27/34/27/8/5 sensory roster, 74 body\nterminals, applicable vestibular return, and internal participation in the\nsame resident organism before any later action. Only production deployment and\ndirect live evidence may close this reopened item."
+      },
+      {
+        "index": 100,
+        "source_id": "CM02-12",
+        "start_line": 443,
+        "end_line": 448,
+        "latest_id": "CM02-09",
+        "text": "No compile, unit test, mature raw-state run, or benchmark may precede a frozen\nsource-only review. The candidate is fingerprinted with the governing skill's\nfreeze tool and the implementation owner stops. Any duplicated settlement,\nincomplete frontier, premature mutation, state loss, dense hot path, fabricated\nevidence, or production-reachable predecessor mechanism rejects the candidate\nand returns the tree to this baseline."
+      },
+      {
+        "index": 25,
+        "source_id": "CM02-02",
+        "start_line": 334,
+        "end_line": 340,
+        "latest_id": "CM02-09",
+        "text": "- `cargo check --lib` passed;\n- the two native unsealed-intake falsifiers passed, covering one combined\n  vestibular/admitted/appended-source seal and exact abort restoration;\n- the complete related Python boundary file passed 13/13, including exact\n  begin/finalize cardinality, one appended self-hearing batch, vestibular\n  inclusion, and abort on non-cancellation failure;\n- Python compilation and `git diff --check` passed."
+      },
+      {
+        "index": 112,
+        "source_id": "CM02-12",
+        "start_line": 529,
+        "end_line": 534,
+        "latest_id": "CM02-09",
+        "text": "The complete source candidate is preserved only in the recoverable stash named\n`rejected-a009-sparse-journal-commit-allocates-2026-08-18`; it may not be\nreapplied, amended, or mined for implementation code. Executable Rust returned\nexactly to accepted HEAD\n`d454036f4be9a36ccacf6e0ae8633770fd02202c`. No compile, test, formatter,\nbenchmark, mature-state probe, package, deployment, or live query ran."
+      },
+      {
+        "index": 57,
+        "source_id": "CM02-08",
+        "start_line": 598,
+        "end_line": 603,
+        "latest_id": "CM02-09",
+        "text": "Acceptance requires source proof that the three production settlers no longer\ndeep-copy large unchanged neuron bodies, a focused clone/detach and codec-byte\nidentity falsifier, a compiled native boundary, one reviewed commit, one\nproduction cutover, and a live unattended generation advance.  Until those\nfacts exist, Task 6C.1 and the final natural Task 6C behavioral witness remain\nopen."
+      },
+      {
+        "index": 18,
+        "source_id": "CM02-02",
+        "start_line": 268,
+        "end_line": 273,
+        "latest_id": "CM02-09",
+        "text": "Authorized files: `native/guala_core/src/organism_runtime.rs`,\n`dsf_ai_service/glew_runtime/native_resident_organism.py`,\n`dsf_ai_service/native_production_app.py`, and focused boundary tests.  No\nneuron/DSF equation, retained formation law, persistence schema, world law,\nobserver schema, database, overlay, owner service, retry mechanism, or Python\ncognitive decision is authorized."
+      },
+      {
+        "index": 84,
+        "source_id": "CM02-12",
+        "start_line": 361,
+        "end_line": 365,
+        "latest_id": "CM02-09",
+        "text": "Output is the same single resident organism with only physically reached neuron\nstates, reached contact states, and reached cohort recovery reservoirs advanced;\nexact sparse predecessor/successor facts needed for conservation, rollback,\npost-quiescence fractals, recurrence, and observation; and no second owner,\nevent history, semantic record, database, or alternate brain."
+      },
+      {
+        "index": 86,
+        "source_id": "CM02-12",
+        "start_line": 369,
+        "end_line": 373,
+        "latest_id": "CM02-09",
+        "text": "Each interval must solve the compact coupled cohort-local and cross-cohort\nelectrical network exactly once in canonical existing contact order. The result\nis projected by stable contact origin into its owning cohort or resident fabric.\nNo cohort may re-solve its local contacts after the coupled solve, and no local\nand fabric paths may each bill the same carrier transfer."
+      },
+      {
+        "index": 104,
+        "source_id": "CM02-12",
+        "start_line": 470,
+        "end_line": 475,
+        "latest_id": "CM02-09",
+        "text": "Disposition: the complete source candidate is preserved only as the recoverable\nstash named\n`rejected-reached-frontier-candidate-preparation-mutates-predecessor-2026-08-18`.\nExecutable Rust returned exactly to accepted HEAD; no part of the rejected diff\nmay be patched or reapplied. No compile, test, formatter, benchmark, mature-state\nprobe, packaging, or deployment ran."
+      },
+      {
+        "index": 68,
+        "source_id": "CM02-12",
+        "start_line": 258,
+        "end_line": 262,
+        "latest_id": "CM02-09",
+        "text": "Rejected during this reopened sprint: `GLCURR02` / `GLOVLY01` /\n`GLTRJN01`, a linked input-event journal and Python file/object store. It did\nnot authenticate exact successor physical state, made cold recovery grow with\nhistory, and conflicted with the one-resident-organism/current-state law. It\nmust not be mounted or used as A-009 evidence."
+      },
+      {
+        "index": 38,
+        "source_id": "CM02-08",
+        "start_line": 452,
+        "end_line": 457,
+        "latest_id": "CM02-09",
+        "text": "Authorized files:\n`native/guala_core/src/organism_runtime.rs`,\n`dsf_ai_service/glew_runtime/native_resident_organism.py`,\n`dsf_ai_service/native_production_app.py`, this ledger, and one focused\naction-pause/continue test file.  No neuron, DSF, formation, persistence-schema,\nworld-law, UI, curriculum, or observer redesign is authorized."
+      },
+      {
+        "index": 81,
+        "source_id": "CM02-12",
+        "start_line": 345,
+        "end_line": 349,
+        "latest_id": "CM02-09",
+        "text": "No Python, checkpoint-store, UI, curriculum, world, DSF, neuron equation, or\ndeployment file belongs to this candidate. If the contract cannot be\nimplemented inside those four owners without weakening\nphysics, the candidate must stop and the contract must be revised before any\nadditional file is authorized."
+      },
+      {
+        "index": 96,
+        "source_id": "CM02-12",
+        "start_line": 426,
+        "end_line": 429,
+        "latest_id": "CM02-09",
+        "text": "An explicitly admitted dark-rest interval may lawfully reach a complete cohort\nbecause every member participates in that physiology. It must be reported and\nmeasured as whole-cohort work, must occur at most once for that exact physical\ninterval, and may not be invoked as hidden evidence bookkeeping."
+      },
+      {
+        "index": 88,
+        "source_id": "CM02-12",
+        "start_line": 383,
+        "end_line": 386,
+        "latest_id": "CM02-09",
+        "text": "All seven DSF fields, exact MathLoom/Psi/Krimelack state, membrane state,\ncarriers, recovery, DNA, plasticity, receptor residue, contact phase, work, heat,\nand conductance remain unchanged in type and equation. This candidate performs\nno reduced approximation and loses no field structure."
+      },
+      {
+        "index": 77,
+        "source_id": "CM02-12",
+        "start_line": 311,
+        "end_line": 315,
+        "latest_id": "CM02-09",
+        "text": "- `native/guala_core/src/reached_neuron_cohort.rs`; and\n- `native/guala_core/src/resident_cognitive_formation.rs`; and\n- `native/guala_core/src/resident_electrical_fabric.rs`; and\n- `native/guala_core/src/sparse_electrical_contact.rs`; and\n- `native/guala_core/src/organism_runtime.rs`."
+      },
+      {
+        "index": 73,
+        "source_id": "CM02-12",
+        "start_line": 292,
+        "end_line": 295,
+        "latest_id": "CM02-09",
+        "text": "The executable tree was restored to `d454036f4be9a36ccacf6e0ae8633770fd02202c`.\nThe rejected broad Rust/Python candidate and one stray concurrent edit are\nrecoverably stashed and are not active source. This ledger is the only active\nworktree modification."
+      },
+      {
+        "index": 41,
+        "source_id": "CM02-08",
+        "start_line": 471,
+        "end_line": 473,
+        "latest_id": "CM02-09",
+        "text": "The full explicit `D_k`, `M_k`, `R_rev,k`, `U*_k`, `C_k`, `P_k`, and `B_k`\nfield remains authoritative for every admitted occurrence.  Task 6C adds no\nfield reduction and changes no neuron equation."
+      },
+      {
+        "index": 65,
+        "source_id": "CM02-12",
+        "start_line": 238,
+        "end_line": 240,
+        "latest_id": "CM02-09",
+        "text": "The delivery reconciliation withdrew the preceding closure. `A-009` is again\nthe single active item; `A-008` remains the closed predecessor. Production is\nnot fixed by the work recorded below."
+      },
+      {
+        "index": 117,
+        "source_id": "CM02-13",
+        "start_line": 206,
+        "end_line": 208,
+        "latest_id": "CM02-09",
+        "text": "Status: **the causal A-009 action/consequence path is live on task 1055; A-009\nremains open until the bounded public projection is deployed and directly\nverified on its successor task**."
+      },
+      {
+        "index": 2,
+        "source_id": "CM01-16",
+        "start_line": 674,
+        "end_line": 676,
+        "latest_id": "CM01-17",
+        "text": "Status: **Live-Closed 2026-08-23**. The next serial item is A-011; this closure\ndoes not authorize reopening A-009 or restoring any rejected transaction or\nwhole-state draft."
+      },
+      {
+        "index": 26,
+        "source_id": "CM02-02",
+        "start_line": 342,
+        "end_line": 343,
+        "latest_id": "CM02-09",
+        "text": "Evidence level: source-complete, source-reviewed, and focused-execution passed.\nImmutable packaging and live verification remain pending."
+      },
+      {
+        "index": 60,
+        "source_id": "CM02-08",
+        "start_line": 617,
+        "end_line": 618,
+        "latest_id": "CM02-09",
+        "text": "This source boundary is not yet committed or deployed at this ledger entry.\nThe live generation-advance requirement remains open."
+      },
+      {
+        "index": 9,
+        "source_id": "CM01-22",
+        "start_line": 862,
+        "end_line": 863,
+        "latest_id": "CM01-17",
+        "text": "- Candidate commit `f7efa5c5` passes `cargo check --lib` and\n  `git diff --check`. Temporary timing instrumentation is absent."
+      },
+      {
+        "index": 3,
+        "source_id": "CM01-21",
+        "start_line": 443,
+        "end_line": 444,
+        "latest_id": "CM01-17",
+        "text": "  growth. That is a separate retained-state/codec owner and remains the one\n  active A-006 cadence and body-growth blocker."
+      },
+      {
+        "index": 53,
+        "source_id": "CM02-08",
+        "start_line": 570,
+        "end_line": 571,
+        "latest_id": "CM02-09",
+        "text": "Task 6C.1 is open.  It is one bounded ownership correction, not a claim that\nall reached-frontier cadence work is complete."
+      },
+      {
+        "index": 21,
+        "source_id": "CM02-02",
+        "start_line": 299,
+        "end_line": 300,
+        "latest_id": "CM02-09",
+        "text": "Current evidence: task 1140 is live with one verified cutover, native state\nverified, no rollback, and zero sub-agents."
+      },
+      {
+        "index": 76,
+        "source_id": "CM02-12",
+        "start_line": 308,
+        "end_line": 309,
+        "latest_id": "CM02-09",
+        "text": "`A-009` remains the only active item and `A-008` remains its closed predecessor.\nThe first candidate may modify only:"
+      },
+      {
+        "index": 119,
+        "source_id": "CM02-19",
+        "start_line": 173,
+        "end_line": 174,
+        "latest_id": "CM02-09",
+        "text": "Status: **locally complete; immutable candidate rehearsal and live production\nacceptance remain**."
+      },
+      {
+        "index": 1,
+        "source_id": "CM01-07",
+        "start_line": 179,
+        "end_line": 179,
+        "latest_id": "CM01-17",
+        "text": "focused native tests inside those owners, and this existing sprint ledger. No observer, Python"
+      },
+      {
+        "index": 106,
+        "source_id": "CM02-12",
+        "start_line": 488,
+        "end_line": 488,
+        "latest_id": "CM02-09",
+        "text": "### 2026-08-18 borrowed-journal candidate rejection — retained mosaic population"
+      },
+      {
+        "index": 0,
+        "source_id": "CM01-01",
+        "start_line": 118,
+        "end_line": 118,
+        "latest_id": "CM01-17",
+        "text": "Status: **In progress**. No A-006 completion or production delivery is claimed."
+      },
+      {
+        "index": 6,
+        "source_id": "CM01-22",
+        "start_line": 852,
+        "end_line": 852,
+        "latest_id": "CM01-17",
+        "text": "  full occurrence in `8.486551` seconds; one CPU completed it in `11.954189`"
+      },
+      {
+        "index": 11,
+        "source_id": "CM01-29",
+        "start_line": 908,
+        "end_line": 908,
+        "latest_id": "CM01-17",
+        "text": "Applicable recurrence checks: RF-002 used the exact task-1194 sensory flags;"
+      },
+      {
+        "index": 48,
+        "source_id": "CM02-08",
+        "start_line": 541,
+        "end_line": 541,
+        "latest_id": "CM02-09",
+        "text": "Task 6C has not yet been packaged, deployed, or live-verified at this entry."
+      },
+      {
+        "index": 97,
+        "source_id": "CM02-12",
+        "start_line": 431,
+        "end_line": 431,
+        "latest_id": "CM02-09",
+        "text": "Before source review can pass, production reachability must be removed from:"
+      },
+      {
+        "index": 4,
+        "source_id": "CM01-22",
+        "start_line": 832,
+        "end_line": 832,
+        "latest_id": "CM01-17",
+        "text": "### Exact causal-frontier and independent-formation settlement — 2026-08-23"
+      },
+      {
+        "index": 110,
+        "source_id": "CM02-12",
+        "start_line": 519,
+        "end_line": 519,
+        "latest_id": "CM02-09",
+        "text": "### 2026-08-18 sparse-journal candidate rejection — commit-time allocation"
+      },
+      {
+        "index": 7,
+        "source_id": "CM01-22",
+        "start_line": 854,
+        "end_line": 854,
+        "latest_id": "CM01-17",
+        "text": "  `99654202744049b2040ee9859d89d4cb853e393cbf99d4c856cf767348bd4619`,"
+      },
+      {
+        "index": 102,
+        "source_id": "CM02-12",
+        "start_line": 459,
+        "end_line": 459,
+        "latest_id": "CM02-09",
+        "text": "### 2026-08-18 frozen-candidate rejection and ownership correction"
+      },
+      {
+        "index": 33,
+        "source_id": "CM02-08",
+        "start_line": 395,
+        "end_line": 395,
+        "latest_id": "CM02-09",
+        "text": "## Task 6B live closure and Task 6C native action continuation"
+      },
+      {
+        "index": 114,
+        "source_id": "CM02-12",
+        "start_line": 544,
+        "end_line": 544,
+        "latest_id": "CM02-09",
+        "text": "### 2026-08-18 stable-contact identity prerequisite — GLCOG024"
+      },
+      {
+        "index": 8,
+        "source_id": "CM01-22",
+        "start_line": 856,
+        "end_line": 856,
+        "latest_id": "CM01-17",
+        "text": "  recognized mosaics, and `4,145` physical transitions."
+      },
+      {
+        "index": 42,
+        "source_id": "CM02-08",
+        "start_line": 475,
+        "end_line": 475,
+        "latest_id": "CM02-09",
+        "text": "Legacy-entry retirement before Task 6C implementation:"
+      },
+      {
+        "index": 72,
+        "source_id": "CM02-12",
+        "start_line": 290,
+        "end_line": 290,
+        "latest_id": "CM02-09",
+        "text": "## 2026-08-18 clean-baseline reached-frontier contract"
+      },
+      {
+        "index": 10,
+        "source_id": "CM01-22",
+        "start_line": 870,
+        "end_line": 870,
+        "latest_id": "CM01-17",
+        "text": "successor across one- and four-worker execution."
+      },
+      {
+        "index": 64,
+        "source_id": "CM02-12",
+        "start_line": 236,
+        "end_line": 236,
+        "latest_id": "CM02-09",
+        "text": "## 2026-08-17 reconciliation — closure withdrawn"
+      },
+      {
+        "index": 90,
+        "source_id": "CM02-12",
+        "start_line": 390,
+        "end_line": 390,
+        "latest_id": "CM02-09",
+        "text": "Before the first mutation, prepare and validate:"
+      },
+      {
+        "index": 14,
+        "source_id": "CM02-02",
+        "start_line": 246,
+        "end_line": 246,
+        "latest_id": "CM02-09",
+        "text": "Live production corrections already delivered:"
+      },
+      {
+        "index": 22,
+        "source_id": "CM02-02",
+        "start_line": 302,
+        "end_line": 302,
+        "latest_id": "CM02-09",
+        "text": "Source implementation boundary on 2026-08-20:"
+      },
+      {
+        "index": 49,
+        "source_id": "CM02-08",
+        "start_line": 543,
+        "end_line": 543,
+        "latest_id": "CM02-09",
+        "text": "Task 6C production deployment on 2026-08-21:"
+      },
+      {
+        "index": 52,
+        "source_id": "CM02-08",
+        "start_line": 568,
+        "end_line": 568,
+        "latest_id": "CM02-09",
+        "text": "## Task 6C.1 mature-state clone obstruction"
+      },
+      {
+        "index": 89,
+        "source_id": "CM02-12",
+        "start_line": 388,
+        "end_line": 388,
+        "latest_id": "CM02-09",
+        "text": "### Prepare, commit, rollback, and evidence"
+      },
+      {
+        "index": 61,
+        "source_id": "CM02-08",
+        "start_line": 620,
+        "end_line": 620,
+        "latest_id": "CM02-09",
+        "text": "Task 6C.1 production result on 2026-08-21:"
+      },
+      {
+        "index": 24,
+        "source_id": "CM02-02",
+        "start_line": 332,
+        "end_line": 332,
+        "latest_id": "CM02-09",
+        "text": "Focused candidate evidence on 2026-08-20:"
+      },
+      {
+        "index": 12,
+        "source_id": "CM02-02",
+        "start_line": 236,
+        "end_line": 236,
+        "latest_id": "CM02-09",
+        "text": "## 2026-08-20 bounded-cadence correction"
+      },
+      {
+        "index": 58,
+        "source_id": "CM02-08",
+        "start_line": 605,
+        "end_line": 605,
+        "latest_id": "CM02-09",
+        "text": "Task 6C.1 source boundary on 2026-08-21:"
+      },
+      {
+        "index": 94,
+        "source_id": "CM02-12",
+        "start_line": 417,
+        "end_line": 417,
+        "latest_id": "CM02-09",
+        "text": "### Bounded work and explicit retirement"
+      },
+      {
+        "index": 46,
+        "source_id": "CM02-08",
+        "start_line": 521,
+        "end_line": 521,
+        "latest_id": "CM02-09",
+        "text": "Task 6C source boundary on 2026-08-20:"
+      },
+      {
+        "index": 75,
+        "source_id": "CM02-12",
+        "start_line": 306,
+        "end_line": 306,
+        "latest_id": "CM02-09",
+        "text": "### Frozen input and authorized source"
+      },
+      {
+        "index": 82,
+        "source_id": "CM02-12",
+        "start_line": 351,
+        "end_line": 351,
+        "latest_id": "CM02-09",
+        "text": "### Exact physical input and output"
+      },
+      {
+        "index": 29,
+        "source_id": "CM02-02",
+        "start_line": 362,
+        "end_line": 362,
+        "latest_id": "CM02-09",
+        "text": "Second immutable rehearsal result:"
+      },
+      {
+        "index": 27,
+        "source_id": "CM02-02",
+        "start_line": 345,
+        "end_line": 345,
+        "latest_id": "CM02-09",
+        "text": "First immutable rehearsal result:"
+      },
+      {
+        "index": 31,
+        "source_id": "CM02-02",
+        "start_line": 381,
+        "end_line": 381,
+        "latest_id": "CM02-09",
+        "text": "Third immutable rehearsal result:"
+      },
+      {
+        "index": 16,
+        "source_id": "CM02-02",
+        "start_line": 258,
+        "end_line": 258,
+        "latest_id": "CM02-09",
+        "text": "Active item: `A-009-CADENCE-6B`."
+      },
+      {
+        "index": 35,
+        "source_id": "CM02-08",
+        "start_line": 406,
+        "end_line": 406,
+        "latest_id": "CM02-09",
+        "text": "Active item: `A-009-CADENCE-6C`."
+      },
+      {
+        "index": 85,
+        "source_id": "CM02-12",
+        "start_line": 367,
+        "end_line": 367,
+        "latest_id": "CM02-09",
+        "text": "### One settlement authority"
+      },
+      {
+        "index": 19,
+        "source_id": "CM02-02",
+        "start_line": 275,
+        "end_line": 275,
+        "latest_id": "CM02-09",
+        "text": "Implementation contract:"
+      },
+      {
+        "index": 39,
+        "source_id": "CM02-08",
+        "start_line": 459,
+        "end_line": 459,
+        "latest_id": "CM02-09",
+        "text": "Acceptance evidence map:"
+      },
+      {
+        "index": 44,
+        "source_id": "CM02-08",
+        "start_line": 491,
+        "end_line": 491,
+        "latest_id": "CM02-09",
+        "text": "Task 6C source cutover:"
+      },
+      {
+        "index": 99,
+        "source_id": "CM02-12",
+        "start_line": 441,
+        "end_line": 441,
+        "latest_id": "CM02-09",
+        "text": "### Acceptance order"
+      }
+    ],
+    "covered_by": {
+      "116": 116,
+      "118": 118,
+      "37": 37,
+      "45": 45,
+      "23": 23,
+      "63": 118,
+      "20": 20,
+      "40": 40,
+      "47": 47,
+      "30": 30,
+      "28": 28,
+      "50": 50,
+      "43": 43,
+      "105": 105,
+      "80": 80,
+      "71": 71,
+      "32": 32,
+      "107": 107,
+      "108": 108,
+      "74": 74,
+      "62": 62,
+      "15": 15,
+      "93": 93,
+      "78": 78,
+      "91": 91,
+      "115": 115,
+      "103": 103,
+      "101": 101,
+      "36": 36,
+      "56": 56,
+      "59": 59,
+      "79": 79,
+      "83": 83,
+      "34": 34,
+      "17": 17,
+      "69": 69,
+      "66": 66,
+      "109": 109,
+      "113": 113,
+      "67": 67,
+      "111": 111,
+      "87": 87,
+      "13": 13,
+      "54": 54,
+      "55": 55,
+      "98": 98,
+      "5": 5,
+      "51": 51,
+      "92": 92,
+      "95": 95,
+      "70": 70,
+      "100": 100,
+      "25": 25,
+      "112": 112,
+      "57": 57,
+      "18": 18,
+      "84": 84,
+      "86": 86,
+      "104": 104,
+      "68": 68,
+      "38": 38,
+      "81": 81,
+      "120": 118,
+      "96": 96,
+      "88": 88,
+      "77": 77,
+      "73": 73,
+      "41": 41,
+      "65": 65,
+      "117": 117,
+      "2": 2,
+      "26": 26,
+      "60": 60,
+      "9": 9,
+      "3": 3,
+      "53": 53,
+      "21": 21,
+      "76": 76,
+      "119": 119,
+      "1": 1,
+      "106": 106,
+      "0": 0,
+      "6": 6,
+      "11": 11,
+      "48": 48,
+      "97": 97,
+      "4": 4,
+      "110": 110,
+      "7": 7,
+      "102": 102,
+      "33": 33,
+      "114": 114,
+      "8": 8,
+      "42": 42,
+      "72": 72,
+      "10": 10,
+      "64": 64,
+      "90": 90,
+      "14": 14,
+      "22": 22,
+      "49": 49,
+      "52": 52,
+      "89": 89,
+      "61": 61,
+      "24": 24,
+      "12": 12,
+      "58": 58,
+      "94": 94,
+      "46": 46,
+      "75": 75,
+      "82": 82,
+      "29": 29,
+      "27": 27,
+      "31": 31,
+      "16": 16,
+      "35": 35,
+      "85": 85,
+      "19": 19,
+      "39": 39,
+      "44": 44,
+      "99": 99
+    }
+  },
+  "product_execution": false,
+  "product_qualification": false
+}

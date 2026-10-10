@@ -1,0 +1,591 @@
+{
+  "schema": "guala.documentary_full_content_read.v1",
+  "sources": [
+    {
+      "id": "AA001",
+      "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "git_blob": "e797c9bc93d7cbcc1aba8de15ca63e3113ecd773",
+      "sha256": "f0799f6291da19be1b20a7033ae048e9ff8bf612df8315026580be5c2c68b01e",
+      "bytes": 11585,
+      "lines": 191,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA001--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "observations": [
+        {
+          "author_time": "2026-08-02T23:49:14+00:00",
+          "commit": "5a5a99c1adbf49587e72625a5a48ccb7741926a1",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-02T22:29:55+00:00",
+          "commit": "df9975b2a87c2d3962db549dd7ccd45b44feb0fe",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "AA002",
+      "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "git_blob": "c6b35c07fd4c3fe2afdb654ea3a108a1e13faebb",
+      "sha256": "9646ece71c713dd896e74b792330bb3dbddeaa03af80c132ee421810ace688e3",
+      "bytes": 11651,
+      "lines": 192,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA002--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "observations": [
+        {
+          "author_time": "2026-08-03T01:56:40+00:00",
+          "commit": "95314263b86351bf29b076b83a905d418dad2908",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-02T23:49:14+00:00",
+          "commit": "5a5a99c1adbf49587e72625a5a48ccb7741926a1",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "AA003",
+      "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "git_blob": "ea76cd297bbbb555d635e424ba0638804cd8c44a",
+      "sha256": "9d42be562eb53e45178934cc042159e2848137f129953a20cf83cc06215c2bf7",
+      "bytes": 12034,
+      "lines": 197,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA003--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "observations": [
+        {
+          "author_time": "2026-08-03T05:26:37+00:00",
+          "commit": "271b165b96d74179dc46fdd3e788fbd1cc623829",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T01:56:40+00:00",
+          "commit": "95314263b86351bf29b076b83a905d418dad2908",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "AA004",
+      "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "git_blob": "b45e7667487d8dd9f829e198ade6381daf423e21",
+      "sha256": "cfb85996cab875a8d9f1e25c3b833a1edc404ad9596b0825eeeeaa6e573fc39a",
+      "bytes": 15277,
+      "lines": 250,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA004--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "observations": [
+        {
+          "author_time": "2026-08-03T07:41:53+00:00",
+          "commit": "38bf0e0c4becdf3d3dcb3f1a6b6f89e39258c91b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T05:26:37+00:00",
+          "commit": "271b165b96d74179dc46fdd3e788fbd1cc623829",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "AA005",
+      "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "git_blob": "a9b19ab6641a195f5a1625f3ed9e03fa34823fbf",
+      "sha256": "159807e9525d6045a0d75e404fa25614e08d46b87b4c096ae912c07cf60e1a00",
+      "bytes": 16555,
+      "lines": 269,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA005--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "observations": [
+        {
+          "author_time": "2026-08-03T07:47:16+00:00",
+          "commit": "3cf861b28feb22e9323a5d7d7a15ce445f076c74",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T07:41:53+00:00",
+          "commit": "38bf0e0c4becdf3d3dcb3f1a6b6f89e39258c91b",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "AA006",
+      "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "git_blob": "cf7f76367b678c9da0d5ba36e22b73f1164cd8a1",
+      "sha256": "3e6b4cb068db24407e72747d6d72055aab3c4b96dd676589dec6de7d62bbf42a",
+      "bytes": 16824,
+      "lines": 274,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA006--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "observations": [
+        {
+          "author_time": "2026-08-03T07:52:30+00:00",
+          "commit": "32c0c67217d4a0e231be0666364e12543baf4088",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T07:47:16+00:00",
+          "commit": "3cf861b28feb22e9323a5d7d7a15ce445f076c74",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "AA007",
+      "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "git_blob": "9a0e03e1c1eb2ad21aa1b925e9dd42b38cb56bd8",
+      "sha256": "bde9f54033c3857c4e247f5ef8c9145df22ea379f3934b56d4a55838ce244715",
+      "bytes": 17190,
+      "lines": 279,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA007--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T03:54:55+00:00",
+          "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-03T07:52:30+00:00",
+          "commit": "32c0c67217d4a0e231be0666364e12543baf4088",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "AA008",
+      "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "git_blob": "6dc5a1a8136bb38ee385e55fa110867ed5cd6666",
+      "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2",
+      "bytes": 17670,
+      "lines": 287,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T03:54:55+00:00",
+          "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PB001",
+      "path": "docs/GUALA_PURE_PHYSICS_BOUNDARY_AUDIT_RULE.md",
+      "git_blob": "52467d54790cd46b77bdfb45810a1b200fb05279",
+      "sha256": "724d463f2ea97d3f4ac105fc5055e573b6fb72ad2344e33235f28e49e39d6dbd",
+      "bytes": 3295,
+      "lines": 65,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/physics-boundary-history/PB001--GUALA_PURE_PHYSICS_BOUNDARY_AUDIT_RULE.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-03T08:30:07+00:00",
+          "commit": "a6fa385a3ca312bab39be342a92e91fc46397557",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "DA001",
+      "path": "docs/W1_LOOM_DYNAMIC_AUTHORITY_AUDIT_AND_REQUIRED_LAW_2026-07-27.md",
+      "git_blob": "0db43be28b1ddc7324a4b07d9a324a47a34f9402",
+      "sha256": "0607e9e5529573e3a627b117b9593b58686c3d16cc2bba17d9315a641f66183e",
+      "bytes": 9382,
+      "lines": 231,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/dynamic-authority-history/DA001--W1_LOOM_DYNAMIC_AUTHORITY_AUDIT_AND_REQUIRED_LAW_2026-07-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-29T00:52:55+00:00",
+          "commit": "30f2cf9ecde2eeda2bdd8d2e37d0061655ac2f9c",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    }
+  ],
+  "families": [
+    {
+      "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "latest": {
+        "id": "AA008",
+        "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+        "git_blob": "6dc5a1a8136bb38ee385e55fa110867ed5cd6666",
+        "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2",
+        "bytes": 17670,
+        "lines": 287,
+        "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+        "observations": [
+          {
+            "author_time": "2026-08-29T03:54:55+00:00",
+            "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+            "side": "new"
+          }
+        ],
+        "review": "Captured; semantic reading pending"
+      },
+      "versions": [
+        {
+          "id": "AA001",
+          "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "git_blob": "e797c9bc93d7cbcc1aba8de15ca63e3113ecd773",
+          "sha256": "f0799f6291da19be1b20a7033ae048e9ff8bf612df8315026580be5c2c68b01e",
+          "bytes": 11585,
+          "lines": 191,
+          "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA001--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "observations": [
+            {
+              "author_time": "2026-08-02T23:49:14+00:00",
+              "commit": "5a5a99c1adbf49587e72625a5a48ccb7741926a1",
+              "side": "old"
+            },
+            {
+              "author_time": "2026-08-02T22:29:55+00:00",
+              "commit": "df9975b2a87c2d3962db549dd7ccd45b44feb0fe",
+              "side": "new"
+            }
+          ],
+          "review": "Captured; semantic reading pending"
+        },
+        {
+          "id": "AA002",
+          "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "git_blob": "c6b35c07fd4c3fe2afdb654ea3a108a1e13faebb",
+          "sha256": "9646ece71c713dd896e74b792330bb3dbddeaa03af80c132ee421810ace688e3",
+          "bytes": 11651,
+          "lines": 192,
+          "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA002--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "observations": [
+            {
+              "author_time": "2026-08-03T01:56:40+00:00",
+              "commit": "95314263b86351bf29b076b83a905d418dad2908",
+              "side": "old"
+            },
+            {
+              "author_time": "2026-08-02T23:49:14+00:00",
+              "commit": "5a5a99c1adbf49587e72625a5a48ccb7741926a1",
+              "side": "new"
+            }
+          ],
+          "review": "Captured; semantic reading pending"
+        },
+        {
+          "id": "AA003",
+          "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "git_blob": "ea76cd297bbbb555d635e424ba0638804cd8c44a",
+          "sha256": "9d42be562eb53e45178934cc042159e2848137f129953a20cf83cc06215c2bf7",
+          "bytes": 12034,
+          "lines": 197,
+          "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA003--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "observations": [
+            {
+              "author_time": "2026-08-03T05:26:37+00:00",
+              "commit": "271b165b96d74179dc46fdd3e788fbd1cc623829",
+              "side": "old"
+            },
+            {
+              "author_time": "2026-08-03T01:56:40+00:00",
+              "commit": "95314263b86351bf29b076b83a905d418dad2908",
+              "side": "new"
+            }
+          ],
+          "review": "Captured; semantic reading pending"
+        },
+        {
+          "id": "AA004",
+          "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "git_blob": "b45e7667487d8dd9f829e198ade6381daf423e21",
+          "sha256": "cfb85996cab875a8d9f1e25c3b833a1edc404ad9596b0825eeeeaa6e573fc39a",
+          "bytes": 15277,
+          "lines": 250,
+          "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA004--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "observations": [
+            {
+              "author_time": "2026-08-03T07:41:53+00:00",
+              "commit": "38bf0e0c4becdf3d3dcb3f1a6b6f89e39258c91b",
+              "side": "old"
+            },
+            {
+              "author_time": "2026-08-03T05:26:37+00:00",
+              "commit": "271b165b96d74179dc46fdd3e788fbd1cc623829",
+              "side": "new"
+            }
+          ],
+          "review": "Captured; semantic reading pending"
+        },
+        {
+          "id": "AA005",
+          "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "git_blob": "a9b19ab6641a195f5a1625f3ed9e03fa34823fbf",
+          "sha256": "159807e9525d6045a0d75e404fa25614e08d46b87b4c096ae912c07cf60e1a00",
+          "bytes": 16555,
+          "lines": 269,
+          "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA005--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "observations": [
+            {
+              "author_time": "2026-08-03T07:47:16+00:00",
+              "commit": "3cf861b28feb22e9323a5d7d7a15ce445f076c74",
+              "side": "old"
+            },
+            {
+              "author_time": "2026-08-03T07:41:53+00:00",
+              "commit": "38bf0e0c4becdf3d3dcb3f1a6b6f89e39258c91b",
+              "side": "new"
+            }
+          ],
+          "review": "Captured; semantic reading pending"
+        },
+        {
+          "id": "AA006",
+          "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "git_blob": "cf7f76367b678c9da0d5ba36e22b73f1164cd8a1",
+          "sha256": "3e6b4cb068db24407e72747d6d72055aab3c4b96dd676589dec6de7d62bbf42a",
+          "bytes": 16824,
+          "lines": 274,
+          "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA006--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "observations": [
+            {
+              "author_time": "2026-08-03T07:52:30+00:00",
+              "commit": "32c0c67217d4a0e231be0666364e12543baf4088",
+              "side": "old"
+            },
+            {
+              "author_time": "2026-08-03T07:47:16+00:00",
+              "commit": "3cf861b28feb22e9323a5d7d7a15ce445f076c74",
+              "side": "new"
+            }
+          ],
+          "review": "Captured; semantic reading pending"
+        },
+        {
+          "id": "AA007",
+          "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "git_blob": "9a0e03e1c1eb2ad21aa1b925e9dd42b38cb56bd8",
+          "sha256": "bde9f54033c3857c4e247f5ef8c9145df22ea379f3934b56d4a55838ce244715",
+          "bytes": 17190,
+          "lines": 279,
+          "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA007--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "observations": [
+            {
+              "author_time": "2026-08-29T03:54:55+00:00",
+              "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+              "side": "old"
+            },
+            {
+              "author_time": "2026-08-05T04:09:05+00:00",
+              "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+              "side": "new"
+            },
+            {
+              "author_time": "2026-08-03T07:52:30+00:00",
+              "commit": "32c0c67217d4a0e231be0666364e12543baf4088",
+              "side": "new"
+            }
+          ],
+          "review": "Captured; semantic reading pending"
+        },
+        {
+          "id": "AA008",
+          "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "git_blob": "6dc5a1a8136bb38ee385e55fa110867ed5cd6666",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2",
+          "bytes": 17670,
+          "lines": 287,
+          "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "observations": [
+            {
+              "author_time": "2026-08-29T03:54:55+00:00",
+              "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+              "side": "new"
+            }
+          ],
+          "review": "Captured; semantic reading pending"
+        }
+      ]
+    },
+    {
+      "path": "docs/GUALA_PURE_PHYSICS_BOUNDARY_AUDIT_RULE.md",
+      "latest": {
+        "id": "PB001",
+        "path": "docs/GUALA_PURE_PHYSICS_BOUNDARY_AUDIT_RULE.md",
+        "git_blob": "52467d54790cd46b77bdfb45810a1b200fb05279",
+        "sha256": "724d463f2ea97d3f4ac105fc5055e573b6fb72ad2344e33235f28e49e39d6dbd",
+        "bytes": 3295,
+        "lines": 65,
+        "copy": "backups/runtime/a1-speech-reconciliation-20261010/physics-boundary-history/PB001--GUALA_PURE_PHYSICS_BOUNDARY_AUDIT_RULE.md",
+        "observations": [
+          {
+            "author_time": "2026-08-05T04:09:05+00:00",
+            "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+            "side": "new"
+          },
+          {
+            "author_time": "2026-08-03T08:30:07+00:00",
+            "commit": "a6fa385a3ca312bab39be342a92e91fc46397557",
+            "side": "new"
+          }
+        ],
+        "review": "Captured; semantic reading pending"
+      },
+      "versions": [
+        {
+          "id": "PB001",
+          "path": "docs/GUALA_PURE_PHYSICS_BOUNDARY_AUDIT_RULE.md",
+          "git_blob": "52467d54790cd46b77bdfb45810a1b200fb05279",
+          "sha256": "724d463f2ea97d3f4ac105fc5055e573b6fb72ad2344e33235f28e49e39d6dbd",
+          "bytes": 3295,
+          "lines": 65,
+          "copy": "backups/runtime/a1-speech-reconciliation-20261010/physics-boundary-history/PB001--GUALA_PURE_PHYSICS_BOUNDARY_AUDIT_RULE.md",
+          "observations": [
+            {
+              "author_time": "2026-08-05T04:09:05+00:00",
+              "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+              "side": "new"
+            },
+            {
+              "author_time": "2026-08-03T08:30:07+00:00",
+              "commit": "a6fa385a3ca312bab39be342a92e91fc46397557",
+              "side": "new"
+            }
+          ],
+          "review": "Captured; semantic reading pending"
+        }
+      ]
+    },
+    {
+      "path": "docs/W1_LOOM_DYNAMIC_AUTHORITY_AUDIT_AND_REQUIRED_LAW_2026-07-27.md",
+      "latest": {
+        "id": "DA001",
+        "path": "docs/W1_LOOM_DYNAMIC_AUTHORITY_AUDIT_AND_REQUIRED_LAW_2026-07-27.md",
+        "git_blob": "0db43be28b1ddc7324a4b07d9a324a47a34f9402",
+        "sha256": "0607e9e5529573e3a627b117b9593b58686c3d16cc2bba17d9315a641f66183e",
+        "bytes": 9382,
+        "lines": 231,
+        "copy": "backups/runtime/a1-speech-reconciliation-20261010/dynamic-authority-history/DA001--W1_LOOM_DYNAMIC_AUTHORITY_AUDIT_AND_REQUIRED_LAW_2026-07-27.md",
+        "observations": [
+          {
+            "author_time": "2026-08-05T04:09:05+00:00",
+            "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+            "side": "new"
+          },
+          {
+            "author_time": "2026-07-29T00:52:55+00:00",
+            "commit": "30f2cf9ecde2eeda2bdd8d2e37d0061655ac2f9c",
+            "side": "new"
+          }
+        ],
+        "review": "Captured; semantic reading pending"
+      },
+      "versions": [
+        {
+          "id": "DA001",
+          "path": "docs/W1_LOOM_DYNAMIC_AUTHORITY_AUDIT_AND_REQUIRED_LAW_2026-07-27.md",
+          "git_blob": "0db43be28b1ddc7324a4b07d9a324a47a34f9402",
+          "sha256": "0607e9e5529573e3a627b117b9593b58686c3d16cc2bba17d9315a641f66183e",
+          "bytes": 9382,
+          "lines": 231,
+          "copy": "backups/runtime/a1-speech-reconciliation-20261010/dynamic-authority-history/DA001--W1_LOOM_DYNAMIC_AUTHORITY_AUDIT_AND_REQUIRED_LAW_2026-07-27.md",
+          "observations": [
+            {
+              "author_time": "2026-08-05T04:09:05+00:00",
+              "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+              "side": "new"
+            },
+            {
+              "author_time": "2026-07-29T00:52:55+00:00",
+              "commit": "30f2cf9ecde2eeda2bdd8d2e37d0061655ac2f9c",
+              "side": "new"
+            }
+          ],
+          "review": "Captured; semantic reading pending"
+        }
+      ]
+    }
+  ],
+  "reconstruction": [
+    {
+      "id": "AA001",
+      "sha256": "f0799f6291da19be1b20a7033ae048e9ff8bf612df8315026580be5c2c68b01e",
+      "lines": 191,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "AA002",
+      "sha256": "9646ece71c713dd896e74b792330bb3dbddeaa03af80c132ee421810ace688e3",
+      "lines": 192,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "AA003",
+      "sha256": "9d42be562eb53e45178934cc042159e2848137f129953a20cf83cc06215c2bf7",
+      "lines": 197,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "AA004",
+      "sha256": "cfb85996cab875a8d9f1e25c3b833a1edc404ad9596b0825eeeeaa6e573fc39a",
+      "lines": 250,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "AA005",
+      "sha256": "159807e9525d6045a0d75e404fa25614e08d46b87b4c096ae912c07cf60e1a00",
+      "lines": 269,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "AA006",
+      "sha256": "3e6b4cb068db24407e72747d6d72055aab3c4b96dd676589dec6de7d62bbf42a",
+      "lines": 274,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "AA007",
+      "sha256": "bde9f54033c3857c4e247f5ef8c9145df22ea379f3934b56d4a55838ce244715",
+      "lines": 279,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "AA008",
+      "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2",
+      "lines": 287,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PB001",
+      "sha256": "724d463f2ea97d3f4ac105fc5055e573b6fb72ad2344e33235f28e49e39d6dbd",
+      "lines": 65,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "DA001",
+      "sha256": "0607e9e5529573e3a627b117b9593b58686c3d16cc2bba17d9315a641f66183e",
+      "lines": 231,
+      "complete_reconstruction": true
+    }
+  ],
+  "complete_latest_lines": 583,
+  "historical_only_passages": 25,
+  "historical_only_lines": 62,
+  "all_captured_content_read": true,
+  "product_execution": false,
+  "complete_reconciliation": false
+}

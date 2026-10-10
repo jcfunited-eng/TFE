@@ -1,0 +1,77 @@
+{
+  "at_utc": "2026-10-09T22:15:48.607991+00:00",
+  "changes": [
+    {
+      "path": "/root/.codex/skills/guala-project-truth/SKILL.md",
+      "kind": "full-file replacement preserving old frontmatter/body",
+      "before_sha256": "3d4f712f8b90cc06469500c0c7c96e51ca55f93d07cf5684d802d01d9501f537",
+      "after_sha256": "7db536f0ea4ed8ad622d7c7b754f1963fcac8f990c9ac0d492436880fe79eeb3",
+      "original_preserved": "backups/runtime/a1-architecture-reconciliation-20261009/guidance-before/root/.codex/skills/guala-project-truth/SKILL.md",
+      "bytes_before": 22484,
+      "bytes_after": 23804
+    },
+    {
+      "path": "/root/.codex/skills/guala-cognitive-development/SKILL.md",
+      "kind": "full-file replacement preserving old frontmatter/body",
+      "before_sha256": "dd43396e067e9d1ae05c8e66ac83985734b9e12418b14c19d4f937037b17f040",
+      "after_sha256": "a34c3c2b46b580dafbeb6fb82156b38d8e2834799dab440b82290aa4b38e3959",
+      "original_preserved": "backups/runtime/a1-architecture-reconciliation-20261009/guidance-before/root/.codex/skills/guala-cognitive-development/SKILL.md",
+      "bytes_before": 16265,
+      "bytes_after": 17585
+    },
+    {
+      "path": "/root/.codex/skills/guala-production-deploy/SKILL.md",
+      "kind": "full-file replacement preserving old frontmatter/body",
+      "before_sha256": "e9a7a900fe22694f92aa0f9632d1dd7f65568c27ec35b0ff728bee17edd7514d",
+      "after_sha256": "7879546c800bfce2b8099ea209072a3477c807dd17454e2b8f25da7540e310d9",
+      "original_preserved": "backups/runtime/a1-architecture-reconciliation-20261009/guidance-before/root/.codex/skills/guala-production-deploy/SKILL.md",
+      "bytes_before": 17379,
+      "bytes_after": 18699
+    },
+    {
+      "path": "/root/.codex/skills/guala-project-truth/references/authority-map.md",
+      "kind": "full-file replacement preserving historical authority map",
+      "before_sha256": "2490216c5e1856205c5b5ed7281cc2b79ad642415a28ce34d887a53a853ab9cc",
+      "after_sha256": "222f20697bfe4d541e2143692bce32c73f3c3eea0297bd40bacc12600c24f37b",
+      "original_preserved": "backups/runtime/a1-architecture-reconciliation-20261009/guidance-before/root/.codex/skills/guala-project-truth/references/authority-map.md",
+      "bytes_before": 4748,
+      "bytes_after": 6067
+    },
+    {
+      "path": "/workspaces/Tao_Financial_Engine/AGENTS.md",
+      "kind": "canonical routing, existing instructions preserved",
+      "before_sha256": "33c1fa2b0abfdb6c38fb9e29dcb27f2b47a46bf85dbfb51c22f5bc1f9307006b",
+      "after_sha256": "03055a888c43eb349b62e1edacf532f68d1526e363f6f21361fb2d13bca7b5e0",
+      "original_preserved": "backups/runtime/a1-architecture-reconciliation-20261009/guidance-before/workspaces/Tao_Financial_Engine/AGENTS.md",
+      "bytes_before": 20976,
+      "bytes_after": 21887
+    },
+    {
+      "path": "/workspaces/Tao_Financial_Engine/docs/COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+      "kind": "historical body preserved with explicit correction notice",
+      "before_sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+      "after_sha256": "f281291714949f1f3654717579d03f79223ee203f4c90939fe3ef01f45589c54",
+      "original_preserved": "backups/runtime/a1-architecture-reconciliation-20261009/guidance-before/workspaces/Tao_Financial_Engine/docs/COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+      "bytes_before": 10546,
+      "bytes_after": 11180
+    },
+    {
+      "path": "/workspaces/Tao_Financial_Engine/docs/GUALA_COGNITIVE_MOSAIC_TAPESTRY_WEAVE_SPECIFICATION_2026-10-09.md",
+      "kind": "historical body preserved with explicit correction notice",
+      "before_sha256": "a7dbe3fec1115b27dd91e766e96e1bb457a2183895fc61d910902b3b4f61148f",
+      "after_sha256": "864feaa636e3ed2da219c07909599198527b26be035eca6b9d0b4e268724b092",
+      "original_preserved": "backups/runtime/a1-architecture-reconciliation-20261009/guidance-before/workspaces/Tao_Financial_Engine/docs/GUALA_COGNITIVE_MOSAIC_TAPESTRY_WEAVE_SPECIFICATION_2026-10-09.md",
+      "bytes_before": 9823,
+      "bytes_after": 10505
+    },
+    {
+      "path": "/workspaces/Tao_Financial_Engine/docs/GUALA_OPTION2_NATIVE64_PHYSICAL_AUDIT_2026-10-09.md",
+      "kind": "historical body preserved with explicit correction notice",
+      "before_sha256": "3b5ce3396fb0b3b8128011764f3bb91b5f773375e16b06ee51e2cb155c911960",
+      "after_sha256": "a5f7ec4f4f436832659b3751a96c524811e9f9a373b54112b3a1ce0e12244635",
+      "original_preserved": "backups/runtime/a1-architecture-reconciliation-20261009/guidance-before/workspaces/Tao_Financial_Engine/docs/GUALA_OPTION2_NATIVE64_PHYSICAL_AUDIT_2026-10-09.md",
+      "bytes_before": 5932,
+      "bytes_after": 6772
+    }
+  ]
+}

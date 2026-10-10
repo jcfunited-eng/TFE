@@ -1,0 +1,67 @@
+{
+  "buildx.build.provenance": {
+    "builder": {
+      "id": ""
+    },
+    "buildType": "https://mobyproject.org/buildkit@v1",
+    "materials": [
+      {
+        "uri": "pkg:docker/public.ecr.aws/docker/library/python@3.11-slim?platform=linux%2Famd64",
+        "digest": {
+          "sha256": "9534e5a8e315485d4061ed659af0fd78a284c015f9b73661b41d6bab25604534"
+        }
+      }
+    ],
+    "invocation": {
+      "configSource": {
+        "entryPoint": "Dockerfile"
+      },
+      "parameters": {
+        "frontend": "dockerfile.v0",
+        "args": {
+          "build-arg:BUILD_TS": "2026-09-12T03:16:00Z",
+          "build-arg:GIT_SHA": "5e327afbdfa85c45ceed16f45c8f1264d4d1c153"
+        },
+        "locals": [
+          {
+            "name": "context"
+          },
+          {
+            "name": "dockerfile"
+          }
+        ],
+        "root": {
+          "configSource": {
+            "path": "Dockerfile"
+          },
+          "request": {
+            "args": {
+              "build-arg:BUILD_TS": "2026-09-12T03:16:00Z",
+              "build-arg:GIT_SHA": "5e327afbdfa85c45ceed16f45c8f1264d4d1c153"
+            }
+          }
+        },
+        "compatibilityVersion": 30
+      },
+      "environment": {
+        "dockerfileVersion": "1.26.0",
+        "platform": "linux/amd64"
+      }
+    }
+  },
+  "buildx.build.ref": "guala-c123-release/guala-c123-release0/zjdxof7fvm81kiau55llrbydv",
+  "containerimage.descriptor": {
+    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+    "digest": "sha256:80755ca0965635ded9baa02d9df60463f1a27fab057365a8a0f0d8d1341a0bc7",
+    "size": 2577,
+    "annotations": {
+      "org.opencontainers.image.created": "2026-09-12T03:18:59Z"
+    },
+    "platform": {
+      "architecture": "amd64",
+      "os": "linux"
+    }
+  },
+  "containerimage.digest": "sha256:80755ca0965635ded9baa02d9df60463f1a27fab057365a8a0f0d8d1341a0bc7",
+  "image.name": "418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai:c123-5e327afb"
+}

@@ -1,0 +1,99 @@
+{
+  "at_utc": "2026-10-10T04:22:22.852189+00:00",
+  "scope": "Current documentation correction; no product acceptance. Working sources S66–S68 are not additional fully read Git corpus pairs.",
+  "dispositions": [
+    {
+      "id": "OG01",
+      "source": "S66",
+      "finding": "Active skill treated old temporary roots, genesis gates, runtime snapshots, deployment and cleanup procedures as current operating instructions.",
+      "remedy": "Preserve exact predecessor; route active skill through actual worktree, current user/AGENTS, canonical contract and coherent current state. No organism state changed.",
+      "actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A16"
+      ]
+    },
+    {
+      "id": "OG02",
+      "source": "S66",
+      "finding": "The two-sense slogan, recurrence-only counters and operational history could be mistaken for complete experience/recognition authority; historical retirement/delegation/preferences also conflicted with current instructions.",
+      "remedy": "Preserve reported past results at their stated dates. Require actually participating senses, retained causal relations and direct acceptance; no arbitrary modality quota, old reset, delegation or anti-retirement authority.",
+      "actions": [
+        "A01",
+        "A05",
+        "A06",
+        "A09"
+      ]
+    },
+    {
+      "id": "OG03",
+      "source": "S67",
+      "finding": "Early end-to-end-first candidate test instruction contradicted Joe’s explicit unit→module→system qualification order already recorded later in the same skill.",
+      "remedy": "Define system acceptance first, distinguish predecessor diagnostics, qualify candidate in ordered gates and invalidate dependent receipts after relevant changes.",
+      "actions": [
+        "A01",
+        "A14",
+        "A16"
+      ]
+    },
+    {
+      "id": "OG04",
+      "source": "S68",
+      "finding": "Task1593 snapshot and425000 ug acceptance were written as unscoped current/global guidance after later releases existed.",
+      "remedy": "Label the dated snapshot and threshold scope, preserving failures and exact image; route later claims to their authenticated release-specific evidence.",
+      "actions": [
+        "A01",
+        "A02",
+        "A07",
+        "A14"
+      ]
+    },
+    {
+      "id": "OG05",
+      "source": "S66–S68",
+      "finding": "Permanent guidance needed explicit protection against false verification, semantic seeding and conflated speech stages exposed by original source.",
+      "remedy": "Add evidence-predicate and scope rules, with existing SC65–SC66/SH/VO remedies. Instructions do not claim executable gate enforcement.",
+      "actions": [
+        "A01",
+        "A05",
+        "A10",
+        "A14",
+        "A16"
+      ]
+    }
+  ],
+  "predecessors": [
+    {
+      "id": "S66",
+      "source_path": "/workspaces/Tao_Financial_Engine/.claude/skills/guala-development/SKILL.md",
+      "git_blob": null,
+      "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8",
+      "bytes": 43384,
+      "preserved_copy": "docs/guala_reconciliation/sources/documentation/S66--guala-development--SKILL.md",
+      "review_scope": "Complete pre-reconciliation working document read. Preserved as dated evidence, not current instructions, approval, runtime proof or an additional fully read Git corpus pair.",
+      "captured_at_utc": "2026-10-10T04:22:22.852189+00:00"
+    },
+    {
+      "id": "S67",
+      "source_path": "/root/.codex/skills/guala-project-truth/SKILL.md",
+      "git_blob": null,
+      "sha256": "7db536f0ea4ed8ad622d7c7b754f1963fcac8f990c9ac0d492436880fe79eeb3",
+      "bytes": 23804,
+      "preserved_copy": "docs/guala_reconciliation/sources/documentation/S67--guala-project-truth--SKILL.md",
+      "review_scope": "Complete pre-reconciliation working document read. Preserved as dated evidence, not current instructions, approval, runtime proof or an additional fully read Git corpus pair.",
+      "captured_at_utc": "2026-10-10T04:22:22.852189+00:00"
+    },
+    {
+      "id": "S68",
+      "source_path": "/workspaces/Tao_Financial_Engine/docs/GUALA_LEARNING_DECISION_MECHANISM_CONTRACT_2026-10-08.md",
+      "git_blob": null,
+      "sha256": "15ca8ce53cab440680b1c246ac9530d7967d4f46b41f7d7173195b8bad35f38b",
+      "bytes": 19732,
+      "preserved_copy": "docs/guala_reconciliation/sources/documentation/S68--docs--GUALA_LEARNING_DECISION_MECHANISM_CONTRACT_2026-10-08.md",
+      "review_scope": "Complete pre-reconciliation working document read. Preserved as dated evidence, not current instructions, approval, runtime proof or an additional fully read Git corpus pair.",
+      "captured_at_utc": "2026-10-10T04:22:22.852189+00:00"
+    }
+  ],
+  "obligation_accounting": "Mapped to existing repair/specification obligations; not added as duplicate findings or completed product repairs."
+}

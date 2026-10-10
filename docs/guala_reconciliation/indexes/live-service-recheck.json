@@ -1,0 +1,24 @@
+{
+  "at_utc": "2026-10-09T21:57:20.041469+00:00",
+  "returncode": 0,
+  "result": {
+    "services": [
+      {
+        "serviceName": "dsf-ai-service-lb",
+        "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1598",
+        "desiredCount": 1,
+        "runningCount": 1,
+        "pendingCount": 0,
+        "deployments": [
+          {
+            "status": "PRIMARY",
+            "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1598",
+            "runningCount": 1,
+            "rolloutState": "COMPLETED"
+          }
+        ]
+      }
+    ],
+    "failures": []
+  }
+}

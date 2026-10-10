@@ -1,0 +1,77 @@
+{
+  "scope": "Independent document/source-predicate arithmetic only. No product function/import, organism, benchmark or browser execution.",
+  "faded_before_first_entry": true,
+  "first_entry_contains_faded": false,
+  "admitted_by_both_documented_loader_predicates": true,
+  "token_collisions": [
+    {
+      "a": "dog bit man",
+      "b": "man bit dog",
+      "tokens": [
+        "bit",
+        "dog",
+        "man"
+      ],
+      "equal": true
+    },
+    {
+      "a": "dog bit man",
+      "b": "dog do not bit man",
+      "tokens": [
+        "bit",
+        "dog",
+        "man"
+      ],
+      "equal": true
+    }
+  ],
+  "stage_cardinality": {
+    "4": 2500,
+    "8": 344373768
+  },
+  "accepted_bench_source_hash_matches": true,
+  "refs": [
+    {
+      "source_id": "LD13-01",
+      "path": "docs/guala_reconciliation/sources/language-foundations/LD13-01--74_cognitive_syntax.md",
+      "line": 7,
+      "anchor": "STATE: FADED",
+      "sha256": "ca90babffcfdd554f9787c10cca36149ab1caa5b2f3ee1c68a5ac06317adcce6"
+    },
+    {
+      "source_id": "LDC01",
+      "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+      "line": 142,
+      "anchor": "                if \"STATE: FADED\" in block: continue",
+      "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+    },
+    {
+      "source_id": "LDC05",
+      "path": "docs/guala_reconciliation/sources/language-foundations/LDC05--fabric_ask.py",
+      "line": 38,
+      "anchor": "            if \"STATE: FADED\" in b: continue",
+      "sha256": "09e1cea4f3c164a08cdc0618a45330ce9627294a7b165066ce19fc32b6ed2206"
+    },
+    {
+      "source_id": "LDC01",
+      "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+      "line": 34,
+      "anchor": "STOP = set(\"\"\"the a an is are of in on at to for with by from and or",
+      "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+    },
+    {
+      "source_id": "LDC02",
+      "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+      "line": 918,
+      "anchor": "            for parents in itertools.product(*[slots] * n)",
+      "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+    },
+    {
+      "source_id": "LD20-01",
+      "path": "docs/guala_reconciliation/sources/language-foundations/LD20-01--ACCEPTED_V22_MANIFEST.md",
+      "line": 8,
+      "anchor": "- SHA-256: becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589",
+      "sha256": "9b3b41b43ea3c6015dde191c68ae0d3c8191791beda47a70bd9c5f662afcf77c"
+    }
+  ]
+}

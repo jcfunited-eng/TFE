@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<!-- doc_id: loomscan-live-v1
+     Type: read-only instrument — Loom Scan Tier 1+2, GL-CMD-LOOM-SCAN-BUILD-EVE-20260702-98-v1
+     Data: live polling /status (2s) + /events cursor + /chi_density (6s)
+     Honesty: empty panes shown empty; no decorative activity; no minimum brightness -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>loom scan — guala</title>
+<style>
+:root{
+  --bg:#0C1526;--panel:#0F1A2E;--ink:#8FA6BF;--ink-dim:#5A6E85;--ink-bright:#C9DAEA;
+  --cyan:#4FC6F2;--violet:#9B8CFF;--amber:#F5B84D;--teal:#2FB89A;
+  --red:#E05656;--green:#4FBE7B;--yellow:#D9B44A;
+  --hair:rgba(79,198,242,.14);--hair2:rgba(79,198,242,.07);
+  --mono:ui-monospace,'SF Mono','Cascadia Mono','JetBrains Mono',Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:12px;line-height:1.5}
+body{padding:14px 16px 28px;max-width:1180px;margin:0 auto}
+.lc{text-transform:lowercase;letter-spacing:.04em}
+.lbl{font-size:10px;color:var(--ink-dim);letter-spacing:.08em}
+.val{color:var(--ink-bright)}
+.hair-t{border-top:1px solid var(--hair)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:baseline}
+.g{background:var(--green)}.y{background:var(--yellow)}.r{background:var(--red)}.na{background:var(--ink-dim)}
+
+header{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:10px;border-bottom:1px solid var(--hair)}
+.wordmark{color:var(--cyan);font-size:13px;letter-spacing:.14em}
+.wordmark span{color:var(--ink-dim);letter-spacing:.06em;font-size:10px;margin-left:10px}
+.hdr-right{font-size:10px;color:var(--ink-dim);text-align:right}
+.hdr-right a{color:var(--ink-dim);text-decoration:none}
+.hdr-right a:hover{color:var(--ink)}
+
+.activity{display:grid;grid-template-columns:1.4fr 1fr 1fr .9fr;gap:22px;padding:12px 0;border-bottom:1px solid var(--hair);align-items:end}
+.act-kind{font-size:15px;color:var(--ink-bright)}
+.act-kind em{font-style:normal;color:var(--cyan)}
+.budget{height:3px;background:var(--hair2);margin-top:7px;position:relative}
+.budget i{position:absolute;left:0;top:0;bottom:0;background:var(--cyan);width:0%;transition:width .8s}
+.spark{width:100%;height:34px;display:block}
+.mini-stat{font-size:11px}
+.mini-stat .val{font-size:14px}
+
+.grid{display:grid;grid-template-columns:640px 1fr;gap:26px;padding:16px 0}
+@media(max-width:1020px){.grid{grid-template-columns:1fr}}
+
+.scanwrap{position:relative}
+svg text{font-family:var(--mono)}
+.scan-caption{font-size:10px;color:var(--ink-dim);margin-top:6px;display:flex;justify-content:space-between}
+
+.col h3{font-size:10px;color:var(--ink-dim);font-weight:normal;letter-spacing:.12em;margin:14px 0 8px}
+.col h3:first-child{margin-top:2px}
+.organ{margin-bottom:7px}
+.organ .bar{height:6px;background:var(--hair2);position:relative;margin-top:3px}
+.organ .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--teal);opacity:.85}
+.organ .row{display:flex;justify-content:space-between;font-size:10px}
+.health .vital{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--hair2);font-size:11px}
+.health .vital:last-child{border-bottom:none}
+.health .note{color:var(--ink-dim);font-size:10px;text-align:right;max-width:60%}
+
+.band{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:14px 0;border-top:1px solid var(--hair)}
+.lane{padding:8px 10px;border:1px solid var(--hair2);border-radius:2px;min-height:58px}
+.lane .nm{font-size:10px;color:var(--ink-dim)}
+.lane .st{margin-top:6px;font-size:10px;color:var(--ink)}
+.lane .glow{height:3px;margin-top:8px;background:var(--hair2)}
+.lane .glow i{display:block;height:100%;background:var(--cyan);width:0%;transition:width .5s,opacity .5s}
+.lane.hot{border-color:rgba(79,198,242,.45)}
+.band-cap{grid-column:1/-1;font-size:10px;color:var(--ink-dim)}
+
+.scene{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:12px 0;border-top:1px solid var(--hair)}
+.scene .cell{border:1px dashed var(--hair);border-radius:2px;padding:10px;min-height:44px;color:var(--ink-dim);font-size:10px}
+.scene .cell b{display:block;color:var(--ink-dim);font-weight:normal;letter-spacing:.1em;margin-bottom:4px}
+
+.feed{padding:12px 0;border-top:1px solid var(--hair)}
+.feed h3{font-size:10px;color:var(--ink-dim);font-weight:normal;letter-spacing:.12em;margin-bottom:8px}
+.frow{display:grid;grid-template-columns:92px 96px 1fr 110px;gap:12px;padding:5px 0;border-bottom:1px solid var(--hair2);font-size:11px;align-items:baseline}
+.frow .t{color:var(--ink-dim);font-size:10px}
+.tag{font-size:10px;padding:1px 6px;border:1px solid var(--hair);border-radius:2px}
+.tag.exp{color:var(--cyan);border-color:rgba(79,198,242,.4)}
+.tag.load{color:var(--ink-dim)}
+.tag.emit{color:var(--amber);border-color:rgba(245,184,77,.35)}
+.tag.act{color:var(--teal);border-color:rgba(47,184,154,.35)}
+.tag.na{color:var(--ink-dim);border-style:dashed}
+.src{color:var(--ink-dim);font-size:10px;text-align:right}
+.frow.dim{opacity:.55}
+.frow.new{animation:fadein .4s}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+
+footer{margin-top:16px;padding-top:10px;border-top:1px solid var(--hair);font-size:10px;color:var(--ink-dim);display:grid;grid-template-columns:1fr 1fr;gap:18px}
+footer b{color:var(--ink);font-weight:normal}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 5px 0 12px;vertical-align:baseline}
+.arc{fill:none;stroke:var(--amber);stroke-width:1.1;opacity:0}
+.bloom{fill:none;stroke:var(--amber);opacity:0}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark lc">loom scan <span id="hdr-id">guala · loading…</span></div>
+  <div class="hdr-right lc">
+    <span id="hdr-tick">tick —</span> · <span id="hdr-ts">—</span><br>
+    <a href="/gualaloom.html">← back to guala</a>
+  </div>
+</header>
+
+<div class="activity">
+  <div>
+    <div class="lbl lc">current activity</div>
+    <div class="act-kind lc" id="actKind">—</div>
+    <div class="budget"><i id="budgetFill"></i></div>
+    <div class="lbl lc" id="budgetLbl" style="margin-top:4px">—</div>
+  </div>
+  <div>
+    <div class="lbl lc" id="sparkVLbl">affect · valence —</div>
+    <svg class="spark" id="sparkV" viewBox="0 0 200 34" preserveAspectRatio="none"></svg>
+  </div>
+  <div>
+    <div class="lbl lc" id="sparkALbl">affect · arousal —</div>
+    <svg class="spark" id="sparkA" viewBox="0 0 200 34" preserveAspectRatio="none"></svg>
+  </div>
+  <div class="mini-stat">
+    <div class="lbl lc">ladder</div>
+    <div class="lc" id="ladderStat">—</div>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="scanwrap">
+    <svg id="scan" viewBox="0 0 640 640" role="img" aria-label="radial chi map"></svg>
+    <div class="scan-caption lc">
+      <span id="captionOuter">outer ring: working atlas · loading…</span>
+      <span id="captionInner">inner ring: deep atlas · loading…</span>
+    </div>
+  </div>
+
+  <div class="col">
+    <h3 class="lc">organs — em / pr / ep / sc / gp</h3>
+    <div id="organs"><div class="lbl lc">awaiting hemisphere_update event</div></div>
+    <div class="lbl lc" style="margin-top:6px">counts: most recent hemisphere_update · gated by hemi env flags</div>
+
+    <h3 class="lc">health — spec §8 thresholds</h3>
+    <div class="health" id="health"><div class="lbl lc">loading…</div></div>
+
+    <h3 class="lc">bindings by strength</h3>
+    <div id="strengthBars"></div>
+    <div class="lbl lc" id="strengthNote" style="margin-top:6px">—</div>
+
+    <h3 class="lc">organism growth — em / pr / ep / sc / gp / sf / sv / aff</h3>
+    <div id="organGrowth"><div class="lbl lc">loading…</div></div>
+    <div class="lbl lc" id="organGrowthNote" style="margin-top:6px">—</div>
+  </div>
+</div>
+
+<div class="band" id="band">
+  <div class="band-cap lc">modality band — lit by signature quality of the current window, not volume</div>
+</div>
+
+<div class="scene">
+  <div class="cell lc"><b>place</b><span id="placeCell">loading…</span></div>
+  <div class="cell lc"><b>ambient</b><span id="ambientCell">loading…</span></div>
+  <div class="cell lc"><b>participants</b><span id="whoCell">loading…</span></div>
+</div>
+
+<div class="feed">
+  <h3 class="lc">experience feed — live window classification</h3>
+  <div id="feedRows"></div>
+</div>
+
+<footer class="lc">
+  <div class="legend">
+    <b>legend</b><br>
+    <i style="background:var(--cyan)"></i>working binding &nbsp;
+    <i style="background:var(--violet)"></i>deep memory &nbsp;
+    <i style="background:var(--amber)"></i>word→memory arc / emission bloom<br>
+    committed emission = bright bloom · fallback = dim · sparse is true
+  </div>
+  <div>
+    <b>honesty</b><br>
+    dot positions: real per-chi density from /chi_density. deep atlas: real count + survival dots.<br>
+    empty panes = no signal. dark band = data-load-only window, not experience. no smoothing.<br>
+    GL-CMD-LOOM-SCAN-BUILD-EVE-20260702-98-v1 · tier 1+2 · read-only
+  </div>
+</footer>
+
+<script>
+"use strict";
+const OBSERVATION_ROUTE = "/api/v1/guala/observation";
+const NS = 'http://www.w3.org/2000/svg';
+
+/* ---- SVG helpers ---- */
+function el(n, attrs, parent) {
+  const e = document.createElementNS(NS, n);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const CX = 320, CY = 320, R_OUT = 268, R_DEEP = 150;
+const colAngle = c => ((c % 64) / 64) * 2 * Math.PI - Math.PI / 2;
+const pt = (r, a) => [CX + r * Math.cos(a), CY + r * Math.sin(a)];
+
+/* ---- Scan SVG scaffold ---- */
+const scan = document.getElementById('scan');
+el('circle', {cx: CX, cy: CY, r: R_OUT + 14, fill: 'none', stroke: 'rgba(79,198,242,.16)', 'stroke-width': 1}, scan);
+el('circle', {cx: CX, cy: CY, r: R_DEEP, fill: 'none', stroke: 'rgba(155,140,255,.35)', 'stroke-width': 1}, scan);
+const hazeLayer = el('g', {id: 'hazeLayer'}, scan);
+const dotLayer = el('g', {id: 'dotLayer'}, scan);
+const deepLayer = el('g', {id: 'deepLayer'}, scan);
+const arcLayer = el('g', {id: 'arcs'}, scan);
+const bloomLayer = el('g', {id: 'blooms'}, scan);
+const labelLayer = el('g', {id: 'labels'}, scan);
+const centerGroup = el('g', {id: 'center'}, scan);
+
+const CLUSTER_ANCHORS = [0, 16, 32, 48];
+const CLUSTER_NAMES = ["sensory", "associative", "motor", "vocal"];
+
+function buildColumnTicks() {
+  const g = el('g', {id: 'ticks'}, scan);
+  scan.insertBefore(g, hazeLayer);
+  for (let i = 0; i < 64; i++) {
+    const a = colAngle(i);
+    const isClusterHead = (i % 16 === 0);
+    const r1 = isClusterHead ? R_OUT + 6 : R_OUT + 10;
+    const r2 = R_OUT + 14;
+    const [p1x, p1y] = pt(r1, a), [p2x, p2y] = pt(r2, a);
+    const stroke = isClusterHead ? 'rgba(79,198,242,.7)' : 'rgba(79,198,242,.22)';
+    el('line', {x1: p1x, y1: p1y, x2: p2x, y2: p2y, stroke, 'stroke-width': isClusterHead ? 2 : 1}, g);
+  }
+}
+
+function buildAnchorLabels() {
+  labelLayer.innerHTML = '';
+  for (let idx = 0; idx < 4; idx++) {
+    const c = CLUSTER_ANCHORS[idx];
+    const a = colAngle(c);
+    const [x, y] = pt(R_OUT - 4, a);
+    el('circle', {cx: x, cy: y, r: 3.4, fill: 'none', stroke: 'var(--cyan)', 'stroke-width': 1.2}, labelLayer);
+    const [lx, ly] = pt(R_OUT + 28, a);
+    el('text', {x: lx, y: ly, 'text-anchor': 'middle', fill: 'var(--ink-dim)', 'font-size': '8'}, labelLayer)
+      .textContent = `C${c} ${CLUSTER_NAMES[idx]}`;
+  }
+}
+
+function renderCenterReadout(tick, transitionCount) {
+  centerGroup.innerHTML = '';
+  el('text', {x: CX, y: CY - 6, 'text-anchor': 'middle', fill: 'var(--ink-bright)', 'font-size': '13'}, centerGroup)
+    .textContent = 'tick ' + tick.toLocaleString();
+  const trLabel = transitionCount === null ? "transition unmeasured" : (transitionCount > 0 ? `${transitionCount} yield Δg` : "0 transitions");
+  el('text', {x: CX, y: CY + 12, 'text-anchor': 'middle', fill: transitionCount > 0 ? 'var(--cyan)' : 'var(--ink-dim)', 'font-size': '9'}, centerGroup)
+    .textContent = trLabel;
+}
+
+function renderColumnActivity(obs) {
+  dotLayer.innerHTML = '';
+  const evt = obs.last_occurrence || {};
+  const changed = evt.physically_transitioned_neuron_count || 0;
+  const dsfCount = evt.dsf_delivery_count || 0;
+  const act = evt.her_act || "";
+  
+  for (let c = 0; c < 64; c++) {
+    const a = colAngle(c);
+    const isSensory = (c < 16);
+    const isAssociative = (c >= 16 && c < 32);
+    const isMotor = (c >= 32 && c < 48);
+    const isVocal = (c >= 48);
+
+    let active = false;
+    let colColor = 'var(--cyan)';
+    let op = 0.25;
+
+    if (isSensory && ((evt.external_retinal_site_count || 0) > 0 || (evt.external_heard_sample_count || 0) > 0)) {
+      active = true;
+      colColor = 'var(--cyan)';
+      op = 0.85;
+    } else if (isMotor && act && act !== "rest") {
+      active = true;
+      colColor = 'var(--teal)';
+      op = 0.90;
+    } else if (isVocal && (evt.said || evt.self_pressure_pending)) {
+      active = true;
+      colColor = 'var(--amber)';
+      op = 0.95;
+    } else if (isAssociative && (changed > 0 || dsfCount > 0)) {
+      active = true;
+      colColor = 'var(--violet)';
+      op = 0.80;
+    }
+
+    const r = R_DEEP + 30 + ((c % 4) * 20);
+    const [x, y] = pt(r, a);
+    el('circle', {cx: x, cy: y, r: active ? 3.0 : 1.5, fill: colColor, opacity: op.toFixed(2)}, dotLayer);
+  }
+}
+
+/* ---- State ---- */
+let _tick = 0, _prevV = null, _prevA = null, _vSeries = [], _aSeries = [];
+let _lastEvTick = -1, _seenEvKeys = new Set();
+let _firstPoll = true;
+
+/* ---- Sparklines ---- */
+function spark(id, vals, lo, hi, color) {
+  const s = document.getElementById(id); s.innerHTML = '';
+  if (!vals.length) return;
+  const N = vals.length, W = 200, H = 34;
+  const xs = vals.map((_, i) => 10 + i * (W - 20) / (Math.max(N - 1, 1)));
+  const ys = vals.map(v => H - 4 - 26 * ((v - lo) / (hi - lo || 1)));
+  if (N > 1) {
+    const pts = xs.map((x, i) => x + ',' + ys[i]).join(' ');
+    el('polyline', {points: pts, stroke: color, 'stroke-width': 1.4, fill: 'none'}, s);
+  }
+  vals.forEach((v, i) => el('circle', {cx: xs[i], cy: ys[i], r: 2.4, fill: color}, s));
+}
+
+/* ---- Health vitals ---- */
+function renderHealth(obs) {
+  const evt = obs.last_occurrence || {};
+  const sleep = evt.her_sleep || {};
+  const pNow = (sleep.pressure && sleep.pressure[0] != null) ? sleep.pressure[0] : 0;
+  const pCeil = (sleep.pressure && sleep.pressure[1] != null) ? sleep.pressure[1] : 113600;
+  const sleepRatio = pCeil > 0 ? (pNow / pCeil) : 0;
+
+  const def = evt.metabolic_need_reserve_deficit || [0, 500000];
+  const defRatio = def[1] > 0 ? (def[0] / def[1]) : 0;
+  const resUg = Number.isSafeInteger(evt.reserve_micrograms) ? evt.reserve_micrograms : Math.round(500000 * (1 - defRatio));
+
+  const stabVal = 1.0 - Math.min(1.0, defRatio + sleepRatio * 0.5);
+  const stabC = stabVal < 0.3 ? 'r' : (stabVal < 0.7 ? 'y' : 'g');
+
+  const arousVal = Math.min(1.0, (evt.dsf_delivery_count || 0) / 10.0 + (evt.actual_root_motion ? 0.3 : 0.0));
+  const arousC = arousVal > 0.95 ? 'r' : (arousVal > 0.7 ? 'y' : 'g');
+
+  const chkErr = obs.checkpoint_error;
+  const saveC = chkErr ? 'r' : 'g';
+  const saveNote = chkErr ? `error: ${chkErr}` : `persisted tick ${obs.persisted_tick || '—'}`;
+
+  const counts = evt.her_counts || {};
+  const boundsNote = `${counts.strides || 0} strides · ${counts.bites || 0} bites · ${counts.syllables || 0} syllables`;
+
+  const H = [
+    [stabC, 'stability', stabVal.toFixed(3), 'DSF S(UF) headroom & basin equilibrium'],
+    [arousC, 'arousal', arousVal.toFixed(3), 'somatic free energy surplus & exploratory drive'],
+    [sleepRatio > 0.8 ? 'y' : 'g', 'sleep', `${(sleepRatio * 100).toFixed(0)}%`, `${pNow} / ${pCeil} pressure units`],
+    [resUg >= 425000 ? 'g' : 'y', 'reserve', `${(resUg / 1000).toFixed(0)} mg`, `${(defRatio * 100).toFixed(1)}% deficit (500mg capacity)`],
+    [saveC, 'persistence', saveNote, 'paired atomic current generation pointer'],
+    ['g', 'counters', boundsNote, 'cumulative lifetime settled motor/vocal receipts']
+  ];
+  document.getElementById('health').innerHTML = H.map(([c, n, v, note]) =>
+    `<div class="vital lc"><span><span class="dot ${c}"></span>${n} · <span class="val">${v}</span></span><span class="note">${note}</span></div>`
+  ).join('');
+}
+
+/* ---- Organs (4 Cortical Clusters in 64-Column ArcLoom Substrate) ---- */
+function renderOrgans(obs) {
+  const og = document.getElementById('organs');
+  og.innerHTML = '';
+  const clusters = [
+    ['Cluster 0 (Sensory Afferents C0..C15)', 16, 'var(--cyan)'],
+    ['Cluster 1 (Associative Integration C16..C31)', 16, 'var(--violet)'],
+    ['Cluster 2 (Motor Pyramidal Efferents C32..C47)', 16, 'var(--teal)'],
+    ['Cluster 3 (Vocal / Jaw Efferents C48..C63)', 16, 'var(--amber)'],
+  ];
+  for (const [name, count, color] of clusters) {
+    og.insertAdjacentHTML('beforeend',
+      `<div class="organ"><div class="row lc"><span>${name}</span><span class="val">${count} cols</span></div>
+       <div class="bar"><i style="width:100%;background:${color};opacity:.75"></i></div></div>`);
+  }
+}
+
+/* ---- Strength bars ---- */
+function renderStrengthBars(obs) {
+  const sb = document.getElementById('strengthBars');
+  sb.innerHTML = '';
+  const evt = obs.last_occurrence || {};
+  const trans = evt.physically_transitioned_neuron_count || 0;
+  const dsf = evt.dsf_delivery_count || 0;
+  const rows = [
+    ['plastic yield transitions', trans],
+    ['kernel dsf deliveries', dsf],
+    ['external retinal sites', evt.external_retinal_site_count || 0],
+    ['external heard samples', evt.external_heard_sample_count || 0],
+  ];
+  for (const [label, count] of rows) {
+    const w = Math.min(100, Math.max(5, count > 0 ? (Math.log10(count + 1) / 4.0 * 100) : 5));
+    sb.insertAdjacentHTML('beforeend',
+      `<div class="organ"><div class="row lc"><span>${label}</span><span class="val">${count.toLocaleString()}</span></div>
+       <div class="bar"><i style="width:${w}%;background:var(--cyan);opacity:.7"></i></div></div>`);
+  }
+}
+
+/* ---- Modality band ---- */
+const LANE_NAMES = ['sight', 'sound', 'touch', 'smell', 'taste', 'language'];
+let _laneGlow = {sight: 0, sound: 0, touch: 0, smell: 0, taste: 0, language: 0};
+
+function initBand() {
+  const band = document.getElementById('band');
+  for (const nm of LANE_NAMES) {
+    band.insertAdjacentHTML('beforeend',
+      `<div class="lane lc" id="lane-${nm}"><div class="nm">${nm}</div><div class="st" id="laneS-${nm}"></div>
+       <div class="glow"><i id="laneG-${nm}" style="width:0%"></i></div></div>`);
+  }
+}
+
+function setLaneGlow(nm, pct, text) {
+  _laneGlow[nm] = Math.max(_laneGlow[nm], pct);
+  if (text) { const st = document.getElementById('laneS-' + nm); if (st) st.textContent = text; }
+  const g = document.getElementById('laneG-' + nm); if (g) g.style.width = pct + '%';
+  const lane = document.getElementById('lane-' + nm);
+  if (lane) { lane.className = 'lane lc' + (pct > 60 ? ' hot' : ''); }
+}
+
+function decayLanes() {
+  for (const nm of LANE_NAMES) {
+    _laneGlow[nm] = Math.max(0, _laneGlow[nm] - 6);
+    const g = document.getElementById('laneG-' + nm); if (g) g.style.width = _laneGlow[nm] + '%';
+    const lane = document.getElementById('lane-' + nm);
+    if (lane && _laneGlow[nm] <= 60) lane.className = 'lane lc';
+  }
+}
+
+/* ---- Experience feed ---- */
+const MAX_FEED = 30;
+function addFeedRow(tick, tagCls, tagTxt, body, src, dim) {
+  const feedBox = document.getElementById('feedRows');
+  const div = document.createElement('div');
+  div.className = 'frow new' + (dim ? ' dim' : '');
+  div.innerHTML = `<span class="t">t ${tick.toLocaleString()}</span>` +
+    `<span><span class="tag ${tagCls} lc">${tagTxt}</span></span>` +
+    `<span class="lc">${body}</span><span class="src lc">${src}</span>`;
+  feedBox.insertBefore(div, feedBox.firstChild);
+  while (feedBox.children.length > MAX_FEED) feedBox.removeChild(feedBox.lastChild);
+}
+
+/* ---- Activity strip ---- */
+function renderActivity(obs) {
+  const evt = obs.last_occurrence || {};
+  const act = evt.her_act || 'rest';
+  const reason = evt.act_reason || '';
+  const actKind = document.getElementById('actKind');
+  actKind.innerHTML = reason ? `${act} · <em>${reason}</em>` : act;
+
+  // Modality illumination based on physical receipts
+  if ((evt.external_retinal_site_count || 0) > 0) setLaneGlow('sight', 90, `${evt.external_retinal_site_count} sites`);
+  if ((evt.external_heard_sample_count || 0) > 0) setLaneGlow('sound', 90, `${evt.external_heard_sample_count} samples`);
+  if (evt.her_skin && evt.her_skin.contact) setLaneGlow('touch', 80, `contact ${(evt.her_skin.contact * 100).toFixed(0)}%`);
+  if (evt.said) setLaneGlow('language', 95, `vocalized "${evt.said}"`);
+  if (evt.real_nutrition_intake_zeptojoules > 0) setLaneGlow('taste', 90, `intake ${(evt.real_nutrition_intake_zeptojoules / 17e18).toFixed(0)} µg`);
+}
+
+/* ---- Who and Scene cells ---- */
+function renderScene(obs) {
+  const evt = obs.last_occurrence || {};
+  const emb = evt.embodiment || {};
+  const selfBody = (emb.bodies || []).find(b => b.body_id === emb.self_body_id);
+  const otherBodies = (emb.bodies || []).filter(b => b.body_id !== emb.self_body_id);
+
+  let currentRoom = "unknown";
+  if (selfBody && selfBody.pose && selfBody.pose.position && emb.regions) {
+    const px = selfBody.pose.position.x_mm, py = selfBody.pose.position.y_mm;
+    for (const reg of emb.regions) {
+      const b = reg.bounds;
+      if (px >= b.minimum.x_mm && px <= b.maximum.x_mm && py >= b.minimum.y_mm && py <= b.maximum.y_mm) {
+        currentRoom = reg.region_id.replaceAll("-", " ");
+        break;
+      }
+    }
+  }
+
+  document.getElementById('placeCell').textContent = currentRoom;
+  document.getElementById('ambientCell').textContent = `${emb.objects ? emb.objects.length : 0} objects in topological manifold`;
+  const participants = ["Guala (pupil)"];
+  if (otherBodies.length) participants.push("Caregiver (present)");
+  document.getElementById('whoCell').textContent = participants.join(" · ");
+}
+
+/* ---- Main unified observation poll ---- */
+let _pollBusy = false;
+async function pollObservation() {
+  if (_pollBusy) return;
+  _pollBusy = true;
+  try {
+    const response = await fetch(OBSERVATION_ROUTE, {cache: "no-store"});
+    if (!response.ok) {
+      document.getElementById('actKind').textContent = `HTTP ${response.status} from ${OBSERVATION_ROUTE}`;
+      document.getElementById('hdr-id').textContent = `guala · HTTP ${response.status}`;
+      return;
+    }
+    const d = await response.json();
+    if (!d || d.schema !== "guala.lean_actor_observation.v1") {
+      document.getElementById('actKind').textContent = "invalid observation schema";
+      return;
+    }
+    _tick = d.live_tick || _tick;
+
+    // Header
+    document.getElementById('hdr-id').textContent = `guala · ${d.identity} · native64`;
+    document.getElementById('hdr-tick').textContent = `tick ${_tick.toLocaleString()} (persisted: ${d.persisted_tick || '—'})`;
+    document.getElementById('hdr-ts').textContent = new Date().toLocaleTimeString();
+
+    // Scan radial map
+    if (_firstPoll) {
+      buildColumnTicks();
+      buildAnchorLabels();
+      _firstPoll = false;
+    }
+    const evt = d.last_occurrence || {};
+    renderCenterReadout(_tick, evt.physically_transitioned_neuron_count);
+    renderColumnActivity(d);
+
+    document.getElementById('captionOuter').textContent = `outer ring: 64 Mountcastle columns · ArcLoom ternary neuromorphic substrate`;
+    document.getElementById('captionInner').textContent = `inner ring: L5 pyramidal efferents & L1 apical feedback`;
+    document.getElementById('strengthNote').textContent = `${evt.dsf_delivery_count || 0} DSF deliveries · ${evt.physically_transitioned_neuron_count || 0} yield transitions`;
+
+    // Health, Activity, Scene, Organs
+    renderHealth(d);
+    renderActivity(d);
+    renderScene(d);
+    renderOrgans(d);
+    renderStrengthBars(d);
+
+    // Feed row
+    if (evt.tick && evt.tick !== _lastEvTick) {
+      _lastEvTick = evt.tick;
+      const tagCls = evt.her_act === 'bite' ? 'emit' : (evt.said ? 'emit' : 'act');
+      addFeedRow(evt.tick, tagCls, evt.her_act || 'rest', evt.act_reason || 'somatic transition', evt.external_sensory_source || 'unattended');
+    }
+    decayLanes();
+  } catch (e) {
+    document.getElementById('actKind').textContent = `transport failure: ${e.message}`;
+    document.getElementById('hdr-id').textContent = `guala · transport error`;
+  } finally {
+    _pollBusy = false;
+  }
+}
+
+/* ---- Boot ---- */
+initBand();
+pollObservation();
+setInterval(pollObservation, 1500);
+</script>
+</body>
+</html>

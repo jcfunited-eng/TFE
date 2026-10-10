@@ -1,0 +1,143 @@
+{
+  "schema": "guala.selected_speech_authority_correction.v1",
+  "at_utc": "2026-10-10T12:06:01.717146+00:00",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "sources": [
+    {
+      "id": "AC01",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 4353,
+      "original_line_end": 4373,
+      "copy": "docs/guala_reconciliation/sources/speech-acoustic-authority/AC01.txt",
+      "sha256": "c010164792d4fa987bb2f12aefb142616ec03273225e23276e225fd6c5e4add6",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "AC02",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 4524,
+      "original_line_end": 4557,
+      "copy": "docs/guala_reconciliation/sources/speech-acoustic-authority/AC02.txt",
+      "sha256": "ee6768712996c6598d3439dabf637b34492f018ba50de914b3af3635a1403204",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "AC03",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 5988,
+      "original_line_end": 6215,
+      "copy": "docs/guala_reconciliation/sources/speech-acoustic-authority/AC03.txt",
+      "sha256": "33dc73992fb8f74f2be9f04736a28b8ecf17532d4a36cc6300019403f2cb2ed3",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    },
+    {
+      "id": "AC04",
+      "original_path": "collaborative_todo.md",
+      "git_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "whole_source_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_line_start": 6391,
+      "original_line_end": 6507,
+      "copy": "docs/guala_reconciliation/sources/speech-acoustic-authority/AC04.txt",
+      "sha256": "a2c87d0b6576e8c9f7449bdef0545995c8ae687f67235bbc8b41592cdd38d8a3",
+      "excerpt_read_complete": true,
+      "whole_ledger_read_complete": false
+    }
+  ],
+  "external": {
+    "url": "https://people.ece.cornell.edu/land/courses/ece4760/Speech/remez_rubin_pisoni_carrell1981.pdf",
+    "captured_at_utc": "2026-10-10T12:03:24.758676+00:00",
+    "pdf_sha256": "83a26764914f6b223e215eabdb538010ffd3c6504303ce082ec65133f836404e",
+    "pdf_bytes": 1123109,
+    "text_sha256": "eb8872ff3b463afffcb874d5f204edfa4cd823744dd7180b2796657c9c15bed9",
+    "scope": "Primary paper retrieved; reading separate. Not corpus pair. First extraction attempt failed because pdftotext executable absent; pypdf used without installing anything.",
+    "reading": "Scanned article pages947–950 visually read in full, PDF pages2–5, including figures/table and notes. Other adjacent articles are not evidence. Automated extraction produced only page markers and was not counted as semantic reading.",
+    "doi": "10.1126/science.7233191",
+    "repo_corpus_pair": false,
+    "product_acceptance": false
+  },
+  "findings": [
+    {
+      "id": "ACA01",
+      "finding": "Vocal-fold closure and three resonator modes were overstated as universal intelligibility requirements.",
+      "scope": "Historical scientific/engineering claim, not measured impossibility of ArcLoom.",
+      "remedy": "Withdraw the blanket necessity/minimum claims. Specify the authorized functional acoustic organ and measure its actual reachability, controllability and output separately from naturalness and learned command. Do not add anatomical reconstruction as a prerequisite.",
+      "refs": [
+        "AC01",
+        "AC02",
+        "AC03"
+      ],
+      "specifications": [
+        "SC121",
+        "SC204"
+      ],
+      "actions": [
+        "A01",
+        "A10",
+        "A16"
+      ]
+    },
+    {
+      "id": "ACA02",
+      "finding": "Numeric voice-quality gates and an accepted authored voice bench are not physical-law or pupil-learning proof.",
+      "scope": "The ledger reports Joe accepted v17/v22 timbre. Original conversation approval for each synthesis/control mechanism is not established by that report; present serving invocation of the bench is not established.",
+      "remedy": "Retain the bench as a labeled external acoustic reference. Retire any pupil authority of phoneme/formant dictionaries, authored word timing, imposed pitch contours or random expressive targets. Keep legal native functional oscillation separate from semantic scripting.",
+      "refs": [
+        "AC03"
+      ],
+      "specifications": [
+        "SC121",
+        "SC176",
+        "SC204"
+      ],
+      "actions": [
+        "A01",
+        "A05",
+        "A10",
+        "A15",
+        "A16"
+      ]
+    },
+    {
+      "id": "ACA03",
+      "finding": "A conditioned human listening result cannot qualify organism acquisition or comprehension.",
+      "scope": "External perceptual feasibility evidence, not a Guala experiment, architecture proof, minimum mode count or natural child-voice result.",
+      "remedy": "Separate reference quality, raw intelligibility, learned native articulation, grounded meaning and syntax. Use independent listeners without supplied answer text for claimed intelligibility; use retained-state causal controls for learning and observable withheld combinations for syntax.",
+      "refs": [
+        "AC02",
+        "AC03"
+      ],
+      "specifications": [
+        "SC121",
+        "SC204"
+      ],
+      "actions": [
+        "A01",
+        "A09",
+        "A10",
+        "A16",
+        "A17"
+      ]
+    }
+  ],
+  "acceptance": {
+    "unit": "Verify the approved acoustic component, finite work, actuator dependence, declared reductions, zero-drive behavior, exact timing and complete restart state. Prescribed diagnostic controls qualify only that component. Record arbitrary or empirical reference parameters as such, never as derived laws.",
+    "module": "Show ordinary sensory exposure creates retained native change that later contributes causally to ordered actuation, pressure and self-hearing. Keep reference text, phoneme identities, expected words and answer waveforms outside pupil decisions.",
+    "system": "Distinguish naturalness, listener intelligibility, learned production, grounded use and withheld composition. Report the first failed boundary and every negative/not-run arm; human timbre approval cannot close learned behavior.",
+    "release": "Bind exact source/native/image/configuration and preserved active predecessor to the passed evidence; independently verify live behavior and all prohibited-path exclusions. No reset, authored speech fallback, synthetic pass or ML-free certificate from this document."
+  },
+  "classification": "Additional evidence and qualification clarification under existing SC121/SC176/SC204; no added corpus pairs or unique-violation count",
+  "whole_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false,
+  "g1_acknowledgment": "not_verified",
+  "later_historical_handoff": "The same ledger explicitly prohibits v22 GESTURES, formant rows, randomness, room taps, normalization and utterance schedules as organism cognition or actuation. Common acoustic properties may guide the functional organ. This supports the reference/pupil distinction rather than treating the entire historical reference project as a violation."
+}

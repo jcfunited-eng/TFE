@@ -1,0 +1,1763 @@
+{
+  "schema": "guala.language_foundations_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T05:18:59.685343+00:00",
+  "scope": "All 44 versions across nine named language/syntax/story/voice-manifest paths; six complete per-file source captures. Eleven other captured documentary families are not fully reviewed and are excluded from completion counts.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "LD01-01",
+      "path": "docs/fabric_phylums/09_language_grammar.md",
+      "git_blob": "00aebb726d4a4979bef42fe1157c0fce3c48a574",
+      "sha256": "c713699f037ca7cc03d238effcc4e0032732683d9e41dfe1b279dcb12050ba24",
+      "bytes": 5540,
+      "lines": 94,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD01-01--09_language_grammar.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD01-01--09_language_grammar.md"
+    },
+    {
+      "id": "LD01-02",
+      "path": "docs/fabric_phylums/09_language_grammar.md",
+      "git_blob": "26b86562f5dfd149f79dbea9590556bdc29a405a",
+      "sha256": "10c6127fb4d4813e8aed6132da13980dddd447681b51284c544113a2a2b6601a",
+      "bytes": 6881,
+      "lines": 118,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD01-02--09_language_grammar.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T13:49:06+00:00",
+          "commit": "ace9c2f3dc913af0bb89ef8c490517669a8ed571",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD01-02--09_language_grammar.md"
+    },
+    {
+      "id": "LD08-01",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "073c6e7fc4ad33192f4d15ea9aa1d2d71f4441ec",
+      "sha256": "d652b1326b976682f69eed13d2e2dd67a59c6cfeffbc1003a2583669e3991be0",
+      "bytes": 10837,
+      "lines": 184,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-01--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T19:03:04+00:00",
+          "commit": "2eeed79a550d527a360fe68eea5ae6ecc8e21534",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T18:51:52+00:00",
+          "commit": "a279fed557eb400977d6e5ee1efdce883f4fa976",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-01--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-02",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "0c22d2653c79566d32f5377a248658709d4935df",
+      "sha256": "17e68fc7e1e59da40b373ceff56418ffeb7b27b93e592ea8be504484926c02bc",
+      "bytes": 15269,
+      "lines": 256,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-02--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T20:34:08+00:00",
+          "commit": "6677601ec38ed5e926f9e726ca57e241ffcd6426",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T19:59:23+00:00",
+          "commit": "9fa60b0e98065c735bf12bc310108f242ba0b39a",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-02--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-03",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "1e92a1d19ac5031ca4d3fffc428982cc99c4e3e5",
+      "sha256": "8b424e6dc231c982516479504af5588a9e820d2e0144d42613cf3990b2e569ce",
+      "bytes": 18879,
+      "lines": 314,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-03--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T21:23:31+00:00",
+          "commit": "5f2588a67c5d8842dc73226b4bde72b5f9ae66c3",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T21:14:01+00:00",
+          "commit": "bd1615a5e5519fc8dcb6a645a6c8f2da4c6d3d24",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-03--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-04",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "36f748d9a2cb9cb525e1a1270455fe69c7731029",
+      "sha256": "bc6f1776fb9b3380a0f2802403f632f247d02b845678828a106135631adde078",
+      "bytes": 24714,
+      "lines": 406,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-04--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T01:51:20+00:00",
+          "commit": "3e012d76f7fd4c3272debb2777a4fe3d07c9680d",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T01:49:06+00:00",
+          "commit": "b5753d45ac5311b6c0019b69ee27950c1cf2bf51",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-04--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-05",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "37eb6d409ba215e5ef58500bcb7d9bb2cf079ab9",
+      "sha256": "f3ee4e5365d2dd2461f6edf26ab35569ff71d0adb6da02f37ecf795eb245f8c1",
+      "bytes": 12479,
+      "lines": 208,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-05--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T08:00:22+00:00",
+          "commit": "c5d3088a4ed8f6e686e5cce6c55689c530fb37b8",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T07:52:54+00:00",
+          "commit": "a11b635304cd7c132c58589a17aa0ee56a2704f8",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-05--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-06",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "464c62a163e40e78978d2eeb2d0d1f639fc0dc62",
+      "sha256": "4694845701ff4c539df1521784f6029496349a067ff63168be34d6c6477e734d",
+      "bytes": 11619,
+      "lines": 195,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-06--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T07:52:54+00:00",
+          "commit": "a11b635304cd7c132c58589a17aa0ee56a2704f8",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T07:39:04+00:00",
+          "commit": "c0a6fa01f88a345592866756657e01b3d4c222e5",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-06--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-07",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "56cba32f4e53ee6148b833a4121442254f71594a",
+      "sha256": "eab1080bfd38366f8d10bec73b017d06d9686615c50035b7bb86a16afd8c6ed9",
+      "bytes": 23126,
+      "lines": 382,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-07--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T01:25:25+00:00",
+          "commit": "276df0a5bcbee1706fe70bf73d004218b606265b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T01:17:47+00:00",
+          "commit": "b7378241c7cdc7582c0f97d03eae727059dd7405",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-07--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-08",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "5931b8b54ff917d83aa6bc73f6d0135d594e30ac",
+      "sha256": "f57878cdb4bc9800336a1ab550e41ce233917dcc3f312bb38fe30cea77ab168b",
+      "bytes": 25123,
+      "lines": 412,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-08--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T01:51:20+00:00",
+          "commit": "3e012d76f7fd4c3272debb2777a4fe3d07c9680d",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-08--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-09",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "5a172693cb8aa1bd13b85d183eea0c1dc816e476",
+      "sha256": "771b13d4b54b0f38abdd22d6f3ecf9a24bbbb25f0c02a9545be6fa3c410980cc",
+      "bytes": 16921,
+      "lines": 281,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-09--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T21:14:01+00:00",
+          "commit": "bd1615a5e5519fc8dcb6a645a6c8f2da4c6d3d24",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T20:54:16+00:00",
+          "commit": "813febf33f92b861f5007ccadb5d7b3068689333",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-09--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-10",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "5da84bd9ec003dedf206ab5757c07f6ac33616ae",
+      "sha256": "97a7c24f601c97064ee85963bac63e3b7c93c198bbe084369cec95400c7973ee",
+      "bytes": 10696,
+      "lines": 182,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-10--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T19:36:03+00:00",
+          "commit": "46bcf1e18ed4022bb0aaa10f0e237b1f29b3c0b3",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T19:03:04+00:00",
+          "commit": "2eeed79a550d527a360fe68eea5ae6ecc8e21534",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-10--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-11",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "72dbe2e052444c9d2814b5812a49a7d6347e7f58",
+      "sha256": "3a0c5b3c4369e212467c2c95d343e56027939b857e4229f1238cbb26d3a9695b",
+      "bytes": 15920,
+      "lines": 266,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-11--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T20:38:30+00:00",
+          "commit": "18d82614849ad3d5e67a1636a1137505f1c01090",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T20:34:08+00:00",
+          "commit": "6677601ec38ed5e926f9e726ca57e241ffcd6426",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-11--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-12",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "7b62a9ce63d83e9ac2e16f20b962385245ceb089",
+      "sha256": "10e50a070f918074a8ccc7b2521a5dc2a02f42693c48f899b78fdaa28acd02bf",
+      "bytes": 9397,
+      "lines": 159,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-12--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T07:39:04+00:00",
+          "commit": "c0a6fa01f88a345592866756657e01b3d4c222e5",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T06:18:21+00:00",
+          "commit": "c88430ae9db0d572f3219008a22404fa486f4d9b",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-12--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-13",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "7fff69a4c33dadc3c73e6e4784e94e5d05368f44",
+      "sha256": "8955170b8c960357037125c64d1f130968599e1d4e1370039240aff2397616b5",
+      "bytes": 19591,
+      "lines": 325,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-13--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T21:37:26+00:00",
+          "commit": "e599e5d258117157c0277b952c5092344f807a83",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T21:23:31+00:00",
+          "commit": "5f2588a67c5d8842dc73226b4bde72b5f9ae66c3",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-13--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-14",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "ac9e72cb58ba3332012e32911942f4b40110650d",
+      "sha256": "fb917b76613350b5e0f4d2fd6fc898499cbe07128de52e22c5c312b14bd8019a",
+      "bytes": 16145,
+      "lines": 269,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-14--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T20:54:16+00:00",
+          "commit": "813febf33f92b861f5007ccadb5d7b3068689333",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T20:38:30+00:00",
+          "commit": "18d82614849ad3d5e67a1636a1137505f1c01090",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-14--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-15",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "b0a3a53c3cd04992d290c39b2174093c911d0d10",
+      "sha256": "1ef8fdb6fe09062725b30c950a23d6ae230e2d86ec4957e19bfd26fb6e15932e",
+      "bytes": 22750,
+      "lines": 375,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-15--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T01:09:31+00:00",
+          "commit": "078081f06849e0c292f4f32263062b4a23f84497",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T01:07:26+00:00",
+          "commit": "38c5202c2e4ef4baf1efaef9125bba623ad06122",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-15--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-16",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "b4173eba564658319d2f66156e60c20f105895b2",
+      "sha256": "3bac98d632c2c49abeaf79475029fea49adca2bedc0ddfb6068aec032e2daa63",
+      "bytes": 23907,
+      "lines": 394,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-16--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T01:46:50+00:00",
+          "commit": "fd04cd433b2f7cf2dec074b89acb800ac0b5587f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T01:25:25+00:00",
+          "commit": "276df0a5bcbee1706fe70bf73d004218b606265b",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-16--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-17",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "d676a5ef6b815f52f664b4bd75e74bee4160c7e2",
+      "sha256": "b1b4e17b94ca688257c043a7184dc00458e2a5bb72a1ec702a081ef0bad8df03",
+      "bytes": 24379,
+      "lines": 401,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-17--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T01:49:06+00:00",
+          "commit": "b5753d45ac5311b6c0019b69ee27950c1cf2bf51",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T01:46:50+00:00",
+          "commit": "fd04cd433b2f7cf2dec074b89acb800ac0b5587f",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-17--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-18",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "d7f0f8533b2a3b7e87cb9e7646b044da7296e2f9",
+      "sha256": "1ee03f33e745fa702aa4b416c37180cd860437159e7914480952463cd4e2bd6f",
+      "bytes": 13475,
+      "lines": 226,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-18--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T08:00:22+00:00",
+          "commit": "c5d3088a4ed8f6e686e5cce6c55689c530fb37b8",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-18--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-19",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "dc65f85f20b974f66fdfcf271367e1f10332c0dd",
+      "sha256": "c1fc9d54578829cfc085538c9198e01f2f9c141b4011797d2180f3e7512640a5",
+      "bytes": 20595,
+      "lines": 340,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-19--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T01:07:26+00:00",
+          "commit": "38c5202c2e4ef4baf1efaef9125bba623ad06122",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T21:37:26+00:00",
+          "commit": "e599e5d258117157c0277b952c5092344f807a83",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-19--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-20",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "dcc0339ed15f026ebd859d3239d27468682d1367",
+      "sha256": "9b0594b2cbe913315d2679177e044564bb7c9bea55b66f1cdd3f976f59ebb0c0",
+      "bytes": 23097,
+      "lines": 381,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-20--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T01:17:47+00:00",
+          "commit": "b7378241c7cdc7582c0f97d03eae727059dd7405",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T01:09:31+00:00",
+          "commit": "078081f06849e0c292f4f32263062b4a23f84497",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-20--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-21",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "f0c459aa32408306089fc3770c7723806bd1cbba",
+      "sha256": "a2f4c078dc2866ac6c1dd86e5cebde3c805839d96a05592eb1d1becc798796a9",
+      "bytes": 9817,
+      "lines": 167,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-21--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:18:46+00:00",
+          "commit": "52d674c02323db5d946d31eddac4e133cf27991f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-21--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-22",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "f581f5c90658f0996a6529817022d77172e0eff5",
+      "sha256": "ed1fde85934b397aa38979108a8019d0834ff92bcd48236caf2a84ea7d835130",
+      "bytes": 13522,
+      "lines": 227,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-22--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T19:59:23+00:00",
+          "commit": "9fa60b0e98065c735bf12bc310108f242ba0b39a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T19:36:03+00:00",
+          "commit": "46bcf1e18ed4022bb0aaa10f0e237b1f29b3c0b3",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-22--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-23",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "ff280fcef68af581d5d1ce2b4492ba71b7b232dd",
+      "sha256": "65e29240ebc2820c48133128720c787184fedbe902956bc366d17a72ccb30509",
+      "bytes": 8519,
+      "lines": 146,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-23--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T06:18:21+00:00",
+          "commit": "c88430ae9db0d572f3219008a22404fa486f4d9b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T06:09:54+00:00",
+          "commit": "3d7128ecec6992d84a13271929bafa663431edb3",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-23--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD08-24",
+      "path": "docs/fabric_phylums/174_how_a_sentence_is_built.md",
+      "git_blob": "ffddef56b1469acf703dade196798e0a52afbec3",
+      "sha256": "08b264227074c1f04989a4ca34b72ee82294711686b436b114f5678d5d18dc4d",
+      "bytes": 10286,
+      "lines": 175,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD08-24--174_how_a_sentence_is_built.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:51:52+00:00",
+          "commit": "a279fed557eb400977d6e5ee1efdce883f4fa976",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T18:18:46+00:00",
+          "commit": "52d674c02323db5d946d31eddac4e133cf27991f",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD08-24--174_how_a_sentence_is_built.md"
+    },
+    {
+      "id": "LD09-01",
+      "path": "docs/fabric_phylums/26_meaning_ritual.md",
+      "git_blob": "73b58bcb1b09bf4d98f6e69dc4b4c616cdfea005",
+      "sha256": "6bd91e9dcdcc170ed9a36433d616af153fe3ef20c069a464bf7bcf24a2300305",
+      "bytes": 4584,
+      "lines": 85,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD09-01--26_meaning_ritual.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD09-01--26_meaning_ritual.md"
+    },
+    {
+      "id": "LD09-02",
+      "path": "docs/fabric_phylums/26_meaning_ritual.md",
+      "git_blob": "f41e04f9df61ecfd7cc985f24f3f58b1f9f4a8bd",
+      "sha256": "83c72e0e3255af5e0445260ef55989d4c4411f62e8c92979c7e14ad8fd440b81",
+      "bytes": 5584,
+      "lines": 103,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD09-02--26_meaning_ritual.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T13:49:06+00:00",
+          "commit": "ace9c2f3dc913af0bb89ef8c490517669a8ed571",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD09-02--26_meaning_ritual.md"
+    },
+    {
+      "id": "LD10-01",
+      "path": "docs/fabric_phylums/27_story_drama.md",
+      "git_blob": "79205e46e5e92dace94e2c7bb7e23c1e81166577",
+      "sha256": "53556b36effef20355de90ff2b50922498e6485e38d7532852d812d2ef854f86",
+      "bytes": 5526,
+      "lines": 105,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD10-01--27_story_drama.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T13:49:06+00:00",
+          "commit": "ace9c2f3dc913af0bb89ef8c490517669a8ed571",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD10-01--27_story_drama.md"
+    },
+    {
+      "id": "LD10-02",
+      "path": "docs/fabric_phylums/27_story_drama.md",
+      "git_blob": "cd6f1e4751ae2a1a27e33918dc80fbcb41649220",
+      "sha256": "57f99435e97850c41e6c5b2a75fecb336103711a279187ccb0bf5a3a2784f95c",
+      "bytes": 4452,
+      "lines": 85,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD10-02--27_story_drama.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD10-02--27_story_drama.md"
+    },
+    {
+      "id": "LD11-01",
+      "path": "docs/fabric_phylums/66_words_and_meaning.md",
+      "git_blob": "249998ece86ecaaac7f37e6d929e0c60a9eb170c",
+      "sha256": "484dfaaba047742d52b1c87709a396be76d48085af84cf799f517bcc6d8327f6",
+      "bytes": 7192,
+      "lines": 123,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD11-01--66_words_and_meaning.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T20:37:09+00:00",
+          "commit": "c40f352c561aa7108a84c01a250c787ccb0f72f2",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD11-01--66_words_and_meaning.md"
+    },
+    {
+      "id": "LD11-02",
+      "path": "docs/fabric_phylums/66_words_and_meaning.md",
+      "git_blob": "be58bed9872d8e4f1e55f922f0af664453842e77",
+      "sha256": "9fca658660574d13585694c2209457c76b99a9e00053aa9ee5a16b057493aa89",
+      "bytes": 5685,
+      "lines": 99,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD11-02--66_words_and_meaning.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD11-02--66_words_and_meaning.md"
+    },
+    {
+      "id": "LD12-01",
+      "path": "docs/fabric_phylums/67_grammar_and_sentences.md",
+      "git_blob": "70c720a9f02047d79d6f94cd9eff7b6a688336bf",
+      "sha256": "f1cdc8b40ff89191868f92136540f975a5b0ccc8a647e4401987201ca28c467a",
+      "bytes": 5623,
+      "lines": 99,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD12-01--67_grammar_and_sentences.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD12-01--67_grammar_and_sentences.md"
+    },
+    {
+      "id": "LD12-02",
+      "path": "docs/fabric_phylums/67_grammar_and_sentences.md",
+      "git_blob": "7361a1da702caa3d83c0344cd677047d88de4471",
+      "sha256": "6f19610e8664801301d0b0c2ee4c25b906ec133231aeeb82d6877ee826c376a1",
+      "bytes": 7104,
+      "lines": 124,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD12-02--67_grammar_and_sentences.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T20:37:09+00:00",
+          "commit": "c40f352c561aa7108a84c01a250c787ccb0f72f2",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD12-02--67_grammar_and_sentences.md"
+    },
+    {
+      "id": "LD13-01",
+      "path": "docs/fabric_phylums/74_cognitive_syntax.md",
+      "git_blob": "150a68553d878986e736bd6eb849031f48d72000",
+      "sha256": "ca90babffcfdd554f9787c10cca36149ab1caa5b2f3ee1c68a5ac06317adcce6",
+      "bytes": 6180,
+      "lines": 127,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD13-01--74_cognitive_syntax.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T20:29:20+00:00",
+          "commit": "bcceb76c54a5efc65a90850a27e65c52e08565f6",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD13-01--74_cognitive_syntax.md"
+    },
+    {
+      "id": "LD13-02",
+      "path": "docs/fabric_phylums/74_cognitive_syntax.md",
+      "git_blob": "21fcf27223b435e31e2ca3423a8b3bef90ede9b6",
+      "sha256": "396d202b48126d7a6adf13899bef4fdfc7ede81f569555cadb424ceba4e60c76",
+      "bytes": 7511,
+      "lines": 154,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD13-02--74_cognitive_syntax.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T07:39:04+00:00",
+          "commit": "c0a6fa01f88a345592866756657e01b3d4c222e5",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD13-02--74_cognitive_syntax.md"
+    },
+    {
+      "id": "LD13-03",
+      "path": "docs/fabric_phylums/74_cognitive_syntax.md",
+      "git_blob": "23a684a2975037c7e050e200784bc8354c22f558",
+      "sha256": "5f9f5530368fffb618dc4a13c5a62f601707a37982ddc84c45efe19b920b9551",
+      "bytes": 7416,
+      "lines": 151,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD13-03--74_cognitive_syntax.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T07:39:04+00:00",
+          "commit": "c0a6fa01f88a345592866756657e01b3d4c222e5",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T00:42:59+00:00",
+          "commit": "815580379eeac0e5721d597a10db3cf2ee4af56e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD13-03--74_cognitive_syntax.md"
+    },
+    {
+      "id": "LD13-04",
+      "path": "docs/fabric_phylums/74_cognitive_syntax.md",
+      "git_blob": "54091c87578b53c724edc7c3c781f2192b72889c",
+      "sha256": "654058a1ea567d2611d59d625e561867b6785a94f908a80edb845b5c54ad9911",
+      "bytes": 7235,
+      "lines": 149,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD13-04--74_cognitive_syntax.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T00:22:27+00:00",
+          "commit": "857b232e6ec32ae9f813c21708f15bd0e84330ff",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T00:14:34+00:00",
+          "commit": "0a255adf987fba2afe4239ad64aef9c14e17f76c",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD13-04--74_cognitive_syntax.md"
+    },
+    {
+      "id": "LD13-05",
+      "path": "docs/fabric_phylums/74_cognitive_syntax.md",
+      "git_blob": "be1e2e8bbd85beb5bd453246d9846f092099d772",
+      "sha256": "54554fefb56b5ca87d1517bf4b1b27a5356a7a4491dae745089d61cc62d6db51",
+      "bytes": 7314,
+      "lines": 150,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD13-05--74_cognitive_syntax.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T00:42:59+00:00",
+          "commit": "815580379eeac0e5721d597a10db3cf2ee4af56e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T00:22:27+00:00",
+          "commit": "857b232e6ec32ae9f813c21708f15bd0e84330ff",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD13-05--74_cognitive_syntax.md"
+    },
+    {
+      "id": "LD13-06",
+      "path": "docs/fabric_phylums/74_cognitive_syntax.md",
+      "git_blob": "d4335779fe75e4d961affc05a9216077d75f6218",
+      "sha256": "4738455441e7daa5146f18d318a779d9e9cb03c7aebaad8250ab77466675b743",
+      "bytes": 6164,
+      "lines": 127,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD13-06--74_cognitive_syntax.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T20:29:20+00:00",
+          "commit": "bcceb76c54a5efc65a90850a27e65c52e08565f6",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD13-06--74_cognitive_syntax.md"
+    },
+    {
+      "id": "LD13-07",
+      "path": "docs/fabric_phylums/74_cognitive_syntax.md",
+      "git_blob": "f3bc647da29d424174854a575a36889ec09cb5df",
+      "sha256": "9c7454ddbfa6fca2df48b3b19ab0620e2a0f4681591fbcad2914de0bdab03ea7",
+      "bytes": 7222,
+      "lines": 148,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD13-07--74_cognitive_syntax.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T00:14:34+00:00",
+          "commit": "0a255adf987fba2afe4239ad64aef9c14e17f76c",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T00:12:04+00:00",
+          "commit": "208659c4fdc19b8aa81682d894be0486742a87c2",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD13-07--74_cognitive_syntax.md"
+    },
+    {
+      "id": "LD14-01",
+      "path": "docs/fabric_phylums/80_figurative_speech.md",
+      "git_blob": "a7266b00aca31a4c3f6fea7c624e6237f4c289ea",
+      "sha256": "2ace916abb9e9dda85ea48d2d98716ff8ef3c349fa861e5070502c1bfbffe459",
+      "bytes": 7211,
+      "lines": 123,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD14-01--80_figurative_speech.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T00:41:42+00:00",
+          "commit": "9b5bacc203273b0a78fd3c5ab0d5ceef330f3b6f",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD14-01--80_figurative_speech.md"
+    },
+    {
+      "id": "LD14-02",
+      "path": "docs/fabric_phylums/80_figurative_speech.md",
+      "git_blob": "ebaff28e3c3c64cd34daf6f9c8ab04ecb07a2ce3",
+      "sha256": "c5eaf450845d60e54832a21559dd48c81cd3e13e4636d244f9c78d674c6c1327",
+      "bytes": 5836,
+      "lines": 99,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD14-02--80_figurative_speech.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD14-02--80_figurative_speech.md"
+    },
+    {
+      "id": "LD20-01",
+      "path": "docs/voice_bench/ACCEPTED_V22_MANIFEST.md",
+      "git_blob": "a36da6f868a1f0e59c2e431e2cc7122ccfd18b9e",
+      "sha256": "9b3b41b43ea3c6015dde191c68ae0d3c8191791beda47a70bd9c5f662afcf77c",
+      "bytes": 2858,
+      "lines": 55,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD20-01--ACCEPTED_V22_MANIFEST.md",
+      "observations": [
+        {
+          "author_time": "2026-09-02T02:19:46+00:00",
+          "commit": "3c1fc73ac8ae4448d3066db09c6f333341e6efb1",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through nine latest documents (1155 lines) and all 105 earlier passages (296 lines). Historical authority/execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LD20-01--ACCEPTED_V22_MANIFEST.md"
+    }
+  ],
+  "code_sources": [
+    {
+      "id": "LDC01",
+      "path": "fabric/core.py",
+      "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576",
+      "bytes": 9834,
+      "lines": 244,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LDC01--core.py",
+      "review": "Complete 244-line working source read. No import or execution; transitive dependencies, atomic-candidate and live-serving closure remain incomplete.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py"
+    },
+    {
+      "id": "LDC02",
+      "path": "fabric/first_ribbon.py",
+      "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e",
+      "bytes": 47491,
+      "lines": 1083,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LDC02--first_ribbon.py",
+      "review": "Complete 1083-line working source read. No import or execution; transitive dependencies, atomic-candidate and live-serving closure remain incomplete.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py"
+    },
+    {
+      "id": "LDC03",
+      "path": "fabric/saying.py",
+      "sha256": "4251fdcd55cd2bc4620b395ee1defacd07cecb35ad88913817af5a3e67eefada",
+      "bytes": 15634,
+      "lines": 376,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LDC03--saying.py",
+      "review": "Complete 376-line working source read. No import or execution; transitive dependencies, atomic-candidate and live-serving closure remain incomplete.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LDC03--saying.py"
+    },
+    {
+      "id": "LDC04",
+      "path": "fabric/ribbon_language.py",
+      "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5",
+      "bytes": 4308,
+      "lines": 102,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LDC04--ribbon_language.py",
+      "review": "Complete 102-line working source read. No import or execution; transitive dependencies, atomic-candidate and live-serving closure remain incomplete.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py"
+    },
+    {
+      "id": "LDC05",
+      "path": "fabric/fabric_ask.py",
+      "sha256": "09e1cea4f3c164a08cdc0618a45330ce9627294a7b165066ce19fc32b6ed2206",
+      "bytes": 13371,
+      "lines": 282,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LDC05--fabric_ask.py",
+      "review": "Complete 282-line working source read. No import or execution; transitive dependencies, atomic-candidate and live-serving closure remain incomplete.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LDC05--fabric_ask.py"
+    },
+    {
+      "id": "LDC06",
+      "path": "docs/voice_bench/toy_vocal_organ_bench_v22.html",
+      "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589",
+      "bytes": 26440,
+      "lines": 576,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LDC06--toy_vocal_organ_bench_v22.html",
+      "review": "Complete 576-line working source read. No import or execution; transitive dependencies, atomic-candidate and live-serving closure remain incomplete.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-foundations/LDC06--toy_vocal_organ_bench_v22.html"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "LFR01",
+      "name": "Prose files are executable language policy, not sensory experience",
+      "classification": "Authored semantic authority; not qualified for pupil cognition",
+      "historical_requirement_or_mechanism": "The sentence document says every number is knowledge and that changing the file changes the reading without touching machinery. first_ribbon.py actually reads spelled thresholds from ESSENCE/CANNOT/HOLDS entries. core.py compiles words, authored clauses and ASKED-AS into masks and indices. ribbon_language.py reads MEANS-SAME/SPLITS-INTO into sense/context dictionaries, chooses the crowd with most matching words and appends up to 12 sorted crowd words to the query.",
+      "current_disposition": "This is direct source evidence of a separate fabric program, not proof it serves current Guala. A declarative program can be deterministic and documented while still supplying authored semantics. Calling a file knowledge or deleting its tables does not prove sensory learning.",
+      "lawful_remedy": "Retain the files as historical material or explicitly external curriculum at an approved boundary. Exclude their direct parser/answer/decision authority from the pupil and bind every reachable caller before making any absence claim. Moving a rule from code to prose is not remediation.",
+      "unit_acceptance": "Classify each value, table, parser rule, output selector and semantic payload by origin and reader.",
+      "module_acceptance": "Verify content-supplier isolation on all pupil callers; read-only observation and teaching must not inject inferred concepts.",
+      "system_acceptance": "Demonstrate syntax and answer content depend on retained multimodal substrate state rather than document edits or keyword expansions.",
+      "release_acceptance": "Inspect the frozen image/configuration/frontend and current serving chain; record any separate fabric tool at its actual scope.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "LD08-08",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD08-08--174_how_a_sentence_is_built.md",
+          "line": 10,
+          "anchor": "because the school classes fail on half the vocabulary. Every number",
+          "sha256": "f57878cdb4bc9800336a1ab550e41ce233917dcc3f312bb38fe30cea77ab168b"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 55,
+          "anchor": "class Settings:",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 156,
+          "anchor": "                         same=part(\"MEANS-SAME\"),",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 75,
+          "anchor": "                    area=best_area if best_hit >= 2 else None,",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 91,
+          "anchor": "        sorted(r[\"crowd\"])[:12])",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        }
+      ]
+    },
+    {
+      "id": "LFR02",
+      "name": "The parser is a statistical rule system with self-labelled classes",
+      "classification": "Corpus statistics plus authored thresholds; native learned syntax unproved",
+      "historical_requirement_or_mechanism": "The design sets four sightings, overlap above one half, 100 frame words, subject spread above three fifths, three pair sightings, three-quarters pointer frequency, 50 pointer sightings and four staged groups. Source adds a top-4000 scan and learns two classes from its own rule-selected readings, limiting seeds by counts 60/25/20 and comparing average boolean similarities. Role choice then uses positional rules, minimum pointer rate and word frequency. A scalar score or corpus-induced class is not full DSF evaluation.",
+      "current_disposition": "No trained neural model is imported by these inspected files, but that is not an ML-free system finding. The explicit data-derived classifier and heuristic decision law require classification regardless of library, language or the word deterministic. The complete transitive implementation is not reviewed here.",
+      "lawful_remedy": "Do not port these classifiers or numeric choices into ArcLoom. Qualify the approved local adaptation and retained structural relations that actually support syntax, with authentic causal use and no authored grammar deciding the answer.",
+      "unit_acceptance": "Bind every state update and selection predicate to its approved law; identify dimensional quantities and rule parameters separately.",
+      "module_acceptance": "Test retained causal relations and readout without statistical grammar teachers or pseudo-labels entering pupil authority.",
+      "system_acceptance": "Use new role/order/context combinations with matched retained-state controls to demonstrate grounded composition.",
+      "release_acceptance": "No library-free, deterministic or accurate-parser result may clear the current system of ML/heuristics.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A05",
+        "A08",
+        "A09",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LD08-08",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD08-08--174_how_a_sentence_is_built.md",
+          "line": 18,
+          "anchor": "  always is. A word seen fewer than four times has no behaviour yet:",
+          "sha256": "f57878cdb4bc9800336a1ab550e41ce233917dcc3f312bb38fe30cea77ab168b"
+        },
+        {
+          "source_id": "LD08-08",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD08-08--174_how_a_sentence_is_built.md",
+          "line": 38,
+          "anchor": "ESSENCE: the frame is the commonest hundred words in the writing THAT",
+          "sha256": "f57878cdb4bc9800336a1ab550e41ce233917dcc3f312bb38fe30cea77ab168b"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 160,
+          "anchor": "        for w, _n in self.count.most_common(4000):",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 656,
+          "anchor": "def classes():",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 706,
+          "anchor": "    d = sum(C.alike(w, s) for s in cl[\"doing\"]) / len(cl[\"doing\"])",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 878,
+          "anchor": "    pick = min(cand, key=lambda i: (C.opened(head(gs[i])),",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        }
+      ]
+    },
+    {
+      "id": "LFR03",
+      "name": "Preserve explicit failed-rule history without ratifying the next patch",
+      "classification": "Genuine retractions; unsupported successor selection and design/source drift",
+      "historical_requirement_or_mechanism": "Across 24 versions, the sentence file retracts adjacency asymmetry, a co-occurrence wall that killed all longer readings, an inverted verb rule, a grouping change that dropped 62/70 to 29/70, and a two-times overlap relation that confused unrelated music/salt with animal/dog. It marks several later rules MINE, ON TRIAL. Current first_ribbon.py additionally admits shipped order rules misread two statements in five, then selects orders through a constraint, inferred word class or later bare number. That differs from the latest captured document’s pointer/frame/asking-word criteria.",
+      "current_disposition": "The explicit counterexamples and admissions are valuable evidence of correction, not proof of intent or permanent impossibility. Reported hand-labelled benchmark improvements do not independently authorize a heuristic or validate general syntax. Current document/source agreement must be checked rather than assumed.",
+      "lawful_remedy": "Preserve failed designs, original tests and their exact causes. Do not import any successor merely because it improves that benchmark. Reconcile the actual intended law and implementation; source retirement must include every indirect user.",
+      "unit_acceptance": "Retain negative cases as architectural falsifiers; do not tune thresholds or exceptions to pass them.",
+      "module_acceptance": "Compare specification to every decision branch and distinguish a fixed representation defect from another answer-selection rule.",
+      "system_acceptance": "Demonstrate preserved-state sensory generalization under independently specified controls, with unimplemented cases visible.",
+      "release_acceptance": "No promotion from a local benchmark or retrospective prose claim without source/authority/runtime custody.",
+      "repair_actions": [
+        "A01",
+        "A05",
+        "A09",
+        "A10",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LD08-08",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD08-08--174_how_a_sentence_is_built.md",
+          "line": 77,
+          "anchor": "  the bench fell from 62 of 70 to 29. It was hand-judged on fifty",
+          "sha256": "f57878cdb4bc9800336a1ab550e41ce233917dcc3f312bb38fe30cea77ab168b"
+        },
+        {
+          "source_id": "LD08-08",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD08-08--174_how_a_sentence_is_built.md",
+          "line": 168,
+          "anchor": "  MINE, ON TRIAL: this between-rule is my construct, not ratified,",
+          "sha256": "f57878cdb4bc9800336a1ab550e41ce233917dcc3f312bb38fe30cea77ab168b"
+        },
+        {
+          "source_id": "LD08-08",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD08-08--174_how_a_sentence_is_built.md",
+          "line": 376,
+          "anchor": "  against 0.07 and music bears salt scores 0.57 against 0.23 — a true",
+          "sha256": "f57878cdb4bc9800336a1ab550e41ce233917dcc3f312bb38fe30cea77ab168b"
+        },
+        {
+          "source_id": "LD08-11",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD08-11--174_how_a_sentence_is_built.md",
+          "line": 231,
+          "anchor": "  more than two times the share the other way, and the one with the",
+          "sha256": "3a0c5b3c4369e212467c2c95d343e56027939b857e4229f1238cbb26d3a9695b"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 794,
+          "anchor": "    # were reading two statements in five as orders. A constraint",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 808,
+          "anchor": "                 or any(head(g).isdigit() for g in gs[1:]))):",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        }
+      ]
+    },
+    {
+      "id": "LFR04",
+      "name": "New word arrangements do not establish semantic composition",
+      "classification": "Generation/novelty substituted for grounded relation evidence",
+      "historical_requirement_or_mechanism": "first_ribbon.py calls six high-ranked shared-context words a generated space and produces senses through positive frequency lift. say() simply joins supplied doer/doing/done-to strings. joint() correctly stopped asserting a type relation after overlap was falsified, returning only meet and shares, while its docstring still claims the old three-way relation is known. The design explicitly says how to distinguish those joints is unknown.",
+      "current_disposition": "A string can be absent from the stored corpus without being grounded, meaningful or learned. The scoped withdrawal of false relation labels should be preserved. It does not turn residual word rankings into an approved physical relation mechanism.",
+      "lawful_remedy": "Require an actual retained relation with its causal sensory/body/context/order origin and later effect. Keep unsupported relation types unavailable; do not fill them with six-word lists, prompt novelty, lookup text or positional joins.",
+      "unit_acceptance": "Verify relation identity, direction and provenance rather than only novel bytes or unique word combinations.",
+      "module_acceptance": "Trace the real recalled relation into endogenous articulation without an independent semantic composer.",
+      "system_acceptance": "Demonstrate new grounded relations and role reversals through authentic experienced consequences.",
+      "release_acceptance": "Certificate language must name the proved relation and acoustic/behavioral scope, not general composition.",
+      "repair_actions": [
+        "A01",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 464,
+          "anchor": "def between(a, b, k=6, floor=2):",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 561,
+          "anchor": "    return \" \".join(parts) if len(parts) >= 2 else None",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 608,
+          "anchor": "        lift = n / len(near) - allc[v] / len(mine)",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 535,
+          "anchor": "    # No kind is returned. Telling the three kinds of joint apart from",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LD08-08",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD08-08--174_how_a_sentence_is_built.md",
+          "line": 382,
+          "anchor": "  whatever the two are. HOW to tell the three kinds of joint apart is",
+          "sha256": "f57878cdb4bc9800336a1ab550e41ce233917dcc3f312bb38fe30cea77ab168b"
+        }
+      ]
+    },
+    {
+      "id": "LFR05",
+      "name": "Core masks discard order and negation before ranked retrieval",
+      "classification": "Explicit reduced semantic representation; not a full-field mechanism",
+      "historical_requirement_or_mechanism": "core.py drops authored stop words including no/not, applies suffix stripping, and converts remaining words to an unordered bitmask. reach() sums inverse document frequency and returns a limited ranking; judge() recognizes only selected regex clause forms with a two-token overlap condition. Its docstring says nothing here decides anything and judging uses no search, but those are actual selection and rule predicates. Other fabric paths retain some word order, so loss in this core must not be attributed indiscriminately to every caller.",
+      "current_disposition": "This is a verified reduced text mechanism, not a claim that the L0–L4 kernel was changed. Independent document-only predicates show the token probes dog bit man/man bit dog and dog bit man/dog do not bit man reduce to identical sets at this stage; these are representation fixtures, not grammatical-language tests. No organism or product function was run.",
+      "lawful_remedy": "Exclude this proxy from pupil cognition and retain complete event/field structure under the approved architecture. Where used as a separate historical tool, label its exact information loss and do not call it logical or cognitive proof.",
+      "unit_acceptance": "Prove the actual representation distinguishes every order, polarity and role required by the claimed operation.",
+      "module_acceptance": "Follow authoritative full-field/event values to real consumers; a parallel full archive cannot repair a reduced decision.",
+      "system_acceptance": "Verify different experienced causal orders produce appropriately different retained and later-used relations.",
+      "release_acceptance": "No full-field or understanding claim from keyword coverage, ranking or bitwise execution.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A05",
+        "A06",
+        "A08",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 34,
+          "anchor": "STOP = set(\"\"\"the a an is are of in on at to for with by from and or",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 117,
+          "anchor": "            m |= 1 << i",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 217,
+          "anchor": "                    hits[eid] = hits.get(eid, 0.0) + rare",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 233,
+          "anchor": "                   min(2, bin(L[\"b\"]).count(\"1\")):",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        },
+        {
+          "source_id": "LD12-01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD12-01--67_grammar_and_sentences.md",
+          "line": 13,
+          "anchor": "ESSENCE: in English, position says who did what to whom — \"the dog",
+          "sha256": "f1cdc8b40ff89191868f92136540f975a5b0ccc8a647e4401987201ca28c467a"
+        }
+      ]
+    },
+    {
+      "id": "LFR06",
+      "name": "The conversational move system is an authored controller",
+      "classification": "Procedural response policy; changing output wording does not remove it",
+      "historical_requirement_or_mechanism": "The cognitive-syntax document prescribes rejecting, ranking and choosing the move that opens the most for the other person. saying.py executes a fixed list of moves, supplies a greeting from a document list, picks the rarest subject, selects a sense by near-count, applies a six-line repeat window and emits ground: none when no move survives. Its comment says no sentences or moves are the author’s, while those conditions and the output vocabulary are explicitly written. An unread move returns an empty word list that _t discards.",
+      "current_disposition": "This separate program may disclose its limited terse output, which is better than claiming fluent prose. That does not turn its controller into ArcLoom autonomy, physical silence or syntax learned from experience. Set iteration in the repeated greeting also does not supply a stable tie rule.",
+      "lawful_remedy": "Keep authored conversation moves and anti-repeat recipes outside pupil authority. Preserve honest absence of capability and distinguish a UI diagnostic from something the organism chose to say.",
+      "unit_acceptance": "Identify all selection, fallback and suppression rules, including empty/refused input.",
+      "module_acceptance": "Trace the source of every displayed or audible occurrence and verify no controller supplies pupil content.",
+      "system_acceptance": "Demonstrate autonomous vocal initiation and retained-context use from native state, including lawful silence.",
+      "release_acceptance": "Verify actual shipped UI routes and output provenance; concise diagnostics must remain observer text.",
+      "repair_actions": [
+        "A01",
+        "A05",
+        "A09",
+        "A10",
+        "A11",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "LD13-01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD13-01--74_cognitive_syntax.md",
+          "line": 113,
+          "anchor": "RULE: to take a turn in a conversation — reach for what the",
+          "sha256": "ca90babffcfdd554f9787c10cca36149ab1caa5b2f3ee1c68a5ac06317adcce6"
+        },
+        {
+          "source_id": "LDC03",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC03--saying.py",
+          "line": 335,
+          "anchor": "    MOVES = [\"m_unread\", \"m_greet\", \"m_lean\", \"m_group\", \"m_say\",",
+          "sha256": "4251fdcd55cd2bc4620b395ee1defacd07cecb35ad88913817af5a3e67eefada"
+        },
+        {
+          "source_id": "LDC03",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC03--saying.py",
+          "line": 242,
+          "anchor": "            return self._t(\"turn\", list(self.no_subject)[:1])",
+          "sha256": "4251fdcd55cd2bc4620b395ee1defacd07cecb35ad88913817af5a3e67eefada"
+        },
+        {
+          "source_id": "LDC03",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC03--saying.py",
+          "line": 348,
+          "anchor": "            if line not in self.spoken[-6:]:",
+          "sha256": "4251fdcd55cd2bc4620b395ee1defacd07cecb35ad88913817af5a3e67eefada"
+        },
+        {
+          "source_id": "LDC03",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC03--saying.py",
+          "line": 351,
+          "anchor": "            out = [\"ground: none\"]",
+          "sha256": "4251fdcd55cd2bc4620b395ee1defacd07cecb35ad88913817af5a3e67eefada"
+        }
+      ]
+    },
+    {
+      "id": "LFR07",
+      "name": "Declared retirement and live corpus refresh do not match the loaders",
+      "classification": "Source-bound lifecycle defects in the separate language program",
+      "historical_requirement_or_mechanism": "The cognitive-syntax file places STATE: FADED before its first ESSENCE. Both loaders split on the next ESSENCE and check FADED only inside the resulting entry, so the first faded entry remains admitted by those predicates. Independent text segmentation confirms this without importing product code. core.signature hashes path/mtime/size, not contents, despite saying it catches every edit; Company, Language, line indices and learned-class caches are initialized once without binding to later core rebuilds.",
+      "current_disposition": "These are source/document correspondence defects; no live occurrence, active Guala dependency or actual cache mutation is claimed. The historical FADED marker’s exact intended scope still needs original authority.",
+      "lawful_remedy": "G1 must determine whether any permitted external tool still needs this path; otherwise exclude it from the pupil and retire it with explicit scope. If retained externally, use one schema with authenticated lifecycle and content-versioned dependent state rather than prose-position parsing or independent stale caches.",
+      "unit_acceptance": "Verify retirement before/inside/after an entry and distinguish equal stat metadata from equal content.",
+      "module_acceptance": "Verify all dependent readers share one content/version identity through updates and refusal.",
+      "system_acceptance": "Prove retired source cannot alter pupil behavior; retained external tools must report their actual version and role.",
+      "release_acceptance": "Inspect effective files and every reader rather than treating FADED or a cache label as exclusion proof.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A05",
+        "A10",
+        "A12",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "LD13-01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD13-01--74_cognitive_syntax.md",
+          "line": 7,
+          "anchor": "STATE: FADED",
+          "sha256": "ca90babffcfdd554f9787c10cca36149ab1caa5b2f3ee1c68a5ac06317adcce6"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 142,
+          "anchor": "                if \"STATE: FADED\" in block: continue",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        },
+        {
+          "source_id": "LDC05",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC05--fabric_ask.py",
+          "line": 38,
+          "anchor": "            if \"STATE: FADED\" in b: continue",
+          "sha256": "09e1cea4f3c164a08cdc0618a45330ce9627294a7b165066ce19fc32b6ed2206"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 82,
+          "anchor": "            h.update(str(st.st_mtime_ns).encode())",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 317,
+          "anchor": "        COMPANY = Company(Settings())",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 82,
+          "anchor": "    if LANG is None: LANG = Language()",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        }
+      ]
+    },
+    {
+      "id": "LFR08",
+      "name": "Story and grammar curriculum are not the story of an experienced event",
+      "classification": "Terminology reconciliation; preserve material without granting physical authority",
+      "historical_requirement_or_mechanism": "Language, ritual, drama, meaning and figurative-speech files contain authored ESSENCE/ROOT/THREAD/ASKED-AS lessons and older CANNOT generalizations. Story there means narrated change, conflict, promises, perspective and endings. Cognitive syntax means a prescribed sequence of conversational moves. Neither term, in those documents, specifies the substrate’s jointly sensed internal/external event, body state, timing, action, consequence and later consolidation.",
+      "current_disposition": "These files may be historical curriculum or a separate symbolic program’s data. Their existence is not itself evidence of a project violation. Many passages are stated tendencies or metaphors, not derived physical laws or original Joe approvals. This review does not independently validate all their general claims.",
+      "lawful_remedy": "Keep the canonical glossary explicit: Joe’s story of experience is the causal context retained by participating substrate state; mosaic/tapestry/weave remain explanatory props, not lookup schemas or literary scripts. Map every surviving cognitive term to actual mechanisms and tests, with curriculum separately attributed.",
+      "unit_acceptance": "Require unambiguous term-to-state, source, update, consumer and evidence mappings.",
+      "module_acceptance": "Verify multimodal event relations retain body/context/order and survive actual consolidation without narrative injection.",
+      "system_acceptance": "Demonstrate later contextual and procedural use of retained experience rather than recitation of a lesson.",
+      "release_acceptance": "Documentation/skills must not promote analogy, authored lessons or historical labels into certified current capability.",
+      "repair_actions": [
+        "A01",
+        "A05",
+        "A06",
+        "A07",
+        "A09",
+        "A10",
+        "A12",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LD10-02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD10-02--27_story_drama.md",
+          "line": 5,
+          "anchor": "ESSENCE: a story is change or it is nothing — someone crosses from",
+          "sha256": "57f99435e97850c41e6c5b2a75fecb336103711a279187ccb0bf5a3a2784f95c"
+        },
+        {
+          "source_id": "LD09-01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD09-01--26_meaning_ritual.md",
+          "line": 37,
+          "anchor": "ESSENCE: meaning travels as story — people carry a garden, a",
+          "sha256": "6bd91e9dcdcc170ed9a36433d616af153fe3ef20c069a464bf7bcf24a2300305"
+        },
+        {
+          "source_id": "LD13-01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD13-01--74_cognitive_syntax.md",
+          "line": 3,
+          "anchor": "Not the grammar of sentences: the grammar of what may follow",
+          "sha256": "ca90babffcfdd554f9787c10cca36149ab1caa5b2f3ee1c68a5ac06317adcce6"
+        },
+        {
+          "source_id": "LD14-02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD14-02--80_figurative_speech.md",
+          "line": 85,
+          "anchor": "ESSENCE: an analogy claims two unlike things share a shape — the",
+          "sha256": "c5eaf450845d60e54832a21559dd48c81cd3e13e4636d244f9c78d674c6c1327"
+        },
+        {
+          "source_id": "LD11-02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD11-02--66_words_and_meaning.md",
+          "line": 93,
+          "anchor": "ESSENCE: a dictionary is a map of agreements — it reports how a",
+          "sha256": "9fca658660574d13585694c2209457c76b99a9e00053aa9ee5a16b057493aa89"
+        }
+      ]
+    },
+    {
+      "id": "LFR09",
+      "name": "The accepted vocal bench is a component demonstration with exact source custody",
+      "classification": "Preserve legitimate scoped acceptance; not learned native speech",
+      "historical_requirement_or_mechanism": "The v22 manifest reports Joe accepted the full board and records an exact HTML hash, ordered gestures, default dials and V8 waveform hashes. The inspected HTML matches that source hash exactly and states Nothing here touches Guala. It generates labelled gestures from authored pitch/formant/duration sequences, seeded pitch/pace variation, a reduced-order source and resonators, then browser playback. Those controls are pressed externally.",
+      "current_disposition": "Source identity is independently verified; Joe’s original acceptance context and the recorded waveform hashes were not replayed here. Reduced-order oscillators, phase and resonances are not automatically cheats or ML. Acceptance of this bench does not authorize its gesture table to select pupil words or certify endogenous articulation.",
+      "lawful_remedy": "Preserve the accepted artifact and its exact component scope. Reconcile the approved physical organ against it where relevant, but require native efferents and retained experience to govern actual pupil articulation; no gesture name or word table may supply that behavior.",
+      "unit_acceptance": "Qualify physical controls and acoustic response with independent organ inputs; keep test gestures outside pupil choice authority.",
+      "module_acceptance": "Verify actual efferent→organ→pressure→same-organism ear timing and energy custody.",
+      "system_acceptance": "Demonstrate retained sensory experience causes later endogenous articulation on preserved state.",
+      "release_acceptance": "Use original acceptance/source/audio custody at its scope and separately qualify the exact current organ and serving artifact.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A04",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "LD20-01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD20-01--ACCEPTED_V22_MANIFEST.md",
+          "line": 8,
+          "anchor": "- SHA-256: becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589",
+          "sha256": "9b3b41b43ea3c6015dde191c68ae0d3c8191791beda47a70bd9c5f662afcf77c"
+        },
+        {
+          "source_id": "LD20-01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD20-01--ACCEPTED_V22_MANIFEST.md",
+          "line": 3,
+          "anchor": "Joe's acceptance: \"Yep that's it\" on bench v22, full board.",
+          "sha256": "9b3b41b43ea3c6015dde191c68ae0d3c8191791beda47a70bd9c5f662afcf77c"
+        },
+        {
+          "source_id": "LDC06",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC06--toy_vocal_organ_bench_v22.html",
+          "line": 82,
+          "anchor": "  damped throat resonances, breath that puffs with the valve, mouth radiation. Renders locally in milliseconds. Nothing here touches Guala.</p>",
+          "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589"
+        },
+        {
+          "source_id": "LDC06",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC06--toy_vocal_organ_bench_v22.html",
+          "line": 300,
+          "anchor": "const GESTURES = {",
+          "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589"
+        },
+        {
+          "source_id": "LDC06",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC06--toy_vocal_organ_bench_v22.html",
+          "line": 345,
+          "anchor": "  const segs = GESTURES[name];",
+          "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589"
+        }
+      ]
+    },
+    {
+      "id": "LFR10",
+      "name": "The vocal bench has observer and acoustic-scale limits",
+      "classification": "Overstrong diagnosis and nonphysical normalization at a demonstration boundary",
+      "historical_requirement_or_mechanism": "The bench claims that equal-sounding comparison buttons prove the listening path is defective and the bench is fine. A subjective failed distinction cannot identify that boundary by itself. The renderer also peak-normalizes each complete clip to0.8, adds selected room reflections and changes each press through a seeded counter. These affect heard sound and source identity; normalized clip amplitude is not calibrated vocal power or proof of native breath energetics.",
+      "current_disposition": "No listening or waveform replay occurred in this audit, and none of these browser-demo choices proves a current native defect. Preserve the manifest’s explicit engine/sequence dependence rather than imposing cross-engine byte identity or treating seeded variation as living behavior.",
+      "lawful_remedy": "Record raw source pressure, renderer transformations and actual playback separately. Diagnose from measured boundaries, and keep every gain/noise/reverb/variation law at its approved component scope. Do not transplant perceptual tuning into physical acceptance.",
+      "unit_acceptance": "Verify unnormalized quantities, rendering transformations and reproducible initial conditions with declared units.",
+      "module_acceptance": "Trace actual source samples through playback/device capture before attributing a failed distinction.",
+      "system_acceptance": "Qualify native body work and sensed sound independently of any display/audio convenience normalization.",
+      "release_acceptance": "Bind audio claims to exact engine, state, controls and occurrence; an observer symptom alone cannot clear source correctness.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A10",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "LDC06",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC06--toy_vocal_organ_bench_v22.html",
+          "line": 123,
+          "anchor": "  (remote-desktop audio, phone speaker) — then the bench is fine and the",
+          "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589"
+        },
+        {
+          "source_id": "LDC06",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC06--toy_vocal_organ_bench_v22.html",
+          "line": 288,
+          "anchor": "  for (let i = 0; i < total; i++) x[i] = x[i] / peak * 0.8;",
+          "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589"
+        },
+        {
+          "source_id": "LDC06",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC06--toy_vocal_organ_bench_v22.html",
+          "line": 266,
+          "anchor": "  const taps = [[0.013,0.13],[0.019,0.10],[0.027,0.08],[0.036,0.06],",
+          "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589"
+        },
+        {
+          "source_id": "LDC06",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC06--toy_vocal_organ_bench_v22.html",
+          "line": 348,
+          "anchor": "  pressCount += 1;",
+          "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589"
+        },
+        {
+          "source_id": "LD20-01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD20-01--ACCEPTED_V22_MANIFEST.md",
+          "line": 26,
+          "anchor": "Engine caveat: Math.sin/cos/exp are not bit-specified across JS",
+          "sha256": "9b3b41b43ea3c6015dde191c68ae0d3c8191791beda47a70bd9c5f662afcf77c"
+        }
+      ]
+    },
+    {
+      "id": "LFR11",
+      "name": "A bounded keyword failure was recorded as a certified no-path result",
+      "classification": "Certificate exceeds its exact search predicate",
+      "historical_requirement_or_mechanism": "fabric_ask.walk ranks matching words, limits candidates to12, uses rarity/overlap thresholds and chooses prewritten entries or paired clauses. ask may fall through to other mechanisms after a turn-taking exception, offers nearest knowledge, and eventually writes VERDICT: no path — certified by deterministic walk to the white sheet. The sentence stager enumerates n(n+1)^n candidates but only for its capped first groups; it does disclose omitted groups, which is a useful limit to preserve.",
+      "current_disposition": "Failure of this selected representation, limited pool and authored rules does not establish no answer, no knowledge, no physical relation or no possible speech. Four staged groups imply2500 candidates; eight imply344373768 by the printed algorithm. This exact arithmetic is not a measurement of Task1434 or the current substrate.",
+      "lawful_remedy": "Scope certificates to the exact attempted operation, complete searched domain and actual stop condition. Preserve unknowns and budget refusals without promoting them into universal negative facts. Do not make a failure green through fallbacks or a larger arbitrary work limit.",
+      "unit_acceptance": "Verify mathematical search bounds, declared omissions, exception paths and exact certificate predicate.",
+      "module_acceptance": "Distinguish unavailable mechanism, exhausted resource, limited search and actual logical contradiction.",
+      "system_acceptance": "Locate the first failed current speech boundary with preserved-state causal evidence, not an old parser’s silence certificate.",
+      "release_acceptance": "Require authentic source/configuration/state/time receipts and visible unresolved capabilities; no universal claim from determinism.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A09",
+        "A10",
+        "A13",
+        "A14",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LDC05",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC05--fabric_ask.py",
+          "line": 59,
+          "anchor": "    rel=[e for e in rel[:12] if len(qs&wt(e))>=need]",
+          "sha256": "09e1cea4f3c164a08cdc0618a45330ce9627294a7b165066ce19fc32b6ed2206"
+        },
+        {
+          "source_id": "LDC05",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC05--fabric_ask.py",
+          "line": 120,
+          "anchor": "        except Exception as e:",
+          "sha256": "09e1cea4f3c164a08cdc0618a45330ce9627294a7b165066ce19fc32b6ed2206"
+        },
+        {
+          "source_id": "LDC05",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC05--fabric_ask.py",
+          "line": 279,
+          "anchor": "                    f\"  VERDICT: no path — certified by deterministic\"",
+          "sha256": "09e1cea4f3c164a08cdc0618a45330ce9627294a7b165066ce19fc32b6ed2206"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 918,
+          "anchor": "            for parents in itertools.product(*[slots] * n)",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 1009,
+          "anchor": "        gs = gs[:cap]",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        }
+      ]
+    },
+    {
+      "id": "LFR12",
+      "name": "A repository mechanism is not automatically a serving substrate mechanism",
+      "classification": "Current scope remains unqualified; do not infer activation or absence",
+      "historical_requirement_or_mechanism": "The read working files establish a separate fabric language program and an externally driven vocal bench. A bounded search outside fabric for first_ribbon/ribbon_language/fabric_ask and explicit fabric imports found no matches among searched Python/Rust/JavaScript/HTML files. That search did not cover every dynamic loader, shell/configuration, packaged asset, historical caller or live image.",
+      "current_disposition": "No claim of current Guala activation, comprehensive exclusion or completed speech audit follows from that search. Six complete source captures remain per-file observations, not an atomic candidate. The other11 captured language/story families are not fully reviewed and remain outside this completed slice.",
+      "lawful_remedy": "G1 must bind exact serving image, dependency graph, configuration and frontend to the approved native pupil path. A1 independently audits the resulting evidence. Keep the current charter qualification and the broad April-to-current reconciliation open until their actual obligations are met.",
+      "unit_acceptance": "Inventory every executable/asset/semantic supplier and classify its role and effective reader.",
+      "module_acceptance": "Close imports, dynamic loading, startup/defaults and observation-to-pupil routes on the frozen candidate.",
+      "system_acceptance": "Verify the complete preserved-state causal speech chain with matched controls and all declared exclusions.",
+      "release_acceptance": "Authenticate the exact serving artifact and original occurrence evidence; delivery of an audit is not product acceptance or G1 acknowledgment.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A10",
+        "A13",
+        "A15",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 23,
+          "anchor": "DIR = os.path.normpath(os.path.join(",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 95,
+          "anchor": "if __name__ == \"__main__\":",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        },
+        {
+          "source_id": "LDC06",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC06--toy_vocal_organ_bench_v22.html",
+          "line": 82,
+          "anchor": "  damped throat resonances, breath that puffs with the valve, mouth radiation. Renders locally in milliseconds. Nothing here touches Guala.</p>",
+          "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589"
+        }
+      ]
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false
+}

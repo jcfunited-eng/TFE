@@ -1,0 +1,16 @@
+[
+  {
+    "url": "https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com/api/v1/gualaloom/events?n=50",
+    "at_utc": "2026-10-10T00:30:01.485874+00:00",
+    "method": "GET",
+    "status": 404,
+    "error": "HTTPError"
+  },
+  {
+    "url": "https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com/api/v1/gualaloom/chi_density",
+    "at_utc": "2026-10-10T00:30:02.089175+00:00",
+    "method": "GET",
+    "status": 404,
+    "error": "HTTPError"
+  }
+]

@@ -1,0 +1,482 @@
+{
+  "schema": "guala.historical_media_mechanisms.v1",
+  "at_utc": "2026-10-10T04:44:58.369150+00:00",
+  "scope": "Classified historical source/consumer mechanisms as reported; exact current implementation requires independent binding.",
+  "mechanisms": [
+    {
+      "id": "VMH01",
+      "name": "Independent microphone, camera and glyph intake were concrete scoped improvements",
+      "classification": "reported valid ingress evolution, separate from recognition",
+      "finding": "MH01",
+      "observed_mechanism": "L007 reports a camera-required micGate/stopCamera defect despite an already mounted current-world voice route, plus contradictory text capability labels. Its correction admitted mic pressure with actual world/body lanes and rendered glyph pixels without submitting text. Task1299 synthetic pressure committed; a glyph request timed out and was not credited. Task1322 later supplied separate glyph and real-camera evidence.",
+      "evidence_limits": "These are historical reports of intake, not proof of learned reading, word recognition or current64 mounting. The later successful glyph did not retroactively validate the earlier timeout. A synthetic source must not claim real-camera provenance. The old mandatory-camera/two-sense slogan is superseded by this explicitly scoped actual-sensorium route.",
+      "replacement": "Preserve the lawful current-world/paired-source ingress and truthful evidence labels. Bind current producers and every native consumer, retaining physical source/time distinction and actual participating modalities without an arbitrary camera prerequisite.",
+      "acceptance": {
+        "unit": "Check independent device lifecycle, real/synthetic provenance, absent versus valid-zero lanes and refusal before partial mutation.",
+        "module": "Verify actual PCM/pixel receipt reaches the same native state through restored/current body lanes; a capability flag is not execution.",
+        "system": "Qualify real browser/device input and synthetic transport separately, then independently test retained recognition/learned use.",
+        "release": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability."
+      },
+      "refs": [
+        {
+          "source_id": "MI1-03",
+          "path": "docs/guala_reconciliation/sources/media-history/MI1-03--GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "ce28f92365ccae852571d9cf7311eadab9faa482f213ba436836f65b0ed9ebe4",
+          "line": 34,
+          "anchor": "## Current contradiction and rejected path"
+        },
+        {
+          "source_id": "MI1-03",
+          "path": "docs/guala_reconciliation/sources/media-history/MI1-03--GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "ce28f92365ccae852571d9cf7311eadab9faa482f213ba436836f65b0ed9ebe4",
+          "line": 63,
+          "anchor": "## Translation-boundary review before focused proof"
+        },
+        {
+          "source_id": "MI1-03",
+          "path": "docs/guala_reconciliation/sources/media-history/MI1-03--GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "ce28f92365ccae852571d9cf7311eadab9faa482f213ba436836f65b0ed9ebe4",
+          "line": 152,
+          "anchor": "- One bounded two-sample pressure probe used the camera-independent endpoint."
+        },
+        {
+          "source_id": "MI1-03",
+          "path": "docs/guala_reconciliation/sources/media-history/MI1-03--GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "ce28f92365ccae852571d9cf7311eadab9faa482f213ba436836f65b0ed9ebe4",
+          "line": 174,
+          "anchor": "## Task-1322 live closure — 2026-08-29"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A06",
+        "A10",
+        "A15"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VMH02",
+      "name": "Exact source deduplication must not suppress a repeated lived experience",
+      "classification": "useful custody/resource evolution with explicit event distinction",
+      "finding": "MH02",
+      "observed_mechanism": "L008/setup replaced discarded media bytes and process-local next-book selection with bounded immutable source custody and pixel/PCM conversion. The repeated audio returned the same custody receipt and unchanged7records/4930212bytes while creating a distinct hearing occurrence at tick260507. Provenance and catalogue data stayed explicitly outside cognition.",
+      "evidence_limits": "One retained copy per source and a new experience per actual recurrence are compatible. Source rights/provenance and flags are external metadata, not proof that the complete caller excludes semantic authority. All six media kinds were reported physically exercised; understanding/autonomous selection was expressly unclaimed.",
+      "replacement": "Preserve exact bounded source custody, deduplicated bytes and distinct causal occurrence identity. Inventory decoder/caller dataflow so titles/transcripts/filenames cannot enter pupil decisions; current-state provenance must survive restore.",
+      "acceptance": {
+        "unit": "Duplicate bytes must not grow source storage, while distinct admitted presentations keep distinct occurrence identity. Exhausted count/bytes must refuse before mutation.",
+        "module": "Trace preserved source→decode→physical presentation→native input and verify current restore plus every supported media type.",
+        "system": "Demonstrate source idempotence and actual repeated experience separately; no count of media files or receipts qualifies learning.",
+        "release": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability."
+      },
+      "refs": [
+        {
+          "source_id": "MI2-04",
+          "path": "docs/guala_reconciliation/sources/media-history/MI2-04--GUALA_L008_L009_LOCAL_SETUP_2026-08-17.md",
+          "sha256": "c46bf138783d68dd3b60fac52d0e3ad36143c9f463d795c2649adaa62eb4ca22",
+          "line": 19,
+          "anchor": "- Picture, PDF/book, audio, and song decoding already reach the active retinal"
+        },
+        {
+          "source_id": "MI2-04",
+          "path": "docs/guala_reconciliation/sources/media-history/MI2-04--GUALA_L008_L009_LOCAL_SETUP_2026-08-17.md",
+          "sha256": "c46bf138783d68dd3b60fac52d0e3ad36143c9f463d795c2649adaa62eb4ca22",
+          "line": 32,
+          "anchor": "## Prepared local mechanism"
+        },
+        {
+          "source_id": "MI3-06",
+          "path": "docs/guala_reconciliation/sources/media-history/MI3-06--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "4e4a4012457e4bb21245f786e18e1b29bceac66a1700d54b199da3bd56db8d69",
+          "line": 28,
+          "anchor": "## Candidate mechanism"
+        },
+        {
+          "source_id": "MI3-06",
+          "path": "docs/guala_reconciliation/sources/media-history/MI3-06--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "4e4a4012457e4bb21245f786e18e1b29bceac66a1700d54b199da3bd56db8d69",
+          "line": 272,
+          "anchor": "## Duplicate and ceiling closure — 2026-08-29"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A05",
+        "A06",
+        "A10",
+        "A12",
+        "A13"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VMH03",
+      "name": "Settled experience, durable state and timeout observations require distinct custody",
+      "classification": "reported observation correction and an unresolved event-ancestry requirement",
+      "finding": "MH03",
+      "observed_mechanism": "L008’s story settled37hops through231920 while its response called durable231874 the new successor. The correction separated settlement and durability, marking committed when CURRENT reached/passed the settled tick. Other requests returned504 but later event-specific records proved completion; detailed video counts missed by polling were not invented.",
+      "evidence_limits": "Separating settled/durable is a real correction. Numeric tick comparison is sufficient only within the authenticated same causal lineage; it cannot establish ancestry across replaced/branched state. This review identifies that acceptance requirement, not an independently demonstrated current lineage bug.",
+      "replacement": "Bind occurrence ID, successor hash and checkpoint ancestry to the same body/world lineage. Distinguish transport timeout, pending settlement, settled-not-durable and durable result. Reconcile exact original event before any retry and never infer missing counts.",
+      "acceptance": {
+        "unit": "Reject mismatched identity, branch, stale successor and equal-content/different-occurrence substitutions even when tick numbers increase.",
+        "module": "Prove one event’s actual state change and durable ancestry through atomic publish/cold restore; polling may be stale without becoming false authority.",
+        "system": "Exercise bounded timeouts/restart on preserved copies and show truthful event status without duplicate mutation or made-up success.",
+        "release": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability."
+      },
+      "refs": [
+        {
+          "source_id": "MI3-06",
+          "path": "docs/guala_reconciliation/sources/media-history/MI3-06--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "4e4a4012457e4bb21245f786e18e1b29bceac66a1700d54b199da3bd56db8d69",
+          "line": 134,
+          "anchor": "- The separately authored morning-garden story then entered as one rendered"
+        },
+        {
+          "source_id": "MI3-06",
+          "path": "docs/guala_reconciliation/sources/media-history/MI3-06--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "4e4a4012457e4bb21245f786e18e1b29bceac66a1700d54b199da3bd56db8d69",
+          "line": 143,
+          "anchor": "- The story HTTP receipt exposed an observation defect: deferred persistence"
+        },
+        {
+          "source_id": "MI3-06",
+          "path": "docs/guala_reconciliation/sources/media-history/MI3-06--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "4e4a4012457e4bb21245f786e18e1b29bceac66a1700d54b199da3bd56db8d69",
+          "line": 251,
+          "anchor": "- The public connection returned HTTP 504 at its fixed 60-second gateway"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 99,
+          "anchor": "- The edge returned HTTP 504 after its response window expired. The single"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A06",
+        "A14",
+        "A15",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VMH04",
+      "name": "Book nonselection was misdiagnosed before the physical action boundary existed",
+      "classification": "documented claim retraction and rejected Python selection authority",
+      "finding": "MH04",
+      "observed_mechanism": "Early L009 correctly refused autonomous selection, then a sequential five-source Python offer/evidence gate was described as live but no choice observed. Later inspection found native grips did not reach world PickCommand, the real book was separate from a flat-source touch sheet, and nonzero world touch was refused. No amount of waiting could produce held-book selection through that route.",
+      "evidence_limits": "The later retraction is explicit: unavailable action was not a preference or failed learning. The stricter two-antagonist/thought criterion also did not connect the missing world path. Historical offers were externally arranged, not proof of autonomous source exploration.",
+      "replacement": "Keep the rejection of sequential server selection and observer/evidence gates as pupil choice. Qualify actual native grip→geometry-resolved world object→custody→same-organism feedback, then independently test retained motivation/choice without supplying source labels or desired actions.",
+      "acceptance": {
+        "unit": "Trace an actual native efferent to the world law; assert absent/ambiguous contact refuses and semantic/source IDs cannot choose the object.",
+        "module": "Prove the placed material object, native hand and returned contact refer to the same coherent world/body, not parallel representations.",
+        "system": "Distinguish inability, unobserved action, innate reflex and learned choice. No book uptake by an external actor or flat presentation counts as autonomous use.",
+        "release": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability."
+      },
+      "refs": [
+        {
+          "source_id": "MI4-24",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-24--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "a82886f10fed3edc0b48e7dcdaadca3860ab98b89253c07280dd5a0eb31b6c0c",
+          "line": 64,
+          "anchor": "The live autonomous request correctly returned HTTP 503. The resident body can"
+        },
+        {
+          "source_id": "MI4-17",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-17--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "5afa76d5e0a84ea662761072f8cd9edbd96262e537168bc376c6856c2b9b8aaf",
+          "line": 42,
+          "anchor": "is selected only if that exact admitted cue reassembles a resident formation,"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 76,
+          "anchor": "The self-selection route does not choose a source. It offers each of the five"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 185,
+          "anchor": "## Architecture correction discovered after the second opportunity"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A05",
+        "A06",
+        "A08",
+        "A09",
+        "A10",
+        "A12"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VMH05",
+      "name": "Persistent world geometry and ordinary palmar input were missing despite visible objects",
+      "classification": "reported direct restore/transport repairs worth preserving",
+      "finding": "MH05",
+      "observed_mechanism": "The restored world held receptor_geometry=null, so a real closing grip refused grasp_contact_geometry_unavailable. A one-way missing-anatomy migration preserved lived pose/custody/thermal state and task1338 reported a native grasp. Later the book was in contact geometry but the receptor only read held custody and ordinary/guided paths authored zero. Task1346 reportedly restored placed-object contact to the real palmar lane.",
+      "evidence_limits": "These are distinct causal defects and reported repairs; an object existing, gross arm reach or a passing grasp unit was insufficient. A same-identity deployment does not by itself authenticate complete memory preservation. Declared immutable anatomy may be migrated only with actual version/law custody.",
+      "replacement": "Retain reviewed real anatomy/contact continuity, including every ordinary, action and tutor path. Restore coherent body/world state and refuse conflicting anatomy; no default zero for physically present contact or invented touch to make a grip occur.",
+      "acceptance": {
+        "unit": "Test absent versus persisted/placed/held contact, exact geometry, ambiguous intersections, true removal and refusal without partial state change.",
+        "module": "Cold-restore real paired state, follow placement→retained contact→ordinary receptor→native response and feedback; require source/build binding.",
+        "system": "Witness actual material contact and later organism action on preserved mature state; placement alone cannot qualify sight or learned grasp.",
+        "release": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability."
+      },
+      "refs": [
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 277,
+          "anchor": "## Live receptor-anatomy restore correction and native book grasp"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 313,
+          "anchor": "The live persisted world then proved:"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 820,
+          "anchor": "## Persistent physical book offer — autonomous witness still open"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 858,
+          "anchor": "## Placed-object palmar continuity correction — candidate"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 940,
+          "anchor": "## Live placed-book palmar continuity — production"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A06",
+        "A08",
+        "A14"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VMH06",
+      "name": "A mounted grasp reflex became repeated squeezing; stopping it did not create learned opening",
+      "classification": "innate/reflex correction and a still-missing endogenous motor path",
+      "finding": "MH06",
+      "observed_mechanism": "L009 reports no palmar-to-grip route, then adds a symmetric innate closing reflex; task1348 exposed a native/Python layer-domain refusal before task1349 completed grasp/feedback. Steady held-contact then prepared fresh closing every interval. Task1351’s contact-onset restriction stopped that repetition. At tick304009 all opening/closing terminals existed but no learned L11 ordering route reached them.",
+      "evidence_limits": "A hardwired reflex must be declared and justified as anatomy/functional regulation, not learning or choice. The onset repair is reported to remove a specific interference, but its exact law authority still needs the original decision. Motor terminals alone did not provide a novel opening cause. A missing learned path does not prove no conceivable lawful exploration path.",
+      "replacement": "Preserve lawful reflex/body functionality and actual retained state. Qualify the approved local contact/drive mechanism, distinguish sustained sensation from a new triggering event, and prove a genuine bounded endogenous cause can reach opposing effectors before learned action/consequence can be retained. Do not install a release recipe or fabricate learning.",
+      "acceptance": {
+        "unit": "Separate contact onset, steady occupancy, loss, reflex transfer, actual motor work and passive movement under the ratified law; test all downstream domain boundaries.",
+        "module": "Trace actual internal cause through admitted local dynamics to opening as well as closing, physical consequence and returned sensation; mere terminal existence fails.",
+        "system": "Require authentic first action, retained consequence and later causal use on preserved controls. An external participant taking the book never closes pupil autonomy.",
+        "release": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability."
+      },
+      "refs": [
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1031,
+          "anchor": "## Palmar-contact grasp reflex — candidate"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1067,
+          "anchor": "The first task-1348 unattended trajectory reached the new motor path, then was"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1077,
+          "anchor": "## Palmar-contact grasp reflex — live production"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1292,
+          "anchor": "## Native held-contact release obstruction"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1319,
+          "anchor": "## Live held-book intervention after the reflex correction"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A08",
+        "A09",
+        "A11",
+        "A12"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VMH07",
+      "name": "Net displacement fixed a sign bug but cannot alone prove timed world-action equivalence",
+      "classification": "scoped translation improvement with temporal and simultaneous-effector gaps",
+      "finding": "MH07",
+      "observed_mechanism": "The old bridge suppressed a grip action if any ordered substep had each sign. Its replacement sums signed displacement, classifying only the net. Root translation/yaw exclusion and exactly-one-opening-hand rules remain. The ledger says all rows are retained but the world command reads the net field.",
+      "evidence_limits": "The fix restores an opening result previously hidden by a weaker closing pulse. It does not demonstrate preservation of intermediate contact/release/work, and stored rows cannot rescue an endpoint-only consumer. A zero-net trajectory can still contain distinct physical events, as the separate VO86 timed-body counterexample illustrates. Root-motion exclusion requires physical justification, not an arbitrary one-action policy.",
+      "replacement": "Specify which simultaneous and ordered body/world consequences the declared model permits, then settle each at most once in causal order. Preserve timed interaction/state where it matters; prove any aggregation equivalent before discarding its intermediate effects. Do not route independent effectors through a priority veto.",
+      "acceptance": {
+        "unit": "Use opposite-sign, equal-endpoint, contact-changing and simultaneous root/hand cases; compare full physical successors rather than only final grip position.",
+        "module": "Trace every native row through body/world settlement and same-organism return with canonical timing, work and state accounting.",
+        "system": "Witness true release/manipulation/consequence under ordinary movement on preserved state. A net-positive unit or mounted patch does not qualify learned page use.",
+        "release": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability."
+      },
+      "refs": [
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 14,
+          "anchor": "2. a positive displacement of exactly one native grip aperture, while the"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 223,
+          "anchor": "- a native negative displacement of either grip aperture prepares a world"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1110,
+          "anchor": "## Net grip-trajectory page-use correction — candidate"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1136,
+          "anchor": "### Translation and recurrence review"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1165,
+          "anchor": "## Net grip-trajectory correction — live production"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A08",
+        "A10",
+        "A14"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VMH08",
+      "name": "Held-object invisibility changed the proposed behavior sequence instead of proving optical access",
+      "classification": "historical observation limitation and conditional workaround",
+      "finding": "MH08",
+      "observed_mechanism": "A held-page advance was withdrawn because the retinal law excluded objects held by the same body. The replacement required grasp→release→contact→advance and suppressed page advance while held. Later contact experiments correctly reported zero changed visual receptors and no reading claim; even a source-bound book could retain optical_surface=None.",
+      "evidence_limits": "The retraction avoided crediting unseen pages, which is useful honesty. Excluding an object solely for held custody is not itself geometric occlusion, and a required release sequence is not evidence that held-object vision works. This is historical source/report scope, not a fresh current64 retinal verdict.",
+      "replacement": "Qualify actual held-object/page geometry, visibility and body/world state in the current optical model. Preserve real occlusion and unavailable sight, but do not substitute a behavior recipe for missing visual consequences. Keep source/page transport external to cognition.",
+      "acceptance": {
+        "unit": "Test visible/occluded/off-axis held and placed surfaces under the same geometry; ownership labels alone cannot determine light.",
+        "module": "Trace true page-surface change to measured retinal change and ordinary current-world intake, including held state and restore.",
+        "system": "Require a real self-caused page/material transition and actual sensed consequence; source custody, grasp or read-aloud alone fails learned reading.",
+        "release": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability."
+      },
+      "refs": [
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 332,
+          "anchor": "No positive grip displacement occurred during the following bounded quiet"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 339,
+          "anchor": "## Held-object release correction"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 781,
+          "anchor": "## Changed-context physical book availability and spoken cue"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1175,
+          "anchor": "Live read-only inspection at tick `300178` showed the correction mounted but"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1341,
+          "anchor": "These actions truthfully end the stuck held-object episode and leave the book"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A06",
+        "A08",
+        "A10"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

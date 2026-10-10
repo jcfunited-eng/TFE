@@ -1,3 +1,15 @@
+Historical delivery claim correction — A1, 2026-10-09.
+The original text below is preserved as historical evidence. Cognitive Asset6's
+“Delivered & Verified” and zero-contamination/physical-grounding claims are not
+accepted: its source contains authored phonetic heuristics and semantic sensory
+templates, and its tests do not establish learning or cognitive containment.
+See [the source audit and corrective acceptance](guala_reconciliation/orthographic-transducer-audit.md)
+and [mechanism registry](guala_reconciliation/mechanisms_orthographic.json).
+Product remediation remains OPEN. This notice does not requalify other checked
+items. `collaborative_todo.md` is the sole active task/status ledger.
+
+---
+
 # Guala Development TODO
 
 ## Operational

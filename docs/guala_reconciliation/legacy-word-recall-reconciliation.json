@@ -1,0 +1,1057 @@
+{
+  "schema": "guala.documentary_slice_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T06:26:46.071172+00:00",
+  "scope": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "WR01-01",
+      "path": "backups/runtime/a1-native-connections-20261007/comprehensive-model-e9-2130/independent-articulation-model/native/guala_core/README.md",
+      "git_blob": "12460c90a0da0e45798bf4d34fe9317eb3df6f3a",
+      "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964",
+      "bytes": 4289,
+      "lines": 94,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-word-recall/WR01-01--README.md",
+      "observations": [
+        {
+          "author_time": "2026-10-08T21:26:18+00:00",
+          "commit": "4b50742106c482fefd13b6f27858388c64511c72",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-word-recall/WR01-01--README.md",
+      "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified."
+    },
+    {
+      "id": "WR02-01",
+      "path": "backups/runtime/a1-native-connections-20261007/comprehensive-model-e9-complete-2222/independent-articulation-quiet-model/native/guala_core/README.md",
+      "git_blob": "12460c90a0da0e45798bf4d34fe9317eb3df6f3a",
+      "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964",
+      "bytes": 4289,
+      "lines": 94,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-word-recall/WR02-01--README.md",
+      "observations": [
+        {
+          "author_time": "2026-10-08T22:21:15+00:00",
+          "commit": "8d741c6b4248474472face9177d928693cfbff6e",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-word-recall/WR02-01--README.md",
+      "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified."
+    },
+    {
+      "id": "WR03-01",
+      "path": "docs/Aurelion/corpora/Ethics/Speech 1 The Personal Compass.txt",
+      "git_blob": "6338d5309d70f39ac87a15341a026b4c511d6460",
+      "sha256": "9d1418318b0c5a37a044fb240348f3ecd4f2cf799f7b2ed0b315db59f3379a8c",
+      "bytes": 1286,
+      "lines": 7,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-word-recall/WR03-01--Speech 1 The Personal Compass.txt",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-03T22:34:14+00:00",
+          "commit": "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-word-recall/WR03-01--Speech 1 The Personal Compass.txt",
+      "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified."
+    },
+    {
+      "id": "WR04-01",
+      "path": "docs/Aurelion/corpora/Ethics/Speech 2 The Coffee Bean Principle.txt",
+      "git_blob": "aad655fde41780bef5e258f8851297bd08319ec8",
+      "sha256": "72a065658192a9447b236932e5cfa77ace77dc529e1c1ff63b31b0478365c7bf",
+      "bytes": 1191,
+      "lines": 9,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-word-recall/WR04-01--Speech 2 The Coffee Bean Principle.txt",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-03T22:34:14+00:00",
+          "commit": "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-word-recall/WR04-01--Speech 2 The Coffee Bean Principle.txt",
+      "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified."
+    },
+    {
+      "id": "WR05-01",
+      "path": "docs/Aurelion/corpora/Ethics/Speech 3 The Power and Responsibili.txt",
+      "git_blob": "8b2d5a5fc1be0fc7fafd2e04926dfc0b85a2a5ff",
+      "sha256": "efea53697f9c58c4247d8df3504913bf0ae7b69982e1224e262e16d565b15ff2",
+      "bytes": 1051,
+      "lines": 6,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-word-recall/WR05-01--Speech 3 The Power and Responsibili.txt",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-03T22:34:14+00:00",
+          "commit": "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-word-recall/WR05-01--Speech 3 The Power and Responsibili.txt",
+      "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified."
+    },
+    {
+      "id": "WR06-01",
+      "path": "docs/GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v1 (1).md",
+      "git_blob": "76bcc8c86576dbab9f9aca7f61e8f9222be2e5ae",
+      "sha256": "f25c9cf5c72b5228a2c79d59d980a6a1593e86fcab62f12d2ad881d2526ddbf3",
+      "bytes": 9398,
+      "lines": 281,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-word-recall/WR06-01--GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v1 (1).md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-02T14:54:03+00:00",
+          "commit": "5fa25dc8fb00b3cc981dd0fadb8f1c6a4729b9c2",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-word-recall/WR06-01--GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v1 (1).md",
+      "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified."
+    },
+    {
+      "id": "WR07-01",
+      "path": "docs/GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v1.md",
+      "git_blob": "76bcc8c86576dbab9f9aca7f61e8f9222be2e5ae",
+      "sha256": "f25c9cf5c72b5228a2c79d59d980a6a1593e86fcab62f12d2ad881d2526ddbf3",
+      "bytes": 9398,
+      "lines": 281,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-word-recall/WR07-01--GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v1.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-02T14:54:03+00:00",
+          "commit": "5fa25dc8fb00b3cc981dd0fadb8f1c6a4729b9c2",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-word-recall/WR07-01--GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v1.md",
+      "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified."
+    },
+    {
+      "id": "WR08-01",
+      "path": "docs/GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v2.md",
+      "git_blob": "f6f1f686ed9d4b2b5343c984dbe9e3f0dc117712",
+      "sha256": "0efcbffd7352d00846ac91b3e56f3d54bd76041f214d4fe73a8bb264d9e1892f",
+      "bytes": 13237,
+      "lines": 331,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-word-recall/WR08-01--GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v2.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-02T14:54:03+00:00",
+          "commit": "5fa25dc8fb00b3cc981dd0fadb8f1c6a4729b9c2",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-word-recall/WR08-01--GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v2.md",
+      "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified."
+    },
+    {
+      "id": "WR09-01",
+      "path": "docs/GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v3.md",
+      "git_blob": "506aad0a8a6d33b0cecf8a6fbdc1ea65a0c0e362",
+      "sha256": "5cf6b077fa50dc8c195cf6cc9b13affcb6de3b58ab3b16edf4762d88cd6aa1df",
+      "bytes": 6006,
+      "lines": 129,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-word-recall/WR09-01--GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v3.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-02T14:54:03+00:00",
+          "commit": "5fa25dc8fb00b3cc981dd0fadb8f1c6a4729b9c2",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-word-recall/WR09-01--GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v3.md",
+      "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified."
+    },
+    {
+      "id": "WR10-01",
+      "path": "docs/GL-CMD-SEVER-MIC-WORD-LOOP-EVE-20260705-204-v1.md",
+      "git_blob": "aa81525878b301452e15db03c369ecabeab745ad",
+      "sha256": "83abf3063a548f3011a2a2456a2bb64744230b552f8bf0399341ce943e54c2ab",
+      "bytes": 3898,
+      "lines": 75,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-word-recall/WR10-01--GL-CMD-SEVER-MIC-WORD-LOOP-EVE-20260705-204-v1.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-05T16:34:38+00:00",
+          "commit": "c8fbf2e64e90ae6d8e07bdf6f7c2b0a1597fd6fc",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-word-recall/WR10-01--GL-CMD-SEVER-MIC-WORD-LOOP-EVE-20260705-204-v1.md",
+      "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified."
+    },
+    {
+      "id": "WR11-01",
+      "path": "docs/GL-HANDOFF-FALLBACK-SINGLE-WORD-ROOT-CAUSE-C1-20260706-v1.md",
+      "git_blob": "76294ed7d93bad83a9576595ec6b47cd7ffef96c",
+      "sha256": "11d435358550c3e789493161fe55f21d9f0fbebbd2b18c174e9d855f4ecb8d7f",
+      "bytes": 12126,
+      "lines": 204,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-word-recall/WR11-01--GL-HANDOFF-FALLBACK-SINGLE-WORD-ROOT-CAUSE-C1-20260706-v1.md",
+      "observations": [
+        {
+          "author_time": "2026-07-07T00:02:20+00:00",
+          "commit": "574a559742d0b9344565df487599e1136c74aa1f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-07-06T03:41:36+00:00",
+          "commit": "be762ddf106eeee7d06d9041b9bbfafb89b56b6c",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-word-recall/WR11-01--GL-HANDOFF-FALLBACK-SINGLE-WORD-ROOT-CAUSE-C1-20260706-v1.md",
+      "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified."
+    },
+    {
+      "id": "WR12-01",
+      "path": "docs/GL-RPT-CACHE-WORD-SECTION-INDEX-C1-20260619-01.md",
+      "git_blob": "d029e3d0a4055f8114be15abbad59996bbbf2339",
+      "sha256": "e2347dc3191ee9886be0a91ff62e54baaa091e7aa18db31d033b38fd552feed5",
+      "bytes": 2393,
+      "lines": 85,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-word-recall/WR12-01--GL-RPT-CACHE-WORD-SECTION-INDEX-C1-20260619-01.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-19T22:10:47+00:00",
+          "commit": "5c9fb4e1fb0b8f8ada62982995e1b22710d142ae",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-word-recall/WR12-01--GL-RPT-CACHE-WORD-SECTION-INDEX-C1-20260619-01.md",
+      "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified."
+    },
+    {
+      "id": "WR13-01",
+      "path": "docs/GL-RPT-RECALL-WORD-INDEX-C1-20260630-57v3.md",
+      "git_blob": "cfe42b163b4586ece3ad541ac4293a892552a859",
+      "sha256": "5bfd08b8edf45f9f32087f5e99045ff61cbfe3e1859ef88d365a1feafd0bab8d",
+      "bytes": 7411,
+      "lines": 170,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-word-recall/WR13-01--GL-RPT-RECALL-WORD-INDEX-C1-20260630-57v3.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-30T22:29:11+00:00",
+          "commit": "fface6252f9d1fd3095a06a26d6722da2304821b",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-word-recall/WR13-01--GL-RPT-RECALL-WORD-INDEX-C1-20260630-57v3.md",
+      "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified."
+    },
+    {
+      "id": "WR14-01",
+      "path": "docs/GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1.md",
+      "git_blob": "04e194b2f8bc44711998187dc1e498b42c37fae3",
+      "sha256": "71c415be8df6f3567749536c22af6b439e1895d94031f783792c1a0bb6a93b77",
+      "bytes": 10999,
+      "lines": 203,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-word-recall/WR14-01--GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1.md",
+      "observations": [
+        {
+          "author_time": "2026-07-10T17:18:39+00:00",
+          "commit": "579396459117f758e8d2d803f59bfa1ad0517aa2",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-07-10T15:16:14+00:00",
+          "commit": "6d2d581dc2733de7516a4624c09dca7e83265de1",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-word-recall/WR14-01--GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1.md",
+      "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified."
+    },
+    {
+      "id": "WR14-02",
+      "path": "docs/GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1.md",
+      "git_blob": "38950528d1883517549ea3ff03a25413184725cb",
+      "sha256": "df4fec0540f9f5a3b337dfffa42c3a37eafced90ee6eaa6811f82a0214489782",
+      "bytes": 14738,
+      "lines": 265,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-word-recall/WR14-02--GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-10T17:18:39+00:00",
+          "commit": "579396459117f758e8d2d803f59bfa1ad0517aa2",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-word-recall/WR14-02--GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1.md",
+      "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified."
+    },
+    {
+      "id": "WR15-01",
+      "path": "docs/LOOM_SYNTHETIC_WORD_SPIKE_TEST_RETIREMENT_2026-07-27.md",
+      "git_blob": "f21df9676c234359d6749362bd6d3a5bae46b4a4",
+      "sha256": "8e47874929c4bea08a2685bd118a0f85b0b6a9c59f8aa51310c81f44a84f767a",
+      "bytes": 1190,
+      "lines": 25,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-word-recall/WR15-01--LOOM_SYNTHETIC_WORD_SPIKE_TEST_RETIREMENT_2026-07-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-29T00:52:55+00:00",
+          "commit": "30f2cf9ecde2eeda2bdd8d2e37d0061655ac2f9c",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-word-recall/WR15-01--LOOM_SYNTHETIC_WORD_SPIKE_TEST_RETIREMENT_2026-07-27.md",
+      "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified."
+    },
+    {
+      "id": "WR16-01",
+      "path": "docs/archive/pre-wipe-20260706/GL-HANDOFF-FALLBACK-SINGLE-WORD-ROOT-CAUSE-C1-20260706-v1.md",
+      "git_blob": "e420a5a345fdeb0c530c812c3bf718abf2b6e088",
+      "sha256": "268441a948dca130cedcd8df13836e8bf20a58437850fc9f313255d6799138b3",
+      "bytes": 12474,
+      "lines": 213,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-word-recall/WR16-01--GL-HANDOFF-FALLBACK-SINGLE-WORD-ROOT-CAUSE-C1-20260706-v1.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-07T00:02:20+00:00",
+          "commit": "574a559742d0b9344565df487599e1136c74aa1f",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-word-recall/WR16-01--GL-HANDOFF-FALLBACK-SINGLE-WORD-ROOT-CAUSE-C1-20260706-v1.md",
+      "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified."
+    },
+    {
+      "id": "WR17-01",
+      "path": "dsf_ai_service/curriculum/assets/speech_commands/ATTRIBUTION.md",
+      "git_blob": "74c6efa31db36693f34ff098eb8413cc4d449fe9",
+      "sha256": "ad9fea45c385ca752b439a27c36a4ec9028241a20f3e3e5bbd68e88ff183cc5c",
+      "bytes": 1327,
+      "lines": 31,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/legacy-word-recall/WR17-01--ATTRIBUTION.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-29T00:52:55+00:00",
+          "commit": "30f2cf9ecde2eeda2bdd8d2e37d0061655ac2f9c",
+          "side": "new"
+        }
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/legacy-word-recall/WR17-01--ATTRIBUTION.md",
+      "review": "All18 recovered versions across17 paths:2300 latest-document lines, no older-only passages within a path. Exact duplicate commands/READMEs verified; archive-only nine-line supersession prefix read. Historical tests/live claims and current activation are not independently reverified."
+    }
+  ],
+  "requirements": [
+    {
+      "id": "WRR01",
+      "name": "Faster word-to-Chi lookup still implements semantic answer retrieval",
+      "classification": "Historical reduced semantic authority; optimization is a separate property",
+      "historical_requirement_or_mechanism": "The June commands replace whole-atlas scans with a lowercased word→set(Chi) index and ±2 Chi-neighborhood lookups. Section/motif records supply words; subject/verb/object recall feeds emission candidates. The earlier word→emission-section cache similarly accelerates supplied grammar routing. Exact lookup equivalence can be a legitimate computational improvement while the underlying word-address answer authority conflicts with current experience-driven native cognition.",
+      "current_disposition": "These are historical code excerpts and reports, not complete current implementations or serving evidence. A reverse index is not automatically ML, and an integer neighborhood lookup is not automatically invalid for every external application. Here the described pupil decision evaluates semantic keys and a reduced Chi neighborhood instead of the full DSF relationships, retained physical contacts and actual contextual experience.",
+      "lawful_remedy": "Retire legacy semantic answer authority from all current pupil paths. Preserve bounded observer/indexing techniques only where they do not choose meaning or action. Native recall must arise from retained physical state reassembled by real cues, with producer/consumer and checkpoint provenance; do not rebuild Chi tables to regain convenient words.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "WR06-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR06-01--GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v1 (1).md",
+          "line": 60,
+          "anchor": "# Reverse index: lowercased word → set of chi addresses where this word",
+          "sha256": "f25c9cf5c72b5228a2c79d59d980a6a1593e86fcab62f12d2ad881d2526ddbf3"
+        },
+        {
+          "source_id": "WR06-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR06-01--GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v1 (1).md",
+          "line": 206,
+          "anchor": "    for d in range(-2, 3):",
+          "sha256": "f25c9cf5c72b5228a2c79d59d980a6a1593e86fcab62f12d2ad881d2526ddbf3"
+        },
+        {
+          "source_id": "WR06-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR06-01--GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v1 (1).md",
+          "line": 49,
+          "anchor": "The semantic question is a reverse-index query: \"which chi addresses have these specific words committed at them?\" That's O(num_query_words) with a `word → set(chi)` index, not O(atlas_size).",
+          "sha256": "f25c9cf5c72b5228a2c79d59d980a6a1593e86fcab62f12d2ad881d2526ddbf3"
+        },
+        {
+          "source_id": "WR12-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR12-01--GL-RPT-CACHE-WORD-SECTION-INDEX-C1-20260619-01.md",
+          "line": 24,
+          "anchor": "Boot-time build at load lines 4484 and 4601. Fallback rebuild at 2180. Incremental update in read_word.",
+          "sha256": "e2347dc3191ee9886be0a91ff62e54baaa091e7aa18db31d033b38fd552feed5"
+        },
+        {
+          "source_id": "WR13-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR13-01--GL-RPT-RECALL-WORD-INDEX-C1-20260630-57v3.md",
+          "line": 103,
+          "anchor": "Responses from task :401 (post-index) substantively similar to pre-fix samples. Algorithm semantically unchanged — only lookup mechanism changed. Example responses: \"floor waves has\", \"person lights water\" (SVO pattern from atlas associations preserved).",
+          "sha256": "5bfd08b8edf45f9f32087f5e99045ff61cbfe3e1859ef88d365a1feafd0bab8d"
+        }
+      ],
+      "unit_acceptance": "Classify semantic keys, scalar-neighborhood loss, grammar routing and actual consumers; verify any allowed cache against authoritative state.",
+      "module_acceptance": "Demonstrate physical partial-cue recall and contextual discrimination without word tables supplying the response.",
+      "system_acceptance": "Use unfamiliar sensory combinations and absent/reversed experience controls to distinguish retained learning from corpus lookup.",
+      "release_acceptance": "Trace ordinary, fallback, restore and external routes in the exact artifact; no current retirement claim from filename absence."
+    },
+    {
+      "id": "WRR02",
+      "name": "Lost index writes were rebranded as substrate noise",
+      "classification": "Explicit nondeterministic shortcut and incomplete state custody",
+      "historical_requirement_or_mechanism": "Command v2 acknowledges defaultdict/set writes are not strictly atomic, calls a missed race update substrate noise comparable to decay, and forbids a lock as the remedy. Its single-wrapper design still directs callers without an engine handle to stop/report, while its reporting section says those same sites must not block shipping. v3 corrects guessed paths and excludes genuinely different per-neuron atlases; the report still lists four unconverted binding writers.",
+      "current_disposition": "No measured race is reproduced in this audit, but the written contract explicitly tolerates state loss and contradicts deterministic custody. Monotonic growth alone does not prove cache consistency when source bindings are pruned, motifs change, or writers bypass the index. A blanket grep match or identical method name does not establish common authority.",
+      "lawful_remedy": "Retire this pupil mechanism. For any separately authorized external index, use one deterministic state owner and a specified atomic publication/update contract with exact invalidation, rebuild and complete writer coverage. Never relabel a software race as physical noise or add locks/owners to native cognition as an improvised repair.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A05",
+        "A14",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "WR08-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR08-01--GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v2.md",
+          "line": 68,
+          "anchor": "# write race is substrate noise on the order of decay events. Do NOT",
+          "sha256": "0efcbffd7352d00846ac91b3e56f3d54bd76041f214d4fe73a8bb264d9e1892f"
+        },
+        {
+          "source_id": "WR08-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR08-01--GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v2.md",
+          "line": 123,
+          "anchor": "If any callsite does NOT have an engine reference (organ_brain_service, sensory transducers, anything called from outside the Guala instance), that callsite must be reached via the engine. If c1 finds such a callsite without an engine handle, **STOP and report it in the §4 reporting doc** — that's a structural issue separate from this dispatch and we will address it in -58.",
+          "sha256": "0efcbffd7352d00846ac91b3e56f3d54bd76041f214d4fe73a8bb264d9e1892f"
+        },
+        {
+          "source_id": "WR08-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR08-01--GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v2.md",
+          "line": 311,
+          "anchor": "- If §1.4 found any atlas.record callsites without an engine reference: list them with file:line, do not block ship",
+          "sha256": "0efcbffd7352d00846ac91b3e56f3d54bd76041f214d4fe73a8bb264d9e1892f"
+        },
+        {
+          "source_id": "WR09-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR09-01--GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v3.md",
+          "line": 19,
+          "anchor": "**(b) Wrapper grep scope too broad.** v2 §1.4 said `grep -rn \"atlas\\.record(\" dsf_ai_service/ | grep -v \"self\\.atlas\\.record\" | grep -v test_`. That grep hits `loom_model/embryo.py` and `loom_model/neuron.py`, which use per-neuron `binding_atlas` and `chi_atlas` objects with completely different `.record()` signatures. Converting them breaks the build.",
+          "sha256": "5cf6b077fa50dc8c195cf6cc9b13affcb6de3b58ab3b16edf4762d88cd6aa1df"
+        },
+        {
+          "source_id": "WR13-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR13-01--GL-RPT-RECALL-WORD-INDEX-C1-20260630-57v3.md",
+          "line": 28,
+          "anchor": "**4 unconverted callsites (no engine handle, per v3 §1.4):**",
+          "sha256": "5bfd08b8edf45f9f32087f5e99045ff61cbfe3e1859ef88d365a1feafd0bab8d"
+        }
+      ],
+      "unit_acceptance": "Verify all writers and source lifecycle operations; require exact index consistency rather than approximate counts or no exceptions.",
+      "module_acceptance": "Test deterministic concurrent inputs, commit failure, pruning and restart under the authorized external ownership model.",
+      "system_acceptance": "Demonstrate that stale or missing index entries cannot change pupil behavior or hide a native failure.",
+      "release_acceptance": "Bind every actual writer/consumer and cache version to the release; no waiver from calling loss noise."
+    },
+    {
+      "id": "WRR03",
+      "name": "Recall acceptance was softened and speed attribution was confounded",
+      "classification": "Concrete historical acceptance mismatch; not evidence of deceptive intent",
+      "historical_requirement_or_mechanism": "The predeclared v2 T3 requires indexed vocabulary within10% of13895; the report accepts1108 with an explanation but no revised prior requirement. T2 originally covers ordinary load; the report marks conditional PASS only outside curriculum pauses and records failed runs inside them. T6 requires zero unconverted sites but four remain. The same release reduces EMISSION_DYNAMICS_TICKS80→5 and moves logging to daemon threads while calling output semantically unchanged. The7.7ms recall observation is Task400; the final release is401.",
+      "current_disposition": "1108 is about7.97% of13895, not within10% of that target. The original vocabulary target may itself have been poorly specified; revising it requires a justified contract and requalification, not a retroactive pass. Reported text samples and nonempty responses establish neither semantic equivalence nor intelligible grounded speech. A roughly441× recall speedup may be real at the measured scope, but does not isolate the full release’s behavior or reliability.",
+      "lawful_remedy": "Preserve original criteria, actual measurements, exceptions and candidate identities. Mark unmet gates failed or not established. Define exact allowed output/state equivalence before optimization and separate settling-law, thread/logging and index changes; qualify each on authentic matched state and ordinary background load.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A10",
+        "A12",
+        "A14",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "WR08-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR08-01--GL-CMD-RECALL-WORD-INDEX-EVE-20260630-57v2.md",
+          "line": 271,
+          "anchor": "- N (words) is on the order of vocab (~13,895) — within 10% is fine, exact match not required because not every word has a live atlas binding",
+          "sha256": "0efcbffd7352d00846ac91b3e56f3d54bd76041f214d4fe73a8bb264d9e1892f"
+        },
+        {
+          "source_id": "WR13-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR13-01--GL-RPT-RECALL-WORD-INDEX-C1-20260630-57v3.md",
+          "line": 85,
+          "anchor": "[GualaLoom] Recall word index rebuilt: 1108 words, 14775 entries",
+          "sha256": "5bfd08b8edf45f9f32087f5e99045ff61cbfe3e1859ef88d365a1feafd0bab8d"
+        },
+        {
+          "source_id": "WR13-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR13-01--GL-RPT-RECALL-WORD-INDEX-C1-20260630-57v3.md",
+          "line": 67,
+          "anchor": "**PASS (conditional).** Task :401, run 3:",
+          "sha256": "5bfd08b8edf45f9f32087f5e99045ff61cbfe3e1859ef88d365a1feafd0bab8d"
+        },
+        {
+          "source_id": "WR13-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR13-01--GL-RPT-RECALL-WORD-INDEX-C1-20260630-57v3.md",
+          "line": 48,
+          "anchor": "- `EMISSION_DYNAMICS_TICKS=5` (from 80 default): cuts `_emission_lock` hold from ~4s to ~250ms per /converse call",
+          "sha256": "5bfd08b8edf45f9f32087f5e99045ff61cbfe3e1859ef88d365a1feafd0bab8d"
+        },
+        {
+          "source_id": "WR13-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR13-01--GL-RPT-RECALL-WORD-INDEX-C1-20260630-57v3.md",
+          "line": 54,
+          "anchor": "**PASS.** From task :400 converse_timing event:",
+          "sha256": "5bfd08b8edf45f9f32087f5e99045ff61cbfe3e1859ef88d365a1feafd0bab8d"
+        },
+        {
+          "source_id": "WR13-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR13-01--GL-RPT-RECALL-WORD-INDEX-C1-20260630-57v3.md",
+          "line": 122,
+          "anchor": "Zero unexpected unconverted callsites. Four structural sites reported per v3 §1.4.",
+          "sha256": "5bfd08b8edf45f9f32087f5e99045ff61cbfe3e1859ef88d365a1feafd0bab8d"
+        }
+      ],
+      "unit_acceptance": "Check each acceptance predicate against the original requirement and exact candidate; preserve failures and zero/missing checks.",
+      "module_acceptance": "Compare state and outputs under controlled before/after mechanisms with unchanged source inputs and complete dependencies.",
+      "system_acceptance": "Measure normal operation including curriculum and persistence, and independently test claimed language function.",
+      "release_acceptance": "Qualify the exact final artifact; candidate changes invalidate dependent prior receipts and conditional windows cannot stand for full service."
+    },
+    {
+      "id": "WRR04",
+      "name": "Microphone energy labels became counterfeit heard language",
+      "classification": "Documented semantic injection and feedback amplification",
+      "historical_requirement_or_mechanism": "The July5 emergency command reports two mic routes classifying frame energy into fixed words such as faint/warm/smooth/steady, injecting them into read_sentence including during sleep, then attaching tactile descriptors and funding growth through supplied multisense coherence. Frequency-weighted votes allegedly made faint dominate output. It orders label injection severed while preserving real sound processing and Whisper transcription, and preserves58 daughters pending Joe’s identity decision.",
+      "current_disposition": "This is a source-attributed historical report, not newly verified event counts or current activation. Treating frame labels as words someone spoke is false sensory provenance. Calling a transcription honest heard language does not establish ML-free operation or native acoustic recognition; the named Whisper boundary must be classified explicitly. Real state change caused by artifact input is not proof of genuine multimodal learning.",
+      "lawful_remedy": "Exclude semantic-label injection and unapproved ASR from pupil authority; carry actual pressure and lawful transduction. Attribute any allowed external transcript as an external derived product. Preserve contaminated historical state and evidence without unauthorized deletion/reset; measure damage and later recovery rather than promising time will erase it.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A12",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "WR10-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR10-01--GL-CMD-SEVER-MIC-WORD-LOOP-EVE-20260705-204-v1.md",
+          "line": 8,
+          "anchor": "_audio_to_sensory_words classifies each mic frame's ENERGY into",
+          "sha256": "83abf3063a548f3011a2a2456a2bb64744230b552f8bf0399341ce943e54c2ab"
+        },
+        {
+          "source_id": "WR10-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR10-01--GL-CMD-SEVER-MIC-WORD-LOOP-EVE-20260705-204-v1.md",
+          "line": 10,
+          "anchor": "BOTH call sites (substrate_runner :965 \"Site 4\", app.py :1658",
+          "sha256": "83abf3063a548f3011a2a2456a2bb64744230b552f8bf0399341ce943e54c2ab"
+        },
+        {
+          "source_id": "WR10-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR10-01--GL-CMD-SEVER-MIC-WORD-LOOP-EVE-20260705-204-v1.md",
+          "line": 16,
+          "anchor": "— the 58-fold burst was FUNDED BY SILENCE (c1b's own report:",
+          "sha256": "83abf3063a548f3011a2a2456a2bb64744230b552f8bf0399341ce943e54c2ab"
+        },
+        {
+          "source_id": "WR10-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR10-01--GL-CMD-SEVER-MIC-WORD-LOOP-EVE-20260705-204-v1.md",
+          "line": 28,
+          "anchor": "raw sound is genuine experience) and Whisper transcription of",
+          "sha256": "83abf3063a548f3011a2a2456a2bb64744230b552f8bf0399341ce943e54c2ab"
+        },
+        {
+          "source_id": "WR10-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR10-01--GL-CMD-SEVER-MIC-WORD-LOOP-EVE-20260705-204-v1.md",
+          "line": 29,
+          "anchor": "REAL SPEECH (words a person actually said are honestly heard",
+          "sha256": "83abf3063a548f3011a2a2456a2bb64744230b552f8bf0399341ce943e54c2ab"
+        },
+        {
+          "source_id": "WR10-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR10-01--GL-CMD-SEVER-MIC-WORD-LOOP-EVE-20260705-204-v1.md",
+          "line": 54,
+          "anchor": "the cost of a rollback) is an identity-class decision that",
+          "sha256": "83abf3063a548f3011a2a2456a2bb64744230b552f8bf0399341ce943e54c2ab"
+        }
+      ],
+      "unit_acceptance": "Trace raw acoustic samples, derived labels and every language injection; silence must not create spoken-word identity or artificial touch.",
+      "module_acceptance": "Verify ordinary sound reaches physical receptors while removed labels/ASR cannot seed meaning, memory or growth.",
+      "system_acceptance": "Measure acquisition from authentic paired experiences and matched silence/unpaired controls on preserved state, including sleep.",
+      "release_acceptance": "Close every native/Python/external ML and synthetic-ingress route on the deployed artifact; preserve history and truthful source attribution."
+    },
+    {
+      "id": "WRR05",
+      "name": "Neuron votes, grammar tags and a scalar fold trigger are not full-field cognition",
+      "classification": "Historical reduced decision mechanism and incomplete root-cause inference",
+      "historical_requirement_or_mechanism": "The July6 handoff traces emission through population word votes, last-input-word associations and grammar-role tagging at read time. It describes n_eff as8 minus the count of eight fields exceeding absolute0.5, and growth when n_eff<8/e. Five thresholded components give3, above approximately2.943. A visual transducer emits constant dw=+1,s=1.0; other modalities are expressly not yet checked. The document proposes changing transduction until a zero-of-eight growth test becomes positive.",
+      "current_disposition": "This reduces magnitudes, signs and relationships across all fields to one threshold count; it is not full DSF evaluation. Constant transducer events may lose signal structure, but changing them merely to cross a growth threshold is not a physical derivation. Zero growth in242 words does not establish no learning, permanent starvation or whole-life zero divisions; the handoff itself reports42 historical divisions and leaves the conflict unresolved.",
+      "lawful_remedy": "Retire threshold-count/population-vote/grammar-tag answer authority. Restore actual sensor quantities and approved full-field/contact dynamics at their physical boundaries. Qualify retained causal change separately from growth count; do not inject derivative signs, noise or neurons merely to turn the growth test green.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "WR11-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR11-01--GL-HANDOFF-FALLBACK-SINGLE-WORD-ROOT-CAUSE-C1-20260706-v1.md",
+          "line": 68,
+          "anchor": "   `self.organism.recall_fast(...)` — a population vote across her neuron",
+          "sha256": "11d435358550c3e789493161fe55f21d9f0fbebbd2b18c174e9d855f4ecb8d7f"
+        },
+        {
+          "source_id": "WR11-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR11-01--GL-HANDOFF-FALLBACK-SINGLE-WORD-ROOT-CAUSE-C1-20260706-v1.md",
+          "line": 76,
+          "anchor": "   grammar-role tagging (every word she's ever read gets tagged",
+          "sha256": "11d435358550c3e789493161fe55f21d9f0fbebbd2b18c174e9d855f4ecb8d7f"
+        },
+        {
+          "source_id": "WR11-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR11-01--GL-HANDOFF-FALLBACK-SINGLE-WORD-ROOT-CAUSE-C1-20260706-v1.md",
+          "line": 122,
+          "anchor": "   `n_eff = n_start(8) − count of DSF components with abs(v) > 0.5`, across",
+          "sha256": "11d435358550c3e789493161fe55f21d9f0fbebbd2b18c174e9d855f4ecb8d7f"
+        },
+        {
+          "source_id": "WR11-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR11-01--GL-HANDOFF-FALLBACK-SINGLE-WORD-ROOT-CAUSE-C1-20260706-v1.md",
+          "line": 134,
+          "anchor": "   constant `{\"dw\": +1, \"s\": 1.0}` — not a lazy placeholder so much as an",
+          "sha256": "11d435358550c3e789493161fe55f21d9f0fbebbd2b18c174e9d855f4ecb8d7f"
+        },
+        {
+          "source_id": "WR11-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR11-01--GL-HANDOFF-FALLBACK-SINGLE-WORD-ROOT-CAUSE-C1-20260706-v1.md",
+          "line": 104,
+          "anchor": "   `organism_growth.total_divisions` reports 42 real divisions having",
+          "sha256": "11d435358550c3e789493161fe55f21d9f0fbebbd2b18c174e9d855f4ecb8d7f"
+        },
+        {
+          "source_id": "WR11-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR11-01--GL-HANDOFF-FALLBACK-SINGLE-WORD-ROOT-CAUSE-C1-20260706-v1.md",
+          "line": 175,
+          "anchor": "   from \"0/8 grew\" to some real positive number once this lands. This can",
+          "sha256": "11d435358550c3e789493161fe55f21d9f0fbebbd2b18c174e9d855f4ecb8d7f"
+        }
+      ],
+      "unit_acceptance": "Specify and falsify preserved source/field dimensions, physical transducer behavior and local learning/growth laws independently.",
+      "module_acceptance": "Trace real sensory variation through every claimed modality and retained contact effect; distinguish code paths from lookalike tests.",
+      "system_acceptance": "Demonstrate later changed behavior from authentic retained experience without requiring a chosen population increase.",
+      "release_acceptance": "Prove the qualified native mechanism replaces every reduced chooser; raw population or positive-growth counters are not cognitive acceptance."
+    },
+    {
+      "id": "WRR06",
+      "name": "Caps, decay, fallback and noisy emission were presented as repairs to an incompatible controller",
+      "classification": "Historical workaround accumulation; authority and physical derivation absent",
+      "historical_requirement_or_mechanism": "The July6 record disables structured emission noise that reportedly shipped despite its own failed gate, caps rich sensory candidates at10, caps hemisphere bindings to20 strongest per Chi and adds periodic fade/forget. The July10 record describes a fixed1.5-second sentence cascade that times out to a generic word, imbalanced grammatical sections and a proposed weakest-by-recency eviction. Its addendum correctly declines a timing revert that doubles silence and catches a2.0–5.7-second full similarity rebuild before shipping eviction.",
+      "current_disposition": "Rejecting measured regressions is a legitimate review improvement. It does not qualify top-k strength, recency eviction, fixed grammar sections, synthetic noise or timeout-selected words as native physics. The source’s claim that the noise design or eviction design is sound is unproved by these reports. Memory identity decisions and destructive history changes cannot be inferred from an old tuning recommendation.",
+      "lawful_remedy": "Preserve failed candidates and the useful regression discipline, while retiring this competing controller. Bound work using approved physical admission and reached-state mechanics, keep refusal visible and retain memory under the canonical law. Do not manufacture speech by loosening a timer, pruning memories for desired output or selecting a fallback word.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A14",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "WR11-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR11-01--GL-HANDOFF-FALLBACK-SINGLE-WORD-ROOT-CAUSE-C1-20260706-v1.md",
+          "line": 21,
+          "anchor": "   introducing commit (`140cfd8`) is self-tagged `[C2 FAIL]`: measured a ~7%",
+          "sha256": "11d435358550c3e789493161fe55f21d9f0fbebbd2b18c174e9d855f4ecb8d7f"
+        },
+        {
+          "source_id": "WR11-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR11-01--GL-HANDOFF-FALLBACK-SINGLE-WORD-ROOT-CAUSE-C1-20260706-v1.md",
+          "line": 30,
+          "anchor": "   `RICH_SENSORY_TOPK` (default 10, own env var) gives it a real cap.",
+          "sha256": "11d435358550c3e789493161fe55f21d9f0fbebbd2b18c174e9d855f4ecb8d7f"
+        },
+        {
+          "source_id": "WR11-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR11-01--GL-HANDOFF-FALLBACK-SINGLE-WORD-ROOT-CAUSE-C1-20260706-v1.md",
+          "line": 37,
+          "anchor": "   helper caps `em_entries` to the 20 strongest per chi bucket before either",
+          "sha256": "11d435358550c3e789493161fe55f21d9f0fbebbd2b18c174e9d855f4ecb8d7f"
+        },
+        {
+          "source_id": "WR14-02",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR14-02--GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1.md",
+          "line": 82,
+          "anchor": "to picking one single generic word instead of a real sentence. A real",
+          "sha256": "df4fec0540f9f5a3b337dfffa42c3a37eafced90ee6eaa6811f82a0214489782"
+        },
+        {
+          "source_id": "WR14-02",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR14-02--GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1.md",
+          "line": 226,
+          "anchor": "   1.5s budget: the revert is a **net regression** -- silence roughly",
+          "sha256": "df4fec0540f9f5a3b337dfffa42c3a37eafced90ee6eaa6811f82a0214489782"
+        },
+        {
+          "source_id": "WR14-02",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR14-02--GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1.md",
+          "line": 239,
+          "anchor": "   full similarity-matrix rebuild scoped to the *entire physical",
+          "sha256": "df4fec0540f9f5a3b337dfffa42c3a37eafced90ee6eaa6811f82a0214489782"
+        }
+      ],
+      "unit_acceptance": "Identify every cap, timer, score, decay and fallback with its exact consumer and lack or presence of approved derivation.",
+      "module_acceptance": "Prove native resource refusal and retained memory preserve their laws without semantic candidate trimming.",
+      "system_acceptance": "Verify real autonomous and language behavior under mature load; failures stay failures rather than generic-word responses.",
+      "release_acceptance": "Exclude retired controllers and rollback routes; qualification cannot inherit a report’s unproved design endorsement."
+    },
+    {
+      "id": "WRR07",
+      "name": "Environment interference was recorded, but several diagnoses and live claims were narrower than their labels",
+      "classification": "Historical latency and attribution failures with explicit corrections",
+      "historical_requirement_or_mechanism": "The July reports record curriculum pause windows, sentence-wide lock ownership shared with camera/mic/save,50–55-second turns behind a reported30-second outer gateway, and background traffic out-ranking human presence. The presence fix later ships as Task586, but its own evidence says the tick-rate jump is a fresh-boot effect and actual interactive presence improvement was not yet observed. A reported lane-binding fix is reclassified as likely inert; the archive explicitly marks July6 state as destroyed by a later wipe.",
+      "current_disposition": "These reports cannot diagnose today’s caretaker, current gateway limits or64-column behavior. July’s64-neuron count is not64 columns. Strong whole-life zero-growth language is not reconciled with earlier42/58 counts without exact identity/time scope, especially across the wipe. Transport availability, physical sensing, presence policy and learned response are separate claims.",
+      "lawful_remedy": "Retain original identities, resets, timings, hypotheses and addendum corrections. Diagnose current environment/caretaker interference with exact source/configuration and measured causal timing; preserve genuine state and never claim improvement from reboot alone. Bind the actual reply to its committed occurrence and use truthful asynchronous transport without duplicate experiences.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A06",
+        "A08",
+        "A12",
+        "A13",
+        "A14",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "WR13-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR13-01--GL-RPT-RECALL-WORD-INDEX-C1-20260630-57v3.md",
+          "line": 77,
+          "anchor": "**Variable across runs:** T2 fails when tests land in curriculum pause windows (120s interval, ~35-53s duration). During the pause, the autonomy loop stops but curriculum `read_sentence` per-word lock acquisitions cause ~147ms/word wait (root cause not fully traced). Outside pause windows: 1.7-2.1s consistently.",
+          "sha256": "5bfd08b8edf45f9f32087f5e99045ff61cbfe3e1859ef88d365a1feafd0bab8d"
+        },
+        {
+          "source_id": "WR14-02",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR14-02--GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1.md",
+          "line": 53,
+          "anchor": "process-wide lock for an *entire sentence*, not per-word as its own",
+          "sha256": "df4fec0540f9f5a3b337dfffa42c3a37eafced90ee6eaa6811f82a0214489782"
+        },
+        {
+          "source_id": "WR14-02",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR14-02--GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1.md",
+          "line": 33,
+          "anchor": "separate endpoint). The MCP bridge's `guala_say` does **not** -- it holds",
+          "sha256": "df4fec0540f9f5a3b337dfffa42c3a37eafced90ee6eaa6811f82a0214489782"
+        },
+        {
+          "source_id": "WR14-02",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR14-02--GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1.md",
+          "line": 119,
+          "anchor": "within a few thousand ticks. Meanwhile, automated background lookup",
+          "sha256": "df4fec0540f9f5a3b337dfffa42c3a37eafced90ee6eaa6811f82a0214489782"
+        },
+        {
+          "source_id": "WR14-02",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR14-02--GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1.md",
+          "line": 219,
+          "anchor": "   (fresh-boot effect, not solely attributable to this fix -- needs a",
+          "sha256": "df4fec0540f9f5a3b337dfffa42c3a37eafced90ee6eaa6811f82a0214489782"
+        },
+        {
+          "source_id": "WR16-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR16-01--GL-HANDOFF-FALLBACK-SINGLE-WORD-ROOT-CAUSE-C1-20260706-v1.md",
+          "line": 4,
+          "anchor": "> The substrate described here no longer exists. Preserved as",
+          "sha256": "268441a948dca130cedcd8df13836e8bf20a58437850fc9f313255d6799138b3"
+        }
+      ],
+      "unit_acceptance": "Verify occurrence identity, monotonic timing, source attribution, queue/lock ownership and transport deadlines at actual boundaries.",
+      "module_acceptance": "Compare matched mature-state behavior with declared external programs active/inactive; separate display and native failures.",
+      "system_acceptance": "Measure prolonged current navigation, nutrition, sensation and reply latency without reboot-based attribution or semantic presence weights.",
+      "release_acceptance": "Publish current exact-artifact results; retain historical scope and make memory resets or missing continuity explicit."
+    },
+    {
+      "id": "WRR08",
+      "name": "Retiring tests that require synthetic word spikes can be a legitimate correction",
+      "classification": "Documented specification correction; execution and current exclusion still require proof",
+      "historical_requirement_or_mechanism": "The July27 retirement names four tests that queued typed probeword strings and demanded sensory/language spikes. It says production already rejects those operations as retired word-derived synthetic fields, and replaces the mixed test files while retaining real pickle/runtime/spike-bus and physically supplied sensory tests. This is the opposite of adding a semantic bridge merely to satisfy an obsolete fixture.",
+      "current_disposition": "The document alone does not prove all retained tests, deployed behavior or every synthetic route; the actual tests and callers remain to be bound. Characters can be legitimate visual/text stimulus through an approved transducer, but the typed word must not silently mint sound, touch or inferred word meaning.",
+      "lawful_remedy": "Preserve the changed requirement and rejected fixtures with their reason. Test the real sensory boundary, canonical state continuation and explicit refusal of synthetic word identity. Do not restore old fixtures by adding fake spikes, and do not remove valid physical tests to manufacture green results.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A06",
+        "A10",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "WR15-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR15-01--LOOM_SYNTHETIC_WORD_SPIKE_TEST_RETIREMENT_2026-07-27.md",
+          "line": 5,
+          "anchor": "The following cases enqueued typed `probeword` strings and required those",
+          "sha256": "8e47874929c4bea08a2685bd118a0f85b0b6a9c59f8aa51310c81f44a84f767a"
+        },
+        {
+          "source_id": "WR15-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR15-01--LOOM_SYNTHETIC_WORD_SPIKE_TEST_RETIREMENT_2026-07-27.md",
+          "line": 18,
+          "anchor": "`word-derived synthetic sensory fields are retired`. Typed characters are not",
+          "sha256": "8e47874929c4bea08a2685bd118a0f85b0b6a9c59f8aa51310c81f44a84f767a"
+        },
+        {
+          "source_id": "WR15-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR15-01--LOOM_SYNTHETIC_WORD_SPIKE_TEST_RETIREMENT_2026-07-27.md",
+          "line": 22,
+          "anchor": "Both mixed test files were replaced completely. Their active pickle",
+          "sha256": "8e47874929c4bea08a2685bd118a0f85b0b6a9c59f8aa51310c81f44a84f767a"
+        },
+        {
+          "source_id": "WR15-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR15-01--LOOM_SYNTHETIC_WORD_SPIKE_TEST_RETIREMENT_2026-07-27.md",
+          "line": 24,
+          "anchor": "physically supplied sensory-item injection tests remain intact. No production",
+          "sha256": "8e47874929c4bea08a2685bd118a0f85b0b6a9c59f8aa51310c81f44a84f767a"
+        }
+      ],
+      "unit_acceptance": "Match each retired assertion to its incompatible requirement and verify replacement tests exercise actual physical inputs and explicit failure.",
+      "module_acceptance": "Trace every text, mic, curriculum and restore entry point; no hidden equivalent of the retired injection may survive.",
+      "system_acceptance": "Demonstrate real sensing and retained effects while synthetic-label controls fail truthfully.",
+      "release_acceptance": "Bind test/source/image evidence to the current artifact; test deletion alone does not prove compliance."
+    },
+    {
+      "id": "WRR09",
+      "name": "Native-port README parity is not approval of its legacy cognition",
+      "classification": "Potential legitimate optimization with stale and narrower documentation",
+      "historical_requirement_or_mechanism": "Two October audit-copy README paths contain identical July16 documentation for Rust/PyO3 ports of word_signal/lang_transduce, Krimelack, filters and a legacy compute_dsf. It declares bit-equal parity for several functions, but map_inject permits1e-12 absolute error and psi_settle1e-9 relative error. It documents opt-in installation with a Python fallback and reports benchmark improvements on a20-word stream, while admitting remaining Python orchestration and marshalling.",
+      "current_disposition": "The copied README is not proof these APIs, fallbacks or binaries execute in the current64-column candidate. Exact reproduction of a legacy heuristic remains that heuristic; numerical parity to a Python implementation does not qualify the frozen full-field law. The tolerance rows also do not justify calling every operation bit-exact. Historical benchmark performance cannot establish current resource bounds.",
+      "lawful_remedy": "Bind each actual operator, numerical contract, dependency and loaded artifact. Preserve exact computational improvements only when approved physics and state effects are retained. Replace stale build/activation documentation with the actual candidate contract and explicitly refuse missing native authority rather than silently substituting a competing pupil implementation.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A04",
+        "A05",
+        "A10",
+        "A14",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "WR01-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR01-01--README.md",
+          "line": 14,
+          "anchor": "| `word_signal` / `lang_transduce` | `LanguageKrimelack.transduce` char-signal + feed | exact |",
+          "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964"
+        },
+        {
+          "source_id": "WR01-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR01-01--README.md",
+          "line": 20,
+          "anchor": "| `map_inject` | `loom_model/neuron.py::_map_inject` | <=1e-12 abs (vectorized exp) |",
+          "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964"
+        },
+        {
+          "source_id": "WR01-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR01-01--README.md",
+          "line": 21,
+          "anchor": "| `psi_settle` | `loom_model/neuron.py::PsiLattice.settle` | <=1e-9 rel (BLAS summation order; measured 3e-15) |",
+          "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964"
+        },
+        {
+          "source_id": "WR01-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR01-01--README.md",
+          "line": 59,
+          "anchor": "install()   # False if the wheel is absent (build-time fallback, pure Python)",
+          "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964"
+        },
+        {
+          "source_id": "WR01-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR01-01--README.md",
+          "line": 87,
+          "anchor": "Honest limits: the GIL still serializes the remaining Python orchestration",
+          "sha256": "496e674597a9e9157811ee6c31f3ce2e4aa65c353a2e65b3bc6b6440b807e964"
+        }
+      ],
+      "unit_acceptance": "Verify exactness/tolerance assertions against independently specified equations and actual compiler/runtime dependencies.",
+      "module_acceptance": "Bind the real install/import/fallback and state boundary; compare authentic old/new trajectories and laws at the claimed scope.",
+      "system_acceptance": "Measure the current mature organism rather than a historical word microbenchmark; preserve cognition and explicit failure.",
+      "release_acceptance": "Ship only classified operators and accurate documentation for the actual image; Rust does not imply physics or ML exclusion."
+    },
+    {
+      "id": "WRR10",
+      "name": "Authored teaching material and recorded speech data are not automatically prohibited ML",
+      "classification": "External-content classification with unresolved runtime provenance",
+      "historical_requirement_or_mechanism": "Three short Aurelion ethics speeches are authored prose, not mechanisms. Speech Commands attribution describes26 recordings: down/stop have three lessons plus one held-out challenge each; six other commands have two lessons plus one challenge each, giving8+18=26. It claims folder labels and roles stay external and never supply perceptual identity. The source archive and license are named and hashed in the document.",
+      "current_disposition": "This audit fully reads those texts and the attribution, not the cited external archive, license page, recordings or all consumers. Data associated with TensorFlow is not by itself an ML model or evidence of inference. Conversely, an attribution statement does not prove labels/challenge data cannot leak into the pupil, nor that all intended speakers are independent. The six large literature/serialized-memory files in the filename inventory remain unreviewed content.",
+      "lawful_remedy": "Keep allowed curriculum external and source-attributed, audit actual audio/visual ingress and every use of labels, and maintain genuinely unexposed challenges. Classify serialized learner state separately from teaching material. Do not purge legitimate stimuli by association with ML, or use supplied meanings and memorized answers as evidence of native acquisition.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A06",
+        "A09",
+        "A10",
+        "A12",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "WR03-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR03-01--Speech 1 The Personal Compass.txt",
+          "line": 2,
+          "anchor": "Topic: The importance of individual integrity and values in a complex world.",
+          "sha256": "9d1418318b0c5a37a044fb240348f3ecd4f2cf799f7b2ed0b315db59f3379a8c"
+        },
+        {
+          "source_id": "WR04-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR04-01--Speech 2 The Coffee Bean Principle.txt",
+          "line": 2,
+          "anchor": "Topic: Responding to adversity with ethical strength.",
+          "sha256": "72a065658192a9447b236932e5cfa77ace77dc529e1c1ff63b31b0478365c7bf"
+        },
+        {
+          "source_id": "WR05-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR05-01--Speech 3 The Power and Responsibili.txt",
+          "line": 2,
+          "anchor": "Topic: Ethical obligations in how we speak and listen.",
+          "sha256": "efea53697f9c58c4247d8df3504913bf0ae7b69982e1224e262e16d565b15ff2"
+        },
+        {
+          "source_id": "WR17-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR17-01--ATTRIBUTION.md",
+          "line": 25,
+          "anchor": "retains twenty-six recordings from twenty-six distinct speaker hashes.",
+          "sha256": "ad9fea45c385ca752b439a27c36a4ec9028241a20f3e3e5bbd68e88ff183cc5c"
+        },
+        {
+          "source_id": "WR17-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR17-01--ATTRIBUTION.md",
+          "line": 28,
+          "anchor": "retains two lessons and one fresh challenge. These cardinalities were selected",
+          "sha256": "ad9fea45c385ca752b439a27c36a4ec9028241a20f3e3e5bbd68e88ff183cc5c"
+        },
+        {
+          "source_id": "WR17-01",
+          "path": "docs/guala_reconciliation/sources/legacy-word-recall/WR17-01--ATTRIBUTION.md",
+          "line": 31,
+          "anchor": "supplied to the DSF substrate as perceptual identity or inferred meaning.",
+          "sha256": "ad9fea45c385ca752b439a27c36a4ec9028241a20f3e3e5bbd68e88ff183cc5c"
+        }
+      ],
+      "unit_acceptance": "Verify actual source hashes, licensing/custody, signal format, teacher identities and label isolation; no claim from a filename.",
+      "module_acceptance": "Trace each mounted stimulus and metadata consumer through the native sensory boundary, persistence and challenge admission.",
+      "system_acceptance": "Use unexposed recordings and paired/unpaired controls with independent grounded-use and intelligibility criteria.",
+      "release_acceptance": "Certify only the closed data/model/controller/runtime scope; source attribution alone is not ML-free or learned-speech proof."
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false
+}

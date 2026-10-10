@@ -1,0 +1,68 @@
+[
+  {
+    "archive_key": "captures/0914d/current.zip",
+    "archive_sha256": "901bc9e14e3b5a50d4874bb6a17bff4a2838f63f6256cc1bdf429706d3291bd4",
+    "pointer": {
+      "current": {
+        "body_bytes": 411765026,
+        "body_sha256": "f6ad55d79c9cd4984c7f2f3a8535d7986b21e2629172fb68bce8f079dfeb2383",
+        "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+        "organism_tick": 711060,
+        "world_bytes": 63659,
+        "world_sha256": "2a93c1af663448074bc7857c1b78a530ee8240860509c48c9e5f70f1ab5b7da1"
+      },
+      "predecessor": {
+        "body_bytes": 411747593,
+        "body_sha256": "57a47c3dd77777fb22008cd3e460cab4241695023b8770f3f127831e827c9f7f",
+        "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+        "organism_tick": 711028,
+        "world_bytes": 63655,
+        "world_sha256": "940fa1709d4d75d8e729115a6977d3dcd60c7d3ad24a82c4011ffaeaf33b93c9"
+      }
+    },
+    "raw_body_bytes": 411765026,
+    "raw_body_sha256": "f6ad55d79c9cd4984c7f2f3a8535d7986b21e2629172fb68bce8f079dfeb2383",
+    "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+    "organism_tick": 711060,
+    "fabric_bytes": 411764968,
+    "fabric_magic": "GLMFAB11",
+    "world_bytes": 63659,
+    "world_sha256": "2a93c1af663448074bc7857c1b78a530ee8240860509c48c9e5f70f1ab5b7da1",
+    "scope": "Read-only standard-library ZIP/gzip streaming, CRC and envelope validation; no native execution/restore. Pointer field matching recorded separately.",
+    "current_pointer_matches_body_and_world": "PASS",
+    "predecessor_contents_present_in_archive": false
+  },
+  {
+    "archive_key": "drive-organ-20260914/feeding-release/current-710377-stall.zip",
+    "archive_sha256": "59dfcdba8ffe5a552dfb9bcbdd267ed990473f79e00d09df90e6a5c3d3c6eeb6",
+    "pointer": {
+      "current": {
+        "body_bytes": 433395211,
+        "body_sha256": "c67be4e2f7bd0209acfd7abc0989e1e6a18db534bd6a4a52fa74703fd18f01d9",
+        "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+        "organism_tick": 710377,
+        "world_bytes": 1957855,
+        "world_sha256": "e84758f3392bac2e20d028f1c464d6a1269f7148fd778095ca38b0a234a018d5"
+      },
+      "predecessor": {
+        "body_bytes": 411898757,
+        "body_sha256": "2796c19f9cabe00fcc03c484394f29e464c8e710f2154c5bb5371f9a5b309e82",
+        "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+        "organism_tick": 710345,
+        "world_bytes": 63655,
+        "world_sha256": "8489eed3ebc20c549437a56b1e1f6000c7a850f3ae235f3c447ff78da4dfc860"
+      }
+    },
+    "raw_body_bytes": 433395211,
+    "raw_body_sha256": "c67be4e2f7bd0209acfd7abc0989e1e6a18db534bd6a4a52fa74703fd18f01d9",
+    "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+    "organism_tick": 710377,
+    "fabric_bytes": 433395153,
+    "fabric_magic": "GLMFAB11",
+    "world_bytes": 1957855,
+    "world_sha256": "e84758f3392bac2e20d028f1c464d6a1269f7148fd778095ca38b0a234a018d5",
+    "scope": "Read-only standard-library ZIP/gzip streaming, CRC and envelope validation; no native execution/restore. Pointer field matching recorded separately.",
+    "current_pointer_matches_body_and_world": "PASS",
+    "predecessor_contents_present_in_archive": false
+  }
+]

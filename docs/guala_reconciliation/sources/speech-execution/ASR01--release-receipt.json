@@ -1,0 +1,1736 @@
+{
+  "archive_contract": {
+    "entry_order": "utf8_lexicographic",
+    "file_mode_octal": "100644",
+    "timestamp": "1980-01-01T00:00:00Z",
+    "zip_comment": "",
+    "zip_entry_extra_fields": false
+  },
+  "files": [
+    {
+      "archive_path": "deploy/guala_native_test_baseline.json",
+      "category": "build_control",
+      "reason": "One reviewed lean build, immutable package verification, read-only preflight, and deployment control. Retired shells are excluded from the runtime image.",
+      "sha256": "f9950a01c28c7b763505cd6ba2c47d90fcad337b2b249e3f93b2e1f9ddf3e0c6",
+      "size_bytes": 206,
+      "source_path": "deploy/guala_native_test_baseline.json"
+    },
+    {
+      "archive_path": "deploy/guala_release_manifest.json",
+      "category": "build_control",
+      "reason": "One reviewed lean build, immutable package verification, read-only preflight, and deployment control. Retired shells are excluded from the runtime image.",
+      "sha256": "933b9945b2a8dcc06380a43c5f42af28d3466dc3d2b67c46b695e2a4315bda09",
+      "size_bytes": 14650,
+      "source_path": "deploy/guala_release_manifest.json"
+    },
+    {
+      "archive_path": "dsf_ai_service/Dockerfile",
+      "category": "build_control",
+      "reason": "One reviewed lean build, immutable package verification, read-only preflight, and deployment control. Retired shells are excluded from the runtime image.",
+      "sha256": "1294ce41d3e89a94d72c11bc4ee5112b2445792a2886fcd7d191091ecdf209b5",
+      "size_bytes": 2151,
+      "source_path": "dsf_ai_service/Dockerfile"
+    },
+    {
+      "archive_path": "dsf_ai_service/buildspec.yml",
+      "category": "build_control",
+      "reason": "One reviewed lean build, immutable package verification, read-only preflight, and deployment control. Retired shells are excluded from the runtime image.",
+      "sha256": "4970bbf95b247b38b7d4cd26430783f17b80810cc492345d4e01c0720cab9ce2",
+      "size_bytes": 939,
+      "source_path": "dsf_ai_service/buildspec.yml"
+    },
+    {
+      "archive_path": "dsf_ai_service/lean_runtime_manifest.txt",
+      "category": "build_control",
+      "reason": "One reviewed lean build, immutable package verification, read-only preflight, and deployment control. Retired shells are excluded from the runtime image.",
+      "sha256": "e564cce3cd64481783f87735e40ec7ff721d189d7b21d135a070fae0b707d4fc",
+      "size_bytes": 5379,
+      "source_path": "dsf_ai_service/lean_runtime_manifest.txt"
+    },
+    {
+      "archive_path": "native/guala_core/Cargo.lock",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "47c965aca178637de8872689d57bb768f1f41165301515af80897a2dcab79f21",
+      "size_bytes": 11914,
+      "source_path": "native/guala_core/Cargo.lock"
+    },
+    {
+      "archive_path": "native/guala_core/Cargo.toml",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "6a36da52a32a05d17763b09310b5be489624add65eebd8d05c4ee94679c85d43",
+      "size_bytes": 538,
+      "source_path": "native/guala_core/Cargo.toml"
+    },
+    {
+      "archive_path": "native/guala_core/pyproject.toml",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "4d97bf4e2dc4e7f059b360c3d3df3de37f02481237bdad31f6e17749b5928816",
+      "size_bytes": 280,
+      "source_path": "native/guala_core/pyproject.toml"
+    },
+    {
+      "archive_path": "native/guala_core/src/articulated_body_joint_source_builder.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "46e4e8341364d6904ce920ca5fb800ec545d1747d5f970d8256305bc11b109d0",
+      "size_bytes": 35210,
+      "source_path": "native/guala_core/src/articulated_body_joint_source_builder.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/articulatory_receptor_work.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "291ba834662a2c1f0a2d1e23f03aa310078682e2b33b93fb6f76c11f40d3fb17",
+      "size_bytes": 12005,
+      "source_path": "native/guala_core/src/articulatory_receptor_work.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/auditory.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "0e632fa94c60d6e9f4ccf66f0c74b3d9087bea7175190380c1f137452895fbbd",
+      "size_bytes": 10870,
+      "source_path": "native/guala_core/src/auditory.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/auditory_incremental.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "6f8e9a1ed27455db08094809eb9a55be3f5bd13ad40d37bbd7ddb40c09cba866",
+      "size_bytes": 37512,
+      "source_path": "native/guala_core/src/auditory_incremental.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/auditory_reachability.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "2de923f248060943a928abffaaa723fa26e4ac520807ae03f994ea8820cf618a",
+      "size_bytes": 16517,
+      "source_path": "native/guala_core/src/auditory_reachability.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/auditory_receptor_work.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "d19f6454537b69f14a71179b082d8e763b45152a30d8506a4e9fda6347c799dc",
+      "size_bytes": 26229,
+      "source_path": "native/guala_core/src/auditory_receptor_work.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/canonical_basin.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "1cdff9bcd9f874f45f296d9a28ed04ab7ea028dd990ed4e2837c16922099bb25",
+      "size_bytes": 13599,
+      "source_path": "native/guala_core/src/canonical_basin.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/canonical_causal_evidence.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "22d94a153a9a31304ca143125e85ece56a5516e5e006275ed5dff9496c1054d6",
+      "size_bytes": 69411,
+      "source_path": "native/guala_core/src/canonical_causal_evidence.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/canonical_l0_l4.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "5078b84455b2eadb1140577dca8cfb08c320b7ad665573d273ebd77d4aaafb60",
+      "size_bytes": 37968,
+      "source_path": "native/guala_core/src/canonical_l0_l4.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/canonical_l0_l4_batch_api.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "1b02b027689d42d1d74e7cc92dd32c1fa3d7cf104c93053160a0ce79cfa39afd",
+      "size_bytes": 5110,
+      "source_path": "native/guala_core/src/canonical_l0_l4_batch_api.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/causal_event_scheduler.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "f25023268b7058d58074bd9895101d6ea5a1b064fcf170ed38f71156b33cbfaa",
+      "size_bytes": 29019,
+      "source_path": "native/guala_core/src/causal_event_scheduler.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/chemical_receptor_work.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "8530f0d809f28c11a6d2d45d54cdf5b3683ea73331396442b3434b46b58e2d99",
+      "size_bytes": 13742,
+      "source_path": "native/guala_core/src/chemical_receptor_work.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/complete_neuron.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "efbb840ef41284d7aff7c49281fdefa1eca641748e284caa693336f5b02dd7aa",
+      "size_bytes": 374953,
+      "source_path": "native/guala_core/src/complete_neuron.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/content_defined_chunker.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "d6b84d295cfac05c31e2e80f698f6ec1a206872c9d692220798af62d43a654be",
+      "size_bytes": 4733,
+      "source_path": "native/guala_core/src/content_defined_chunker.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/declared_geometric_anatomy.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "05ed764c1bc320c10b86c97b4b11c7c68703b03839e5369154398832e7bb72a1",
+      "size_bytes": 15505,
+      "source_path": "native/guala_core/src/declared_geometric_anatomy.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/developmental_electrical_anatomy.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "f06a8331aebd84e2d6f6f6dc525d876e1d4ab41fbfda2d6b88a7173e76108ec9",
+      "size_bytes": 17777,
+      "source_path": "native/guala_core/src/developmental_electrical_anatomy.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/developmental_resting_population.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "a155112415c637a2aec2d792c19478b437b110f57d9c9457480725e3f74592e1",
+      "size_bytes": 33529,
+      "source_path": "native/guala_core/src/developmental_resting_population.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/elementary_charge_membrane.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "c959d7d7e2991dd790836f6c6898c1f3a79a6fcda1b016dc95262fc99d5edaea",
+      "size_bytes": 14051,
+      "source_path": "native/guala_core/src/elementary_charge_membrane.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/elementary_charge_transfer.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "e70aafbf3bb20c8f95c0ce7e135d1a501a25613ba55f2b3cf6bdbad59b2ef73d",
+      "size_bytes": 25886,
+      "source_path": "native/guala_core/src/elementary_charge_transfer.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/embryonic_neuron_genesis_candidate.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "08076b9fc24dfd7d116bddbe1ac4e35028d41a7bda060ae58f4eb78e2dd72d29",
+      "size_bytes": 14885,
+      "source_path": "native/guala_core/src/embryonic_neuron_genesis_candidate.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/exact_rational.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "cefdbc70d6a44b0c2a896349ac6ba7499886de2f6a2c7997e7fbf21a9c296fc6",
+      "size_bytes": 13411,
+      "source_path": "native/guala_core/src/exact_rational.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/exact_time_grid_occurrence.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "e9c3f5e0208c6ce8cd9110d7c7a16abd3bf3ffc12d44bf7b426a1aed186d66f9",
+      "size_bytes": 78169,
+      "source_path": "native/guala_core/src/exact_time_grid_occurrence.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/fast_charge_math.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "8f51b025e721409358d4b0e72e1634198a0a97d5ae76d826d95a2127ea48083a",
+      "size_bytes": 12042,
+      "source_path": "native/guala_core/src/fast_charge_math.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/full_field_bank_final.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "c8765dd1ccd45fd657c8684e11134ef2ad24e3a64d47dcf0f740988b919a8e7a",
+      "size_bytes": 63721,
+      "source_path": "native/guala_core/src/full_field_bank_final.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/hippocampal_reference_page.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "d2dbe56297fd521efab2ea0e44ede39722dc383ef5edfd6b361f668f353a7ca8",
+      "size_bytes": 1366,
+      "source_path": "native/guala_core/src/hippocampal_reference_page.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/hippocampal_sparse_path.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "45ac126c05ff1ef1960b0c28408bdf2971a92b5009022d1a069a82aa9abcfd65",
+      "size_bytes": 10177,
+      "source_path": "native/guala_core/src/hippocampal_sparse_path.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/joint_field_l0_l4.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "76e995c6f286c65fffec3cd2f37625ee15af9ec6a3d00e02e7d4d8302deeb56d",
+      "size_bytes": 45732,
+      "source_path": "native/guala_core/src/joint_field_l0_l4.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/joint_source_episode.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "0393834f441a065b215f7c2094e96149b10ff801fa4a2fbd85ef93da953b8609",
+      "size_bytes": 62885,
+      "source_path": "native/guala_core/src/joint_source_episode.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/joint_uf_neuron_boundary.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "039fde0c91cefea149896b41c27e50daa63d718f277eee963981d040aa00f830",
+      "size_bytes": 31014,
+      "source_path": "native/guala_core/src/joint_uf_neuron_boundary.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/joint_uf_source_adapter.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "e2f9cf2a6f2c62f20809110519c8fed26500930518218bc8f3204b8d1ba13595",
+      "size_bytes": 18915,
+      "source_path": "native/guala_core/src/joint_uf_source_adapter.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/joint_uf_v1_4.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "9aea491749126f434cfe6127915d008243378b8e9f7d83f2f851553e9ab8a700",
+      "size_bytes": 48240,
+      "source_path": "native/guala_core/src/joint_uf_v1_4.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/joint_uf_v1_4_dynamic_fixture.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "014263fb419ab36f88a69239f12636b7427602c893d6dff2a6e594837d9791d3",
+      "size_bytes": 10190,
+      "source_path": "native/guala_core/src/joint_uf_v1_4_dynamic_fixture.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/lattice_closed_membrane.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "3012c9a0463e53a416dd0dfc8e0697d056f2b8d49a482697ec7ec26469631aa3",
+      "size_bytes": 12158,
+      "source_path": "native/guala_core/src/lattice_closed_membrane.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/lib.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "383c55bdb52ebefa9b1abe96d70a99510ee8189cd433e652f6005a4bf08f2438",
+      "size_bytes": 4219,
+      "source_path": "native/guala_core/src/lib.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/local_cupula_hair_bundle_geometry.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "7096465746ec112ad06368e045ea124039213e1ccaaa464c62d967c3e44c06c2",
+      "size_bytes": 7070,
+      "source_path": "native/guala_core/src/local_cupula_hair_bundle_geometry.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/local_gating_spring_energy.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "ace68856cb62a3d261fdba9217ed60b99c5934b26d467afd0c513a5d39765edc",
+      "size_bytes": 7726,
+      "source_path": "native/guala_core/src/local_gating_spring_energy.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/local_membrane_conductance_balance.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "0bf0c3ca3c328638740d2138515b057408a430d43accef4d3d349540547b0d34",
+      "size_bytes": 20832,
+      "source_path": "native/guala_core/src/local_membrane_conductance_balance.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/local_tip_link_extension.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "1a4306a5f194faaf8b49454e7c8a4425f65a2518913f8200bbe81054adf477e6",
+      "size_bytes": 4735,
+      "source_path": "native/guala_core/src/local_tip_link_extension.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/materialized_fabric.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "958aea23695eca0356dcb7ee2aa44c3cc628494c2d587953bd28df6329bf1c01",
+      "size_bytes": 32877,
+      "source_path": "native/guala_core/src/materialized_fabric.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/metabolic_feeding.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "7b14da7d37af782f8975f904dc3f47322dabbf084cc088dabd2f87a7bd971ab6",
+      "size_bytes": 36841,
+      "source_path": "native/guala_core/src/metabolic_feeding.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/mounted_joint_fractal.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "c09e0d017ba4cf041408c52f28cdf5de782dd743aa9b372e51cba5665fb9013f",
+      "size_bytes": 146477,
+      "source_path": "native/guala_core/src/mounted_joint_fractal.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/neuron_source_anchor.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "8d56fd603971bcbf1ce4b761ebc68589218911e5833fc6a7e6efb6657a8bfa7a",
+      "size_bytes": 39362,
+      "source_path": "native/guala_core/src/neuron_source_anchor.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/optical_receptor_work.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "6589cbbcb487cc8152a87917154c867c054732a434c04e80ebf7efb2b805d9fe",
+      "size_bytes": 22060,
+      "source_path": "native/guala_core/src/optical_receptor_work.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/ordered_gate_delivery_candidate.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "7f7b135b9360cc7913fd51d3db9483c735fb6844a71a82c6924b933b838d72b7",
+      "size_bytes": 19430,
+      "source_path": "native/guala_core/src/ordered_gate_delivery_candidate.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/organism.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "3cf8382080f841d71f616dc8105436572abbe491e35f20c780e89de53745b6cd",
+      "size_bytes": 36882,
+      "source_path": "native/guala_core/src/organism.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/organism_runtime.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "f7babbd1b25f0c03a003436d0f920b3ca362f13595c5ebd110f480c8829363cd",
+      "size_bytes": 478905,
+      "source_path": "native/guala_core/src/organism_runtime.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/physical_mosaic.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "af9431cb016841774aa232397c6db1c31595c024078664082883e6532655034d",
+      "size_bytes": 103147,
+      "source_path": "native/guala_core/src/physical_mosaic.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/positional_krimelack_boundary.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "f9c1a691ef106efb2920b4fc0ef369bf5f0c146513e3e61e58c20107ed6be18b",
+      "size_bytes": 1470,
+      "source_path": "native/guala_core/src/positional_krimelack_boundary.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/proprioceptive_receptor_work.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "e832505a1dbcb2008e7687d7ee918fedfb0dc7ba435d8740e2b16f9195a44180",
+      "size_bytes": 35692,
+      "source_path": "native/guala_core/src/proprioceptive_receptor_work.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/reached_neuron_cohort.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "f022fcf0d33af5026ab47fc77fc8969f1d54a06471eb379ff29309bc8b257192",
+      "size_bytes": 189441,
+      "source_path": "native/guala_core/src/reached_neuron_cohort.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/reached_vestibular_bundle_path.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "24dcac2a14e3dc655e51d0d39f31ebd493c083dda8538f34ce826d4dcc68d20f",
+      "size_bytes": 7551,
+      "source_path": "native/guala_core/src/reached_vestibular_bundle_path.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/receptor_quantum_delivery.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "1638fca168a4c5fea28e73fff5cddfb302234048192c9dce5be06dd0a5e0de81",
+      "size_bytes": 19924,
+      "source_path": "native/guala_core/src/receptor_quantum_delivery.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/recovery_fluid_contact.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "e63e6d2124a1743b20f3af94eb8240eef13d12514cc961a40ac44bf25f714e35",
+      "size_bytes": 57966,
+      "source_path": "native/guala_core/src/recovery_fluid_contact.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/resident_cognitive_formation.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "d43187110cd4e80999ea1fe7019ce4dd36e14d56e3dc76fdc2475b99b6cb6bd7",
+      "size_bytes": 1130922,
+      "source_path": "native/guala_core/src/resident_cognitive_formation.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/resident_cognitive_formation/lean_sensorimotor_route.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "25eeaab42a6bd922912c7f05cfaf0a6384f89fb80cdbb73bd1a2ede436db256b",
+      "size_bytes": 38542,
+      "source_path": "native/guala_core/src/resident_cognitive_formation/lean_sensorimotor_route.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/resident_cognitive_formation/real_body_migration_probe.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "aaa2118ae6b3c2a130a514276a2cba363ffb9f385a3e7acfa4840d0c7211b807",
+      "size_bytes": 26191,
+      "source_path": "native/guala_core/src/resident_cognitive_formation/real_body_migration_probe.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/resident_cognitive_formation/reservoir_probe.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "35deedcd3737271b5c70ed8627c537449ead644f3716567690ec115bdd23ee96",
+      "size_bytes": 384384,
+      "source_path": "native/guala_core/src/resident_cognitive_formation/reservoir_probe.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/resident_cognitive_formation/settled_fractal_custody.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "73076247a007bec00180c5d60554770290d5ec528d923a308c0906f7d4d1c51d",
+      "size_bytes": 9613,
+      "source_path": "native/guala_core/src/resident_cognitive_formation/settled_fractal_custody.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/resident_cognitive_formation/tests.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "a7c2ee07b370d50c7b02d5b1aaa8d28f52433a8d3a71663c05fcdecca34f2941",
+      "size_bytes": 402967,
+      "source_path": "native/guala_core/src/resident_cognitive_formation/tests.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/resident_electrical_fabric.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "ffa3ac4cc6770d049f759df7c7064f58bb829ae1d41198ab382d415a8b36479e",
+      "size_bytes": 22554,
+      "source_path": "native/guala_core/src/resident_electrical_fabric.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/resident_receptor_transition.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "e0b051d787f42e1a2f696a09c07c15f0d81ef1fcbd1c0a40e74795978d9d0706",
+      "size_bytes": 16630,
+      "source_path": "native/guala_core/src/resident_receptor_transition.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/root_translation_joint_source_builder.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "30f52103178a3185c5946372603b4e6177e232a587cf4d0b7c6fee8bd5e64bb0",
+      "size_bytes": 9205,
+      "source_path": "native/guala_core/src/root_translation_joint_source_builder.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/root_translation_terminal.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "a8d62ba32b1ec4fea78bcb417f09184da5dd24d99c8f1b7017c612eb3a06bbb7",
+      "size_bytes": 3194,
+      "source_path": "native/guala_core/src/root_translation_terminal.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/root_yaw_joint_source_builder.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "a303d6ea22f08f97bdac98214e29f21834e846165c9a54bd5345688de2fccc53",
+      "size_bytes": 6538,
+      "source_path": "native/guala_core/src/root_yaw_joint_source_builder.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/root_yaw_terminal.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "046f84ba47e7bf4f4a4f2a46b1c01373530d77ab4911c8ac8bcbdec42b93d8d5",
+      "size_bytes": 2554,
+      "source_path": "native/guala_core/src/root_yaw_terminal.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/scratch_auditory_ear_proofs.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "9ecfbe97b48f104da8408b4aa1d88aa1de39bc5490a62f0fb4587be28918b4ed",
+      "size_bytes": 34778,
+      "source_path": "native/guala_core/src/scratch_auditory_ear_proofs.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/scratch_auditory_probe.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "8cf30abcfe4f6a6fab5b984563b9db0f0084023685ec8106151d14e279d9d580",
+      "size_bytes": 15061,
+      "source_path": "native/guala_core/src/scratch_auditory_probe.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/sha256.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "771be7c3282d954ae4c42e0295c868d14ade937bf4a590c2e41088e2c9f873e7",
+      "size_bytes": 3052,
+      "source_path": "native/guala_core/src/sha256.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/sparse_electrical_contact.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "d5686d72ea94483bfd15d32f69e8a65ce311a2037c744bcf2d7aa0d022c4f9df",
+      "size_bytes": 174272,
+      "source_path": "native/guala_core/src/sparse_electrical_contact.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/tactile_receptor_work.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "8aee54011375b0ac43a267126b385fc92924b8547909325d08676395aed99b81",
+      "size_bytes": 30008,
+      "source_path": "native/guala_core/src/tactile_receptor_work.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/thermal_receptor_work.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "9c36404560d977ca6b82609df4f1cd65ed23a3cf333e7defe80f130634706265",
+      "size_bytes": 10794,
+      "source_path": "native/guala_core/src/thermal_receptor_work.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/vestibular_joint_source_builder.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "47cd296d02315ea31ff7c1e082ba821ff88b2015ffa1d017a31c696603f4f81e",
+      "size_bytes": 30216,
+      "source_path": "native/guala_core/src/vestibular_joint_source_builder.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/vestibular_neuron_path.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "e894ebc4a4c514067e0226862a2ce3e47b95ff607334fa36a45e812348b23a29",
+      "size_bytes": 42145,
+      "source_path": "native/guala_core/src/vestibular_neuron_path.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/virtual_articulated_body.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "d35753bd5749bec5fb81081b26051dc9b40113643ef0da182e13b4718cff80aa",
+      "size_bytes": 88447,
+      "source_path": "native/guala_core/src/virtual_articulated_body.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/virtual_articulatory_body.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "c4dd38a1d1d6cc5f20dcf90c5650ee73f34cf9a0b9bd7b9c5ddfc40f94a4203e",
+      "size_bytes": 104643,
+      "source_path": "native/guala_core/src/virtual_articulatory_body.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/virtual_body_yaw_motion.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "9dcb93a749105595f6ffc01cccdeb4da1b040db120d098efc7df032269e25443",
+      "size_bytes": 11898,
+      "source_path": "native/guala_core/src/virtual_body_yaw_motion.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/virtual_material_neuron_genesis.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "cb7b8ae882e667644fc6f903b0bfbe8e14bc091aa1cf359e259dccaeeca693cb",
+      "size_bytes": 47277,
+      "source_path": "native/guala_core/src/virtual_material_neuron_genesis.rs"
+    },
+    {
+      "archive_path": "native/guala_core/src/virtual_vestibular_canal.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "bc9f640b782ee5e9fdbd63813c973d30714629ac25e08fb0ef4987a4e4c670c2",
+      "size_bytes": 17979,
+      "source_path": "native/guala_core/src/virtual_vestibular_canal.rs"
+    },
+    {
+      "archive_path": "native/guala_core/tests/fixtures/body_manifest_v1.hex",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "a4567f7b31298a4ade627d2b3c5ca6e266579cc84af0fc3031674ee29059222f",
+      "size_bytes": 23715,
+      "source_path": "native/guala_core/tests/fixtures/body_manifest_v1.hex"
+    },
+    {
+      "archive_path": "native/guala_core/tests/fixtures/body_state_v1.hex",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "b84bb4f71840eac1f198ee47269aebb573f087b7ecee3e7d46f423b1d4a02bf4",
+      "size_bytes": 5299,
+      "source_path": "native/guala_core/tests/fixtures/body_state_v1.hex"
+    },
+    {
+      "archive_path": "native/guala_core/tests/fixtures/body_state_v1_successor.hex",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "5a292202c08cb0a607ba2bf32e282ff82cf463500195be0e3b89beb37900129c",
+      "size_bytes": 5553,
+      "source_path": "native/guala_core/tests/fixtures/body_state_v1_successor.hex"
+    },
+    {
+      "archive_path": "native/guala_core/tests/fixtures/canonical_unicode_control_negative.hex",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "a5a85876db47c200e3be548394e49e6be8b33d09382e55054e40c8acde60f63f",
+      "size_bytes": 113,
+      "source_path": "native/guala_core/tests/fixtures/canonical_unicode_control_negative.hex"
+    },
+    {
+      "archive_path": "native/guala_core/tests/fixtures/world_observation_v6.hex",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "ae00d9629247ad57eb7f9f19b16dbf76494c740b0e15a9509aa52ffbda93012a",
+      "size_bytes": 9031,
+      "source_path": "native/guala_core/tests/fixtures/world_observation_v6.hex"
+    },
+    {
+      "archive_path": "native/guala_core/tests/fixtures/world_observation_v6_successor.hex",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "eadb8f5ea1a241fcbd6853b394e262fc3918d34c320608e7820b44910cca7d46",
+      "size_bytes": 9031,
+      "source_path": "native/guala_core/tests/fixtures/world_observation_v6_successor.hex"
+    },
+    {
+      "archive_path": "native/guala_core/tests/organism_codec.rs",
+      "category": "native_core",
+      "reason": "Exact native Guala kernel wheel build inputs used by the production Dockerfile.",
+      "sha256": "47c7a9e0e99732621a3d34ae79303e4684a8b429fa13bb451ad3c750b9ca6db7",
+      "size_bytes": 12029,
+      "source_path": "native/guala_core/tests/organism_codec.rs"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/__init__.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "f416bb153fcbae25dffbc903f6c8eed883db392835290ad0c3540ac1ba62fdcb",
+      "size_bytes": 17,
+      "source_path": "dsf_ai_service/__init__.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/__init__.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "dacae81996cc93189fc2b7eb34e5d8edf191e44514a9aab2fb47cb34efedeca7",
+      "size_bytes": 2043,
+      "source_path": "dsf_ai_service/glew_runtime/__init__.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/certified_backend.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "0332db086dd25797b18bc0c68627c648c00f7343820bc93d273845899bff2438",
+      "size_bytes": 4021,
+      "source_path": "dsf_ai_service/glew_runtime/certified_backend.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/closed_experience.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "047a3d6a28b0f4f23f926371d20f3da37525f713b2c162755875983de501ca98",
+      "size_bytes": 77438,
+      "source_path": "dsf_ai_service/glew_runtime/closed_experience.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/commit.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "1d6ac6e6528571fd665acc204c5684dcc2098450b1440b9c1f66980bb306394e",
+      "size_bytes": 65440,
+      "source_path": "dsf_ai_service/glew_runtime/commit.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/coupling.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "38741ca7a7665d0f1e4b324c92698cec178895c50e6a3f8873f4be0946f7392b",
+      "size_bytes": 18777,
+      "source_path": "dsf_ai_service/glew_runtime/coupling.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/event_support.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "9fc49cc7ac993f3fafac56ffe0f54868cb467f6c45b622a6da437fe303b41221",
+      "size_bytes": 42734,
+      "source_path": "dsf_ai_service/glew_runtime/event_support.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/experience_origin.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "de91bb0179ccc3e0c735f0bf78b5e010a47d03248669cce19a7080f82346eb18",
+      "size_bytes": 39230,
+      "source_path": "dsf_ai_service/glew_runtime/experience_origin.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/expression_modes.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "e0fbe76e903da7a0c178d3ff8edca5c489744d4cd730223ddc94ae02465712bd",
+      "size_bytes": 53739,
+      "source_path": "dsf_ai_service/glew_runtime/expression_modes.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/expressions.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "b924a4afeea44859ee2f344eded541f4f71041f2a7ce78e6140ce5c6590c3853",
+      "size_bytes": 49333,
+      "source_path": "dsf_ai_service/glew_runtime/expressions.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/field.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "e3ab5361a1a858f3f7cc80387bbf7c43bc27511f20a4db3894a54d17a1d809ab",
+      "size_bytes": 69092,
+      "source_path": "dsf_ai_service/glew_runtime/field.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/global_uf.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "9bef90569199344b50a7c7ff17c806ba935f27b202f0c8cd85b3bad69e0cb659",
+      "size_bytes": 98474,
+      "source_path": "dsf_ai_service/glew_runtime/global_uf.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/l6.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "6c3f65024e69fd13603efd8c5e217aabccbdc3103ac38f4b47820d62081a5088",
+      "size_bytes": 43289,
+      "source_path": "dsf_ai_service/glew_runtime/l6.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/model.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "f6b9711563f5a71832d4a852be6ac4ba987d7fa0b821d41eda0ac1a7f4f13333",
+      "size_bytes": 7181,
+      "source_path": "dsf_ai_service/glew_runtime/model.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/native_exact_field_batch.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "59ab251f23de596ae5e834a335be407a79e01255b59be6370ffeb3562d67ae48",
+      "size_bytes": 14328,
+      "source_path": "dsf_ai_service/glew_runtime/native_exact_field_batch.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/native_joint_source_episode.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "ad9a8e045e6e98906ca5f164b96270beeb471f063920444d5591aed560a6d816",
+      "size_bytes": 20264,
+      "source_path": "dsf_ai_service/glew_runtime/native_joint_source_episode.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/native_l0_l4_full_field_bank.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "52a4e184ce9c9749576e5a320a792c6f87264d9e6e96aef63ea1b5a3ed171457",
+      "size_bytes": 8812,
+      "source_path": "dsf_ai_service/glew_runtime/native_l0_l4_full_field_bank.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/native_resident_organism.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "d00fb70b6e702e5a0ebac0115986368623df2c428cbe800f8ff06aa255097bd1",
+      "size_bytes": 211169,
+      "source_path": "dsf_ai_service/glew_runtime/native_resident_organism.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/native_sensory_full_field.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "27a8e2303179f3728bbd420477ba58f2a4690f81f0c73ebdcfcde56c6004f77d",
+      "size_bytes": 43580,
+      "source_path": "dsf_ai_service/glew_runtime/native_sensory_full_field.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/operators.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "9ff5dcbb7a622ae4f239339a475a6d170f3d14b66385c550acb438e909620c75",
+      "size_bytes": 16498,
+      "source_path": "dsf_ai_service/glew_runtime/operators.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/physical_l6_tangents.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "0a73d0ed6f97f683dd7d9550c877d056b2c8aa57947de6f9b9d6b64ad67d6f45",
+      "size_bytes": 52034,
+      "source_path": "dsf_ai_service/glew_runtime/physical_l6_tangents.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/safe_mode.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "e2425fd0f483faffd4e0c797789115161a4281d57252acad6779abc4d6572e77",
+      "size_bytes": 15607,
+      "source_path": "dsf_ai_service/glew_runtime/safe_mode.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/sensory_full_field_boundary.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "55ea078367ed77bd24bc1d045471e09d9b03f5b6f7ebe02e63f5a72ac8bff748",
+      "size_bytes": 20188,
+      "source_path": "dsf_ai_service/glew_runtime/sensory_full_field_boundary.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/glew_runtime/structural_port_basin.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "b5f5f974d36156a47ec213e6ae47fcf0c3c75eb7a96d2dda0468c92b5a54cd86",
+      "size_bytes": 6762,
+      "source_path": "dsf_ai_service/glew_runtime/structural_port_basin.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/guala_cochlea.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "2fa4dbeeb6dbe98df461964f68b61b1a7c6d0aa18afe016158aa42e693d22259",
+      "size_bytes": 3872,
+      "source_path": "dsf_ai_service/guala_cochlea.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/guala_home_world.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "2e729910ceef3fd74a48ec29c1ef21d4624642685605a2c854656c99a8fa9007",
+      "size_bytes": 27928,
+      "source_path": "dsf_ai_service/guala_home_world.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/guala_motor_world.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "93cd1ef76fd20dfd89fd6c8219d4aa69a41b332ca77658cdafadc24fa18122e1",
+      "size_bytes": 12149,
+      "source_path": "dsf_ai_service/guala_motor_world.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/guala_physical_return.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "66c4c3353b66fe660a13aef247ed7dcf7b83e30401db8b53851d92c23129b24a",
+      "size_bytes": 10672,
+      "source_path": "dsf_ai_service/guala_physical_return.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/guala_physical_sensorium.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "fad0fc7079ad8331ef39e2b43ca1e435614e5869f7f64fe30f3688e8fe5bc238",
+      "size_bytes": 8392,
+      "source_path": "dsf_ai_service/guala_physical_sensorium.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/guala_receptor_anatomy.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "f7a2493265667ac6bc7a3a75a92ce3aad57d6709afb9d40b2ac5a594e96adec9",
+      "size_bytes": 7131,
+      "source_path": "dsf_ai_service/guala_receptor_anatomy.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/guala_world_sensorium.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "87eb7f80e782fc0497d3f558468a5f21d4c5dbed55436688ca8d95a53628bf63",
+      "size_bytes": 16022,
+      "source_path": "dsf_ai_service/guala_world_sensorium.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/lean_actor.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "b5ed5c7f08caa37f029583703d2ed43061c0fc663585ed5dcdf5a084827fea96",
+      "size_bytes": 18319,
+      "source_path": "dsf_ai_service/lean_actor.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/lean_checkpoint.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "2702a7bf45c3ddfc3f60f00ddae82ec3e036fd05ac2f63960e459463798da8ec",
+      "size_bytes": 5789,
+      "source_path": "dsf_ai_service/lean_checkpoint.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/lean_embodiment_observation.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "b95292453ca5c24fc522166e48edb2ebd004d131cc15d620dcf0ff0de63817e7",
+      "size_bytes": 5333,
+      "source_path": "dsf_ai_service/lean_embodiment_observation.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/lean_physical_loop.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "a353843f877bd10144091432707fa61ee25245994dd4172c25dc27cdbc7571c0",
+      "size_bytes": 17032,
+      "source_path": "dsf_ai_service/lean_physical_loop.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/lean_production_app.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "cac9b17ba814c071ee3fd9b46523238ad564e8a28eb42bf276599369e28c00bf",
+      "size_bytes": 12324,
+      "source_path": "dsf_ai_service/lean_production_app.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/lean_sensory_occurrence.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "c2ee0926e1aca00b18063f8fe02fafc5be937fd2e258a33aba4385fff864876f",
+      "size_bytes": 5900,
+      "source_path": "dsf_ai_service/lean_sensory_occurrence.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/paired_current_store.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "a4d7736f0c3257a914b516aa8a45611c7950ff3be47a44d341a626e8308dc918",
+      "size_bytes": 19637,
+      "source_path": "dsf_ai_service/paired_current_store.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/__init__.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0,
+      "source_path": "dsf_ai_service/substrate/__init__.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/approved_curriculum_physical_surfaces.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "21fc6b4ed6c894450234859dbe80b41525ef7961bcf669a6e0ebe835a6029d9a",
+      "size_bytes": 5744,
+      "source_path": "dsf_ai_service/substrate/approved_curriculum_physical_surfaces.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/auditory_event_boundary.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "c8c623cdaba462b088d5858d192af4b834da2c2cdc6ad5b1258f6f6135e71371",
+      "size_bytes": 14380,
+      "source_path": "dsf_ai_service/substrate/auditory_event_boundary.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/auditory_incremental_terminal.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "f29aabb1222deb1e19ff05ea9f51a6d63bc40a16fba94774a00266f986f4dbeb",
+      "size_bytes": 167663,
+      "source_path": "dsf_ai_service/substrate/auditory_incremental_terminal.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/auditory_kernel_mount.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "1f42da6af7163dec8e7cbce7cf89aaf153b31da5fc6ca24b643df0a9db8d7cd9",
+      "size_bytes": 17778,
+      "source_path": "dsf_ai_service/substrate/auditory_kernel_mount.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/auditory_l4_causal_support.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "3f9d2d42f759864258f11eb59e6607fd7ea70e49a1de2e91a5d2cfb0ec9dd527",
+      "size_bytes": 28231,
+      "source_path": "dsf_ai_service/substrate/auditory_l4_causal_support.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/auditory_l5.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "2d0a11e116ce8857587e9b465e62764c4018ab98df79383162ea215da084f8e5",
+      "size_bytes": 53234,
+      "source_path": "dsf_ai_service/substrate/auditory_l5.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/auditory_pcm_stream.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "952d49f2449c23a1e16d74b9c333490393adba4693cceeb382017a29dd26e6f6",
+      "size_bytes": 11657,
+      "source_path": "dsf_ai_service/substrate/auditory_pcm_stream.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/auditory_pressure_kernel_input.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "8feae15fa722fddcc8de29c56057ab6716d386a489ddb88077a349926aa50655",
+      "size_bytes": 4089,
+      "source_path": "dsf_ai_service/substrate/auditory_pressure_kernel_input.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/auditory_receptor_event_boundary.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "2b79a3b81d7c6866e435171865bfade4d24cebdd3b4fb1f0fe5277e59eb54f5a",
+      "size_bytes": 44864,
+      "source_path": "dsf_ai_service/substrate/auditory_receptor_event_boundary.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/auditory_receptor_resonance_graph.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "bff664e4e9256b35bd992e3b8677be3499d46f141b7004d28251bcd5b3315222",
+      "size_bytes": 12053,
+      "source_path": "dsf_ai_service/substrate/auditory_receptor_resonance_graph.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/auditory_reciprocity.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "a9803d96c08ad6317b6adb45a916f6c641bd3a864c490d76b5d9b15fdbc2d556",
+      "size_bytes": 96168,
+      "source_path": "dsf_ai_service/substrate/auditory_reciprocity.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/auditory_recurrent_motif.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "767518057ab6851d81042ead6defa362297dc3e8f3ee687735f980820bb627c1",
+      "size_bytes": 175226,
+      "source_path": "dsf_ai_service/substrate/auditory_recurrent_motif.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/auditory_stream_settlement.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "19574fef12d6fc8882351e5fcd500c1b108c1728b7a0564f019de0b56f505f98",
+      "size_bytes": 14675,
+      "source_path": "dsf_ai_service/substrate/auditory_stream_settlement.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/auditory_tutor_authority.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "b48891ebe3cec12318d9f8eed6658f5b17168ab858e99f8038622e35597a18fc",
+      "size_bytes": 18153,
+      "source_path": "dsf_ai_service/substrate/auditory_tutor_authority.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/body_surface_contact.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "630f8f4cce73abe6440e3ab8b7eba5abdcf4a6a1930ddfbae7b1b7506671bce8",
+      "size_bytes": 20596,
+      "source_path": "dsf_ai_service/substrate/body_surface_contact.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/bounded_home_thermal_physics.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "214f3e48763553a30b82644397f6f1e6387c82b88ba5dc976beed48d8fc5cea5",
+      "size_bytes": 15911,
+      "source_path": "dsf_ai_service/substrate/bounded_home_thermal_physics.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/compact_auditory_field_authority.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "76a922e1d6accda07c73cd8bba03165a6ca4f7587d30c297bcb045dd169f28d7",
+      "size_bytes": 39800,
+      "source_path": "dsf_ai_service/substrate/compact_auditory_field_authority.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/embodiment_sensory_outcome.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "195fe612ca3e42bd529e7e4b74fbc0f890f3881553546273914ce765b27580ec",
+      "size_bytes": 990,
+      "source_path": "dsf_ai_service/substrate/embodiment_sensory_outcome.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/embodiment_world.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "104ae07ff75f688f5e6ebe4d063403ab28036a2da16bf44f42cadece3ec457b3",
+      "size_bytes": 332930,
+      "source_path": "dsf_ai_service/substrate/embodiment_world.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/exact_causal_experience.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "2e8b70835190db0f85ef2967e7ae51ea60c4b9cba532853f039b4dace5572395",
+      "size_bytes": 103198,
+      "source_path": "dsf_ai_service/substrate/exact_causal_experience.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/exact_lattice_rotation.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "5b0c0a675862a6412efef3eac2c16b1a5d23c86e9ddfffa53a4f1df85b73bd25",
+      "size_bytes": 7026,
+      "source_path": "dsf_ai_service/substrate/exact_lattice_rotation.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/native_evidence_custody.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "61d9fb46a14abc6ee42677a492f2e926ed09197e698bd46c140421de4859c18e",
+      "size_bytes": 66324,
+      "source_path": "dsf_ai_service/substrate/native_evidence_custody.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/native_resident_resource_admission.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "f862f5d07ce6a3ff0b2f0eb444938f4cf450be5b49561fbfd2a9601ff95a88d0",
+      "size_bytes": 6119,
+      "source_path": "dsf_ai_service/substrate/native_resident_resource_admission.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/physical_optical_surface_asset.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "e0d60e09b4755f2b32357e7a89f8e8afa0326584afa41c2d83e1b26a8dbd7370",
+      "size_bytes": 7125,
+      "source_path": "dsf_ai_service/substrate/physical_optical_surface_asset.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/senses/__init__.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0,
+      "source_path": "dsf_ai_service/substrate/senses/__init__.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/senses/auditory_full_field_provider.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "cc3ff1e4922b2157178017c7c550301267c80596361d5fdfed00484912384123",
+      "size_bytes": 47001,
+      "source_path": "dsf_ai_service/substrate/senses/auditory_full_field_provider.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/thermally_coupled_embodiment_world.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "2f20a942560dbed9cd0bddc3923b25cf5400c5a66a47c280f55247fcf942af3e",
+      "size_bytes": 62891,
+      "source_path": "dsf_ai_service/substrate/thermally_coupled_embodiment_world.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/w1_acoustic_emitter.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "5a9b580e1ee7d2daca1ed778a55b8142d0aa4c9ce1f976694ad8f553843eba79",
+      "size_bytes": 27866,
+      "source_path": "dsf_ai_service/substrate/w1_acoustic_emitter.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/w1_anonymous_audiovisual_continuity.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "b1ecd8ea872d0ab9ceeb8cf98d18de7e5631aa977d3ee8311617a2949e47e804",
+      "size_bytes": 45449,
+      "source_path": "dsf_ai_service/substrate/w1_anonymous_audiovisual_continuity.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/w1_audiovisual_physical_evidence.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "73bd34bb6907f4bfab6f7d4766db178cd9a479ccc80fa97c712251a8ba4e73ef",
+      "size_bytes": 123338,
+      "source_path": "dsf_ai_service/substrate/w1_audiovisual_physical_evidence.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/w1_authenticated_multi_emitter_capture.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "99a4653b1312ac862880edbf84a2ca31b2489adc752d409ee5949e52f729acc1",
+      "size_bytes": 33587,
+      "source_path": "dsf_ai_service/substrate/w1_authenticated_multi_emitter_capture.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/w1_binaural_acoustic_physics.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "61304b30a20467ed132ef73901c38a9b0e0ababcac2e902acb9f963f3f2f5b10",
+      "size_bytes": 16623,
+      "source_path": "dsf_ai_service/substrate/w1_binaural_acoustic_physics.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/w1_binaural_auditory_l5.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "6327e35f4d6e32620fa92c6d8836fc88e2400d93d0f1fcb4cdc4690a4ad2f711",
+      "size_bytes": 44838,
+      "source_path": "dsf_ai_service/substrate/w1_binaural_auditory_l5.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/w1_binaural_receptor_settlement.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "23297767eb1f65ca0ea5079c8f91ed7f5e52da42a4cb11a7e8f57cd078fb5ff1",
+      "size_bytes": 9419,
+      "source_path": "dsf_ai_service/substrate/w1_binaural_receptor_settlement.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/w1_coupled_material_sensory_physics.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "95368aa4de66c9b195a66845aafed53df95c6014353724d88259cfaa6044c470",
+      "size_bytes": 26094,
+      "source_path": "dsf_ai_service/substrate/w1_coupled_material_sensory_physics.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/w1_exact_binaural_source_separation.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "b4c96db54c30f451f6add8e46bf34c4cbfe6830fa86389dd7679d6b3bc065526",
+      "size_bytes": 27688,
+      "source_path": "dsf_ai_service/substrate/w1_exact_binaural_source_separation.py"
+    },
+    {
+      "archive_path": "runtime/dsf_ai_service/substrate/w1_physical_receptors.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "d531dee6bac781a04b0648ba2604457e596eb1899ca05cfa2b0d2230f9f523b6",
+      "size_bytes": 47363,
+      "source_path": "dsf_ai_service/substrate/w1_physical_receptors.py"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/C-is-for-Cat.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "763fd86bfaaa59d5c7698b7475772bd9dede70764937c4dc6918a492038a1082",
+      "size_bytes": 2554514,
+      "source_path": "guala_curriculum/cards/C-is-for-Cat.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/D-is-for-Dolphin.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "b408cf717bc509c45b8747a06a288ff7e8cfb086e7eac46d8b705cb6df039dd1",
+      "size_bytes": 2441349,
+      "source_path": "guala_curriculum/cards/D-is-for-Dolphin.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/E-is-for-Elephant.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "a9dbd7c3199375db4c26df6b549ca404ea696b1bd38271693e01f0057d0bc32c",
+      "size_bytes": 2506626,
+      "source_path": "guala_curriculum/cards/E-is-for-Elephant.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/F-is-for-Fox.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "fde4f88e758ac630a655a4f2ccc302e31a74c16ba341bb41eabdb03fbb3bd604",
+      "size_bytes": 2458194,
+      "source_path": "guala_curriculum/cards/F-is-for-Fox.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/G-is-for-Giraffe.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "69f2c02b62ef76dc3f54093fb0b62590325c16c66e9e7e9db32835a69c5514b6",
+      "size_bytes": 2450459,
+      "source_path": "guala_curriculum/cards/G-is-for-Giraffe.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/H-is-for-House.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "b5560b400f074eeef9719a2c8302ea67d2f81b99054a851b1beeffba971ec6aa",
+      "size_bytes": 2506338,
+      "source_path": "guala_curriculum/cards/H-is-for-House.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/I-is-for-Ice-Cream.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "481defcc64ccc9a6885e9c44b49aad97d23e1ac0bf9428497e7022569fc2fcda",
+      "size_bytes": 2423850,
+      "source_path": "guala_curriculum/cards/I-is-for-Ice-Cream.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/J-is-for-Jellyfish.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "ee137f2f8083d9d62c2c14a7fcd8ff7168be900e02ce4d56067712c37327634c",
+      "size_bytes": 2576474,
+      "source_path": "guala_curriculum/cards/J-is-for-Jellyfish.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/K-is-for-Kite.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "08a28750906f2b01058e42e107296aab9356cf98cb02b3314606bf2be9f29d38",
+      "size_bytes": 2507251,
+      "source_path": "guala_curriculum/cards/K-is-for-Kite.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/L-is-for-Lion.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "465ae6b476d643511cbf740e978d619585839685a90d474bc4bfb7afdd17a477",
+      "size_bytes": 2576549,
+      "source_path": "guala_curriculum/cards/L-is-for-Lion.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/M-is-for-Mushroom.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "5cf935ba126e445887d8f7bf598576569abde7213ed4c4ae829d1635a1cc342a",
+      "size_bytes": 2494704,
+      "source_path": "guala_curriculum/cards/M-is-for-Mushroom.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/N-is-for-Nest.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "baf40fa594ca33c0702cfd81cb9cebf472a538135f6f22029aa9bb952326da02",
+      "size_bytes": 2697130,
+      "source_path": "guala_curriculum/cards/N-is-for-Nest.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/O-is-for-Owl.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "7c7989528a6c708cca7307941bbced19e2692a8fb8b614b672ae3a9e40a961c6",
+      "size_bytes": 2582802,
+      "source_path": "guala_curriculum/cards/O-is-for-Owl.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/P-is-for-Penguin.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "575065ddaedd1c7c5649ee262872df6323697aff7a5ff1e465ad997165141aaa",
+      "size_bytes": 2438443,
+      "source_path": "guala_curriculum/cards/P-is-for-Penguin.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/Q-is-for-Queen.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "c0774c1d37f092fae0ff6e3c323fe20390a43b921385a149e93b57922d71924a",
+      "size_bytes": 2495553,
+      "source_path": "guala_curriculum/cards/Q-is-for-Queen.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/R-is-for-Rabbit.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "85af37d8c10c7377c04f366c656b5f7cf8afc83a99b24905c0e9674e30ad315a",
+      "size_bytes": 2538383,
+      "source_path": "guala_curriculum/cards/R-is-for-Rabbit.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/S-is-for-Snail.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "a419f73c1914cb1b86eb4c8498fb1e7f555630ec0f49cbf541ed8f8ab8204069",
+      "size_bytes": 2574724,
+      "source_path": "guala_curriculum/cards/S-is-for-Snail.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/T-is-for-Turtle.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "1262bf8d69b1d6124efc7df5a5c7a9ee259eaa39d7561e9fe255bb6d3953e13c",
+      "size_bytes": 2539759,
+      "source_path": "guala_curriculum/cards/T-is-for-Turtle.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/U-is-for-Umbrella.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "899f32d57b698089b170ed7d7b050ffa741558802b402601cc57e518a5c9cd05",
+      "size_bytes": 2451736,
+      "source_path": "guala_curriculum/cards/U-is-for-Umbrella.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/V-is-for-Violin.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "89d03a6f6a7fb812b627d30e53cea6a171952e158830ea949e109b3dd2caa470",
+      "size_bytes": 2425942,
+      "source_path": "guala_curriculum/cards/V-is-for-Violin.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/W-is-for-Whale.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "9b6d18a22ff5534967c5c53fd5a30497a9734c302d68e525be8193e45f6495c1",
+      "size_bytes": 2567660,
+      "source_path": "guala_curriculum/cards/W-is-for-Whale.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/X-is-for-Xylophone.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "371b0063a31bbd4096326b939d1b741e17a43e0ab3c9e15f54884fe3051112eb",
+      "size_bytes": 2575947,
+      "source_path": "guala_curriculum/cards/X-is-for-Xylophone.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/Y-is-for-Yak.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "55e4243995c9b5493e7af7b89147afa76876bef92e93033e0e50dfac5aea6748",
+      "size_bytes": 2604283,
+      "source_path": "guala_curriculum/cards/Y-is-for-Yak.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/Z-is-for-Zebra.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "6f7147cacf557caf91089ab9595db8c55434bd9244efd8b98615791b0ff2c092",
+      "size_bytes": 2496756,
+      "source_path": "guala_curriculum/cards/Z-is-for-Zebra.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/alphabet-a-apple-v1.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "849827f6dc371856674ff15fc78f676602e44526cd1a2866e18b779069b16d9d",
+      "size_bytes": 2562700,
+      "source_path": "guala_curriculum/cards/alphabet-a-apple-v1.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/alphabet-b-bee-v1.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "b728f6bb25a44c442bc44a033b03f7ca5e39b9bba54e59c42a444683c9993ce0",
+      "size_bytes": 2536289,
+      "source_path": "guala_curriculum/cards/alphabet-b-bee-v1.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/number-01-one-v1.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "157ed65dee6405dc9c070f5cedf1529cbf07986f7783f362444f94c0ac2874bb",
+      "size_bytes": 2388961,
+      "source_path": "guala_curriculum/cards/number-01-one-v1.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/number-02-two-v1.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "546de5895280dced6f9323f14bf83e2bf983bc75b7ddcb73d4c030393db85822",
+      "size_bytes": 2289272,
+      "source_path": "guala_curriculum/cards/number-02-two-v1.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/number-03-three-v1.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "8cd323b80cdd9a58e8070f736ee4970cf873fab36f30f0e9bbcaca4685aa18e3",
+      "size_bytes": 2215931,
+      "source_path": "guala_curriculum/cards/number-03-three-v1.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/number-04-four-v1.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "435944966efd188e5394ea79dc96ad28abd4c6326e2fabaedcd796909f58b7a6",
+      "size_bytes": 2500457,
+      "source_path": "guala_curriculum/cards/number-04-four-v1.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/number-05-five-v1.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "49ad2ca6855812120ed7ce4610aeba1899f59dd6ae84e40127b28d8e2e82a62a",
+      "size_bytes": 2374547,
+      "source_path": "guala_curriculum/cards/number-05-five-v1.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/number-06-six-v1.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "948738254bfa4a72b62cd16334d93cac431cbc9c5f79d03a5aa52842ebb57737",
+      "size_bytes": 2419549,
+      "source_path": "guala_curriculum/cards/number-06-six-v1.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/number-07-seven-v1.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "99c55c81a9f9a07d9d3e3dc1691ced5a6e04094cb5b283c495d9ea5b86808610",
+      "size_bytes": 2267903,
+      "source_path": "guala_curriculum/cards/number-07-seven-v1.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/number-08-eight-v1.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "fe37522fc3fce5cd312484ab85270e851ec3ce7876a3fd443a12346559dd80ea",
+      "size_bytes": 2349028,
+      "source_path": "guala_curriculum/cards/number-08-eight-v1.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/number-09-nine-v1.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "58abf777d49ff5e02ab4125d262688f0b043a57733e1b72e2352d33d1de3d811",
+      "size_bytes": 2338274,
+      "source_path": "guala_curriculum/cards/number-09-nine-v1.png"
+    },
+    {
+      "archive_path": "runtime/guala_curriculum/cards/number-10-ten-v1.png",
+      "category": "physical_curriculum_surfaces",
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded.",
+      "sha256": "4d24f7c79c2daeb892f950b93144647f6465a61b0221510f5f96246d6ac338c1",
+      "size_bytes": 2284300,
+      "source_path": "guala_curriculum/cards/number-10-ten-v1.png"
+    },
+    {
+      "archive_path": "runtime/uf_core/config.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "b87ebb0ee7c58a109e10cd4f161613da6bd0c21fb67dc00a3d90aad7e391121c",
+      "size_bytes": 2430,
+      "source_path": "uf_core/config.py"
+    },
+    {
+      "archive_path": "runtime/uf_core/layer0.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "20932787e15b3048f2031ea5b9cef937aa7e13650aebea0582c6002d1b731424",
+      "size_bytes": 7253,
+      "source_path": "uf_core/layer0.py"
+    },
+    {
+      "archive_path": "runtime/uf_core/layer1.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "29e59061cf73aadd0730178170b90fbfdb157cd7bdec8358baf111a54d0bcc2d",
+      "size_bytes": 9258,
+      "source_path": "uf_core/layer1.py"
+    },
+    {
+      "archive_path": "runtime/uf_core/layer2.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "6ae12c7a79027fcf259370b7bf1f6209853ce763ac188a39477213344a0d19e8",
+      "size_bytes": 6394,
+      "source_path": "uf_core/layer2.py"
+    },
+    {
+      "archive_path": "runtime/uf_core/layer3.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "e4e25c175dc8c92d0e85a635be2214da3d5ed50331a66609e641c0f998562cb7",
+      "size_bytes": 4351,
+      "source_path": "uf_core/layer3.py"
+    },
+    {
+      "archive_path": "runtime/uf_core/layer4.py",
+      "category": "runtime_python",
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint.",
+      "sha256": "a5be7e422c3954117622845d3da4994fa62227c46c0a72936d80d7f665fdc21a",
+      "size_bytes": 6652,
+      "source_path": "uf_core/layer4.py"
+    },
+    {
+      "archive_path": "tools/deploy_dsf_ai.sh",
+      "category": "build_control",
+      "reason": "One reviewed lean build, immutable package verification, read-only preflight, and deployment control. Retired shells are excluded from the runtime image.",
+      "sha256": "dd7afe6a3c7bd6c84d4c4710339f3d432cd224793e7fed56634d5ac8880bb0fa",
+      "size_bytes": 21598,
+      "source_path": "tools/deploy_dsf_ai.sh"
+    },
+    {
+      "archive_path": "tools/package_guala_release.py",
+      "category": "build_control",
+      "reason": "One reviewed lean build, immutable package verification, read-only preflight, and deployment control. Retired shells are excluded from the runtime image.",
+      "sha256": "3a48428a353780bf7bb9d1d758456923adf10dc8f81dfb3805da6b994c12766d",
+      "size_bytes": 25695,
+      "source_path": "tools/package_guala_release.py"
+    },
+    {
+      "archive_path": "tools/preflight_guala_production.py",
+      "category": "build_control",
+      "reason": "One reviewed lean build, immutable package verification, read-only preflight, and deployment control. Retired shells are excluded from the runtime image.",
+      "sha256": "16d39e0efda0885a1c9ba2284c92a06c942323cf7356b0a31bc4edfd95056d6f",
+      "size_bytes": 45759,
+      "source_path": "tools/preflight_guala_production.py"
+    },
+    {
+      "archive_path": "tools/run_guala_candidate_rehearsal_task.py",
+      "category": "build_control",
+      "reason": "One reviewed lean build, immutable package verification, read-only preflight, and deployment control. Retired shells are excluded from the runtime image.",
+      "sha256": "236f9bdf5c5061e4bb866f7a32b89391e003b96a6bd764f0d5a971f2dd8f3078",
+      "size_bytes": 53771,
+      "source_path": "tools/run_guala_candidate_rehearsal_task.py"
+    }
+  ],
+  "git_commit": "662a58c92ee0baf34bf7dae715fada6f6ca4198a",
+  "manifest_sha256": "933b9945b2a8dcc06380a43c5f42af28d3466dc3d2b67c46b695e2a4315bda09",
+  "release_name": "guala-production",
+  "schema": "guala.reviewed_release_receipt.v1",
+  "source_file_count": 215
+}

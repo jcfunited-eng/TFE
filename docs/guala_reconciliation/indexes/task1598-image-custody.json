@@ -1,0 +1,63 @@
+{
+  "image": "418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:fa39dad6277cf849a8952bd8e8f43f0f1d39e22eba68bf2fe114679ae0594fe1",
+  "never_started": true,
+  "files": [
+    {
+      "path": "/app/dsf_ai_service/lean_production_app.py",
+      "returncode": 0,
+      "bytes": 20652,
+      "sha256": "c9dc76c71f090a733e88be2dc088418c075ff446ad77fe9a0b50a3b2daf3c09e",
+      "snapshot": "task1598-image-root/app/dsf_ai_service/lean_production_app.py"
+    },
+    {
+      "path": "/app/dsf_ai_service/guala_functional_loop.py",
+      "returncode": 0,
+      "bytes": 42774,
+      "sha256": "6e62f0edc5e2acb2e3d5deda7242467257d6d0a0f6f99c73a8bacd37c0b38b95",
+      "snapshot": "task1598-image-root/app/dsf_ai_service/guala_functional_loop.py"
+    },
+    {
+      "path": "/app/dsf_ai_service/guala_functional_organism.py",
+      "returncode": 0,
+      "bytes": 208696,
+      "sha256": "99e971c3039cd1d4c9652755e529b9358d87af7403e1c3ccfcebe22d2ad844e0",
+      "snapshot": "task1598-image-root/app/dsf_ai_service/guala_functional_organism.py"
+    },
+    {
+      "path": "/app/dsf_ai_service/substrate/modular_column_substrate.py",
+      "returncode": 0,
+      "bytes": 29543,
+      "sha256": "a65691f29c15d831616382275d72d51eeb22060d00339c0a6eaf055af8b31287",
+      "snapshot": "task1598-image-root/app/dsf_ai_service/substrate/modular_column_substrate.py"
+    },
+    {
+      "path": "/app/dsf_ai_service/lean_runtime_manifest.txt",
+      "returncode": 1,
+      "error": "Error response from daemon: Could not find the file /app/dsf_ai_service/lean_runtime_manifest.txt in container ea5d105ec1fda6858a5a047d26ca233720b51092aeb947f66c97a3c2f5df0853"
+    },
+    {
+      "path": "/app/deploy/guala_release_manifest.json",
+      "returncode": 1,
+      "error": "Error response from daemon: Could not find the file /app/deploy/guala_release_manifest.json in container ea5d105ec1fda6858a5a047d26ca233720b51092aeb947f66c97a3c2f5df0853"
+    },
+    {
+      "path": "/app/dsf_ai_service/models/yolov8n.onnx",
+      "returncode": 0,
+      "bytes": 12851097,
+      "sha256": "f63fb6402b62f71f218d3be38cdc48ed1e5520f27948d3ca86149a427e9dd7d3",
+      "snapshot": "task1598-image-root/app/dsf_ai_service/models/yolov8n.onnx"
+    },
+    {
+      "path": "/app/dsf_ai_service/speech_transducer.py",
+      "returncode": 0,
+      "bytes": 30985,
+      "sha256": "fdad4926f42394d0b0a76faaf74827915016ac10af18e2a798c50ae7149b1b7d",
+      "snapshot": "task1598-image-root/app/dsf_ai_service/speech_transducer.py"
+    },
+    {
+      "path": "/app/native/guala_core/src/cortical_column.rs",
+      "returncode": 1,
+      "error": "Error response from daemon: Could not find the file /app/native/guala_core/src/cortical_column.rs in container ea5d105ec1fda6858a5a047d26ca233720b51092aeb947f66c97a3c2f5df0853"
+    }
+  ]
+}

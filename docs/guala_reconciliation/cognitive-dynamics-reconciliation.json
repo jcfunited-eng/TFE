@@ -1,0 +1,1207 @@
+{
+  "schema": "guala.documentary_slice_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T08:01:12.660625+00:00",
+  "scope": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "CD01-01",
+      "path": "docs/GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "git_blob": "022d009fcde7469258d7330f2dd463d1948a99f7",
+      "sha256": "f2ebf2886b7a28e31fb8f94e769888c96e987ee047c84064685a682fe983c8c8",
+      "bytes": 16198,
+      "lines": 253,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD01-01--GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T20:12:59+00:00",
+          "commit": "c1f7d78e65b8224dcd709f0a5a920eb0108a5d1b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-12T19:33:51+00:00",
+          "commit": "1d9579ab8387f28e54b7f763e6a4cfe1d8fbe8c2",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD01-01--GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "CD01-02",
+      "path": "docs/GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "git_blob": "82528d9baa56a417760f6e09be3998126cf1fb74",
+      "sha256": "48cba2409d3cf55f88feaf9e75fe7c6ad0739e1d07b8a6ec5d9f3fcd0b70f52b",
+      "bytes": 17636,
+      "lines": 270,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD01-02--GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T20:39:55+00:00",
+          "commit": "afc2ce5e0fffc24df2e7da7d1cad80c15a3c26fe",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-12T20:12:59+00:00",
+          "commit": "c1f7d78e65b8224dcd709f0a5a920eb0108a5d1b",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD01-02--GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "CD01-03",
+      "path": "docs/GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "git_blob": "8cf24d048de068848226debf3044cebb91b585be",
+      "sha256": "a95fee9a7038e2b640c88b0f866b3a202a2fd8927a13eae560f2e4eae988b1ee",
+      "bytes": 15451,
+      "lines": 244,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD01-03--GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T19:33:51+00:00",
+          "commit": "1d9579ab8387f28e54b7f763e6a4cfe1d8fbe8c2",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-12T19:13:53+00:00",
+          "commit": "06650e54394092fd98819002f7a797c519d905ad",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD01-03--GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "CD01-04",
+      "path": "docs/GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "git_blob": "bad42327ae84e2fc1c5f9d8632a510d195ccf858",
+      "sha256": "5a09b6592fc6cd5acd2a1aa2a50048d599cb156ec6870cf103daed8a4be3c922",
+      "bytes": 12158,
+      "lines": 195,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD01-04--GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T19:13:53+00:00",
+          "commit": "06650e54394092fd98819002f7a797c519d905ad",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-12T18:44:59+00:00",
+          "commit": "543127471d392fee884e86edbaa2a11e73c0e72e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD01-04--GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "CD01-05",
+      "path": "docs/GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "git_blob": "c5dc68dfdf0beb50e4c56285dbf565e69e7b61a0",
+      "sha256": "e9a33909c838861cc1e282fe2036fbbb142bcf4d60e7033303161817eb760955",
+      "bytes": 19558,
+      "lines": 299,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD01-05--GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T20:39:55+00:00",
+          "commit": "afc2ce5e0fffc24df2e7da7d1cad80c15a3c26fe",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD01-05--GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "CD02-01",
+      "path": "docs/GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "git_blob": "7ca9051846fad3eaf21b191856844bf508e7fe05",
+      "sha256": "6b75088c0f77ed3ab113f949cb0a5843c93f607ba710e083e8430e4a077c12e7",
+      "bytes": 8188,
+      "lines": 128,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD02-01--GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T21:25:20+00:00",
+          "commit": "80bdc1c7ac689266e4b5e438688b7112b29c68d2",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-12T21:06:06+00:00",
+          "commit": "d412f3be91f26ba85496c7cd9d745952a4a4b220",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD02-01--GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "CD02-02",
+      "path": "docs/GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "git_blob": "7e0efd3029fb2be4f1f2c851844d888ba0efd29a",
+      "sha256": "10e0d1537de37a14825f78439d6484b6f81408ab8eb81519ec90212e40c80e0f",
+      "bytes": 9250,
+      "lines": 143,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD02-02--GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T23:04:48+00:00",
+          "commit": "2fa7bd9a61da26fe2f3ada44a355aabf9c928962",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-12T22:35:15+00:00",
+          "commit": "677b8fc16e0d4c928d612912173a7216287c3c91",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD02-02--GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "CD02-03",
+      "path": "docs/GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "git_blob": "88afc04fb0ad08ce908bdf2e0a9bae4326f65b8a",
+      "sha256": "2987cf8cf8dcb2b63c43f68c13474922178df4c9bac3d284e8b2a51253058170",
+      "bytes": 8665,
+      "lines": 135,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD02-03--GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T22:35:15+00:00",
+          "commit": "677b8fc16e0d4c928d612912173a7216287c3c91",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-12T22:18:51+00:00",
+          "commit": "e3e82e44bca5906916b34a5647f2704314787e2d",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD02-03--GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "CD02-04",
+      "path": "docs/GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "git_blob": "b1ae6ea84fa1975bdc11bf5698906b50ab245738",
+      "sha256": "2aab3bfcc4a028a39dc09aeb5d8255e0ee35e5f03e839e650cfd290c5001e546",
+      "bytes": 11453,
+      "lines": 180,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD02-04--GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T23:04:48+00:00",
+          "commit": "2fa7bd9a61da26fe2f3ada44a355aabf9c928962",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD02-04--GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "CD02-05",
+      "path": "docs/GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "git_blob": "cfcd054e4fcabf2300667be4eeef80cc32b9658b",
+      "sha256": "0e3fed521db9ee960b8f640193dc8019e691a6a9ad75ccbf0df95c042c29e0f0",
+      "bytes": 9211,
+      "lines": 145,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD02-05--GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T22:18:51+00:00",
+          "commit": "e3e82e44bca5906916b34a5647f2704314787e2d",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-12T21:25:20+00:00",
+          "commit": "80bdc1c7ac689266e4b5e438688b7112b29c68d2",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD02-05--GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "CD03-01",
+      "path": "docs/GUALA_C014_ATTENTION_ORIENTING_SPRINT_2026-08-12.md",
+      "git_blob": "2e3b9a932e36ebec95a61b3a967e49415771f918",
+      "sha256": "211dcd76807409ad23f782ff0bad27996c7f4b95acd8377a11305dcba0833fe9",
+      "bytes": 16647,
+      "lines": 172,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD03-01--GUALA_C014_ATTENTION_ORIENTING_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-13T00:44:37+00:00",
+          "commit": "4c51393dd761cacc4b1b366f9df219117c64221d",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-13T00:05:13+00:00",
+          "commit": "89cb6cfa7a5517b02d9aae35dc909297aa528cfe",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD03-01--GUALA_C014_ATTENTION_ORIENTING_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "CD03-02",
+      "path": "docs/GUALA_C014_ATTENTION_ORIENTING_SPRINT_2026-08-12.md",
+      "git_blob": "6651efd345cee13e63f36e9c6e1a6e3aa8f09225",
+      "sha256": "feb34bc0ed057ea5f2403c6184bb2224d7339301a3ed6557973be5be26eb5885",
+      "bytes": 19514,
+      "lines": 217,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD03-02--GUALA_C014_ATTENTION_ORIENTING_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-13T00:44:37+00:00",
+          "commit": "4c51393dd761cacc4b1b366f9df219117c64221d",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD03-02--GUALA_C014_ATTENTION_ORIENTING_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "CD04-01",
+      "path": "docs/GUALA_C015_WORKING_CAUSAL_STATE_SPRINT_2026-08-13.md",
+      "git_blob": "31e98f458829f6a7044c0d6696d5988da2046337",
+      "sha256": "380a7a71f14b80adaf6ed3514795f7fd770a52c184b67ab53354aff66d714ac7",
+      "bytes": 13741,
+      "lines": 135,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD04-01--GUALA_C015_WORKING_CAUSAL_STATE_SPRINT_2026-08-13.md",
+      "observations": [
+        {
+          "author_time": "2026-08-13T02:10:26+00:00",
+          "commit": "6dc3f3c74bca0c96ffb912844f5ec90c2d6aaaa9",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-13T01:47:04+00:00",
+          "commit": "e68cb6208222ec18a6922b785d506e07d38d8f2b",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD04-01--GUALA_C015_WORKING_CAUSAL_STATE_SPRINT_2026-08-13.md"
+    },
+    {
+      "id": "CD04-02",
+      "path": "docs/GUALA_C015_WORKING_CAUSAL_STATE_SPRINT_2026-08-13.md",
+      "git_blob": "848574642a2e675f0d59959615c278ef0b882146",
+      "sha256": "685a38a95a30d47bc9f1e301dde908285c91c6bcecf13edf2849d873328e1031",
+      "bytes": 12762,
+      "lines": 130,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD04-02--GUALA_C015_WORKING_CAUSAL_STATE_SPRINT_2026-08-13.md",
+      "observations": [
+        {
+          "author_time": "2026-08-13T01:47:04+00:00",
+          "commit": "e68cb6208222ec18a6922b785d506e07d38d8f2b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-13T01:19:52+00:00",
+          "commit": "926e5bc79f7e7bc28e8e25458cb452ca362aebb0",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD04-02--GUALA_C015_WORKING_CAUSAL_STATE_SPRINT_2026-08-13.md"
+    },
+    {
+      "id": "CD04-03",
+      "path": "docs/GUALA_C015_WORKING_CAUSAL_STATE_SPRINT_2026-08-13.md",
+      "git_blob": "b033356102cdc1a3810803450b29c5f0c18a186f",
+      "sha256": "f4f9659b0f4b6ed0bdf670a616fed1663fd4f310bda8d6982b8d1d70eaa2c488",
+      "bytes": 16540,
+      "lines": 171,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD04-03--GUALA_C015_WORKING_CAUSAL_STATE_SPRINT_2026-08-13.md",
+      "observations": [
+        {
+          "author_time": "2026-08-13T02:54:21+00:00",
+          "commit": "8794134c938bb5a5d9443a181ae3ea2a91a14dd9",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD04-03--GUALA_C015_WORKING_CAUSAL_STATE_SPRINT_2026-08-13.md"
+    },
+    {
+      "id": "CD04-04",
+      "path": "docs/GUALA_C015_WORKING_CAUSAL_STATE_SPRINT_2026-08-13.md",
+      "git_blob": "bddf376e289ea0e4cfcc2277c65c1d4f99465627",
+      "sha256": "4c2c80e24daa99b73bf3c6fe887d8776f45286b8c4423f9e4532edaf77192836",
+      "bytes": 14722,
+      "lines": 140,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD04-04--GUALA_C015_WORKING_CAUSAL_STATE_SPRINT_2026-08-13.md",
+      "observations": [
+        {
+          "author_time": "2026-08-13T02:54:21+00:00",
+          "commit": "8794134c938bb5a5d9443a181ae3ea2a91a14dd9",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-13T02:10:26+00:00",
+          "commit": "6dc3f3c74bca0c96ffb912844f5ec90c2d6aaaa9",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD04-04--GUALA_C015_WORKING_CAUSAL_STATE_SPRINT_2026-08-13.md"
+    },
+    {
+      "id": "CD05-01",
+      "path": "docs/GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+      "git_blob": "0b0cb74af8dc5cfa279bae46cf374f9261e1bec3",
+      "sha256": "7704a833544766ca5dfcf71a394fc3f3fe770087e13f6b9f3c55b8b3dd862987",
+      "bytes": 24049,
+      "lines": 272,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD05-01--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+      "observations": [
+        {
+          "author_time": "2026-08-13T05:56:15+00:00",
+          "commit": "b516425c9308caed00815c5e4767a8922b105529",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-13T05:08:29+00:00",
+          "commit": "cb1afb6172754b07ecd6062ad14c34937f0795bd",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD05-01--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md"
+    },
+    {
+      "id": "CD05-02",
+      "path": "docs/GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+      "git_blob": "46d7e1c0866da1a9b9a767731e8700eb38c88092",
+      "sha256": "c5a15e39b7d9930488c4ce904555932c2ff7171838514db8d6872da470d2525b",
+      "bytes": 26490,
+      "lines": 308,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD05-02--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+      "observations": [
+        {
+          "author_time": "2026-08-13T07:15:10+00:00",
+          "commit": "4bfd50390e70d875f8044cc2dc4e79344bc0d17c",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-13T06:45:31+00:00",
+          "commit": "5cd50950aebf45ee90903a163bee02e24640da1f",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD05-02--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md"
+    },
+    {
+      "id": "CD05-03",
+      "path": "docs/GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+      "git_blob": "626ad923817c0bf9c3b4a26f8fb485b207361b1a",
+      "sha256": "fecafe7bf1eb923688f9f4e2938234e96058ce2c1bc61bfe6363503adee28ad1",
+      "bytes": 13324,
+      "lines": 166,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD05-03--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+      "observations": [
+        {
+          "author_time": "2026-08-13T03:44:32+00:00",
+          "commit": "7ffc324d74accff973c331c7023367acbe7566f1",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-13T03:04:19+00:00",
+          "commit": "464e7f8519857cb377de39003bbc3d478b2b4fc5",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD05-03--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md"
+    },
+    {
+      "id": "CD05-04",
+      "path": "docs/GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+      "git_blob": "82a3e094790da95ee88b7b3643d99fac85c01e99",
+      "sha256": "036aa3f25031a9f38bddc5fa49cc029a147c750684d821f22e2fcf0c09a56ada",
+      "bytes": 25334,
+      "lines": 292,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD05-04--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+      "observations": [
+        {
+          "author_time": "2026-08-13T06:24:03+00:00",
+          "commit": "d88926220668b71ea4ccdd95f68e4e79e66996f6",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-13T05:56:15+00:00",
+          "commit": "b516425c9308caed00815c5e4767a8922b105529",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD05-04--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md"
+    },
+    {
+      "id": "CD05-05",
+      "path": "docs/GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+      "git_blob": "88779fd0f140fd9c0c8562a7d9509f2d054405de",
+      "sha256": "2942beeb40628fbe82d0fb6018f008450afdd3ca50837ce2e2b324fc6502b6a4",
+      "bytes": 25920,
+      "lines": 300,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD05-05--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+      "observations": [
+        {
+          "author_time": "2026-08-13T06:45:31+00:00",
+          "commit": "5cd50950aebf45ee90903a163bee02e24640da1f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-13T06:24:03+00:00",
+          "commit": "d88926220668b71ea4ccdd95f68e4e79e66996f6",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD05-05--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md"
+    },
+    {
+      "id": "CD05-06",
+      "path": "docs/GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+      "git_blob": "9a0fb77263815e67b54c4df080ddbd9e9108e106",
+      "sha256": "284d8b20748585ed2e1bc492cdb3060e6e018cc46311030fdf480b84c46859d6",
+      "bytes": 21744,
+      "lines": 237,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD05-06--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+      "observations": [
+        {
+          "author_time": "2026-08-13T05:08:29+00:00",
+          "commit": "cb1afb6172754b07ecd6062ad14c34937f0795bd",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-13T04:49:31+00:00",
+          "commit": "d96c85cf4d6ba9eb7a75c3559718acc93fda491a",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD05-06--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md"
+    },
+    {
+      "id": "CD05-07",
+      "path": "docs/GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+      "git_blob": "ba124c6d53dd6e1fb82e4ffeb53759724943a486",
+      "sha256": "497dc9c9dcc18ddf826bd36b885f131ed0b1bda95b2793c80371d61816fff213",
+      "bytes": 16891,
+      "lines": 187,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD05-07--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+      "observations": [
+        {
+          "author_time": "2026-08-13T04:06:53+00:00",
+          "commit": "ad5490c475bab6c9d54b389b302de973af1832a3",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-13T03:44:32+00:00",
+          "commit": "7ffc324d74accff973c331c7023367acbe7566f1",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD05-07--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md"
+    },
+    {
+      "id": "CD05-08",
+      "path": "docs/GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+      "git_blob": "c2b8c4731997455eb0dd590f590ca3050c52ce06",
+      "sha256": "af474b4aee089eba4e0a107cbdacbc6ca6bf6ea0b487ed38e4b9fe50833d9b1d",
+      "bytes": 17976,
+      "lines": 203,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD05-08--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+      "observations": [
+        {
+          "author_time": "2026-08-13T04:49:31+00:00",
+          "commit": "d96c85cf4d6ba9eb7a75c3559718acc93fda491a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-13T04:06:53+00:00",
+          "commit": "ad5490c475bab6c9d54b389b302de973af1832a3",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD05-08--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md"
+    },
+    {
+      "id": "CD05-09",
+      "path": "docs/GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+      "git_blob": "d607ca45e82aca183f650711be2f6849ea0704b6",
+      "sha256": "7c16bbdd9d422914ea7924a40ddca5f2a68db52e0561ee534f4d0630d8715137",
+      "bytes": 28024,
+      "lines": 337,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD05-09--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+      "observations": [
+        {
+          "author_time": "2026-08-13T07:15:10+00:00",
+          "commit": "4bfd50390e70d875f8044cc2dc4e79344bc0d17c",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD05-09--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md"
+    },
+    {
+      "id": "CD06-01",
+      "path": "docs/GUALA_C017_AFFECTIVE_BALANCE_SPRINT_2026-08-13.md",
+      "git_blob": "34d47e963fc47eeb400994c2489cf823e2fb5fae",
+      "sha256": "c00c59d9dbd007f30546fe6035730b33ba28498f79021e397a377f8c67625dae",
+      "bytes": 17489,
+      "lines": 233,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD06-01--GUALA_C017_AFFECTIVE_BALANCE_SPRINT_2026-08-13.md",
+      "observations": [
+        {
+          "author_time": "2026-08-13T08:18:18+00:00",
+          "commit": "95626d77c3ffaf26bb715c6118ef5bbe81d6b14e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD06-01--GUALA_C017_AFFECTIVE_BALANCE_SPRINT_2026-08-13.md"
+    },
+    {
+      "id": "CD06-02",
+      "path": "docs/GUALA_C017_AFFECTIVE_BALANCE_SPRINT_2026-08-13.md",
+      "git_blob": "c7bff375ccec6aba9617ba1a6d8131048fb4a30d",
+      "sha256": "f77be0d0ac4c25b453cb23aee5db826124ddfd9139e679289828db14e277357e",
+      "bytes": 16746,
+      "lines": 223,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD06-02--GUALA_C017_AFFECTIVE_BALANCE_SPRINT_2026-08-13.md",
+      "observations": [
+        {
+          "author_time": "2026-08-13T08:18:18+00:00",
+          "commit": "95626d77c3ffaf26bb715c6118ef5bbe81d6b14e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-13T07:50:09+00:00",
+          "commit": "7add36a227d1aec46dd58912312501d7bcd04549",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD06-02--GUALA_C017_AFFECTIVE_BALANCE_SPRINT_2026-08-13.md"
+    },
+    {
+      "id": "CD07-01",
+      "path": "docs/GUALA_C018_LOCALIZED_FLUID_CHEMISTRY_SPRINT_2026-08-13.md",
+      "git_blob": "1e4ed95d67dc849c8376c4b9217e3a098cb10e17",
+      "sha256": "4d23414f013f078a60fb790d93f87e677a63e37b2fd8f31a9788b41739229b61",
+      "bytes": 12548,
+      "lines": 162,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD07-01--GUALA_C018_LOCALIZED_FLUID_CHEMISTRY_SPRINT_2026-08-13.md",
+      "observations": [
+        {
+          "author_time": "2026-08-13T09:57:49+00:00",
+          "commit": "c7857f14cdbf26a718ca58b286e46320c7917a92",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-13T09:15:04+00:00",
+          "commit": "29afd81d0c9ec843a78bbc427d13246df936f73c",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD07-01--GUALA_C018_LOCALIZED_FLUID_CHEMISTRY_SPRINT_2026-08-13.md"
+    },
+    {
+      "id": "CD07-02",
+      "path": "docs/GUALA_C018_LOCALIZED_FLUID_CHEMISTRY_SPRINT_2026-08-13.md",
+      "git_blob": "b8bf8cdd99c8a73b909749ede356e60968e5cc48",
+      "sha256": "007cc6e6831432fa6ce32238f1efdd7b869c871411e451fef0bc848258fdfec1",
+      "bytes": 13770,
+      "lines": 182,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/cognitive-dynamics/CD07-02--GUALA_C018_LOCALIZED_FLUID_CHEMISTRY_SPRINT_2026-08-13.md",
+      "observations": [
+        {
+          "author_time": "2026-08-13T09:57:49+00:00",
+          "commit": "c7857f14cdbf26a718ca58b286e46320c7917a92",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of29 versions/seven paths:1619 latest-document lines plus40 older-only passages/185 lines. Historical executable/live claims, original approvals and cited literature are not independently qualified here. No product execution or live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/cognitive-dynamics/CD07-02--GUALA_C018_LOCALIZED_FLUID_CHEMISTRY_SPRINT_2026-08-13.md"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "CDR01",
+      "name": "Exact directed contact order is narrower than learned syntax",
+      "classification": "reported_physical_progress_not_language",
+      "historical_requirement_or_mechanism": "C011 identifies loss of exact sender/bond/transfer direction when native settlement exports only undirected bonds and recipient lineages. V20 retains actual directed frontier evidence without inventing direction for V19. Task1001 reports34 ordered paths through a live250-interval world action, formation participation and exact cold replay. The ledger explicitly disclaims language, thought and weave capability.",
+      "current_disposition": "An actual two-contact ordered transfer is valuable physical evidence. It does not establish learned temporal grammar, meaningful sentence order or preserved episodic sequence. The physical sender/receiver path must remain distinguished from a sorted receipt, timestamp or authored sequence.",
+      "lawful_remedy": "Preserve authentic directed transfer and custody, then locate the retained experience-dependent relation that changes later ordered behavior. Trace current frontier/state readers and migrations before carrying forward any C011 capability claim.",
+      "unit_acceptance": "Reject reversed, discontinuous and recipient-only paths; do not fabricate missing legacy direction.",
+      "module_acceptance": "Verify actual native transfer, formation participation and exact codec/ordinary aggregate correspondence.",
+      "system_acceptance": "Show experienced order changes later reconstruction or expression with reversed/unrelated controls.",
+      "release_acceptance": "Bind current speech/ordering claims to exact source/state/live evidence; graph paths alone cannot certify syntax.",
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A09",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CD01-05",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD01-05--GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+          "line": 32,
+          "anchor": "   The exact sender and bond that caused a recipient are discarded.",
+          "sha256": "e9a33909c838861cc1e282fe2036fbbb142bcf4d60e7033303161817eb760955"
+        },
+        {
+          "source_id": "CD01-05",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD01-05--GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+          "line": 248,
+          "anchor": "  rehearsal proved 34 exact ordered paths and exact cold replay, but an ordinary",
+          "sha256": "e9a33909c838861cc1e282fe2036fbbb142bcf4d60e7033303161817eb760955"
+        },
+        {
+          "source_id": "CD01-05",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD01-05--GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+          "line": 299,
+          "anchor": "physical formation evidence; it does not claim language, thought, or a weave.",
+          "sha256": "e9a33909c838861cc1e282fe2036fbbb142bcf4d60e7033303161817eb760955"
+        }
+      ]
+    },
+    {
+      "id": "CDR02",
+      "name": "Deeper path claim changed from overlapping routes to recurrence of the same route",
+      "classification": "substantive_acceptance_and_state_horizon_revision",
+      "historical_requirement_or_mechanism": "C012 V21 initially required A→B→C→D across three transfers.27 input combinations and four250-interval trajectories produced none. A trace instead showed the same two-contact route at intervals2,4,6; V22 adds one older frontier to compare two occurrences across four intervals, allowing exact carrier quantities to differ. Task1005 reports35 recurrent route relations, exact cold replay and explicitly no semantic thought or self-expression.",
+      "current_disposition": "Observed route recurrence falsifies the original overlap hypothesis; it does not by itself establish a deeper learned relation between distinct ordered formations. Selecting a fixed history depth sufficient for the observed witness is an architectural/evidence choice requiring authority, even when bounded and deterministic. A documented claim narrowing cannot silently count as original deep-cognition closure.",
+      "lawful_remedy": "Preserve actual route-recurrence evidence and register the changed acceptance/state law. Recover approval for the new horizon and its causal versus observational role. Specify learned deeper ordering directly in native retained state and test that function rather than adding history until a named depth counter becomes nonzero.",
+      "unit_acceptance": "Distinguish overlapping paths, repeated routes, unrelated routes and changing carrier magnitude.",
+      "module_acceptance": "Trace V20→V21→V22 state, causative readers and exact horizon/codec bounds.",
+      "system_acceptance": "Demonstrate learned relations among ordered experiences beyond repeated propagation of one route.",
+      "release_acceptance": "Report the narrower qualified function separately and keep deeper cognition open until its own current proof.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A09",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "CD02-01",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD02-01--GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+          "line": 35,
+          "anchor": "   `A→B`, `B→C`, `C→D` and span recurrent retained formations.",
+          "sha256": "6b75088c0f77ed3ab113f949cb0a5843c93f607ba710e083e8430e4a077c12e7"
+        },
+        {
+          "source_id": "CD02-04",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD02-04--GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+          "line": 85,
+          "anchor": "3. Read-only diagnostics tested all 27 combinations of `(-64, 0, 64)^3` and",
+          "sha256": "2aab3bfcc4a028a39dc09aeb5d8255e0ee35e5f03e839e650cfd290c5001e546"
+        },
+        {
+          "source_id": "CD02-04",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD02-04--GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+          "line": 47,
+          "anchor": "only the exact three predecessor frontiers needed to compare the earlier and",
+          "sha256": "2aab3bfcc4a028a39dc09aeb5d8255e0ee35e5f03e839e650cfd290c5001e546"
+        },
+        {
+          "source_id": "CD02-04",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD02-04--GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+          "line": 179,
+          "anchor": "ordered paths. It does not claim semantic thought, language, or weave-level",
+          "sha256": "2aab3bfcc4a028a39dc09aeb5d8255e0ee35e5f03e839e650cfd290c5001e546"
+        }
+      ]
+    },
+    {
+      "id": "CDR03",
+      "name": "Finite-carrier competition supports a narrow attention mechanism",
+      "classification": "reported_physical_selection_without_semantic_choice",
+      "historical_requirement_or_mechanism": "C014 reports unchanged local contact/energy physics dividing two carriers[1,1], then a lawful prior local transition changing the next division to[0,2], conserving charge without a selector score. It exposes reached and foregone mounted alternatives read-only. Task1006 reports live changed sparse routes and a56-millidegree native motor consequence after an externally authored90-degree turn; cold replay is exact.",
+      "current_disposition": "This is a useful reported physical differential, not a proof of semantic focus, autonomous self-selected action, curiosity, thought or planning. Zero-transfer mounted alternatives are observed options, not causes. The authored large turn and its smaller native consequence must not be merged into an autonomy claim.",
+      "lawful_remedy": "Preserve local material competition and all genuine alternatives, without Python salience or named targets. Prove the experience/internal-state dependence of later orienting under ordinary self-generated conditions and distinguish external action from native consequence.",
+      "unit_acceptance": "Verify actual simultaneous alternatives, charge balance and changed physical branch outcomes.",
+      "module_acceptance": "Trace exact route producer through current native body and read-only observer; no foregone route reenters as an action.",
+      "system_acceptance": "Demonstrate authentic retained/internal cause changes sensed orienting under controlled inputs.",
+      "release_acceptance": "Qualify autonomy separately from attention and external-turn reachability on the current serving body.",
+      "repair_actions": [
+        "A04",
+        "A05",
+        "A08",
+        "A10",
+        "A11",
+        "A13",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "CD03-02",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD03-02--GUALA_C014_ATTENTION_ORIENTING_SPRINT_2026-08-12.md",
+          "line": 33,
+          "anchor": "   two simultaneous branches from `[1,1]` to `[0,2]` and carries the exact",
+          "sha256": "feb34bc0ed057ea5f2403c6184bb2224d7339301a3ed6557973be5be26eb5885"
+        },
+        {
+          "source_id": "CD03-02",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD03-02--GUALA_C014_ATTENTION_ORIENTING_SPRINT_2026-08-12.md",
+          "line": 192,
+          "anchor": "  that the world/body transition committed and a further 56-millidegree native",
+          "sha256": "feb34bc0ed057ea5f2403c6184bb2224d7339301a3ed6557973be5be26eb5885"
+        },
+        {
+          "source_id": "CD03-02",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD03-02--GUALA_C014_ATTENTION_ORIENTING_SPRINT_2026-08-12.md",
+          "line": 216,
+          "anchor": "sparse reached frontier. It does not prove causal thought, deliberative choice,",
+          "sha256": "feb34bc0ed057ea5f2403c6184bb2224d7339301a3ed6557973be5be26eb5885"
+        }
+      ]
+    },
+    {
+      "id": "CDR04",
+      "name": "Immediate working cause must exclude fresh input and observer substitution",
+      "classification": "reported_native_continuation_with_corrected_measurement",
+      "historical_requirement_or_mechanism": "C015 uses existing adjacent-interval directed frontier as working cause, not a new memory buffer. Newborn250ms input produced no strict internal continuation and was correctly rejected. Two production-copy failures arose from retaining an unrelated earlier settlement and a single canonical projection hiding the selected expired transfer. The corrected observer checks whether that exact receiver sends onward next interval. Task1009 reports404 carriers in a live internally continued transfer that later ceased, plus restart of the same organism.",
+      "current_disposition": "No onward transfer proves that selected propagation ended; it does not mean every physical trace or all body activity disappeared. This narrow continuation/settlement evidence does not establish semantic working memory, imagined scenarios, deliberation or language. Current correspondence across later law changes is open.",
+      "lawful_remedy": "Preserve causal local carry and exclude continuing external/body/fluid reseeding from the internal-continuation claim. Keep observation identity tied to the selected actual transfer without widening into an archive or deriving a scripted continuation.",
+      "unit_acceptance": "Separate fresh/repeated input from carried cause and selected-transfer expiry from unrelated settlement.",
+      "module_acceptance": "Verify exact frontier, source provenance and ordinary aggregation through cold persistence.",
+      "system_acceptance": "Show immediate retained activity changes later authentic behavior without input replay and with explicit conserved support.",
+      "release_acceptance": "Report only the proven working function and qualify higher reasoning/speech separately.",
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A09",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "CD04-03",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD04-03--GUALA_C015_WORKING_CAUSAL_STATE_SPRINT_2026-08-13.md",
+          "line": 116,
+          "anchor": "3. **Rejected as acceptance:** use a newborn 250 ms vestibular trajectory. It",
+          "sha256": "f4f9659b0f4b6ed0bdf670a616fed1663fd4f310bda8d6982b8d1d70eaa2c488"
+        },
+        {
+          "source_id": "CD04-03",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD04-03--GUALA_C015_WORKING_CAUSAL_STATE_SPRINT_2026-08-13.md",
+          "line": 153,
+          "anchor": "  `...5e -> ...5d -> ...01`; the second transfer carried `404` whole carriers",
+          "sha256": "f4f9659b0f4b6ed0bdf670a616fed1663fd4f310bda8d6982b8d1d70eaa2c488"
+        },
+        {
+          "source_id": "CD04-03",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD04-03--GUALA_C015_WORKING_CAUSAL_STATE_SPRINT_2026-08-13.md",
+          "line": 170,
+          "anchor": "  does not claim prediction, scenario generation, thought, choice, language,",
+          "sha256": "f4f9659b0f4b6ed0bdf670a616fed1663fd4f310bda8d6982b8d1d70eaa2c488"
+        }
+      ]
+    },
+    {
+      "id": "CDR05",
+      "name": "Prediction closure does not establish the required learned consequence relation",
+      "classification": "documented_claim_gap_and_unqualified_observer_interpretation",
+      "historical_requirement_or_mechanism": "C016 requires previously learned action/consequence structure to become active before a later real consequence. The ledger explicitly admits the implementation had not proved either alternative reassembled a relation retained from a prior lived episode. It later classifies a layer10 target receiving from a reached layer8 cell as agreement and the reverse direction as contradiction. Task1015 closure cites pre-existing contacts and a later matching transfer, then narrows the result to a physical prediction precursor.",
+      "current_disposition": "Pre-existence is not demonstrated learning history; carrier direction is not by itself a derived prediction-error or semantic agreement law. The closure does not supply the missing acquisition-to-anticipation causal differential required by its own completion boundary. This is a documentary qualification gap; current source or runtime use of that classifier is not established by this slice.",
+      "lawful_remedy": "Keep the narrow physical alternative/consequence witness and mark learned prediction unqualified. Authenticate the acquired relation, its retained causative state and lawful consequence comparator. Prove learned versus control behavior before classifying expectation, agreement or contradiction; never reuse a read-only label as cognitive authority.",
+      "unit_acceptance": "Reject bare layer participation, pre-existing topology and direction-only interpretation as proof of learned prediction.",
+      "module_acceptance": "Bind actual prior experience, retained change, internally continued route and later sensed physical outcome.",
+      "system_acceptance": "Demonstrate anticipatory effect caused by acquisition, with absent/unrelated/reversed-consequence controls and cold retention.",
+      "release_acceptance": "G1 must report the first real failed boundary; no precursor, false-authority flag or closure heading can certify prediction or speech.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CD05-09",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD05-09--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+          "line": 99,
+          "anchor": "| Observed evidence | The candidate restored the exact production body at tick `65,223` and cold-rehearsed the same 250-interval vestibular trajectory twice. Both runs produced two exact alternatives from intrinsic lineage `...0072` through layer-11 lineages `...0062` and `...0070` into distinct layer-10 lineages `...0061` and `...006f`, followed later by one authentic layer-8 to layer-10 body transfer. Alternative receipt `a6baa225...e7e0dea7` and consequence receipt `94f1d5a7...80a3f346` reproduced exactly; 500 full-DSF deliveries occurred with zero Python cognition callbacks. Live task 1011 later falsified closure: ordinary self-yaw repeatedly produced the two paths without a consequence transfer, and a direct 90-degree/250-ms production turn also produced two paths but zero consequence transfers. The current observer also does not prove that either path reassembles a relation retained from a prior lived action/consequence episode. C-016 remains open. |",
+          "sha256": "7c16bbdd9d422914ea7924a40ddca5f2a68db52e0561ee534f4d0630d8715137"
+        },
+        {
+          "source_id": "CD05-09",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD05-09--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+          "line": 118,
+          "anchor": "  target reached as the consequence receiver is agreement; that target acting",
+          "sha256": "7c16bbdd9d422914ea7924a40ddca5f2a68db52e0561ee534f4d0630d8715137"
+        },
+        {
+          "source_id": "CD05-09",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD05-09--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+          "line": 322,
+          "anchor": "  crossed pre-existing layer-11 ordering cells into distinct pre-existing",
+          "sha256": "7c16bbdd9d422914ea7924a40ddca5f2a68db52e0561ee534f4d0630d8715137"
+        },
+        {
+          "source_id": "CD05-09",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD05-09--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+          "line": 336,
+          "anchor": "This closes only the physical prediction precursor in C-016. It does not prove",
+          "sha256": "7c16bbdd9d422914ea7924a40ddca5f2a68db52e0561ee534f4d0630d8715137"
+        }
+      ]
+    },
+    {
+      "id": "CDR06",
+      "name": "Large authored stimuli and removed transient release predicates do not prove preserved capability",
+      "classification": "documented_reachability_gap_and_regression_gate_risk",
+      "historical_requirement_or_mechanism": "C016 rehearsed90 degrees across250 intervals while ordinary self-yaw was53–83 millidegrees in one millisecond. It explicitly records that the larger trial did not prove ordinary self-action reachability. Later production states stopped reproducing the transient2/1 witness, so rehearsal was changed to exact replay of whichever bounded route evidence occurred while direct live C016 acceptance remained required. Earlier C014/C012 transient witnesses were also removed from later release gates.",
+      "current_disposition": "Demanding the same fleeting trace on every later state can be a false gate; removing it does not establish capability preservation. Deterministic replay of zero relevant evidence can pass a transport/persistence check while the cognitive function remains absent. The later narrowed precursor cannot silently satisfy original learned prediction.",
+      "lawful_remedy": "Separate exact-replay integrity from function-specific regression obligations. Use ordinary magnitude/duration/provenance and retained acquisition controls for the claimed capability; retain old failures and prove why revised acceptance still establishes the same function or explicitly records a narrowed scope.",
+      "unit_acceptance": "Require expected nonzero executed tests and distinct replay-integrity versus capability results.",
+      "module_acceptance": "Bind stimulus units/duration/provenance to the actual native action and sensory return.",
+      "system_acceptance": "Show current mature organism retains the claimed function under lawful controlled ordinary conditions.",
+      "release_acceptance": "A release cannot inherit a closed function merely because its old witness was removed; qualify preservation and live behavior explicitly.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A08",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CD05-09",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD05-09--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+          "line": 207,
+          "anchor": "| RF-035 | Rehearse the exact magnitude, duration, and provenance produced by live behavior. | failed pre-cutover in retrospect: rehearsal used 90 degrees over 250 intervals; ordinary self-yaw is approximately 53–83 millidegrees in one interval. The large rehearsal proved mechanism reachability, not live self-action reachability. |",
+          "sha256": "7c16bbdd9d422914ea7924a40ddca5f2a68db52e0561ee534f4d0630d8715137"
+        },
+        {
+          "source_id": "CD05-09",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD05-09--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+          "line": 160,
+          "anchor": "  release gate now requires exact cold restore, exact replay of whichever",
+          "sha256": "7c16bbdd9d422914ea7924a40ddca5f2a68db52e0561ee534f4d0630d8715137"
+        },
+        {
+          "source_id": "CD03-02",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD03-02--GUALA_C014_ATTENTION_ORIENTING_SPRINT_2026-08-12.md",
+          "line": 198,
+          "anchor": "- The generic post-live controller first aborted on an unrelated C-012 ordered-",
+          "sha256": "feb34bc0ed057ea5f2403c6184bb2224d7339301a3ed6557973be5be26eb5885"
+        }
+      ]
+    },
+    {
+      "id": "CDR07",
+      "name": "Observation fixes preserve evidence but must not manufacture cognition or current status",
+      "classification": "recurrent_translation_defects_and_scope_requirements",
+      "historical_requirement_or_mechanism": "C011 first lost the qualifying interval to a later quiet one, then its live250-interval route dropped organic_mosaic_relations. C012 missed a Python relation-signature field and retained stale ordinal limits. C014/C015 lost or mismatched selected witnesses. C016 Python treated an ordered native trajectory as one instant and dropped its consequence; a process-local last-tested witness was retained across later unattended ticks and cleared on restart.",
+      "current_disposition": "Correcting these boundaries can reveal real physical results without adding cognition. Keeping an old tested witness public is legitimate only if its exact event tick/state remains distinguishable from the current organism. Flags such as score_authority=false are claims emitted by code, not an independent transitive audit of absence.",
+      "lawful_remedy": "Carry exact native causal order, identity and quantities through one bounded read-only observation path, with explicit event/current time and full field mappings. Classify every observer writer/reader to ensure it cannot choose, reinforce, fabricate history or veto a lawful state transition.",
+      "unit_acceptance": "Falsify quiet overwrite, same-instant collapse, stale bounds, missing fields and unrelated-witness substitution.",
+      "module_acceptance": "Verify producer→native aggregate→FFI→Python→public mapping against exact immutable transitions.",
+      "system_acceptance": "Demonstrate live facts remain observable under ongoing processing without implying they recur now.",
+      "release_acceptance": "Require independent source/runtime authority closure; UI flags, HTTP success and replay receipts cannot supply it.",
+      "repair_actions": [
+        "A02",
+        "A05",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CD01-05",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD01-05--GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+          "line": 239,
+          "anchor": "  came from the rehearsal overwriting that qualifying interval with the later",
+          "sha256": "e9a33909c838861cc1e282fe2036fbbb142bcf4d60e7033303161817eb760955"
+        },
+        {
+          "source_id": "CD01-05",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD01-05--GUALA_C011_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+          "line": 251,
+          "anchor": "  omitted `organic_mosaic_relations` from its aggregate. RF-028 now requires the",
+          "sha256": "e9a33909c838861cc1e282fe2036fbbb142bcf4d60e7033303161817eb760955"
+        },
+        {
+          "source_id": "CD02-04",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD02-04--GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+          "line": 78,
+          "anchor": "   observation signature still destructured the previous relation shape.",
+          "sha256": "2aab3bfcc4a028a39dc09aeb5d8255e0ee35e5f03e839e650cfd290c5001e546"
+        },
+        {
+          "source_id": "CD05-09",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD05-09--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+          "line": 151,
+          "anchor": "  alternatives and one later consequence, while Python treated the complete",
+          "sha256": "7c16bbdd9d422914ea7924a40ddca5f2a68db52e0561ee534f4d0630d8715137"
+        },
+        {
+          "source_id": "CD05-09",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD05-09--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+          "line": 144,
+          "anchor": "  enters organism state or cognition, and is cleared on process restart.",
+          "sha256": "7c16bbdd9d422914ea7924a40ddca5f2a68db52e0561ee534f4d0630d8715137"
+        }
+      ]
+    },
+    {
+      "id": "CDR08",
+      "name": "Same-cell body and recovery trajectory is not demonstrated emotion",
+      "classification": "reported_local_physical_function_with_affect_scope_limit",
+      "historical_requirement_or_mechanism": "C017 exposes existing layer10 local pump effects alongside exact layer7 association and layer8 body contact transfers. It requires strictly later recovery on the same lineage and distinguishes environment energy delivery from actual pump_work. Task1016 reports contact influences at ordinal70197 and local recovery at70198, with no new retained state or physics. The final claim explicitly excludes named emotion, preference, reward and thought.",
+      "current_disposition": "The narrow physical trajectory should be preserved. A cell’s developmental layer name and perturbed-then-recovered state do not by themselves prove affect, joy, pain, motivation or a lawful decision-driving need. An earliest canonical witness selection is an observer scope choice, not automatically a pupil heuristic.",
+      "lawful_remedy": "Keep actual local physical coupling and recovery quantities; specify the functional affective/need influence required by the charter and trace its real native downstream effect. Do not add named moods, reward scores or caretaker-selected responses to make the label appear true.",
+      "unit_acceptance": "Require same-cell actual influences, strict recovery order and separated delivered capacity/consumed work.",
+      "module_acceptance": "Trace local material state and downstream recipients without named affect authority.",
+      "system_acceptance": "Demonstrate claimed physical need/affective influence changes authentic behavior with causal controls.",
+      "release_acceptance": "Qualify only the measured function; retain emotion/motivation scope limits and current-state preservation.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A09",
+        "A10",
+        "A11",
+        "A13",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "CD06-01",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD06-01--GUALA_C017_AFFECTIVE_BALANCE_SPRINT_2026-08-13.md",
+          "line": 187,
+          "anchor": "5. **Rejected:** powered-environment energy delivery is identical to actual",
+          "sha256": "c00c59d9dbd007f30546fe6035730b33ba28498f79021e397a377f8c67625dae"
+        },
+        {
+          "source_id": "CD06-01",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD06-01--GUALA_C017_AFFECTIVE_BALANCE_SPRINT_2026-08-13.md",
+          "line": 227,
+          "anchor": "  same layer-10 cell's strictly later localized recovery at ordinal 70,198.",
+          "sha256": "c00c59d9dbd007f30546fe6035730b33ba28498f79021e397a377f8c67625dae"
+        },
+        {
+          "source_id": "CD06-01",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD06-01--GUALA_C017_AFFECTIVE_BALANCE_SPRINT_2026-08-13.md",
+          "line": 233,
+          "anchor": "  is not a claim of a named emotion, preference, reward, or thought.",
+          "sha256": "c00c59d9dbd007f30546fe6035730b33ba28498f79021e397a377f8c67625dae"
+        }
+      ]
+    },
+    {
+      "id": "CDR09",
+      "name": "Local fluid balance is a scoped conservation proof, not complete chemistry or nourishment",
+      "classification": "reported_local_transport_with_external_energy_and_authority_gaps",
+      "historical_requirement_or_mechanism": "C018 reports finite cohort recovery reservoirs, carrier partitions and reached-only pumping. Existing spent energy returns to available capacity and heat leaves through powered-environment exchange; uphill work moves available to spent and downhill work to thermal. Task1018 observes a layer0 pump moving one carrier,27 reached/3 changed cells,2 active and196505 developmental cells outside the write boundary, and no changed unreached cells. Named neurochemistry and another stored gradient scalar are explicitly rejected.",
+      "current_disposition": "Exact local balances and sparse mutability support a narrower claim than full fluid-brain chemistry, sensed hunger or eating/nourishment. The source, work and sink of environment replenishment must be accounted for before whole-system conservation is claimed; cycling accounting reservoirs alone is not such proof. Two cited Aug10 energy-authority documents were absent from that worktree and are also absent by exact-name search of the recovered documentation corpus.",
+      "lawful_remedy": "Preserve exact local transport, physically justified material capacity and sparse mutation. Recover missing energy authority and trace environment source/sink and actual nourishment/interoception through current state. Do not relabel generic reservoir cycling as eating, mood or chemically specific learning.",
+      "unit_acceptance": "Verify each local carrier/energy balance and target write boundary including actual unreached members.",
+      "module_acceptance": "Trace external energy delivery, heat export, finite capacities and current sensory/body coupling.",
+      "system_acceptance": "Show bounded sustained recovery/nourishment and its real sensed/behavioral consequences without unaccounted energy.",
+      "release_acceptance": "Bind exact source/configuration/authority and live scope; missing documents or a local equality cannot certify the whole organism.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A06",
+        "A07",
+        "A11",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CD07-02",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD07-02--GUALA_C018_LOCALIZED_FLUID_CHEMISTRY_SPRINT_2026-08-13.md",
+          "line": 55,
+          "anchor": "| State transformation | Environment exchange moves only existing spent energy back to available capacity and removes only existing heat. Each reached neuron then moves whole carriers locally; active uphill work debits available and credits spent by the same exact rational amount, while passive downhill work credits thermal by the exact released amount. The transition writes only explicitly reached indices, so active cells outside the frontier and the shared quiescent developmental population remain outside the mutable pump boundary without a second whole-organism scan. |",
+          "sha256": "007cc6e6831432fa6ce32238f1efdd7b869c871411e451fef0bc848258fdfec1"
+        },
+        {
+          "source_id": "CD07-02",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD07-02--GUALA_C018_LOCALIZED_FLUID_CHEMISTRY_SPRINT_2026-08-13.md",
+          "line": 142,
+          "anchor": "   partition plus authored reversal potential already constitutes the retained",
+          "sha256": "007cc6e6831432fa6ce32238f1efdd7b869c871411e451fef0bc848258fdfec1"
+        },
+        {
+          "source_id": "CD07-02",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD07-02--GUALA_C018_LOCALIZED_FLUID_CHEMISTRY_SPRINT_2026-08-13.md",
+          "line": 149,
+          "anchor": "   `GUALA_PHASE1_ENERGY_BOUNDARY_DECISION_2026-08-10.md` and",
+          "sha256": "007cc6e6831432fa6ce32238f1efdd7b869c871411e451fef0bc848258fdfec1"
+        },
+        {
+          "source_id": "CD07-02",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD07-02--GUALA_C018_LOCALIZED_FLUID_CHEMISTRY_SPRINT_2026-08-13.md",
+          "line": 57,
+          "anchor": "| Expected output | A bounded transient record names one reached neuron lineage/place and its exact local pre/post carrier, charge, reservoir, work, interval, and contact-power facts. It separately reports reached, changed, active cells outside the sparse write boundary, developmental resting cells outside that boundary, and changed-unreached count. |",
+          "sha256": "007cc6e6831432fa6ce32238f1efdd7b869c871411e451fef0bc848258fdfec1"
+        }
+      ]
+    },
+    {
+      "id": "CDR10",
+      "name": "Exact arithmetic, sparse work and codec sizes need actual bounded proof",
+      "classification": "legitimate_hardening_not_permission_to_weaken_physics",
+      "historical_requirement_or_mechanism": "Older C012 V21 failed an empty-body bound because its codec needed172 bytes while the stale limit admitted164; it was corrected from four u64 length fields. C018 rehearsal failed fixed-width subtraction of valid reservoir rationals; observation equality was widened exactly without changing physics. Multiple ledgers assert linear reached-frontier work and bounded witnesses.",
+      "current_disposition": "These are sensible reported corrections at exact boundaries. They do not independently prove native arithmetic bitwidth, total comparison complexity, lifetime storage, or ordinary latency bounds. Sparse cardinality alone cannot certify linear work; a witness of fixed record count may still contain variable-width values.",
+      "lawful_remedy": "Derive sizes from actual encoded fields and arithmetic widths from exact reachable values, refusing before mutation when unsupported. Preserve exact mathematical equality and test actual mature workload; no billion multiplier, truncation, smoothing or default-zero observer repair.",
+      "unit_acceptance": "Exercise exact codec extent and rational operations at valid and refusal boundaries.",
+      "module_acceptance": "Verify unchanged physical successor when only observation arithmetic widens; account variable-width costs.",
+      "system_acceptance": "Measure reached-state processing and persistence under mature bounded resources.",
+      "release_acceptance": "Use source-bound complexity/resource evidence and real serving latency, not declared linearity or historical timing.",
+      "repair_actions": [
+        "A02",
+        "A04",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CD02-01",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD02-01--GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+          "line": 80,
+          "anchor": "fields rather than V21's four. The required body was 172 bytes and the stale",
+          "sha256": "6b75088c0f77ed3ab113f949cb0a5843c93f607ba710e083e8430e4a077c12e7"
+        },
+        {
+          "source_id": "CD07-02",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD07-02--GUALA_C018_LOCALIZED_FLUID_CHEMISTRY_SPRINT_2026-08-13.md",
+          "line": 162,
+          "anchor": "  because fixed-width subtraction could not represent the difference between",
+          "sha256": "007cc6e6831432fa6ce32238f1efdd7b869c871411e451fef0bc848258fdfec1"
+        },
+        {
+          "source_id": "CD07-02",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD07-02--GUALA_C018_LOCALIZED_FLUID_CHEMISTRY_SPRINT_2026-08-13.md",
+          "line": 164,
+          "anchor": "  observation-only conservation check was corrected to use exact widened",
+          "sha256": "007cc6e6831432fa6ce32238f1efdd7b869c871411e451fef0bc848258fdfec1"
+        }
+      ]
+    },
+    {
+      "id": "CDR11",
+      "name": "Historical literature, closed labels and later source continuity remain separate evidence",
+      "classification": "complete_selected_documents_not_complete_qualification",
+      "historical_requirement_or_mechanism": "All1619 latest lines and40 older-only passages/185 lines are reconciled across29 versions/seven paths. The records preserve discarded attempts, state/digest observations, test counts and narrower final claims. Literature links are stated as functional motivation; this slice does not review the cited papers or derive neuron laws from them. No exact-name corpus match was found for the two missing Aug10 energy records.",
+      "current_disposition": "Complete local-document reading is not authentication of original decisions, executable tests or current image correspondence. A latest document includes earlier pending tables and later closure; each must retain its time and scope. Later retirement of ordering/affective developmental structures and formation custody prevents inheriting these witnesses by identity label alone.",
+      "lawful_remedy": "Continue original approval, source and state mapping across all intermediate revisions. Keep legitimate reported successes, failed hypotheses and narrowed claims visible, and flag unsupported promotion instead of attributing intent. Resolve missing authority from authenticated records rather than reconstruction.",
+      "unit_acceptance": "Validate capture hashes, exact anchors and historical status supersession.",
+      "module_acceptance": "Bind source, native artifact, input and predecessor/successor to each historical claim.",
+      "system_acceptance": "Demonstrate functional continuity on the preserved current candidate across the approved charter.",
+      "release_acceptance": "Full reconciliation remains OPEN; no current certification or complete scientific review is implied.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "CD02-02",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD02-02--GUALA_C012_DEEP_ORDERED_REASSEMBLY_SPRINT_2026-08-12.md",
+          "line": 71,
+          "anchor": "| Observed evidence | Focused four-interval law passes. Full native suite: 410 passed, 0 failed, 13 explicitly ignored. Final exact release wheel SHA-256 `13cfd4f4b70388e2be0fba0f0738d99830b76cdb1f93675661b836163e3f979e`; focused compiled-artifact set: 46 passed; broader serving/preflight/storage/deployment/packaging set: 106 passed. Immutable candidate rehearsal and live proof remain pending, so C-012 remains open. |",
+          "sha256": "10e0d1537de37a14825f78439d6484b6f81408ab8eb81519ec90212e40c80e0f"
+        },
+        {
+          "source_id": "CD06-02",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD06-02--GUALA_C017_AFFECTIVE_BALANCE_SPRINT_2026-08-13.md",
+          "line": 222,
+          "anchor": "- C-017 is **not Live-Closed**. Immutable image rehearsal, production cutover,",
+          "sha256": "f77be0d0ac4c25b453cb23aee5db826124ddfd9139e679289828db14e277357e"
+        },
+        {
+          "source_id": "CD07-01",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD07-01--GUALA_C018_LOCALIZED_FLUID_CHEMISTRY_SPRINT_2026-08-13.md",
+          "line": 156,
+          "anchor": "C-018 is **not Live-Closed**. Source tracing, the durable sprint boundary, and",
+          "sha256": "4d23414f013f078a60fb790d93f87e677a63e37b2fd8f31a9788b41739229b61"
+        }
+      ]
+    },
+    {
+      "id": "CDR12",
+      "name": "Speech feasibility requires learned causation beyond these physical precursors",
+      "classification": "unresolved_functional_chain_not_impossibility",
+      "historical_requirement_or_mechanism": "The recovered sequence establishes reported narrow path ordering, route recurrence, finite-carrier competition, immediate internal continuation, tested body-route precursors and local recovery/fluid balances. It repeatedly defers weave self-expression and disclaims language, thought or autonomous choice. C016’s missing learned-relation proof is a specific unresolved boundary between acquired experience and anticipatory activity.",
+      "current_disposition": "These accomplishments justify preserving useful physical mechanisms. They do not establish that the current substrate can produce learned intelligible speech, nor prove that it can never do so. A larger column count, layer11 activity, two alternatives or a supplied target waveform does not close the missing causal links.",
+      "lawful_remedy": "G1 must execute the already approved frozen preserved-state qualification and identify the first failing acquisition→retention→native selection/order→articulation→waveform→self-sensing boundary. Supply the exact source/state diagnosis and direct lawful remedy; A1 independently verifies without product edits or manufactured passes.",
+      "unit_acceptance": "Qualify each actual causal speech boundary with absence/unrelated/changed-experience negatives.",
+      "module_acceptance": "Bind real native interfaces and full DSF to retained sensory experience and physical vocal output.",
+      "system_acceptance": "Demonstrate learned intelligible expression independently assessed without templates, dictionaries, ML or authored answers.",
+      "release_acceptance": "Exact image/state/live proof and preservation are required; precursor closure and repeated notification do not substitute.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A09",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CD03-02",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD03-02--GUALA_C014_ATTENTION_ORIENTING_SPRINT_2026-08-12.md",
+          "line": 10,
+          "anchor": "- **C-013 remains dependency-deferred.** Weave-level self-expression requires",
+          "sha256": "feb34bc0ed057ea5f2403c6184bb2224d7339301a3ed6557973be5be26eb5885"
+        },
+        {
+          "source_id": "CD05-09",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD05-09--GUALA_C016_PHYSICAL_PREDICTION_SPRINT_2026-08-13.md",
+          "line": 246,
+          "anchor": "   episode. Ordered propagation is a prerequisite, not prediction or thought.",
+          "sha256": "7c16bbdd9d422914ea7924a40ddca5f2a68db52e0561ee534f4d0630d8715137"
+        },
+        {
+          "source_id": "CD04-03",
+          "path": "docs/guala_reconciliation/sources/cognitive-dynamics/CD04-03--GUALA_C015_WORKING_CAUSAL_STATE_SPRINT_2026-08-13.md",
+          "line": 170,
+          "anchor": "  does not claim prediction, scenario generation, thought, choice, language,",
+          "sha256": "f4f9659b0f4b6ed0bdf670a616fed1663fd4f310bda8d6982b8d1d70eaa2c488"
+        }
+      ]
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false
+}

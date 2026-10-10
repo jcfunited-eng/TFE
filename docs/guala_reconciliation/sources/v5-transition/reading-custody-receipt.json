@@ -1,0 +1,21 @@
+{
+  "schema": "guala.complete_v5_transition_document_review.v1",
+  "versions": 11,
+  "paths": 11,
+  "latest_lines": 1810,
+  "historical_only_passages": 0,
+  "historical_only_lines": 0,
+  "all_captured_content_read": true,
+  "source_hashes_validated": true,
+  "independent_arithmetic": {
+    "six_distinct_rank_permutations": 720,
+    "named_flags": 5,
+    "reported_flags": 4,
+    "listed_deploy_files": 9,
+    "reported_deploy_files": 11
+  },
+  "product_execution": false,
+  "product_qualification": false,
+  "original_authority_authenticated": false,
+  "current_activation_qualified": false
+}

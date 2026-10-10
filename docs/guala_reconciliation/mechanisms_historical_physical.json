@@ -1,0 +1,307 @@
+{
+  "schema": "guala.reconciliation_mechanism_supplement.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "mechanisms": [
+    {
+      "id": "PM01",
+      "name": "Scalar needs saturation and drift",
+      "algorithm_classes": [
+        "hand_authored_policy",
+        "physical_law_unproved"
+      ],
+      "observed_mechanism": "June16 calls fixed per-loop drift, event-specific gains and current+gain*(1-current) receptor physics. The exact49966af source contains them. The helper still clamps and reaches1 for gain1; it does not universally prevent a ceiling.",
+      "architecture_disposition": "The goal of recovery and saturation is legitimate. Naming an update receptor saturation does not supply units, kinetic law, material state or a bridge to the full field. Under0<gain<1 an exact interior value approaches1; that limited mathematical fact does not qualify the organism.",
+      "lawful_remedy": "Replace scalar needs policy with the approved body/local-state regulation law under the64-column scope. Specify units, causal clock, event coupling, bounds and actual deprivation/recovery. Missing constitutive terms remain explicit until derived.",
+      "acceptance_falsifier": "Vary genuine body energy and returned nutrition while holding labels/counters fixed. The local transition must respond through its declared physical path; labels, loop cadence and desired output bands cannot supply an action policy.",
+      "repair_actions": [
+        "A08",
+        "A11",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL09-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL09-01--GL-BRIEF-NEEDS-PHYSICS-WC-20260616-01.md",
+          "sha256": "f1630bf3ad5e089380dd2146addccc382611f214264547474f72fb5f5d323f0e",
+          "line": 6,
+          "anchor": "**Status:** Queued after microphone fix lands. Substrate physics correction, no heuristics."
+        },
+        {
+          "source_id": "PLC01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/PLC01--gualaloom_v5_engine.py",
+          "sha256": "4143699962812e2742e7a0f7f4274477cd7ce22b8d1e8eb7e2ef2981f21941f6",
+          "line": 46,
+          "anchor": "def saturate(current, gain):"
+        },
+        {
+          "source_id": "PLC01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/PLC01--gualaloom_v5_engine.py",
+          "sha256": "4143699962812e2742e7a0f7f4274477cd7ce22b8d1e8eb7e2ef2981f21941f6",
+          "line": 403,
+          "anchor": "    def tick_drift(self):"
+        }
+      ],
+      "artifact_scope": "Historical source/design/report only; current activation not established",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "PM02",
+      "name": "Attendance-count familiarity",
+      "algorithm_classes": [
+        "hand_authored_policy",
+        "example_counter"
+      ],
+      "observed_mechanism": "June16 proposes1/(1+log(1+n_attends)) decay resistance and predicts visual attraction approaching zero. Source updates familiarity with min(0.9, old+0.2), uses0.9967decay, deletes below0.001 and scores (1-fam)*base_payoff.",
+      "architecture_disposition": "Within valid familiarity0..0.9 and positive payoff, the visual term remains at least0.1*base_payoff before further decay. The proposed persistence change does not remove that floor. Attendance count and logarithm are a policy, not demonstrated consolidated neuronal memory.",
+      "lawful_remedy": "Retire target-counter familiarity as action authority. Preserve experience through actual retained local change and recovery; independently measure disengagement, partial-cue recurrence and reuse. Do not replace0.9with another tuned cap.",
+      "acceptance_falsifier": "For an unchanged physical state, renaming target IDs or changing a bookkeeping attendance counter cannot change the selected action. Genuine learned-state intervention must alter the claimed recurrence.",
+      "repair_actions": [
+        "A06",
+        "A08",
+        "A09",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL09-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL09-01--GL-BRIEF-NEEDS-PHYSICS-WC-20260616-01.md",
+          "sha256": "f1630bf3ad5e089380dd2146addccc382611f214264547474f72fb5f5d323f0e",
+          "line": 116,
+          "anchor": "After Fix 2, test_25 doesn't keep winning the exogenous reflex. Its `(1.0 - fam)` term approaches and stays near zero because consolidated familiarity barely decays."
+        },
+        {
+          "source_id": "PLC01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/PLC01--gualaloom_v5_engine.py",
+          "sha256": "4143699962812e2742e7a0f7f4274477cd7ce22b8d1e8eb7e2ef2981f21941f6",
+          "line": 2163,
+          "anchor": "            new_fam = min(0.9, old_fam + 0.2)"
+        },
+        {
+          "source_id": "PLC01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/PLC01--gualaloom_v5_engine.py",
+          "sha256": "4143699962812e2742e7a0f7f4274477cd7ce22b8d1e8eb7e2ef2981f21941f6",
+          "line": 1712,
+          "anchor": "                        consolidation_factor = 1.0 / (1.0 + math.log(1.0 + n_attends))"
+        }
+      ],
+      "artifact_scope": "Historical source/design/report only; current activation not established",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "PM03",
+      "name": "Sorted activity chooser and forcing hook",
+      "algorithm_classes": [
+        "hand_authored_policy",
+        "label_tiebreak",
+        "forced_action"
+      ],
+      "observed_mechanism": "The historical selector reverse-sorts(score,kind,target) tuples and takes the first. Equal scores are therefore decided by string names/target identifiers; _force_next_activity bypasses even that policy.",
+      "architecture_disposition": "A deterministic sorter is still a hand-authored decision mechanism. A list of alternatives or a single returned Activity does not demonstrate physical choice. Source evidence is historical, not current execution.",
+      "lawful_remedy": "Make the substrate settle action from actual reachable motor/body state with a declared physical law; transport carries its intent without ranking labels. Keep authorized test forcing segregated and visibly marked, never autonomy evidence.",
+      "acceptance_falsifier": "Rename semantically arbitrary activity/target labels under identical physical state: genuine physical outcome must not change. Forced trials cannot qualify spontaneous choice.",
+      "repair_actions": [
+        "A08",
+        "A12",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "PLC01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/PLC01--gualaloom_v5_engine.py",
+          "sha256": "4143699962812e2742e7a0f7f4274477cd7ce22b8d1e8eb7e2ef2981f21941f6",
+          "line": 1885,
+          "anchor": "        scored.sort(reverse=True)"
+        },
+        {
+          "source_id": "PLC01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/PLC01--gualaloom_v5_engine.py",
+          "sha256": "4143699962812e2742e7a0f7f4274477cd7ce22b8d1e8eb7e2ef2981f21941f6",
+          "line": 1876,
+          "anchor": "        if hasattr(self, '_force_next_activity') and self._force_next_activity:"
+        }
+      ],
+      "artifact_scope": "Historical source/design/report only; current activation not established",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "PM04",
+      "name": "D1sign/null impression",
+      "algorithm_classes": [
+        "reduced_representation",
+        "not_definitive_retained_neuron"
+      ],
+      "observed_mechanism": "The joint binding and one-neuron design create ordered signs/nulls of exact facts, with full magnitudes held by reference and matching/contradiction counts. The later truth gate explicitly disallows describing this as settled persistent Krimelack state.",
+      "architecture_disposition": "Preserve exact delivery, topology references and lineage. Retire sign-only impressions as the definitive memory mechanism; retained magnitudes elsewhere do not prove the consumer used them. Current post-quiescence neuronal-state law has a different obligation.",
+      "lawful_remedy": "Trace every typed fact, numeric role, ternary position, local contact and causal time through actual settlement to retained state. Document the exact migration and keep old evidence distinguishable from newly qualified neuronal state.",
+      "acceptance_falsifier": "Two deliveries sharing signs but differing in relevant magnitudes/topology must remain distinguishable wherever the declared law requires. A sign-match counter cannot pass physical retention or recurrence.",
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A09",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL05-07",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-07--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "3dcd25c7645170674244801b7f8ea9615da6c20267f8142f3e3cb170266c19ec",
+          "line": 125,
+          "anchor": "- describing the current sign/null D1 impression as settled persistent"
+        },
+        {
+          "source_id": "HPL06-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL06-01--GUALA_ONE_NEURON_TRANSITION_MODEL_2026-08-02.md",
+          "sha256": "2a775929c3a22e480bfae33162569aaa30ae139fc7b89ff30e62698db75786e9",
+          "line": 6,
+          "anchor": "neuron-binding, and local-fractal settlement contracts pass. This result does"
+        }
+      ],
+      "artifact_scope": "Historical source/design/report only; current activation not established",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "PM05",
+      "name": "Conservative material passoff",
+      "algorithm_classes": [
+        "physical_boundary_design",
+        "conditional_on_units_and_causal_mount"
+      ],
+      "observed_mechanism": "The fluid-manager design defines transfer as the minimum of requested amount, source amount and destination capacity, with conservation and fixed bounded compartments. Missing upstream demand, local effects and timing are explicitly gated.",
+      "architecture_disposition": "A minimum that enforces material availability/capacity can be an exact physical boundary. Its validity does not justify unrelated minimum-score cognition or prove that mounted chemistry nourishes the organism.",
+      "lawful_remedy": "Retain declared material units and exact conservation; derive requested transfer, capacities and target effects. Bind actual food/body sources, reachable local consumption/recovery and measured execution.",
+      "acceptance_falsifier": "For every admitted transfer, source loss equals destination gain, amounts stay within bounds, and failure is atomic. A conserved isolated transfer without neuronal/body effect cannot pass nourishment.",
+      "repair_actions": [
+        "A07",
+        "A11",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL02-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL02-01--GUALA_FLUID_MANAGER_CONSERVATIVE_PASSOFF_2026-08-03.md",
+          "sha256": "3cdcce46670a28871ab0fb4eb1ba4e52d6d4569bb83e2f30e76665be9eec26a5",
+          "line": 32,
+          "anchor": "min(requested quantity, source quantity, destination free capacity)"
+        }
+      ],
+      "artifact_scope": "Historical source/design/report only; current activation not established",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "PM06",
+      "name": "Custody and exact replay",
+      "algorithm_classes": [
+        "non_cognitive_infrastructure",
+        "limited_evidence_scope"
+      ],
+      "observed_mechanism": "Native-transition revisions add HMAC custody and exact sealed DSF replay, then explicitly state candidate reproduction does not prove world/body origin or formation meaning. Tests cover framing, identity and bytes at those boundaries.",
+      "architecture_disposition": "Preserve these infrastructure checks. A valid signature, digest or replay cannot transform fabricated evidence into a real experience, nor establish cognition or live activation.",
+      "lawful_remedy": "Bind authoritative sensor/body/world production to typed content and the actual causal transition in addition to byte custody. Keep claim scopes explicit from input through persistence and observation.",
+      "acceptance_falsifier": "Correctly sealed but substituted/wrong-origin candidate data must fail the claimed sensory/causal admission. Representation-only tests cannot grant learning or autonomy credit.",
+      "repair_actions": [
+        "A02",
+        "A06",
+        "A09",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL05-05",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-05--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "741110a887a28fd520cda2310fdf455e56d52b34e09555dba69400006ac02fad",
+          "line": 317,
+          "anchor": "reproduction is not candidate provenance: matching bytes prove what was"
+        },
+        {
+          "source_id": "HPL04-03",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL04-03--GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md",
+          "sha256": "4128a1fa60df9af2008cb5147ea4c6e9863794d8439aa1379f15a94f412eabc4",
+          "line": 18,
+          "anchor": "   `5c6b8a25e5d745416d5fc9cc39408a780ec0b4e4` implement native custody and exact"
+        }
+      ],
+      "artifact_scope": "Historical source/design/report only; current activation not established",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "PM07",
+      "name": "Local fluid-to-neuron causal route",
+      "algorithm_classes": [
+        "required_physical_integration",
+        "unqualified_operators"
+      ],
+      "observed_mechanism": "The continuity law requires release/transport/receptor/target→changed neuronal settlement→retained formation, with body/fluid state linked to the experienced story. Chemical names may not select meanings or actions.",
+      "architecture_disposition": "Retain the causal design and counterfactual checks. Coexisting receipts, scalar mood or a whole-organism multiplier cannot establish fluid causation. Ratifying a role is not ratifying unknown coefficients.",
+      "lawful_remedy": "Bind exact body/local quantities, receptor targets, contact effects, retained changes and later use in one native transition. Where a law is missing, expose that boundary and obtain its derivation without a semantic substitute.",
+      "acceptance_falsifier": "Change only the claimed local cause: its named target changes according to the law while unrelated targets remain unchanged. Substituted, missing or opaque references cannot pass.",
+      "repair_actions": [
+        "A06",
+        "A09",
+        "A11",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL07-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL07-01--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+          "sha256": "2ad8001ed57aae191cf05f5ad74ea5bc3ccdb340036c6d773e2b713eb340b89f",
+          "line": 195,
+          "anchor": "Fluid participation is proven only by a complete local causal route:"
+        },
+        {
+          "source_id": "HPL07-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL07-01--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+          "sha256": "2ad8001ed57aae191cf05f5ad74ea5bc3ccdb340036c6d773e2b713eb340b89f",
+          "line": 25,
+          "anchor": "integration. It does not ratify unproved coefficients or chemistry."
+        }
+      ],
+      "artifact_scope": "Historical source/design/report only; current activation not established",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "PM08",
+      "name": "Cochlear transduction and category boundary",
+      "algorithm_classes": [
+        "physical_filter_design",
+        "unresolved_recognition_law"
+      ],
+      "observed_mechanism": "July27 distinguishes filter decay/ERB and exact numerical error intervals from a hard receptive cutoff, finite forgetting horizon or speaker-category equivalence. Its infinite-support argument applies to the stated ideal recurrence.",
+      "architecture_disposition": "Preserve that distinction. A calibrated measured sensor, an explicitly authorized finite implementation or retained lawful dynamics needs its own error/causal contract; no arbitrary top-k, underflow cutoff or dictionary may fill the gap.",
+      "lawful_remedy": "Derive sensory transfer and its precision separately from learned recognition. Bind actual acoustic/visual/articulatory experience and retained physical change; if approved measurement uncertainty or equivalence is missing, report unavailable rather than invent tolerance.",
+      "acceptance_falsifier": "A numerical precision change must not silently redefine the recognized category. Same-sounding/different-source and changed-speaker trials require causal retained evidence; ERB alone cannot certify a hard boundary.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A10",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL10-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL10-01--AUDITORY_DYNAMIC_SENSORY_NEURON_MISSING_LAW_2026-07-27.md",
+          "sha256": "7c4e4dfb76fec8127ed62324f7cb89c02e8eb1486520c141e02ba2b4bf894f57",
+          "line": 44,
+          "anchor": "These are filter dynamics, not recognition boundaries."
+        },
+        {
+          "source_id": "HPL10-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL10-01--AUDITORY_DYNAMIC_SENSORY_NEURON_MISSING_LAW_2026-07-27.md",
+          "sha256": "7c4e4dfb76fec8127ed62324f7cb89c02e8eb1486520c141e02ba2b4bf894f57",
+          "line": 83,
+          "anchor": "a mounted precision. Their width is computational uncertainty, not"
+        }
+      ],
+      "artifact_scope": "Historical source/design/report only; current activation not established",
+      "whole_system_ml_exclusion": false
+    }
+  ],
+  "source_registry": "physical-law-history-reconciliation.json",
+  "status_authority": "collaborative_todo.md"
+}

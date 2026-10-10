@@ -1,0 +1,730 @@
+{
+  "schema": "guala.speech_execution_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T02:33:08.248077+00:00",
+  "sources": [
+    {
+      "id": "AS01",
+      "path": "docs/guala_reconciliation/sources/speech-execution/AS01--guala-c123-runtime-recall.log",
+      "original_path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS01--guala-c123-runtime-recall.log",
+      "sha256": "2b9448fc0c6ba480267acd59757aaba2352c90d6e988d1e5ace5e4b0fcf992b5",
+      "bytes": 197373,
+      "review": "All JSONL records parsed for independent chronology/provenance checks; selected exact entries read"
+    },
+    {
+      "id": "AS01",
+      "path": "docs/guala_reconciliation/sources/speech-execution/AS01--guala-c123-runtime-recall.py",
+      "original_path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS01--guala-c123-runtime-recall.py",
+      "sha256": "01a1446bbaa28ccf1984e831debc53dd610cc08e84b47c67b609a5113b812c68",
+      "bytes": 7095,
+      "review": "Complete driver/helper source read"
+    },
+    {
+      "id": "AS02",
+      "path": "docs/guala_reconciliation/sources/speech-execution/AS02--guala-c123-release-recall.log",
+      "original_path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS02--guala-c123-release-recall.log",
+      "sha256": "f365ccf1e9e23f95791ce7e06178fb41cb756cb3c7c0504c53b299d8b0226c8f",
+      "bytes": 191147,
+      "review": "All JSONL records parsed for independent chronology/provenance checks; selected exact entries read"
+    },
+    {
+      "id": "AS02",
+      "path": "docs/guala_reconciliation/sources/speech-execution/AS02--guala-c123-release-recall.py",
+      "original_path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS02--guala-c123-release-recall.py",
+      "sha256": "b9178369117dc0f5b47acfb0f674a263acaa7951b597a18a60b2309053bfc89e",
+      "bytes": 9760,
+      "review": "Complete driver/helper source read"
+    },
+    {
+      "id": "AS03",
+      "path": "docs/guala_reconciliation/sources/speech-execution/AS03--guala-c123-audio-recall.log",
+      "original_path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS03--guala-c123-audio-recall.log",
+      "sha256": "3cc7774abef5be6333b8aaab635304a0b25412ba72569e78a198f46a50fc3ca1",
+      "bytes": 119417,
+      "review": "All JSONL records parsed for independent chronology/provenance checks; selected exact entries read"
+    },
+    {
+      "id": "AS03",
+      "path": "docs/guala_reconciliation/sources/speech-execution/AS03--guala-c123-audio-recall.py",
+      "original_path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS03--guala-c123-audio-recall.py",
+      "sha256": "c0a608439db5d92f06ba3bb59fa1a45a67c69c707b545f53d21f0981fe479d1c",
+      "bytes": 11635,
+      "review": "Complete driver/helper source read"
+    },
+    {
+      "id": "ASH01",
+      "path": "docs/guala_reconciliation/sources/speech-execution/ASH01--guala-c122-runtime-edge.py",
+      "original_path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/ASH01--guala-c122-runtime-edge.py",
+      "sha256": "393fe88247e5077f10762943a863cf1df77d3bdd8c14e4fdb69edcc6ab892e6a",
+      "bytes": 17669,
+      "review": "Complete driver/helper source read"
+    },
+    {
+      "id": "ASH02",
+      "path": "docs/guala_reconciliation/sources/speech-execution/ASH02--guala-c121-runtime-recall.py",
+      "original_path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/ASH02--guala-c121-runtime-recall.py",
+      "sha256": "b061c218ac5429619a1df469871478acd681fb450eb5a8ab209264a8ab2bab30",
+      "bytes": 14063,
+      "review": "Complete driver/helper source read"
+    },
+    {
+      "id": "ASR01",
+      "path": "docs/guala_reconciliation/sources/speech-execution/ASR01--release-receipt.json",
+      "original_path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/ASR01--release-receipt.json",
+      "sha256": "7bd95060d5ed3aaa7d3485da804b879c45a4f5b9b224dec294154bc823f79474",
+      "bytes": 89577,
+      "review": "Custody/derived evidence; package receipt metadata and four source entries inspected, not complete release qualification"
+    },
+    {
+      "id": "custody",
+      "path": "docs/guala_reconciliation/sources/speech-execution/custody.json",
+      "original_path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/custody.json",
+      "sha256": "b26c658cccf210f5f929ed74f09bac6824b3300430791a5d446fb74cf4881af9",
+      "bytes": 7396,
+      "review": "Custody/derived evidence; package receipt metadata and four source entries inspected, not complete release qualification"
+    },
+    {
+      "id": "independent-receipt-checks",
+      "path": "docs/guala_reconciliation/sources/speech-execution/independent-receipt-checks.json",
+      "original_path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/independent-receipt-checks.json",
+      "sha256": "a4b26f72a8ea59d63d08e9bdbf1196f7c85a69cb9f9fdca441b43a6905db21af",
+      "bytes": 7397,
+      "review": "Custody/derived evidence; package receipt metadata and four source entries inspected, not complete release qualification"
+    }
+  ],
+  "historical_document": {
+    "id": "LSP54-01",
+    "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+    "git_blob": "27b917960caf9eb4ec916ab036e9d8ff94ba8809",
+    "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+    "bytes": 1882747,
+    "lines": 26192,
+    "observations": [
+      {
+        "author_time": "2026-09-13T21:49:52+00:00",
+        "commit": "8cde6ee713772014c2773a1851da3191c6d2bab6",
+        "side": "new"
+      }
+    ],
+    "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+    "delta": null,
+    "review": "Complete documentary content review of all249 recovered Attempt54 path/version pairs: full latest26192 lines plus all196 unique historical-only passages (1101 lines). This closes reading of this family only, not every implementation, supporting archive, approval, requirement or current serving qualification.",
+    "all_path_versions_recovered": false,
+    "canonical_copy": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md"
+  },
+  "archives": [
+    {
+      "id": "AS01",
+      "archive": "/mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-runtime-two-posture-pass.tar.gz",
+      "archive_sha256": "50f6e05cca4086e4e981d911a015c89fee1eb2ce1a134c634459873c049019d2",
+      "members": [
+        {
+          "name": "guala-c123-runtime-recall.py",
+          "bytes": 7095,
+          "sha256": "01a1446bbaa28ccf1984e831debc53dd610cc08e84b47c67b609a5113b812c68",
+          "copy": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS01--guala-c123-runtime-recall.py"
+        },
+        {
+          "name": "guala-c123-runtime-recall.log",
+          "bytes": 197373,
+          "sha256": "2b9448fc0c6ba480267acd59757aaba2352c90d6e988d1e5ace5e4b0fcf992b5",
+          "copy": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS01--guala-c123-runtime-recall.log"
+        },
+        {
+          "name": "guala-c123-recall.7m7KBL/paired/world-generations/372c64ed0d58d5bcbfd997d50e6e95b7c3a36726e3fff7a202b4ee442d84dbbf.glworld",
+          "bytes": 63563,
+          "sha256": "372c64ed0d58d5bcbfd997d50e6e95b7c3a36726e3fff7a202b4ee442d84dbbf"
+        },
+        {
+          "name": "guala-c123-recall.7m7KBL/paired/world-generations/218e8ff00c7be3ffd3f5265e3f97b9951de3802047bfa55cc2f4c872ac61c8d0.glworld",
+          "bytes": 81987,
+          "sha256": "218e8ff00c7be3ffd3f5265e3f97b9951de3802047bfa55cc2f4c872ac61c8d0"
+        },
+        {
+          "name": "guala-c123-recall.7m7KBL/paired/CURRENT",
+          "bytes": 255,
+          "sha256": "c9ddefb0c18a497f07d70b84b20851104498c1f98d2a660d2f2763e9cf4205f1"
+        },
+        {
+          "name": "guala-c123-recall.7m7KBL/paired/body-generations/fa73dd48dfe7b0c6dafc33c6d8e86002dfd094f2ffe4aa7ce2def17f0466d82c.glorun.gz",
+          "bytes": 3280173,
+          "sha256": "dea76ad2e7791bf3d08856ea795e8c568eb7467c5cc6e1fda2d3294f3c726527",
+          "raw_sha256": "fa73dd48dfe7b0c6dafc33c6d8e86002dfd094f2ffe4aa7ce2def17f0466d82c",
+          "raw_bytes": 165481982,
+          "filename_matches_raw_hash": true
+        },
+        {
+          "name": "guala-c123-recall.7m7KBL/paired/body-generations/6dedb338f41fc650bda6589e4dc175229e726f74cb8b257953e7d86b3cd55f33.glorun.gz",
+          "bytes": 3238392,
+          "sha256": "2b7a9a0e5249919c5abbd5c1148ab4a3bef4e081a2b08bfb21c2bee9d1899912",
+          "raw_sha256": "6dedb338f41fc650bda6589e4dc175229e726f74cb8b257953e7d86b3cd55f33",
+          "raw_bytes": 165083418,
+          "filename_matches_raw_hash": true
+        }
+      ]
+    },
+    {
+      "id": "AS02",
+      "archive": "/mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-fresh-two-posture-recall.tar.gz",
+      "archive_sha256": "b384b82091da747d7cef993af49f7eb32392bcb408107d668b2589b6d091a1b1",
+      "members": [
+        {
+          "name": "guala-c123-release-recall.hsgWCI/paired/world-generations/1f5d9e83ab41229eee8edf8c40bf7ed6125bc59770832123c6ae71d3d639c334.glworld",
+          "bytes": 81995,
+          "sha256": "1f5d9e83ab41229eee8edf8c40bf7ed6125bc59770832123c6ae71d3d639c334"
+        },
+        {
+          "name": "guala-c123-release-recall.hsgWCI/paired/world-generations/9b1b52557f10d54dc4e876391d3db1ee4ebaa25a00bec0b589c453da3b16cf67.glworld",
+          "bytes": 63571,
+          "sha256": "9b1b52557f10d54dc4e876391d3db1ee4ebaa25a00bec0b589c453da3b16cf67"
+        },
+        {
+          "name": "guala-c123-release-recall.hsgWCI/paired/CURRENT",
+          "bytes": 255,
+          "sha256": "2c39ef1d457dbdcf776da1545bfe7640468288d396116f77df82c83e01a3b27c"
+        },
+        {
+          "name": "guala-c123-release-recall.hsgWCI/paired/body-generations/55609c3bfbd1421e055bfbc6376220f9f8b04fefdfe4913f0cae15fcede847bd.glorun.gz",
+          "bytes": 3243179,
+          "sha256": "a9e199b86cecc87be809ebd9b8c5e7648f9d71940a5b9cec9e0a2854e2922375",
+          "raw_sha256": "55609c3bfbd1421e055bfbc6376220f9f8b04fefdfe4913f0cae15fcede847bd",
+          "raw_bytes": 165113722,
+          "filename_matches_raw_hash": true
+        },
+        {
+          "name": "guala-c123-release-recall.hsgWCI/paired/body-generations/3d44f13de1c33bad3031b3c2b39c6d3ae49c276c9a919d81659f95b6604fa06c.glorun.gz",
+          "bytes": 3279730,
+          "sha256": "b4115ab5ef8faa86c86f2d5916b1fe582590bddbd289721affd5548e97d5f8d3",
+          "raw_sha256": "3d44f13de1c33bad3031b3c2b39c6d3ae49c276c9a919d81659f95b6604fa06c",
+          "raw_bytes": 165487020,
+          "filename_matches_raw_hash": true
+        },
+        {
+          "name": "guala-c123-release-recall.py",
+          "bytes": 9760,
+          "sha256": "b9178369117dc0f5b47acfb0f674a263acaa7951b597a18a60b2309053bfc89e",
+          "copy": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS02--guala-c123-release-recall.py"
+        },
+        {
+          "name": "guala-c123-release-recall.log",
+          "bytes": 191147,
+          "sha256": "f365ccf1e9e23f95791ce7e06178fb41cb756cb3c7c0504c53b299d8b0226c8f",
+          "copy": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS02--guala-c123-release-recall.log"
+        }
+      ]
+    },
+    {
+      "id": "AS03",
+      "archive": "/mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-two-posture-http-delivery.tar.gz",
+      "archive_sha256": "b678a26b195df9b059ce739c831e42f0fa1ee455c527ef2b0dde2667a54987e4",
+      "members": [
+        {
+          "name": "guala-c123-audio-recall.u9UCzP/paired/world-generations/bf68583b96830ed0a5ce24343c9807b68c0359ef9f19f62295860d71f2ec1ea0.glworld",
+          "bytes": 77815,
+          "sha256": "bf68583b96830ed0a5ce24343c9807b68c0359ef9f19f62295860d71f2ec1ea0"
+        },
+        {
+          "name": "guala-c123-audio-recall.u9UCzP/paired/world-generations/b4e60ab4471bbffd3df0f35cc8d33db9ab0a5a78d7c2968a70cc6be2bb5ba17e.glworld",
+          "bytes": 63575,
+          "sha256": "b4e60ab4471bbffd3df0f35cc8d33db9ab0a5a78d7c2968a70cc6be2bb5ba17e"
+        },
+        {
+          "name": "guala-c123-audio-recall.u9UCzP/paired/CURRENT",
+          "bytes": 255,
+          "sha256": "936430ceb5fa3c3abbaf18fd294d128dfcee449a797790883afc09862286fd4a"
+        },
+        {
+          "name": "guala-c123-audio-recall.u9UCzP/paired/body-generations/ed5e35eb7dfac2d418a3617df605fd731135238fc587b16168a1d672cc4882d8.glorun.gz",
+          "bytes": 3277352,
+          "sha256": "aad5e17d840e15820d91576ce63b4ae81f6d6bb9bd502225d8d7c20787c7b270",
+          "raw_sha256": "ed5e35eb7dfac2d418a3617df605fd731135238fc587b16168a1d672cc4882d8",
+          "raw_bytes": 165468914,
+          "filename_matches_raw_hash": true
+        },
+        {
+          "name": "guala-c123-audio-recall.u9UCzP/paired/body-generations/3252c6098c450a10d8668cb1e9b7e51f1e200aa72012ac2e3a745c20425fde4a.glorun.gz",
+          "bytes": 3240261,
+          "sha256": "a50e89cfd762961ff0004adccfc7bb346835e5b8b3341475e70ccaf62ed67ba5",
+          "raw_sha256": "3252c6098c450a10d8668cb1e9b7e51f1e200aa72012ac2e3a745c20425fde4a",
+          "raw_bytes": 165085440,
+          "filename_matches_raw_hash": true
+        },
+        {
+          "name": "guala-c123-audio-recall.py",
+          "bytes": 11635,
+          "sha256": "c0a608439db5d92f06ba3bb59fa1a45a67c69c707b545f53d21f0981fe479d1c",
+          "copy": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS03--guala-c123-audio-recall.py"
+        },
+        {
+          "name": "guala-c123-audio-recall.log",
+          "bytes": 119417,
+          "sha256": "3cc7774abef5be6333b8aaab635304a0b25412ba72569e78a198f46a50fc3ca1",
+          "copy": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS03--guala-c123-audio-recall.log"
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "scope": "Archived execution-record integrity, not current product acceptance",
+    "results": [
+      {
+        "archive_id": "AS01",
+        "log": "/workspaces/Tao_Financial_Engine/backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS01--guala-c123-runtime-recall.log",
+        "log_sha256": "2b9448fc0c6ba480267acd59757aaba2352c90d6e988d1e5ace5e4b0fcf992b5",
+        "inspected_records": 410,
+        "non_json_lines": [],
+        "cue_tick": 651701,
+        "recalled_intervals": 64,
+        "phases": [
+          {
+            "tick": 651703,
+            "ordering": "474c4e4c494e4531000000000000268e",
+            "motor_carriers": {
+              "474c4e4c494e453100000000000000b7": 27,
+              "474c4e4c494e453100000000000000d3": 70,
+              "474c4e4c494e453100000000000000ef": 76,
+              "474c4e4c494e453100000000000004fb": 76
+            },
+            "respiratory_carriers": 249,
+            "nonzero_pressure": 3994
+          },
+          {
+            "tick": 651704,
+            "ordering": "474c4e4c494e4531000000000000269c",
+            "motor_carriers": {
+              "474c4e4c494e453100000000000000c5": 5,
+              "474c4e4c494e453100000000000000e1": 1,
+              "474c4e4c494e453100000000000000fd": 6,
+              "474c4e4c494e45310000000000000509": 6
+            },
+            "respiratory_carriers": 18,
+            "nonzero_pressure": 3995
+          }
+        ],
+        "sound_only_input_samples": 4000,
+        "guided_recall_events": 0,
+        "self_heard_samples": 136000,
+        "total_nonzero_pressure": 126579,
+        "eight_final_vocally_quiet_intervals": true,
+        "reported_missing_original_topologies": 0,
+        "cold_next_tick": 651765,
+        "cold_next_body": "fa73dd48dfe7b0c6dafc33c6d8e86002dfd094f2ffe4aa7ce2def17f0466d82c",
+        "cold_next_world": "218e8ff00c7be3ffd3f5265e3f97b9951de3802047bfa55cc2f4c872ac61c8d0",
+        "final_record_line": 410,
+        "negative_controls_in_these_archives": false,
+        "warm_cold_next_equivalence_proved": false,
+        "new_organism_execution": false
+      },
+      {
+        "archive_id": "AS02",
+        "log": "/workspaces/Tao_Financial_Engine/backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS02--guala-c123-release-recall.log",
+        "log_sha256": "f365ccf1e9e23f95791ce7e06178fb41cb756cb3c7c0504c53b299d8b0226c8f",
+        "inspected_records": 407,
+        "non_json_lines": [],
+        "cue_tick": 659826,
+        "recalled_intervals": 64,
+        "phases": [
+          {
+            "tick": 659828,
+            "ordering": "474c4e4c494e4531000000000000268e",
+            "motor_carriers": {
+              "474c4e4c494e453100000000000000b7": 3,
+              "474c4e4c494e453100000000000000d3": 6,
+              "474c4e4c494e453100000000000000ef": 6,
+              "474c4e4c494e453100000000000004fb": 6
+            },
+            "respiratory_carriers": 21,
+            "nonzero_pressure": 3993
+          },
+          {
+            "tick": 659829,
+            "ordering": "474c4e4c494e4531000000000000269c",
+            "motor_carriers": {
+              "474c4e4c494e453100000000000000c5": 137,
+              "474c4e4c494e453100000000000000e1": 48,
+              "474c4e4c494e453100000000000000fd": 164,
+              "474c4e4c494e45310000000000000509": 138
+            },
+            "respiratory_carriers": 487,
+            "nonzero_pressure": 3995
+          }
+        ],
+        "sound_only_input_samples": 4000,
+        "guided_recall_events": 0,
+        "self_heard_samples": 136000,
+        "total_nonzero_pressure": 126578,
+        "eight_final_vocally_quiet_intervals": true,
+        "reported_missing_original_topologies": 0,
+        "cold_next_tick": 659890,
+        "cold_next_body": "55609c3bfbd1421e055bfbc6376220f9f8b04fefdfe4913f0cae15fcede847bd",
+        "cold_next_world": "9b1b52557f10d54dc4e876391d3db1ee4ebaa25a00bec0b589c453da3b16cf67",
+        "final_record_line": 407,
+        "negative_controls_in_these_archives": false,
+        "warm_cold_next_equivalence_proved": false,
+        "new_organism_execution": false
+      },
+      {
+        "archive_id": "AS03",
+        "log": "/workspaces/Tao_Financial_Engine/backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS03--guala-c123-audio-recall.log",
+        "log_sha256": "3cc7774abef5be6333b8aaab635304a0b25412ba72569e78a198f46a50fc3ca1",
+        "inspected_records": 225,
+        "non_json_lines": [
+          {
+            "line": 3,
+            "text": "/usr/local/lib/python3.11/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead."
+          },
+          {
+            "line": 4,
+            "text": "  from starlette.testclient import TestClient as TestClient  # noqa"
+          }
+        ],
+        "cue_tick": 659899,
+        "recalled_intervals": 64,
+        "phases": [
+          {
+            "tick": 659901,
+            "ordering": "474c4e4c494e4531000000000000268e",
+            "motor_carriers": {
+              "474c4e4c494e453100000000000000b7": 56,
+              "474c4e4c494e453100000000000000d3": 138,
+              "474c4e4c494e453100000000000000ef": 152,
+              "474c4e4c494e453100000000000004fb": 145
+            },
+            "respiratory_carriers": 491,
+            "nonzero_pressure": 3994
+          },
+          {
+            "tick": 659902,
+            "ordering": "474c4e4c494e4531000000000000269c",
+            "motor_carriers": {
+              "474c4e4c494e453100000000000000c5": 5,
+              "474c4e4c494e453100000000000000e1": 2,
+              "474c4e4c494e453100000000000000fd": 5,
+              "474c4e4c494e45310000000000000509": 5
+            },
+            "respiratory_carriers": 17,
+            "nonzero_pressure": 3996
+          }
+        ],
+        "sound_only_input_samples": 4000,
+        "guided_recall_events": 0,
+        "self_heard_samples": 136000,
+        "total_nonzero_pressure": 126580,
+        "eight_final_vocally_quiet_intervals": true,
+        "reported_missing_original_topologies": 0,
+        "cold_next_tick": 659963,
+        "cold_next_body": "ed5e35eb7dfac2d418a3617df605fd731135238fc587b16168a1d672cc4882d8",
+        "cold_next_world": "bf68583b96830ed0a5ce24343c9807b68c0359ef9f19f62295860d71f2ec1ea0",
+        "final_record_line": 227,
+        "negative_controls_in_these_archives": false,
+        "warm_cold_next_equivalence_proved": false,
+        "new_organism_execution": false,
+        "http_delivery": {
+          "recorded": {
+            "blocks": 34,
+            "duplicate_events": 0,
+            "event": "audio_delivery",
+            "exact_all_bytes": true,
+            "live_network": false,
+            "pcm_bytes": 272000,
+            "scope": "actual copied-body PCM through production HTTP feed",
+            "ticks": [
+              659901,
+              659902,
+              659903,
+              659904,
+              659905,
+              659906,
+              659907,
+              659908,
+              659909,
+              659910,
+              659911,
+              659912,
+              659913,
+              659914,
+              659915,
+              659916,
+              659917,
+              659918,
+              659919,
+              659920,
+              659921,
+              659922,
+              659923,
+              659924,
+              659925,
+              659926,
+              659927,
+              659928,
+              659929,
+              659930,
+              659931,
+              659932,
+              659933,
+              659934
+            ]
+          },
+          "independently_recounted_blocks": 34,
+          "raw_pcm_not_embedded_in_log": true
+        }
+      }
+    ]
+  },
+  "findings": [
+    {
+      "id": "SX01",
+      "name": "Preserve the authenticated historical two-posture result",
+      "finding": "Three recovered archives match their recorded SHA256 values. Original logs independently corroborate one4000-sample sound cue, two later four-motor phases, positive respiratory discharge,136000 self-heard samples and eight final vocally quiet intervals. Drivers and both helper dependencies were fully read; recall supplies no guided motor input.",
+      "evidence_limit": "These are recovered historical execution records, not a fresh rerun or complete qualification of their internal learning law. Recognizable speech, lexical meaning and syntax were not tested.",
+      "lawful_remedy": "Retain the paired checkpoints and exact prior capability as a preservation obligation. Bind its causative state to the64-column successor, then reproduce the supported effect with the current approved law; do not restore rejected code merely because the old run passed.",
+      "acceptance_falsifier": "The successor must demonstrate equivalent supported learned use from preserved causative state, with matching learned/prelearning/severed/cold controls and exact-source binding.",
+      "repair_actions": [
+        "A03",
+        "A06",
+        "A10",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/AS02--guala-c123-release-recall.log",
+          "sha256": "f365ccf1e9e23f95791ce7e06178fb41cb756cb3c7c0504c53b299d8b0226c8f",
+          "line": 405,
+          "anchor": "{\"body\": \"3d44f13de1c33bad3031b3c2b39c6d3ae49c276c9a919d81659f95b6604fa06c\", \"cue_tick\": 659826, \"event\": \"recall_result\", \"extra_breath\": [], \"learned_events\": [[659828, \"474c4e4c494e453100000000000000b7\"], [659828, \"474c4e4c494e453100000000000000d3\"], [659828, \"474c4e4c494e453100000000000000ef\"], [659828, \"474c4e4c494e453100000000000004fb\"], [659829, \"474c4e4c494e453100000000000000c5\"], [659829, \"474c4e4c494e453100000000000000e1\"], [659829, \"474c4e4c494e453100000000000000fd\"], [659829, \"474c4e4c494e45310000000000000509\"]], \"missing_originals\": 0, \"next_rows\": [{\"breath\": [[\"474c4e4c494e4531000000000000008e\", 3, 487, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000c5\", 12, 0, 137], [\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000e1\", 12, 0, 48], [\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000fd\", 12, 0, 164], [\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e45310000000000000509\", 12, 0, 138]]]], \"motor\": [[\"474c4e4c494e453100000000000000c5\", 7, 137, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000c5\", 12, 0, 137]], [[\"474c4e4c494e45310000000000000f23\", \"474c4e4c494e45310000000000002b3d\", \"474c4e4c494e45310000000000000962\", 5, 165, \"articulated-body-proprioceptor\", \"vocal_tract_section_0_area-toward-maximum\"], [\"474c4e4c494e45310000000000000ff5\", \"474c4e4c494e45310000000000002c0f\", \"474c4e4c494e45310000000000000a34\", 5, 180, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_0_area-toward-minimum-load\"]]], [\"474c4e4c494e453100000000000000e1\", 9, 48, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000e1\", 12, 0, 48]], [[\"474c4e4c494e45310000000000000f3f\", \"474c4e4c494e45310000000000002b59\", \"474c4e4c494e4531000000000000097e\", 5, 167, \"articulated-body-proprioceptor\", \"vocal_tract_section_1_area-toward-maximum\"], [\"474c4e4c494e45310000000000001011\", \"474c4e4c494e45310000000000002c2b\", \"474c4e4c494e45310000000000000a50\", 5, 182, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_1_area-toward-minimum-load\"]]], [\"474c4e4c494e453100000000000000fd\", 11, 164, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000fd\", 12, 0, 164]], [[\"474c4e4c494e45310000000000000f5b\", \"474c4e4c494e45310000000000002b75\", \"474c4e4c494e4531000000000000099a\", 5, 169, \"articulated-body-proprioceptor\", \"vocal_tract_section_2_area-toward-maximum\"], [\"474c4e4c494e4531000000000000102d\", \"474c4e4c494e45310000000000002c47\", \"474c4e4c494e45310000000000000a6c\", 5, 184, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_2_area-toward-minimum-load\"]]], [\"474c4e4c494e45310000000000000509\", 85, 138, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e45310000000000000509\", 12, 0, 138]], [[\"474c4e4c494e45310000000000000fe7\", \"474c4e4c494e45310000000000002c01\", \"474c4e4c494e45310000000000000a26\", 5, 179, \"articulated-body-proprioceptor\", \"vocal_tract_section_7_area-toward-maximum\"], [\"474c4e4c494e453100000000000010b9\", \"474c4e4c494e45310000000000002cd3\", \"474c4e4c494e45310000000000000af8\", 5, 194, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_7_area-toward-minimum-load\"]]]], \"nonzero_pressure\": 3995, \"tick\": 659829, \"work\": []}], \"passed\": true, \"reflex_events\": [], \"root_rows\": [{\"breath\": [[\"474c4e4c494e4531000000000000008e\", 3, 21, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000b7\", 12, 0, 3], [\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000d3\", 12, 0, 6], [\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000ef\", 12, 0, 6], [\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000004fb\", 12, 0, 6]]]], \"motor\": [[\"474c4e4c494e453100000000000000b7\", 6, 3, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000b7\", 12, 0, 3]], [[\"474c4e4c494e45310000000000000f15\", \"474c4e4c494e45310000000000002b2f\", \"474c4e4c494e45310000000000000954\", 5, 164, \"articulated-body-proprioceptor\", \"vocal_tract_section_0_area-toward-minimum\"], [\"474c4e4c494e45310000000000001003\", \"474c4e4c494e45310000000000002c1d\", \"474c4e4c494e45310000000000000a42\", 5, 181, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_0_area-toward-maximum-load\"]]], [\"474c4e4c494e453100000000000000d3\", 8, 6, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000d3\", 12, 0, 6]], [[\"474c4e4c494e45310000000000000f31\", \"474c4e4c494e45310000000000002b4b\", \"474c4e4c494e45310000000000000970\", 5, 166, \"articulated-body-proprioceptor\", \"vocal_tract_section_1_area-toward-minimum\"], [\"474c4e4c494e4531000000000000101f\", \"474c4e4c494e45310000000000002c39\", \"474c4e4c494e45310000000000000a5e\", 5, 183, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_1_area-toward-maximum-load\"]]], [\"474c4e4c494e453100000000000000ef\", 10, 6, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000ef\", 12, 0, 6]], [[\"474c4e4c494e45310000000000000f4d\", \"474c4e4c494e45310000000000002b67\", \"474c4e4c494e4531000000000000098c\", 5, 168, \"articulated-body-proprioceptor\", \"vocal_tract_section_2_area-toward-minimum\"], [\"474c4e4c494e4531000000000000103b\", \"474c4e4c494e45310000000000002c55\", \"474c4e4c494e45310000000000000a7a\", 5, 185, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_2_area-toward-maximum-load\"]]], [\"474c4e4c494e453100000000000004fb\", 84, 6, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000004fb\", 12, 0, 6]], [[\"474c4e4c494e45310000000000000fd9\", \"474c4e4c494e45310000000000002bf3\", \"474c4e4c494e45310000000000000a18\", 5, 178, \"articulated-body-proprioceptor\", \"vocal_tract_section_7_area-toward-minimum\"], [\"474c4e4c494e453100000000000010c7\", \"474c4e4c494e45310000000000002ce1\", \"474c4e4c494e45310000000000000b06\", 5, 195, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_7_area-toward-maximum-load\"]]]], \"nonzero_pressure\": 3993, \"tick\": 659828, \"work\": []}], \"scope\": \"sound-only two postures and quiet; not full word or live speech\", \"self_heard_samples\": 136000, \"tick\": 659889, \"unexplained_events\": [], \"world\": \"1f5d9e83ab41229eee8edf8c40bf7ed6125bc59770832123c6ae71d3d639c334\"}"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/AS03--guala-c123-audio-recall.log",
+          "sha256": "3cc7774abef5be6333b8aaab635304a0b25412ba72569e78a198f46a50fc3ca1",
+          "line": 225,
+          "anchor": "{\"body\": \"3252c6098c450a10d8668cb1e9b7e51f1e200aa72012ac2e3a745c20425fde4a\", \"cue_tick\": 659899, \"event\": \"recall_result\", \"extra_breath\": [], \"learned_events\": [[659901, \"474c4e4c494e453100000000000000b7\"], [659901, \"474c4e4c494e453100000000000000d3\"], [659901, \"474c4e4c494e453100000000000000ef\"], [659901, \"474c4e4c494e453100000000000004fb\"], [659902, \"474c4e4c494e453100000000000000c5\"], [659902, \"474c4e4c494e453100000000000000e1\"], [659902, \"474c4e4c494e453100000000000000fd\"], [659902, \"474c4e4c494e45310000000000000509\"]], \"missing_originals\": 0, \"next_rows\": [{\"breath\": [[\"474c4e4c494e4531000000000000008e\", 3, 17, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000c5\", 12, 0, 5], [\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000e1\", 12, 0, 1], [\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000fd\", 12, 0, 5], [\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e45310000000000000509\", 12, 0, 5]]]], \"motor\": [[\"474c4e4c494e453100000000000000c5\", 7, 5, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000c5\", 12, 0, 5]], [[\"474c4e4c494e45310000000000000f23\", \"474c4e4c494e45310000000000002b3d\", \"474c4e4c494e45310000000000000962\", 5, 165, \"articulated-body-proprioceptor\", \"vocal_tract_section_0_area-toward-maximum\"], [\"474c4e4c494e45310000000000000ff5\", \"474c4e4c494e45310000000000002c0f\", \"474c4e4c494e45310000000000000a34\", 5, 180, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_0_area-toward-minimum-load\"]]], [\"474c4e4c494e453100000000000000e1\", 9, 2, [[\"474c4e4c494e45310000000000001011\", 8, \"474c4e4c494e453100000000000000e1\", 12, 0, 1], [\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000e1\", 12, 0, 1]], [[\"474c4e4c494e45310000000000000f3f\", \"474c4e4c494e45310000000000002b59\", \"474c4e4c494e4531000000000000097e\", 5, 167, \"articulated-body-proprioceptor\", \"vocal_tract_section_1_area-toward-maximum\"], [\"474c4e4c494e45310000000000001011\", \"474c4e4c494e45310000000000002c2b\", \"474c4e4c494e45310000000000000a50\", 5, 182, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_1_area-toward-minimum-load\"]]], [\"474c4e4c494e453100000000000000fd\", 11, 5, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000fd\", 12, 0, 5]], [[\"474c4e4c494e45310000000000000f5b\", \"474c4e4c494e45310000000000002b75\", \"474c4e4c494e4531000000000000099a\", 5, 169, \"articulated-body-proprioceptor\", \"vocal_tract_section_2_area-toward-maximum\"], [\"474c4e4c494e4531000000000000102d\", \"474c4e4c494e45310000000000002c47\", \"474c4e4c494e45310000000000000a6c\", 5, 184, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_2_area-toward-minimum-load\"]]], [\"474c4e4c494e45310000000000000509\", 85, 5, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e45310000000000000509\", 12, 0, 5]], [[\"474c4e4c494e45310000000000000fe7\", \"474c4e4c494e45310000000000002c01\", \"474c4e4c494e45310000000000000a26\", 5, 179, \"articulated-body-proprioceptor\", \"vocal_tract_section_7_area-toward-maximum\"], [\"474c4e4c494e453100000000000010b9\", \"474c4e4c494e45310000000000002cd3\", \"474c4e4c494e45310000000000000af8\", 5, 194, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_7_area-toward-minimum-load\"]]]], \"nonzero_pressure\": 3996, \"tick\": 659902, \"work\": []}], \"passed\": true, \"reflex_events\": [], \"root_rows\": [{\"breath\": [[\"474c4e4c494e4531000000000000008e\", 3, 491, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000b7\", 12, 0, 56], [\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000d3\", 12, 0, 138], [\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000ef\", 12, 0, 152], [\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000004fb\", 12, 0, 145]]]], \"motor\": [[\"474c4e4c494e4531000000000000039d\", 59, 6, [], [[\"474c4e4c494e4531000000000000092d\", \"474c4e4c494e45310000000000002547\", \"474c4e4c494e4531000000000000036c\", 5, 56, \"articulated-body-proprioceptor\", \"left_grip_aperture-toward-minimum\"], [\"474c4e4c494e45310000000000000d47\", \"474c4e4c494e45310000000000002961\", \"474c4e4c494e45310000000000000786\", 5, 131, \"articulated-body-effector-load-receptor\", \"left_grip_aperture-toward-maximum-load\"], [\"474c4e4c494e453100000000000019a3\", \"474c4e4c494e453100000000000019a1\", \"474c4e4c494e45310000000000000059\", 2, 27, \"native-palmar-contact\", \"held-contact\"]]], [\"474c4e4c494e4531000000000000048b\", 76, 6, [], [[\"474c4e4c494e45310000000000000a53\", \"474c4e4c494e4531000000000000266d\", \"474c4e4c494e45310000000000000492\", 5, 77, \"articulated-body-proprioceptor\", \"right_hip_pitch-toward-maximum\"], [\"474c4e4c494e45310000000000000e51\", \"474c4e4c494e45310000000000002a6b\", \"474c4e4c494e45310000000000000890\", 5, 150, \"articulated-body-effector-load-receptor\", \"right_hip_pitch-toward-minimum-load\"]]], [\"474c4e4c494e453100000000000000b7\", 6, 56, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000b7\", 12, 0, 56]], [[\"474c4e4c494e45310000000000000f15\", \"474c4e4c494e45310000000000002b2f\", \"474c4e4c494e45310000000000000954\", 5, 164, \"articulated-body-proprioceptor\", \"vocal_tract_section_0_area-toward-minimum\"], [\"474c4e4c494e45310000000000001003\", \"474c4e4c494e45310000000000002c1d\", \"474c4e4c494e45310000000000000a42\", 5, 181, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_0_area-toward-maximum-load\"]]], [\"474c4e4c494e453100000000000000d3\", 8, 138, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000d3\", 12, 0, 138]], [[\"474c4e4c494e45310000000000000f31\", \"474c4e4c494e45310000000000002b4b\", \"474c4e4c494e45310000000000000970\", 5, 166, \"articulated-body-proprioceptor\", \"vocal_tract_section_1_area-toward-minimum\"], [\"474c4e4c494e4531000000000000101f\", \"474c4e4c494e45310000000000002c39\", \"474c4e4c494e45310000000000000a5e\", 5, 183, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_1_area-toward-maximum-load\"]]], [\"474c4e4c494e453100000000000000ef\", 10, 152, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000ef\", 12, 0, 152]], [[\"474c4e4c494e45310000000000000f4d\", \"474c4e4c494e45310000000000002b67\", \"474c4e4c494e4531000000000000098c\", 5, 168, \"articulated-body-proprioceptor\", \"vocal_tract_section_2_area-toward-minimum\"], [\"474c4e4c494e4531000000000000103b\", \"474c4e4c494e45310000000000002c55\", \"474c4e4c494e45310000000000000a7a\", 5, 185, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_2_area-toward-maximum-load\"]]], [\"474c4e4c494e453100000000000004fb\", 84, 145, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000004fb\", 12, 0, 145]], [[\"474c4e4c494e45310000000000000fd9\", \"474c4e4c494e45310000000000002bf3\", \"474c4e4c494e45310000000000000a18\", 5, 178, \"articulated-body-proprioceptor\", \"vocal_tract_section_7_area-toward-minimum\"], [\"474c4e4c494e453100000000000010c7\", \"474c4e4c494e45310000000000002ce1\", \"474c4e4c494e45310000000000000b06\", 5, 195, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_7_area-toward-maximum-load\"]]]], \"nonzero_pressure\": 3994, \"tick\": 659901, \"work\": [[\"474c4e4c494e4531000000000000039d\", [[\"474c4e4c494e45310000000000000818\", \"474c4e4c494e45310000000000000734\", [\"474c4e4c494e45310000000000000734\", \"474c4e4c494e45310000000000000818\", 0], [\"474c4e4c494e4531000000000000039d\", \"474c4e4c494e45310000000000000818\", 0], [61626948490633836729588879447, 349333600000000000000000000000]]], [[61626948490633836729588879447, 349333600000000000000000000000], [61626948490633836729588879447, 349333600000000000000000000000], [7072830096725420987335083183, 79228162514264337593543950336], [0, 1], [109573708327883101516395809630073737120220305967153, 412420320995047873305798246400000000000000000000000], [0, 1], [0, 1]]], [\"474c4e4c494e4531000000000000048b\", [[\"474c4e4c494e45310000000000000700\", \"474c4e4c494e453100000000000005f2\", [\"474c4e4c494e453100000000000005f2\", \"474c4e4c494e45310000000000000700\", 0], [\"474c4e4c494e4531000000000000048b\", \"474c4e4c494e45310000000000000700\", 0], [228492081015794786079957282633, 2713610000000000000000000000000]], [\"474c4e4c494e453100000000000007ee\", \"474c4e4c494e4531000000000000070a\", [\"474c4e4c494e4531000000000000070a\", \"474c4e4c494e453100000000000007ee\", 0], [\"474c4e4c494e4531000000000000048b\", \"474c4e4c494e453100000000000007ee\", 0], [62698208676169295706525683973, 401081300000000000000000000000]], [\"474c4e4c494e453100000000000007fc\", \"474c4e4c494e45310000000000000718\", [\"474c4e4c494e45310000000000000718\", \"474c4e4c494e453100000000000007fc\", 0], [\"474c4e4c494e4531000000000000048b\", \"474c4e4c494e453100000000000007fc\", 0], [499937164984939322046442406067, 2476153375000000000000000000000]], [\"474c4e4c494e4531000000000000080a\", \"474c4e4c494e45310000000000000726\", [\"474c4e4c494e45310000000000000726\", \"474c4e4c494e4531000000000000080a\", 0], [\"474c4e4c494e4531000000000000048b\", \"474c4e4c494e4531000000000000080a\", 0], [233769787834216081930061778657, 1018927070000000000000000000000]]], [[14759272227504602355289745097564851281967514042592641, 21967997680322549831000060770000000000000000000000000], [14759272227504602355289745097564851281967514042592641, 21967997680322549831000060770000000000000000000000000], [0, 1], [0, 1], [14759272227504602355289745097564851281967514042592641, 21967997680322549831000060770000000000000000000000000], [0, 1], [0, 1]]]]}], \"scope\": \"sound-only two postures and quiet; not full word or live speech\", \"self_heard_samples\": 136000, \"tick\": 659962, \"unexplained_events\": [], \"world\": \"b4e60ab4471bbffd3df0f35cc8d33db9ab0a5a78d7c2968a70cc6be2bb5ba17e\"}"
+        }
+      ]
+    },
+    {
+      "id": "SX02",
+      "name": "Ordinary-artifact and diagnostic evidence have different configuration scope",
+      "finding": "AS01 pins a diagnostic native module and sets a solar-clock override. AS02/03 pin ordinary native SHA5fc6b612 and require explicit task/image thread variables without that override. Their body/world and source CURRENT checks are visible in the original drivers.",
+      "evidence_limit": "The ordinary results strengthen the narrow history; the loaded binary hash is asserted by the recovered driver, not independently reloaded by A1. Package receipt662a58c9 is preserved separately and is not silently equated to all later Python changes.",
+      "lawful_remedy": "Keep each run’s source, module, image, environment, exact input and output binding separate. Require direct artifact verification when qualifying the current release.",
+      "acceptance_falsifier": "No diagnostic solar/environment setting may disappear from the evidence record; an ordinary-artifact claim must identify the actual module and all relevant serving variables.",
+      "repair_actions": [
+        "A02",
+        "A10",
+        "A14",
+        "A17"
+      ],
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/AS01--guala-c123-runtime-recall.py",
+          "sha256": "01a1446bbaa28ccf1984e831debc53dd610cc08e84b47c67b609a5113b812c68",
+          "line": 57,
+          "anchor": "                      PYTHONUNBUFFERED=\"1\", GUALA_SOLAR_UTC_OVERRIDE=\"0\")"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/AS02--guala-c123-release-recall.py",
+          "sha256": "b9178369117dc0f5b47acfb0f674a263acaa7951b597a18a60b2309053bfc89e",
+          "line": 35,
+          "anchor": "            \"5fc6b612daffc1fcc862c3b8261b3d913c198888e8b64e84e50505093777210f\"):"
+        }
+      ]
+    },
+    {
+      "id": "SX03",
+      "name": "Preserved topology is narrower than preserved cognitive state",
+      "finding": "The helper’s original_topology_census counts serialized member and bond sets. It does not compare every neuron state, conductance, recovery field, residue, recurrence bond or later learned effect. Logs report zero missing topologies and exact saved body/world restoration.",
+      "evidence_limit": "Those valid checks cannot certify old-to64 cognitive continuity. Cold restore followed by one ordinary step also does not establish warm-next versus cold-next equality.",
+      "lawful_remedy": "Preserve both original states and map all causative retained variables under the approved law. Add paired functional continuation where preservation is claimed; never replace it with identity, tick or topology count.",
+      "acceptance_falsifier": "Compare exact causal state and supported later behavior across conversion and warm/cold continuation; explain any lawful change rather than declaring loss impossible because counts match.",
+      "repair_actions": [
+        "A03",
+        "A06",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/ASH02--guala-c121-runtime-recall.py",
+          "sha256": "b061c218ac5429619a1df469871478acd681fb450eb5a8ab209264a8ab2bab30",
+          "line": 115,
+          "anchor": "        keys[json.dumps([members, bonds], separators=(\",\", \":\"))] += 1"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/AS02--guala-c123-release-recall.py",
+          "sha256": "b9178369117dc0f5b47acfb0f674a263acaa7951b597a18a60b2309053bfc89e",
+          "line": 178,
+          "anchor": "           scope=\"exact cold restore plus next ordinary; not warm-next comparison\")"
+        }
+      ]
+    },
+    {
+      "id": "SX04",
+      "name": "Positive recall archives do not contain matched negative controls",
+      "finding": "Each recovered recall driver uses a taught body and a bounded quiet baseline, then a positive cue. These three archives do not contain matched prelearning, severed or unrelated-cue arms for those exact taught states.",
+      "evidence_limit": "Earlier documents report separate controls, but those cannot be imported into this proof without exact state/law correspondence. These positive witnesses do not independently establish complete learning specificity.",
+      "lawful_remedy": "Recover the corresponding controls or execute the specified current qualification with the authentic preserved body under G1 ownership. Keep the historical positive result while withholding the broader certificate.",
+      "acceptance_falsifier": "Matched negative controls must remove the learned contribution without replacing it with fallback sound; ordinary silence is not a substitute for severing or prelearning comparison.",
+      "repair_actions": [
+        "A06",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/AS02--guala-c123-release-recall.py",
+          "sha256": "b9178369117dc0f5b47acfb0f674a263acaa7951b597a18a60b2309053bfc89e",
+          "line": 95,
+          "anchor": "        actor.submit(cue)"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/AS03--guala-c123-audio-recall.py",
+          "sha256": "c0a608439db5d92f06ba3bb59fa1a45a67c69c707b545f53d21f0981fe479d1c",
+          "line": 126,
+          "anchor": "        actor.submit(cue)"
+        }
+      ]
+    },
+    {
+      "id": "SX05",
+      "name": "HTTP delivery is real local transport evidence, not speech or public-network proof",
+      "finding": "AS03 driver compares produced PCM with TestClient responses for the same actor, preserving order and bytes. The log reports34blocks/272000bytes and explicitly live_network:false. Independent recount finds34 nonzero native blocks at those ticks.",
+      "evidence_limit": "Raw delivered PCM is not embedded in the log, so A1 did not reconstruct its byte equality. One all-zero4000-sample native frame at cue659899 is not an emitted nonzero block. Audible transport cannot establish words.",
+      "lawful_remedy": "Retain the transport result at its scope. Verify exact physical producer→feed→actual browser separately from cognition; disclose gain, missing blocks and restart gaps.",
+      "acceptance_falsifier": "No old hash cache, reordered feed or browser-generated sound may replace current physical output. Public serving and recognizable content require their own evidence.",
+      "repair_actions": [
+        "A10",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/AS03--guala-c123-audio-recall.py",
+          "sha256": "c0a608439db5d92f06ba3bb59fa1a45a67c69c707b545f53d21f0981fe479d1c",
+          "line": 133,
+          "anchor": "    if not emitted or delivered != emitted or list(delivered) != list(emitted):"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/AS03--guala-c123-audio-recall.log",
+          "sha256": "3cc7774abef5be6333b8aaab635304a0b25412ba72569e78a198f46a50fc3ca1",
+          "line": 224,
+          "anchor": "{\"blocks\": 34, \"duplicate_events\": 0, \"event\": \"audio_delivery\", \"exact_all_bytes\": true, \"live_network\": false, \"pcm_bytes\": 272000, \"scope\": \"actual copied-body PCM through production HTTP feed\", \"ticks\": [659901, 659902, 659903, 659904, 659905, 659906, 659907, 659908, 659909, 659910, 659911, 659912, 659913, 659914, 659915, 659916, 659917, 659918, 659919, 659920, 659921, 659922, 659923, 659924, 659925, 659926, 659927, 659928, 659929, 659930, 659931, 659932, 659933, 659934]}"
+        }
+      ]
+    },
+    {
+      "id": "SX06",
+      "name": "A coexisting reflex must not be mistaken for a second learned instruction",
+      "finding": "At659902 the AS03 motor e1 has its expected L11 transfer plus a recorded one-carrier L8 regulation transfer from1011. The historical driver permits this typed distinction. A1’s first stricter reconstruction incorrectly required every incoming transfer to be L11 and was rejected.",
+      "evidence_limit": "Amplitude alone does not excuse an unexpected act. This correction rests on source/recipient provenance, with the original raw log and failed validator preserved.",
+      "lawful_remedy": "Keep learned and reflex causes explicit, including mixtures on one recipient. Do not erase a real reflex or credit it as learned speech to make an event count pass.",
+      "acceptance_falsifier": "Every output must have its exact allowed physical cause; reject unexplained transfers regardless of amplitude. Preserve and display simultaneous causes.",
+      "repair_actions": [
+        "A08",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/AS03--guala-c123-audio-recall.py",
+          "sha256": "c0a608439db5d92f06ba3bb59fa1a45a67c69c707b545f53d21f0981fe479d1c",
+          "line": 149,
+          "anchor": "                p[1] in (8, 11) and p[2] == motor[0] and p[3] == 12 and p[5] > 0"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/AS03--guala-c123-audio-recall.log",
+          "sha256": "3cc7774abef5be6333b8aaab635304a0b25412ba72569e78a198f46a50fc3ca1",
+          "line": 225,
+          "anchor": "{\"body\": \"3252c6098c450a10d8668cb1e9b7e51f1e200aa72012ac2e3a745c20425fde4a\", \"cue_tick\": 659899, \"event\": \"recall_result\", \"extra_breath\": [], \"learned_events\": [[659901, \"474c4e4c494e453100000000000000b7\"], [659901, \"474c4e4c494e453100000000000000d3\"], [659901, \"474c4e4c494e453100000000000000ef\"], [659901, \"474c4e4c494e453100000000000004fb\"], [659902, \"474c4e4c494e453100000000000000c5\"], [659902, \"474c4e4c494e453100000000000000e1\"], [659902, \"474c4e4c494e453100000000000000fd\"], [659902, \"474c4e4c494e45310000000000000509\"]], \"missing_originals\": 0, \"next_rows\": [{\"breath\": [[\"474c4e4c494e4531000000000000008e\", 3, 17, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000c5\", 12, 0, 5], [\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000e1\", 12, 0, 1], [\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000fd\", 12, 0, 5], [\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e45310000000000000509\", 12, 0, 5]]]], \"motor\": [[\"474c4e4c494e453100000000000000c5\", 7, 5, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000c5\", 12, 0, 5]], [[\"474c4e4c494e45310000000000000f23\", \"474c4e4c494e45310000000000002b3d\", \"474c4e4c494e45310000000000000962\", 5, 165, \"articulated-body-proprioceptor\", \"vocal_tract_section_0_area-toward-maximum\"], [\"474c4e4c494e45310000000000000ff5\", \"474c4e4c494e45310000000000002c0f\", \"474c4e4c494e45310000000000000a34\", 5, 180, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_0_area-toward-minimum-load\"]]], [\"474c4e4c494e453100000000000000e1\", 9, 2, [[\"474c4e4c494e45310000000000001011\", 8, \"474c4e4c494e453100000000000000e1\", 12, 0, 1], [\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000e1\", 12, 0, 1]], [[\"474c4e4c494e45310000000000000f3f\", \"474c4e4c494e45310000000000002b59\", \"474c4e4c494e4531000000000000097e\", 5, 167, \"articulated-body-proprioceptor\", \"vocal_tract_section_1_area-toward-maximum\"], [\"474c4e4c494e45310000000000001011\", \"474c4e4c494e45310000000000002c2b\", \"474c4e4c494e45310000000000000a50\", 5, 182, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_1_area-toward-minimum-load\"]]], [\"474c4e4c494e453100000000000000fd\", 11, 5, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000fd\", 12, 0, 5]], [[\"474c4e4c494e45310000000000000f5b\", \"474c4e4c494e45310000000000002b75\", \"474c4e4c494e4531000000000000099a\", 5, 169, \"articulated-body-proprioceptor\", \"vocal_tract_section_2_area-toward-maximum\"], [\"474c4e4c494e4531000000000000102d\", \"474c4e4c494e45310000000000002c47\", \"474c4e4c494e45310000000000000a6c\", 5, 184, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_2_area-toward-minimum-load\"]]], [\"474c4e4c494e45310000000000000509\", 85, 5, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e45310000000000000509\", 12, 0, 5]], [[\"474c4e4c494e45310000000000000fe7\", \"474c4e4c494e45310000000000002c01\", \"474c4e4c494e45310000000000000a26\", 5, 179, \"articulated-body-proprioceptor\", \"vocal_tract_section_7_area-toward-maximum\"], [\"474c4e4c494e453100000000000010b9\", \"474c4e4c494e45310000000000002cd3\", \"474c4e4c494e45310000000000000af8\", 5, 194, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_7_area-toward-minimum-load\"]]]], \"nonzero_pressure\": 3996, \"tick\": 659902, \"work\": []}], \"passed\": true, \"reflex_events\": [], \"root_rows\": [{\"breath\": [[\"474c4e4c494e4531000000000000008e\", 3, 491, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000b7\", 12, 0, 56], [\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000d3\", 12, 0, 138], [\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000ef\", 12, 0, 152], [\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000004fb\", 12, 0, 145]]]], \"motor\": [[\"474c4e4c494e4531000000000000039d\", 59, 6, [], [[\"474c4e4c494e4531000000000000092d\", \"474c4e4c494e45310000000000002547\", \"474c4e4c494e4531000000000000036c\", 5, 56, \"articulated-body-proprioceptor\", \"left_grip_aperture-toward-minimum\"], [\"474c4e4c494e45310000000000000d47\", \"474c4e4c494e45310000000000002961\", \"474c4e4c494e45310000000000000786\", 5, 131, \"articulated-body-effector-load-receptor\", \"left_grip_aperture-toward-maximum-load\"], [\"474c4e4c494e453100000000000019a3\", \"474c4e4c494e453100000000000019a1\", \"474c4e4c494e45310000000000000059\", 2, 27, \"native-palmar-contact\", \"held-contact\"]]], [\"474c4e4c494e4531000000000000048b\", 76, 6, [], [[\"474c4e4c494e45310000000000000a53\", \"474c4e4c494e4531000000000000266d\", \"474c4e4c494e45310000000000000492\", 5, 77, \"articulated-body-proprioceptor\", \"right_hip_pitch-toward-maximum\"], [\"474c4e4c494e45310000000000000e51\", \"474c4e4c494e45310000000000002a6b\", \"474c4e4c494e45310000000000000890\", 5, 150, \"articulated-body-effector-load-receptor\", \"right_hip_pitch-toward-minimum-load\"]]], [\"474c4e4c494e453100000000000000b7\", 6, 56, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000b7\", 12, 0, 56]], [[\"474c4e4c494e45310000000000000f15\", \"474c4e4c494e45310000000000002b2f\", \"474c4e4c494e45310000000000000954\", 5, 164, \"articulated-body-proprioceptor\", \"vocal_tract_section_0_area-toward-minimum\"], [\"474c4e4c494e45310000000000001003\", \"474c4e4c494e45310000000000002c1d\", \"474c4e4c494e45310000000000000a42\", 5, 181, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_0_area-toward-maximum-load\"]]], [\"474c4e4c494e453100000000000000d3\", 8, 138, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000d3\", 12, 0, 138]], [[\"474c4e4c494e45310000000000000f31\", \"474c4e4c494e45310000000000002b4b\", \"474c4e4c494e45310000000000000970\", 5, 166, \"articulated-body-proprioceptor\", \"vocal_tract_section_1_area-toward-minimum\"], [\"474c4e4c494e4531000000000000101f\", \"474c4e4c494e45310000000000002c39\", \"474c4e4c494e45310000000000000a5e\", 5, 183, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_1_area-toward-maximum-load\"]]], [\"474c4e4c494e453100000000000000ef\", 10, 152, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000ef\", 12, 0, 152]], [[\"474c4e4c494e45310000000000000f4d\", \"474c4e4c494e45310000000000002b67\", \"474c4e4c494e4531000000000000098c\", 5, 168, \"articulated-body-proprioceptor\", \"vocal_tract_section_2_area-toward-minimum\"], [\"474c4e4c494e4531000000000000103b\", \"474c4e4c494e45310000000000002c55\", \"474c4e4c494e45310000000000000a7a\", 5, 185, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_2_area-toward-maximum-load\"]]], [\"474c4e4c494e453100000000000004fb\", 84, 145, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000004fb\", 12, 0, 145]], [[\"474c4e4c494e45310000000000000fd9\", \"474c4e4c494e45310000000000002bf3\", \"474c4e4c494e45310000000000000a18\", 5, 178, \"articulated-body-proprioceptor\", \"vocal_tract_section_7_area-toward-minimum\"], [\"474c4e4c494e453100000000000010c7\", \"474c4e4c494e45310000000000002ce1\", \"474c4e4c494e45310000000000000b06\", 5, 195, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_7_area-toward-maximum-load\"]]]], \"nonzero_pressure\": 3994, \"tick\": 659901, \"work\": [[\"474c4e4c494e4531000000000000039d\", [[\"474c4e4c494e45310000000000000818\", \"474c4e4c494e45310000000000000734\", [\"474c4e4c494e45310000000000000734\", \"474c4e4c494e45310000000000000818\", 0], [\"474c4e4c494e4531000000000000039d\", \"474c4e4c494e45310000000000000818\", 0], [61626948490633836729588879447, 349333600000000000000000000000]]], [[61626948490633836729588879447, 349333600000000000000000000000], [61626948490633836729588879447, 349333600000000000000000000000], [7072830096725420987335083183, 79228162514264337593543950336], [0, 1], [109573708327883101516395809630073737120220305967153, 412420320995047873305798246400000000000000000000000], [0, 1], [0, 1]]], [\"474c4e4c494e4531000000000000048b\", [[\"474c4e4c494e45310000000000000700\", \"474c4e4c494e453100000000000005f2\", [\"474c4e4c494e453100000000000005f2\", \"474c4e4c494e45310000000000000700\", 0], [\"474c4e4c494e4531000000000000048b\", \"474c4e4c494e45310000000000000700\", 0], [228492081015794786079957282633, 2713610000000000000000000000000]], [\"474c4e4c494e453100000000000007ee\", \"474c4e4c494e4531000000000000070a\", [\"474c4e4c494e4531000000000000070a\", \"474c4e4c494e453100000000000007ee\", 0], [\"474c4e4c494e4531000000000000048b\", \"474c4e4c494e453100000000000007ee\", 0], [62698208676169295706525683973, 401081300000000000000000000000]], [\"474c4e4c494e453100000000000007fc\", \"474c4e4c494e45310000000000000718\", [\"474c4e4c494e45310000000000000718\", \"474c4e4c494e453100000000000007fc\", 0], [\"474c4e4c494e4531000000000000048b\", \"474c4e4c494e453100000000000007fc\", 0], [499937164984939322046442406067, 2476153375000000000000000000000]], [\"474c4e4c494e4531000000000000080a\", \"474c4e4c494e45310000000000000726\", [\"474c4e4c494e45310000000000000726\", \"474c4e4c494e4531000000000000080a\", 0], [\"474c4e4c494e4531000000000000048b\", \"474c4e4c494e4531000000000000080a\", 0], [233769787834216081930061778657, 1018927070000000000000000000000]]], [[14759272227504602355289745097564851281967514042592641, 21967997680322549831000060770000000000000000000000000], [14759272227504602355289745097564851281967514042592641, 21967997680322549831000060770000000000000000000000000], [0, 1], [0, 1], [14759272227504602355289745097564851281967514042592641, 21967997680322549831000060770000000000000000000000000], [0, 1], [0, 1]]]]}], \"scope\": \"sound-only two postures and quiet; not full word or live speech\", \"self_heard_samples\": 136000, \"tick\": 659962, \"unexplained_events\": [], \"world\": \"b4e60ab4471bbffd3df0f35cc8d33db9ab0a5a78d7c2968a70cc6be2bb5ba17e\"}"
+        }
+      ]
+    },
+    {
+      "id": "SX07",
+      "name": "The current captured64 ingress cannot receive the earlier developmental input",
+      "finding": "The earlier drivers construct physical guided-vocal-microphone input for teaching and microphone-only input for later recall. The separately captured current lean app rejects guided_vocal_drives, and Functional64PhysicalLoop rejects all sensory inputs except its bounded direct microphone form.",
+      "evidence_limit": "This is source-disclosed unavailable ingress, not evidence that the current release has erased every prior learned relation or that this particular guidance must be the only lawful teaching method.",
+      "lawful_remedy": "G1 must reconcile this lost input capability and the actual preserved-state mapping. Supply a charter-conformant physical experience path or explicitly declare the developmental function unavailable; do not substitute a hidden word or motor answer table.",
+      "acceptance_falsifier": "Demonstrate that ordinary supported input can create and later use the claimed relation on the same retained organism; admission schema alone or a direct native test cannot prove the serving path.",
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A06",
+        "A10",
+        "A12",
+        "A16"
+      ],
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/ASH01--guala-c122-runtime-edge.py",
+          "sha256": "393fe88247e5077f10762943a863cf1df77d3bdd8c14e4fdb69edcc6ab892e6a",
+          "line": 75,
+          "anchor": "    payload = {\"source\": \"guided-vocal-microphone\" if guided else \"microphone\","
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 922,
+          "anchor": "event. This is a missing live teaching-ingress seam, not proof that the"
+        }
+      ]
+    },
+    {
+      "id": "SX08",
+      "name": "A definitive history incorrectly claimed two source documents did not exist",
+      "finding": "Attempt54’s mechanism table says no standalone Attempt43 or48 file exists. This reconciliation recovered exact Git blobs for both, including nine48 versions already fully read.",
+      "evidence_limit": "A missing local worktree copy is not evidence that historical specifications never existed. The large definitive report is not self-authenticating.",
+      "lawful_remedy": "Resolve history by exact path/blob and original context. Correct derivative summaries and preserve original contradictions; do not erase valid prior designs because a later summary omitted them.",
+      "acceptance_falsifier": "Every absence claim must identify the searched corpus and distinguish unrecovered, absent from current worktree and never existed.",
+      "repair_actions": [
+        "A01",
+        "A18"
+      ],
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 3475,
+          "anchor": "standalone Attempt-43 or Attempt-48 file exists; the work called Candidate 48"
+        }
+      ]
+    },
+    {
+      "id": "SX09",
+      "name": "Earlier claims of complete speech were explicitly retracted",
+      "finding": "Attempt54 states Joe’s hearing disproved its former speech-complete claim: isolated tonal outputs persisted. It records later two-posture learning separately and leaves quantitative motor-strength use and recognizable speech open.",
+      "evidence_limit": "Ordered physical output is a genuine narrower capability; it is not established lexical meaning, syntax or conversation. Nor does a lack of intelligible words prove a permanent substrate impossibility.",
+      "lawful_remedy": "Use separate acceptance for acoustic capacity, experience-dependent ordered articulation, quantitative learned control, grounded words and relational syntax. Withdraw any claim that crosses an unproved boundary.",
+      "acceptance_falsifier": "Require meaningful, context-sensitive use and independent controls at the claimed level; a waveform, a vocabulary label or a remembered body sequence cannot stand in for semantic competence.",
+      "repair_actions": [
+        "A01",
+        "A10",
+        "A13",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 325,
+          "anchor": "Joe's live hearing disproved the former speech-complete claim: the body emits"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 347,
+          "anchor": "JOE'S AUDITORY VERDICT: SAME TOOTS. RECOGNIZABLE SPEECH IS NOT FIXED."
+        }
+      ]
+    }
+  ],
+  "source_read_complete": false,
+  "product_execution": false,
+  "product_acceptance": false,
+  "complete_reconciliation": false,
+  "status_authority": "collaborative_todo.md"
+}

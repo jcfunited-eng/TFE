@@ -1,0 +1,360 @@
+{
+  "schema": "guala.reconciliation_mechanism_supplement.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T00:39:54.089145+00:00",
+  "audit": "Working and published UI/configuration; exact scopes separated",
+  "predecessor_registry": "docs/GUALA_LEARNING_DECISION_CLASSIFICATION_TASK1593_2026-10-09.json",
+  "mechanisms": [
+    {
+      "id": "UI01",
+      "name": "Invented DSF stability and arousal",
+      "algorithm_classes": [
+        "hand_authored_observation_score",
+        "field_semantic_substitution"
+      ],
+      "authority_owner": "Observation/UI or release configuration; not evidence of pupil cognitive control",
+      "observed_mechanism": "Working renderHealth: S(UF) label on1-min(1,deficit_ratio+0.5sleep_ratio); arousal=min(1,delivery_count/10+(motion?0.3:0)). Need ratios and count/motion flags do not evaluate global kernel stability or somatic free energy.",
+      "refs": [
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/static/loomscan.html",
+          "sha256": "61887e9edbc2026e97ece15af83eb87d862298c6d7eca3aa64aa11ad09eb3f5a",
+          "line": 328,
+          "anchor": "const stabVal =",
+          "scope": "Captured working source; different from public object; no deployment claim"
+        },
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/static/loomscan.html",
+          "sha256": "61887e9edbc2026e97ece15af83eb87d862298c6d7eca3aa64aa11ad09eb3f5a",
+          "line": 342,
+          "anchor": "'DSF S(UF) headroom",
+          "scope": "Captured working source; different from public object; no deployment claim"
+        }
+      ],
+      "architecture_disposition": "REJECT working observation authority; public legacy Loom Scan is a different artifact and does not prove this expression is deployed.",
+      "lawful_remedy": "Read actual stability and arousal producers with units/source/time; absent producer means unavailable, never a recomputed proxy.",
+      "acceptance_falsifier": "Independent hunger/sleep changes cannot change a fixed kernel receipt. Missing stability cannot become green numeric stability.",
+      "repair_actions": [
+        "A04",
+        "A13",
+        "A16"
+      ],
+      "live_evidence": "Not observed in public Loom Scan; exact working bytes retained.",
+      "ml_inference": "These inspected UI expressions do not themselves perform model inference; no whole-system ML exclusion follows."
+    },
+    {
+      "id": "UI02",
+      "name": "Invented smell, taste and touch",
+      "algorithm_classes": [
+        "semantic_lookup",
+        "hand_authored_observation_rule"
+      ],
+      "authority_owner": "Observation/UI or release configuration; not evidence of pupil cognitive control",
+      "observed_mechanism": "Main page selects smell from objects within2200mm with optical emission or apple names, then room-name aroma defaults. Bite/intake implies gustatory chemistry; action/sleep implies touch; missing temperature becomes32.0°C.",
+      "refs": [
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/static/gualaloom.html",
+          "sha256": "89582f361a2e6ec30a42a8a60b4375220eb711b5316ce46e8d871f656500606f",
+          "line": 929,
+          "anchor": "dist<=2200",
+          "scope": "Captured working source; different from public object; no deployment claim"
+        },
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/static/gualaloom.html",
+          "sha256": "89582f361a2e6ec30a42a8a60b4375220eb711b5316ce46e8d871f656500606f",
+          "line": 898,
+          "anchor": "\"32.0°C\"",
+          "scope": "Captured working source; different from public object; no deployment claim"
+        },
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/static/gualaloom.html",
+          "sha256": "89582f361a2e6ec30a42a8a60b4375220eb711b5316ce46e8d871f656500606f",
+          "line": 966,
+          "anchor": "gustatory papillae active",
+          "scope": "Captured working source; different from public object; no deployment claim"
+        },
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/live-gualaloom.html",
+          "sha256": "8786a8bf0c67466f03d01b6afb53135f8fc95b5d61235aa36be0c15d4f15d31d",
+          "line": 920,
+          "anchor": "dist<=2200",
+          "scope": "Fetched public object at recorded HTTP timestamp; browser behavior separately specified"
+        }
+      ],
+      "architecture_disposition": "REJECT as measured internal sensory evidence. World geometry and nutrition are not by themselves olfactory/gustatory/tactile afferents.",
+      "lawful_remedy": "Render actual admitted sensory state and provenance; classify external scene descriptions separately from pupil sensing.",
+      "acceptance_falsifier": "Rename physical objects, remove contact, provide zero/missing sensory receipts: measured perception cannot follow names or assumed bedding.",
+      "repair_actions": [
+        "A06",
+        "A13",
+        "A16"
+      ],
+      "live_evidence": "Browser showed apple/volatile-esters smell narrative; underlying native smell sensation not proved by this display.",
+      "ml_inference": "These inspected UI expressions do not themselves perform model inference; no whole-system ML exclusion follows."
+    },
+    {
+      "id": "UI03",
+      "name": "Invented memory, consolidation and yield interpretation",
+      "algorithm_classes": [
+        "semantic_relabeling",
+        "hand_authored_observation_rule"
+      ],
+      "authority_owner": "Observation/UI or release configuration; not evidence of pupil cognitive control",
+      "observed_mechanism": "Sleep flag becomes nocturnal consolidation/downscaling; signature novelty becomes recognition/plastic encoding; physically_transitioned_neuron_count becomes contacts deformed by von Mises yield.",
+      "refs": [
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/static/gualaloom.html",
+          "sha256": "89582f361a2e6ec30a42a8a60b4375220eb711b5316ce46e8d871f656500606f",
+          "line": 985,
+          "anchor": "nocturnal synaptic consolidation",
+          "scope": "Captured working source; different from public object; no deployment claim"
+        },
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/static/gualaloom.html",
+          "sha256": "89582f361a2e6ec30a42a8a60b4375220eb711b5316ce46e8d871f656500606f",
+          "line": 990,
+          "anchor": "structural attractor recognized",
+          "scope": "Captured working source; different from public object; no deployment claim"
+        },
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/static/gualaloom.html",
+          "sha256": "89582f361a2e6ec30a42a8a60b4375220eb711b5316ce46e8d871f656500606f",
+          "line": 1000,
+          "anchor": "ternary contacts deformed",
+          "scope": "Captured working source; different from public object; no deployment claim"
+        },
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/live-gualaloom.html",
+          "sha256": "8786a8bf0c67466f03d01b6afb53135f8fc95b5d61235aa36be0c15d4f15d31d",
+          "line": 976,
+          "anchor": "nocturnal synaptic consolidation",
+          "scope": "Fetched public object at recorded HTTP timestamp; browser behavior separately specified"
+        }
+      ],
+      "architecture_disposition": "REJECT as cognitive/physical qualification; each named process needs its own actual producer and state change.",
+      "lawful_remedy": "Expose retained relation formation, causal recall/use, actual yield transitions and sleep changes independently; do not rename proxies.",
+      "acceptance_falsifier": "Sleeping without retained change cannot display consolidation; repeated digest cannot pass genuine recall; changed neuron count cannot certify a specific yield law.",
+      "repair_actions": [
+        "A09",
+        "A11",
+        "A13",
+        "A16"
+      ],
+      "live_evidence": "Browser rendered signature-based recognition; no actual recognition or sleep learning accepted.",
+      "ml_inference": "These inspected UI expressions do not themselves perform model inference; no whole-system ML exclusion follows."
+    },
+    {
+      "id": "UI04",
+      "name": "Fabricated zero/missing values and physiology defaults",
+      "algorithm_classes": [
+        "literal_fallback",
+        "zero_suppression"
+      ],
+      "authority_owner": "Observation/UI or release configuration; not evidence of pupil cognitive control",
+      "observed_mechanism": "Main page truthy fallbacks supply4935 retinal sites,556700strides,128900syllables,70100handled,pillowgaze; default deficit and capacity-based reserve create physiological values without complete observations.",
+      "refs": [
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/static/gualaloom.html",
+          "sha256": "89582f361a2e6ec30a42a8a60b4375220eb711b5316ce46e8d871f656500606f",
+          "line": 1039,
+          "anchor": "counts.strides||556700",
+          "scope": "Captured working source; different from public object; no deployment claim"
+        },
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/static/gualaloom.html",
+          "sha256": "89582f361a2e6ec30a42a8a60b4375220eb711b5316ce46e8d871f656500606f",
+          "line": 1042,
+          "anchor": "event.external_retinal_site_count||4935",
+          "scope": "Captured working source; different from public object; no deployment claim"
+        },
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/static/gualaloom.html",
+          "sha256": "89582f361a2e6ec30a42a8a60b4375220eb711b5316ce46e8d871f656500606f",
+          "line": 1018,
+          "anchor": "[167000,500000]",
+          "scope": "Captured working source; different from public object; no deployment claim"
+        },
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/live-gualaloom.html",
+          "sha256": "8786a8bf0c67466f03d01b6afb53135f8fc95b5d61235aa36be0c15d4f15d31d",
+          "line": 1033,
+          "anchor": "event.external_retinal_site_count||4935",
+          "scope": "Fetched public object at recorded HTTP timestamp; browser behavior separately specified"
+        }
+      ],
+      "architecture_disposition": "FAIL publicly verified measurement truth: real zero became4935 active.",
+      "lawful_remedy": "Distinguish0/null/absent/stale/error and use actual anatomy capacity/source; remove all illustrative live defaults.",
+      "acceptance_falsifier": "Browser with the captured actual0retinal response must show0; unknown counts/reserve must remain unavailable.",
+      "repair_actions": [
+        "A13",
+        "A16"
+      ],
+      "live_evidence": "Actual browser at ticks4227409/4227410 received external_retinal_site_count0 and rendered4935 sites active. Raw responses, DOM and screenshot retained.",
+      "ml_inference": "These inspected UI expressions do not themselves perform model inference; no whole-system ML exclusion follows."
+    },
+    {
+      "id": "UI05",
+      "name": "Published old API contract and failure visibility",
+      "algorithm_classes": [
+        "stale_contract",
+        "silent_error_handling"
+      ],
+      "authority_owner": "Observation/UI or release configuration; not evidence of pupil cognitive control",
+      "observed_mechanism": "Public Loom Scan calls oldAPI Gateway statusPOST, eventsGET and chi_densityGET while working code uses modern observation schema. Public bytes differ from working bytes and July27historical audit.",
+      "refs": [
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/live-loomscan.html",
+          "sha256": "c3fd1afbf1fc8c35c6d4ed471875a3d1b08e6858a714ec19397762a0562e362e",
+          "line": 190,
+          "anchor": "3d6toi0gw0",
+          "scope": "Fetched public object at recorded HTTP timestamp; browser behavior separately specified"
+        },
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/static/loomscan.html",
+          "sha256": "61887e9edbc2026e97ece15af83eb87d862298c6d7eca3aa64aa11ad09eb3f5a",
+          "line": 490,
+          "anchor": "guala.lean_actor_observation.v1",
+          "scope": "Captured working source; different from public object; no deployment claim"
+        }
+      ],
+      "architecture_disposition": "FAIL publication/contract alignment. Browser loading status under intentional audit blocks is not a separate proof of production outage.",
+      "lawful_remedy": "Publish only reviewed exact UI objects bound to the supported backend schema; visibly report actual errors; retire unsupported route consumers.",
+      "acceptance_falsifier": "Actual published page must fetch compatible data and render zero/unknown honestly; stale hashes/schema/HTTP errors fail release.",
+      "repair_actions": [
+        "A02",
+        "A13",
+        "A17"
+      ],
+      "live_evidence": "Independent bounded GET probes returned404 for events and density. Browser blocked legacyPOST and off-domaincalls; POST response unknown.",
+      "ml_inference": "These inspected UI expressions do not themselves perform model inference; no whole-system ML exclusion follows."
+    },
+    {
+      "id": "UI06",
+      "name": "Inferred column activation and nonzero display floors",
+      "algorithm_classes": [
+        "group_flag_projection",
+        "decorative_floor"
+      ],
+      "authority_owner": "Observation/UI or release configuration; not evidence of pupil cognitive control",
+      "observed_mechanism": "Working scan lights all16columns in a group from broad input/action flags; no per-column native receipt. Strength bars have5%minimum even at0; lane glow decays by6 per poll with authored80/90/95intensities.",
+      "refs": [
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/static/loomscan.html",
+          "sha256": "61887e9edbc2026e97ece15af83eb87d862298c6d7eca3aa64aa11ad09eb3f5a",
+          "line": 255,
+          "anchor": "function renderColumnActivity",
+          "scope": "Captured working source; different from public object; no deployment claim"
+        },
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/static/loomscan.html",
+          "sha256": "61887e9edbc2026e97ece15af83eb87d862298c6d7eca3aa64aa11ad09eb3f5a",
+          "line": 385,
+          "anchor": "Math.max(5, count > 0",
+          "scope": "Captured working source; different from public object; no deployment claim"
+        },
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/static/loomscan.html",
+          "sha256": "61887e9edbc2026e97ece15af83eb87d862298c6d7eca3aa64aa11ad09eb3f5a",
+          "line": 415,
+          "anchor": "_laneGlow[nm] - 6",
+          "scope": "Captured working source; different from public object; no deployment claim"
+        }
+      ],
+      "architecture_disposition": "REJECT as actual column activity or quantitative physical intensity; directly conflicts with historical no-minimum-brightness rule.",
+      "lawful_remedy": "Use individual measured column receipts; separate static anatomy from activity; show0as0 and declare any non-authoritative visual projection.",
+      "acceptance_falsifier": "No sensory receipt gives no sensory activity; one active participant cannot light unmeasured siblings; zero bar remains zero.",
+      "repair_actions": [
+        "A13",
+        "A16"
+      ],
+      "live_evidence": "Working source only; current public Loom Scan is older.",
+      "ml_inference": "These inspected UI expressions do not themselves perform model inference; no whole-system ML exclusion follows."
+    },
+    {
+      "id": "UI07",
+      "name": "Static verification claims and ambiguous control state",
+      "algorithm_classes": [
+        "static_evidence_facade",
+        "unbound_success_message"
+      ],
+      "authority_owner": "Observation/UI or release configuration; not evidence of pupil cognitive control",
+      "observed_mechanism": "Mainpage includes476VerifiedReceipts and canned syllablechains; duplicate dash-sleep-badge IDs; audioqueue header8 differs from capturequeue2. Generic touch success text requires actual consequence proof.",
+      "refs": [
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/static/gualaloom.html",
+          "sha256": "89582f361a2e6ec30a42a8a60b4375220eb711b5316ce46e8d871f656500606f",
+          "line": 379,
+          "anchor": "476 Verified Receipts",
+          "scope": "Captured working source; different from public object; no deployment claim"
+        },
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/static/gualaloom.html",
+          "sha256": "89582f361a2e6ec30a42a8a60b4375220eb711b5316ce46e8d871f656500606f",
+          "line": 210,
+          "anchor": "id=\"dash-sleep-badge\"",
+          "scope": "Captured working source; different from public object; no deployment claim"
+        },
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/live-gualaloom.html",
+          "sha256": "8786a8bf0c67466f03d01b6afb53135f8fc95b5d61235aa36be0c15d4f15d31d",
+          "line": 378,
+          "anchor": "476 Verified Receipts",
+          "scope": "Fetched public object at recorded HTTP timestamp; browser behavior separately specified"
+        }
+      ],
+      "architecture_disposition": "REJECT static count as authenticated evidence; duplicate IDs and mismatched bounds are concrete UI defects. Current touch execution remains unqualified.",
+      "lawful_remedy": "Bind receipt list/counts to actual authenticated events, give each field unique identity, display actual queue configuration and consequence/error acknowledgments.",
+      "acceptance_falsifier": "Empty receipt store shows no verified events; both sleep fields reflect one actual observation; rejected touch cannot report physical success.",
+      "repair_actions": [
+        "A02",
+        "A13",
+        "A16"
+      ],
+      "live_evidence": "Browser confirmed two duplicate sleep IDs. No control was clicked; no touch/microphone/camera mutation was sent.",
+      "ml_inference": "These inspected UI expressions do not themselves perform model inference; no whole-system ML exclusion follows."
+    },
+    {
+      "id": "UI08",
+      "name": "Unbound native64 startup and deployed admission",
+      "algorithm_classes": [
+        "configuration_provenance_gap"
+      ],
+      "authority_owner": "Observation/UI or release configuration; not evidence of pupil cognitive control",
+      "observed_mechanism": "Working startup requires GUALA64_ADMISSION_JSON and Functional64Runtime; Task1598definition has no such explicit variable and still points to authenticated older image. Image/process environment can differ from taskdefinition.",
+      "refs": [
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/source/dsf_ai_service/lean_production_app.py",
+          "sha256": "3ed977f4f8e28b7814bef4c6545a3ef283f0f45e03a877e15411a121b80e4845",
+          "line": 201,
+          "anchor": "GUALA64_ADMISSION_JSON",
+          "scope": "Captured working source; different from public object; no deployment claim"
+        },
+        {
+          "snapshot": "backups/runtime/a1-reconciliation-completion-20261010/task1598-configuration.json",
+          "sha256": "c09a688a43ab17908e78a42fc2d0b5f11c4f5a202f69ff540d0a94994ef8569f",
+          "line": 4,
+          "anchor": "dsf-ai-task:1598",
+          "scope": "Read-only ECS taskdefinition receipt; not full process environment"
+        }
+      ],
+      "architecture_disposition": "OPEN configuration proof gap; do not infer that absence in taskdefinition means absence in process/image or that working source has been deployed.",
+      "lawful_remedy": "Freeze candidate source/binary/image, capture actual effective admission values/units, bounds and mature pairedstate continuity before acceptance.",
+      "acceptance_falsifier": "Unknown process variables, different loadedbinary or unbound currentstate must refuse qualification; no guessed13-value array.",
+      "repair_actions": [
+        "A02",
+        "A14",
+        "A17"
+      ],
+      "live_evidence": "Task1598service/config read-only receipts retained; replacement candidate not qualified.",
+      "ml_inference": "These inspected UI expressions do not themselves perform model inference; no whole-system ML exclusion follows."
+    }
+  ],
+  "browser_evidence": "backups/runtime/a1-reconciliation-completion-20261010/browser-evidence.json",
+  "configuration": "docs/guala_reconciliation/gualaloom-configuration.md",
+  "scope": {
+    "exhaustive_classification": false,
+    "public_measurement_truth": "FAIL",
+    "whole_release_ml_free": "NOT_CERTIFIED",
+    "product_mutations_sent": 0
+  },
+  "status_authority": "collaborative_todo.md"
+}

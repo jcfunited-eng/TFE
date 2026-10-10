@@ -1,0 +1,54 @@
+[
+  {
+    "bucket": "dsf-ai-site-backups",
+    "key": "guala/native-organism/4a96b9efdd1b296ab795e3646fd89f397f850445330c0af0be4d3969f3372033.glorun",
+    "listed_size": 561912,
+    "listed_modified": "2026-09-07T13:12:56+00:00",
+    "returncode": 0,
+    "receipt": {
+      "AcceptRanges": "bytes",
+      "LastModified": "2026-09-07T13:12:56+00:00",
+      "ContentLength": 561912,
+      "ETag": "\"15e256a92ddb3002643689d470c7fbbc\"",
+      "ChecksumCRC32": "7225TQ==",
+      "ChecksumType": "FULL_OBJECT",
+      "VersionId": "WP2uNGccci0sBZQx9x3K4DCqYNuSfdj6",
+      "ContentType": "binary/octet-stream",
+      "ServerSideEncryption": "AES256",
+      "Metadata": {
+        "sha256": "bc006664d02bed52af44bb1405121fb51ce6712a48940535d81543577798f8b3"
+      }
+    },
+    "snapshot": "backups/runtime/a1-architecture-reconciliation-20261009/recovered-checkpoint-files/4a96b9efdd1b296ab795e3646fd89f397f850445330c0af0be4d3969f3372033.glorun",
+    "bytes": 561912,
+    "sha256": "bc006664d02bed52af44bb1405121fb51ce6712a48940535d81543577798f8b3",
+    "first_32_bytes_hex": "474c434d50303031010001003a25be06000000004a96b9efdd1b296ab795e364",
+    "classification": "Preserved bytes only; native state, body identity, source version and latest-pre-conversion status not authenticated."
+  },
+  {
+    "bucket": "dsf-ai-site-backups",
+    "key": "guala/native-organism/f5e3cc8f428178fa969fd07214be1689ddafbd410d530cc01f9d3cb6da203135.glorun",
+    "listed_size": 563063,
+    "listed_modified": "2026-09-07T13:12:48+00:00",
+    "returncode": 0,
+    "receipt": {
+      "AcceptRanges": "bytes",
+      "LastModified": "2026-09-07T13:12:48+00:00",
+      "ContentLength": 563063,
+      "ETag": "\"d4c14ec26cb51a344e5f89fc5e86b7df\"",
+      "ChecksumCRC32": "ekNZAw==",
+      "ChecksumType": "FULL_OBJECT",
+      "VersionId": ".N8Ap9LTaY0iZOndH.8ugdfXRfkO7O2y",
+      "ContentType": "binary/octet-stream",
+      "ServerSideEncryption": "AES256",
+      "Metadata": {
+        "sha256": "4dd73ee962a4f9a6f116576b3f91939968c99c5c98724640341abd807a8f8e66"
+      }
+    },
+    "snapshot": "backups/runtime/a1-architecture-reconciliation-20261009/recovered-checkpoint-files/f5e3cc8f428178fa969fd07214be1689ddafbd410d530cc01f9d3cb6da203135.glorun",
+    "bytes": 563063,
+    "sha256": "4dd73ee962a4f9a6f116576b3f91939968c99c5c98724640341abd807a8f8e66",
+    "first_32_bytes_hex": "474c434d50303031010001000d42be0600000000f5e3cc8f428178fa969fd072",
+    "classification": "Preserved bytes only; native state, body identity, source version and latest-pre-conversion status not authenticated."
+  }
+]

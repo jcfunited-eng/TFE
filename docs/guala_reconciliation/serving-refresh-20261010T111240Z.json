@@ -1,0 +1,227 @@
+{
+  "schema": "guala.read_only_serving_refresh.v1",
+  "at_utc": "2026-10-10T11:22:43.762907+00:00",
+  "scope": "Dated independent replacement-task metadata, file hashes, HTTP GET, /proc samples and canonical descriptor/header read only",
+  "task": {
+    "taskArn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/54d300e31f754c8f913f70b4dd0840f1",
+    "taskDefinitionArn": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1606",
+    "lastStatus": "RUNNING",
+    "healthStatus": "HEALTHY",
+    "startedAt": "2026-10-10T11:09:44.745000+00:00",
+    "containers": [
+      {
+        "name": "dsf-ai",
+        "lastStatus": "RUNNING",
+        "healthStatus": "HEALTHY",
+        "image": "418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:91640805ccc0548ccb10d55e97598812684112047bbabdd4ecd5415b25c0b69f",
+        "imageDigest": "sha256:91640805ccc0548ccb10d55e97598812684112047bbabdd4ecd5415b25c0b69f"
+      }
+    ]
+  },
+  "service": [
+    {
+      "serviceName": "dsf-ai-service-lb",
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1606",
+      "desired": 1,
+      "running": 1,
+      "pending": 0,
+      "deployments": [
+        {
+          "status": "PRIMARY",
+          "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1606",
+          "desired": 1,
+          "running": 1,
+          "pending": 0,
+          "rolloutState": "COMPLETED"
+        }
+      ]
+    }
+  ],
+  "live": {
+    "files": [
+      {
+        "bytes": 22757,
+        "path": "/app/dsf_ai_service/lean_production_app.py",
+        "present": true,
+        "sha256": "e0eae159c9aac1038cecb7effa10fca158a058f9e493b5b97a196abbfba5c9da"
+      },
+      {
+        "bytes": 26532,
+        "path": "/app/dsf_ai_service/lean_actor.py",
+        "present": true,
+        "sha256": "a92a571a4e9276321273a907c630bf69a11947b52714f63effdef14da4ded6f8"
+      },
+      {
+        "bytes": 9613,
+        "path": "/app/dsf_ai_service/guala_functional64_runtime.py",
+        "present": true,
+        "sha256": "f4710a82da0fbaa1e45ebad2018c521a739ccd8555ca780ca9f8758e662181ca"
+      },
+      {
+        "bytes": 16496,
+        "path": "/app/dsf_ai_service/guala_functional64_loop.py",
+        "present": true,
+        "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+      },
+      {
+        "path": "/app/dsf_ai_service/guala_functional_loop.py",
+        "present": false
+      },
+      {
+        "path": "/app/dsf_ai_service/guala_functional_organism.py",
+        "present": false
+      },
+      {
+        "bytes": 30985,
+        "path": "/app/dsf_ai_service/speech_transducer.py",
+        "present": true,
+        "sha256": "fdad4926f42394d0b0a76faaf74827915016ac10af18e2a798c50ae7149b1b7d"
+      }
+    ],
+    "http": [
+      {
+        "detail": "timed out",
+        "elapsed_seconds": 4.005457207000006,
+        "error": "TimeoutError",
+        "route": "/health"
+      },
+      {
+        "body": "{\"ready\":true}",
+        "elapsed_seconds": 1.6366687390000152,
+        "route": "/ready",
+        "status": 200
+      }
+    ],
+    "native": [
+      {
+        "bytes": 2345592,
+        "path": "/usr/local/lib/python3.11/site-packages/guala_core/guala_core.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "4c7c1811a389cb7acee89b77409672a5803d080801d3528fc9c596a9346b5244"
+      }
+    ]
+  },
+  "thread_sample_elapsed_seconds": 46.79806835599993,
+  "thread_deltas": [
+    {
+      "tid": 1,
+      "first_state": "S",
+      "last_state": "S",
+      "cpu_ticks": 10,
+      "cpu_seconds": 0.1,
+      "one_core_fraction": 0.002136840333649778,
+      "last_wait_channel": "futex_wait_queue"
+    },
+    {
+      "tid": 27,
+      "first_state": "S",
+      "last_state": "S",
+      "cpu_ticks": 0,
+      "cpu_seconds": 0.0,
+      "one_core_fraction": 0.0,
+      "last_wait_channel": "futex_wait_queue"
+    },
+    {
+      "tid": 40,
+      "first_state": "S",
+      "last_state": "S",
+      "cpu_ticks": 0,
+      "cpu_seconds": 0.0,
+      "one_core_fraction": 0.0,
+      "last_wait_channel": "futex_wait_queue"
+    },
+    {
+      "tid": 41,
+      "first_state": "R",
+      "last_state": "R",
+      "cpu_ticks": 4675,
+      "cpu_seconds": 46.75,
+      "one_core_fraction": 0.9989728559812712,
+      "last_wait_channel": "0"
+    }
+  ],
+  "checkpoint": {
+    "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+    "tick": 4234925,
+    "current_mtime_ns": 1791599457716000000,
+    "current_sha256": "79505df215e9e2b23d56dc8e55869d7505023836766e6e569654cb1c4e186771",
+    "predecessor_tick": 4234925,
+    "body_magic": "GL64ORG1",
+    "functional64_sections": {
+      "version": 1,
+      "original_body_bytes": 57718988,
+      "original_world_bytes": 1050863,
+      "native_bytes": 1006673
+    },
+    "descriptor_unchanged_during_read": true
+  },
+  "comparison": {
+    "prior_observed_utc": "2026-10-10T09:42:49Z",
+    "same_canonical_current_sha256": true,
+    "same_tick": true,
+    "same_mtime": true
+  },
+  "audit_transport": {
+    "first_activity_reply_incomplete": true,
+    "second_two_sample_reply_only_first_sample": true,
+    "valid_instantaneous_samples_recovered": true,
+    "failed_raw_measurements_preserved": true,
+    "terminal_eof_is_not_organism_failure_proof": true
+  },
+  "limits": [
+    "No exact running stack or indirect native call graph was captured.",
+    "No in-memory tick was read; CPU activity is not proof of meaningful cognition, and unchanged CURRENT is not proof that all in-memory state stopped.",
+    "The earlier stopped task was absent from the later describe-tasks result; the replacement cause was not established.",
+    "File presence does not establish model inference.",
+    "No learned-speech or active acquired-state qualification."
+  ],
+  "sources": [
+    {
+      "path": "docs/guala_reconciliation/sources/serving-refresh-20261010T111240Z/metadata.json",
+      "sha256": "bf4b006aaec3720c3204e8ab93c67fb7c92aa9604613b3548cdb241e27cfba04",
+      "bytes": 1474
+    },
+    {
+      "path": "docs/guala_reconciliation/sources/serving-refresh-20261010T111240Z/container-read.json",
+      "sha256": "aecf627d214ff5ffbed51fde9c81a15a709a33d3deecf3e0f1fea182d543d3c2",
+      "bytes": 2125
+    },
+    {
+      "path": "docs/guala_reconciliation/sources/serving-refresh-20261010T111240Z/activity-read.json",
+      "sha256": "c3d130df4d1bf017b693bda4e1c226d32b2b84ed30b83c75a16a536088dd9ab8",
+      "bytes": 3375
+    },
+    {
+      "path": "docs/guala_reconciliation/sources/serving-refresh-20261010T111240Z/activity-small-read.json",
+      "sha256": "995b363ac83caa5344a6bc150e693ecaf55fbbce59eef36149083e04d4114d22",
+      "bytes": 1188
+    },
+    {
+      "path": "docs/guala_reconciliation/sources/serving-refresh-20261010T111240Z/activity-instant-read.json",
+      "sha256": "77ef1975645768f52b7a52a1e6a6796f827ed65bea81a3635d662b5908cf832c",
+      "bytes": 1075
+    },
+    {
+      "path": "docs/guala_reconciliation/sources/serving-refresh-20261010T111240Z/custody-instant-read.json",
+      "sha256": "c52c561c0fe699826381f3a5b1961b154b1cb61e9ec5026c5813b660d5574828",
+      "bytes": 2649
+    },
+    {
+      "path": "docs/guala_reconciliation/sources/serving-refresh-20261010T111240Z/replacement-status-metadata.json",
+      "sha256": "025a8a3dac4f68aa5a9018d811ff43076ccca9f4c349a25998139ad203f783f1",
+      "bytes": 285
+    }
+  ],
+  "implementation_owner": "G1",
+  "verification_owner": "A1",
+  "product_mutations": false,
+  "organism_actions": false,
+  "product_tests": false,
+  "complete_reconciliation": false,
+  "remedy": "Preserve current state and bind exact native execution. Establish bounded sole-owner computation, release the interpreter lock only around callback-free owned native work, prove actual physical and durable progress and ordinary sensory latency, then qualify retained hearing-to-articulation. Do not substitute a longer timeout, a health-only bypass, reset or archive custody for these proofs.",
+  "acceptance": {
+    "unit": "Approved exact transition, conservation, error atomicity and complete active-state continuation remain unchanged by ownership/lock corrections.",
+    "module": "Actual compiled Python/native boundary stays responsive under bounded physical work; callbacks and state access cannot race; canonical publisher records real coherent successors.",
+    "system": "Ordinary sensory ingress, body consequence, current-state retention and checkpoint/cold continuation progress under bounded observation load. Measure end-to-end latency and actual retained function.",
+    "release": "Independently bind exact source/build/image/configuration/native library and preserved predecessor; demonstrate actual live progress before any recovery or learned-speech claim."
+  }
+}

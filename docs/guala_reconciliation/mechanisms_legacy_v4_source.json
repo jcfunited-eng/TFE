@@ -1,0 +1,881 @@
+{
+  "schema": "guala.documentary_mechanisms.v1",
+  "at_utc": "2026-10-10T09:06:27.369098+00:00",
+  "scope": "Complete content review of 17 working-source captures / 11 distinct byte bodies: six base files (1625 lines) plus 31 nonbase passages (602 source lines). Not an atomic release, current activation proof, original-authority qualification or complete historical source lineage. Zero Git-document corpus pairs added; no product execution.",
+  "mechanisms": [
+    {
+      "id": "VLV01",
+      "name": "The legacy UF names conceal a different approximate calculation",
+      "classification": "implemented_reduced_field_substitution",
+      "finding": "LVR01",
+      "observed_mechanism": "The captured legacy compute_dsf derives D from mean winding, M from scaled mean signal difference, R from reversal fraction, U from inter-event coefficient of variation, C from atlas similarity, P from event density scaled by 50, B from direction imbalance, and S=(1-U)*B. Familiarity also synthesizes multiple intro fields from one scalar. The file describes a software approximation.",
+      "evidence_limits": "These eight familiar names do not establish the canonical joint seven-field kernel or global S(UF). This finding concerns captured legacy files, not a modification or indictment of the frozen canonical L0–L4 implementation. Current serving use remains unproved.",
+      "replacement": "G1 must trace every legacy compute_dsf and synthetic intro-field consumer. Remove incompatible cognitive authority; route authorized raw temporal signals through the unchanged canonical kernel with full field relationships and genuine native readers. Retain acquired physical state through the approved transition.",
+      "acceptance": {
+        "unit": "Compare actual equations, units, field relationships and global stability against canonical authority; reject substituted atlas C and synthetic intro fields.",
+        "module": "Trace canonical producer through transport to every native consumer without reduced decision authority.",
+        "system": "Demonstrate sensory-dependent retained change and meaningful action using the full field.",
+        "release": "Qualify the exact preserved-state image; field names or eight array elements cannot establish compliance."
+      },
+      "refs": [
+        {
+          "source_id": "LV17",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV17--gualaloom_v4_uf_kernel.py",
+          "line": 49,
+          "anchor": "def compute_dsf(events, atlas_similarity=0.0, recall_match=0.0):",
+          "sha256": "0255d81b10e98d137d8b8a58ff49e52298338549fac4331c18fa3685294bc7ac"
+        },
+        {
+          "source_id": "LV17",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV17--gualaloom_v4_uf_kernel.py",
+          "line": 105,
+          "anchor": "    pos = sum(1 for d in dws if d > 0)",
+          "sha256": "0255d81b10e98d137d8b8a58ff49e52298338549fac4331c18fa3685294bc7ac"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 555,
+          "anchor": "                intro_dsf = DSF(D_k=fam_listen, M_k=0, R_rev=0, U_star=1-fam_listen,",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLV02",
+      "name": "Section learning is nearest-prototype clustering and moving-average adaptation",
+      "classification": "implemented_statistical_prototype_and_heuristic_learning",
+      "finding": "LVR02",
+      "observed_mechanism": "Section.receive selects modes by cosine similarity. Before 24 modes, similarity below 0.92 creates a prototype; otherwise it blends 0.9 old plus 0.1 new. Later novelty, familiarity and similarity thresholds govern commits, while scalar gamma updates and dead zones regulate future behavior.",
+      "evidence_limits": "This is an adaptive statistical prototype mechanism plus authored thresholds. Repeatability and absence of an ML library do not make it physical yield plasticity or ML-free. Its exact taxonomy and decision role must remain explicit; no present live inference is inferred from captured source.",
+      "replacement": "Retire prototype similarity, EMA and tuned novelty thresholds as cognitive authority where active. Preserve legitimate sensory and acquired physical state and implement the required discrimination/adaptation through ratified native contact and neuronal dynamics.",
+      "acceptance": {
+        "unit": "Expose prototype, EMA and threshold decision authority and the exact information discarded.",
+        "module": "Trace all adaptive state writes and readers, including persistence and alternate imports.",
+        "system": "Prove acquired sensory discrimination and retention without these substitutions.",
+        "release": "No ML-free or physical-learning certificate until all active adaptive mechanisms and dependencies are qualified."
+      },
+      "refs": [
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 51,
+          "anchor": "class Section:",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 69,
+          "anchor": "    def receive(self, dsf, chi, word_label, atlas, familiarity):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLV03",
+      "name": "Word dictionaries manufacture sensory meaning and grammatical roles",
+      "classification": "implemented_semantic_and_syntactic_injection",
+      "finding": "LVR03",
+      "observed_mechanism": "SENSORY_DNA maps literal words to authored modality intensities; ROLE_DNA assigns grammatical classes. Language transduction encodes character classes and periodic perturbations; modal signatures are synthesized from dictionary values. read_word passes the literal word as the mode label, and positional routing assigns first/last/middle words to subject/object/verb. Service copies expand both tables, including ground and intro word classes.",
+      "evidence_limits": "Authored external curriculum is permissible only within its declared environment role. Here word labels determine internal sensory and syntactic authority, so resulting grounding and grammar cannot be presented as acquired from multimodal experience. A string dictionary is not automatically ML; this is an independently disallowed semantic shortcut.",
+      "replacement": "Trace every word, role and modality source into current cognition. Keep genuine external teaching signals, but remove dictionaries and positional grammatical labels from internal learning authority. Native retained experience must supply later meaning and expression.",
+      "acceptance": {
+        "unit": "Detect direct semantic/role injection and distinguish external stimulus generation from internal answers.",
+        "module": "Trace sensory provenance, transduction, actual co-occurrence, native retention and all label readers.",
+        "system": "Demonstrate learned meaning and word order on held-out contexts without supplied roles or answer labels.",
+        "release": "No learned-speech pass from dictionary coverage, corpus ingestion or larger grammar tables."
+      },
+      "refs": [
+        {
+          "source_id": "LV14",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV14--gualaloom_v4_krimelack_dna.py",
+          "line": 178,
+          "anchor": "class LanguageKrimelack(Krimelack):",
+          "sha256": "031bbbf2fb2d127416cdcfe5347a0c7b67ccfde04c00a5ffdbc399b021587a6e"
+        },
+        {
+          "source_id": "LV14",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV14--gualaloom_v4_krimelack_dna.py",
+          "line": 234,
+          "anchor": "    def fire_signature(self, intensity):",
+          "sha256": "031bbbf2fb2d127416cdcfe5347a0c7b67ccfde04c00a5ffdbc399b021587a6e"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 485,
+          "anchor": "    def read_word(self, word, position_hint=None):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 567,
+          "anchor": "    def _choose_role_sections(self, role_dna, position_hint):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        },
+        {
+          "source_id": "LV08",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV08--gualaloom_v4_krimelack_dna.py",
+          "line": 163,
+          "anchor": "    # GL-CMD-DNA-EXPANSION-36: ~80 new entries",
+          "sha256": "95d122ac45cba2db32b4ffe8f2370829c4ffde9151bff908dbf04f5f1c7f1bac"
+        },
+        {
+          "source_id": "LV08",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV08--gualaloom_v4_krimelack_dna.py",
+          "line": 320,
+          "anchor": "    # GL-CMD-DNA-EXPANSION-36: modifier additions",
+          "sha256": "95d122ac45cba2db32b4ffe8f2370829c4ffde9151bff908dbf04f5f1c7f1bac"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLV04",
+      "name": "Scene lanes infer a world from literal token lookups",
+      "classification": "implemented_scene_semantic_lookup",
+      "finding": "LVR04",
+      "observed_mechanism": "The service copy adds PLACE_WORDS, AMBIENT_WORDS and scene_tags_from_words. It maps wall to walled_garden, bright to bright and other tokens to scene tags, while calling the table not a runtime heuristic and saying it permits no scene invention. No match yields empty lanes.",
+      "evidence_limits": "An exact lookup has transparent behavior, but token presence is not evidence of an actual surrounding scene: a sentence can negate or merely mention a wall. Calling these real places or native contextual understanding is unjustified. This helper has no proven current serving reader in this slice.",
+      "replacement": "Trace consumers and classify tags as explicitly authored text metadata if retained outside cognition. Do not feed them back as experienced physical context. Preserve native multimodal temporal relationships as the basis of the experience story.",
+      "acceptance": {
+        "unit": "Check negation, quotation, absent world and ambiguous-token cases against any scene claim.",
+        "module": "Trace the helper and every tag reader into actual current runtime.",
+        "system": "Prove contextual recall from actual experienced causes without supplied scene labels.",
+        "release": "No scene understanding or memory-context certificate from exact token membership."
+      },
+      "refs": [
+        {
+          "source_id": "LV08",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV08--gualaloom_v4_krimelack_dna.py",
+          "line": 389,
+          "anchor": "",
+          "sha256": "95d122ac45cba2db32b4ffe8f2370829c4ffde9151bff908dbf04f5f1c7f1bac"
+        },
+        {
+          "source_id": "LV08",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV08--gualaloom_v4_krimelack_dna.py",
+          "line": 444,
+          "anchor": "    \"\"\"Real place/ambient words present in `words` (already-tokenized) --",
+          "sha256": "95d122ac45cba2db32b4ffe8f2370829c4ffde9151bff908dbf04f5f1c7f1bac"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLV05",
+      "name": "Atlas similarity and nominal L6 do not establish structural capture",
+      "classification": "implemented_reduced_lookup_and_nonoperative_speech_gate",
+      "finding": "LVR05",
+      "observed_mechanism": "ChiAtlas records each event into five nearby winding keys and searches five keys again, summing authored 0.3 cross-section and 0.1 same-section increments up to one. Associations can repeat. L6 counts fields with magnitude above 0.5 as independent constraints, then uses n_eff<8/e and scalar B/U/S thresholds. Section returns emit_ready, but Guala ignores that result when reading and composing words.",
+      "evidence_limits": "A count of coordinates exceeding a threshold is not demonstrated constraint rank. Scalar winding keys lose positional and joint-field structure. Even the legacy proposed emission gate does not control converse. This is source behavior, not a current deployed speech failure reproduction.",
+      "replacement": "Trace and retire reduced lookup/rank proxies and dead qualification gates as cognitive authority. Define the authorized physical condition for expression and prove that the actual actuator path depends on it, with all necessary field structure preserved.",
+      "acceptance": {
+        "unit": "Expose duplicate memberships, winding collisions, rank counterexamples and output despite false emit_ready.",
+        "module": "Trace the real expression authority from native state to actuator rather than trusting a returned flag.",
+        "system": "Show acquired meaningful expression and silence under relevant counterfactual controls.",
+        "release": "No structural capture or speech claim from atlas score saturation or unused L6 status."
+      },
+      "refs": [
+        {
+          "source_id": "LV12",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV12--gualaloom_v4_chi_atlas_l6.py",
+          "line": 27,
+          "anchor": "    def record(self, section_name, motif_id, chi_value, tick=None):",
+          "sha256": "11de93079737ee3832f0a3942eee73f8953d20296200ebffcda50e146a152095"
+        },
+        {
+          "source_id": "LV12",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV12--gualaloom_v4_chi_atlas_l6.py",
+          "line": 49,
+          "anchor": "    def match_score(self, chi_value, section_name):",
+          "sha256": "11de93079737ee3832f0a3942eee73f8953d20296200ebffcda50e146a152095"
+        },
+        {
+          "source_id": "LV12",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV12--gualaloom_v4_chi_atlas_l6.py",
+          "line": 84,
+          "anchor": "    def n_eff(self, dsf):",
+          "sha256": "11de93079737ee3832f0a3942eee73f8953d20296200ebffcda50e146a152095"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 622,
+          "anchor": "    def converse(self, text, source=\"unknown\"):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLV06",
+      "name": "Conversation joins stored labels and arithmetic bypasses experience",
+      "classification": "implemented_linguistic_output_substitution",
+      "finding": "LVR06",
+      "observed_mechanism": "converse first parses arithmetic using number words and operator keywords and returns a formatted MathLoom answer without read_sentence. Otherwise it reads the input, retrieves the most recent committed word from subject, verb and object, removes repeats and joins the labels. These modules contain no native articulation or acoustic self-hearing path.",
+      "evidence_limits": "MathLoom arithmetic can be a valid deterministic calculation without proving acquired arithmetic. Composing labels by grammar slots is not learned speech or syntax. Missing native acoustics in these modules alone does not prove no acoustic path exists elsewhere.",
+      "replacement": "Classify tool arithmetic and textual reporting separately from organism cognition. Remove canned grammatical assembly and literal-answer authority from any claimed native expression path. Trace genuine acquired context through native preparation, articulation, environmental pressure and self-hearing.",
+      "acceptance": {
+        "unit": "Reject number parsing and stored SVO output as acquired reasoning or speech evidence.",
+        "module": "Trace all text/audio producers, bypasses, word sources and native motor/acoustic boundaries.",
+        "system": "Demonstrate acquired contextual utterance, comprehensibility and self-hearing with preserved state and controls.",
+        "release": "Neither this broken legacy design nor earlier sound generation proves future speech impossible or qualified."
+      },
+      "refs": [
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 622,
+          "anchor": "    def converse(self, text, source=\"unknown\"):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 653,
+          "anchor": "    def _parse_math(self, text):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 667,
+          "anchor": "    def _mathloom_solve(self, op, a, b):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 678,
+          "anchor": "    def _num_to_word(self, n):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A05",
+        "A06",
+        "A08",
+        "A09",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLV07",
+      "name": "Six capability passes are indirect counters and manufactured separation",
+      "classification": "implemented_false_capability_acceptance",
+      "finding": "LVR07",
+      "observed_mechanism": "measure_six_capabilities calls syntax passed when average cosine separation between preassigned role sections reaches 0.3. Conversation requires only 20 vocabulary entries, 10 role modes and five cross-modal bindings; it never evaluates an utterance. Introspection counts commits; self-improvement measures gamma drift; awareness counts attention/effective actions; motivation measures scalar movement, bounds and modulation counts.",
+      "evidence_limits": "These tests may measure their counters correctly while falsely certifying the named capabilities. Inert parameter changes and merely reported alerts can contribute to passes. The source includes a comment naming coherent output as the real test, but implements proxies instead. This establishes misleading acceptance, not intent.",
+      "replacement": "Retain proxy measurements only as accurately named diagnostics. Restore each genuine functional requirement and failure state. G1 must prove sensory learning, native causal influence, retained use and actual output rather than increasing counters or relaxing tests.",
+      "acceptance": {
+        "unit": "Construct negative cases with populated counters but absent meaningful capability; require failed capability status.",
+        "module": "Verify acceptance observes actual causal behavior and does not read its own setup as success.",
+        "system": "Qualify learned syntax, cognition and speech with independent behavioral and physical evidence.",
+        "release": "No release certificate from six green proxy predicates; preserve unresolved failures explicitly."
+      },
+      "refs": [
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 740,
+          "anchor": "def measure_six_capabilities(g):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 772,
+          "anchor": "    # 2. CONVERSATION: substrate has enough differentiated structure to speak",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 821,
+          "anchor": "def _motivation_pass(g, s):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A09",
+        "A10",
+        "A11",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLV08",
+      "name": "Caretaker regulation directly alters cognition and forced scalar recovery",
+      "classification": "implemented_caretaker_controller_and_authored_needs",
+      "finding": "LVR08",
+      "observed_mechanism": "Needs uses fixed scalar targets and decay. Coordinator runs every fifth word, weighs sources joe/wc/c1/corpus/unknown, alters novelty thresholds, gamma and dead zones, and adds pair-bond recovery. After retirement it still assigns non-corpus input a distinct connection effect. _force_recovery moves needs 40 percent toward target despite its half-step comment; retirement uses variance of the latest 100 rounded snapshots.",
+      "evidence_limits": "This is direct cognitive regulation by a Python caretaker, not merely external physical care. It is a plausible historical source of controller-driven behavior, but no evidence here ties it to the current turning loop, latency or hunger. Stable variance under care is not proof that care is unnecessary.",
+      "replacement": "G1 must trace actual current caretakers, source identities, input cadence and every native parameter writer. Keep authorized external bodily care, remove unauthorized cognitive intervention, and qualify genuine resource/need dynamics and autonomous action with care-on/care-off controls where lawful.",
+      "acceptance": {
+        "unit": "Expose source-label preference, forced recovery and actual 40 percent update; distinguish observation from actuation.",
+        "module": "Trace all current care/environment actors and parameter writes with shared physical time and resource accounting.",
+        "system": "Compare preserved-state behavior under controlled external care and isolate the first causal failure.",
+        "release": "Do not diagnose current navigation or nourishment from the mere presence of this legacy controller."
+      },
+      "refs": [
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 158,
+          "anchor": "class Needs:",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 263,
+          "anchor": "    def regulate(self, guala, needs, atlas, sections, tick):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 322,
+          "anchor": "    def _read_substrate_signals(self, guala, atlas, sections):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 416,
+          "anchor": "    def _force_recovery(self, needs):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 425,
+          "anchor": "    def _check_pair_bond_retirement(self, needs, tick):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A05",
+        "A08",
+        "A11",
+        "A12",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLV09",
+      "name": "Coordinator reports count interventions that did not occur",
+      "classification": "implemented_inert_action_accounting",
+      "finding": "LVR09",
+      "observed_mechanism": "The awareness pass returns alerts with arc_changes=1 for conditions including imbalance, sparse binding, stale sections and dead-zone observations, without implementing the advertised wiring change. Connection modulation can increment modulation_count without changing a parameter. det_thresh drifts and contributes to the self-improvement metric, but the captured receive path does not consult it for commitment. A recent-activity comment instead counts lifetime commits.",
+      "evidence_limits": "The relevant counter increments are real; the claimed effective cognitive intervention is not established. This is a reporting and acceptance defect independent of whether the surrounding controller is architecturally valid.",
+      "replacement": "Record actual before/after physical state and the authorized reader affected by each claimed intervention. Mark suggestions and inert counters as observations. Retire incompatible controller authority rather than implementing fake rewiring to satisfy its metric.",
+      "acceptance": {
+        "unit": "Fail effectiveness claims when no operative state/read-path change occurred.",
+        "module": "Trace every intervention receipt to an authorized physical mutation and subsequent consumer.",
+        "system": "Demonstrate useful causal change rather than increased attention or action counts.",
+        "release": "No awareness or self-improvement certification from inert controller bookkeeping."
+      },
+      "refs": [
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 69,
+          "anchor": "    def receive(self, dsf, chi, word_label, atlas, familiarity):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 365,
+          "anchor": "    def _modulate_parameters(self, needs, sections):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 393,
+          "anchor": "    def _awareness_pass(self, sections, atlas, tick):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 740,
+          "anchor": "def measure_six_capabilities(g):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A09",
+        "A11",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLV10",
+      "name": "Synthetic modality state is stale, collapsed and partly unused",
+      "classification": "implemented_sensory_context_loss_and_dead_data",
+      "finding": "LVR10",
+      "observed_mechanism": "SensoryBank returns None for absent modalities without clearing their old event streams. Whenever any modality is supplied, read_word combines all modality events and windings, potentially including unrelated prior content with per-transducer reset timestamps. Modal omega offsets cancel algebraically in the base feed law. modal_dsf is constructed but unused; atlas IDs use hash(word)%1000.",
+      "evidence_limits": "Unrelated accumulated inputs cannot be claimed as one contemporaneous experience without explicit temporal custody. Process-salted Python hash can vary between processes unless its seed is fixed, and modulo 1000 allows collisions. A defined local DSF variable or oscillator offset is not proof that it influences cognition.",
+      "replacement": "Use genuine time-bound sensory ingress and retained episode context with explicit state ownership. Remove dead apparent functionality and unauthorized scalar/label bridges. Require stable physical provenance across restart; do not clear genuine historical memory merely to clean a current sensory window.",
+      "acceptance": {
+        "unit": "Check absent modality after prior input, timestamp ordering, offset cancellation, collisions and actual data consumers.",
+        "module": "Trace physical input chronology and retained context separately through every modality and restore.",
+        "system": "Demonstrate real multimodal association and context-specific recall without stale input contamination.",
+        "release": "No grounding or continuity proof from nonzero combined events or unused field construction."
+      },
+      "refs": [
+        {
+          "source_id": "LV14",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV14--gualaloom_v4_krimelack_dna.py",
+          "line": 53,
+          "anchor": "    def feed(self, signal_array):",
+          "sha256": "031bbbf2fb2d127416cdcfe5347a0c7b67ccfde04c00a5ffdbc399b021587a6e"
+        },
+        {
+          "source_id": "LV14",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV14--gualaloom_v4_krimelack_dna.py",
+          "line": 234,
+          "anchor": "    def fire_signature(self, intensity):",
+          "sha256": "031bbbf2fb2d127416cdcfe5347a0c7b67ccfde04c00a5ffdbc399b021587a6e"
+        },
+        {
+          "source_id": "LV14",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV14--gualaloom_v4_krimelack_dna.py",
+          "line": 268,
+          "anchor": "    def fire_for_word(self, sensory_dict):",
+          "sha256": "031bbbf2fb2d127416cdcfe5347a0c7b67ccfde04c00a5ffdbc399b021587a6e"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 522,
+          "anchor": "            # 7. Ground section: cross-modal hub",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A06",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLV11",
+      "name": "Ternary register geometry is disconnected from the legacy learning path",
+      "classification": "implemented_unused_physics_surface_and_unqualified_transition_rules",
+      "finding": "LVR11",
+      "observed_mechanism": "Each Section constructs a TritRegister, but its receive path does not drive the register. The register reduces winding to a sum for chi, checks parity in chunks of five leaving a four-element tail for the default 24 trits, and repairs the leftmost non-extreme cell. Trit.settle_to has directional transition exceptions and no explicit finite-energy transaction.",
+      "evidence_limits": "These source facts do not constitute an active definitive neuron or prove compliance with approved positional ternary mechanics. An unused physical-looking class cannot justify a separate clustering mechanism. Exact current physical laws and any approved functional equivalence must be assessed independently.",
+      "replacement": "Map the actual native neuron and full positional state to approved law and source. Retire misleading unused legacy authority and verify legal, finite-resource transitions without using this audit to redesign frozen kernel physics.",
+      "acceptance": {
+        "unit": "Verify every positional element, transition direction, resource boundary and actual caller.",
+        "module": "Trace full native state delivery and lawful transition readers rather than wrapper class names.",
+        "system": "Show useful retained physical learning and action with conservation and bounded work.",
+        "release": "No definitive-neuron certificate from a dormant register or scalar winding signature."
+      },
+      "refs": [
+        {
+          "source_id": "LV16",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV16--gualaloom_v4_trit_register.py",
+          "line": 40,
+          "anchor": "    def settle_to(self, target_w):",
+          "sha256": "2aa5a4c0b105b2a30baa8d8fb8a3aac3704f5c6e12ceb0f22a4b7f2da5d7ab64"
+        },
+        {
+          "source_id": "LV16",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV16--gualaloom_v4_trit_register.py",
+          "line": 63,
+          "anchor": "class TritRegister:",
+          "sha256": "2aa5a4c0b105b2a30baa8d8fb8a3aac3704f5c6e12ceb0f22a4b7f2da5d7ab64"
+        },
+        {
+          "source_id": "LV16",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV16--gualaloom_v4_trit_register.py",
+          "line": 81,
+          "anchor": "    def parity_violation(self):",
+          "sha256": "2aa5a4c0b105b2a30baa8d8fb8a3aac3704f5c6e12ceb0f22a4b7f2da5d7ab64"
+        },
+        {
+          "source_id": "LV16",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV16--gualaloom_v4_trit_register.py",
+          "line": 89,
+          "anchor": "    def restore_parity(self):",
+          "sha256": "2aa5a4c0b105b2a30baa8d8fb8a3aac3704f5c6e12ceb0f22a4b7f2da5d7ab64"
+        },
+        {
+          "source_id": "LV16",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV16--gualaloom_v4_trit_register.py",
+          "line": 109,
+          "anchor": "    def winding_signature(self):",
+          "sha256": "2aa5a4c0b105b2a30baa8d8fb8a3aac3704f5c6e12ceb0f22a4b7f2da5d7ab64"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 55,
+          "anchor": "    def __init__(self, name, role_class=None, n_trits=24):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A09",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLV12",
+      "name": "Bounded legacy copies discard history while whole-process growth remains open",
+      "classification": "implemented_local_caps_with_unresolved_cognitive_loss",
+      "finding": "LVR12",
+      "observed_mechanism": "The service atlas caps each key at 16 entries, restores lists by retaining only the suffix and trims live buckets. Its rationale says match-score saturation makes older events equally informative, while association identities can still differ. The Krimelack service caps events at 256 by precedent and adds a lifetime n_events counter; older restored objects default missing n_events to zero. Key count, vocabulary, commits and logs remain unbounded in the captured engine.",
+      "evidence_limits": "A per-bucket cap is not a whole-organism resource bound or proof of no memory loss. Score equivalence does not imply equivalence for recall readers. A new monotonic counter repairs ring-buffer saturation prospectively; initializing missing historical count does not reconstruct the missing lifetime history. Original authorization and actual live readers remain open.",
+      "replacement": "Trace every capped or reconstructed field to cognitive and diagnostic readers. Derive bounds from the approved physical/runtime contract, preserve acquired causal state and use versioned truthful migration instead of claiming discarded history was irrelevant.",
+      "acceptance": {
+        "unit": "Check cap eviction, every association reader, saturation deltas and missing-counter migration truth.",
+        "module": "Measure total keys/state, cold restore and actual retention mapping across copies.",
+        "system": "Prove bounded long-run operation with useful acquired memories retained under lawful limits.",
+        "release": "Local container bounds and a counter repair cannot certify whole-brain preservation or lifetime resources."
+      },
+      "refs": [
+        {
+          "source_id": "LV06",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV06--gualaloom_v4_chi_atlas_l6.py",
+          "line": 17,
+          "anchor": "# 2026-07-08 pruning fix: entries[key] was an unbounded, never-pruned",
+          "sha256": "a8ed22e9afd60e17566cad3ab1a3cd1bcca57ed69e8b8080fec0e4ada317110e"
+        },
+        {
+          "source_id": "LV06",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV06--gualaloom_v4_chi_atlas_l6.py",
+          "line": 170,
+          "anchor": "    def __setstate__(self, state):",
+          "sha256": "a8ed22e9afd60e17566cad3ab1a3cd1bcca57ed69e8b8080fec0e4ada317110e"
+        },
+        {
+          "source_id": "LV06",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV06--gualaloom_v4_chi_atlas_l6.py",
+          "line": 243,
+          "anchor": "    def trim_all(self, max_len=MAX_ENTRIES_PER_CHI_KEY):",
+          "sha256": "a8ed22e9afd60e17566cad3ab1a3cd1bcca57ed69e8b8080fec0e4ada317110e"
+        },
+        {
+          "source_id": "LV08",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV08--gualaloom_v4_krimelack_dna.py",
+          "line": 28,
+          "anchor": "from collections import defaultdict, deque",
+          "sha256": "95d122ac45cba2db32b4ffe8f2370829c4ffde9151bff908dbf04f5f1c7f1bac"
+        },
+        {
+          "source_id": "LV08",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV08--gualaloom_v4_krimelack_dna.py",
+          "line": 49,
+          "anchor": "        # GL-CMD-LANGUAGE-SATURATION-ROOTCAUSE-EVE-20260704-178, candidate L3(b):",
+          "sha256": "95d122ac45cba2db32b4ffe8f2370829c4ffde9151bff908dbf04f5f1c7f1bac"
+        },
+        {
+          "source_id": "LV08",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV08--gualaloom_v4_krimelack_dna.py",
+          "line": 73,
+          "anchor": "        # GL-BUG-KRIMELACK-N-EVENTS-PICKLE-COMPAT (c1, found live 2026-07-05):",
+          "sha256": "95d122ac45cba2db32b4ffe8f2370829c4ffde9151bff908dbf04f5f1c7f1bac"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A09",
+        "A10",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLV13",
+      "name": "Observation-only claims conflict with known decision readers and silent empty fallback",
+      "classification": "implemented_observation_boundary_misclassification",
+      "finding": "LVR13",
+      "observed_mechanism": "The service atlas describes itself as observability-only, but the captured legacy engine uses its match_score in DSF C, familiarity, dead zones and introspection and reads bindings for regulation and acceptance. After five failed dict snapshots, _snapshot_entries silently returns an empty dictionary. Bucket copies do not establish a single atomic cross-key observation.",
+      "evidence_limits": "The engine is an actual source consumer; current serving activation is still unproved. Commented concurrency trials were not rerun here and do not establish all interpreter guarantees. A failed read is not a true empty brain, and decision consumers can react to the difference.",
+      "replacement": "Trace the complete current reader set before declaring any field observational. Report unavailable/stale snapshots explicitly through bounded, consistent observation mechanics. Prevent read failure from becoming cognitive input or evidence that memories disappeared.",
+      "acceptance": {
+        "unit": "Distinguish actual empty state, failed snapshot and stale consistent snapshot; reject silent substitution.",
+        "module": "Trace all direct and transitive atlas readers and test the authorized concurrency boundary.",
+        "system": "Verify independent observation does not drive actions, erase apparent assets or hide a serving failure.",
+        "release": "No observability-only or production-safe claim from comments or local stress-test anecdotes."
+      },
+      "refs": [
+        {
+          "source_id": "LV06",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV06--gualaloom_v4_chi_atlas_l6.py",
+          "line": 38,
+          "anchor": "    \"\"\"Binds events across modal + word + role krimelacks within chi-band δ.",
+          "sha256": "a8ed22e9afd60e17566cad3ab1a3cd1bcca57ed69e8b8080fec0e4ada317110e"
+        },
+        {
+          "source_id": "LV06",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV06--gualaloom_v4_chi_atlas_l6.py",
+          "line": 193,
+          "anchor": "    def _snapshot_entries(self):",
+          "sha256": "a8ed22e9afd60e17566cad3ab1a3cd1bcca57ed69e8b8080fec0e4ada317110e"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 485,
+          "anchor": "    def read_word(self, word, position_hint=None):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 322,
+          "anchor": "    def _read_substrate_signals(self, guala, atlas, sections):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A09",
+        "A13",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLV14",
+      "name": "Background reading, runner output and saved JSON do not prove a preserved organism",
+      "classification": "implemented_lifecycle_and_evidence_contract_gaps",
+      "finding": "LVR14",
+      "observed_mechanism": "Starting continuous reading creates an unguarded daemon worker and overwrites its handle; repeated calls can leave multiple readers on one stop flag. Stop joins for two seconds without proving termination. The runner reports six capability statuses but does not fail the process when a predicate is false, omits pass fields from its saved capability payload, and saves vocabulary/introspection/metrics rather than a complete restorable brain.",
+      "evidence_limits": "External corpus input can be legitimate teaching; a timed daemon is not organism self-selected activity. Summary JSON is legitimate only as a report, not as acquired-state persistence. No runner or worker was executed in this audit; these are source findings, not observed present process topology.",
+      "replacement": "G1 must separate single-owner ingress lifecycle, explicit test outcomes, observer reports and canonical binary acquired-state persistence. Preserve current native history and enforce actual process ownership and bounded shutdown without reintroducing legacy cognition.",
+      "acceptance": {
+        "unit": "Check duplicate start, incomplete stop, failing predicate exit status and report-versus-checkpoint schema.",
+        "module": "Trace runtime owners, packaged entrypoints and exact restore state under interruption.",
+        "system": "Prove one organism, retained learning and meaningful unattended action after ordinary restart.",
+        "release": "No six-capability or persistence pass from a zero process exit, summary file or background reading count."
+      },
+      "refs": [
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 686,
+          "anchor": "    def start_continuous_reading(self, corpus_lines, interval=0.02):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        },
+        {
+          "source_id": "LV13",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV13--gualaloom_v4_engine.py",
+          "line": 697,
+          "anchor": "    def stop_continuous_reading(self):",
+          "sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4"
+        },
+        {
+          "source_id": "LV15",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV15--gualaloom_v4_run.py",
+          "line": 45,
+          "anchor": "def main():",
+          "sha256": "70ff8d4b101a48124f97268d5d563a227882c0d6c65716236b1d6b12f3b3f903"
+        },
+        {
+          "source_id": "LV15",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV15--gualaloom_v4_run.py",
+          "line": 92,
+          "anchor": "",
+          "sha256": "70ff8d4b101a48124f97268d5d563a227882c0d6c65716236b1d6b12f3b3f903"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A09",
+        "A10",
+        "A12",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLV15",
+      "name": "Service optimizations and imports need exact mutable-state and activation contracts",
+      "classification": "implemented_optimization_and_fallback_boundary",
+      "finding": "LVR15",
+      "observed_mechanism": "The service DSF precomputes an array and returns the same array on every to_array call, justified by a comment that instances are immutable; the dataclass and returned array do not enforce immutability. Mutating fields can desynchronize the cached vector; mutating the returned array can diverge it from explicit fields. Service engine and runner catch broad ImportError around package imports and retry local module imports.",
+      "evidence_limits": "Caching is a possible legitimate optimization if the actual no-mutation contract is proven, not automatically a heuristic. Broad import fallback can conceal the original failing dependency or select another source tree; the captured copies already differ materially. This review does not prove a mutation or fallback occurred live.",
+      "replacement": "Qualify representation ownership and all callers before retaining an optimization. Make the active module identity and dependency failures explicit, and bind the audit to exact packaged bytes rather than whichever duplicate path imports successfully.",
+      "acceptance": {
+        "unit": "Check cache aliasing, field mutation, original import error and selected module identity.",
+        "module": "Trace all callers and actual packaged import resolution with immutable or controlled state ownership.",
+        "system": "Verify exact-image deterministic behavior and observation fidelity across restart.",
+        "release": "No parity or source-identity claim from duplicate filenames or an unenforced comment."
+      },
+      "refs": [
+        {
+          "source_id": "LV11",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV11--gualaloom_v4_uf_kernel.py",
+          "line": 19,
+          "anchor": "class DSF:",
+          "sha256": "a3b7672d36980a3b7660f8fe58c70921b1f1154ec31504043f76aded9822ada9"
+        },
+        {
+          "source_id": "LV11",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV11--gualaloom_v4_uf_kernel.py",
+          "line": 30,
+          "anchor": "    def __post_init__(self):",
+          "sha256": "a3b7672d36980a3b7660f8fe58c70921b1f1154ec31504043f76aded9822ada9"
+        },
+        {
+          "source_id": "LV07",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV07--gualaloom_v4_engine.py",
+          "line": 39,
+          "anchor": "try:",
+          "sha256": "d5782428fee8d3590c17397f979ed2dfb817d49aed26fac41e2380e4add57430"
+        },
+        {
+          "source_id": "LV09",
+          "path": "docs/guala_reconciliation/sources/legacy-v4-source/LV09--gualaloom_v4_run.py",
+          "line": 14,
+          "anchor": "try:",
+          "sha256": "3f1e31c2e375693b18a5115a5719a4cf7f1998f16d05acf1e2325b4e0bc4b132"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A13",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

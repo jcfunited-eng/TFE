@@ -1,0 +1,418 @@
+{
+  "schema": "guala.captured_source_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T09:48:50.461496+00:00",
+  "scope": "Complete four named source captures plus explicitly bounded independent Task1606 serving/artifact reads. Exact Python bytes are live-bound; Rust source matches the packaged manifest and wheel/native identity. Full dependencies, reproducible build, dynamic root-cause attribution, acquired-state mapping and behavior qualification remain open. No product actions/tests.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "TS01",
+      "path": "dsf_ai_service/lean_production_app.py",
+      "sha256": "e0eae159c9aac1038cecb7effa10fca158a058f9e493b5b97a196abbfba5c9da",
+      "bytes": 22757,
+      "lines": 543,
+      "git_blob": "working:e0eae159c9aac1038cecb7effa10fca158a058f9e493b5b97a196abbfba5c9da",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/task1606-boundary/TS01--lean_production_app.py",
+      "review": "Complete four named source captures plus explicitly bounded independent Task1606 serving/artifact reads. Exact Python bytes are live-bound; Rust source matches the packaged manifest and wheel/native identity. Full dependencies, reproducible build, dynamic root-cause attribution, acquired-state mapping and behavior qualification remain open. No product actions/tests.",
+      "canonical_copy": "docs/guala_reconciliation/sources/task1606-boundary/TS01--lean_production_app.py"
+    },
+    {
+      "id": "TS02",
+      "path": "dsf_ai_service/guala_functional64_runtime.py",
+      "sha256": "f4710a82da0fbaa1e45ebad2018c521a739ccd8555ca780ca9f8758e662181ca",
+      "bytes": 9613,
+      "lines": 217,
+      "git_blob": "working:f4710a82da0fbaa1e45ebad2018c521a739ccd8555ca780ca9f8758e662181ca",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/task1606-boundary/TS02--guala_functional64_runtime.py",
+      "review": "Complete four named source captures plus explicitly bounded independent Task1606 serving/artifact reads. Exact Python bytes are live-bound; Rust source matches the packaged manifest and wheel/native identity. Full dependencies, reproducible build, dynamic root-cause attribution, acquired-state mapping and behavior qualification remain open. No product actions/tests.",
+      "canonical_copy": "docs/guala_reconciliation/sources/task1606-boundary/TS02--guala_functional64_runtime.py"
+    },
+    {
+      "id": "TS03",
+      "path": "dsf_ai_service/guala_functional64_loop.py",
+      "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862",
+      "bytes": 16496,
+      "lines": 283,
+      "git_blob": "working:86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/task1606-boundary/TS03--guala_functional64_loop.py",
+      "review": "Complete four named source captures plus explicitly bounded independent Task1606 serving/artifact reads. Exact Python bytes are live-bound; Rust source matches the packaged manifest and wheel/native identity. Full dependencies, reproducible build, dynamic root-cause attribution, acquired-state mapping and behavior qualification remain open. No product actions/tests.",
+      "canonical_copy": "docs/guala_reconciliation/sources/task1606-boundary/TS03--guala_functional64_loop.py"
+    },
+    {
+      "id": "TS04",
+      "path": "native/guala_core/src/functional64_owner_boundary.rs",
+      "sha256": "fa31e8b566260dde36a4f687d841b5102f5cac6dd25dde1f70c7ed02e3cb3105",
+      "bytes": 13189,
+      "lines": 164,
+      "git_blob": "working:fa31e8b566260dde36a4f687d841b5102f5cac6dd25dde1f70c7ed02e3cb3105",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/task1606-boundary/TS04--functional64_owner_boundary.rs",
+      "review": "Complete four named source captures plus explicitly bounded independent Task1606 serving/artifact reads. Exact Python bytes are live-bound; Rust source matches the packaged manifest and wheel/native identity. Full dependencies, reproducible build, dynamic root-cause attribution, acquired-state mapping and behavior qualification remain open. No product actions/tests.",
+      "canonical_copy": "docs/guala_reconciliation/sources/task1606-boundary/TS04--functional64_owner_boundary.rs"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "TSR01",
+      "name": "Unhealthy serving and native computation retain the interpreter lock",
+      "classification": "live_serving_failure_and_source_bound_starvation_mechanism",
+      "historical_requirement_or_mechanism": "Task1606 is RUNNING/UNHEALTHY despite desired/running/pending1/1/0 and COMPLETED deployment. Local /health and /ready GETs timed out after4.0055/4.0034 seconds. In a five-second read-only process sample, thread40 used500 CPU ticks at100Hz while the main thread waited in futex. The native wrapper calls prepare_millisecond and other native work without allow_threads. The exact deployed library contains the same prepare wrapper and a direct call to material.prepare_boundary; the wrapper disassembly has no direct SaveThread/RestoreThread reference.",
+      "current_disposition": "Live process sampling did not capture a userspace stack or exact current instruction. This establishes the service failure and a concrete deployed execution hazard consistent with it, not exclusive attribution of every second or every latency cause. Matching source manifest and wheel/native hashes is strong identity evidence but not independently reproduced build provenance. No POST, signal, import or product test was performed.",
+      "lawful_remedy": "G1 must identify the long-running native boundary on the exact preserved candidate and release the interpreter lock around owned, callback-free native computation, reacquiring it only for Python objects. Preserve one actor, immutable predecessor and exact numerical/state semantics. Independently solve excessive native work through an approved exact algorithm and bounds; unlocking alone makes observation responsive, not cognition real-time. Do not increase health timeouts or publish a synthetic health response as the repair.",
+      "unit_acceptance": "Verify native ownership/error/rollback and exact transitions with and without lock release; no Python object access while released.",
+      "module_acceptance": "Run actual actor computation concurrently with GET health/observation and bounded stop/ingress; demonstrate both responsiveness and actual native progress.",
+      "system_acceptance": "Measure wall-time versus represented time, sensory age/loss, action and checkpoint progress over a sustained ordinary workload.",
+      "release_acceptance": "Bind image/library/source/config/state, repeat live/browser behavior and keep missed deadlines visible.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "TS04",
+          "path": "docs/guala_reconciliation/sources/task1606-boundary/TS04--functional64_owner_boundary.rs",
+          "line": 137,
+          "anchor": "    fn prepare_millisecond<'py>(&mut self,py:Python<'py>)->PyResult<Millisecond<'py>>{",
+          "sha256": "fa31e8b566260dde36a4f687d841b5102f5cac6dd25dde1f70c7ed02e3cb3105"
+        },
+        {
+          "source_id": "TS04",
+          "path": "docs/guala_reconciliation/sources/task1606-boundary/TS04--functional64_owner_boundary.rs",
+          "line": 138,
+          "anchor": "        let row=self.prepared.prepare_millisecond().map_err(owner_error)?;",
+          "sha256": "fa31e8b566260dde36a4f687d841b5102f5cac6dd25dde1f70c7ed02e3cb3105"
+        },
+        {
+          "source_id": "TS03",
+          "path": "docs/guala_reconciliation/sources/task1606-boundary/TS03--guala_functional64_loop.py",
+          "line": 160,
+          "anchor": "                 own_ear, _rendered) = native.prepare_millisecond()",
+          "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+        }
+      ]
+    },
+    {
+      "id": "TSR02",
+      "name": "Commissioning captures a fresh substrate while retaining old experience only as archive",
+      "classification": "source_confirmed_preservation_break_in_conversion_branch",
+      "historical_requirement_or_mechanism": "The image-bound GLFUNC01 branch creates ModularSubstrate64D(), captures that new object and commissions a new body, quiet ears, time0 and500000/500000 reserve. It never decodes predecessor acquired native dynamics into that object. Functional64Runtime retains the previous body/world as OriginalPair inert bytes and checks identity/tick. The current durable envelope is GL64ORG1, with57718988 original-body bytes,1050863 original-world bytes and1006673 native bytes. Its current and predecessor descriptor ticks both equal4234925.",
+      "current_disposition": "The source proves what this branch does; current envelope shape does not prove which task first executed it or authenticate approval. A1 has not decoded active organism memory, measured particular lost skills or proved that every retained byte is unreachable elsewhere. Current descriptor mtime predates Task1606 startup; no conclusion about all in-memory progress follows from that single durable sample.",
+      "lawful_remedy": "Preserve both exact histories and recover the cutover authorizations and canonical lineage. Replace fresh-seed commissioning with an explicitly approved correspondence from authentic acquired causative state to active native state. If the state spaces cannot be mapped lawfully, state that boundary and keep qualification failed; do not invent a shim, reset, rewind or claim archive custody is learning continuity. Same UUID/tick is insufficient.",
+      "unit_acceptance": "Verify each acquired state/relationship, source clock, body/ear state and reserve against the authentic predecessor, with explicit authorized exclusions.",
+      "module_acceptance": "Demonstrate old acquired effects remain causative after canonical conversion and exact cold continuation, not merely stored bytes.",
+      "system_acceptance": "Use later partial cues and meaningful learned actions/words against pre-learning and severed-state controls.",
+      "release_acceptance": "Publish exact authorized migration, losses and sole-writer provenance; no preservation certificate from identity or original-byte retention.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A09",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "TS01",
+          "path": "docs/guala_reconciliation/sources/task1606-boundary/TS01--lean_production_app.py",
+          "line": 261,
+          "anchor": "        native = guala_core.ModularSubstrate64D()",
+          "sha256": "e0eae159c9aac1038cecb7effa10fca158a058f9e493b5b97a196abbfba5c9da"
+        },
+        {
+          "source_id": "TS01",
+          "path": "docs/guala_reconciliation/sources/task1606-boundary/TS01--lean_production_app.py",
+          "line": 262,
+          "anchor": "        history = guala_core.exact_capture_native_current(native, 2 * 1024 * 1024, 4 * 1024 * 1024, 0)",
+          "sha256": "e0eae159c9aac1038cecb7effa10fca158a058f9e493b5b97a196abbfba5c9da"
+        },
+        {
+          "source_id": "TS02",
+          "path": "docs/guala_reconciliation/sources/task1606-boundary/TS02--guala_functional64_runtime.py",
+          "line": 3,
+          "anchor": "The original paired body/world remain inert bytes. Native material separately",
+          "sha256": "f4710a82da0fbaa1e45ebad2018c521a739ccd8555ca780ca9f8758e662181ca"
+        }
+      ]
+    },
+    {
+      "id": "TSR03",
+      "name": "Retired controller paths are absent in the newly observed release",
+      "classification": "verified_scoped_retirement_improvement_with_open_closure",
+      "historical_requirement_or_mechanism": "Read-only Task1606 inspection found /app/dsf_ai_service/guala_functional_organism.py and guala_functional_loop.py absent. The byte-matched lean startup mounts Functional64Runtime and Functional64PhysicalLoop. This is a concrete improvement over the inspected Task1598 controller activation.",
+      "current_disposition": "Two absent paths do not establish all dependency/cognitive-authority closure, heuristic exclusion or preserved learned capability. Packaged guala_voice.py and Whisper-capable speech_transducer.py remain; file presence does not establish their activation or ML inference. The historical Task1598 finding remains valid only at its dated release scope.",
+      "lawful_remedy": "Keep retired controllers excised and resolve every remaining packaged dependency and live caller. Classify source, assets, algorithm and actual authority separately. Remove unused rejected capability packages from a reviewed closure without deleting authentic learned state or fabricating a replacement voice.",
+      "unit_acceptance": "Verify forbidden paths, aliases, dependencies and model assets with exact source classification rather than filename-only scanning.",
+      "module_acceptance": "Trace import and call authority from the actual lean entrypoint through all senses, decisions and output.",
+      "system_acceptance": "Qualify learned behavior using only the approved native route on preserved state.",
+      "release_acceptance": "Issue package-exclusion and active-inference conclusions separately; never carry an older activation finding into a new image without proof.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A05",
+        "A10",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "TS01",
+          "path": "docs/guala_reconciliation/sources/task1606-boundary/TS01--lean_production_app.py",
+          "line": 221,
+          "anchor": "    from dsf_ai_service.guala_functional64_loop import Functional64PhysicalLoop",
+          "sha256": "e0eae159c9aac1038cecb7effa10fca158a058f9e493b5b97a196abbfba5c9da"
+        },
+        {
+          "source_id": "TS01",
+          "path": "docs/guala_reconciliation/sources/task1606-boundary/TS01--lean_production_app.py",
+          "line": 218,
+          "anchor": "        raise RuntimeError(\"GUALA64_ADMISSION_JSON is required: legacy functional organism is permanently decommissioned\")",
+          "sha256": "e0eae159c9aac1038cecb7effa10fca158a058f9e493b5b97a196abbfba5c9da"
+        }
+      ]
+    },
+    {
+      "id": "TSR04",
+      "name": "The mounted sensory loop rejects camera and food occurrences",
+      "classification": "source_confirmed_unimplemented_external_input_boundary",
+      "historical_requirement_or_mechanism": "Functional64PhysicalLoop._external_pressure accepts only a microphone source with exactly4000 PCM samples. It explicitly rejects from_object, retina_rgb_u8, present_food, guided_vocal_drives and focal controls. A pending physical return also raises NotImplementedError. The wider lean translator advertises/translates more input types than this loop implements.",
+      "current_disposition": "This is an explicit failure rather than a hidden simulated capability, which must be preserved. It means those accepted-looking request schemas cannot qualify actual camera ingress, caretaker food delivery or the missing chronological owner. It does not prove there are no food objects or no internally observed world light in Task1606; the loop separately acquires world optical state. No mutation request was sent.",
+      "lawful_remedy": "G1 must reconcile the public/UI capability contract with the actual chronological sensory owner and implement the required physical occurrences with preserved timing, source identity, mass/energy and true world consequences. Keep external food supply separate from internal action choice; do not use caretaker-selected behavior to manufacture foraging or speech.",
+      "unit_acceptance": "Check every advertised occurrence against the mounted implementation, source clocks and explicit unsupported outcomes.",
+      "module_acceptance": "Trace microphone, world vision, required external vision, touch and food supply through authentic physical returns and full DSF.",
+      "system_acceptance": "Demonstrate ordinary nourishment/foraging and sensory-grounded learned behavior without scripted internal selection.",
+      "release_acceptance": "Verify the exact UI/browser/API/image capability matrix and actual sustained sensory loss/latency.",
+      "repair_actions": [
+        "A01",
+        "A06",
+        "A07",
+        "A08",
+        "A10",
+        "A12",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "TS03",
+          "path": "docs/guala_reconciliation/sources/task1606-boundary/TS03--guala_functional64_loop.py",
+          "line": 108,
+          "anchor": "            raise NotImplementedError(\"this input requires the complete chronological external physical owner\")",
+          "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+        },
+        {
+          "source_id": "TS03",
+          "path": "docs/guala_reconciliation/sources/task1606-boundary/TS03--guala_functional64_loop.py",
+          "line": 104,
+          "anchor": "                or sensory.retina_rgb_u8 is not None or sensory.present_food is not None",
+          "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+        },
+        {
+          "source_id": "TS03",
+          "path": "docs/guala_reconciliation/sources/task1606-boundary/TS03--guala_functional64_loop.py",
+          "line": 127,
+          "anchor": "            raise NotImplementedError(\"retained physical return needs explicit same-history delivery\")",
+          "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+        }
+      ]
+    },
+    {
+      "id": "TSR05",
+      "name": "Native pressure metadata is honest limited evidence, not learned speech",
+      "classification": "implemented_physical_output_with_unqualified_language",
+      "historical_requirement_or_mechanism": "The loop returns actual native finish pressure only after a complete quarter, insists on8000 bytes, hashes those bytes and records said=None with voice_source=native-articulatory-pressure. Actual own-ear pressure is mixed with external PCM and advanced through the cochlear stream. Both ear inputs receive the same mixed block in this interface.",
+      "current_disposition": "These are specific transport and physiology mechanisms. The current audit captured no successful quarter, audible utterance, acquired articulation, grounded word or syntax result. A native source tag, nonzero sound, self-hearing,25 frame count or0 Python callback count cannot qualify those stronger claims. Identical left/right delivery provides mono evidence, not a binaural localization demonstration.",
+      "lawful_remedy": "Preserve actual sound and self-hearing. G1 must first recover usable chronological processing and active acquired-state continuity, then identify the first failed link from experience through retained contact change, later preparation, articulatory action and contextual sound. Qualify articulation, lexical grounding, syntax and spontaneous use separately. If a link is absent, name it; do not insert a pronunciation dictionary, TTS, chosen word or spectral answer selector.",
+      "unit_acceptance": "Prove actual motor-to-pressure/self-hearing and negative controls without supplied answers being scored as learned behavior.",
+      "module_acceptance": "Trace complete experience→retained state→later preparation→body→pressure→self/world return on the exact current state.",
+      "system_acceptance": "Demonstrate independently identifiable acquired articulation, then grounded words/relations and autonomous contextual use with pre-learning/severed controls.",
+      "release_acceptance": "Keep speech unqualified until exact preserved-release evidence passes; neither guaranteed emergence nor permanent impossibility is established.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A06",
+        "A09",
+        "A10",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "TS03",
+          "path": "docs/guala_reconciliation/sources/task1606-boundary/TS03--guala_functional64_loop.py",
+          "line": 214,
+          "anchor": "            successor_core, pressure, summary = native.finish(ears.checkpoint_bytes())",
+          "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+        },
+        {
+          "source_id": "TS03",
+          "path": "docs/guala_reconciliation/sources/task1606-boundary/TS03--guala_functional64_loop.py",
+          "line": 253,
+          "anchor": "                \"said\": None,",
+          "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+        },
+        {
+          "source_id": "TS03",
+          "path": "docs/guala_reconciliation/sources/task1606-boundary/TS03--guala_functional64_loop.py",
+          "line": 193,
+          "anchor": "                    batch = ears.advance(mixed, mixed, start_sample=ears.sample_count)",
+          "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+        }
+      ]
+    },
+    {
+      "id": "TSR06",
+      "name": "The stated IP-history capacity is not enforced before insertion",
+      "classification": "source_confirmed_resource_admission_defect",
+      "historical_requirement_or_mechanism": "OccurrenceRateLimiter uses defaultdict access and appends the new IP timestamp before checking its4096-entry ceiling. For a newly inserted, nonstale IP, the later condition client_ip not in self._history is false; repeated fresh authenticated IPs can exceed the declared map capacity. The comment says mailbox capacity1 while the current default mailbox is4.",
+      "current_disposition": "This is a source-level counterexample, not an executed flood or proven cause of the current single-thread CPU symptom. Authentication happens before this limiter. Transport admission is not inherently a cognitive heuristic; its independently specified resource purpose and correct bound matter.",
+      "lawful_remedy": "Enforce unique-key capacity before allocation/insertion after defined stale-entry collection, and keep existing-key admission separate. Reconcile actual mailbox and ingress contract. Do not solve resource protection by altering sensory meaning or hidden selection.",
+      "unit_acceptance": "Test the4095/4096/4097 fresh-key boundary, existing active keys, expiry and authentication ordering with a bounded test.",
+      "module_acceptance": "Verify ingress memory and actor mailbox stay within their stated bounds under admitted concurrency.",
+      "system_acceptance": "Measure ordinary authenticated continuous sensory delivery without hidden dropped context.",
+      "release_acceptance": "Publish actual transport configuration and measured resource bounds; no claimed ceiling from an unreachable rejection branch.",
+      "repair_actions": [
+        "A01",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "TS01",
+          "path": "docs/guala_reconciliation/sources/task1606-boundary/TS01--lean_production_app.py",
+          "line": 78,
+          "anchor": "            dq = self._history[client_ip]",
+          "sha256": "e0eae159c9aac1038cecb7effa10fca158a058f9e493b5b97a196abbfba5c9da"
+        },
+        {
+          "source_id": "TS01",
+          "path": "docs/guala_reconciliation/sources/task1606-boundary/TS01--lean_production_app.py",
+          "line": 89,
+          "anchor": "                if len(self._history) >= 4096 and client_ip not in self._history:",
+          "sha256": "e0eae159c9aac1038cecb7effa10fca158a058f9e493b5b97a196abbfba5c9da"
+        }
+      ]
+    },
+    {
+      "id": "TSR07",
+      "name": "Release declarations are not an exclusion or correctness certificate",
+      "classification": "verified_artifact_identity_with_stale_unqualified_declarations",
+      "historical_requirement_or_mechanism": "Exact Task1606 image contains a release manifest labeled task1599 with timestamp04:36:18, while Docker labels still name September23/revision702be702e. The manifest wheel sha a9c7d9ac matches the local wheel; its extracted native sha4c7c1811 matches both cached image and live mapped library. The inspected Rust/Python source hashes match the manifest. It nevertheless declares heuristics=false/tabular_rl=false and an obsolete direct column40/41 MoveCommand description without supplying qualification evidence.",
+      "current_disposition": "Strong byte identity is genuine progress and distinct from a stale human release label. A file manifest cannot prove its source was compiled into a wheel without build provenance; a hardcoded compliance boolean cannot certify mechanism exclusion or whole-chain behavior. This audit did not independently rebuild the wheel or exhaustively scan the package.",
+      "lawful_remedy": "Generate identity and capability declarations from the actual immutable release closure and attach independent mechanism, state-preservation and ordered test evidence. Mark unqualified assertions explicitly. Preserve exact source/wheel/binary hashes while correcting stale task/config labels; do not use metadata to mask failed health or speech.",
+      "unit_acceptance": "Check declared task/config/source/library against actual artifacts; fail unsupported compliance assertions.",
+      "module_acceptance": "Bind build inputs, toolchain, wheel, image, mounted modules, dependencies and configuration.",
+      "system_acceptance": "Qualify real preserved organism capabilities with independent outcomes, not embedded booleans.",
+      "release_acceptance": "Require exact-release evidence for package ML exclusion, no heuristic cognitive authority, usable serving and learned speech separately.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A10",
+        "A15",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "TS01",
+          "path": "docs/guala_reconciliation/sources/task1606-boundary/TS01--lean_production_app.py",
+          "line": 221,
+          "anchor": "    from dsf_ai_service.guala_functional64_loop import Functional64PhysicalLoop",
+          "sha256": "e0eae159c9aac1038cecb7effa10fca158a058f9e493b5b97a196abbfba5c9da"
+        },
+        {
+          "source_id": "TS03",
+          "path": "docs/guala_reconciliation/sources/task1606-boundary/TS03--guala_functional64_loop.py",
+          "line": 254,
+          "anchor": "                \"voice_source\": \"native-articulatory-pressure\",",
+          "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+        }
+      ]
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false,
+  "source_capture_kind": "working_code",
+  "atomic_release": false,
+  "source_activation_qualified": false,
+  "git_document_corpus_pairs_added": 0,
+  "live_evidence": {
+    "task_definition": 1606,
+    "task_id": "7a13bf3c08ed4328bd4249531dcc277e",
+    "image_sha256": "91640805ccc0548ccb10d55e97598812684112047bbabdd4ecd5415b25c0b69f",
+    "native_sha256": "4c7c1811a389cb7acee89b77409672a5803d080801d3528fc9c596a9346b5244",
+    "independent_serving_reads": true,
+    "product_mutations": false,
+    "product_tests": false,
+    "evidence": [
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/container-read.json",
+        "sha256": "5549e146227dcdf66f55f889470a2126bacfb4c6022ecaeb93f4b1461c0cab4d",
+        "bytes": 1381
+      },
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/aws-refresh.json",
+        "sha256": "8002284473087e388291637b216e615fd74ab51d66cf9c778fdee5c8209aaeca",
+        "bytes": 2088
+      },
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/execution-read.json",
+        "sha256": "85c5fb838bc5fec93aa1a2786abaceccb6823c81953d8f39f8a850d939740dbf",
+        "bytes": 2895
+      },
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/execution-result.json",
+        "sha256": "18c8a9b1282d5765b1ec8131cdb809eb407b80833edab5f11518256c74eb37bb",
+        "bytes": 3155
+      },
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/custody-read.json",
+        "sha256": "7a013dca87d5abf8633c5e3bf0ef7f3ec4719b18de2115a5ef5a5f408c1d4e70",
+        "bytes": 1288
+      },
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/image-extraction.json",
+        "sha256": "85e6076d0e379e0db04575ee0543634f90511e211816734a61786fc524b76efb",
+        "bytes": 1186
+      },
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/image-release-manifest.json",
+        "sha256": "1d60ad93ba646329f7c53edc04fe776f1adbe9d1ea042a90980dc88974ec2c93",
+        "bytes": 76658
+      },
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/wheel-identity.json",
+        "sha256": "1b332785292be64d3b72c128272baf4e848c60116b7d729ac887cb8b6be0620c",
+        "bytes": 361
+      },
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/urgent-notification.json",
+        "sha256": "4fab00655e633cf30a8e548b006be1949818ddeb14b5049d820c6a25c5a2411b",
+        "bytes": 1488
+      },
+      {
+        "path": "docs/guala_reconciliation/sources/task1606-boundary/binary-prepare-millisecond-disassembly.txt",
+        "sha256": "bd1d1eaca0d4b015e08c1e0de649009cb509740ab9f914ebab5a6628eed8effe",
+        "review": "Selected call inventory and direct lock-release symbols; not an exhaustive static call-graph proof."
+      }
+    ],
+    "source_binding": "Exact serving Python bytes and manifest/wheel/native identity. Not independent reproducible-build provenance or whole-program qualification.",
+    "root_cause_limit": "No userspace stack captured; native lock retention is a concrete source/binary hazard consistent with live waits, not exclusive dynamic attribution."
+  },
+  "independent_read_only_serving_inspection": true
+}

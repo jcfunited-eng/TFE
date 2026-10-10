@@ -1,0 +1,400 @@
+{
+  "schema": "guala.documentary_slice_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T11:20:31.421072+00:00",
+  "scope": "All eight captured AGENTS versions, one path:252 base lines and18 older passages/79 lines fully read and reconstructed. The earliest old-side predecessor is included with its observed time bound; original creation and authority for omitted clauses remain unresolved. Historical instructions were not executed. No product changes or qualification.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "AG001",
+      "path": "AGENTS.md",
+      "git_blob": "37d7bdc490c075dc8ca4f6e2c7572e91ffee3403",
+      "sha256": "7980c64acc23824b666ebb71e448e5a638131e06a10cab22da9344ad7068d519",
+      "bytes": 5130,
+      "lines": 66,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/agents-history/AG001--AGENTS.md",
+      "observations": [
+        {
+          "author_time": "2026-04-08T23:50:23+00:00",
+          "commit": "1efadfd5e8aab5195333f20b9834794432416182",
+          "side": "old"
+        }
+      ],
+      "review": "All eight captured AGENTS versions, one path:252 base lines and18 older passages/79 lines fully read and reconstructed. The earliest old-side predecessor is included with its observed time bound; original creation and authority for omitted clauses remain unresolved. Historical instructions were not executed. No product changes or qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/agents-history/AG001--AGENTS.md"
+    },
+    {
+      "id": "AG002",
+      "path": "AGENTS.md",
+      "git_blob": "f96a1bd99978a95d9a065a140419cbcb256e7542",
+      "sha256": "ef56721c434b032b68800e75026b6b8f2f603477ca786538e4f9826ad3e5b8d7",
+      "bytes": 8351,
+      "lines": 132,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/agents-history/AG002--AGENTS.md",
+      "observations": [
+        {
+          "author_time": "2026-04-08T23:54:56+00:00",
+          "commit": "355e5f44f32cfce6e7f570a2f82c01053fdb621b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-04-08T23:50:23+00:00",
+          "commit": "1efadfd5e8aab5195333f20b9834794432416182",
+          "side": "new"
+        }
+      ],
+      "review": "All eight captured AGENTS versions, one path:252 base lines and18 older passages/79 lines fully read and reconstructed. The earliest old-side predecessor is included with its observed time bound; original creation and authority for omitted clauses remain unresolved. Historical instructions were not executed. No product changes or qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/agents-history/AG002--AGENTS.md"
+    },
+    {
+      "id": "AG003",
+      "path": "AGENTS.md",
+      "git_blob": "d8d867d156ddbdddc175001b013b26e59bb804ac",
+      "sha256": "e14591af88bd0511d0ad5744d2a865063c6e65576ef21611c94dc4fa783866d9",
+      "bytes": 8498,
+      "lines": 132,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/agents-history/AG003--AGENTS.md",
+      "observations": [
+        {
+          "author_time": "2026-04-11T23:15:40+00:00",
+          "commit": "b9d1f9338d60d5965f616cb5da60b71bfe2d056a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-04-08T23:54:56+00:00",
+          "commit": "355e5f44f32cfce6e7f570a2f82c01053fdb621b",
+          "side": "new"
+        }
+      ],
+      "review": "All eight captured AGENTS versions, one path:252 base lines and18 older passages/79 lines fully read and reconstructed. The earliest old-side predecessor is included with its observed time bound; original creation and authority for omitted clauses remain unresolved. Historical instructions were not executed. No product changes or qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/agents-history/AG003--AGENTS.md"
+    },
+    {
+      "id": "AG004",
+      "path": "AGENTS.md",
+      "git_blob": "8711ab213d32fc3d66c31e95fb10720a280c1520",
+      "sha256": "1a8f1ddce032134862ad96ed8513a3af61c58e39a25ef91da1304a2f79eba105",
+      "bytes": 10828,
+      "lines": 184,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/agents-history/AG004--AGENTS.md",
+      "observations": [
+        {
+          "author_time": "2026-09-22T13:19:41+00:00",
+          "commit": "c4752d81903ff2d187debc77981223fdc558310d",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T08:30:07+00:00",
+          "commit": "a6fa385a3ca312bab39be342a92e91fc46397557",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-04-11T23:15:40+00:00",
+          "commit": "b9d1f9338d60d5965f616cb5da60b71bfe2d056a",
+          "side": "new"
+        }
+      ],
+      "review": "All eight captured AGENTS versions, one path:252 base lines and18 older passages/79 lines fully read and reconstructed. The earliest old-side predecessor is included with its observed time bound; original creation and authority for omitted clauses remain unresolved. Historical instructions were not executed. No product changes or qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/agents-history/AG004--AGENTS.md"
+    },
+    {
+      "id": "AG005",
+      "path": "AGENTS.md",
+      "git_blob": "90cafd4f2a30bf9983c306e1e354efa0a0a86ff4",
+      "sha256": "c9e361f81cc024ffec083f86a9419380710cbf196e56958deff98a24416357a5",
+      "bytes": 12567,
+      "lines": 210,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/agents-history/AG005--AGENTS.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-03T08:30:07+00:00",
+          "commit": "a6fa385a3ca312bab39be342a92e91fc46397557",
+          "side": "new"
+        }
+      ],
+      "review": "All eight captured AGENTS versions, one path:252 base lines and18 older passages/79 lines fully read and reconstructed. The earliest old-side predecessor is included with its observed time bound; original creation and authority for omitted clauses remain unresolved. Historical instructions were not executed. No product changes or qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/agents-history/AG005--AGENTS.md"
+    },
+    {
+      "id": "AG006",
+      "path": "AGENTS.md",
+      "git_blob": "6a14f975b899eaf9afe407f92aa82e42542cf21f",
+      "sha256": "42c55ff34d4b85950efb5ac14d00f3e1153d40d23da3a22f3d3630e3542ee6de",
+      "bytes": 12526,
+      "lines": 204,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/agents-history/AG006--AGENTS.md",
+      "observations": [
+        {
+          "author_time": "2026-09-28T01:01:08+00:00",
+          "commit": "344baa6073770954b0f2f3a0bbc8f52ea4a47a64",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-22T13:19:41+00:00",
+          "commit": "c4752d81903ff2d187debc77981223fdc558310d",
+          "side": "new"
+        }
+      ],
+      "review": "All eight captured AGENTS versions, one path:252 base lines and18 older passages/79 lines fully read and reconstructed. The earliest old-side predecessor is included with its observed time bound; original creation and authority for omitted clauses remain unresolved. Historical instructions were not executed. No product changes or qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/agents-history/AG006--AGENTS.md"
+    },
+    {
+      "id": "AG007",
+      "path": "AGENTS.md",
+      "git_blob": "5ca60681ff7a48f9d191ed609775d8494f911402",
+      "sha256": "356e1b4e1366b195e382f7e4512fe07d78b3993bb80f9f3a3aba78fad55eaa3a",
+      "bytes": 14499,
+      "lines": 235,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/agents-history/AG007--AGENTS.md",
+      "observations": [
+        {
+          "author_time": "2026-10-01T11:51:12+00:00",
+          "commit": "2d5cf0fc63913b770db3c9a06cb0efb27902a4f1",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-28T01:01:08+00:00",
+          "commit": "344baa6073770954b0f2f3a0bbc8f52ea4a47a64",
+          "side": "new"
+        }
+      ],
+      "review": "All eight captured AGENTS versions, one path:252 base lines and18 older passages/79 lines fully read and reconstructed. The earliest old-side predecessor is included with its observed time bound; original creation and authority for omitted clauses remain unresolved. Historical instructions were not executed. No product changes or qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/agents-history/AG007--AGENTS.md"
+    },
+    {
+      "id": "AG008",
+      "path": "AGENTS.md",
+      "git_blob": "4135256cffeb5b5ca0f1edba429c66fde04cd07f",
+      "sha256": "484cf6d4c437112d1554b152a33efc0f92e7382f56014603c063052d82aa42a5",
+      "bytes": 15847,
+      "lines": 252,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/agents-history/AG008--AGENTS.md",
+      "observations": [
+        {
+          "author_time": "2026-10-01T11:51:12+00:00",
+          "commit": "2d5cf0fc63913b770db3c9a06cb0efb27902a4f1",
+          "side": "new"
+        }
+      ],
+      "review": "All eight captured AGENTS versions, one path:252 base lines and18 older passages/79 lines fully read and reconstructed. The earliest old-side predecessor is included with its observed time bound; original creation and authority for omitted clauses remain unresolved. Historical instructions were not executed. No product changes or qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/agents-history/AG008--AGENTS.md"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "AGR01",
+      "name": "The anti-heuristic and non-flattening requirements predate the 64-column work",
+      "classification": "longstanding_contract_not_a_new_late_requirement",
+      "historical_requirement_or_mechanism": "The oldest indexed predecessor AG001, observed on the old side of the April8 commit, already forbids heuristics and code shortcuts without approval, rejects static meaning/score-driven substitutes, preserves explicit full DSF structure and requires the honesty gate. Later additions elaborate rather than first invent those obligations.",
+      "current_disposition": "April8 is an observed predecessor bound, not the unknown original creation date. Governance text proves a requirement existed; it does not prove implementation complied or that any person knowingly deceived Joe.",
+      "lawful_remedy": "Carry these requirements into each mechanism specification and actual update/decision-law audit. Identify a precise original approval for an exception; absence of an ML library, determinism or a physical name cannot establish compliance. Keep L0–L4 frozen.",
+      "unit_acceptance": "Check each claimed primitive against its actual law, complete inputs and expected refusal; prohibit answer-bearing lookup and unapproved scalar projections.",
+      "module_acceptance": "Trace all actual producers, consumers and persisted states across native/Python boundaries with full field and clock identity.",
+      "system_acceptance": "Qualify acquired cognition, syntax and autonomy through ordinary retained-state behavior with matched controls on the exact preserved release.",
+      "release_acceptance": "Bind the approved requirement, actual source, compiled release, active acquired state and independent live evidence. This historical governance review is neither enforcement nor qualification; no speech, system or ML-free certificate.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A04",
+        "A05",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "AG001",
+          "path": "docs/guala_reconciliation/sources/agents-history/AG001--AGENTS.md",
+          "line": 7,
+          "anchor": "- Heuristics and code shortcuts are forbidden unless approved by the user.",
+          "sha256": "7980c64acc23824b666ebb71e448e5a638131e06a10cab22da9344ad7068d519"
+        },
+        {
+          "source_id": "AG001",
+          "path": "docs/guala_reconciliation/sources/agents-history/AG001--AGENTS.md",
+          "line": 29,
+          "anchor": "- Do not extend an existing mechanism merely because it already exists in the repo.",
+          "sha256": "7980c64acc23824b666ebb71e448e5a638131e06a10cab22da9344ad7068d519"
+        },
+        {
+          "source_id": "AG001",
+          "path": "docs/guala_reconciliation/sources/agents-history/AG001--AGENTS.md",
+          "line": 40,
+          "anchor": "- Do not flatten the DSF field into a compatibility vector, bucket family, cell key, or other reduced proxy if explicit DSF fields are available.",
+          "sha256": "7980c64acc23824b666ebb71e448e5a638131e06a10cab22da9344ad7068d519"
+        },
+        {
+          "source_id": "AG001",
+          "path": "docs/guala_reconciliation/sources/agents-history/AG001--AGENTS.md",
+          "line": 53,
+          "anchor": "Before any substantial work, the agent must state these five items in plain language:",
+          "sha256": "7980c64acc23824b666ebb71e448e5a638131e06a10cab22da9344ad7068d519"
+        }
+      ]
+    },
+    {
+      "id": "AGR02",
+      "name": "An explicit pure-physics audit paragraph disappeared between versions",
+      "classification": "documentary_omission_without_proven_authority_repeal",
+      "historical_requirement_or_mechanism": "AG005 lines156–180 explicitly place authentication, locks, digests, serialization, persistence and UI outside the physical transition, require exact reached-frontier work and bounded causative state, and require transitive review beyond behavioral passes. This paragraph is absent from the subsequent captured AG006–AG008.",
+      "current_disposition": "Omission alone neither proves an approved repeal nor proves present implementation violates every old phrase. Current user instructions and separately ratified boundary contracts govern. Physical admissibility and conservation checks are distinct from repeated external authentication.",
+      "lawful_remedy": "Recover the removal decision and current boundary authority, then map the invariant to the actual compiled call graph and measured cost. Preserve the lawful physical guards, sole ownership and canonical state while moving unrelated custody/observation work outside the transition. Do not use old wording to demand molecular reconstruction or discard organism history.",
+      "unit_acceptance": "Verify exact local participation, required physical guards and unchanged accepted transition outcomes without duplicated external validation.",
+      "module_acceptance": "Audit transitive native calls, interpreter-lock ownership, callbacks, recurrence, observer work and persistence boundaries; measure reached component/edge work.",
+      "system_acceptance": "Show bounded real progress, sensory latency and coherent cold continuation under ordinary load on preserved state; endpoint health alone is insufficient.",
+      "release_acceptance": "Bind the approved requirement, actual source, compiled release, active acquired state and independent live evidence. This historical governance review is neither enforcement nor qualification; no speech, system or ML-free certificate.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A09",
+        "A13",
+        "A14",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "AG005",
+          "path": "docs/guala_reconciliation/sources/agents-history/AG005--AGENTS.md",
+          "line": 156,
+          "anchor": "# Permanent Pure-Physics Boundary Audit",
+          "sha256": "c9e361f81cc024ffec083f86a9419380710cbf196e56958deff98a24416357a5"
+        },
+        {
+          "source_id": "AG005",
+          "path": "docs/guala_reconciliation/sources/agents-history/AG005--AGENTS.md",
+          "line": 161,
+          "anchor": "- A physics path begins with already-authenticated, locality-resolved physical",
+          "sha256": "c9e361f81cc024ffec083f86a9419380710cbf196e56958deff98a24416357a5"
+        },
+        {
+          "source_id": "AG005",
+          "path": "docs/guala_reconciliation/sources/agents-history/AG005--AGENTS.md",
+          "line": 170,
+          "anchor": "- Transition each reached component and reached sparse edge exactly once per",
+          "sha256": "c9e361f81cc024ffec083f86a9419380710cbf196e56958deff98a24416357a5"
+        },
+        {
+          "source_id": "AG005",
+          "path": "docs/guala_reconciliation/sources/agents-history/AG005--AGENTS.md",
+          "line": 177,
+          "anchor": "- A behavioral test pass is insufficient. Source and transitive-call review,",
+          "sha256": "c9e361f81cc024ffec083f86a9419380710cbf196e56958deff98a24416357a5"
+        }
+      ]
+    },
+    {
+      "id": "AGR03",
+      "name": "Project identity and role descriptions evolved without becoming execution evidence",
+      "classification": "legitimate_scope_expansion_with_unverified_capability_descriptions",
+      "historical_requirement_or_mechanism": "Early versions describe financial L5 domain interpretation and a future ArcLoom hardware/android destination; later versions describe two complementary proving grounds, simulated neuromorphic anatomy and intended material laws. A historical financial85percent floor and a named Claude ownership statement also appear.",
+      "current_disposition": "A charter description is requested architecture, not proof that the stated contact law, sensing, cognition or hardware is active. The financial threshold cannot qualify speech. Old role names, permissions and commands cannot override current G1 implementation/A1 audit assignment or Joe’s October5 functional-equivalence instruction.",
+      "lawful_remedy": "Keep one canonical separation of requested architecture, approved constitutive law, actual implementation and measured behavior. Record genuine extensions and exact capability limits without importing financial success criteria or old operational authority into current speech qualification.",
+      "unit_acceptance": "Verify units, derivations and literal primitive behavior against the approved specification rather than charter prose.",
+      "module_acceptance": "Bind each claimed architectural connection to its actual current caller, retained state and effect.",
+      "system_acceptance": "Demonstrate each claimed organism capability through its own predeclared causal acceptance; qualify hardware and software separately.",
+      "release_acceptance": "Bind the approved requirement, actual source, compiled release, active acquired state and independent live evidence. This historical governance review is neither enforcement nor qualification; no speech, system or ML-free certificate.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A10",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "AG002",
+          "path": "docs/guala_reconciliation/sources/agents-history/AG002--AGENTS.md",
+          "line": 48,
+          "anchor": "1. You are solving **physics problems** (entropy, cohesion, structural greed),",
+          "sha256": "ef56721c434b032b68800e75026b6b8f2f603477ca786538e4f9826ad3e5b8d7"
+        },
+        {
+          "source_id": "AG003",
+          "path": "docs/guala_reconciliation/sources/agents-history/AG003--AGENTS.md",
+          "line": 1,
+          "anchor": "# What This Project Is",
+          "sha256": "e14591af88bd0511d0ad5744d2a865063c6e65576ef21611c94dc4fa783866d9"
+        },
+        {
+          "source_id": "AG008",
+          "path": "docs/guala_reconciliation/sources/agents-history/AG008--AGENTS.md",
+          "line": 1,
+          "anchor": "# What This Project Is: DSF-AI Proving Grounds",
+          "sha256": "484cf6d4c437112d1554b152a33efc0f92e7382f56014603c063052d82aa42a5"
+        },
+        {
+          "source_id": "AG008",
+          "path": "docs/guala_reconciliation/sources/agents-history/AG008--AGENTS.md",
+          "line": 39,
+          "anchor": "",
+          "sha256": "484cf6d4c437112d1554b152a33efc0f92e7382f56014603c063052d82aa42a5"
+        }
+      ]
+    },
+    {
+      "id": "AGR04",
+      "name": "Anti-facade hardening must apply to mechanisms rather than banned tokens",
+      "classification": "later_explicit_failure_visibility_reinforces_existing_contract",
+      "historical_requirement_or_mechanism": "AG008 explicitly rejects truncated ternary positions, fake smoothing as biophysics, dimensionless billion multipliers, sidecars bypassing canonical state and engineering solely to make tests green. Missing capabilities must remain explicit failures. The Anvil additions preserve invariants under pressure.",
+      "current_disposition": "A strict XFAIL is not evidence of capability; a false scientific label is not a lawful mechanism. Conversely a derived joule-to-nanojoule conversion, a declared work ceiling or Joe’s specifically approved functional vocal oscillator is not disqualified merely because a number or cosine appears. Earlier source-specific reconciliations preserve those distinctions.",
+      "lawful_remedy": "Classify every actual law, parameter, state change and test predicate with original authority and units. Preserve valid functional emulation and actual sound while refusing fabricated learned speech. Report the exact first failed causal boundary and its lawful repair; neither guaranteed emergence nor permanent speech impossibility is proved.",
+      "unit_acceptance": "Test exact mathematical/physical invariants and unsupported-boundary refusal; no softening expected values, fabricated inputs or hidden state mutations.",
+      "module_acceptance": "Trace ordinary hearing, retention, recall, ordered motor control, pressure and self-hearing independently; an isolated organ fixture cannot pass the learned chain.",
+      "system_acceptance": "Require intelligible, experience-dependent, grounded later use and relational syntax where claimed, with preserved-state controls and exact release binding.",
+      "release_acceptance": "Bind the approved requirement, actual source, compiled release, active acquired state and independent live evidence. This historical governance review is neither enforcement nor qualification; no speech, system or ML-free certificate.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A09",
+        "A10",
+        "A14",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "AG008",
+          "path": "docs/guala_reconciliation/sources/agents-history/AG008--AGENTS.md",
+          "line": 217,
+          "anchor": "# Permanent Anvil Protocol (Anti-Sycophancy & Invariant Gate)",
+          "sha256": "484cf6d4c437112d1554b152a33efc0f92e7382f56014603c063052d82aa42a5"
+        },
+        {
+          "source_id": "AG008",
+          "path": "docs/guala_reconciliation/sources/agents-history/AG008--AGENTS.md",
+          "line": 239,
+          "anchor": "# Permanent DARPA Anti-Shortcut & Ground-Truth Failure Mandate (Turn-by-Turn Invariant)",
+          "sha256": "484cf6d4c437112d1554b152a33efc0f92e7382f56014603c063052d82aa42a5"
+        },
+        {
+          "source_id": "AG008",
+          "path": "docs/guala_reconciliation/sources/agents-history/AG008--AGENTS.md",
+          "line": 244,
+          "anchor": "     * Truncating ternary digits or positional bounds (`.take(N)`).",
+          "sha256": "484cf6d4c437112d1554b152a33efc0f92e7382f56014603c063052d82aa42a5"
+        },
+        {
+          "source_id": "AG008",
+          "path": "docs/guala_reconciliation/sources/agents-history/AG008--AGENTS.md",
+          "line": 251,
+          "anchor": "   - Unimplemented capabilities must remain explicit, strict failures (`XFAIL` / `NotImplementedError`) until genuine continuum physics is implemented.",
+          "sha256": "484cf6d4c437112d1554b152a33efc0f92e7382f56014603c063052d82aa42a5"
+        }
+      ]
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false
+}

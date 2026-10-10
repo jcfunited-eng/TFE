@@ -1,0 +1,20 @@
+{
+  "at_utc": "2026-10-09T22:01:51.076985+00:00",
+  "id": "sha256:fa39dad6277cf849a8952bd8e8f43f0f1d39e22eba68bf2fe114679ae0594fe1",
+  "digests": [
+    "418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:fa39dad6277cf849a8952bd8e8f43f0f1d39e22eba68bf2fe114679ae0594fe1"
+  ],
+  "entrypoint": null,
+  "command": [
+    "uvicorn",
+    "dsf_ai_service.lean_production_app:app",
+    "--host",
+    "0.0.0.0",
+    "--port",
+    "8080",
+    "--workers",
+    "1",
+    "--no-access-log"
+  ],
+  "revision": "702be702e"
+}

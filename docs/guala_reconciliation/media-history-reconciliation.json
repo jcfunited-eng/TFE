@@ -1,0 +1,1868 @@
+{
+  "schema": "guala.media_history_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T04:44:58.369150+00:00",
+  "scope": "All53 versions across four L007/L008/L009 paths. Complete content review; documentary custody is not original execution/current mechanism qualification.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "MI1-01",
+      "path": "docs/GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md",
+      "git_blob": "7ced507ea2ec9b2eaa82bba4c42e225972e9dac1",
+      "sha256": "c7606eaf95ee7b71f106470e73ce944a61de5df922a529ec1fdaf7eac00fd7c4",
+      "bytes": 8351,
+      "lines": 136,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI1-01--GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T18:48:37+00:00",
+          "commit": "00424525925e31b4ba8678afe6c8a3346ae36b63",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T18:32:59+00:00",
+          "commit": "ce964e6e788b2566824f3d7059f539871f0f8e5e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI1-01--GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md"
+    },
+    {
+      "id": "MI1-02",
+      "path": "docs/GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md",
+      "git_blob": "948aec576833b14aaed7a02b35e7e6b9f3c6f299",
+      "sha256": "6b5c78f7660bcb025bee83abb390d2d247735208a0876dde834d7b57e81ef3de",
+      "bytes": 6012,
+      "lines": 101,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI1-02--GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T18:32:59+00:00",
+          "commit": "ce964e6e788b2566824f3d7059f539871f0f8e5e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T18:29:21+00:00",
+          "commit": "44c03b3f94fff1ace383e3acc202ffa4e940b46a",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI1-02--GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md"
+    },
+    {
+      "id": "MI1-03",
+      "path": "docs/GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md",
+      "git_blob": "a1f0d2ed0fed50f661f1a79af2f34719b0122560",
+      "sha256": "ce28f92365ccae852571d9cf7311eadab9faa482f213ba436836f65b0ed9ebe4",
+      "bytes": 13243,
+      "lines": 217,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI1-03--GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T07:04:32+00:00",
+          "commit": "40fef0f677c9aa5b9c46fecc2e95d887e027d2dc",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI1-03--GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md"
+    },
+    {
+      "id": "MI1-04",
+      "path": "docs/GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md",
+      "git_blob": "d50a1ca3defa9945e732e60b2055fbac0c66d205",
+      "sha256": "0feed9bcccdf02defdbb0fcdf6ddb4502125b9fec45bd0085c8763865b87a666",
+      "bytes": 10568,
+      "lines": 172,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI1-04--GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T07:04:32+00:00",
+          "commit": "40fef0f677c9aa5b9c46fecc2e95d887e027d2dc",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T18:48:37+00:00",
+          "commit": "00424525925e31b4ba8678afe6c8a3346ae36b63",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI1-04--GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md"
+    },
+    {
+      "id": "MI2-01",
+      "path": "docs/GUALA_L008_L009_LOCAL_SETUP_2026-08-17.md",
+      "git_blob": "378ae0e70cf2f08dc0891cbb68af70ecbeff8bf8",
+      "sha256": "51090450a5efd9bb34431a908365d2901f3dd52fce0a08726e0b64d4e79a5aba",
+      "bytes": 4908,
+      "lines": 95,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI2-01--GUALA_L008_L009_LOCAL_SETUP_2026-08-17.md",
+      "observations": [
+        {
+          "author_time": "2026-08-17T15:33:07+00:00",
+          "commit": "4b4753f5f53a2f7a6a2137411298c69d18197dd3",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-17T15:30:36+00:00",
+          "commit": "503463de8a63eead214aaa1f0d7510cc9c20daed",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI2-01--GUALA_L008_L009_LOCAL_SETUP_2026-08-17.md"
+    },
+    {
+      "id": "MI2-02",
+      "path": "docs/GUALA_L008_L009_LOCAL_SETUP_2026-08-17.md",
+      "git_blob": "410baacd01ab81473198e8f537b2af1802ef11d2",
+      "sha256": "fed557726522ca770497e44fbe7a6579b3683ce90816bee999be4396057f2eae",
+      "bytes": 4684,
+      "lines": 92,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI2-02--GUALA_L008_L009_LOCAL_SETUP_2026-08-17.md",
+      "observations": [
+        {
+          "author_time": "2026-08-17T15:30:36+00:00",
+          "commit": "503463de8a63eead214aaa1f0d7510cc9c20daed",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-17T15:29:07+00:00",
+          "commit": "a3f8d1e8a4dab1cd9f8adae785e8c4266f361df1",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI2-02--GUALA_L008_L009_LOCAL_SETUP_2026-08-17.md"
+    },
+    {
+      "id": "MI2-03",
+      "path": "docs/GUALA_L008_L009_LOCAL_SETUP_2026-08-17.md",
+      "git_blob": "4729d1851bad6ed315bd13504e89bd687ab1226a",
+      "sha256": "bdc825a61855cb822704196b1ff0d7ade88fffe7082667ac4baaa845e3e77cc7",
+      "bytes": 3932,
+      "lines": 82,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI2-03--GUALA_L008_L009_LOCAL_SETUP_2026-08-17.md",
+      "observations": [
+        {
+          "author_time": "2026-08-17T15:24:42+00:00",
+          "commit": "8305d8ef9fd1c01d3e276acea9bafb12a36ff6b1",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-17T15:16:51+00:00",
+          "commit": "d5d508139cc6262c1583f1650d3ce37f4fbbc81b",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI2-03--GUALA_L008_L009_LOCAL_SETUP_2026-08-17.md"
+    },
+    {
+      "id": "MI2-04",
+      "path": "docs/GUALA_L008_L009_LOCAL_SETUP_2026-08-17.md",
+      "git_blob": "743ea790928fbe00662c5a7ec140219260c35b67",
+      "sha256": "c46bf138783d68dd3b60fac52d0e3ad36143c9f463d795c2649adaa62eb4ca22",
+      "bytes": 5390,
+      "lines": 103,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI2-04--GUALA_L008_L009_LOCAL_SETUP_2026-08-17.md",
+      "observations": [
+        {
+          "author_time": "2026-08-17T15:33:07+00:00",
+          "commit": "4b4753f5f53a2f7a6a2137411298c69d18197dd3",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI2-04--GUALA_L008_L009_LOCAL_SETUP_2026-08-17.md"
+    },
+    {
+      "id": "MI2-05",
+      "path": "docs/GUALA_L008_L009_LOCAL_SETUP_2026-08-17.md",
+      "git_blob": "7aa059dd81967aa2d0c51efc622f939fc246d047",
+      "sha256": "30212b1130bb020a4033872de5bea5ca0b4851e4ae7f5b9212a2c8a596ea9176",
+      "bytes": 4530,
+      "lines": 90,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI2-05--GUALA_L008_L009_LOCAL_SETUP_2026-08-17.md",
+      "observations": [
+        {
+          "author_time": "2026-08-17T15:29:07+00:00",
+          "commit": "a3f8d1e8a4dab1cd9f8adae785e8c4266f361df1",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-17T15:24:42+00:00",
+          "commit": "8305d8ef9fd1c01d3e276acea9bafb12a36ff6b1",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI2-05--GUALA_L008_L009_LOCAL_SETUP_2026-08-17.md"
+    },
+    {
+      "id": "MI3-01",
+      "path": "docs/GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "git_blob": "07ad705be161a3db83de94e270045e5773c36299",
+      "sha256": "f8cf4c93b8a93c09edf8d44532fc8f3f9d2aa828cfbbb8b8327116bf43b2c1db",
+      "bytes": 4975,
+      "lines": 89,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI3-01--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T19:06:33+00:00",
+          "commit": "0a00c5e96040d506f54692eb9493e07861f4c31f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T19:01:56+00:00",
+          "commit": "4878033ef5171cff987a6f4bdc84ad8527baceee",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI3-01--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md"
+    },
+    {
+      "id": "MI3-02",
+      "path": "docs/GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "git_blob": "10273f1c332659f70abb510ae60bb89a6485b2c6",
+      "sha256": "dd711405737ebd0b31a363b975b041ba5ff049d832f0dc7380dc8136ff4c4d93",
+      "bytes": 13861,
+      "lines": 240,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI3-02--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T07:17:17+00:00",
+          "commit": "42d5f8d0a8f93e15737755dec546adc2aa9f7248",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T07:12:44+00:00",
+          "commit": "8bb04fbd6871334996ac6e02a0523f09991be638",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI3-02--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md"
+    },
+    {
+      "id": "MI3-03",
+      "path": "docs/GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "git_blob": "2afad62a1e922b1933093c687ce5e94ae860c1e8",
+      "sha256": "0ba949ff535f0b67f52750f983fb7452e0b210fe935842552d4e1cb9eab75f36",
+      "bytes": 3900,
+      "lines": 70,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI3-03--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T19:01:56+00:00",
+          "commit": "4878033ef5171cff987a6f4bdc84ad8527baceee",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T19:01:22+00:00",
+          "commit": "53ba3fbf61a5870a0f2438f75a03c96a4f1af5bc",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI3-03--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md"
+    },
+    {
+      "id": "MI3-04",
+      "path": "docs/GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "git_blob": "3984043dfbb9b2a14a4519e0b9480724854d6a0b",
+      "sha256": "ce66b5b1823082599fda27834377b497d61c08b622c604cdb1e1ad9b0265ba90",
+      "bytes": 15557,
+      "lines": 270,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI3-04--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T07:19:42+00:00",
+          "commit": "5e0d8cc155328e211f62662bf4b16574f8a7cc0b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T07:17:17+00:00",
+          "commit": "42d5f8d0a8f93e15737755dec546adc2aa9f7248",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI3-04--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md"
+    },
+    {
+      "id": "MI3-05",
+      "path": "docs/GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "git_blob": "4c1bb644e7b53858d74e687891bcc5d9638a47d2",
+      "sha256": "2076cc2a83c09641ebb8629f5d3987375d513f72a97cfad3b12389f9a5ab14f9",
+      "bytes": 12355,
+      "lines": 213,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI3-05--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T07:12:44+00:00",
+          "commit": "8bb04fbd6871334996ac6e02a0523f09991be638",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T07:10:32+00:00",
+          "commit": "a4ae2fe105bbcb035cb0a907e0af1a81c1a9f7f0",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI3-05--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md"
+    },
+    {
+      "id": "MI3-06",
+      "path": "docs/GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "git_blob": "65c061f120af4745719af7bcbb1604b2b73a0090",
+      "sha256": "4e4a4012457e4bb21245f786e18e1b29bceac66a1700d54b199da3bd56db8d69",
+      "bytes": 17728,
+      "lines": 305,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI3-06--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T07:19:42+00:00",
+          "commit": "5e0d8cc155328e211f62662bf4b16574f8a7cc0b",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI3-06--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md"
+    },
+    {
+      "id": "MI3-07",
+      "path": "docs/GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "git_blob": "7a903327c4bd30d522748a323a54c23696e0d490",
+      "sha256": "ed3cb775227d1a2ffaad2e420a5ec416924e12b4a66ae9b2c340b8f5acfb297f",
+      "bytes": 5610,
+      "lines": 101,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI3-07--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T19:17:54+00:00",
+          "commit": "032d1d8234b7a0cff2fe6d179ca1f18f99fd5e29",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T19:06:33+00:00",
+          "commit": "0a00c5e96040d506f54692eb9493e07861f4c31f",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI3-07--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md"
+    },
+    {
+      "id": "MI3-08",
+      "path": "docs/GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "git_blob": "867c1a213d7b06d6e91fdc2b96155c76d2c59581",
+      "sha256": "33ba9e4f0ea9bed9793031513e8e04ef2dffe73c714ee8b7a435dd4bd2cf6d91",
+      "bytes": 7007,
+      "lines": 124,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI3-08--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T19:27:05+00:00",
+          "commit": "9bf88fdddfd828ea146c307306fb02c9724ecfe9",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T19:17:54+00:00",
+          "commit": "032d1d8234b7a0cff2fe6d179ca1f18f99fd5e29",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI3-08--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md"
+    },
+    {
+      "id": "MI3-09",
+      "path": "docs/GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "git_blob": "a68589238d0ea41d70685f2a7f4bc1755519686c",
+      "sha256": "1951dad34f44b1607a824776b9f19151b23c021984d259cecff70a6057a7d63f",
+      "bytes": 10774,
+      "lines": 187,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI3-09--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T07:10:32+00:00",
+          "commit": "a4ae2fe105bbcb035cb0a907e0af1a81c1a9f7f0",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T07:08:30+00:00",
+          "commit": "f6e36d284586b5b6bdd2ec0c1b6864bacad4318b",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI3-09--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md"
+    },
+    {
+      "id": "MI3-10",
+      "path": "docs/GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "git_blob": "f00733449c2f94688daff9117acbdd1039747d4c",
+      "sha256": "4f785ecc5e32db9b7f3c268f40c86ac239b7a573adfcdb4222f8e546036c1736",
+      "bytes": 8711,
+      "lines": 153,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI3-10--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T07:08:30+00:00",
+          "commit": "f6e36d284586b5b6bdd2ec0c1b6864bacad4318b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T19:27:05+00:00",
+          "commit": "9bf88fdddfd828ea146c307306fb02c9724ecfe9",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI3-10--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md"
+    },
+    {
+      "id": "MI4-01",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "06d4a0756938091b344587df38e2b1c4c1ffe096",
+      "sha256": "ae5dbe6200dd5d0c5ee4253e1e133546ee6b0b924275d33a76a162259d0cddff",
+      "bytes": 9040,
+      "lines": 177,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-01--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T13:58:47+00:00",
+          "commit": "5e98f5033cf3716f1eca4478ed636e304ec05094",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T13:22:10+00:00",
+          "commit": "7d1d40d12e57abb4be9dd5ba701db2ed33f9a47c",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-01--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-02",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "0ee52ba49251ca14a73b3fc6cbe0206f92a66548",
+      "sha256": "b70425a1942a613bf053a0a25f345198e919db6b77a1489ea3bdafa1ba8b22f0",
+      "bytes": 7227,
+      "lines": 147,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-02--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T13:22:10+00:00",
+          "commit": "7d1d40d12e57abb4be9dd5ba701db2ed33f9a47c",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T13:11:11+00:00",
+          "commit": "565434df491b5f3f7ecb8f728089b1e51db704ce",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-02--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-03",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "13bcfa92e7353f504020f49d32ed92299a080379",
+      "sha256": "efc109f3b9d9c115ad98b99d7b8c6ebe1167377d07f3edc13f1521f4d25648c1",
+      "bytes": 17920,
+      "lines": 337,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-03--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T16:17:35+00:00",
+          "commit": "65a60e40cce5415e00356dcae2b3eee12462167e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T15:50:32+00:00",
+          "commit": "6cad5e706804936605500532b5c1eebfd16861bc",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-03--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-04",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "1c5362c66e31445e2b94193be9029faf202b04f3",
+      "sha256": "637bf4da5c5b1a6935d01c4589ad87053b371af6d1237d1741740b74c90e55d5",
+      "bytes": 56107,
+      "lines": 938,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-04--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T23:28:34+00:00",
+          "commit": "d6f263c3f4df36dc6e3e8893e27ffb7074484b36",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T23:03:26+00:00",
+          "commit": "e2d43083bdd23384ddc8f41975676c80a0bb5492",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-04--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-05",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "270244e5b514ddcbe98278c54e7ccc0f6e243799",
+      "sha256": "3ea2b5e282451bd766d581c61b11b6b908f30ba85210b1d579c2f4f6cbd0039f",
+      "bytes": 14523,
+      "lines": 275,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-05--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T15:50:32+00:00",
+          "commit": "6cad5e706804936605500532b5c1eebfd16861bc",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T14:35:17+00:00",
+          "commit": "310e17c9d510284979112b9641df7f4bb84c4edd",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-05--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-06",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "291fddd8a3c24546fc4b95f466bbe5924b4624e5",
+      "sha256": "82f9ed9384a81ce623861f1b10eb40b26e1e89f41f6367dee4a54da29435dec3",
+      "bytes": 58205,
+      "lines": 974,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-06--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T23:37:46+00:00",
+          "commit": "265cfe2f9d45e5f8192269678d6f5726a3d8a499",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T23:28:34+00:00",
+          "commit": "d6f263c3f4df36dc6e3e8893e27ffb7074484b36",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-06--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-07",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "4219f07ed644cbbccd634ec788b052b52894e5c8",
+      "sha256": "a41159ca87a2c7c1eea545097de458e41b859eb497081be519034b2ee2d83569",
+      "bytes": 49797,
+      "lines": 856,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-07--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T23:03:26+00:00",
+          "commit": "e2d43083bdd23384ddc8f41975676c80a0bb5492",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T22:34:28+00:00",
+          "commit": "ffc1474f6bd22024e1ba4e68ebfff19685f86ed3",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-07--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-08",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "54fc875d04f04ebc721bc2cc4e43918e3ad98a8a",
+      "sha256": "f207fd5201cc92ea864cf38a46b427d218abd83a908ed8ef6a892df44a2a105a",
+      "bytes": 60472,
+      "lines": 1015,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-08--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T23:53:01+00:00",
+          "commit": "616212378950b6600eb66b4dce890fcdafd800f6",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T23:49:32+00:00",
+          "commit": "a9467de5c09a33132c1522cf3b974dd2e54c008e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-08--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-09",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "5bd1b28ac3fce0ab0d4e7c023f6e325953363072",
+      "sha256": "4431bcd3a00ccb0ea4a7166369595dd7f807ea015567769e3c30d82848b8ec4b",
+      "bytes": 69417,
+      "lines": 1163,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-09--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T01:25:28+00:00",
+          "commit": "61db33037eff2cf17a7443ec90f1b58e9812f175",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T01:12:04+00:00",
+          "commit": "f8b59bf3116b641462ca2369d122a209fc0b5407",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-09--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-10",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "5d1ded915e1bd6e10f7939d3df7c312242b1e5db",
+      "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+      "bytes": 80495,
+      "lines": 1347,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T03:32:48+00:00",
+          "commit": "a94ea818f61bf2036401070c58df55418a190342",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-11",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "602560f746a27819405123ebe315056479a4eacc",
+      "sha256": "8f6b8673e1457a96a4e909118f6c37d209352602cc483e0be09fd459eb580dd1",
+      "bytes": 61299,
+      "lines": 1029,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-11--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T00:26:14+00:00",
+          "commit": "e3e249d24f7a8bd8397ceb45f7c4373b301beb7e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T23:53:01+00:00",
+          "commit": "616212378950b6600eb66b4dce890fcdafd800f6",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-11--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-12",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "643de91cf3f816e8297e24a78268567fcc20c060",
+      "sha256": "277e25265f8e0f706cca6ee5aaede859d90241a891f11b1b0709eba9c6fe9789",
+      "bytes": 21154,
+      "lines": 393,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-12--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T17:17:29+00:00",
+          "commit": "65daf89de147b971c17c5a558e7e0f5e641c5f29",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T17:11:18+00:00",
+          "commit": "fcf6046fa9dc8898b3c5e08a048ed916b2da6dd5",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-12--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-13",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "770de43988602a1eda6acbedea81c2af15b6ef32",
+      "sha256": "0867a66b05cd055cde5dd1951dd9f1bee5ef234555b4a4e54b1c953895df7145",
+      "bytes": 6272,
+      "lines": 130,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-13--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T13:11:11+00:00",
+          "commit": "565434df491b5f3f7ecb8f728089b1e51db704ce",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T08:31:29+00:00",
+          "commit": "a2211004798b788b672ff0d085f3b121fedcf84a",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-13--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-14",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "7f730a48ca3f1d72feb717236f42a27f5fcbef32",
+      "sha256": "896b91647ba7c3e9a442e7f5daf51a8f3901468c5d8a49df55fbc1011529678c",
+      "bytes": 21708,
+      "lines": 402,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-14--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:54:14+00:00",
+          "commit": "bf87fa47cb4f1eea5ff70eacc0ec99c068cffb4e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T17:17:29+00:00",
+          "commit": "65daf89de147b971c17c5a558e7e0f5e641c5f29",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-14--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-15",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "8663c5c2d3f16ba0f94f9de4fad34f88d64edc40",
+      "sha256": "53f07a1937309c20e6d511f53e0b1dacce662b1619fb8be2ba5ad5b71e780554",
+      "bytes": 63454,
+      "lines": 1065,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-15--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T00:40:44+00:00",
+          "commit": "8f4eb89a18ebb44dd23c75abdff3f506db9ead60",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T00:26:14+00:00",
+          "commit": "e3e249d24f7a8bd8397ceb45f7c4373b301beb7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-15--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-16",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "86c723fd02633ec8c9ebb484928a0bdb29fcdeaf",
+      "sha256": "03d6e8beb35fc009ec95d29cd78e9411693802f3aaa9363ddbf6d6dececc8d29",
+      "bytes": 27957,
+      "lines": 496,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-16--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T21:57:22+00:00",
+          "commit": "0dcad767743553c3a7f8b303f5c145a46671a83d",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T18:54:14+00:00",
+          "commit": "bf87fa47cb4f1eea5ff70eacc0ec99c068cffb4e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-16--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-17",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "9081671d1ef2dba998d2e046a835b8548cfd85b2",
+      "sha256": "5afa76d5e0a84ea662761072f8cd9edbd96262e537168bc376c6856c2b9b8aaf",
+      "bytes": 4263,
+      "lines": 91,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-17--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T08:21:36+00:00",
+          "commit": "1b72ee5d08324d22a7ce7b640b4ec42ff0acbdc2",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T08:09:11+00:00",
+          "commit": "109e2c8b22b8b3e856353884fadc08f8ed6a66af",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-17--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-18",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "909229efb20720d4c884d4ddfcc255aab106f714",
+      "sha256": "5af83d4469419bcb297b636a0e652b7ceefe27835f2c52d8ca7b4f61d262fbd6",
+      "bytes": 64092,
+      "lines": 1075,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-18--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T00:56:10+00:00",
+          "commit": "a0b8e4cb8b421ad7fa4c3d4beafb28732f80f1e6",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T00:40:44+00:00",
+          "commit": "8f4eb89a18ebb44dd23c75abdff3f506db9ead60",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-18--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-19",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "919a3adb24f61d53e7361b3796f67164cba9f54e",
+      "sha256": "a1bc4778b992a8621f1ebbd0a90d7eadba3a5fb8f79fcd1709a71c0f0514a4e4",
+      "bytes": 59208,
+      "lines": 991,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-19--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T23:49:32+00:00",
+          "commit": "a9467de5c09a33132c1522cf3b974dd2e54c008e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T23:37:46+00:00",
+          "commit": "265cfe2f9d45e5f8192269678d6f5726a3d8a499",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-19--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-20",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "92f8efbf2277fd085ed398fa7b9ba9e7bdcf1f4c",
+      "sha256": "7d4bdf9c283b59c923835228e8e7ff9a8adb0605c8bb010fa7441a66de4cbc5c",
+      "bytes": 65978,
+      "lines": 1108,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-20--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T01:12:04+00:00",
+          "commit": "f8b59bf3116b641462ca2369d122a209fc0b5407",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T00:56:10+00:00",
+          "commit": "a0b8e4cb8b421ad7fa4c3d4beafb28732f80f1e6",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-20--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-21",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "9ba7a723f452f7d120b25e8b2d14dab4517ff506",
+      "sha256": "ab3669e71ee24b62b5fcdc9245588d4c7b5e34cc472a8e64ba6dfbe09c8d9bb1",
+      "bytes": 74994,
+      "lines": 1254,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-21--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T02:29:31+00:00",
+          "commit": "a8811ebd941786b89fd7c9f949ab5548a9b71428",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T02:15:43+00:00",
+          "commit": "b734a722fdfef393386d2e58a7523ff80140cf7f",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-21--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-22",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "a055651a3bb11f636ba0958b870dd5fad362ffc3",
+      "sha256": "04f0d3d588956a07dc9de12efc91300625426018b47bc406c77869ffa1228f0c",
+      "bytes": 39621,
+      "lines": 684,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-22--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T22:03:42+00:00",
+          "commit": "ff0aa018b2d97dbcc9977a485b391152abf5b0dc",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T21:57:22+00:00",
+          "commit": "0dcad767743553c3a7f8b303f5c145a46671a83d",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-22--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-23",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "a4854770ebf0f969b23766bb5989640a231d62c7",
+      "sha256": "ff803fbf649e614c393d4bb1f009121f1db36897dfab6914b9fb1187e905aaf8",
+      "bytes": 41459,
+      "lines": 716,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-23--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T22:07:25+00:00",
+          "commit": "adf2e97bc3ef6cac5ea6172c3ea1482bb50ae7bc",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T22:03:42+00:00",
+          "commit": "ff0aa018b2d97dbcc9977a485b391152abf5b0dc",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-23--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-24",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "a609ebf37d366a93416754c62477175939596874",
+      "sha256": "a82886f10fed3edc0b48e7dcdaadca3860ab98b89253c07280dd5a0eb31b6c0c",
+      "bytes": 3378,
+      "lines": 75,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-24--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T08:09:11+00:00",
+          "commit": "109e2c8b22b8b3e856353884fadc08f8ed6a66af",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T07:40:33+00:00",
+          "commit": "6d82e75a13eb04f95df2d24a34dd130903621a96",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-24--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-25",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "ab4acfefb8cc97be90abe99402136f3be68c06a7",
+      "sha256": "d558257206b8feb4f93759db49d2122098a8f106c163c6e8a3138f812920c85e",
+      "bytes": 19614,
+      "lines": 364,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-25--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T17:11:18+00:00",
+          "commit": "fcf6046fa9dc8898b3c5e08a048ed916b2da6dd5",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T16:17:35+00:00",
+          "commit": "65a60e40cce5415e00356dcae2b3eee12462167e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-25--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-26",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "b0b8a9dd9ffec7c5eb82ae8a115720b91a3a5bf0",
+      "sha256": "7d2680eb856c27745dd77a494907c972079a06aecf3615c2d3d43ecbee6673e6",
+      "bytes": 70605,
+      "lines": 1183,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-26--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T01:38:27+00:00",
+          "commit": "32e4f56d0953a7bb0361f7c44206f3bd56ccd48d",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T01:25:28+00:00",
+          "commit": "61db33037eff2cf17a7443ec90f1b58e9812f175",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-26--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-27",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "be32bd50bffa0e964f43a30645bce05ebd3344a7",
+      "sha256": "5a51fa76ff4770fcf747ce4a8c84e2415eb52739a58a00afbec17bcc51bd21cb",
+      "bytes": 78686,
+      "lines": 1317,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-27--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T03:32:48+00:00",
+          "commit": "a94ea818f61bf2036401070c58df55418a190342",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T02:47:09+00:00",
+          "commit": "07b7755aa0a2a0eae13eb8aca152324bbb291b27",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-27--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-28",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "c4b593b05f2ec1f6fd1a24d6ccb7a50a69da9d29",
+      "sha256": "fcc1a3a5a78fcef142d4906d80f80a51177a3fd6464c60a5c83ce04c3d0b4c82",
+      "bytes": 6040,
+      "lines": 126,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-28--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T08:31:29+00:00",
+          "commit": "a2211004798b788b672ff0d085f3b121fedcf84a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T08:21:36+00:00",
+          "commit": "1b72ee5d08324d22a7ce7b640b4ec42ff0acbdc2",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-28--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-29",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "ca9892ffc583e4ce207cc4b93c1ad9eab12266da",
+      "sha256": "8312eff0f69a351a9a3c722d4344d071275bd1abe3e06a5a3f8bb297e5ad93ce",
+      "bytes": 10557,
+      "lines": 205,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-29--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T14:35:17+00:00",
+          "commit": "310e17c9d510284979112b9641df7f4bb84c4edd",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T13:58:47+00:00",
+          "commit": "5e98f5033cf3716f1eca4478ed636e304ec05094",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-29--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-30",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "d962dac5ff7a237b1de6b9946ecfcfd2e3796cd5",
+      "sha256": "4423774dcaa3953ea2dd4a51936643f84c072c27a6db58baa900070f4186d428",
+      "bytes": 43382,
+      "lines": 748,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-30--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T22:14:17+00:00",
+          "commit": "0782cb8bb822147af7190ebb7da189d5f9c87d50",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T22:07:25+00:00",
+          "commit": "adf2e97bc3ef6cac5ea6172c3ea1482bb50ae7bc",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-30--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-31",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "d9e71b11e923e10ffe3c77a9dae48eed3663aead",
+      "sha256": "ef3f0735ac592e1c5dd5ec5e4ba6693fc9078b6328d0cf5e22789090849e4d8d",
+      "bytes": 47705,
+      "lines": 818,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-31--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T22:34:28+00:00",
+          "commit": "ffc1474f6bd22024e1ba4e68ebfff19685f86ed3",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T22:23:03+00:00",
+          "commit": "e83f988d4337b358b685d85aa16c904ae31c9afc",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-31--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-32",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "f1d53ebb913fcea2e5c2f15bd6666484edf33ca0",
+      "sha256": "dbe776bb0616c1a2bcd5f609b78892c3773e381942d4c56b2b561e636e9cf7fe",
+      "bytes": 71942,
+      "lines": 1205,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-32--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T02:15:43+00:00",
+          "commit": "b734a722fdfef393386d2e58a7523ff80140cf7f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T01:38:27+00:00",
+          "commit": "32e4f56d0953a7bb0361f7c44206f3bd56ccd48d",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-32--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-33",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "f8b346aee0b24516b9098d821e7caefb4cfc7da3",
+      "sha256": "cb6bfa9723ac178c74f809b4f94e2f085f2ecdbecb7b3fcabbd6c6809e4a9c85",
+      "bytes": 77075,
+      "lines": 1290,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-33--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T02:47:09+00:00",
+          "commit": "07b7755aa0a2a0eae13eb8aca152324bbb291b27",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T02:29:31+00:00",
+          "commit": "a8811ebd941786b89fd7c9f949ab5548a9b71428",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-33--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    },
+    {
+      "id": "MI4-34",
+      "path": "docs/GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "git_blob": "ffd6dd9a222af64c2d09ae7388064e6164875992",
+      "sha256": "829d2966442ff0c658966c802635ae83ffe928bdabd097a666ded3b085d4fae0",
+      "bytes": 45823,
+      "lines": 787,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/media-ingress/MI4-34--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T22:23:03+00:00",
+          "commit": "e83f988d4337b358b685d85aa16c904ae31c9afc",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T22:14:17+00:00",
+          "commit": "0782cb8bb822147af7190ebb7da189d5f9c87d50",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through all four latest documents1972lines and every15unique historical-only passage38lines. Original approvals, transitive source, actual historical execution and current qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/media-history/MI4-34--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md"
+    }
+  ],
+  "code_sources": [],
+  "requirements": [
+    {
+      "id": "MH01",
+      "name": "Independent microphone, camera and glyph intake were concrete scoped improvements",
+      "classification": "reported valid ingress evolution, separate from recognition",
+      "historical_requirement_or_mechanism": "L007 reports a camera-required micGate/stopCamera defect despite an already mounted current-world voice route, plus contradictory text capability labels. Its correction admitted mic pressure with actual world/body lanes and rendered glyph pixels without submitting text. Task1299 synthetic pressure committed; a glyph request timed out and was not credited. Task1322 later supplied separate glyph and real-camera evidence.",
+      "current_disposition": "These are historical reports of intake, not proof of learned reading, word recognition or current64 mounting. The later successful glyph did not retroactively validate the earlier timeout. A synthetic source must not claim real-camera provenance. The old mandatory-camera/two-sense slogan is superseded by this explicitly scoped actual-sensorium route.",
+      "lawful_remedy": "Preserve the lawful current-world/paired-source ingress and truthful evidence labels. Bind current producers and every native consumer, retaining physical source/time distinction and actual participating modalities without an arbitrary camera prerequisite.",
+      "unit_acceptance": "Check independent device lifecycle, real/synthetic provenance, absent versus valid-zero lanes and refusal before partial mutation.",
+      "module_acceptance": "Verify actual PCM/pixel receipt reaches the same native state through restored/current body lanes; a capability flag is not execution.",
+      "system_acceptance": "Qualify real browser/device input and synthetic transport separately, then independently test retained recognition/learned use.",
+      "release_acceptance": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A06",
+        "A10",
+        "A15"
+      ],
+      "refs": [
+        {
+          "source_id": "MI1-03",
+          "path": "docs/guala_reconciliation/sources/media-history/MI1-03--GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "ce28f92365ccae852571d9cf7311eadab9faa482f213ba436836f65b0ed9ebe4",
+          "line": 34,
+          "anchor": "## Current contradiction and rejected path"
+        },
+        {
+          "source_id": "MI1-03",
+          "path": "docs/guala_reconciliation/sources/media-history/MI1-03--GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "ce28f92365ccae852571d9cf7311eadab9faa482f213ba436836f65b0ed9ebe4",
+          "line": 63,
+          "anchor": "## Translation-boundary review before focused proof"
+        },
+        {
+          "source_id": "MI1-03",
+          "path": "docs/guala_reconciliation/sources/media-history/MI1-03--GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "ce28f92365ccae852571d9cf7311eadab9faa482f213ba436836f65b0ed9ebe4",
+          "line": 152,
+          "anchor": "- One bounded two-sample pressure probe used the camera-independent endpoint."
+        },
+        {
+          "source_id": "MI1-03",
+          "path": "docs/guala_reconciliation/sources/media-history/MI1-03--GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "ce28f92365ccae852571d9cf7311eadab9faa482f213ba436836f65b0ed9ebe4",
+          "line": 174,
+          "anchor": "## Task-1322 live closure — 2026-08-29"
+        }
+      ]
+    },
+    {
+      "id": "MH02",
+      "name": "Exact source deduplication must not suppress a repeated lived experience",
+      "classification": "useful custody/resource evolution with explicit event distinction",
+      "historical_requirement_or_mechanism": "L008/setup replaced discarded media bytes and process-local next-book selection with bounded immutable source custody and pixel/PCM conversion. The repeated audio returned the same custody receipt and unchanged7records/4930212bytes while creating a distinct hearing occurrence at tick260507. Provenance and catalogue data stayed explicitly outside cognition.",
+      "current_disposition": "One retained copy per source and a new experience per actual recurrence are compatible. Source rights/provenance and flags are external metadata, not proof that the complete caller excludes semantic authority. All six media kinds were reported physically exercised; understanding/autonomous selection was expressly unclaimed.",
+      "lawful_remedy": "Preserve exact bounded source custody, deduplicated bytes and distinct causal occurrence identity. Inventory decoder/caller dataflow so titles/transcripts/filenames cannot enter pupil decisions; current-state provenance must survive restore.",
+      "unit_acceptance": "Duplicate bytes must not grow source storage, while distinct admitted presentations keep distinct occurrence identity. Exhausted count/bytes must refuse before mutation.",
+      "module_acceptance": "Trace preserved source→decode→physical presentation→native input and verify current restore plus every supported media type.",
+      "system_acceptance": "Demonstrate source idempotence and actual repeated experience separately; no count of media files or receipts qualifies learning.",
+      "release_acceptance": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability.",
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A05",
+        "A06",
+        "A10",
+        "A12",
+        "A13"
+      ],
+      "refs": [
+        {
+          "source_id": "MI2-04",
+          "path": "docs/guala_reconciliation/sources/media-history/MI2-04--GUALA_L008_L009_LOCAL_SETUP_2026-08-17.md",
+          "sha256": "c46bf138783d68dd3b60fac52d0e3ad36143c9f463d795c2649adaa62eb4ca22",
+          "line": 19,
+          "anchor": "- Picture, PDF/book, audio, and song decoding already reach the active retinal"
+        },
+        {
+          "source_id": "MI2-04",
+          "path": "docs/guala_reconciliation/sources/media-history/MI2-04--GUALA_L008_L009_LOCAL_SETUP_2026-08-17.md",
+          "sha256": "c46bf138783d68dd3b60fac52d0e3ad36143c9f463d795c2649adaa62eb4ca22",
+          "line": 32,
+          "anchor": "## Prepared local mechanism"
+        },
+        {
+          "source_id": "MI3-06",
+          "path": "docs/guala_reconciliation/sources/media-history/MI3-06--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "4e4a4012457e4bb21245f786e18e1b29bceac66a1700d54b199da3bd56db8d69",
+          "line": 28,
+          "anchor": "## Candidate mechanism"
+        },
+        {
+          "source_id": "MI3-06",
+          "path": "docs/guala_reconciliation/sources/media-history/MI3-06--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "4e4a4012457e4bb21245f786e18e1b29bceac66a1700d54b199da3bd56db8d69",
+          "line": 272,
+          "anchor": "## Duplicate and ceiling closure — 2026-08-29"
+        }
+      ]
+    },
+    {
+      "id": "MH03",
+      "name": "Settled experience, durable state and timeout observations require distinct custody",
+      "classification": "reported observation correction and an unresolved event-ancestry requirement",
+      "historical_requirement_or_mechanism": "L008’s story settled37hops through231920 while its response called durable231874 the new successor. The correction separated settlement and durability, marking committed when CURRENT reached/passed the settled tick. Other requests returned504 but later event-specific records proved completion; detailed video counts missed by polling were not invented.",
+      "current_disposition": "Separating settled/durable is a real correction. Numeric tick comparison is sufficient only within the authenticated same causal lineage; it cannot establish ancestry across replaced/branched state. This review identifies that acceptance requirement, not an independently demonstrated current lineage bug.",
+      "lawful_remedy": "Bind occurrence ID, successor hash and checkpoint ancestry to the same body/world lineage. Distinguish transport timeout, pending settlement, settled-not-durable and durable result. Reconcile exact original event before any retry and never infer missing counts.",
+      "unit_acceptance": "Reject mismatched identity, branch, stale successor and equal-content/different-occurrence substitutions even when tick numbers increase.",
+      "module_acceptance": "Prove one event’s actual state change and durable ancestry through atomic publish/cold restore; polling may be stale without becoming false authority.",
+      "system_acceptance": "Exercise bounded timeouts/restart on preserved copies and show truthful event status without duplicate mutation or made-up success.",
+      "release_acceptance": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability.",
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A06",
+        "A14",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "MI3-06",
+          "path": "docs/guala_reconciliation/sources/media-history/MI3-06--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "4e4a4012457e4bb21245f786e18e1b29bceac66a1700d54b199da3bd56db8d69",
+          "line": 134,
+          "anchor": "- The separately authored morning-garden story then entered as one rendered"
+        },
+        {
+          "source_id": "MI3-06",
+          "path": "docs/guala_reconciliation/sources/media-history/MI3-06--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "4e4a4012457e4bb21245f786e18e1b29bceac66a1700d54b199da3bd56db8d69",
+          "line": 143,
+          "anchor": "- The story HTTP receipt exposed an observation defect: deferred persistence"
+        },
+        {
+          "source_id": "MI3-06",
+          "path": "docs/guala_reconciliation/sources/media-history/MI3-06--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "4e4a4012457e4bb21245f786e18e1b29bceac66a1700d54b199da3bd56db8d69",
+          "line": 251,
+          "anchor": "- The public connection returned HTTP 504 at its fixed 60-second gateway"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 99,
+          "anchor": "- The edge returned HTTP 504 after its response window expired. The single"
+        }
+      ]
+    },
+    {
+      "id": "MH04",
+      "name": "Book nonselection was misdiagnosed before the physical action boundary existed",
+      "classification": "documented claim retraction and rejected Python selection authority",
+      "historical_requirement_or_mechanism": "Early L009 correctly refused autonomous selection, then a sequential five-source Python offer/evidence gate was described as live but no choice observed. Later inspection found native grips did not reach world PickCommand, the real book was separate from a flat-source touch sheet, and nonzero world touch was refused. No amount of waiting could produce held-book selection through that route.",
+      "current_disposition": "The later retraction is explicit: unavailable action was not a preference or failed learning. The stricter two-antagonist/thought criterion also did not connect the missing world path. Historical offers were externally arranged, not proof of autonomous source exploration.",
+      "lawful_remedy": "Keep the rejection of sequential server selection and observer/evidence gates as pupil choice. Qualify actual native grip→geometry-resolved world object→custody→same-organism feedback, then independently test retained motivation/choice without supplying source labels or desired actions.",
+      "unit_acceptance": "Trace an actual native efferent to the world law; assert absent/ambiguous contact refuses and semantic/source IDs cannot choose the object.",
+      "module_acceptance": "Prove the placed material object, native hand and returned contact refer to the same coherent world/body, not parallel representations.",
+      "system_acceptance": "Distinguish inability, unobserved action, innate reflex and learned choice. No book uptake by an external actor or flat presentation counts as autonomous use.",
+      "release_acceptance": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability.",
+      "repair_actions": [
+        "A01",
+        "A05",
+        "A06",
+        "A08",
+        "A09",
+        "A10",
+        "A12"
+      ],
+      "refs": [
+        {
+          "source_id": "MI4-24",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-24--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "a82886f10fed3edc0b48e7dcdaadca3860ab98b89253c07280dd5a0eb31b6c0c",
+          "line": 64,
+          "anchor": "The live autonomous request correctly returned HTTP 503. The resident body can"
+        },
+        {
+          "source_id": "MI4-17",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-17--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "5afa76d5e0a84ea662761072f8cd9edbd96262e537168bc376c6856c2b9b8aaf",
+          "line": 42,
+          "anchor": "is selected only if that exact admitted cue reassembles a resident formation,"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 76,
+          "anchor": "The self-selection route does not choose a source. It offers each of the five"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 185,
+          "anchor": "## Architecture correction discovered after the second opportunity"
+        }
+      ]
+    },
+    {
+      "id": "MH05",
+      "name": "Persistent world geometry and ordinary palmar input were missing despite visible objects",
+      "classification": "reported direct restore/transport repairs worth preserving",
+      "historical_requirement_or_mechanism": "The restored world held receptor_geometry=null, so a real closing grip refused grasp_contact_geometry_unavailable. A one-way missing-anatomy migration preserved lived pose/custody/thermal state and task1338 reported a native grasp. Later the book was in contact geometry but the receptor only read held custody and ordinary/guided paths authored zero. Task1346 reportedly restored placed-object contact to the real palmar lane.",
+      "current_disposition": "These are distinct causal defects and reported repairs; an object existing, gross arm reach or a passing grasp unit was insufficient. A same-identity deployment does not by itself authenticate complete memory preservation. Declared immutable anatomy may be migrated only with actual version/law custody.",
+      "lawful_remedy": "Retain reviewed real anatomy/contact continuity, including every ordinary, action and tutor path. Restore coherent body/world state and refuse conflicting anatomy; no default zero for physically present contact or invented touch to make a grip occur.",
+      "unit_acceptance": "Test absent versus persisted/placed/held contact, exact geometry, ambiguous intersections, true removal and refusal without partial state change.",
+      "module_acceptance": "Cold-restore real paired state, follow placement→retained contact→ordinary receptor→native response and feedback; require source/build binding.",
+      "system_acceptance": "Witness actual material contact and later organism action on preserved mature state; placement alone cannot qualify sight or learned grasp.",
+      "release_acceptance": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A06",
+        "A08",
+        "A14"
+      ],
+      "refs": [
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 277,
+          "anchor": "## Live receptor-anatomy restore correction and native book grasp"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 313,
+          "anchor": "The live persisted world then proved:"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 820,
+          "anchor": "## Persistent physical book offer — autonomous witness still open"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 858,
+          "anchor": "## Placed-object palmar continuity correction — candidate"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 940,
+          "anchor": "## Live placed-book palmar continuity — production"
+        }
+      ]
+    },
+    {
+      "id": "MH06",
+      "name": "A mounted grasp reflex became repeated squeezing; stopping it did not create learned opening",
+      "classification": "innate/reflex correction and a still-missing endogenous motor path",
+      "historical_requirement_or_mechanism": "L009 reports no palmar-to-grip route, then adds a symmetric innate closing reflex; task1348 exposed a native/Python layer-domain refusal before task1349 completed grasp/feedback. Steady held-contact then prepared fresh closing every interval. Task1351’s contact-onset restriction stopped that repetition. At tick304009 all opening/closing terminals existed but no learned L11 ordering route reached them.",
+      "current_disposition": "A hardwired reflex must be declared and justified as anatomy/functional regulation, not learning or choice. The onset repair is reported to remove a specific interference, but its exact law authority still needs the original decision. Motor terminals alone did not provide a novel opening cause. A missing learned path does not prove no conceivable lawful exploration path.",
+      "lawful_remedy": "Preserve lawful reflex/body functionality and actual retained state. Qualify the approved local contact/drive mechanism, distinguish sustained sensation from a new triggering event, and prove a genuine bounded endogenous cause can reach opposing effectors before learned action/consequence can be retained. Do not install a release recipe or fabricate learning.",
+      "unit_acceptance": "Separate contact onset, steady occupancy, loss, reflex transfer, actual motor work and passive movement under the ratified law; test all downstream domain boundaries.",
+      "module_acceptance": "Trace actual internal cause through admitted local dynamics to opening as well as closing, physical consequence and returned sensation; mere terminal existence fails.",
+      "system_acceptance": "Require authentic first action, retained consequence and later causal use on preserved controls. An external participant taking the book never closes pupil autonomy.",
+      "release_acceptance": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A08",
+        "A09",
+        "A11",
+        "A12"
+      ],
+      "refs": [
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1031,
+          "anchor": "## Palmar-contact grasp reflex — candidate"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1067,
+          "anchor": "The first task-1348 unattended trajectory reached the new motor path, then was"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1077,
+          "anchor": "## Palmar-contact grasp reflex — live production"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1292,
+          "anchor": "## Native held-contact release obstruction"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1319,
+          "anchor": "## Live held-book intervention after the reflex correction"
+        }
+      ]
+    },
+    {
+      "id": "MH07",
+      "name": "Net displacement fixed a sign bug but cannot alone prove timed world-action equivalence",
+      "classification": "scoped translation improvement with temporal and simultaneous-effector gaps",
+      "historical_requirement_or_mechanism": "The old bridge suppressed a grip action if any ordered substep had each sign. Its replacement sums signed displacement, classifying only the net. Root translation/yaw exclusion and exactly-one-opening-hand rules remain. The ledger says all rows are retained but the world command reads the net field.",
+      "current_disposition": "The fix restores an opening result previously hidden by a weaker closing pulse. It does not demonstrate preservation of intermediate contact/release/work, and stored rows cannot rescue an endpoint-only consumer. A zero-net trajectory can still contain distinct physical events, as the separate VO86 timed-body counterexample illustrates. Root-motion exclusion requires physical justification, not an arbitrary one-action policy.",
+      "lawful_remedy": "Specify which simultaneous and ordered body/world consequences the declared model permits, then settle each at most once in causal order. Preserve timed interaction/state where it matters; prove any aggregation equivalent before discarding its intermediate effects. Do not route independent effectors through a priority veto.",
+      "unit_acceptance": "Use opposite-sign, equal-endpoint, contact-changing and simultaneous root/hand cases; compare full physical successors rather than only final grip position.",
+      "module_acceptance": "Trace every native row through body/world settlement and same-organism return with canonical timing, work and state accounting.",
+      "system_acceptance": "Witness true release/manipulation/consequence under ordinary movement on preserved state. A net-positive unit or mounted patch does not qualify learned page use.",
+      "release_acceptance": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A08",
+        "A10",
+        "A14"
+      ],
+      "refs": [
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 14,
+          "anchor": "2. a positive displacement of exactly one native grip aperture, while the"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 223,
+          "anchor": "- a native negative displacement of either grip aperture prepares a world"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1110,
+          "anchor": "## Net grip-trajectory page-use correction — candidate"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1136,
+          "anchor": "### Translation and recurrence review"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1165,
+          "anchor": "## Net grip-trajectory correction — live production"
+        }
+      ]
+    },
+    {
+      "id": "MH08",
+      "name": "Held-object invisibility changed the proposed behavior sequence instead of proving optical access",
+      "classification": "historical observation limitation and conditional workaround",
+      "historical_requirement_or_mechanism": "A held-page advance was withdrawn because the retinal law excluded objects held by the same body. The replacement required grasp→release→contact→advance and suppressed page advance while held. Later contact experiments correctly reported zero changed visual receptors and no reading claim; even a source-bound book could retain optical_surface=None.",
+      "current_disposition": "The retraction avoided crediting unseen pages, which is useful honesty. Excluding an object solely for held custody is not itself geometric occlusion, and a required release sequence is not evidence that held-object vision works. This is historical source/report scope, not a fresh current64 retinal verdict.",
+      "lawful_remedy": "Qualify actual held-object/page geometry, visibility and body/world state in the current optical model. Preserve real occlusion and unavailable sight, but do not substitute a behavior recipe for missing visual consequences. Keep source/page transport external to cognition.",
+      "unit_acceptance": "Test visible/occluded/off-axis held and placed surfaces under the same geometry; ownership labels alone cannot determine light.",
+      "module_acceptance": "Trace true page-surface change to measured retinal change and ordinary current-world intake, including held state and restore.",
+      "system_acceptance": "Require a real self-caused page/material transition and actual sensed consequence; source custody, grasp or read-aloud alone fails learned reading.",
+      "release_acceptance": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A06",
+        "A08",
+        "A10"
+      ],
+      "refs": [
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 332,
+          "anchor": "No positive grip displacement occurred during the following bounded quiet"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 339,
+          "anchor": "## Held-object release correction"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 781,
+          "anchor": "## Changed-context physical book availability and spoken cue"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1175,
+          "anchor": "Live read-only inspection at tick `300178` showed the correction mounted but"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1341,
+          "anchor": "These actions truthfully end the stuck held-object episode and leave the book"
+        }
+      ]
+    },
+    {
+      "id": "MH09",
+      "name": "Long latency and broad physical work predated64 columns; the attempted shortcut suppressed cognition",
+      "classification": "reported comparative failure and specific performance scope",
+      "historical_requirement_or_mechanism": "Task1341 reports1098ms mean native hops and27.1s mean complete transport intervals, chiefly settlement;674unattended ticks had only7observer requests. A copied-body pump-seed restriction left contacts essentially unchanged but cut endogenous reassembly7412→4202, motors1472→892 and articulation11→0, so it was removed. Later38.7seconds of tutor speech required many minutes through causal/body-feedback expansion.",
+      "current_disposition": "These dated measurements refute treating all latency as new to64 columns or automatically caused by observer/caretaker. They do not diagnose current latency. Local429ms copied hops and production1098ms hops used different contexts/hardware; they are not an authenticated optimization speedup. Broad active contacts are not necessarily waste.",
+      "lawful_remedy": "Measure current admitted physical time, complete source→settlement→action/feedback→persistence duration and observer/caretaker work on an exact frozen baseline. Remove only demonstrated redundant work with equivalent causal successors, memory and capability; never cap lawful reach to make latency green.",
+      "unit_acceptance": "Attribute work and time without dropping mandatory sources, contacts or counters; distinguish CPU, wall time, represented time and request timeout.",
+      "module_acceptance": "Compare candidate/predecessor on identical preserved state/input/environment and verify full causal/persistent equivalence plus bounded costs.",
+      "system_acceptance": "Run a declared continuous mature-state cadence/trajectory/rest audit and report actual speed and capability together; no unsupported current cause inferred from old measurements.",
+      "release_acceptance": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A13",
+        "A15"
+      ],
+      "refs": [
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 512,
+          "anchor": "A later read-only health check used only that sole production task and excluded"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 523,
+          "anchor": "Timing was classified rather than conflated. In 646 production native hops,"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 545,
+          "anchor": "### Restored-body falsification of the first breadth hypothesis"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1017,
+          "anchor": "### Post-experience production health"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1246,
+          "anchor": "This is truthful evidence of encouragement, touch, shared environmental"
+        }
+      ]
+    },
+    {
+      "id": "MH10",
+      "name": "Later vocal sound, social interpretation and hash-keyed playback are separate claims",
+      "classification": "preserved causal caution and a playback occurrence-identity gap",
+      "historical_requirement_or_mechanism": "L009 explicitly distinguishes pressure/body/self-hearing from learned words. A later vocalization had continuous-environment intake rather than the tutor-question authority; the social participant treated it as yes while the scientific record did not. The Hear Guala UI later plays each newly observed pressure SHA once, preserving audible output but identifying newness by content hash.",
+      "current_disposition": "These narrow vocal and social claims must be preserved. Temporal proximity is not question comprehension or an answer. Hashes verify content but cannot distinguish separate identical emissions; deduplication by hash can suppress a legitimate later occurrence. A latest-only bounded observer also cannot imply complete event capture.",
+      "lawful_remedy": "Retain actual tutor, body, internal and external event ancestry without inferred semantics. Keep participant interpretation separate from evidence. Bind playback to distinct native occurrence identity and verified PCM content, with explicit missed/coalesced-event behavior and observer bounds.",
+      "unit_acceptance": "Test equal PCM hashes for two distinct emissions, repeated reads of one event and stale/missing-event observations; each has different playback semantics.",
+      "module_acceptance": "Trace real motor→pressure→self-hearing and read-only participant playback; client gain must not become pupil/world energy or a recognition cue.",
+      "system_acceptance": "Prove actual auditory cause, retained experience dependence and novel-context learned use before claiming an answer, preference, imitation or speech.",
+      "release_acceptance": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability.",
+      "repair_actions": [
+        "A01",
+        "A06",
+        "A08",
+        "A09",
+        "A10",
+        "A12",
+        "A15"
+      ],
+      "refs": [
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 145,
+          "anchor": "- tutor audio SHA-256"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 612,
+          "anchor": "The single direct production request returned HTTP 200. The same resident"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1185,
+          "anchor": "## Ordinary invitation to read — live production"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1207,
+          "anchor": "## Encouraged shared reading in her live room"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1256,
+          "anchor": "## Shared audible expression in the live environment"
+        }
+      ]
+    },
+    {
+      "id": "MH11",
+      "name": "Unit/source bounds and inherited failures must remain distinct from complete live qualification",
+      "classification": "honest mixed evidence levels with unresolved original execution closure",
+      "historical_requirement_or_mechanism": "L008 calls live-closed after actual media transitions and restart/source dedup, using source-identical focused tests for count/byte refusal instead of filling production. L009 repeatedly records local installed-native axis mismatches; task1346 hot cutover followed identical8native-test failures on the untouched predecessor,528passed/8failed/11ignored. Several browser tests never collected.",
+      "current_disposition": "Avoiding destructive production exhaustion tests is reasonable; source-bound isolated proofs retain their exact scope. Matching predecessor failures does not make them passes or establish whole-system qualification. A browser test that never loaded a page cannot supply browser acceptance. Original receipts/callers and relevant failure disposition remain open in this documentary review.",
+      "lawful_remedy": "Keep a gate-by-gate evidence map with current relevance, immutable source/native binding and all failed/ignored/unexecuted cases. Run bounded isolated boundary falsifiers and actual applicable live behavior; resolve every required failed gate without test accommodation or metadata-only clearance.",
+      "unit_acceptance": "Verify actual executed assertions, nonzero collection, exact negative boundaries and unchanged state on refusal.",
+      "module_acceptance": "Load the intended compiled native extension and authenticate parity; distinguish build mismatch, unrelated historical failure and actual candidate regression.",
+      "system_acceptance": "Qualify the complete current system through ordered gates and exact-image proof; no broad speech/autonomy/ML certificate from transport closure.",
+      "release_acceptance": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A10",
+        "A13",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "MI1-03",
+          "path": "docs/guala_reconciliation/sources/media-history/MI1-03--GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "ce28f92365ccae852571d9cf7311eadab9faa482f213ba436836f65b0ed9ebe4",
+          "line": 82,
+          "anchor": "## Focused-proof record"
+        },
+        {
+          "source_id": "MI3-06",
+          "path": "docs/guala_reconciliation/sources/media-history/MI3-06--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "4e4a4012457e4bb21245f786e18e1b29bceac66a1700d54b199da3bd56db8d69",
+          "line": 290,
+          "anchor": "- Production reports the mounted bounds as 24 MiB per source, 32 sources, and"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 266,
+          "anchor": "- the two directly affected test files produced 36 passes and one unchanged"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 933,
+          "anchor": "Focused source evidence is 35/35 embodiment-world tests plus 15/15 directly"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 951,
+          "anchor": "The ordinary preflight stopped before cutover on eight native Rust tests."
+        }
+      ]
+    },
+    {
+      "id": "MH12",
+      "name": "Historical media completion did not close autonomous book use, sleep or learned language",
+      "classification": "complete version reconciliation with explicit surviving open boundaries",
+      "historical_requirement_or_mechanism": "All53 recovered versions are covered by complete latest documents1972lines and all15unique historical-only passages38lines. L007 and L008 close narrow ingress/custody boundaries; L009 repeatedly refuses learned reading/source selection. Quiet observations show recovery/rest pulses but no sustained sleep proof, and the final record leaves bounded endogenous novel motor exploration unresolved.",
+      "current_disposition": "Valid prior progress should not be erased by later failures. Conversely, closed transport status cannot become closed cognition by copying the title. These53 content reviews do not authenticate all original live artifacts, approvals, molecular claims or current release continuity.",
+      "lawful_remedy": "Preserve the full evolution and the exact outstanding causal chain in the existing action plan. Bind each restored capability to authenticated old/new law/state and later use, with missing sleep, motor cause and learned speech still explicit. Do not reset or replay source files and call that preserved memory.",
+      "unit_acceptance": "Validate version/source hashes and changed claim scopes; never mark an indexed/captured artifact as semantically read without content review.",
+      "module_acceptance": "Authenticate original code and receipts before promoting report claims into current mechanisms; track actor, source, state and side effects separately.",
+      "system_acceptance": "Complete preserved-state charter qualification across actual sensory experience, retained relations, autonomous action, sleep where claimed, speech and restart; partial historical closure cannot substitute.",
+      "release_acceptance": "Bind original authority and actual source/build/configuration/coherent mature state to narrow acceptance; Q01–Q24 and independent current serving/cold-continuation evidence remain required. Documentary reports and retained identity/ticks do not qualify current capability.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A09",
+        "A10",
+        "A11",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "MI1-03",
+          "path": "docs/guala_reconciliation/sources/media-history/MI1-03--GUALA_L007_LIVE_INGRESS_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "ce28f92365ccae852571d9cf7311eadab9faa482f213ba436836f65b0ed9ebe4",
+          "line": 212,
+          "anchor": "**L-007 is live-closed at its stated ingress boundary.** Real camera light,"
+        },
+        {
+          "source_id": "MI3-06",
+          "path": "docs/guala_reconciliation/sources/media-history/MI3-06--GUALA_L008_LOCAL_MEDIA_SPRINT_LEDGER_2026-08-28.md",
+          "sha256": "4e4a4012457e4bb21245f786e18e1b29bceac66a1700d54b199da3bd56db8d69",
+          "line": 300,
+          "anchor": "**L-008 is live-closed.** Picture, PDF, book, ordinary audio, song, and video"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 448,
+          "anchor": "## Quiet-window teaching safety check"
+        },
+        {
+          "source_id": "MI4-10",
+          "path": "docs/guala_reconciliation/sources/media-history/MI4-10--GUALA_L009_GUTENBERG_SPRINT_LEDGER_2026-08-29.md",
+          "sha256": "4c44766846c50acda81493ba0fe05d1e2a5cf004610c3b4ed37616b397b12ddd",
+          "line": 1319,
+          "anchor": "## Live held-book intervention after the reflex correction"
+        }
+      ]
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false
+}

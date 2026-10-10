@@ -1,0 +1,56 @@
+{
+  "scope": "Independent integer/polynomial counterexamples to captured source expressions; no HDL simulation or organism execution",
+  "checks": [
+    {
+      "id": "CE01",
+      "source": "arcloom_bsil_bt.v",
+      "input": 4095,
+      "trits": [
+        0,
+        0,
+        -1,
+        -1,
+        0,
+        -1,
+        0,
+        -1
+      ],
+      "decoded": -2466,
+      "discarded_carry": 1,
+      "verdict": "ENCODING_LOSS"
+    },
+    {
+      "id": "CE02",
+      "source": "arcloom_krimelack.v",
+      "prior_3bit_target_count": 7,
+      "eighth_increment": 0,
+      "required_count": 8,
+      "verdict": "COUNTER_CANNOT_REPRESENT_CAPACITY"
+    },
+    {
+      "id": "CE03",
+      "source": "tools/mathloom_sim.py",
+      "width": 1,
+      "sum_digits": [
+        -1
+      ],
+      "carry_digits": [
+        0,
+        1
+      ],
+      "script_reconstruction": 8,
+      "required": 2,
+      "verdict": "RESULT_CHECKER_EXPRESSION_FALSE"
+    },
+    {
+      "id": "CE04",
+      "source": "tools/mathloom_sim.py",
+      "potential": "x^6 - 3*x^4 + 2*x^2",
+      "x": 1,
+      "derivative": -2,
+      "required_stationary_derivative": 0,
+      "verdict": "DECLARED_MINIMUM_NOT_STATIONARY"
+    }
+  ],
+  "product_acceptance": false
+}

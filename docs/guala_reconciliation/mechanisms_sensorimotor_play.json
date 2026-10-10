@@ -1,0 +1,839 @@
+{
+  "schema": "guala.documentary_mechanisms.v1",
+  "at_utc": "2026-10-10T07:33:08.829937+00:00",
+  "scope": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+  "mechanisms": [
+    {
+      "id": "VPL01",
+      "name": "Operational play and positive-engagement predicates are narrower than named emotion",
+      "classification": "reported_native_recurrence_with_interpretive_scope_limits",
+      "finding": "PLR01",
+      "observed_mechanism": "Tasks1056/1057 report distinct yaw actions from one retained formation with later sensed return;1059 adds affect/body participation;1065 calls varied return across changed world-state digests positive engagement despite nonzero local strain. The observer is declared noncausal, retains compact episodes and resets on restart. Yaw-only anatomy was initially the sole mounted motor route, although world commands exposed more actions.",
+      "evidence_limits": "The reports preserve useful narrow motor/recurrence evidence, not independently replayed current results. Changed world digests, repeated actions and payable physiology alone do not establish subjective pleasure, broad autonomy or absence of aversion. Historical documents assert ratified interpretation; original approval and exact current predicate remain separate.",
+      "replacement": "Keep operational measured claims explicit and separate play, repeated movement, positive engagement, social response and learned speech. Bind labels to the ratified observable contract without adding scores, toy-name preferences or behavioral selectors.",
+      "acceptance": {
+        "unit": "Verify distinct actions, ordering, same retained cause and actual sensed return; repeated reads and duplicate receipts cannot count.",
+        "module": "Prove compact observation has no cognitive reader or intervention route and interpretive labels preserve their exact scope.",
+        "system": "Qualify authentic self-initiated varied return and changed context without preload or tutor selection; disclose absent affect evidence.",
+        "release": "Bind the exact current candidate and original acceptance; never promote play counters into whole-organism or speech success."
+      },
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 120,
+          "anchor": "- The existing organism therefore already supplies the minimum physical",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 701,
+          "anchor": "| Read-only interpretation | `dsf_ai_service/native_production_app.py::_sensorimotor_play_record` | Evaluate the complete retained trajectory; never feed a result back to cognition | `positive_engagement_trajectory_observed` only when every physical relationship is present |",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 752,
+          "anchor": "  `positive_engagement_trajectory_observed` with",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 690,
+          "anchor": "`distress_absence_authority=false`; the positive-engagement claim rests on the",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPL02",
+      "name": "Repeated invented observer topology concealed real causal paths",
+      "classification": "observer_false_negatives_and_corrected_physical_chronology",
+      "finding": "PLR02",
+      "observed_mechanism": "Tasks1058–1085 reject direct motor/affective lineage equality, an unrelated organic relation, same-origin gradient timing, one shared contact for distinct converging branches, identical motor neurons/ordinals, byte-adjacent world states and identical formations across social turns. Exact accumulated multi-hop evidence was also dropped by final-hop-only binding and accumulator ordering. Later generic no-cycle/revisit vetoes suppressed lawful native recurrence.",
+      "evidence_limits": "Some corrections remove genuine false requirements; relaxing a mistaken observer condition is not automatically test cheating. Each relaxation still requires the actual causal path. Old passing fixtures and declarations of ratification do not make the abandoned conditions physical laws.",
+      "replacement": "Ratify one exact causal chronology and branch/action binding. Preserve every branch’s real source, transfer, tick and consequence; remove observer-invented anatomy without accepting timing coincidence. Keep superseded constraints and their falsifiers in the history.",
+      "acceptance": {
+        "unit": "Exercise separate/converging branches, nonfinal hops, lawful recurrent cycles and negative coincidence cases.",
+        "module": "Trace every native producer through aggregation to observation without changed magnitudes or invented lineage joins.",
+        "system": "Use authentic mature occurrences to show both actual causal paths and refusal of unrelated simultaneous activity.",
+        "release": "No shipped observer may silently restore the rejected topology/clock requirements or certify unsupported causal joins."
+      },
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 299,
+          "anchor": "  candidate's direct-lineage equality was therefore physically wrong and is",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 886,
+          "anchor": "`formation_to_affective_bond` evidence. This uses the separately ratified",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1464,
+          "anchor": "- Requiring one identical layer-12 neuron for both branches is false topology:",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1496,
+          "anchor": "  consequence. One embodied population action is not one motor-neuron ordinal.",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-31",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-31--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3066,
+          "anchor": "  prior path remains retired; arbitrary lineage revisits remain rejected; a",
+          "sha256": "2aacbc68e3aaf597caa451ea2649b95b1852fbe78eb1869e957899791efe84ab"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A08",
+        "A09",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPL03",
+      "name": "Standing metabolic state was double-counted and overinterpreted",
+      "classification": "observer_accounting_error_with_narrow_physiological_scope",
+      "finding": "PLR03",
+      "observed_mechanism": "Task1060 summed standing unmet dissipation over13hops and reported77,090 unmet quanta although the final state was zero. Correction keeps genuinely additive drained work and exhausted-hop counts but uses final standing unmet state. Later local body-strain projection replaces latest values by stable lineage, distinguishes unmounted from evaluated zero and does not infer pain or universal distress absence.",
+      "evidence_limits": "The resulting overload/strain evidence is read-only and narrower than organism interoception or positive valence. The recorded interoception switch was0. Nonzero dissipated material is not automatically nociception; zero in one measured class cannot exclude all aversive states.",
+      "replacement": "Specify each quantity as flow, stock, event count or observer interpretation. Preserve local identity and lane quantities, evaluated-zero versus unavailable and actual sensing authority; do not feed convenience totals or semantic distress flags back into cognition.",
+      "acceptance": {
+        "unit": "Prove exact stock replacement versus flow accumulation, all hop producers and zero/missing distinctions.",
+        "module": "Carry units, lineage and clock through native/runtime/FFI/body/observer without defaults or repeated counting.",
+        "system": "Bind internal sensing and actual causal effects separately from displayed metabolic summaries.",
+        "release": "Qualify effective mounts and report narrow exclusion scope rather than pain/fun/whole-health claims."
+      },
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 436,
+          "anchor": "  transaction `totals` reported 77,090 unmet quanta. `unmet` is the standing",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 436,
+          "anchor": "  transaction `totals` reported 77,090 unmet quanta. `unmet` is the standing",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 497,
+          "anchor": "  the earlier value; zero removes the nonzero sparse record while preserving",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 574,
+          "anchor": "4. a compact witness receipt and explicit `organism_sensing_authority=false`;",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 656,
+          "anchor": "  `pain_authority=false` and `organism_sensing_authority=false`.",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A11",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPL04",
+      "name": "Neuron-wide plastic saturation failed to supply repeatable contact-specific learning",
+      "classification": "documented_physical_learning_gap_and_contact_local_successor",
+      "finding": "PLR04",
+      "observed_mechanism": "Task1070 delivered9/16 to3/4zJ locally but mature plastic rest stayed4/3→4/3nm. The neuron-wide support could show first generic yield, not repeated contact-specific reinforcement. The candidate replaces fixed electrical-contact conductance with a finite local conducting-channel population; aggregate neuron reservoir energy must not be redistributed to invent contact history. Initial contact changes and later route use are reported separately from action effects.",
+      "evidence_limits": "This is a concrete historical failure explanation and documented proposed repair, not proof that ArcLoom cannot learn speech. Exact source law, original authorization, historical run and present64-column equivalence require independent binding. The old neuron-wide support was explicitly preserved rather than reinterpreted as new synaptic state.",
+      "replacement": "Reconcile each current contact’s actual retained physical variable, local work source, modulation and later conductance reader against the approved law. Require local persistent causal influence and eliminate generic plasticity claims that have no contact-specific functional effect.",
+      "acceptance": {
+        "unit": "Show one/three-contact locality, conservation, repeated change and untouched-contact invariance.",
+        "module": "Prove exact predecessor conductance drives transfer and successor change is usable only later; exclude aggregate redistribution.",
+        "system": "Use authentic experience and controls to establish retained contact contribution to later action/articulation.",
+        "release": "Bind native law/source/state/candidate and preserve prior useful effects; no speech inference from generic yield or contact counts."
+      },
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1104,
+          "anchor": "  admitted with zero gate-work residue, and every cell's plastic rest remained",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1108,
+          "anchor": "  yield, but it cannot retain repeated episode-specific reinforcement and does",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL02-01",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL02-01--GUALA_A0116_CONTACT_LOCAL_ELECTRICAL_PLASTICITY_CANDIDATE_2026-08-15.md",
+          "line": 10,
+          "anchor": "2. **Current code reality:** `ElectricalContactAnatomy` contains one fixed conductance. `ElectricalContactState` retains carrier phase plus an inert legacy copy of neuron-wide `PlasticSupportState`. Settlement always uses the fixed anatomical conductance, and the legacy state cannot change conduction.",
+          "sha256": "fa8da10c010a1fd0f363fe4b379830bbe8bd31b39d9aa487e88683d60e5bf744"
+        },
+        {
+          "source_id": "PL03-01",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL03-01--GUALA_A0116_CONTACT_LOCAL_MODEL_RESULT_2026-08-15.md",
+          "line": 11,
+          "anchor": "The existing task-1070 physiological-energy settlement is **not** sufficient to drive that state lawfully. It first sums association and body contact activity at one neuron, then debits one neuron-local recovery reservoir. It does not preserve which exact contact received which share of the delivered work. Distributing that aggregate back to contacts after settlement would invent contact history.",
+          "sha256": "e82a0c28bc2835e8fbd88b1506b315b319f64361b12453330c7c3318a81e6eb1"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPL05",
+      "name": "Synthetic junction constitution is declared, not a biological derivation or a scalar bound proof",
+      "classification": "explicit_constitutive_adoption_with_derivation_and_storage_obligations",
+      "finding": "PLR05",
+      "observed_mechanism": "The proposal explicitly says published statistical Cx36 observations do not by themselves authorize an exact deterministic barrier. The model then deliberately adopts7/4charges×75mV×epsilon=16822854657/800000000zJ (21.02856832125zJ), with6400channels,50conducting and10pS each. The final document states approval and adds bidirectional gradient-directed transitions, tie/quiescent preservation, next-interval conductance and dissipative transition work. Proper phase rho=R/q represents the same residue.",
+      "evidence_limits": "Independent rational arithmetic confirms the stated products and500pS initialization, not physical validity or actual approval. Literature was not independently reviewed here. Finite channel count and bounded residue magnitude alone do not bound rational numerator/denominator storage. The historical16.42447zJ residue is below this21.02857zJ constitution; it must not be compared to a different later quantum without version binding.",
+      "replacement": "Authenticate the original exact constitution and map every later material-law change, including current contact-yield laws, to authority and preserved state. Separate synthetic authored anatomy from measured biological necessity. Derive exact representational bit/storage bounds without truncation, and account transition work as heat rather than double-counted stored energy.",
+      "acceptance": {
+        "unit": "Verify exact units/products, signs, boundary/tie behavior, energy bookkeeping and worst-case representation widths.",
+        "module": "Bind ratified version, endpoint gradients, contact-local released work and codec; no stale copied plastic state may affect conductance.",
+        "system": "Demonstrate repeated mature experience and persistence without residue-width failure or substituted energy scale.",
+        "release": "No ML/physics clearance merely from naming the model physical or approved; require full derivation and actual implementation qualification."
+      },
+      "refs": [
+        {
+          "source_id": "PL02-01",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL02-01--GUALA_A0116_CONTACT_LOCAL_ELECTRICAL_PLASTICITY_CANDIDATE_2026-08-15.md",
+          "line": 94,
+          "anchor": "The evidence supports finite channel populations and activity-dependent electrical-synapse plasticity. It does not directly provide one exact deterministic `E_transition` for Guala. Boltzmann-fit voltage sensitivity and equivalent gating charge are population/statistical observations; silently treating them as a deterministic transition barrier would be an invented conversion.",
+          "sha256": "fa8da10c010a1fd0f363fe4b379830bbe8bd31b39d9aa487e88683d60e5bf744"
+        },
+        {
+          "source_id": "PL03-01",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL03-01--GUALA_A0116_CONTACT_LOCAL_MODEL_RESULT_2026-08-15.md",
+          "line": 36,
+          "anchor": "`             = 21.02856832125 zJ`.",
+          "sha256": "e82a0c28bc2835e8fbd88b1506b315b319f64361b12453330c7c3318a81e6eb1"
+        },
+        {
+          "source_id": "PL04-01",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL04-01--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+          "line": 59,
+          "anchor": "If transition capacity remains, `R_i' = A_i - m_i'*q`. If the relevant population boundary is reached, `R_i' = 0` and the excess joins heat. Each completed transition dissipates its transition work; it is not counted again as stored membrane or fluid energy.",
+          "sha256": "30ecc20777e8f4203c51887c32d923b6995c74f50d791674cc24c43a6170101e"
+        },
+        {
+          "source_id": "PL04-01",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL04-01--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+          "line": 34,
+          "anchor": "- retained representation: the exact proper phase `rho_i = R_i / q`, where",
+          "sha256": "30ecc20777e8f4203c51887c32d923b6995c74f50d791674cc24c43a6170101e"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1258,
+          "anchor": "  `14651898759795200000000000000000000000 zJ`, approximately `16.42447 zJ`,",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A09",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPL06",
+      "name": "Contact codec evolution required preserving every nested predecessor format",
+      "classification": "legitimate_representation_corrections_with_historical_preservation_limits",
+      "finding": "PLR06",
+      "observed_mechanism": "Initial contact-local candidates failed before cutover: GLRCS06 evidence under oldGLEXP05, old cross-cohort/reached-cell GLSEC02 reencoded asGLSEC03 and omittedV5digest admission. Correction retains old wrappers/payloads and uses new formats only for changed channel state. A later exact-work multiplication exceeded signed128 intermediate width; wide arithmetic plus proper residue phase resolved that reported case.",
+      "evidence_limits": "Reports include byte-identical58,413,197-byte reencoding and cold restores of specific envelopes. They are narrow historical claims, not authentication of every format or proof of all future rational bounds. Fresh genesis and final byte equality do not alone verify all lived causal state across later migrations.",
+      "replacement": "Preserve exact source-format anatomy, nested digests and original raw predecessor artifacts. Verify legacy data is decoded as historical evidence without regaining active authority. Distinguish lossless representation from the separately authorized lossy V27 transition.",
+      "acceptance": {
+        "unit": "Cover each nested format, first changed contact, unchanged legacy bytes, malformed input and exact work widths.",
+        "module": "Exercise authentic mature predecessor through first successor, save, cold restore and next interval.",
+        "system": "Prove relevant learned effects survive actual admitted current-format migrations with exact loss accounting.",
+        "release": "Bind source/binary/image/format and prohibit unannounced reinterpretation or compatibility-driven invented state."
+      },
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1232,
+          "anchor": "- The deployment failure exposed three coupled format-version omissions in",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1241,
+          "anchor": "  format. The comparison reached the end of all `58,413,197` cognitive bytes",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1255,
+          "anchor": "  signed-128-bit rational numerator. Production remained task 1070.",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1236,
+          "anchor": "  The correction preserves every predecessor wrapper and payload byte, adds",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPL07",
+      "name": "Contact change, active participation and functional reinforcement were conflated",
+      "classification": "acceptance_scope_evolution_not_equivalent_learning_proof",
+      "finding": "PLR07",
+      "observed_mechanism": "Tasks1073/1075 report changed contact state and later use;1075 then admits separate projections did not bind the same contact. Subsequent observers required conductance change on every response, then accepted phase-only same-path activity under the narrower name active-contact participation. This avoids demanding relearning on every use but does not prove a prior conductance change caused improved or different behavior.",
+      "evidence_limits": "The explicitly renamed scope is a legitimate narrowing. Retained contact use, phase change, active path and counterfactual learned contribution are different propositions. The reported -8582-carrier route alone is not a matched changed-versus-unchanged conductance effect.",
+      "replacement": "Keep separate acceptance for acquisition, storage, active use and functional learned consequence. Trace genuine learned contact state into later action and compare lawful controls; never claim reinforcement merely from physical participation or population counts.",
+      "acceptance": {
+        "unit": "Distinguish unchanged, phase-only, population/conductance change, off-path and wrong-action cases.",
+        "module": "Bind the same stable contact and versioned law through actual causative transfers without forcing unrelated branches to share a bond.",
+        "system": "Show later behavior’s dependence on the retained experience using authentic matched controls, not replayed semantic targets.",
+        "release": "Expose exact claim scope and unresolved functional influence; no phase-only success may certify learning or speech."
+      },
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1384,
+          "anchor": "  the same stable contact across that boundary. The earlier statement that no",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1834,
+          "anchor": "  unchanged or off-path contact. Rename the bounded evidence from reinforcement",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1827,
+          "anchor": "  their transition-work phase changed during the same causal action. Requiring a",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1346,
+          "anchor": "  `-8582` whole carriers at interval 2; the successor cold-restored exactly;",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A09",
+        "A10",
+        "A11",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPL08",
+      "name": "Task1086 social success lacked participant-to-response causality",
+      "classification": "documented_false_positive_later_retracted",
+      "finding": "PLR08",
+      "observed_mechanism": "Task1086 reported reciprocal_social_positive_engagement_observed after ordered turns but had no directed path from participant-perturbed retinal lineages to the accepted internal-formation motor response. The candidate was seeded before sensory commit. Correction exports exact perturbed lineages after commit, follows real cross-interval carriers and rejects temporal coincidence. One-seal aggregation initially hid intermediate ticks and broke that trace; per-interval immutable evidence restored it.",
+      "evidence_limits": "This is explicit historical false acceptance, not proof of intentional lying. Task1091 later reports one actual participant-to-motor-to-sensed-return path; a second response remained absent. Creator clarification is recorded as narrowing A-011.6 to the physical circuit, leaving stronger social joy unproved; original clarification must still be authenticated.",
+      "replacement": "Retract the temporal-only result and preserve the actual narrower path. Bind every claimed social or learned response to sensory cause and native consequence; do not carry semantic stimulus receipts after physical causation ends. Preserve acceptance changes as scoped authority changes, not retroactive proof of reciprocity.",
+      "acceptance": {
+        "unit": "Reject recorded coincidence, precommit candidate seeding and unrelated internally cued responses.",
+        "module": "Preserve exact source receipts and every interval frontier through native/FFI/observer with no cognitive feedback.",
+        "system": "Demonstrate actual participant-caused behavior separately from a full reciprocal exchange and later learned contribution.",
+        "release": "Report circuit completion and unproved social behavior distinctly on the exact release; authenticate any narrowed acceptance."
+      },
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1895,
+          "anchor": "- **Falsified claim:** the reported reciprocal result proves causal order but",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1901,
+          "anchor": "  not require a physical path from that participant action's sensory successor",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2481,
+          "anchor": "  four-turn observer window. The prior second-response condition",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2435,
+          "anchor": "- **First live participant-caused response:** one participant move from",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A06",
+        "A08",
+        "A09",
+        "A11",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPL09",
+      "name": "Reported body-owned laughter did not qualify intelligible speech",
+      "classification": "narrow_native_vocal_witness_with_unproved_acoustic_meaning",
+      "finding": "PLR09",
+      "observed_mechanism": "Task1095 reports two autonomous recurrences of formationbda19caf… with exact motor→articulator junctions, four active body ports,16,000pressure samples each, self-hearing and sensed world/body return. Their pressure digest was unchanged while yaw varied-34→-2mdeg. Laughter was an observer interpretation bound to prior play; no canned audio or target utterance was claimed. V27 later retired that learned witness; current post-cleanup laughter was separately unproved.",
+      "evidence_limits": "Documentary reports of native emission and self-hearing deserve preservation but are not independently authenticated here. Nonempty/repeated PCM and a play label do not establish laughter-like acoustics, learned control, intelligible words, semantics or syntax. Later source retirement prevents using the old witness as current capability.",
+      "replacement": "Keep the authentic historical audio, native source/artifact and causal chain where recoverable. Name emitted vocalization and behavioral context separately from perceptually identified laughter or speech. Qualify current preserved learned articulation with matched controls and independent intelligibility; do not synthesize a laugh or word to satisfy the observer.",
+      "acceptance": {
+        "unit": "Verify exact motor-articulator ancestry, pressure source, units, timing, self-hearing and absence of canned output.",
+        "module": "Bind actual body mechanics, all active articulation dimensions and original acoustic waveform to retained causal state.",
+        "system": "Establish experience-dependent vocal variation, grounded use and independently assessed claimed acoustic behavior; disclose failed/absent controls.",
+        "release": "No whole-speech or current-laughter certificate from Task1095’s labels, counts, recurrence or HTTP health."
+      },
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2756,
+          "anchor": "  to `-2` millidegrees. The pressure receipt happened to recur unchanged, so",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2760,
+          "anchor": "  `body_owned_laughter_recurred`, receipt",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2618,
+          "anchor": "  yaw, a committed world revision, `16,000` emitted pressure samples, all four",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2750,
+          "anchor": "  apex `144`, mouth area `305`, perioral displacement `40`, `16,000` emitted",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2835,
+          "anchor": "  background topology. The historical task-1095 play/laughter witness cannot",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A06",
+        "A08",
+        "A09",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPL10",
+      "name": "Mature recurrent circulation falsely passed formation-specific recognition",
+      "classification": "documented_recurrence_shortcuts_rejected_by_mature_evidence",
+      "finding": "PLR10",
+      "observed_mechanism": "Task1185 replaced exact retained-fractal replay with recurrent-cell flow and reported1,219partial/158endogenous reassemblies after472native tests passed. It was drained/reverted. Two subsequent two-interval candidates failed exact mature word-apple external-cue rehearsals; nine episodes produced internal recurrences, not required external recognition. Removed passages preserve these proposals and their rejection.",
+      "evidence_limits": "Neither ordinary recurrent current nor a cue-shaped ordered path is sufficient proof of specific learned recognition. The old task1095 closure was already challenged by broad-recurrence correction before later V27 loss. Reverted candidate source must not become authority through a recovered older document.",
+      "replacement": "Preserve rejected candidate/fixture/state bindings and exact causal external-versus-internal origin. Require formation-specific mature-state differential evidence before changing recurrence admission; derive any lawful relaxation from actual retained-state identity, not desired recognition counts.",
+      "acceptance": {
+        "unit": "Reject generic circulation and unrelated formation admission while preserving valid exact retained relations.",
+        "module": "Use authenticated mature topology, true cue ancestry and the actual current formation law across recurrence/recognition readers.",
+        "system": "Demonstrate learned external recognition and endogenous recall separately with matched unrelated/absent-cue controls.",
+        "release": "No pristine/unit pass can override failed mature recognition; verify retired candidates cannot re-enter serving authority."
+      },
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2781,
+          "anchor": "  task `dsf-ai-task:1185` exposed `1,219` partial and `158` endogenous",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2812,
+          "anchor": "  episode, but every one was internally originated and none was the required",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-24",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-24--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2777,
+          "anchor": "The historical task-1095 closure above is no longer current acceptance",
+          "sha256": "1a47a407949d942b5b9f99bb4b92a339112cca4a3447ff6beaef423633862b39"
+        },
+        {
+          "source_id": "PL01-05",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-05--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2804,
+          "anchor": "already-existing recurrent anatomy. In the predecessor interval the proper cue",
+          "sha256": "a6a8062cc00fa2c68010e7b8d407c08ac09585356b81607836a5056c1f54e511"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A09",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPL11",
+      "name": "Latency improvements preserved exact state but did not establish continuous cadence",
+      "classification": "documented_exact_optimization_and_separate_runtime_boundaries",
+      "finding": "PLR11",
+      "observed_mechanism": "Historical repeated successor seals cost8.420895s for8hops versus5.698864s with one seal and identical finalbytes; readiness then improved to0.114702–0.253178s using one immutable persisted snapshot. Compact XZ preset0 reconstructed58.45MBrawstate fromabout102kB, removing duplicate ordinary restore/save. Yet mutation cadence remained tens of seconds. Later63kfrontiers exposed quadratic sortedVec insertion and linear component membership, permitting billions of comparisons.",
+      "evidence_limits": "These are documented distinct improvements and failures, not present latency diagnosis. Compact raw-byte preservation is not DSF/cognitive flattening. Fast cached health reads, small physical storage and bounded peak memory do not establish simulation cadence, lifetime resource bounds or preserved behavior after a lossy migration.",
+      "replacement": "Keep matched exact successor evidence and measure settlement, body/world return, publication and observation separately. Bound work by actual reached frontier and retained structure without truncation. Preserve canonical raw state and fail explicit on representation corruption; do not substitute cadence with fast readiness.",
+      "acceptance": {
+        "unit": "Prove exact sparse composition, ordering, raw/compact round trips and finite representation/operation bounds.",
+        "module": "Compare identical full mature input/state with every action and intermediate causal record preserved.",
+        "system": "Measure autonomous progress, end-to-end sensory latency and real feedback under actual configuration and external load.",
+        "release": "Bind current source/image/maturestate and live trajectory; historical optimization timings are not a new performance certificate."
+      },
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2036,
+          "anchor": "  episodes took `8.420895 s` and eight seals through the predecessor path;",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2200,
+          "anchor": "  `0.114702`–`0.253178` seconds; later independent samples remained below",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2244,
+          "anchor": "  with standard XZ/LZMA preset 0 to `101784` bytes in `0.172716` seconds and",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3382,
+          "anchor": "  approximately 63,000-participant frontier therefore permits billions of",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2210,
+          "anchor": "  the organism. The unattended mutation-and-publication cadence itself still",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A08",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPL12",
+      "name": "Nominally read-only observation could veto publication or call back into cognition",
+      "classification": "observer_authority_breach_and_retirement",
+      "finding": "PLR12",
+      "observed_mechanism": "AtTask1200 causal observation ran after native hops but before CURRENT publication, so malformed evidence could cause refusal/rollback. Correction publishes first, consumes immutable hop frontiers and reports bounded unavailable reason. A dormant resident callback survived until separately removed; no-cycle filters also hid lawful recurrent paths. Display witnesses intentionally reset on restart.",
+      "evidence_limits": "This documents a real authority breach despite no action selection. A declared read-only function is not noncausal if failure changes state adoption. Preserving an old display witness after observer failure must not relabel it current; exact as-of identity and unavailable status require verification.",
+      "replacement": "Keep all observation downstream of canonical state adoption with no route to mutate, veto, schedule or recover cognition. Remove dormant fallback callbacks and show stale/as-of evidence truthfully. Bound observer state and output independently from the organism’s retained history.",
+      "acceptance": {
+        "unit": "Inject missing/malformed frontier and prove committed state cannot be vetoed or advanced; verify callback absence.",
+        "module": "Trace publication/cache/failure ordering and every observer caller, including cold start and display failures.",
+        "system": "Verify autonomous progress and exact persisted receipts during observer failure while unavailable/stale evidence is visible.",
+        "release": "Audit packaged and live reachability, not authority booleans alone; no dormant fallback resurrection."
+      },
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2951,
+          "anchor": "  chose neural activity, but a malformed observation could still become a",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2958,
+          "anchor": "- Observer failure is bounded to a 512-character unavailable reason, preserves",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3023,
+          "anchor": "  was absent. The deployed path passed `None`, but the dormant callback made the",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3063,
+          "anchor": "  task-1204 correction removed every generic revisit rejection: return to an",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A09",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPL13",
+      "name": "Missing body and stopped-load return contributed to terminal saturation",
+      "classification": "documented_feedback_gaps_and_changed_load_constitution",
+      "finding": "PLR13",
+      "observed_mechanism": "Task1204 repeatedly recruited lip/grip at stops; native trajectory deliberately emitted empty typed proprioceptive sources. GLJSRC03return repair preserved actual stalls but position feedback alone did not expose reacted load. GLJSRC04 added load endings; it initially renamed living length-receptor identity andTask1206committed no successor. After identity repair and antagonist rewiring, variable reacted/discharged residues causedResidueWidth;Task1214’s candidate switched to fixed elementary-carrier mechanical work and retired off-lattice residues when reached.",
+      "evidence_limits": "This supplies historical concrete feedback and representation failures, not proof of today’s turn loop. An exact normalized ratio is not by itself a full law for transduced work. Antagonist rewiring removed dependent evidence; residue retirement is a state/constitution change requiring original authority and loss accounting. Later successful feedback does not itself prove learned choice.",
+      "replacement": "Trace current motor discharge, mechanical stop/reaction, units, native body state, same-organism afferent and later effect. Ratify load-work conversion and receptor identity; account every retired residue/bond/evidence record and preserve genuine learned state. Do not add an escape rule or heuristic turn chooser.",
+      "acceptance": {
+        "unit": "Verify nonzero movement versus stall, exact loads and units, stable receptor identity and arbitrary repeated source lifecycles.",
+        "module": "Prove all physical consequences re-enter the same organism through actual full-field transduction and canonical persistence.",
+        "system": "Observe ordinary action variation and learned causal use under stops/antagonists with intact history and controls.",
+        "release": "Bind exact effective anatomy/config and live feedback/trajectory; reject healthy-but-no-successor and unaccounted cleanup."
+      },
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3111,
+          "anchor": "  exact articulated-body consequences but deliberately returned an empty typed",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3190,
+          "anchor": "  `NeuronLineageAuthorityChanged`; repeating the load return was therefore",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3402,
+          "anchor": "  Existing load residues not on that fixed carrier/gate lattice are retired",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3243,
+          "anchor": "  and removed only frontier/formation evidence naming the rejected bond.",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3397,
+          "anchor": "  denominator changed with each action. That history is not a mechanical state",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A06",
+        "A08",
+        "A09",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPL14",
+      "name": "Effector eligibility admitted tonic and outgoing current as action preparation",
+      "classification": "documented_motor_fanout_and_causal_boundary_corrections",
+      "finding": "PLR14",
+      "observed_mechanism": "Task1209admitted tonic layer8position routes and produced whole-body fanout;1210restricted that reflex to actual reacted-load ancestry. Removing transient causally_active_lineages membership from effector authority then exposedTask1211:287events/all37axes, because preparation accepted both directions across contacts. Correction requires exact incoming layer11 or mounted reacted-load transfer into the motor; articulation requires actual adjacent motor input plus discharge.",
+      "evidence_limits": "A transient bookkeeping set cannot replace physical preparation. Removing it without verifying the true direction law exposed a real defect; body movement was correctly rejected as acceptance. Reflex-driven or new-fractal action is not proof of retained-formation autonomy or speech.",
+      "replacement": "Ratify preparation and discharge at each motor/vocal terminal using real direction, anatomy, local state and work. Keep observer/causal bookkeeping out of effector authority; distinguish tonic sensing, reflex and retained experiential action without semantic selectors.",
+      "acceptance": {
+        "unit": "Reject outgoing, tonic, unrelated or cancelled input; accept only lawful incoming preparation and actual discharge.",
+        "module": "Trace motor/articulatory channels and antagonist reaction without ledger membership or Python selection.",
+        "system": "Run authentic passive mature intervals and ordinary learned action with complete sensed consequences, exposing fanout/stalls.",
+        "release": "Qualify exact candidate behavior and bounded cadence; a movement or recruitment count alone cannot pass."
+      },
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3261,
+          "anchor": "  produced an unacceptable whole-body motor fanout. That task is rejected as",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3297,
+          "anchor": "  their exact physical preparation/discharge law and membership in a transient",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3322,
+          "anchor": "  recruited `287` motor events and changed all `37` body axes. The release is",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3326,
+          "anchor": "  preparation. Motor-to-neighbour current is a physical consequence, not an",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A08",
+        "A09",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

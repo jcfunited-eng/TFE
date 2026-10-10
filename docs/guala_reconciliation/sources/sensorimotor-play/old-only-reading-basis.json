@@ -1,0 +1,163 @@
+[
+  {
+    "source_id": "PL01-05",
+    "start_line": 2803,
+    "end_line": 2812,
+    "latest_id": "PL01-39",
+    "text": "The replacement candidate is limited to an exact ordered path through the\nalready-existing recurrent anatomy. In the predecessor interval the proper cue\nmust physically transfer into the formation's retained layer-9 neuron and make\nthat neuron the advancing frontier. In the current interval that same neuron\nmust transfer outward into a retained member outside the cue and advance that\nmember. Current recurrent-cell activity alone remains insufficient. Every\nretained member must still have a current nonzero sparse delta and current\nactive bonds must connect the complete formation; the original retained\nfractals and bonds are never rewritten. First recognition and any recurrence\nwithout this ordered two-contact path retain exact-fractal equality.",
+    "basis_index": 0,
+    "original_index": 1
+  },
+  {
+    "source_id": "PL01-31",
+    "start_line": 3059,
+    "end_line": 3067,
+    "latest_id": "PL01-39",
+    "text": "  generic no-cycle rule correctly discarded the older path at that return, but\n  it also discarded the newly proven recurrent origin before the next physical\n  interval could advance from it toward ordering and motor layers.\n- The correction recognizes only a committed frontier entry whose frontier is\n  the reported recurrent lineage and whose other endpoint is one of that exact\n  formation's reported cue lineages. It starts a new bounded trace at the\n  current recurrence tick with that physical transfer as its first edge. The\n  prior path remains retired; arbitrary lineage revisits remain rejected; a\n  trace that does not advance on the next interval is still dropped.",
+    "basis_index": 1,
+    "original_index": 12
+  },
+  {
+    "source_id": "PL01-19",
+    "start_line": 2803,
+    "end_line": 2811,
+    "latest_id": "PL01-39",
+    "text": "The replacement candidate is limited to the already-existing native retention\nlaw in `retain_internally_reassembled_recurrent_frontier`: the exact retained\nlayer-9 neuron must be the advancing causal frontier in the immediately\npreceding interval and must carry a current nonzero directed transfer with the\nproper cue. Current flow alone remains insufficient. Every retained member\nmust still have a current nonzero sparse delta and current active bonds must\nconnect the complete formation; the original retained fractals and bonds are\nnever rewritten. First recognition and any recurrence without the continuous\ntwo-interval path retain exact-fractal equality.",
+    "basis_index": 2,
+    "original_index": 5
+  },
+  {
+    "source_id": "PL01-24",
+    "start_line": 2801,
+    "end_line": 2807,
+    "latest_id": "PL01-39",
+    "text": "Applicable recurrence checks for this bounded release are RF-003 (candidate\nnative provenance), RF-004 (retained predecessor), RF-005/RF-012 (exact causal\nevidence, not counters or HTTP health), RF-010 (CURRENT continuity), RF-016\n(A-011 only), RF-020 (functional recurrent-neuron participation), RF-031\n(nonzero focused tests), RF-034 (do not require the obsolete task-1095\nwitness), RF-041 (unique/composed neuronal deltas), RF-044 (no population-wide\nnew work), and RF-050 (preserve the already-closed continuous intake path).",
+    "basis_index": 3,
+    "original_index": 11
+  },
+  {
+    "source_id": "PL01-05",
+    "start_line": 2820,
+    "end_line": 2826,
+    "latest_id": "PL01-39",
+    "text": "The first immutable rehearsal of commit `f390624f`, digest\n`sha256:dbc63c3b...a4e45b`, failed safely before cutover because it required the\nrecurrent neuron to remain the current frontier while conducting with the cue;\nthe mature word-apple partial cue produced zero external reassembly. Native\nfrontier semantics instead advance from cue to recurrent neuron and then from\nthat neuron to a different retained member. RF-052 records this exact direction\nand frontier-advance requirement. Task 1184 remained live and unchanged.",
+    "basis_index": 4,
+    "original_index": 3
+  },
+  {
+    "source_id": "PL01-24",
+    "start_line": 2777,
+    "end_line": 2783,
+    "latest_id": "PL01-39",
+    "text": "The historical task-1095 closure above is no longer current acceptance\nauthority. Commit `b6c8fbdc` correctly removed its broad recurrence rule after\nlive evidence showed that merely changing the same member lineages could mint\nfalse partial/endogenous recurrence. Production task `dsf-ai-task:1184` retains\nthat correction and remains the authenticated predecessor. A-006 is\nLive-Closed there; A-011 remains open until new exact live causal evidence is\nproduced.",
+    "basis_index": 5,
+    "original_index": 7
+  },
+  {
+    "source_id": "PL01-16",
+    "start_line": 781,
+    "end_line": 786,
+    "latest_id": "PL01-39",
+    "text": "Every adjacency is joined by the prior action's world-state successor receipt\nequaling the next action's world-state predecessor receipt. Both Guala actions\nmust separately carry exact localized affect/body settlement, evaluated body\nstrain, zero unmet dissipation, and zero exhausted intervals. The external\nparticipant acts only through `SECOND_BODY_PORT_ID`; that path cannot move\nGuala's body.",
+    "basis_index": 6,
+    "original_index": 4
+  },
+  {
+    "source_id": "PL01-52",
+    "start_line": 3444,
+    "end_line": 3448,
+    "latest_id": "PL01-39",
+    "text": "- **The current post-cleanup basic sensorimotor-play witness is live-proved.**\n  This does not claim the remaining A-011 properties: positive affect/body\n  engagement, reciprocal social play/joy, and body-owned laughter are still\n  explicitly unavailable in the same live observation and remain the serial\n  continuation. The observer has no cognition or action authority.",
+    "basis_index": 7,
+    "original_index": 14
+  },
+  {
+    "source_id": "PL01-31",
+    "start_line": 3072,
+    "end_line": 3077,
+    "latest_id": "PL01-39",
+    "text": "- The new falsifier proves exact cue-to-recurrent return, later\n  recurrent-to-ordering advance, and exact layer-11-to-layer-12 motor\n  preparation as one directed path. The pre-existing arbitrary-cycle refusal\n  remains passing. The focused A-006 causal, C-023 causal, and curriculum\n  invitation suites pass `29/29`; Python compilation and `git diff --check`\n  pass.",
+    "basis_index": 8,
+    "original_index": 13
+  },
+  {
+    "source_id": "PL01-05",
+    "start_line": 2814,
+    "end_line": 2818,
+    "latest_id": "PL01-39",
+    "text": "This candidate changes no DSF field, neuron equation, topology, schema,\npersistence, observer, action selector, or resource owner. It is not eligible\nfor cutover until an immutable discarded-state rehearsal against the mature\ntask-1184 predecessor proves bounded recurrence and source continuity under a\nlive-sized causal input.",
+    "basis_index": 9,
+    "original_index": 2
+  },
+  {
+    "source_id": "PL01-24",
+    "start_line": 2790,
+    "end_line": 2794,
+    "latest_id": "PL01-39",
+    "text": "- every retained member has a nonzero current sparse physical delta;\n- current active bonds connect the complete retained formation;\n- the cue is a proper subset of that formation; and\n- that exact formation's retained layer-9 recurrent neuron carries a current\n  directed transfer to one of those cue lineages.",
+    "basis_index": 10,
+    "original_index": 9
+  },
+  {
+    "source_id": "PL01-24",
+    "start_line": 2796,
+    "end_line": 2799,
+    "latest_id": "PL01-39",
+    "text": "Without that formation-specific recurrent flow, the existing exact-fractal\nrule remains authoritative. The retained original fractals and bonds are never\nrewritten. No DSF field, neuron equation, persistence schema, observer, action\nselector, topology owner, or whole-state transaction changes in this release.",
+    "basis_index": 11,
+    "original_index": 10
+  },
+  {
+    "source_id": "PL01-24",
+    "start_line": 2785,
+    "end_line": 2788,
+    "latest_id": "PL01-39",
+    "text": "The current correction does **not** restore the broad rule. First recognition\nstill requires byte-exact retained post-quiescence fractals. A recognized\nformation may accept different absolute living-state deltas only when all of\nthe following current physical facts coexist:",
+    "basis_index": 12,
+    "original_index": 8
+  },
+  {
+    "source_id": "PL01-68",
+    "start_line": 265,
+    "end_line": 267,
+    "latest_id": "PL01-39",
+    "text": "- A same-transition affective trajectory with no lineage shared by the causal\n  motor path is refused. Intake identity or timing proximity alone cannot bind\n  the records.",
+    "basis_index": 13,
+    "original_index": 16
+  },
+  {
+    "source_id": "PL01-68",
+    "start_line": 247,
+    "end_line": 248,
+    "latest_id": "PL01-39",
+    "text": "transition** when an exact lineage occurs in both the retained-formation motor\npath and that trajectory. A complete trajectory retains:",
+    "basis_index": 14,
+    "original_index": 15
+  },
+  {
+    "source_id": "PL04-02",
+    "start_line": 3,
+    "end_line": 3,
+    "latest_id": "PL04-01",
+    "text": "**Status:** exact proposal awaiting Joseph's approval; no implementation or deployment  ",
+    "original_index": 17
+  },
+  {
+    "source_id": "PL01-05",
+    "start_line": 2801,
+    "end_line": 2801,
+    "latest_id": "PL01-39",
+    "text": "### Two-interval recurrent-frontier candidate",
+    "basis_index": 15,
+    "original_index": 0
+  },
+  {
+    "source_id": "PL01-24",
+    "start_line": 2775,
+    "end_line": 2775,
+    "latest_id": "PL01-39",
+    "text": "## 2026-08-23 exact recurrent-flow correction",
+    "basis_index": 16,
+    "original_index": 6
+  }
+]

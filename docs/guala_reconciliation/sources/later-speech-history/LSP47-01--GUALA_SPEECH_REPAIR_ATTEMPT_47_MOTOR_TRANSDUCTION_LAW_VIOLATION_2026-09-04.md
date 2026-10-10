@@ -1,0 +1,259 @@
+# Guala speech repair attempt 47 — learned-motor transduction law violation
+
+Date: 2026-09-04
+
+Status: exact causal-impact analysis and copied-production-body falsification
+complete. The present fixed-one-carrier mechanism is rejected. Production is
+unchanged on task 1429. No replacement implementation or deployment is claimed
+by this record.
+
+## Architecture honesty gate
+
+1. **Requested architecture:** the organism's current local physical state,
+   mounted learned anatomy, conserved material, and exact energy descent must
+   determine whether a learned ordering cell drives a motor and by how much.
+   The resulting motor gesture must be body-owned, sensed by the organism, and
+   reusable in learned ordering without a developer-authored trajectory.
+2. **Current code reality:** every eligible learned layer-11-to-layer-12 motor
+   bridge diverts exactly one whole carrier from an active layer-11-to-layer-7
+   transfer, regardless of the transfer's magnitude, endpoint state, contact
+   conductance, available energy, or motor load.
+3. **Conflict with requested architecture:** yes. A literal one-carrier action
+   magnitude is a developer-authored heuristic in the living developmental
+   path.
+4. **Mechanisms that will not be extended:** the fixed-one-carrier split; a
+   replacement fixed count such as 32; a word, phoneme, syllable, or motor-pose
+   table; a replayed trajectory; teacher- or observer-selected motor targets;
+   TTS; shell cognition; reduced DSF; and the retired Python articulatory and
+   imitation selectors.
+5. **Single exact next item:** map and implement one local state-derived
+   directed transduction law across the existing learned L11/L12 anatomy. It
+   must jointly resolve every currently reached branch from one sender,
+   conserve all carriers and work, and remain unavailable when the local state
+   cannot support a strictly descending transfer.
+6. **DSF evaluation:** the complete joint seven-field L0-L4 result remains
+   authoritative and unchanged. This repair is downstream physical transport;
+   it does not replace or approximate DSF.
+7. **Reduced-field loss:** none. No DSF field is projected into a motor score or
+   scalar authority.
+
+## Exact production boundary
+
+Production remains task definition `dsf-ai-task:1429`, native commit
+`a7398bc1b36436c887fa10f370f5a7aaf27d1141`, immutable image
+`sha256:92c7353b8408b89148a107e12e7a7cfbc2863abb76cb6bd1d8c175ee68bdfec1`,
+and resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+
+The proof input is the immutable production body at tick `434112`, exactly
+`112677154` bytes, SHA-256
+`113c7fb0bf8a58112afed7385761ae7052a0d7f4c4df176e0e78024c03c1661e`.
+It was read from a private copy with no production writer, endpoint, service,
+or store authority. The census report is
+`/tmp/guala-speech1429-sequence.dpHRJX/census.json`, SHA-256
+`30b376d44e4ef2fa2f75daacfc6124cae6d82855d0096867169385af50a267d5`.
+
+The copied body contains seven learned L11/L12 contacts, 293 L10/L11
+contacts, and 304 L7/L11 contacts. Two learned contacts reach vocal motors:
+
+- ordering lineage suffix `05f6` to vocal-tract section-0 motor suffix `00c5`;
+- ordering lineage suffix `06ba` to vocal-tract section-7 motor suffix `04fb`.
+
+The body is not at an articulatory stop: section 0 is at `141` within
+`20..1000`, and section 7 is at `249` within `20..1000`.
+
+## The violating source law
+
+The live path is in
+`native/guala_core/src/resident_cognitive_formation.rs`, in the learned
+ordering/motor transduction block beginning near line 19403.
+
+For each L11/L12 learned bridge it:
+
+1. finds a real current L11-to-founding-L7 transfer;
+2. requires that transfer to contain at least two carriers;
+3. adds literal `1` back to the founding L7 receiver;
+4. subtracts literal `1` into the L12 motor receiver;
+5. reduces the original L11/L7 transfer by literal `1`; and
+6. records `transferred_whole_carriers: 1`.
+
+The block proves only that the resulting selected frontier conserves net
+charge and has lower total membrane-plus-gradient work than its predecessor.
+Neither test derives the chosen magnitude. A fixed one-carrier split can pass
+both conditions while still suppressing nearly all physically available motor
+drive.
+
+## Repair-history reconciliation
+
+The mechanism entered production-source history in commit `8e32a9c7` on
+2026-09-03 as a copied-body one-carrier transduction candidate. Commit
+`dfed68a3` on 2026-09-04 removed its test-only switch and promoted it to the
+living speech path.
+
+The September 3 range tested splits `1, 2, 4, 8, 16, 24, 32, 48, 64` over one
+copied mature body and three retained clocks. One carrier was the only tested
+extent that descended on every observed route at every observed clock. The
+history therefore called it an "invariant indivisible transfer quantum."
+
+That conclusion was invalid. It selected a universal action magnitude from
+the intersection of a few body states instead of deriving each transition
+from the state that actually existed. The connected/severed, conservation,
+strict-descent, body-return, cold-restart, and cascade tests all remained green
+because none varied the magnitude with current physical state. This is the
+specific Green Analysis failure; repeating those same tests cannot repair it.
+
+## Exact copied-production-body falsification
+
+The unchanged task-1429 body was run through the already-existing test-only
+three-terminal range. It preserves the exact number of carriers leaving each
+L11 sender, redirects only sampled portions to its already-learned L12 motor,
+and measures complete three-cell membrane-plus-gradient work plus terminal
+discharge. It adds no carrier, energy, route, synthetic seed, motor target, or
+production state.
+
+The maximum sampled split that still strictly descends is state-dependent:
+
+| Reached clock | L11 suffix | Motor suffix | Real L11 output | Maximum sampled descending motor split |
+|---:|---:|---:|---:|---:|
+| 0 | `05f6` | `00c5` | 75 | 32 |
+| 0 | `06ba` | `04fb` | 75 | 32 |
+| 0 | `0700` | `048b` | 116 | 48 |
+| 0 | `07ee` | `048b` | 208 | at least 64 |
+| 0 | `07fc` | `048b` | 207 | at least 64 |
+| 0 | `080a` | `048b` | 225 | at least 64 |
+| 0 | `0818` | `039d` | 230 | at least 64 |
+| 1 | `05f6` | `00c5` | 4 | 1 |
+| 1 | `06ba` | `04fb` | 4 | 1 |
+| 1 | `0700` | `048b` | 7 | 2 |
+| 1 | `07ee` | `048b` | 13 | 8 |
+| 1 | `07fc` | `048b` | 13 | 8 |
+| 1 | `080a` | `048b` | 15 | 8 |
+| 1 | `0818` | `039d` | 15 | 8 |
+| 2 | `05f6` | `00c5` | 74 | 32 |
+| 2 | `06ba` | `04fb` | 76 | 32 |
+| 2 | `0700` | `048b` | 116 | 48 |
+| 2 | `07ee` | `048b` | 208 | at least 64 |
+| 2 | `07fc` | `048b` | 207 | at least 64 |
+| 2 | `080a` | `048b` | 225 | at least 64 |
+| 2 | `0818` | `039d` | 230 | at least 64 |
+
+For the first vocal route at clock 0, splits through 32 descend and splits 48
+and 64 increase total work. For the same route at clock 1, only split 1 among
+the sampled extents descends. Thus the body's own changing state already
+falsifies a universal motor count. Replacing one with 32 would fail the weak
+clock; retaining one suppresses the strong clocks by at least 31 currently
+proved lawful carriers.
+
+This range proves the defect and the existence of a dynamic lawful region. It
+does not yet select the production law: a sampled maximum is evidence, not
+authority, and the current range assumes one motor per ordering sender.
+
+## Complete causal impact
+
+### Upstream causal formation
+
+The L11 sender is genuinely reached from retained formation activity. The
+ordinary sparse-contact solver computes its real L11-to-L7 carrier transfer
+from endpoint charge, capacitance, effective contact conductance, available
+carriers, exact interval, retained carrier phase, and strict energy descent.
+That part is dynamic and is not the defect.
+
+### Learned motor contact
+
+The L11/L12 contact is persistent anatomy grown from lived sensorimotor
+coincidence. The present transduction block first neutralizes its ordinary
+symmetric gap-junction transition because that junction carries charge in the
+wrong direction for learned motor preparation. It then substitutes the fixed
+one-carrier three-terminal branch. Thus contact identity is learned, but
+action magnitude is authored by code rather than settled from that contact's
+current anatomy and state.
+
+### Motor neuron and terminal
+
+The literal carrier changes the L12 motor's membrane/gradient successor.
+`settle_efferent_terminal_transport` can discharge only the carriers physically
+prepared in that motor. The fixed split therefore places a one-carrier ceiling
+on each learned motor event before the terminal, regardless of upstream drive.
+
+### Body tissue
+
+`organism_runtime.rs` aggregates discharged carriers by exact body terminal and
+passes them to `settle_body_effector_drives`. In
+`virtual_articulated_body.rs`, one admitted carrier creates one 32-unit
+antagonist activation preparation. The production caller advances the body by
+one 1-ms tissue clock per native hop. Activation persists and decays over its
+own tissue timescale, but a one-carrier learned act begins with only one unit of
+whole activation per millisecond. The constant therefore turns rich upstream
+variation into nearly identical microscopic gestures.
+
+### Sensory return and future development
+
+Body displacement and reactive load generate ordinary proprioceptive
+consequences. Those consequences are the physical evidence from which later
+motor/ordering contacts may grow. Suppressing motion amplitude suppresses and
+homogenizes the organism's returned experience, so the same constant impairs
+future differentiation as well as the current act. It can leave topology real
+but developmentally starved.
+
+### Speech
+
+The two current vocal routes co-occur and each receives the same one-carrier
+ceiling. Their terminals move tract section 0 toward maximum and section 7
+toward minimum. The isolated L13 respiratory cell can now sustain bounded
+pressure, and attempt 46 proves the native organ can render a recognizable
+whole `ma-ma` when it receives a varying physical posture trajectory. The
+fixed transducer prevents the current learned routes from expressing the
+state-dependent amplitude needed to explore that posture space. It does not by
+itself solve temporal ordering, but it is an upstream physical blocker to both
+articulation strength and learnable variation.
+
+### Persistence and restart
+
+L11/L12 contacts, neuron state, carrier phase, body axes, and antagonist
+activation are persisted and cold-restored. The literal itself is source law,
+not stored data. Restart therefore faithfully resumes the same suppressed
+motor physics; it cannot heal the defect and does not erase the already-learned
+anatomy.
+
+### Resource and cascade boundary
+
+The current one-carrier ceiling is computationally cheap but achieves that
+bound by destroying valid physical magnitude. The replacement must visit only
+the currently reached L11 sender, its current founding transfer, and its
+currently mounted learned motor branches. Work must be bounded by reached
+branches and the exact carriers already in the transition, with no whole-body
+scan, history queue, per-word state, or retained evidence growth. Severing the
+learned contact must remove the motor transfer; exhausted or non-descending
+states must be silent; unrelated motors must remain untouched.
+
+## Replacement boundary—not yet an implementation claim
+
+The literal split must be removed as authority. The replacement must be one
+general local transduction law with these exact properties:
+
+- input consists only of the immutable predecessor states of the reached L11
+  sender, its real founding receiver, every currently reached learned L12 motor
+  branch, their mounted contact anatomy/state, and the real outgoing carriers;
+- all recipient branches from one sender are solved jointly, so source-order
+  iteration cannot let the first motor consume a privileged fixed amount;
+- the exact total leaving the sender is conserved across founding and motor
+  recipients;
+- every successor is computed atomically from the same predecessor;
+- the complete local successor must strictly lower exact physical work;
+- zero available carriers, a severed contact, an unreached branch, or absence
+  of a strictly descending allocation produces no motor act;
+- magnitude changes when endpoint state, available carriers, learned contact
+  conductance, fatigue/load, or source transfer changes;
+- no fixed carrier count, sampled sweet spot, lexical target, or observer
+  judgment enters the transition.
+
+The current harness has not yet resolved multiple learned motors from one
+sender and sampled only nine split sizes. The next harness must enumerate or
+solve the exact local allocation surface, validate it against the active
+settlement law, and include strong, weak, exhausted, severed, multi-branch,
+cold-restored, and bounded-resource cases. Its pre/post AWS snapshots remain
+read-only and cannot pause or steer production.
+
+No production implementation is authorized merely by this defect proof. The
+production rule becomes eligible only after its allocation relation is derived
+from declared physical quantities rather than chosen because one copied sound
+or body happened to pass.

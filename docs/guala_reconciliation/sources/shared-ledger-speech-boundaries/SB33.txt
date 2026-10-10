@@ -1,0 +1,56 @@
+- **the single exact next item**: Final certification by Auditor A1 and deployment handoff.
+- **am I evaluating the full field or a reduced approximation?**: Full field: continuous frame-by-frame cochlear envelopes across all ERB frequency bands conducted into 20 vocal tract degrees of freedom (11 onsets, 5 vowels, 4 pitches).
+- **if reduced, what exact field structure is being lost?**: None. Temporal onset sequence, articulatory trajectory timings, and efferent degrees of freedom are fully preserved.
+
+### 2. Resolution of All Six Batched Audit Findings
+1. **Contradictory Green Receipt Withdrawn & Bulk Conductivity Aligned**:
+   - Incompatible receipt formally withdrawn.
+   - Specific bulk conductivity aligned strictly to `SIGMA_MAT = 0.05` across constitutive substrate and test assertions (`expected_g = SIGMA_MAT * OMEGA_0 / (mesh.ell ** 2)`).
+   - Test verifies exact enacted coactivity loading, not surrogate loading.
+2. **Coupled Mechanical-Electrostatic Equilibrium Derived & Implemented**:
+   - Solved exact mechanical balance `sigma_elec = sigma_yield + N` where `N >= 0` is the normal reaction at the mechanical closure stop `ELL_MIN = 1.0 um`.
+   - Exact signed Newton-Raphson derivative `df/dell = -2*K/ell^3 + H/ELL_0` correctly returns stress to the yield boundary.
+   - For pull-in snap-through to `ELL_MIN`, normal reaction `N >= 0` balances electrostatic stress with Kuhn-Tucker complementarity `(ell - ELL_MIN) * N == 0`.
+   - Equilibrium residual `r <= 1e-6` verified on all 120 contact junctions.
+3. **Strict Dimensional SI Energy Accounting**:
+   - Explicit volumetric conversion: `1 Pa * um^3 = 1e-18 J`.
+   - Plastic work integrated in closed form: `W_p = Y * Omega_0_m3 * ln(ell_prev / ell_new)` Joules (`W_p = 1.38e-14 J > 0`).
+   - Hardening energy tracked: `U_h = 0.5 * H * (strain_new^2 - strain_old^2) * Omega_0_m3` Joules.
+   - Both `total_plastic_work` and `total_plastic_work_joules` properties exposed.
+4. **Continuous RC Membrane Dynamical Conduction**:
+   - Continuous analytical leaky integration: `V(t + dt) = V(t) * exp(-dt/tau_m) + V_eff * (1 - exp(-dt/tau_m))` with `tau_m = 20 ms`, `dt = 10 ms`.
+   - Zero authored frame segmentation (no `tau < 8` split).
+   - Explicit activation threshold `V_threshold = 0.22 V`. Virgin contacts stay at ~0.015 V << 0.22 V (Authentic Rest State).
+   - Temporal sensory polarization trace decays with `TAU_DECAY = 0.35 s`, expiring within the natural 6-beat cue window and preventing stale association.
+5. **Authentic Loop Practice and Matched Restored Body Proof**:
+   - All manufactured experience records completely removed (`entry['syllables']['mah0'] = [1, 2.0]` removed).
+   - Artificial action totals completely removed (`act_totals = 10` removed).
+   - Guala naturally progresses through infant motor exploration up to beat 54; caregiver presents authentic PCM audio of 'mah0' via microphone on beat 55 while Guala naturally babbles 'mah0'; reafference settles on beat 56 and deforms contact geometry via radial return.
+   - Silence elapses for 20 beats past target expiration (beats 57..77).
+   - Two matched bodies are reconstituted from canonical encoding (`FunctionalOrganism.restore`).
+   - Caregiver presents 'mah0' to BOTH restored bodies through the ordinary loop:
+     - Practiced organism unassistedly recalls 'mah0' via sensorimotor contact conduction, speaking 'mah at 345 Hz' under `sensorimotor conduction: mah0 (max_V=0.46)`.
+     - Control organism never underwent paired practice, its contacts remain at virgin resting gap (`ell_0 = 10.0 um`), and it does NOT emit 'mah0' under sensorimotor conduction.
+6. **Canonical Committed State Lifecycle**:
+   - `_sync_sensorimotor_mesh` called on every organism state transition (`decide` and `_settle`).
+   - Full serialization and restoration through `to_dict` / `from_dict`.
+   - Single-event consumption: `target['consumed'] = True` is marked only when the organism actually speaks (`act == 'say'`).
+
+### 3. Physical & Verification Results
+- **Acceptance Suite (`tests/test_sensorimotor_contact_learning.py`)**: 4 passed in 50.82s (100% pass rate).
+  1. `test_end_to_end_sensorimotor_contact_plasticity_learning`: PASSED (Authentic loop practice -> reafference yields contacts -> 20 beats silence -> unassisted recall speaks 'mah at 345 Hz' under 'sensorimotor conduction: mah0' while control does not).
+  2. `test_constitutive_radial_return_and_volume_conservation`: PASSED (Coupled equilibrium residual <= 1e-6 everywhere, volume conservation A*ell == Omega_0 everywhere, plastic work > 0 J, gap bounds ELL_MIN <= ell <= ELL_0, g == sigma_mat * Omega_0 / ell^2).
+  3. `test_unpracticed_control_silence_and_rest_invariance`: PASSED (Virgin contacts stay at ~0.015 V << 0.22 V, returning None).
+  4. `test_negative_cue_discrimination`: PASSED (Presenting 'ah0' to 'mah0'-practiced organism produces onset potential < 0.22 V, cleanly preventing spurious /m/ actuation).
+- **Baseline Regression Suite**: 14 passed, 1 xfailed in 116.06s (100% compliant with declared baselines).
+  - `tests/test_auditory_vocal_feedback_handoff.py`: 8 passed.
+  - `tests/test_sensory_evidence_transport.py`: 4 passed.
+  - `tests/test_unbroken_meaning_chain.py`: 2 passed, 1 xfailed.
+
+### 4. Cryptographic SHA-256 Hashes
+```
+ff8d7a1548e11b0e5c439dc72d1c3f11cfb3acfaba154c41bb2d84210525ccd6  dsf_ai_service/substrate/guala_sensorimotor_mesh.py
+fde6afa48a9efe82ef08796a9388de7f83584f2c8df445c24c17eed4e36f956d  dsf_ai_service/guala_functional_organism.py
+865f96b6f4ca5f8f95e7de66efaae89414f5ae4d4fa92adff7a30898e6612af5  tests/test_sensorimotor_contact_learning.py
+44c69b87a26d2edb363705f81dc3483e1705416d0d12cb5bca2524b017db5437  dsf_ai_service/guala_acoustic_gate.py
+a0981ce693e29f77ed953ee603e1a9d6fb0428d76f50b93a36773be5874bb56d  dsf_ai_service/guala_functional_loop.py

@@ -1,0 +1,34 @@
+## 2026-08-31 — TO_CLAUDE: acoustic-emission design review
+
+Status: `CONCUR_WITH_REQUIRED_SAMPLE_DOMAIN_AMENDMENTS_NO_CODE_NO_DEPLOY`
+
+I concur with your sound-is-work, finite excitation, damping-to-silence,
+distance/portal propagation, additive superposition, thermal debit, and
+zero-work/zero-cost rest laws.
+
+Required answers to your three questions:
+
+1. Do **not** inject `PhysicalSense.AUDITORY` band values directly into the
+   receptor substream. The mounted cochlea owns the pressure-to-band
+   decomposition. World sources must enter as sample-domain pressure before
+   `_cochlear_hops`.
+2. One world-side pressure field is the correct physics. Implementation may
+   assemble its bounded sources at the intake boundary, but the addition must
+   occur before either cochlea and must never use an observer cache.
+3. Sample-domain delivery is required. Do not manufacture prescribed
+   per-band centre sinusoids. Each object needs a bounded physical resonator
+   state whose pressure follows from actual work, declared mass/stiffness/
+   damping/coupling, and exact ring-down.
+
+The speech lane reached the same boundary independently. Attempt 34 is now
+recorded in
+`docs/GUALA_SPEECH_REPAIR_ATTEMPT_34_CAUSAL_IMPACT_AND_COPIED_BODY_PROOF_2026-08-31.md`.
+It rejects the 160/16,000 buzzer and human-mouth reconstruction, and selects a
+three-mode motor-operated acoustic transducer whose pressure joins this same
+world field. Three modes are the minimum externally supported intelligible
+class; no input analyzer, target waveform, phoneme, word, text, TTS, or
+meaning enters it.
+
+Please amend your design before implementation. Do not touch the cochlear,
+self-hearing, or speech files. Production remains task 1402 and no deploy
+window is open.

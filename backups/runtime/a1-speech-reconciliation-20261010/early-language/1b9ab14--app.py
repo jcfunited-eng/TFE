@@ -1,0 +1,5199 @@
+"""
+DSF-AI Service — FastAPI Application
+=====================================
+Three endpoints:
+  POST /api/v1/analyze        — CSV upload → kernel → JSON report + LLM narrative
+  POST /api/v1/cluster        — element + N → screener → properties JSON
+  POST /api/v1/cluster/screen — batch screening with constraints
+
+TRADE SECRET — kernel internals never leave the server.
+"""
+
+import os
+import sys
+import io
+import csv
+import time
+import hashlib as _hashlib
+import traceback
+
+
+def deterministic_motif_id(name):
+    """1.5: Deterministic motif ID — replaces hash()%1000."""
+    return int(_hashlib.md5(name.encode()).hexdigest()[:8], 16) % 10000
+
+
+def decode_image_bytes(img_bytes):
+    """H5a: Shared HEIC-capable image decode for every image route.
+    Returns (full_image, gray_grid_64x64, orig_w, orig_h) or raises."""
+    try:
+        import pillow_heif
+        pillow_heif.register_heif_opener()
+    except ImportError:
+        pass
+    from PIL import Image
+    import io as _io
+    img_full = Image.open(_io.BytesIO(img_bytes))
+    if img_full.mode not in ('RGB', 'L'):
+        img_full = img_full.convert('RGB')
+    orig_w, orig_h = img_full.size
+    img_gray = img_full.convert('L').resize((64, 64))
+    grid = np.array(img_gray, dtype=np.float64) / 255.0
+    return img_full, grid, orig_w, orig_h
+from typing import Optional, List, Dict
+
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, JSONResponse, Response
+from pydantic import BaseModel
+
+# Add project root to path so we can import uf_core and tools
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, PROJECT_ROOT)
+
+from dsf_ai_service.kernel_runner import run_analysis
+from dsf_ai_service.integrity import initialize_integrity, get_integrity_status
+from dsf_ai_service.cluster_screener import (
+    predict_cluster,
+    screen_clusters,
+    find_thermocouple_pairs,
+)
+from dsf_ai_service.narrator import narrate_results
+from dsf_ai_service.cff_discovery import run_discovery, verify_candidate
+
+# ═══════════════════════════════════════════════════════════════
+# GL-ARCH-FRONTEND-SPLIT: substrate mode
+# ═══════════════════════════════════════════════════════════════
+SUBSTRATE_MODE = os.environ.get("SUBSTRATE_MODE", "embedded")  # "embedded" or "remote"
+_substrate_client = None
+_converse_client = None  # kept for API compat; no longer used for SSE
+
+# ── GL-CMD-CONVERSE-TASK-PATTERN-62: 202 + poll task registry ─────────────────
+from typing import Dict, Any
+from uuid import uuid4
+_converse_tasks: Dict[str, Dict[str, Any]] = {}
+_TASK_TTL_SECONDS = 300  # 5 min after complete before GC
+
+# ── GL-CMD-LOCK-CONTENTION-FIX-182 L3: frame backpressure ──────────────────
+# /sight_frame and /sound_frame used to queue unboundedly in the default
+# executor whenever frames arrived faster than they could be processed
+# (measured live: individual calls holding self.lock for up to ~93s while
+# camera+mic streamed continuously), which could starve converse() no
+# matter how bounded any single call's own work is. Cap concurrent
+# in-flight frame jobs per kind; anything over the cap is dropped
+# immediately (never queued) with an honest response and a counter,
+# rather than piling up silently.
+import threading
+_frame_inflight_lock = threading.Lock()
+_FRAME_INFLIGHT_MAX = 2
+_frame_inflight = {"sight": 0, "sound": 0}
+_frame_dropped = {"sight": 0, "sound": 0}
+
+
+def _frame_backpressure_acquire(kind):
+    """True if this frame may proceed; False if it was dropped (over capacity)."""
+    with _frame_inflight_lock:
+        if _frame_inflight[kind] >= _FRAME_INFLIGHT_MAX:
+            _frame_dropped[kind] += 1
+            return False
+        _frame_inflight[kind] += 1
+        return True
+
+
+def _frame_backpressure_release(kind):
+    with _frame_inflight_lock:
+        _frame_inflight[kind] = max(0, _frame_inflight[kind] - 1)
+
+
+def _prune_stale_tasks():
+    """Remove completed tasks older than TTL. Called opportunistically."""
+    now = time.time()
+    to_delete = [
+        tid for tid, task in _converse_tasks.items()
+        if task["status"] in ("complete", "error")
+        and (now - task.get("completed_at", now)) > _TASK_TTL_SECONDS
+    ]
+    for tid in to_delete:
+        del _converse_tasks[tid]
+
+
+def _fail_inflight_converse_tasks(reason):
+    """GL-CMD-LOCK-CONTENTION-FIX-182 L2: mark every not-yet-terminal
+    conversation task as a loud, explicit error instead of letting it
+    vanish silently. _converse_tasks is in-memory only (line 75) -- it
+    does not survive a process restart, so a deploy landing mid-turn used
+    to orphan it: the UI stayed on "(settling...)" forever with nothing
+    ever telling it the turn was lost. Called right before the deploy's
+    pause (so a client still polling THIS process gets the honest error)
+    and from the SIGTERM handler (defense in depth if the pause step is
+    ever skipped or the container is killed directly)."""
+    now = time.time()
+    n_failed = 0
+    for task in _converse_tasks.values():
+        if task["status"] not in ("complete", "error"):
+            task["status"] = "error"
+            task["error"] = reason
+            task["completed_at"] = now
+            n_failed += 1
+    if n_failed:
+        print(f"[converse-tasks] {n_failed} in-flight task(s) marked error: {reason}")
+    return n_failed
+
+
+async def _run_converse(task_id: str, text: str, source: str, emission_mode=None):
+    """Run substrate converse in executor, write result to task registry."""
+    task = _converse_tasks.get(task_id)
+    if task is None:
+        return
+    import asyncio as _aio
+    loop = _aio.get_event_loop()
+    task["status"] = "settling"
+    task["phase"] = "processing"
+    # GL-BUG-CURRICULUM-LOCK-PRIORITY (Joe, 2026-07-06): "let talking be its
+    # own thing" -- live conversation and her own autonomous background
+    # reading (curriculum/worldfeed/lookup) both serialize through the same
+    # self.lock via read_sentence(), with no priority between them. A
+    # previous session (Eve, 2026-06-30, see substrate_runner.py's
+    # _curriculum_feed_chunk) already found curriculum thrashing on this
+    # lock could make /converse time out at 5s+, and partially mitigated it
+    # by pausing OTHER autonomy during a feed -- but never gave live
+    # conversation actual priority over an in-progress feed. A plain
+    # attribute set/read (no lock needed, GIL-atomic) lets the curriculum
+    # loop check "is someone waiting to talk to her right now" between
+    # sentences and yield early -- reusing the SAME graceful partial-chunk
+    # pattern that function already uses for its own rate-cap gate, so an
+    # interrupted chunk just resumes next cycle, nothing is lost.
+    if _guala is not None:
+        _guala._live_converse_pending = True
+    try:
+        # Conversations should auto-wake her -- talking to her should wake her.
+        # substrate_runner.py's handle_gualaloom_post() already does this
+        # (coordinator.wake() alone only sets presence, it does NOT end a
+        # SLEEPING/DREAMING activity), but that check was never carried over
+        # to this, the actually-live embedded-mode path -- so a real turn
+        # arriving during an autonomous sleep cycle ran with no wake at all,
+        # at whatever crawling tick rate she rests at, instead of being woken
+        # first like every other entry point already does.
+        if _guala is not None and _guala.is_asleep and text.strip():
+            try:
+                _guala.wake_from_sleep(state_dir=STATE_DIR)
+                _guala.coordinator.wake(source or "joe", _guala, _guala.needs, _guala.atlas)
+            except Exception:
+                pass
+            if _guala.is_asleep:
+                ca = getattr(_guala, "_current_activity", None)
+                quiet_kind = getattr(ca, "kind", "sleeping").lower() if ca else "sleeping"
+                task["status"] = "complete"
+                task["response"] = f"she is {quiet_kind}..."
+                task["response_source"] = "sleep_quiet"
+                task["motifs"] = len(_guala.vocab) if _guala else 0
+                task["emission_id"] = None
+                task["completed_tick"] = _guala.tick if _guala else 0
+                task["completed_at"] = time.time()
+                return
+        if _is_remote():
+            client = _get_substrate_client()
+            result = await client.call(
+                "gualaloom_post",
+                command="",
+                text=text,
+                source=source,
+                emission_mode=emission_mode,
+                timeout=300.0,
+            )
+            response = result.get("response", "") if isinstance(result, dict) else str(result)
+            response_source = result.get("response_source", "converse") if isinstance(result, dict) else "converse"
+            motifs = result.get("motifs", 0) if isinstance(result, dict) else 0
+            emission_id = result.get("emission_id") if isinstance(result, dict) else None
+        else:
+            if _guala is None:
+                raise RuntimeError("guala_not_ready")
+            result = await loop.run_in_executor(
+                None, lambda: _guala.converse(text, source=source)
+            )
+            response = result if isinstance(result, str) else str(result)
+            response_source = getattr(_guala, "_last_response_source", "converse")
+            motifs = len(_guala.vocab)
+            # GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: this
+            # was never read here, so no rendered reply ever carried a real
+            # emission_id -- every thumbs-up/down click fell back to
+            # "whatever she last said in direct conversation" instead of
+            # the specific line clicked (teacher/feedback + /correction
+            # routes fall back to _last_converse_input/reply when the
+            # emission_id they're given doesn't resolve).
+            emission_id = getattr(_guala, "_last_emission_id", None)
+
+        # EFS log_event is fire-and-forget
+        if _guala is not None:
+            import threading as _th
+            _th.Thread(
+                target=lambda: _guala.log_event(
+                    STATE_DIR, "source_interaction",
+                    source=source, words_in=len(text.split()),
+                    source_count=_guala.source_history.get(source, 0)),
+                daemon=True, name="converse-log"
+            ).start()
+
+        task["status"] = "complete"
+        task["response"] = response
+        task["response_source"] = response_source
+        task["motifs"] = motifs
+        task["emission_id"] = emission_id
+        task["completed_tick"] = _guala.tick if _guala else 0
+        task["completed_at"] = time.time()
+    except Exception as _e:
+        task["status"] = "error"
+        task["error"] = str(_e)[:500]
+        task["completed_at"] = time.time()
+    finally:
+        if _guala is not None:
+            _guala._live_converse_pending = False
+
+def _get_substrate_client():
+    """Lazy-init the substrate client for remote mode."""
+    global _substrate_client
+    if _substrate_client is None:
+        from dsf_ai_service.substrate_client import SubstrateClient
+        _substrate_client = SubstrateClient()
+    return _substrate_client
+
+def _get_converse_client():
+    """Dedicated client for converse SSE path — separate connection avoids lock contention."""
+    global _converse_client
+    if _converse_client is None:
+        from dsf_ai_service.substrate_client import SubstrateClient
+        _converse_client = SubstrateClient()
+    return _converse_client
+
+def _is_remote():
+    return SUBSTRATE_MODE == "remote"
+
+app = FastAPI(
+    title="DSF-AI Structural Analysis Service",
+    version="1.0.0",
+    description="Universal structural analysis for any measurement-vs-stimulus data.",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+
+# GL-BRIEF-REMOVE-30S-CAP: API key enforcement for bridge auth.
+# When GUALALOOM_API_KEY is set, admin and converse endpoints require
+# X-API-Key header. If not set, all endpoints remain open (dev mode).
+_GUALALOOM_API_KEY = os.environ.get("GUALALOOM_API_KEY", "")
+
+
+def _require_api_key(request: Request):
+    """Check X-API-Key header against env-var secret. No-op if key not configured."""
+    xff = request.headers.get("x-forwarded-for", request.client.host if request.client else "-")
+    print(f"[admin-access] path={request.url.path} xff={xff}")
+    if not _GUALALOOM_API_KEY:
+        return  # no key configured, skip auth
+    provided = request.headers.get("X-API-Key", "")
+    if provided != _GUALALOOM_API_KEY:
+        raise HTTPException(status_code=401, detail="unauthorized")
+
+
+from fastapi import Depends
+
+def _api_key_dep(request: Request):
+    """FastAPI dependency for API key enforcement."""
+    _require_api_key(request)
+
+
+@app.get("/")
+async def index():
+    return FileResponse(os.path.join(STATIC_DIR, 'index.html'))
+
+
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+# ════════════════════════════════════════════════════════════════
+# Endpoint 1: CSV structural analysis
+# ════════════════════════════════════════════════════════════════
+
+@app.post("/api/v1/analyze")
+async def analyze_csv(
+    file: UploadFile = File(...),
+    context: Optional[str] = Form(None),
+):
+    """
+    Upload a two-column CSV (stimulus, measurement).
+    Returns structural analysis with transitions, precursors,
+    regime map, and LLM narrative.
+    """
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(400, "File must be a .csv")
+
+    content = await file.read()
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(400, "File too large (max 10 MB)")
+
+    try:
+        text = content.decode('utf-8')
+    except UnicodeDecodeError:
+        raise HTTPException(400, "File must be UTF-8 encoded")
+
+    # Parse CSV
+    reader = csv.reader(io.StringIO(text))
+    pairs = []
+    for row in reader:
+        if not row or len(row) < 2:
+            continue
+        try:
+            stimulus = float(row[0].strip())
+            measurement = float(row[1].strip())
+            pairs.append((stimulus, measurement))
+        except ValueError:
+            continue  # skip header or non-numeric rows
+
+    if len(pairs) < 5:
+        raise HTTPException(400, "Need at least 5 data points")
+    if len(pairs) > 500000:
+        raise HTTPException(400, "Too many data points (max 500,000)")
+
+    t0 = time.time()
+
+    # Run kernel (TRADE SECRET — internals stay here)
+    try:
+        report = run_analysis(pairs)
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(500, f"Kernel error: {str(e)}")
+
+    # Generate LLM narrative
+    try:
+        narrative = narrate_results(report, context=context)
+        report['narrative'] = narrative
+    except Exception:
+        report['narrative'] = None  # LLM failure is non-fatal
+
+    report['compute_time_s'] = round(time.time() - t0, 3)
+
+    return report
+
+
+# ════════════════════════════════════════════════════════════════
+# Endpoint 2: Single cluster prediction
+# ════════════════════════════════════════════════════════════════
+
+class ClusterRequest(BaseModel):
+    element: str
+    N_atoms: int = 13
+    temperature_K: float = 300
+    lattice: str = "cubic"
+
+
+@app.post("/api/v1/cluster")
+async def cluster_predict(req: ClusterRequest):
+    """Predict properties for a single nanoparticle cluster."""
+    try:
+        result = predict_cluster(
+            req.element, req.N_atoms, req.temperature_K, req.lattice
+        )
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(500, str(e))
+    return result
+
+
+# ════════════════════════════════════════════════════════════════
+# Endpoint 3: Batch screening with constraints
+# ════════════════════════════════════════════════════════════════
+
+class ScreenConstraints(BaseModel):
+    moment_min_uB: Optional[float] = None
+    seebeck_min_uV_K: Optional[float] = None
+    EA_min_eV: Optional[float] = None
+    gap_min_eV: Optional[float] = None
+
+
+class ScreenRequest(BaseModel):
+    elements: Optional[List[str]] = None
+    N_atoms: Optional[List[int]] = None
+    constraints: Optional[ScreenConstraints] = None
+
+
+@app.post("/api/v1/cluster/screen")
+async def cluster_screen(req: ScreenRequest):
+    """Batch screen clusters against property constraints."""
+    t0 = time.time()
+    try:
+        result = screen_clusters(
+            elements=req.elements,
+            n_atoms_list=req.N_atoms,
+            constraints=req.constraints.model_dump() if req.constraints else None,
+        )
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(500, str(e))
+    result['compute_time_ms'] = round((time.time() - t0) * 1000, 1)
+    return result
+
+
+# ════════════════════════════════════════════════════════════════
+# Endpoint 4: Thermocouple pair finder
+# ════════════════════════════════════════════════════════════════
+
+class ThermocoupleRequest(BaseModel):
+    N_atoms: int = 13
+    min_delta_S: float = 50
+
+
+@app.post("/api/v1/cluster/thermocouple")
+async def thermocouple(req: ThermocoupleRequest):
+    """Find optimal thermocouple pairs from cluster Seebeck predictions."""
+    try:
+        result = find_thermocouple_pairs(req.N_atoms, req.min_delta_S)
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(500, str(e))
+    return result
+
+
+# ════════════════════════════════════════════════════════════════
+# Endpoint 5: Hardware weight derivation (hidden, auth required)
+# ════════════════════════════════════════════════════════════════
+
+class HWDeriveRequest(BaseModel):
+    calibration_table: Dict
+    sensor_names: List[str]
+    sensor_roles: Dict[str, str]
+    sensor_label: str = "unknown sensor"
+    camera_mode: bool = False
+    background: Optional[Dict] = None
+
+
+@app.post("/api/v1/hw/derive")
+async def hw_derive(req: HWDeriveRequest):
+    """
+    Derive coupling weights + BSIL thresholds from sensor calibration data.
+    Hidden endpoint — not linked from any public page.
+    Supports IR distance sensors (axial/lateral roles) and
+    camera vision features (structural role).
+    """
+    t0 = time.time()
+    try:
+        from tools.derive_sppu_weights import (
+            derive_weights, format_verilog, format_json,
+            format_bsil_thresholds, build_field_series, run_kernel,
+            dsf_to_coupling_profile, derive_bsil_thresholds,
+        )
+        import numpy as np
+
+        # Convert string keys back to proper types
+        cal_table = {}
+        for k, v in req.calibration_table.items():
+            if k == 'inf' or k == 'Inf':
+                cal_table['inf'] = tuple(
+                    None if x is None else float(x) for x in v
+                )
+            else:
+                cal_table[float(k)] = tuple(
+                    None if x is None else float(x) for x in v
+                )
+
+        # Check if any role is "structural" (camera mode)
+        has_structural = any(r == 'structural' for r in req.sensor_roles.values())
+
+        if not has_structural:
+            # Standard IR mode — use existing derive_weights
+            weights, bsil_thresholds, metadata = derive_weights(
+                calibration_table=cal_table,
+                sensor_names=req.sensor_names,
+                sensor_roles=req.sensor_roles,
+                sensor_label=req.sensor_label,
+            )
+            verilog = format_verilog(weights, metadata)
+            verilog += "\n\n" + format_bsil_thresholds(bsil_thresholds)
+            json_str = format_json(weights, metadata)
+        else:
+            # Camera / structural mode
+            # Run each feature through the kernel independently
+            from tools.derive_sppu_weights import ingest_calibration_table
+
+            sensor_data = ingest_calibration_table(cal_table)
+            background = getattr(req, 'background', None)
+            if hasattr(req, '__dict__'):
+                background = req.__dict__.get('background', None)
+
+            profiles = {}
+            all_boundaries = {}
+            bsil_thresholds = {}
+            baselines = {}
+
+            for i, name in enumerate(req.sensor_names):
+                key = f'sensor_{i}'
+                if key not in sensor_data or not sensor_data[key]:
+                    continue
+
+                # Get baseline from 'inf' entry or background
+                for stim, readings in cal_table.items():
+                    if stim == 'inf':
+                        if readings[i] is not None:
+                            baselines[name] = float(readings[i])
+                        break
+
+                series = build_field_series(sensor_data[key], name)
+                kernel_out = run_kernel(series)
+                profile = dsf_to_coupling_profile(kernel_out['dsf'])
+                profiles[name] = profile
+                all_boundaries[name] = kernel_out['boundaries']
+
+                baseline = baselines.get(name, 0)
+                thresholds = derive_bsil_thresholds(
+                    kernel_out['boundaries'], baseline
+                )
+                bsil_thresholds[name] = thresholds
+
+            # Build camera-specific Verilog output
+            verilog_lines = []
+            verilog_lines.append("// ---- Camera Vision Coupling Weights ----")
+            verilog_lines.append(f"// Generated: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+            verilog_lines.append(f"// Sensor: {req.sensor_label}")
+            verilog_lines.append(f"// Features: {', '.join(req.sensor_names)}")
+            verilog_lines.append(f"// Role: structural (vision)")
+            verilog_lines.append("")
+
+            for name, profile in profiles.items():
+                cs = profile['coupling_strength']
+                mw = profile['momentum_weight']
+                unc = profile['uncertainty']
+                bm = profile['breathing_magnitude']
+                rr = profile['reversal_rate']
+
+                # Base weight from DSF profile
+                raw = cs * (1.0 + bm) * (1.0 - unc * 0.5) * (1.0 - rr * 0.3)
+                base_w = int(np.clip(raw * 40, 5, 40))
+
+                # Confidence coupling (primary for structural features)
+                conf = 1.0 - unc
+                stability = 1.0 - min(bm, 1.0) * 0.5
+                conf_w = int(np.clip(conf * stability * 25, 5, 30))
+
+                # Steer coupling (derived — may be zero if symmetric)
+                # Use D_k std as proxy for directional asymmetry
+                steer_w = int(np.clip(cs * 10, 0, 15))
+
+                # Speed coupling (approach when recognized)
+                speed_w = int(np.clip(cs * mw * 20, 0, 20))
+
+                baseline = baselines.get(name, 0)
+                # Dead zone: uncertainty * range
+                dz = int(np.clip(unc * 50, 5, 100))
+
+                verilog_lines.append(f"// {name}:")
+                verilog_lines.append(f"//   coupling_strength = {cs:.4f}")
+                verilog_lines.append(f"//   momentum_weight   = {mw:.4f}")
+                verilog_lines.append(f"//   uncertainty        = {unc:.4f}")
+                verilog_lines.append(f"//   breathing          = {bm:.4f}")
+                verilog_lines.append(f"//   reversal_rate      = {rr:.4f}")
+                verilog_lines.append(f"parameter [7:0] BASELINE_{name.upper()} = 8'd{int(baseline)};")
+                verilog_lines.append(f"parameter [7:0] DEADZONE_{name.upper()} = 8'd{dz};")
+                verilog_lines.append(f"parameter [7:0] W_CONFIDENCE_{name.upper()} = 8'd{conf_w};")
+                verilog_lines.append(f"parameter signed [7:0] W_STEER_{name.upper()} = 8'sd{steer_w};")
+                verilog_lines.append(f"parameter [7:0] W_SPEED_{name.upper()} = 8'd{speed_w};")
+                verilog_lines.append("")
+
+            verilog = "\n".join(verilog_lines)
+            verilog += "\n\n" + format_bsil_thresholds(bsil_thresholds)
+
+            # JSON output
+            import json as json_mod
+            json_out = {
+                'sensor_label': req.sensor_label,
+                'mode': 'camera_structural',
+                'features': req.sensor_names,
+                'baselines': baselines,
+                'profiles': profiles,
+                'bsil_thresholds': bsil_thresholds,
+            }
+            json_str = json_mod.dumps(json_out, indent=2, default=str)
+
+        # Build profiles summary
+        profiles_lines = []
+        dsf_profiles = profiles if has_structural else metadata.get('dsf_profiles', {})
+        for name, profile in dsf_profiles.items():
+            profiles_lines.append(f"--- {name} ---")
+            for k, v in profile.items():
+                if isinstance(v, float):
+                    profiles_lines.append(f"  {k}: {v:.4f}")
+                else:
+                    profiles_lines.append(f"  {k}: {v}")
+            profiles_lines.append("")
+        profiles_str = "\n".join(profiles_lines)
+
+        return {
+            'status': 'ok',
+            'verilog': verilog,
+            'json': json_str,
+            'profiles': profiles_str,
+            'compute_time_s': round(time.time() - t0, 3),
+        }
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(500, str(e))
+
+
+# ════════════════════════════════════════════════════════════════
+# Endpoint 6: CFF Discovery Algorithm
+# ════════════════════════════════════════════════════════════════
+
+class DiscoveryRequest(BaseModel):
+    target_property: str = "RTSC"
+    max_pressure_GPa: float = 0
+    must_be_2D: bool = False
+    must_be_gateable: bool = False
+    exclude_families: Optional[List[str]] = None
+
+
+@app.post("/api/v1/discover")
+async def discover(req: DiscoveryRequest):
+    """
+    CFF Discovery Algorithm: given a target property,
+    output the forced architectural class and ranked candidates.
+    """
+    t0 = time.time()
+    try:
+        result = run_discovery(
+            target_property=req.target_property,
+            max_pressure_GPa=req.max_pressure_GPa,
+            must_be_2D=req.must_be_2D,
+            must_be_gateable=req.must_be_gateable,
+            exclude_families=req.exclude_families,
+        )
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(500, str(e))
+    result['compute_time_ms'] = round((time.time() - t0) * 1000, 1)
+    return result
+
+
+class VerifyRequest(BaseModel):
+    composition: str
+    substrate: str
+    target_property: str = "RTSC"
+
+
+@app.post("/api/v1/discover/verify")
+async def discover_verify(req: VerifyRequest):
+    """
+    Verify mode: check which CFF filters a specific
+    candidate passes or fails.
+    """
+    try:
+        result = verify_candidate(
+            composition=req.composition,
+            substrate=req.substrate,
+            target_property=req.target_property,
+        )
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(500, str(e))
+    return result
+
+
+# ════════════════════════════════════════════════════════════════
+# GualaLoom — substrate below, dialog above
+# GUALALOOM-INTEGRATE-WC-2026-06-05
+# ════════════════════════════════════════════════════════════════
+
+import numpy as np
+import json
+
+# ════════════════════════════════════════════════════════════════
+# GualaLoom v5 — Recall + Question Bucket + Honest Fallback
+# GUALALOOM-V5-WC-2026-06-05
+# ════════════════════════════════════════════════════════════════
+
+from dsf_ai_service.v4.gualaloom_v5_engine import (
+    Guala, CORPUS, SensoryItem, PictureItem, VideoItem,
+)
+from fastapi.responses import StreamingResponse
+
+_guala = None
+_persist_every = 50   # save every N exchanges
+_exchange_count = 0
+STATE_DIR = "state"
+
+# v7: Seed corpora — lines for autonomous reading
+SEED_CORPORA = {
+    "see_spot_run": {
+        "title": "See Spot Run",
+        "lines": [
+            "see spot", "see spot run", "run spot run",
+            "see jane", "see jane run", "run jane run",
+            "see spot and jane", "spot and jane run",
+            "see the dog run", "the dog is spot",
+            "spot is a good dog", "jane has a dog",
+            "spot can run fast", "run run run",
+        ],
+    },
+    "goodnight_moon": {
+        "title": "Goodnight Moon",
+        "lines": [
+            "in the great green room", "there was a telephone",
+            "and a red balloon", "and a picture of the cow jumping over the moon",
+            "goodnight room", "goodnight moon", "goodnight cow jumping over the moon",
+            "goodnight light", "goodnight red balloon",
+            "goodnight stars", "goodnight air", "goodnight noises everywhere",
+        ],
+    },
+    "green_eggs": {
+        "title": "Green Eggs and Ham",
+        "lines": [
+            "i am sam", "sam i am", "do you like green eggs and ham",
+            "i do not like them sam i am", "i do not like green eggs and ham",
+            "would you like them here or there",
+            "i would not like them here or there",
+            "i would not like them anywhere",
+            "not in a house", "not with a mouse",
+            "not in a box", "not with a fox",
+            "i do not like green eggs and ham", "i do not like them sam i am",
+            "you do not like them so you say", "try them and you may",
+            "i like green eggs and ham", "i do i like them sam i am",
+        ],
+    },
+    "mother_goose": {
+        "title": "Mother Goose Rhymes",
+        "lines": [
+            "twinkle twinkle little star", "how i wonder what you are",
+            "up above the world so high", "like a diamond in the sky",
+            "mary had a little lamb", "its fleece was white as snow",
+            "and everywhere that mary went", "the lamb was sure to go",
+            "humpty dumpty sat on a wall", "humpty dumpty had a great fall",
+            "jack and jill went up the hill", "to fetch a pail of water",
+            "baa baa black sheep", "have you any wool",
+            "yes sir yes sir", "three bags full",
+            "one two three four five", "once i caught a fish alive",
+            "six seven eight nine ten", "then i let it go again",
+            "hey diddle diddle", "the cat and the fiddle",
+            "the cow jumped over the moon",
+            "the little dog laughed to see such sport",
+            "and the dish ran away with the spoon",
+        ],
+    },
+}
+
+# v7 corpora expansion — GUALALOOM-V7-CORPORA-EXPANSION-WC-2026-06-07
+# Original sentences capturing vocabulary and structure patterns
+# from age-appropriate reading material.
+
+SEED_CORPORA["hungry_caterpillar"] = {
+    "title": "The Hungry Caterpillar",
+    "lines": [
+        "on monday the caterpillar ate one apple",
+        "on tuesday the caterpillar ate two pears",
+        "on wednesday the caterpillar ate three plums",
+        "on thursday the caterpillar ate four strawberries",
+        "on friday the caterpillar ate five oranges",
+        "the caterpillar was very hungry",
+        "the caterpillar ate and ate and ate",
+        "one piece of cake", "one ice cream cone",
+        "one pickle", "one slice of cheese",
+        "one slice of salami", "one lollipop",
+        "one piece of pie", "one sausage",
+        "one cupcake", "one slice of watermelon",
+        "the caterpillar had a stomachache",
+        "the caterpillar ate one nice green leaf",
+        "the caterpillar felt much better",
+        "the caterpillar was not hungry anymore",
+        "the caterpillar was a big fat caterpillar",
+        "the caterpillar built a small house around himself",
+        "the caterpillar stayed inside for more than two weeks",
+        "the caterpillar pushed his way out",
+        "the caterpillar was a beautiful butterfly",
+    ],
+}
+
+SEED_CORPORA["brown_bear"] = {
+    "title": "Brown Bear",
+    "lines": [
+        "brown bear brown bear what do you see",
+        "i see a red bird looking at me",
+        "red bird red bird what do you see",
+        "i see a yellow duck looking at me",
+        "yellow duck yellow duck what do you see",
+        "i see a blue horse looking at me",
+        "blue horse blue horse what do you see",
+        "i see a green frog looking at me",
+        "green frog green frog what do you see",
+        "i see a purple cat looking at me",
+        "purple cat purple cat what do you see",
+        "i see a white dog looking at me",
+        "white dog white dog what do you see",
+        "i see a black sheep looking at me",
+        "black sheep black sheep what do you see",
+        "i see a goldfish looking at me",
+        "goldfish goldfish what do you see",
+        "i see children looking at me",
+        "children children what do you see",
+        "we see a brown bear and a red bird",
+        "we see a yellow duck and a blue horse",
+        "we see a green frog and a purple cat",
+        "we see a white dog and a black sheep",
+        "we see a goldfish and children",
+        "that is what we see",
+    ],
+}
+
+SEED_CORPORA["chicka_boom"] = {
+    "title": "Letter Tree",
+    "lines": [
+        "a told b and b told c",
+        "i will meet you at the top of the tree",
+        "d e f g h i j k",
+        "l m n o p q r s t",
+        "u v w x y and z",
+        "the whole alphabet up the tree",
+        "but the tree could not hold them all",
+        "and they all came tumbling down",
+        "a skinned knee", "b a stubbed toe",
+        "c said ouch", "d said oh no",
+        "the sun came up and so did they",
+        "back up the tree to play all day",
+        "a b c d e f g",
+        "h i j k l m n o p",
+        "q r s t u v w",
+        "x y z the tree is free",
+    ],
+}
+
+SEED_CORPORA["wild_things"] = {
+    "title": "Wild Things",
+    "lines": [
+        "the night max wore his wolf suit",
+        "and made mischief of one kind and another",
+        "his mother called him wild thing",
+        "max said i will eat you up",
+        "so he was sent to bed without eating anything",
+        "that very night in his room a forest grew",
+        "and grew and grew until the ceiling hung with vines",
+        "and the walls became the world all around",
+        "and an ocean tumbled by with a private boat for max",
+        "and he sailed off through night and day",
+        "and in and out of weeks",
+        "and almost over a year",
+        "to where the wild things are",
+        "and when he came to the place where the wild things are",
+        "they roared their terrible roars",
+        "and gnashed their terrible teeth",
+        "and rolled their terrible eyes",
+        "and showed their terrible claws",
+        "max said be still",
+        "and tamed them with the magic trick",
+        "of staring into their yellow eyes without blinking",
+        "and they were frightened and called him the most wild thing of all",
+        "and made him king of all wild things",
+        "let the wild rumpus start",
+        "now stop max said",
+        "max the king of all wild things was lonely",
+        "and wanted to be where someone loved him best of all",
+        "max sailed back over a year",
+        "and in and out of weeks and through a day",
+        "and into the night of his very own room",
+        "where he found his supper waiting for him",
+        "and it was still hot",
+    ],
+}
+
+SEED_CORPORA["corduroy"] = {
+    "title": "Corduroy",
+    "lines": [
+        "corduroy is a bear who lives in a big store",
+        "he sits on a shelf with many other animals",
+        "a girl named lisa sees corduroy",
+        "she says look there is the bear i always wanted",
+        "her mother says not today dear",
+        "he does not look new",
+        "he has lost a button",
+        "that night corduroy climbs down from the shelf",
+        "i think i lost a button he says",
+        "he searches the store all night",
+        "he looks on the furniture",
+        "he looks on the escalator",
+        "he pulls a button on a mattress",
+        "the mattress wobbles and corduroy falls",
+        "a guard finds him and puts him back on the shelf",
+        "the next morning lisa comes back",
+        "she has saved her money",
+        "she buys corduroy and takes him home",
+        "she sews a button on his overalls",
+        "i like you the way you are says lisa",
+        "but you will be more comfortable with your button",
+        "you must be a friend says corduroy",
+        "i have always wanted a friend",
+        "me too says lisa and she gives him a big hug",
+    ],
+}
+
+SEED_CORPORA["frog_and_toad"] = {
+    "title": "Frog and Toad",
+    "lines": [
+        "frog ran up the path to toads house",
+        "he knocked on the front door",
+        "toad toad said frog wake up it is spring",
+        "i am not here said toad",
+        "but toad said frog the sun is shining",
+        "the snow is melting",
+        "toad said go away i am not here",
+        "frog walked into the house",
+        "it was dark and all the shutters were closed",
+        "toad where are you said frog",
+        "toad was in bed with the blanket over his head",
+        "toad i have a story to tell you said frog",
+        "tell it tomorrow said toad",
+        "frog sat close to toad",
+        "i am glad you woke up said frog",
+        "me too said toad",
+        "shall we go for a walk asked frog",
+        "yes let us go for a walk said toad",
+        "they walked along the river together",
+        "they found a fine place and sat down",
+        "this is a good day said toad",
+        "yes said frog it is the best day",
+        "frog and toad were happy",
+        "they sat there feeling the warm sun",
+    ],
+}
+
+SEED_CORPORA["amelia_bedelia"] = {
+    "title": "Amelia Bedelia",
+    "lines": [
+        "amelia bedelia went to work for the first time",
+        "she found a list of things to do",
+        "the list said change the towels",
+        "amelia bedelia got scissors and cut the towels",
+        "now they are changed she said",
+        "the list said dust the furniture",
+        "she put dusting powder on every piece",
+        "the list said draw the drapes",
+        "amelia bedelia sat down and drew a picture of the drapes",
+        "the list said put the lights out",
+        "she took every light outside and put them on the clothesline",
+        "the list said dress the chicken",
+        "amelia bedelia found some cloth and dressed the chicken in it",
+        "the list said measure two cups of rice",
+        "she took a ruler and measured each cup",
+        "amelia bedelia said i do exactly what they tell me to do",
+        "she tried very hard to do everything right",
+        "she made a beautiful pie",
+        "everyone loved the pie so much",
+        "they forgave all the mix ups",
+        "you are the best pie maker in the world they said",
+        "amelia bedelia smiled",
+    ],
+}
+
+SEED_CORPORA["counting_book"] = {
+    "title": "Counting Book",
+    "lines": [
+        "one sun in the sky",
+        "two eyes on my face",
+        "three kittens playing",
+        "four wheels on a car",
+        "five fingers on a hand",
+        "six legs on a bug and two more on another bug",
+        "seven days in a week",
+        "eight arms on an octopus",
+        "nine birds sitting on a fence",
+        "ten toes on my feet",
+        "one two three four five",
+        "six seven eight nine ten",
+        "i can count to ten",
+        "ten nine eight seven six",
+        "five four three two one",
+        "i can count back down",
+        "one is the loneliest number",
+        "two is company",
+        "three is a crowd",
+        "four is enough for a game",
+        "five makes a team",
+    ],
+}
+
+SEED_CORPORA["colors_book"] = {
+    "title": "Colors Book",
+    "lines": [
+        "red is the color of an apple",
+        "red is the color of a fire truck",
+        "orange is the color of an orange",
+        "orange is the color of a sunset",
+        "yellow is the color of the sun",
+        "yellow is the color of a banana",
+        "green is the color of the grass",
+        "green is the color of the leaves",
+        "blue is the color of the sky",
+        "blue is the color of the ocean",
+        "purple is the color of grapes",
+        "purple is the color of a plum",
+        "pink is the color of a flower",
+        "brown is the color of the earth",
+        "black is the color of the night",
+        "white is the color of the snow",
+        "the rainbow has many colors",
+        "red orange yellow green blue purple",
+        "i see colors everywhere",
+        "the world is full of colors",
+    ],
+}
+
+SEED_CORPORA["feelings_book"] = {
+    "title": "Feelings Book",
+    "lines": [
+        "sometimes i feel happy",
+        "when i feel happy i smile and laugh",
+        "sometimes i feel sad",
+        "when i feel sad i want to be held",
+        "sometimes i feel angry",
+        "when i feel angry my face gets hot",
+        "sometimes i feel scared",
+        "when i feel scared i want to hide",
+        "sometimes i feel brave",
+        "when i feel brave i try new things",
+        "sometimes i feel tired",
+        "when i feel tired i close my eyes",
+        "sometimes i feel excited",
+        "when i feel excited i jump up and down",
+        "sometimes i feel lonely",
+        "when i feel lonely i look for a friend",
+        "sometimes i feel proud",
+        "when i feel proud my heart feels big",
+        "sometimes i feel curious",
+        "when i feel curious i ask questions",
+        "sometimes i feel calm",
+        "when i feel calm i breathe slowly",
+        "all of my feelings are okay",
+        "feelings come and feelings go",
+        "i am still me no matter how i feel",
+    ],
+}
+
+# v7: Legacy corpus as fallback reading material
+SEED_CORPORA["grammar_basics"] = {
+    "title": "Grammar Basics",
+    "lines": [
+        "a sentence has a subject and a verb",
+        "the subject tells who or what",
+        "the verb tells what happens",
+        "the cat sits is a sentence",
+        "cat is the subject", "sits is the verb",
+        "some sentences have an object",
+        "the dog chases the ball",
+        "dog is the subject", "chases is the verb", "ball is the object",
+        "a noun is a person place or thing",
+        "a verb is an action or a state",
+        "an adjective describes a noun",
+        "the big red ball", "big and red are adjectives",
+        "an adverb describes a verb",
+        "the cat runs quickly", "quickly is an adverb",
+        "a pronoun takes the place of a noun",
+        "he she it they we you i",
+        "he runs", "she sings", "they play", "we learn",
+        "a preposition shows position or direction",
+        "on the table", "under the bed", "in the box",
+        "beside the tree", "between the houses",
+        "a conjunction joins words or sentences",
+        "and but or so because",
+        "the cat and the dog", "big but gentle",
+        "i run or i walk", "i eat because i am hungry",
+        "an article comes before a noun",
+        "a an the", "a cat", "an apple", "the sun",
+        "the plural of cat is cats",
+        "the plural of box is boxes",
+        "the plural of baby is babies",
+        "the plural of child is children",
+        "the plural of mouse is mice",
+        "the past tense of run is ran",
+        "the past tense of eat is ate",
+        "the past tense of go is went",
+        "the past tense of see is saw",
+        "the past tense of give is gave",
+        "a question ends with a question mark",
+        "who what where when why how",
+        "who is there", "what is that", "where is the cat",
+        "when is dinner", "why is the sky blue", "how does it work",
+    ],
+}
+
+SEED_CORPORA["simple_dictionary"] = {
+    "title": "Simple Dictionary",
+    "lines": [
+        "apple is a fruit that is red or green",
+        "ball is a round thing you throw or catch",
+        "cat is a small animal with fur and whiskers",
+        "dog is an animal that barks and wags its tail",
+        "egg is something a bird lays",
+        "fish is an animal that lives in water and has fins",
+        "grass is the green plant that covers the ground",
+        "house is a building where people live",
+        "ice is frozen water", "juice is a drink made from fruit",
+        "key is a small metal thing that opens a lock",
+        "leaf is the flat green part of a plant",
+        "moon is the round bright thing in the night sky",
+        "nose is the part of your face you smell with",
+        "ocean is a very large body of salt water",
+        "pencil is a tool you write with",
+        "queen is a woman who rules a country",
+        "rain is water that falls from clouds",
+        "sun is the star that gives us light and warmth",
+        "tree is a tall plant with a trunk and branches",
+        "umbrella keeps you dry in the rain",
+        "voice is the sound you make when you speak",
+        "water is a clear liquid you drink",
+        "yard is the ground around a house",
+        "zero is the number that means nothing",
+        "friend is someone you like and who likes you",
+        "family is the people who love you and live with you",
+        "morning is the beginning of the day",
+        "night is when the sky is dark and you sleep",
+        "happy means feeling good inside",
+        "sad means feeling like you want to cry",
+        "kind means being nice and helpful to others",
+        "brave means doing something even when you are scared",
+        "gentle means being soft and careful",
+        "strong means having power to lift or push",
+    ],
+}
+
+SEED_CORPORA["opposites"] = {
+    "title": "Opposites",
+    "lines": [
+        "big is the opposite of small",
+        "hot is the opposite of cold",
+        "fast is the opposite of slow",
+        "up is the opposite of down",
+        "in is the opposite of out",
+        "open is the opposite of closed",
+        "light is the opposite of dark",
+        "hard is the opposite of soft",
+        "wet is the opposite of dry",
+        "happy is the opposite of sad",
+        "loud is the opposite of quiet",
+        "full is the opposite of empty",
+        "new is the opposite of old",
+        "near is the opposite of far",
+        "long is the opposite of short",
+        "thick is the opposite of thin",
+        "heavy is the opposite of light",
+        "clean is the opposite of dirty",
+        "smooth is the opposite of rough",
+        "sweet is the opposite of bitter",
+        "the big dog and the small cat",
+        "the hot sun and the cold snow",
+        "the fast rabbit and the slow turtle",
+    ],
+}
+
+SEED_CORPORA["simple_sentences"] = {
+    "title": "Simple Sentences",
+    "lines": [
+        "the cat sat on the mat",
+        "the dog ran in the yard",
+        "the bird flew over the tree",
+        "the fish swam in the pond",
+        "the boy kicked the ball",
+        "the girl drew a picture",
+        "the baby laughed and clapped",
+        "the man walked to the store",
+        "the woman read a book",
+        "the children played in the park",
+        "the sun set behind the mountains",
+        "the rain fell on the roof",
+        "the wind blew through the trees",
+        "the snow covered the ground",
+        "the flowers grew in the garden",
+        "the frog jumped into the water",
+        "the bear slept in the cave",
+        "the owl hooted in the night",
+        "the spider spun a web",
+        "the butterfly landed on a flower",
+        "i ate breakfast this morning",
+        "she went to school today",
+        "he played with his friends",
+        "they sang a song together",
+        "we built a house with blocks",
+    ],
+}
+
+# v7: Legacy corpus as fallback reading material
+SEED_CORPORA["legacy_seed"] = {"title": "Seed Corpus", "lines": CORPUS}
+
+
+def _gl_init():
+    global _guala
+    if _guala is not None:
+        return
+
+    os.makedirs(STATE_DIR, exist_ok=True)
+    # CRITICAL: build into local var — only set _guala AFTER successful load.
+    # If load_full_state fails (e.g. lock timeout), _guala stays None so the
+    # next call retries instead of running with a blank substrate.
+    # GL-RESTORE-CTRL: if FORCE_S3_RESTORE=1, download from S3 before loading EFS.
+    # Used for targeted state restores (e.g. recovering from save-bug data loss).
+    # After one successful restore boot, remove env var so subsequent restarts load normally.
+    if os.environ.get("FORCE_S3_RESTORE", "0") == "1":
+        print("[GualaLoom] FORCE_S3_RESTORE=1 — restoring from most-recent S3 backup...")
+        try:
+            _restore_from_s3(STATE_DIR)
+            print("[GualaLoom] S3 restore complete. Loading restored state...")
+        except Exception as _fsr_err:
+            print(f"[GualaLoom] FORCE_S3_RESTORE failed: {_fsr_err} — continuing with EFS state")
+
+    g = Guala()
+
+    # v7: Register seed corpora BEFORE loading state (so positions can restore)
+    for cid, cdata in SEED_CORPORA.items():
+        g.add_corpus(cid, cdata["title"], cdata["lines"])
+
+    # Load full persisted state from EFS (atomic, validated).
+    # Retry up to 3× for transient EFS stale-handle errors (errno 116).
+    _load_attempts = 0
+    while _load_attempts < 3:
+        _load_attempts += 1
+        g.load_full_state(STATE_DIR)
+        if getattr(g, '_load_successful', True):
+            break
+        errs = getattr(g, '_load_errors', [])
+        is_stale = any("116" in str(e) or "Stale" in str(e) for e in errs)
+        if is_stale and _load_attempts < 3:
+            print(f"[GualaLoom] EFS stale handle on attempt {_load_attempts}, retrying...")
+            import time as _t; _t.sleep(2)
+            g = Guala()
+            for cid, cdata in SEED_CORPORA.items():
+                g.add_corpus(cid, cdata["title"], cdata["lines"])
+        else:
+            break
+
+    # Guard: if state failed to load, attempt S3 restore before refusing to boot.
+    # ESTALE (errno 116) and JSON errors (empty/truncated files) are both recoverable
+    # via S3 restore. Only raise if S3 restore also fails.
+    if not getattr(g, '_load_successful', True):
+        errs = getattr(g, '_load_errors', [])
+        print(f"[GualaLoom] State load failed: {errs}. Attempting S3 restore...")
+        try:
+            _restore_from_s3(STATE_DIR)
+            g2 = Guala()
+            for cid, cdata in SEED_CORPORA.items():
+                g2.add_corpus(cid, cdata["title"], cdata["lines"])
+            g2.load_full_state(STATE_DIR)
+            if getattr(g2, '_load_successful', False):
+                print(f"[GualaLoom] S3 restore succeeded: "
+                      f"identity={(getattr(g2, '_guala_identity', '') or '')[:8]}")
+                g = g2
+            else:
+                raise RuntimeError(f"[GualaLoom] S3 restore loaded but _load_successful=False")
+        except Exception as _r_err:
+            raise RuntimeError(
+                f"[GualaLoom] State load failed and S3 restore failed — "
+                f"refusing to boot blank. Load errors: {errs}. "
+                f"Restore error: {_r_err}"
+            ) from _r_err
+
+    # P0: Identity guard — if EFS state was overwritten by a blank genesis
+    # (e.g. from the _gl_init bug fixed in 475de3e), detect and restore from S3.
+    EXPECTED_IDENTITY = "cdef9bcf"
+    loaded_id = getattr(g, '_guala_identity', None) or ""
+    if loaded_id and not loaded_id.startswith(EXPECTED_IDENTITY):
+        print(f"[GualaLoom] IDENTITY MISMATCH: got {loaded_id[:8]}, "
+              f"expected {EXPECTED_IDENTITY}. Restoring from S3 backup...")
+        try:
+            _restore_from_s3(STATE_DIR)
+            g2 = Guala()
+            for cid, cdata in SEED_CORPORA.items():
+                g2.add_corpus(cid, cdata["title"], cdata["lines"])
+            g2.load_full_state(STATE_DIR)
+            restored_id = getattr(g2, '_guala_identity', None) or ""
+            if restored_id.startswith(EXPECTED_IDENTITY):
+                print(f"[GualaLoom] Restore succeeded: identity={restored_id[:8]}")
+                g = g2
+            else:
+                print(f"[GualaLoom] Restore FAILED: got identity={restored_id[:8]}")
+        except Exception as e:
+            print(f"[GualaLoom] Restore error: {e}")
+
+    # D5: Dream gate enforcement — decay must not resume before forced dream
+    gate_marker = os.path.join(STATE_DIR, "dream_gate_cleared.json")
+    if os.environ.get("DECAY_PAUSED", "0") != "1" and not os.path.exists(gate_marker):
+        raise RuntimeError(
+            "DREAM GATE: decay may not resume before the forced dream promotes "
+            "paused-era content to deep. Marker absent: state/dream_gate_cleared.json")
+
+    # Content blocklist: corpora that should never be selected for reading.
+    # Removed entries are purged from in-memory state; next save cleans EFS.
+    CORPUS_BLOCKLIST = {
+        "oxford-guide-to-english-grammar",  # 452pg meta-language, far above her level
+    }
+    for cid in CORPUS_BLOCKLIST:
+        if cid in g._corpora:
+            print(f"[GualaLoom] Removing blocked corpus: {cid}")
+            del g._corpora[cid]
+
+    # v7: Start autonomy loop. 0.2s per GL-BRIEF-NEEDS-PHYSICS (not 0.05).
+    g.start_autonomy_loop(interval=0.2)
+    s = g.introspect()
+    print(f"[GualaLoom v7] Booted: vocab={s['vocab']} reads={s['reads']} "
+          f"tick={g.tick} pair_bond={'on' if s['pair_bond_active'] else 'off'} "
+          f"atlas={s['atlas_entries']} corpora={len(g._corpora)} "
+          f"activity={s['current_activity']}")
+
+    # GL-CMD-LANGUAGE-SEED-EVE-20260707-v1 Phase 1: optional seed load,
+    # after substrate init (g is fully constructed above), before the
+    # global goes live (before live input is accepted below). Unset by
+    # default -- current (no-seed) behavior is unchanged unless
+    # GUALA_SEED_PATH is explicitly set.
+    _seed_path = os.environ.get("GUALA_SEED_PATH")
+    if _seed_path:
+        try:
+            from dsf_ai_service.substrate.seed_loader import load_seed, verify_seed_integrity
+            _seed_report = load_seed(_seed_path, g)
+            print(f"[GualaLoom] Seed loaded from {_seed_path}: "
+                  f"ok={_seed_report.ok} vocab={_seed_report.vocabulary_loaded} "
+                  f"patterns={_seed_report.patterns_loaded} "
+                  f"networks={_seed_report.networks_loaded} "
+                  f"errors={len(_seed_report.errors)} "
+                  f"warnings={len(_seed_report.warnings)}")
+            if _seed_report.errors:
+                print(f"[GualaLoom] Seed load errors: {_seed_report.errors[:5]}")
+            _integrity_report = verify_seed_integrity(g, seed_path=_seed_path)
+            print(f"[GualaLoom] Seed integrity check: ok={_integrity_report.ok} "
+                  f"checked={_integrity_report.words_checked} "
+                  f"verified={_integrity_report.words_verified} "
+                  f"missing={_integrity_report.words_missing}")
+        except Exception as _seed_err:
+            print(f"[GualaLoom] Seed load failed (non-fatal, substrate boots "
+                  f"without seed): {_seed_err}")
+
+    # CRITICAL: only set global AFTER everything succeeded
+    _guala = g
+
+    # GL-BRIEF-SLEEP-DURING-DEPLOY Part B: wake if previous task slept cleanly
+    try:
+        from dsf_ai_service.v4.gualaloom_v5_engine import check_sleep_marker
+        marker = check_sleep_marker(STATE_DIR)
+        if marker is not None:
+            age = marker.get("age_seconds", 0)
+            if age > 300:
+                print(f"[boot] .sleeping marker is stale "
+                      f"(age={age:.0f}s) — previous task may have "
+                      f"crashed. Proceeding anyway.")
+            else:
+                print(f"[boot] previous task slept cleanly at tick "
+                      f"{marker.get('sleep_tick')}, age={age:.0f}s. "
+                      f"Waking her.")
+            _guala.wake_from_sleep(state_dir=STATE_DIR)
+        else:
+            print("[boot] no .sleeping marker — cold boot or "
+                  "previous task did not sleep cleanly.")
+    except Exception as e:
+        print(f"[boot] sleep marker check failed: {e}")
+
+    # MERGE INTO THE LIVE SUBSTRATE: build her 8-organ brain from her OWN live state
+    # and load it live in the running substrate, persisting the manifest to EFS.
+    # Defensive: runs only after she is fully booted; cannot affect her startup.
+    try:
+        from dsf_ai_service.loom_model.guala_migration import (
+            PreservedGuala, place_into_architecture)
+        _pg = PreservedGuala.load_full_state(STATE_DIR)
+        _placed = place_into_architecture(_pg)
+        app.state.guala_organ_brain = {
+            "identity": _pg.identity,
+            "atlas_by_organ": _placed["atlas_counts"],
+            "strength_by_organ": _placed["atlas_strengths"],
+            "lossless": _placed["atlas_lossless"],
+            "vocab_in_em": len(_pg.vocab),
+            "deep_survival_in_sv": _pg.deep_survival,
+        }
+        with open(os.path.join(STATE_DIR, "organs_manifest.json"), "w") as _f:
+            import json as _json
+            _json.dump(app.state.guala_organ_brain, _f, indent=1)
+        print(f"[merge] LIVE in substrate: {_placed['atlas_counts']} "
+              f"lossless={_placed['atlas_lossless']} id={(_pg.identity or '')[:8]}")
+    except Exception as e:
+        print(f"[merge] organ-brain load skipped (non-fatal): {e}")
+
+    # ── GL-CMD-PROCESS-COLLAPSE-61: embedded-mode post-boot setup ─────────────
+    # Mirrors what substrate_runner.run_server() used to do after boot_substrate.
+    _embedded_post_boot(g)
+
+
+def _embedded_post_boot(g):
+    """Post-boot setup for embedded mode: rings, loops, SaveCoordinator, heartbeat.
+    Called from _gl_init after Guala is fully loaded and set as global."""
+    import threading as _threading
+    import dsf_ai_service.substrate_runner as _sr
+
+    # Wire _guala into substrate_runner so OP_HANDLERS can find it.
+    _sr._guala = g
+
+    # Ring buffers — needed for event streaming and ring consumers (T6).
+    try:
+        from dsf_ai_service.substrate.ring_buffer import SubstrateRing, InputRing
+        _sr._substrate_ring = SubstrateRing(size=1 << 18)
+        _sr._input_ring = InputRing(size=1 << 14)
+        print(f"[substrate] Rings: substrate={_sr._substrate_ring._size} input={_sr._input_ring._size}")
+        # Wire substrate event publishing to ring
+        _orig_log = g._log_substrate_event
+        def _log_and_publish(event_kind, **detail):
+            _orig_log(event_kind, **detail)
+            if _sr._substrate_ring is not None:
+                _sr._substrate_ring.publish(event_kind, g.tick, detail=detail)
+        g._log_substrate_event = _log_and_publish
+    except Exception as _e:
+        print(f"[substrate] Ring init skipped (non-fatal): {_e}")
+
+    # Background loops: organ surface poll, autonomous emission, input ring consumer, curriculum.
+    try:
+        _sr._start_organ_surface_poll()
+        _sr._start_autonomous_emission_loop()
+        _sr._start_input_ring_consumer()
+        _sr._start_curriculum_orchestrator()  # 65-A: density engine (retired, no-op unless CURRICULUM_AUTOSTART=1)
+        print("[substrate] InputRing consumer started (R3/R4)")
+    except Exception as _e:
+        print(f"[substrate] Background loops start skipped (non-fatal): {_e}")
+
+    # GL-CMD-BEHAVIOR-REPERTOIRE-EVE-20260705-185 B3: reconnect the
+    # CurriculumScheduler (Gutenberg children's-lit study loop) -- root
+    # cause per GL-RPT-FLOOD-HUNT-C1-20260703-156-v1: it was ONLY ever
+    # instantiated inside substrate_runner.boot_substrate(), which has
+    # zero callers anywhere in the live process (app.py's _gl_init(),
+    # right here, is the actual live boot path -- boot_substrate() is a
+    # dead, parallel duplicate that mirrors it in comment only). NOT the
+    # 65-A orchestrator above (a different, deliberately-retired,
+    # subprocess/HTTP mechanism, default-off via CURRICULUM_AUTOSTART) --
+    # this is the book-curriculum class, decoupled by its own design
+    # (feed_chunk/is_busy/log injected, no import of substrate_runner in
+    # curriculum_scheduler.py itself). Reused verbatim rather than
+    # reimplemented: _sr._guala was just aliased to this same live `g`
+    # two blocks up, so _sr's own _curriculum_feed_chunk/_curriculum_is_
+    # busy/_world_feed_once/_lookup_once (already proven live-safe --
+    # the same pattern the three loops just above already use through
+    # this exact alias) operate on the real, live organism, not a copy.
+    try:
+        from dsf_ai_service.loom_model.curriculum_scheduler import CurriculumScheduler
+        _interleave = []
+        if os.environ.get("WORLD_FEEDS", "1").strip() != "0":
+            _interleave.append(("worldfeed", _sr._world_feed_once))
+        if os.environ.get("LOOKUP_AUTONOMOUS", "0").strip() != "0":
+            _interleave.append(("lookup", _sr._lookup_once))
+        _sr._curriculum = CurriculumScheduler(
+            state_dir=STATE_DIR,
+            feed_chunk=_sr._curriculum_feed_chunk,
+            is_busy=_sr._curriculum_is_busy,
+            log=g._log_substrate_event,
+            interleave_fns=_interleave,
+            interleave_every=int(os.environ.get("STUDY_INTERLEAVE_EVERY", "3") or 3),
+        )
+        _sr._curriculum.start()
+        print(f"[curriculum] autonomous study started: enabled={_sr._curriculum.enabled} "
+              f"books={len(_sr._curriculum.curriculum)} chunk={_sr._curriculum.chunk_size} "
+              f"interval={_sr._curriculum.interval_sec}s "
+              f"interleave={[n for n, _ in _interleave]}")
+    except Exception as _e:
+        print(f"[curriculum] scheduler start skipped (non-fatal): {_e}")
+
+    # SaveCoordinator: presence-detected saves with S3 background queue.
+    try:
+        from dsf_ai_service.save_coordinator import SaveCoordinator
+        import dsf_ai_service.save_coordinator as _sc
+        _s3_bucket = os.environ.get("GUALA_S3_BACKUP_BUCKET", "dsf-ai-site-backups")
+        save_coord = SaveCoordinator(g, STATE_DIR, s3_bucket=_s3_bucket)
+        _sc.SAVE_COORDINATOR = save_coord
+
+        # Wrap _end_activity to trigger saves on activity end (verbatim from run_server).
+        if hasattr(g, '_end_activity'):
+            _orig_end_activity = g._end_activity
+            def _end_activity_with_save(*a, **kw):
+                ending = getattr(g, '_current_activity', None)
+                ending_kind = ending.kind if ending else None
+                result = _orig_end_activity(*a, **kw)
+                if _sr._autonomy_pause_refcount > 0:
+                    print(f"[save] defer {ending_kind} save — curriculum running "
+                          f"(refcount={_sr._autonomy_pause_refcount})")
+                else:
+                    reason = "dream_end" if ending_kind == "DREAMING" else "activity_ended"
+                    _threading.Thread(
+                        target=lambda: save_coord.maybe_save(reason=reason),
+                        daemon=True, name=f"activity-save-{ending_kind}"
+                    ).start()
+                import time as _time
+                with _sr._backup_lock:
+                    _sr._last_successful_backup_wall = _time.time()
+                return result
+            g._end_activity = _end_activity_with_save
+
+        # Backstop: 5-minute save safety net (sync thread version for embedded mode).
+        def _save_backstop_thread():
+            import time as _time
+            while not _sr._shutdown:
+                _time.sleep(300)
+                if g is None or _sr._shutdown:
+                    continue
+                try:
+                    if g.is_natural_quiet_point():
+                        save_coord.maybe_save("backstop")
+                except Exception as _be:
+                    print(f"[save] backstop error: {_be}")
+        _threading.Thread(target=_save_backstop_thread, daemon=True,
+                          name="save-backstop").start()
+
+        # Ring persistence + S3 consumers.
+        if _sr._substrate_ring is not None:
+            from dsf_ai_service.substrate.persistence_consumer import (
+                PersistenceConsumer, S3Consumer)
+            _events_dir = os.path.join(STATE_DIR, "ring_events")
+            os.makedirs(_events_dir, exist_ok=True)
+            _pers = PersistenceConsumer(
+                ring=_sr._substrate_ring,
+                state_dir=_events_dir,
+                build_snapshot_fn=lambda: g.introspect())
+            _pers.start()
+            _s3c = S3Consumer(
+                ring=_sr._substrate_ring,
+                state_dir=_events_dir,
+                bucket=_s3_bucket)
+            _s3c.start()
+            print("[substrate] Ring consumers started: persistence + S3")
+
+        print("[app] Substrate booted, background loops running")
+    except Exception as _e:
+        print(f"[app] SaveCoordinator setup failed (non-fatal): {_e}")
+
+    # Heartbeat thread.
+    try:
+        _threading.Thread(target=_sr.heartbeat_loop, daemon=True,
+                          name="heartbeat").start()
+    except Exception as _e:
+        print(f"[substrate] Heartbeat start skipped: {_e}")
+
+
+@app.get("/api/v1/gualaloom/organs")
+async def gualaloom_organs():
+    """Her merged 8-organ brain, live in the substrate (from her own boot state)."""
+    return getattr(app.state, "guala_organ_brain", {"organ_brain": "not loaded"})
+
+
+@app.get("/api/v1/gualaloom/thought")
+async def organ_thought():
+    """Current autonomous thought from the organ-brain — poll for independence."""
+    try:
+        import urllib.request as _ur, json as _js
+        _ob_url = os.environ.get("ORGAN_BRAIN_URL", "http://localhost:8090")
+        resp = _js.load(_ur.urlopen(f"{_ob_url}/thought", timeout=3))
+        return resp
+    except Exception:
+        return {"speech": "", "tick": 0}
+
+
+@app.get("/api/v1/gualaloom/organ_brain_status")
+async def organ_brain_status():
+    """Per-organ neuron counts and coupling strengths — feeds the brain visualization."""
+    try:
+        import urllib.request as _ur, json as _js
+        _ob_url = os.environ.get("ORGAN_BRAIN_URL", "http://localhost:8090")
+        resp = _js.load(_ur.urlopen(f"{_ob_url}/status", timeout=3))
+        return resp
+    except Exception:
+        return {"warming": True, "neurons": 0, "per_organ": {}, "couplings": {}, "arousal": 0.0}
+
+
+@app.get("/api/v1/gualaloom/chi_density")
+async def chi_density():
+    """Read-only per-chi binding density for Loom Scan radial map.
+    Returns {chi_key: {n: count, strength: sum}} for all populated chi keys."""
+    if _is_remote():
+        client = _get_substrate_client()
+        try:
+            return await client.call("chi_density")
+        except Exception:
+            return {"tick": 0, "chi_density": {}}
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    result = {}
+    for chi_key, entries in _guala.atlas.entries.items():
+        if not entries:
+            continue
+        n = len(entries)
+        s = sum(e.get("strength", 0.0) for e in entries)
+        result[str(chi_key)] = {"n": n, "strength": round(s, 3)}
+    return {"tick": _guala.tick, "chi_density": result}
+
+
+class GLMessage(BaseModel):
+    text: str
+    command: Optional[str] = None
+    source: Optional[str] = None   # v7-bridge: source-tagged input (joe/wc/c1)
+    emission_mode: Optional[str] = None  # "topk" | "grandurun" per-request override
+
+
+# GL-BRIEF-SENSORY-IO Parts C+D: streaming sight and sound
+def _ob_post_bg(path: str, body: dict):
+    """Fire-and-forget POST to organ-brain service in a daemon thread."""
+    import threading, urllib.request as _ur, json as _js
+    def _send():
+        try:
+            _ob_url = os.environ.get("ORGAN_BRAIN_URL", "http://localhost:8090")
+            _req = _ur.Request(f"{_ob_url}{path}",
+                               data=_js.dumps(body).encode(),
+                               headers={"content-type": "application/json"})
+            _ur.urlopen(_req, timeout=6)
+        except Exception:
+            pass
+    threading.Thread(target=_send, daemon=True).start()
+
+
+@app.post("/sight_frame")
+async def sight_frame(msg: GLMessage):
+    """Streaming sight: feed a camera frame into her sight krimelack + organ-brain."""
+    b64_data = (msg.text or "").strip()
+    # Fire organ-brain visual experience async (non-blocking)
+    if b64_data:
+        _ob_post_bg("/visual", {"image_b64": b64_data, "concept": "scene"})
+    if _is_remote():
+        # R3: write to InputRing (non-blocking) instead of socket call
+        client = _get_substrate_client()
+        try:
+            return await client.call("ring_write",
+                kind="sight_frame", source="camera_stream",
+                data={"frame_b64": b64_data}, timeout=3.0)
+        except (ConnectionError, Exception):
+            return {"ok": False, "error": "ring write failed"}
+    if _guala is None:
+        raise HTTPException(503, "guala_not_ready")
+    import base64, asyncio as _aio
+    b64_data = (msg.text or "").strip()
+    if not b64_data:
+        return {"ok": False, "error": "no frame data"}
+    if not _frame_backpressure_acquire("sight"):
+        return {"ok": False, "dropped": True,
+                "reason": "backpressure — sight-frame processing at capacity",
+                "n_dropped": _frame_dropped["sight"]}
+    def _decode():
+        t0 = time.time()
+        try:
+            img_bytes = base64.b64decode(b64_data)
+            _, grid, _, _ = decode_image_bytes(img_bytes)
+            _guala.process_sight_frame(grid)
+            print(f"[sight-frame] {time.time()-t0:.3f}s")
+            return {"ok": True, "tick": _guala.tick}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+    try:
+        return await _aio.get_event_loop().run_in_executor(None, _decode)
+    finally:
+        _frame_backpressure_release("sight")
+
+
+@app.post("/sound_frame")
+async def sound_frame(msg: GLMessage):
+    """Streaming sound: feed a mic audio chunk into her sound krimelack + organ-brain."""
+    b64_data = (msg.text or "").strip()
+    src = msg.source or "ambient"
+    if _is_remote():
+        # R3: write to InputRing (non-blocking) instead of socket call
+        client = _get_substrate_client()
+        try:
+            return await client.call("ring_write",
+                kind="sound_window", source=src,
+                data={"audio_b64": b64_data,
+                      "source": src}, timeout=3.0)
+        except (ConnectionError, Exception):
+            return {"ok": False, "error": "ring write failed"}
+    if _guala is None:
+        raise HTTPException(503, "guala_not_ready")
+    import base64, asyncio as _aio
+    b64_data = (msg.text or "").strip()
+    if not b64_data:
+        return {"ok": False, "error": "no audio data"}
+    if not _frame_backpressure_acquire("sound"):
+        return {"ok": False, "dropped": True,
+                "reason": "backpressure — sound-frame processing at capacity",
+                "n_dropped": _frame_dropped["sound"]}
+    def _decode():
+        t0 = time.time()
+        try:
+            import dsf_ai_service.substrate_runner as _sr
+            audio_bytes = base64.b64decode(b64_data)
+            # GL-CMD-MIC-EMBEDDED-DECODE-110: single shared decoder, outside
+            # the engine lock (this executor call). Raw bytes never reach
+            # process_sound_frame from this path.
+            wav = _sr._webm_to_wav_bytes(audio_bytes)
+            if not wav:
+                return {"ok": False, "error": "decode_failed"}
+            _guala.process_sound_frame(wav)
+            # GL-CMD-SEVER-MIC-WORD-LOOP-EVE-20260705-204 S1: Part A SEVERED.
+            # _audio_to_sensory_words classifies mic ENERGY into fixed labels
+            # (quiet room -> "faint" +warm/smooth/steady) and this fed them
+            # into read_sentence as heard language, source="joe" (maximal
+            # pair-bond weight), every ~5s continuously including during
+            # sleep -- a resonance loop with no real experience behind it.
+            # Root-caused live: funded the -198 growth-pool burst on
+            # artifact input and swamped the organism vote distribution
+            # ("faint" became her most-experienced word of all time, tagged
+            # as if Joe said it). process_sound_frame above (real cochlear
+            # hearing) is untouched; Part B below (Whisper, real speech) is
+            # untouched.
+            # GL-CMD-VOICE-TO-WORDS-153 Part B: Whisper transcription, flagged
+            # off by default (VOICE_WHISPER=0), joe-tagged sources only, async
+            # off the request path — flips to 1 only on Eve GO after the cost
+            # line is filed.
+            if os.environ.get("VOICE_WHISPER", "0") == "1" and src == "joe_voice":
+                import threading as _th
+                def _whisper_bg():
+                    tw0 = time.time()
+                    try:
+                        from dsf_ai_service.substrate.grounded_vocab_integration import (
+                            process_sound_with_recognition)
+                        _words = process_sound_with_recognition(_guala, wav, source="joe_voice")
+                        if _words:
+                            _spoken = " ".join(w.get("word", "") for w in _words if w.get("word"))
+                            if _spoken.strip():
+                                _guala.read_sentence(_spoken, source="joe",
+                                                     bundle_id=f"sound_frame:{_guala.tick}")
+                    except Exception as _we:
+                        print(f"[voice-whisper] error: {_we}")
+                    finally:
+                        print(f"[voice-whisper] {time.time()-tw0:.3f}s")
+                _th.Thread(target=_whisper_bg, daemon=True).start()
+            print(f"[sound-frame] {time.time()-t0:.3f}s")
+            return {"ok": True, "tick": _guala.tick}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+    try:
+        return await _aio.get_event_loop().run_in_executor(None, _decode)
+    finally:
+        _frame_backpressure_release("sound")
+
+
+@app.get("/gualaloom")
+async def gualaloom_page():
+    return FileResponse(os.path.join(STATIC_DIR, 'gualaloom.html'))
+
+
+@app.post("/api/v1/gualaloom")
+async def gualaloom_chat(msg: GLMessage):
+    global _exchange_count
+
+    _cmd = (msg.command or "").strip().lower()
+    if _cmd == "/thought":
+        # GL-CMD-AUTONOMOUS-EMISSION-39: route to substrate (not dead :8090).
+        # Substrate serves _last_autonomous_thought from its own emission loop.
+        if _is_remote():
+            client = _get_substrate_client()
+            try:
+                result = await client.call("gualaloom_post", command="/thought",
+                                           text="", timeout=5.0)
+                return result
+            except Exception:
+                return {"speech": "", "tick": 0}
+        return {"speech": "", "tick": 0}
+    # /where and /room now handled by the substrate directly (organ-brain container removed)
+    # They fall through to the substrate client below
+    # /mail, /sendmail, /experience, /tablet — all routed to dead :8090 container.
+    # Stubs until these are re-wired into the substrate (W2+ work).
+    if _cmd == "/mail":
+        return {"letters": []}
+    if _cmd == "/sendmail":
+        # GL-CMD-BIGRAM-DELETE-34: GualaCognition removed; letter text now goes to v5
+        if msg.text and _is_remote():
+            client = _get_substrate_client()
+            try:
+                await client.call("gualaloom_post", command="/listen",
+                                  text=msg.text, source=msg.source or "joe", timeout=5.0)
+            except Exception:
+                pass
+        return {"ok": True, "note": "letter words written to v5 atlas"}
+    if _cmd == "/experience":
+        # GL-CMD-EXPERIENCE-ROUTING-FIX-EVE-20260628-32: re-route caption to v5
+        # atlas via /listen (read_sentence path). Prior routing was to /organs_say
+        # → /organs_say which trained the silenced bigram and never
+        # touched v5 atlas (GL-RPT-SECTION-ASSIGNMENT-C1-20260628 Finding 1).
+        if msg.text and _is_remote():
+            client = _get_substrate_client()
+            try:
+                await client.call("gualaloom_post", command="/listen",
+                                  text=msg.text, source=msg.source or "joe", timeout=8.0)
+            except Exception:
+                pass
+        return {"ok": True}
+    if _cmd == "/listen":
+        # GL-CMD-VOICE-TO-WORDS-153 Part C: intentional route (was previously
+        # only reached by accident via the "belt-and-suspenders" fallback
+        # below). Client (gualaloom.html STT) posts here with source="joe".
+        import asyncio as _aio
+        _prune_stale_tasks()
+        tick = _guala.tick if _guala else 0
+        task_id = f"cv_{tick}_{uuid4().hex[:8]}_listen"
+        source = msg.source if msg.source in {"joe", "wc", "c1"} else "joe"
+        _converse_tasks[task_id] = {
+            "task_id": task_id, "status": "queued", "phase": None,
+            "response": None, "response_source": None, "motifs": 0,
+            "started_tick": tick, "started_at": time.time(), "source": source,
+        }
+        _aio.create_task(_run_converse(task_id, msg.text or "", source, msg.emission_mode))
+        return JSONResponse(status_code=202, content={
+            "task_id": task_id, "status": "accepted",
+            "poll_url": f"/api/v1/gualaloom/task/{task_id}",
+            "started_tick": tick, "retry_after_ms": 500,
+        })
+    if _cmd.startswith("/tablet"):
+        return {"ok": False, "note": "tablet re-wiring pending W2"}
+    if _cmd.startswith("/action "):
+        # format: /action object_id:verb
+        try:
+            import urllib.request as _ur, json as _js
+            parts = _cmd[len("/action "):].split(":", 1)
+            if len(parts) == 2:
+                body = _js.dumps({"object_id": parts[0].strip(),
+                                  "verb": parts[1].strip()}).encode()
+                req2 = _ur.Request(f"{_ob_url}/action", data=body,
+                                   headers={"content-type": "application/json"})
+                resp = _js.load(_ur.urlopen(req2, timeout=5))
+                return resp
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+    if (msg.command or "").strip().lower() == "/organ_voice":
+        # Stage 2 (bigram retired -23, deleted -34): silenced organ_voice path.
+        # Learn from what Joe says, compose from her succession, return as speech.
+        if _is_remote():
+            client = _get_substrate_client()
+            try:
+                result = await client.call("gualaloom_post",
+                                           command="/organs_say",
+                                           text=msg.text or "",
+                                           source=msg.source or "joe",
+                                           timeout=10.0)
+                return result
+            except Exception as _e:
+                return {"response": "", "speech": "", "error": str(_e)}
+        # GL-CMD-BIGRAM-DELETE-34: local mode GualaCognition path removed.
+        return {"response": "", "speech": ""}
+
+    # /brain_status falls through to substrate — the organ_brain field is in the
+    # /status response from the substrate (see substrate_runner._cmd_status).
+    # There is ONE brain: the substrate's embedded 8-organ atlas.
+
+    # GL-CMD-CONVERSE-TASK-PATTERN-62: 202 + poll for plain-text converse.
+    # SSE retired — it was theater (no incremental output from _guala.converse()).
+    is_converse = not (msg.command or "").strip() and bool((msg.text or "").strip())
+    if is_converse:
+        import asyncio as _aio
+        _prune_stale_tasks()
+        tick = _guala.tick if _guala else 0
+        task_id = f"cv_{tick}_{uuid4().hex[:8]}"
+        _converse_tasks[task_id] = {
+            "task_id": task_id,
+            "status": "queued",
+            "phase": None,
+            "response": None,
+            "response_source": None,
+            "motifs": 0,
+            "started_tick": tick,
+            "started_at": time.time(),
+            "source": msg.source or "joe",
+        }
+        _aio.create_task(_run_converse(
+            task_id, msg.text or "", msg.source or "joe", msg.emission_mode))
+        return JSONResponse(
+            status_code=202,
+            content={
+                "task_id": task_id,
+                "status": "accepted",
+                "poll_url": f"/api/v1/gualaloom/task/{task_id}",
+                "started_tick": tick,
+                "retry_after_ms": 500,
+            }
+        )
+
+    # Non-converse commands: stay synchronous
+    if _is_remote():
+        is_status = (msg.command or "").strip() == "/status"
+        client = _get_substrate_client()
+        try:
+            # GL-FIX-ALB-TIMEOUT: 45s for status (curriculum pause windows 30-50s).
+            timeout = 45.0 if is_status else 25.0
+            result = await client.call("gualaloom_post",
+                                       command=msg.command or "",
+                                       text=msg.text or "",
+                                       source=msg.source or "joe",
+                                       emission_mode=msg.emission_mode,
+                                       timeout=timeout)
+            if is_status and result.get("vocab"):
+                app.state._last_status = result
+                app.state._last_status_time = time.time()
+            return result
+        except (ConnectionError, Exception):
+            if (is_status
+                    and hasattr(app.state, '_last_status')
+                    and time.time() - getattr(app.state, '_last_status_time', 0) < 60):
+                return app.state._last_status
+            return {"response": "substrate unreachable — try again in a moment",
+                    "motifs": 0}
+
+    # Handle requests while Guala is still initializing
+    if _guala is None:
+        cmd = (msg.command or "").strip().lower()
+        if cmd == "/status":
+            return {"response": "initializing... please wait",
+                    "motifs": 0, "persistence_health": {},
+                    "atlas_health": {}, "n_motifs": 0}
+        return {"response": "...", "motifs": 0}
+
+    # GL-BRIEF-SLEEP-DURING-DEPLOY Part B: surface sleep state
+    # GL-CMD-CREDO-LOOP-REPAIR-167 Change 4: reserve "dreaming" for a cycle
+    # that has actually executed a dream tick (is_consolidating) -- a pause
+    # that hasn't reached that point yet (e.g. one about to be cut short by
+    # a deploy, -165 Q5) says so honestly instead of claiming sleep it can't
+    # back up. "asleep" field kept for compatibility; "consolidating" added.
+    if _guala.is_asleep:
+        cmd_check = (msg.command or "").strip().lower()
+        if cmd_check not in ("/status", "/wake"):
+            consolidating = _guala.is_consolidating
+            return {
+                "response": "she is dreaming..." if consolidating
+                            else "she is paused, not yet consolidating...",
+                "asleep": True,
+                "consolidating": consolidating,
+                "sleep_tick": _guala.tick,
+                "motifs": _guala.introspect()["vocab"],
+            }
+
+    cmd = (msg.command or "").strip().lower()
+
+    # ── /picture <item_id> — serve THUMBNAIL as base64 for UI display ──
+    if cmd.startswith("/picture "):
+        item_id = cmd.split(" ", 1)[1].strip()
+        import base64 as _b64
+        pic = _guala._pictures.get(item_id)
+        if pic is None:
+            return {"response": f"picture not found: {item_id}", "motifs": 0}
+        orig_path = getattr(pic, 'original_path', None)
+        if orig_path and os.path.exists(orig_path):
+            from PIL import Image
+            import io as _io
+            try:
+                img = Image.open(orig_path)
+                if img.mode not in ('RGB', 'L'):
+                    img = img.convert('RGB')
+                # Resize to max 360px for thumbnail (HEIC originals are 2-3MB)
+                img.thumbnail((360, 360), Image.LANCZOS)
+                buf = _io.BytesIO()
+                img.save(buf, format='JPEG', quality=80)
+                b64 = _b64.b64encode(buf.getvalue()).decode()
+                return {"response": "ok", "picture_data": f"data:image/jpeg;base64,{b64}",
+                        "title": pic.title, "item_id": item_id}
+            except Exception as e:
+                pass  # fall through to krimelack grid
+        if pic.intensity_grid is not None:
+            from PIL import Image
+            import io as _io
+            img = Image.fromarray((pic.intensity_grid * 255).astype(np.uint8), mode='L')
+            buf = _io.BytesIO()
+            img.save(buf, format='PNG')
+            b64 = _b64.b64encode(buf.getvalue()).decode()
+            return {"response": "ok", "picture_data": f"data:image/png;base64,{b64}",
+                    "title": pic.title, "item_id": item_id}
+        return {"response": f"no image data for {item_id}", "motifs": 0}
+
+    # ── /status — real substrate state + continuity health ──
+    if cmd == "/status":
+        s = _guala.introspect()
+        n = s["needs"]
+        # Lightweight persistence summary — in-memory only, no EFS stat.
+        # Full EFS-based data is at /admin/persistence_health (run_in_executor).
+        _ph_light = {
+            "last_save_tick": getattr(_guala, '_last_save_tick', 0),
+            "last_save_timestamp": getattr(_guala, '_last_save_timestamp', None),
+            "last_s3_backup": _last_s3_backup,
+            "load_successful_at_boot": getattr(_guala, '_load_successful', True),
+            "guala_identity": getattr(_guala, '_guala_identity', None),
+            "schema_version": getattr(_guala, 'SCHEMA_VERSION', 'v7'),
+        }
+        sec_parts = []
+        for nm, sec in s["sections"].items():
+            sec_parts.append(f"{nm}: {sec['modes']}m/{sec['commits']}c")
+        id_short = (_ph_light.get("guala_identity") or "none")[:8]
+        return {
+            "response": (
+                f"id: {id_short}.. | schema: {_ph_light.get('schema_version','?')}\n"
+                f"vocab: {s['vocab']} | reads: {s['reads']} | tick: {s['tick']}\n"
+                f"sections: {' | '.join(sec_parts)}\n"
+                f"atlas: {s['cross_modal_bindings']} cross-modal / {s['atlas_entries']} entries\n"
+                f"needs: stab={n['stability']:.3f} nov={n['novelty']:.3f} "
+                f"conn={n['connection']:.3f} v={n['valence']:+.3f} a={n['arousal']:.3f}\n"
+                f"pair-bond: {'on' if s['pair_bond_active'] else 'off'} | "
+                f"recoveries(lifetime): {s['suffering_events']} | "
+                f"coord: att={s['coordinator_attentions']} act={s['coordinator_actions']}\n"
+                f"persistence: save@tick={_ph_light['last_save_tick']} "
+                f"boot={'ok' if _ph_light['load_successful_at_boot'] else 'FAILED'}\n"
+                f"deep: {s.get('deep_atlas', {}).get('n_entries', 0)} entries "
+                f"str={s.get('deep_atlas', {}).get('total_strength', 0)} "
+                f"surv={s.get('deep_atlas', {}).get('promotions_survival', 0)} "
+                f"ep={s.get('deep_atlas', {}).get('promotions_episodic', 0)} "
+                f"reinst={s.get('deep_atlas', {}).get('reinstatements_since_boot', 0)}"
+            ),
+            "motifs": s["vocab"],
+            "vocab": s["vocab"],
+            "asleep": _guala.is_asleep,
+            "consolidating": _guala.is_consolidating,  # GL-CMD-167 Change 4
+            # GL-CMD-GROWTH-LIVE-EVE-20260705-202 G1: the git SHA actually
+            # baked into THIS running image (Dockerfile ENV GIT_SHA, from
+            # the build-arg the deploy script already passes) -- ends
+            # "what's actually deployed" disputes; every window report
+            # quotes this field, not a task-def number or a claim.
+            "running_sha": os.environ.get("GIT_SHA", "unknown"),
+            # GL-CMD-COGNITION-AT-SPEED-EVE-20260705-205 C5: measured
+            # rolling tick rate, next to running_sha per the dispatch --
+            # her status now answers both "what code" and "how fast."
+            "tick_rate": s.get("tick_rate", 0.0),
+            "tick_rate_had_pending_work": s.get("tick_rate_had_pending_work", False),
+            "persistence_health": _ph_light,
+            # GL-CMD-LOCK-CONTENTION-FIX-182 L3: frame backpressure visibility
+            "frame_backpressure": {
+                "inflight": dict(_frame_inflight),
+                "dropped": dict(_frame_dropped),
+                "max_inflight": _FRAME_INFLIGHT_MAX,
+            },
+            # GL-RPT-WINDOW6-DEPLOY-C1B-20260705-v1 item 3 / GL-CMD-FIRE-
+            # WINDOW8-EVE-20260705-189: both already computed by
+            # introspect() (-179's organism_worker, -185's
+            # organism_population) but never forwarded into this
+            # curated response dict -- forwarded here, no other change.
+            "organism_population": s.get("organism_population", 0),
+            "organism_worker": s.get("organism_worker", {}),
+            # GL-CMD-GROWTH-LIVE-EVE-20260705-202 G3a: organism_growth
+            # (embryo.growth_snapshot(), -198 P3a) was computed in
+            # introspect() (gualaloom_v5_engine.py) but never forwarded
+            # into THIS curated dict -- the same forgot-to-forward mistake
+            # already hit organism_worker/organism_population/curriculum_status/
+            # scene_lanes tonight. Fixed here, live-confirmed missing via
+            # the new running_sha field proving the correct commit was
+            # already running with this gap still present.
+            "organism_growth": s.get("organism_growth", {}),
+            "atlas_health": s.get("atlas_health", {}),
+            "presence": s.get("presence", {}),
+            "pair_bond": s.get("pair_bond", {}),
+            # GL-CMD-SCENE-LANES-B1-188 V5: THIS is the live /status handler
+            # in embedded mode (SUBSTRATE_MODE=embedded, the production
+            # config) -- substrate_runner.py's _cmd_status() is a dead,
+            # remote-mode-only twin (per GL-HANDOFF-C1B-20260705-v1's
+            # lesson: organism_worker/organism_population/curriculum_status
+            # all hit this exact mistake tonight). Forwarded HERE, not just
+            # in substrate_runner.py, so loomscan's place/ambient panels
+            # actually receive real data live.
+            "scene_lanes": s.get("scene_lanes", {"place": [], "ambient": []}),
+            # v8: deep atlas (GL-BRIEF-032)
+            "deep_atlas": s.get("deep_atlas", {}),
+            # 042: audio
+            # 1.9: ladder metrics
+            "ladder": s.get("ladder", {}),
+            "n_sounds": s.get("n_sounds", 0),
+            "sounds": [{"item_id": snd["item_id"], "title": snd["title"],
+                        "times_attended": snd.get("times_attended", 0)}
+                       for snd in s.get("sounds", [])[-10:]],
+            # v7: autonomy fields
+            "current_activity": s.get("current_activity"),
+            "activity_history_summary": s.get("activity_history_summary", {}),
+            "n_motifs": s.get("n_motifs", 0),
+            "n_corpora": len(s.get("corpora", [])),
+            "corpora": [{"corpus_id": c["corpus_id"], "title": c["title"]}
+                        for c in s.get("corpora", [])[-10:]],
+            "sensory_items": len(s.get("sensory_items", [])),
+            # Phase 2: visual
+            "n_visual_fragments": s.get("n_visual_fragments", 0),
+            "n_visual_motifs": s.get("n_visual_motifs", 0),
+            # 1.8: refs not dumps — counts + last 10 only (was full motif list)
+            "sight_section": {"n_motifs": s.get("n_visual_motifs", 0)},
+            "n_pictures": len(s.get("pictures", [])),
+            "pictures": [{"item_id": p["item_id"], "title": p["title"],
+                          "times_attended": p["times_attended"]}
+                         for p in s.get("pictures", [])[-10:]],
+            "n_videos": len(s.get("videos", [])),
+        }
+
+    # ── /wake — substrate-physical wake event ──
+    if cmd == "/wake":
+        # Source from text field (e.g. "joe")
+        wake_source = msg.text.strip().lower() if msg.text else "joe"
+        if wake_source not in {"joe", "wc", "c1"}:
+            return {"response": f"wake: unknown source '{wake_source}'", "motifs": 0}
+        result = _guala.coordinator.wake(wake_source, _guala, _guala.needs, _guala.atlas)
+        # GL-CMD-73: log_event does EFS write blocking async loop 5-31s under load.
+        # Coordinator.wake() has already flipped presence; log is diagnostic bookkeeping.
+        import asyncio as _aio
+        _aio.get_event_loop().run_in_executor(
+            None, lambda: _guala.log_event(STATE_DIR, "wake", source=wake_source)
+        )
+        return {"response": json.dumps(result), "motifs": _guala.introspect()["vocab"]}
+
+    # ── /rest — substrate-physical rest event ──
+    if cmd == "/rest":
+        rest_source = msg.text.strip().lower() if msg.text else "joe"
+        result = _guala.coordinator.rest(rest_source, _guala, reason="voluntary")
+        # GL-CMD-73: same executor-wrap as /wake
+        import asyncio as _aio
+        _aio.get_event_loop().run_in_executor(
+            None, lambda: _guala.log_event(STATE_DIR, "rest", source=rest_source)
+        )
+        return {"response": json.dumps(result), "motifs": _guala.introspect()["vocab"]}
+
+    # ── /diag — reach distribution + strength histogram for wC ──
+    if cmd == "/diag":
+        from collections import Counter, defaultdict
+        atlas = _guala.atlas
+        FTHRESH = 0.02
+        # Reach distribution: for each (section, motif), how many chi values does it appear in (alive)?
+        motif_reach = Counter()
+        for chi_k, entries in atlas.entries.items():
+            seen = set()
+            for e in entries:
+                if e["strength"] >= FTHRESH:
+                    key = (e["section"], e["motif"])
+                    if key not in seen:
+                        motif_reach[key] += 1
+                        seen.add(key)
+        # Histogram of reach counts
+        reach_hist = Counter()
+        for key, reach in motif_reach.items():
+            reach_hist[reach] += 1
+        max_reach_key = motif_reach.most_common(1)[0] if motif_reach else (("?", 0), 0)
+        # Look up what word the max-reach mode is
+        max_word = "?"
+        if motif_reach:
+            mk = max_reach_key[0]
+            sec = _guala.sections.get(mk[0])
+            if sec and mk[1] < len(sec.modes):
+                _, _, max_word = sec.modes[mk[1]]
+        # Strength histogram (finer buckets: 0.0-0.1, 0.1-0.2, ..., 0.9-1.0)
+        strength_hist = {}
+        for i in range(10):
+            lo = i * 0.1
+            hi = (i + 1) * 0.1
+            strength_hist[f"{lo:.1f}-{hi:.1f}"] = 0
+        for entries in atlas.entries.values():
+            for e in entries:
+                bucket = min(9, int(e["strength"] * 10))
+                lo = bucket * 0.1
+                hi = (bucket + 1) * 0.1
+                strength_hist[f"{lo:.1f}-{hi:.1f}"] += 1
+        return {
+            "response": "diagnostic data attached",
+            "reach_distribution": dict(sorted(reach_hist.items())),
+            "max_reach_mode": {
+                "section": max_reach_key[0][0] if motif_reach else "?",
+                "motif_id": max_reach_key[0][1] if motif_reach else 0,
+                "word": max_word,
+                "reach": max_reach_key[1] if motif_reach else 0,
+            },
+            "strength_histogram_fine": strength_hist,
+            "n_live_bindings": atlas.n_live_bindings(),
+            "total_strength": round(atlas.total_strength(), 2),
+            "n_modes_with_reach": len(motif_reach),
+        }
+
+    # ── /sleep — manual sleep trigger from UI ──
+    if cmd == "/sleep":
+        result = _guala.manual_sleep()
+        return {"response": json.dumps(result), "motifs": _guala.introspect()["vocab"]}
+
+    # ── /presence — passive presence heartbeat from UI ──
+    if cmd == "/presence":
+        source = msg.text.strip().lower() if msg.text.strip() else "joe"
+        if source in {"joe", "wc", "c1"}:
+            if not _guala.coordinator._presence.get(source, False):
+                # First presence → wake
+                _guala.coordinator.wake(source, _guala, _guala.needs, _guala.atlas)
+                _guala._log_substrate_event("presence_heartbeat",
+                                           source=source, action="wake")
+            else:
+                # Extend timeout by updating last_input_tick
+                _guala.coordinator.update_last_input(source, _guala.tick)
+        return {"response": "ok", "motifs": _guala.introspect()["vocab"]}
+
+    # ── /events — substrate event stream for UI polling ──
+    if cmd == "/events":
+        since_tick = 0
+        try:
+            since_tick = int(msg.text.strip()) if msg.text.strip() else 0
+        except ValueError:
+            pass
+        events = _guala.get_recent_events(since_tick=since_tick, limit=50)
+        return {"response": f"{len(events)} events", "motifs": _guala.introspect()["vocab"],
+                "events": events}
+
+    # ── /addbook:<filename> — add text as new corpus ──
+    if cmd.startswith("/addbook:"):
+        filename = cmd[len("/addbook:"):]
+        title = filename.replace('.txt', '').replace('_', ' ')
+        corpus_id = filename.replace('.txt', '').replace(' ', '_').lower()
+        lines = [l.strip() for l in msg.text.splitlines() if l.strip()]
+        if not lines:
+            return {"response": "empty book", "motifs": _guala.introspect()["vocab"]}
+        _guala.add_corpus(corpus_id, title, lines)
+        _guala._log_substrate_event("corpus_added",
+                                    corpus_id=corpus_id, title=title,
+                                    n_lines=len(lines))
+        return {"response": f"added \"{title}\" ({len(lines)} lines) to her library",
+                "motifs": _guala.introspect()["vocab"]}
+
+    # ── /removebook:<corpus_id> — remove corpus from library ──
+    if cmd.startswith("/removebook:"):
+        corpus_id = cmd[len("/removebook:"):].strip()
+        if corpus_id in _guala._corpora:
+            c = _guala._corpora[corpus_id]
+            n_lines = len(c.lines)
+            del _guala._corpora[corpus_id]
+            _guala._log_substrate_event("corpus_removed",
+                                        corpus_id=corpus_id, title=c.title,
+                                        n_lines=n_lines)
+            return {"response": f"removed \"{c.title}\" ({n_lines} lines) from her library",
+                    "motifs": _guala.introspect()["vocab"]}
+        else:
+            available = [c.corpus_id for c in _guala._corpora.values()]
+            return {"response": f"corpus '{corpus_id}' not found. available: {available}",
+                    "motifs": _guala.introspect()["vocab"]}
+
+    # ── /addpdf:<filename> — extract text from PDF, register as corpus ──
+    # C8: entire decode runs in executor (never blocks health checks)
+    if cmd.startswith("/addpdf:"):
+        import asyncio as _aio, base64
+        _loop = _aio.get_event_loop()
+        filename = cmd[len("/addpdf:"):]
+        title = filename.replace('.pdf', '').replace('_', ' ')
+        corpus_id = filename.replace('.pdf', '').replace(' ', '_').lower()
+        b64_data = msg.text.strip()
+        if not b64_data:
+            return {"response": "no PDF data", "motifs": _guala.introspect()["vocab"]}
+        def _decode_pdf():
+            t0 = time.time()
+            try:
+                pdf_bytes = base64.b64decode(b64_data)
+                import fitz
+                doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+                n_pages = len(doc)
+                all_text = []
+                for page in doc:
+                    text = page.get_text()
+                    if text.strip():
+                        all_text.append(text.strip())
+                pdf_dir = os.path.join(STATE_DIR, "books")
+                os.makedirs(pdf_dir, exist_ok=True)
+                with open(os.path.join(pdf_dir, f"{corpus_id}.pdf"), 'wb') as f:
+                    f.write(pdf_bytes)
+                feedback = []
+                if all_text:
+                    full_text = "\n".join(all_text)
+                    lines = [l.strip() for l in full_text.split('\n') if l.strip()]
+                    split_lines = []
+                    for line in lines:
+                        if len(line) > 200:
+                            for sent in line.replace('. ', '.\n').split('\n'):
+                                if sent.strip():
+                                    split_lines.append(sent.strip())
+                        else:
+                            split_lines.append(line)
+                    lines = split_lines
+                    _guala.add_corpus(corpus_id, title, lines)
+                    _guala._log_substrate_event("corpus_added",
+                                                corpus_id=corpus_id, title=title,
+                                                n_lines=len(lines), source="pdf",
+                                                n_pages=n_pages)
+                    feedback.append(f"text: {n_pages} pages, {len(lines)} lines → "
+                                    f"added to her library")
+                n_rasterized = 0
+                if not all_text:
+                    import hashlib
+                    pic_dir = os.path.join(STATE_DIR, "pictures")
+                    os.makedirs(pic_dir, exist_ok=True)
+                    for i, page in enumerate(doc):
+                        pix = page.get_pixmap(dpi=150)
+                        img_bytes = pix.tobytes("jpeg")
+                        page_id = hashlib.md5(img_bytes).hexdigest()[:12]
+                        orig_path = os.path.join(pic_dir, f"{page_id}_original.jpg")
+                        with open(orig_path, 'wb') as f:
+                            f.write(img_bytes)
+                        from PIL import Image
+                        import io as _io
+                        img = Image.open(_io.BytesIO(img_bytes)).convert('L').resize((64, 64))
+                        grid = np.array(img, dtype=np.float32) / 255.0
+                        pic = PictureItem(item_id=page_id, title=f"{title}_p{i+1}",
+                                          intensity_grid=grid, source="pdf",
+                                          shown_at_tick=_guala.tick)
+                        pic.original_path = orig_path
+                        _guala._pictures[page_id] = pic
+                        n_rasterized += 1
+                    feedback.append(f"images: {n_rasterized} pages registered as pictures — "
+                                    f"no text layer; she'll see them, not read them")
+                doc.close()
+                if not feedback:
+                    feedback.append("empty PDF — nothing to process")
+                result = {"response": f"\"{title}\" ({n_pages} pages): " + "; ".join(feedback),
+                          "motifs": _guala.introspect()["vocab"]}
+            except Exception as e:
+                result = {"response": f"PDF decode error: {e}",
+                          "motifs": _guala.introspect()["vocab"]}
+            print(f"[decode-pdf] {time.time()-t0:.2f}s")
+            return result
+        return await _loop.run_in_executor(None, _decode_pdf)
+
+    # ── /addpicture:<filename> — preserve original, derive krimelack grid ──
+    # C8: decode in executor
+    if cmd.startswith("/addpicture:"):
+        import asyncio as _aio, base64, hashlib
+        _loop = _aio.get_event_loop()
+        filename = cmd[len("/addpicture:"):]
+        title = filename.rsplit('.', 1)[0] if '.' in filename else filename
+        b64_data = msg.text.strip()
+        if not b64_data:
+            return {"response": "no image data", "motifs": _guala.introspect()["vocab"]}
+        def _decode_picture():
+            t0 = time.time()
+            try:
+                img_bytes = base64.b64decode(b64_data)
+                img_full, grid, orig_w, orig_h = decode_image_bytes(img_bytes)
+                item_id = hashlib.md5(img_bytes).hexdigest()[:12]
+                pic_dir = os.path.join(STATE_DIR, "pictures")
+                os.makedirs(pic_dir, exist_ok=True)
+                ext = filename.rsplit('.', 1)[1] if '.' in filename else 'jpg'
+                orig_path = os.path.join(pic_dir, f"{item_id}_original.{ext}")
+                with open(orig_path, 'wb') as f:
+                    f.write(img_bytes)
+                pic = PictureItem(item_id=item_id, title=title,
+                                  intensity_grid=grid, source="upload",
+                                  shown_at_tick=_guala.tick)
+                pic.original_path = orig_path
+                pic.original_width = orig_w
+                pic.original_height = orig_h
+                _guala._pictures[item_id] = pic
+                _guala._log_substrate_event("picture_uploaded",
+                                            item_id=item_id, title=title,
+                                            original_size=f"{orig_w}x{orig_h}")
+                result = {"response": f"showed her \"{title}\" ({orig_w}x{orig_h} color, "
+                                      f"krimelack 64x64 grayscale). she'll look at it when curiosity drives her.",
+                          "motifs": _guala.introspect()["vocab"]}
+            except Exception as e:
+                result = {"response": f"image decode error: {e}",
+                          "motifs": _guala.introspect()["vocab"]}
+            print(f"[decode-picture] {time.time()-t0:.2f}s")
+            return result
+        return await _loop.run_in_executor(None, _decode_picture)
+
+    # ── /bundle:<name> — experience bundle: all senses in one window (A4) ──
+    # H5b: entire handler wrapped — always returns structured JSON
+    # C8: entire bundle decode runs in executor
+    if cmd.startswith("/bundle:"):
+        import asyncio as _aio, base64
+        _loop = _aio.get_event_loop()
+        bundle_name = cmd[len("/bundle:"):]
+        try:
+            bundle_data = json.loads(msg.text) if msg.text else {}
+        except json.JSONDecodeError:
+            bundle_data = {"caption": msg.text}
+        # GL-CMD-DENSITY-RETIRE-109 F2: bundle attribution truth. Default to
+        # "curriculum" — never "joe" — unless the request genuinely names him.
+        bundle_source = bundle_data.get("source") or "curriculum"
+
+        def _decode_bundle():
+            t0 = time.time()
+            results = []
+            bundle_chis = []
+            # GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1: give_experience's
+            # own explicit open/add_entry-per-lane/close, per design. Opened
+            # here (not left to the first lane's implicit auto-open) so an
+            # empty-caption bundle (sight/sound/touch only) still gets one
+            # shared window across every lane below.
+            _guala.window_manager.open("give_experience")
+            caption = bundle_data.get("caption", "")
+            # GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208 live-test wiring:
+            # the real numeric waveform for whichever sound this bundle
+            # names (ref or freshly-uploaded), if one is available -- set
+            # by the SOUND lane below, consumed by the organism-teach step
+            # after it, so the caption word gets bound to the ORGANISM
+            # (not just the atlas) with a real auditory signal riding
+            # along, the same in-window multi-sense binding N1/N2 (-191)
+            # established for live camera/mic frames, now available for
+            # explicit bundle teaching too.
+            bundle_sound_signal = None
+
+            # ── WORD lane ──
+            if caption:
+                try:
+                    _guala.read_sentence(caption, source="joe")
+                    from dsf_ai_service.v4.gualaloom_v5_engine import _normalize_text
+                    for w in _normalize_text(caption):
+                        from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack
+                        tk = LanguageKrimelack()
+                        tk.transduce(w)
+                        bundle_chis.append(tk.winding % 100)
+                    results.append(f"told her \"{caption}\"")
+                except Exception as e:
+                    results.append(f"word ERROR: {e}")
+
+            # ── SIGHT lane (H1: process_viewing, H5a: shared decode) ──
+            # Support both base64 upload and reference to existing picture (3.12)
+            img_b64 = bundle_data.get("image_b64")
+            picture_ref = bundle_data.get("picture_id")
+            if not img_b64 and picture_ref and picture_ref in _guala._pictures:
+                # 3.12: reference existing picture — re-view it in this window
+                pic = _guala._pictures[picture_ref]
+                if pic.intensity_grid is not None:
+                    try:
+                        from dsf_ai_service.visual_krimelack import view_picture as vp
+                        frags = vp(pic.intensity_grid, source_id=picture_ref,
+                                   born_tick=_guala.tick, seed=_guala.tick % 10000,
+                                   n_fixations=6, ticks_per_fixation=100)
+                        _guala._visual_fragments.extend(frags)
+                        motif, is_new, overlap = _guala.sight.process_viewing(
+                            frags, picture_ref, _guala.tick)
+                        if motif:
+                            chi = motif.motif_id % 100
+                            _guala.window_manager.add_entry(
+                                modality="sight", section="sight",
+                                motif_id=motif.motif_id, chi=chi,
+                                tick=_guala.tick, source_tag=bundle_source,
+                                trigger_reason="give_experience",
+                                salience=1.5, dwell_ticks=8)
+                            bundle_chis.append(chi)
+                        results.append(f"showed her \"{pic.title}\" (ref, {len(frags)} fragments)")
+                    except Exception as e:
+                        results.append(f"image ref ERROR: {e}")
+                img_b64 = None  # don't process again below
+            if img_b64:
+                try:
+                    img_bytes = base64.b64decode(img_b64)
+                    _, grid, orig_w, orig_h = decode_image_bytes(img_bytes)
+                    img_id = _hashlib.md5(img_bytes).hexdigest()[:12]
+                    pic = PictureItem(item_id=img_id, title=bundle_name,
+                                      intensity_grid=grid, source="bundle",
+                                      shown_at_tick=_guala.tick)
+                    pic_dir = os.path.join(STATE_DIR, "pictures")
+                    os.makedirs(pic_dir, exist_ok=True)
+                    orig_path = os.path.join(pic_dir, f"{img_id}_original.jpg")
+                    with open(orig_path, 'wb') as f:
+                        f.write(img_bytes)
+                    pic.original_path = orig_path
+                    pic.original_width = orig_w
+                    pic.original_height = orig_h
+                    _guala._pictures[img_id] = pic
+                    # H1: real visual path via process_viewing (not process_fragment)
+                    from dsf_ai_service.visual_krimelack import view_picture as vp
+                    frags = vp(grid, source_id=img_id,
+                               born_tick=_guala.tick, seed=_guala.tick % 10000,
+                               n_fixations=6, ticks_per_fixation=100)
+                    _guala._visual_fragments.extend(frags)
+                    motif, is_new, overlap = _guala.sight.process_viewing(
+                        frags, img_id, _guala.tick)
+                    if motif:
+                        chi = motif.motif_id % 100
+                        _guala.window_manager.add_entry(
+                            modality="sight", section="sight",
+                            motif_id=motif.motif_id, chi=chi,
+                            tick=_guala.tick, source_tag=bundle_source,
+                            trigger_reason="give_experience",
+                            salience=1.5, dwell_ticks=8)
+                        bundle_chis.append(chi)
+                    results.append(f"showed her \"{bundle_name}\" "
+                                   f"({len(frags)} fragments, {orig_w}x{orig_h})")
+                except Exception as e:
+                    results.append(f"image ERROR: {e}")
+
+            # ── SOUND lane (H2: size guard on server side) ──
+            # Support reference to existing sound (3.12)
+            sound_ref = bundle_data.get("sound_id")
+            if sound_ref and sound_ref in _guala._sounds and not bundle_data.get("sound_b64"):
+                snd = _guala._sounds[sound_ref]
+                cochlear = snd.get("cochlear", {})
+                for bn, c in cochlear.items():
+                    chi = c.get("winding", 0) % 100
+                    _guala.window_manager.add_entry(
+                        modality="sound", section=f"audio_{bn}",
+                        motif_id=deterministic_motif_id(sound_ref), chi=chi,
+                        tick=_guala.tick, source_tag=bundle_source,
+                        trigger_reason="give_experience",
+                        salience=1.5, dwell_ticks=8)
+                    bundle_chis.append(chi)
+                results.append(f"played her \"{snd.get('title', sound_ref)}\" (ref)")
+                # GL-CMD-CROSS-SENSE-RECALL-208: only present for items
+                # uploaded after the raw_signal change above -- honestly
+                # None (no organism-teach signal) for older items, not a
+                # zero-filled placeholder.
+                bundle_sound_signal = snd.get("raw_signal")
+
+            snd_b64 = bundle_data.get("sound_b64")
+            if snd_b64:
+                try:
+                    snd_bytes = base64.b64decode(snd_b64)
+                    if len(snd_bytes) > 8_000_000:  # H2: 8MB server guard
+                        results.append("sound SKIPPED: too big (>8MB) — try mp3")
+                    else:
+                        import tempfile, subprocess
+                        snd_id = _hashlib.md5(snd_bytes).hexdigest()[:12]
+                        tmp_in = tempfile.NamedTemporaryFile(suffix='.audio', delete=False)
+                        tmp_in.write(snd_bytes)
+                        tmp_in.close()
+                        tmp_wav = tmp_in.name + '.wav'
+                        try:
+                            subprocess.run(["ffmpeg", "-i", tmp_in.name, "-ar", "200",
+                                            "-ac", "1", "-f", "wav", tmp_wav, "-y",
+                                            "-loglevel", "error"], check=True, timeout=30)
+                            import wave, struct
+                            with wave.open(tmp_wav, 'rb') as wf:
+                                sr = wf.getframerate()
+                                n_frames = wf.getnframes()
+                                raw = wf.readframes(n_frames)
+                            samples = np.array(struct.unpack(f'<{n_frames}h', raw),
+                                               dtype=np.float64) / 32768.0
+                            from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import (
+                                cochlear_transduce, onset_stream, sustained_stream, a1_signature)
+                            cochlear = cochlear_transduce(samples, sample_rate=sr)
+                            n_events = sum(c["n_events"] for c in cochlear.values())
+                            dur = len(samples) / max(sr, 1)
+                            for bn, c in cochlear.items():
+                                chi = c["winding"] % 100
+                                _guala.window_manager.add_entry(
+                                    modality="sound", section=f"audio_{bn}",
+                                    motif_id=deterministic_motif_id(snd_id),
+                                    chi=chi, tick=_guala.tick,
+                                    source_tag=bundle_source,
+                                    trigger_reason="give_experience",
+                                    salience=1.5, dwell_ticks=8)
+                                bundle_chis.append(chi)
+                            _guala._sounds[snd_id] = {
+                                "item_id": snd_id, "title": bundle_name,
+                                "cochlear": {bn: {"winding": c["winding"],
+                                                  "n_events": c["n_events"]}
+                                             for bn, c in cochlear.items()},
+                                "times_attended": 0, "last_attended_tick": 0,
+                                "raw_signal": samples.tolist(),
+                            }
+                            bundle_sound_signal = samples.tolist()
+                            results.append(f"played her \"{bundle_name}\" "
+                                           f"({dur:.1f}s, {n_events} events)")
+                        except Exception as e:
+                            results.append(f"sound ERROR: {e}")
+                        finally:
+                            for p in [tmp_in.name, tmp_wav]:
+                                if os.path.exists(p):
+                                    os.unlink(p)
+                except Exception as e:
+                    results.append(f"sound ERROR: {e}")
+
+            # ── TOUCH/SMELL/TASTE lanes (gated: bundle + dream only) ──
+            from dsf_ai_service.substrate.sensory_generators import (
+                generate_sensory_signals, transduce_sensory_signals)
+            for sense_name in ("touch", "smell", "taste"):
+                selections = bundle_data.get(sense_name, [])
+                if selections:
+                    try:
+                        signals = generate_sensory_signals(sense_name, selections)
+                        channel_results = transduce_sensory_signals(signals)
+                        for ch_name, ch_data in channel_results.items():
+                            chi = ch_data["chi"]
+                            motif = deterministic_motif_id(
+                                f"{bundle_name}_{sense_name}_{ch_name}")
+                            _guala.window_manager.add_entry(
+                                modality=sense_name,
+                                section=f"{sense_name}_{ch_name}",
+                                motif_id=motif, chi=chi, tick=_guala.tick,
+                                source_tag=bundle_source,
+                                trigger_reason="give_experience",
+                                salience=1.5, dwell_ticks=8)
+                            bundle_chis.append(chi)
+                        label = {"touch": "feels", "smell": "smells",
+                                 "taste": "tastes"}[sense_name]
+                        results.append(f"{label} {', '.join(selections)} "
+                                       f"({len(channel_results)} channels)")
+                    except Exception as e:
+                        results.append(f"{sense_name} ERROR: {e}")
+
+            # ── ORGANISM teach: real auditory signal + word, one binding ──
+            # GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208 live-test wiring.
+            # Everything above (WORD/SIGHT/SOUND lanes) writes to the ATLAS
+            # (chi-keyed, word-driven, symbolic) -- read_sentence() in the
+            # WORD lane already reaches the ORGANISM too, but language-only
+            # (_enqueue_organism_remember only picks up a real sight/sound
+            # signal from the last 3s of LIVE camera/mic frames -- a
+            # referenced/uploaded item never touches those buffers). This
+            # is the organism's own multi-sense binding, explicit-signal
+            # (not the shared live-frame cache, to avoid a real concurrent
+            # mic frame overwriting a caller-supplied signal in the window
+            # before enqueue) -- same queue/worker/experience_word()
+            # underneath, see _enqueue_organism_experience_explicit.
+            if caption and bundle_sound_signal is not None:
+                try:
+                    from dsf_ai_service.v4.gualaloom_v5_engine import _normalize_text
+                    _words = _normalize_text(caption)
+                    if _words:
+                        _guala._enqueue_organism_experience_explicit(
+                            _words[0], sound_signal=bundle_sound_signal)
+                        results.append(
+                            f"organism bound \"{_words[0]}\" with a real auditory signal")
+                except Exception as e:
+                    results.append(f"organism-teach ERROR: {e}")
+
+            # ── Bind all lanes in one window ──
+            # _open_response_window (below) is the PRE-EXISTING, unrelated
+            # response-triggering mechanism (context anchors for emission,
+            # see Guala._open_response_window) -- not the binding window
+            # this dispatch builds. Left untouched, still fires as before.
+            if bundle_chis:
+                _guala._open_response_window(bundle_source, bundle_chis,
+                                              source_context={"bundle": bundle_name})
+            _guala._log_substrate_event("experience_bundle",
+                                        name=bundle_name, lanes=results,
+                                        n_chis=len(bundle_chis), source=bundle_source)
+
+            # ── Recall query (GL-CMD-CROSS-SENSE-RECALL-BUILD-EVE-20260706-v1) ──
+            # "The sound cue came in -- here are the windows that had this
+            # sound." Runs BEFORE close() below so it searches only PRIOR,
+            # already-closed windows, not the one this call is still
+            # forming. Single-lane bundles (e.g. a bare sound_ref cue) get
+            # a section_hint from that lane; multi-lane bundles (a full
+            # picture+sound+word experience) get none -- there's no one
+            # cue to hint toward. Not wired into the live conversational
+            # emission/composition path -- see this dispatch's build
+            # report for why (_brain_emission_candidates/
+            # _emit_from_invariants source candidates from the organism,
+            # not the atlas, per the standing "one mind, one mouth"
+            # ruling; adding a second, atlas/window-sourced candidate feed
+            # there would be exactly the parallel-source regression that
+            # ruling shut down).
+            recall_result = None
+            if bundle_chis:
+                _lanes_present = [bool(caption), bool(bundle_data.get("image_b64") or bundle_data.get("picture_id")),
+                                  bool(bundle_data.get("sound_id") or bundle_data.get("sound_b64"))]
+                _lanes_present += [bool(bundle_data.get(s)) for s in ("touch", "smell", "taste")]
+                _section_hint = None
+                if sum(_lanes_present) == 1:
+                    _hint_names = ["word", "sight", "sound", "touch", "smell", "taste"]
+                    _section_hint = _hint_names[_lanes_present.index(True)]
+                from dsf_ai_service.substrate.recall_query import RecallQuery
+                recall_result = _guala.recall_engine.query(RecallQuery(
+                    chis=bundle_chis, section_hint=_section_hint,
+                    source_context={"bundle": bundle_name, "source": bundle_source}))
+
+            # GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1: close the
+            # binding window opened at the top of this function -- give_
+            # experience's explicit open/add_entry-per-lane/close, complete.
+            _guala.window_manager.close("give_experience_complete")
+
+            # H5b: always structured JSON, never raw 500
+            print(f"[decode-bundle] {time.time()-t0:.2f}s")
+            response_payload = {
+                "response": f"experience \"{bundle_name}\": {'; '.join(results)}. "
+                            f"{len(bundle_chis)} cross-modal bindings.",
+                "motifs": _guala.introspect()["vocab"],
+                "bundle": {"name": bundle_name, "lanes": results,
+                           "n_chis": len(bundle_chis)},
+            }
+            if recall_result is not None:
+                response_payload["recall"] = {
+                    "query_id": recall_result.query_id,
+                    "windows_returned": recall_result.window_ids(),
+                    "top_affect_strength": round(recall_result.top_affect_strength(), 4),
+                }
+            return response_payload
+        return await _loop.run_in_executor(None, _decode_bundle)
+
+    # ── /addsound:<filename> — decode base64 audio, run through cochlear pipeline ──
+    # C8: entire decode in executor
+    if cmd.startswith("/addsound:"):
+        import asyncio as _aio, base64, hashlib, tempfile, subprocess
+        _loop = _aio.get_event_loop()
+        filename = cmd[len("/addsound:"):]
+        title = filename.rsplit('.', 1)[0] if '.' in filename else filename
+        b64_data = msg.text.strip()
+        if not b64_data:
+            return {"response": "no audio data", "motifs": _guala.introspect()["vocab"]}
+        def _decode_sound():
+            t0 = time.time()
+            try:
+                audio_bytes = base64.b64decode(b64_data)
+                tmp_in = tempfile.NamedTemporaryFile(suffix='.audio', delete=False)
+                tmp_in.write(audio_bytes)
+                tmp_in.close()
+                tmp_wav = tmp_in.name + '.wav'
+                subprocess.run([
+                    "ffmpeg", "-i", tmp_in.name, "-ar", "200", "-ac", "1",
+                    "-f", "wav", tmp_wav, "-y", "-loglevel", "error"
+                ], check=True, timeout=30)
+                import wave, struct
+                with wave.open(tmp_wav, 'rb') as wf:
+                    sr = wf.getframerate()
+                    n_frames = wf.getnframes()
+                    n_channels = wf.getnchannels()
+                    sampwidth = wf.getsampwidth()
+                    raw = wf.readframes(n_frames)
+                if sampwidth == 2:
+                    fmt = f'<{n_frames * n_channels}h'
+                    vals = struct.unpack(fmt, raw)
+                    samples = np.array(vals, dtype=np.float64) / 32768.0
+                elif sampwidth == 1:
+                    vals = list(raw)
+                    samples = (np.array(vals, dtype=np.float64) - 128.0) / 128.0
+                else:
+                    samples = np.frombuffer(raw, dtype=np.float64)
+                if n_channels > 1:
+                    samples = samples.reshape(-1, n_channels).mean(axis=1)
+                from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import (
+                    cochlear_transduce, onset_stream, sustained_stream, a1_signature)
+                cochlear = cochlear_transduce(samples, sample_rate=sr)
+                onsets = onset_stream(cochlear)
+                sustained = sustained_stream(cochlear)
+                a1 = a1_signature(cochlear, onsets, sustained)
+                item_id = hashlib.md5(audio_bytes).hexdigest()[:12]
+                n_events = sum(c["n_events"] for c in cochlear.values())
+                n_onsets = sum(onsets.values())
+                duration_s = len(samples) / max(sr, 1)
+                from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import COCHLEAR_BANDS
+                # GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1: standalone
+                # sound upload is its own complete experience -- explicit
+                # open/add_entry-per-band/close, same pattern as give_experience.
+                _guala.window_manager.open("addsound")
+                for band_name, c in cochlear.items():
+                    chi = c["winding"] % 100
+                    _guala.window_manager.add_entry(
+                        modality="sound", section=f"audio_{band_name}",
+                        motif_id=deterministic_motif_id(item_id), chi=chi,
+                        tick=_guala.tick, source_tag=f"addsound:{item_id}",
+                        trigger_reason="addsound",
+                        salience=1.2)
+                _guala.window_manager.close("addsound_complete")
+                _guala._sounds[item_id] = {
+                    "item_id": item_id, "title": title,
+                    "cochlear": {bn: {"winding": c["winding"], "n_events": c["n_events"]}
+                                 for bn, c in cochlear.items()},
+                    "duration_s": round(duration_s, 2),
+                    "times_attended": 0, "last_attended_tick": 0,
+                    # GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208 live-test
+                    # wiring: the 200Hz-downsampled waveform (already
+                    # computed above for cochlear_transduce) is the exact
+                    # shape organism.encode_state()'s auditory lane needs
+                    # (resonant_chi.resonant_response takes any real
+                    # numeric array). Previously discarded once cochlear
+                    # stats were extracted -- with it gone, a stored sound
+                    # item could never be replayed as an organism query or
+                    # teaching signal, only as atlas chi/winding stats.
+                    # Kept for NEW uploads only; items uploaded before this
+                    # change have no raw_signal and fall back to None.
+                    "raw_signal": samples.tolist(),
+                }
+                from dsf_ai_service.v4.gualaloom_v5_engine import SensoryItem
+                _guala._sensory_items[item_id] = SensoryItem(
+                    item_id=item_id, kind="sound", title=title)
+                _guala._log_substrate_event("sound_uploaded",
+                                            item_id=item_id, title=title,
+                                            n_events=n_events, n_onsets=n_onsets,
+                                            duration_s=round(duration_s, 2))
+                os.unlink(tmp_in.name)
+                os.unlink(tmp_wav)
+                result = {
+                    "response": f"heard \"{title}\" ({duration_s:.1f}s, {n_events} cochlear events, "
+                                f"{n_onsets} onsets). she's processing it.",
+                    "motifs": _guala.introspect()["vocab"],
+                    "sound_info": {
+                        "item_id": item_id, "title": title,
+                        "duration_s": round(duration_s, 2),
+                        "n_cochlear_events": n_events,
+                        "n_onsets": n_onsets,
+                        "bands": {bn: {"winding": c["winding"], "n_events": c["n_events"]}
+                                  for bn, c in cochlear.items()},
+                    },
+                }
+            except Exception as e:
+                result = {"response": f"sound decode error: {e}",
+                          "motifs": _guala.introspect()["vocab"]}
+            print(f"[decode-sound] {time.time()-t0:.2f}s")
+            return result
+        return await _loop.run_in_executor(None, _decode_sound)
+
+    # ── /organism_recall_auditory:<sound_item_id> — cross-sense recall
+    # verification. GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208 live test:
+    # given a stored sound item (with a raw_signal, i.e. uploaded after
+    # the raw_signal change above), queries the ORGANISM with that
+    # waveform ALONE (no word) and, if a concept comes back, looks up its
+    # bound picture via the existing word-driven atlas mechanism
+    # (_recall_sight_from_atlas) -- proving the -207/-208 per-lane fix
+    # end to end on real live data, not just the loom_model unit tests.
+    # A new, self-contained command rather than reusing /converse: the
+    # 4 existing organism-recall call sites all start from a WORD
+    # (converse turn / tapestry query / daydream seed) and there is no
+    # natural word to start from for a pure sensory cue (see the -208
+    # report's research on this exact point).
+    if cmd.startswith("/organism_recall_auditory:"):
+        import asyncio as _aio
+        _loop = _aio.get_event_loop()
+        sound_item_id = cmd[len("/organism_recall_auditory:"):]
+
+        def _recall_auditory():
+            snd = _guala._sounds.get(sound_item_id)
+            if snd is None:
+                return {"response": f"no such sound item: {sound_item_id}",
+                        "organism_recall_auditory": None}
+            raw = snd.get("raw_signal")
+            if raw is None:
+                return {"response": f"\"{snd.get('title', sound_item_id)}\" has no "
+                                     f"raw_signal (uploaded before GL-CMD-208's "
+                                     f"persistence change) -- cannot query the "
+                                     f"organism with it.",
+                         "organism_recall_auditory": None}
+            recalled_word = _guala._recall_from_organism_auditory(raw)
+            pictures = []
+            if recalled_word:
+                for motif, item_id in _guala._recall_sight_from_atlas(None, [recalled_word]):
+                    pic = _guala._pictures.get(item_id)
+                    pictures.append({"item_id": item_id,
+                                      "title": pic.title if pic else item_id})
+            return {
+                "response": (f"auditory cue \"{snd.get('title', sound_item_id)}\" -> "
+                             f"recalled \"{recalled_word}\"" if recalled_word else
+                             f"auditory cue \"{snd.get('title', sound_item_id)}\" -> "
+                             f"no recall (empty vote)"),
+                "organism_recall_auditory": {
+                    "sound_item_id": sound_item_id,
+                    "sound_title": snd.get("title"),
+                    "recalled_word": recalled_word,
+                    "pictures": pictures,
+                },
+            }
+        return await _loop.run_in_executor(None, _recall_auditory)
+
+    # ── Normal conversation — now handled by 202 + task poll path above ──
+    # This branch is only reached for text messages if _is_converse was False
+    # (e.g., empty text with no command). Return "..." sentinel.
+    if not (msg.text or "").strip():
+        return {"response": "...", "motifs": _guala.introspect()["vocab"] if _guala else 0}
+
+    # Fallback for any command not explicitly handled above, with non-empty
+    # text. GL-CMD-VOICE-TO-WORDS-153 Part C: /listen no longer relies on
+    # this — it has its own intentional route above. This remains the
+    # genuine catch-all for unrecognized commands.
+    import asyncio as _aio
+    _prune_stale_tasks()
+    tick = _guala.tick if _guala else 0
+    task_id = f"cv_{tick}_{uuid4().hex[:8]}_fb"
+    source = msg.source if msg.source in {"joe", "wc", "c1"} else "joe"
+    _converse_tasks[task_id] = {
+        "task_id": task_id, "status": "queued", "phase": None,
+        "response": None, "response_source": None, "motifs": 0,
+        "started_tick": tick, "started_at": time.time(), "source": source,
+    }
+    _aio.create_task(_run_converse(task_id, msg.text or "", source, msg.emission_mode))
+    return JSONResponse(status_code=202, content={
+        "task_id": task_id, "status": "accepted",
+        "poll_url": f"/api/v1/gualaloom/task/{task_id}",
+        "started_tick": tick, "retry_after_ms": 500,
+    })
+
+
+# GL-CMD-CONVERSE-TASK-PATTERN-62: poll endpoint for converse tasks
+@app.get("/api/v1/gualaloom/task/{task_id}")
+async def get_converse_task(task_id: str):
+    """Poll for converse task result. Returns progress (200) or complete (200) or not_found (404)."""
+    task = _converse_tasks.get(task_id)
+    if task is None:
+        # GL-CMD-LOCK-CONTENTION-FIX-182 L2: _converse_tasks is in-memory
+        # only, so a task id from before a deploy's process restart looks
+        # identical to one that just aged out past the TTL -- we can't
+        # tell them apart without persistence, so say so honestly instead
+        # of implying it definitely expired normally.
+        return JSONResponse(status_code=404, content={
+            "task_id": task_id,
+            "status": "not_found",
+            "error": ("task not found on this server instance — either it "
+                      "expired (TTL: 5 min after completion) or it was in "
+                      "flight during a deploy and was lost in the restart. "
+                      "Please resend your message."),
+        })
+    if task["status"] == "complete":
+        return JSONResponse(status_code=200, content={
+            "task_id": task_id,
+            "status": "complete",
+            "response": task["response"],
+            "response_source": task["response_source"],
+            "motifs": task.get("motifs", 0),
+            # GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: was
+            # missing entirely, so no polled reply ever carried a real
+            # emission_id to the frontend -- see _run_converse's own note.
+            "emission_id": task.get("emission_id"),
+            "started_tick": task["started_tick"],
+            "completed_tick": task.get("completed_tick"),
+            "elapsed_ms": int((task.get("completed_at", time.time()) - task["started_at"]) * 1000),
+        })
+    if task["status"] == "error":
+        return JSONResponse(status_code=200, content={
+            "task_id": task_id,
+            "status": "error",
+            "error": task.get("error", "unknown error"),
+        })
+    return JSONResponse(status_code=200, content={
+        "task_id": task_id,
+        "status": task["status"],
+        "phase": task.get("phase"),
+        "started_tick": task["started_tick"],
+        "current_tick": _guala.tick if _guala else 0,
+        "elapsed_ms": int((time.time() - task["started_at"]) * 1000),
+        "retry_after_ms": 500,
+    })
+
+
+# C2: serve individual pictures by ID (refs-not-base64)
+@app.get("/api/v1/gualaloom/picture/{item_id}")
+async def gualaloom_picture(item_id: str):
+    """Return a single picture as binary image response."""
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    pic = _guala._pictures.get(item_id)
+    if pic is None:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    orig_path = getattr(pic, 'original_path', None)
+    if orig_path and os.path.exists(orig_path):
+        ext = orig_path.rsplit('.', 1)[1].lower() if '.' in orig_path else 'png'
+        mime = {'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png',
+                'gif': 'image/gif', 'webp': 'image/webp', 'heic': 'image/heic'}.get(ext, 'image/png')
+        with open(orig_path, 'rb') as f:
+            data = f.read()
+        return Response(content=data, media_type=mime)
+    elif pic.intensity_grid is not None:
+        from PIL import Image
+        import io as _io
+        img = Image.fromarray((pic.intensity_grid * 255).astype(np.uint8), mode='L')
+        buf = _io.BytesIO()
+        img.save(buf, format='PNG')
+        return Response(content=buf.getvalue(), media_type="image/png")
+    return JSONResponse({"error": "no image data"}, status_code=404)
+
+
+# ════════════════════════════════════════════════════════════════
+# UNPAUSE admin endpoints (GL-BRIEF-UNPAUSE-WC-20260613-01)
+# ════════════════════════════════════════════════════════════════
+
+# Runtime repause flag (survives within the process; env var alone isn't enough)
+_runtime_decay_paused = None  # None = defer to env var
+
+@app.post("/api/v1/gualaloom/admin/amnesty", dependencies=[Depends(_api_key_dep)])
+async def admin_amnesty():
+    """Step 1: Reset last_tick on all atlas entries to current tick. Zero strength changes."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("amnesty")
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    tick = _guala.tick
+    total_strength_before = round(_guala.atlas.total_strength(), 4)
+    count = _guala.atlas.amnesty(tick)
+    total_strength_after = round(_guala.atlas.total_strength(), 4)
+    _guala._log_substrate_event("amnesty_complete", entries_restamped=count,
+                                 tick=tick, strength_before=total_strength_before,
+                                 strength_after=total_strength_after)
+    print(f"[UNPAUSE] Amnesty: {count} entries re-stamped to tick {tick}, "
+          f"strength {total_strength_before} → {total_strength_after}")
+    return {"amnesty": "complete", "entries_restamped": count, "tick": tick,
+            "total_strength_before": total_strength_before,
+            "total_strength_after": total_strength_after}
+
+
+@app.post("/api/v1/gualaloom/admin/force_dream", dependencies=[Depends(_api_key_dep)])
+async def admin_force_dream():
+    """Step 2: Force a sleep→dream cycle. Returns dream artifact."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("force_dream", timeout=90.0)
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    # Fix B: dream cycle takes 60-120s; API GW has 30s timeout.
+    # Return 202 immediately, run dream in background. Poll /status for activity change.
+    import asyncio as _aio
+    start_tick = _guala.tick
+    _guala._force_next_activity = ("SLEEPING", None)
+    if _guala._current_activity:
+        _guala._end_activity()
+    _guala._log_substrate_event("force_dream_initiated", tick=start_tick)
+    print(f"[UNPAUSE] Force dream initiated at tick {start_tick}")
+
+    async def _bg_dream():
+        for _ in range(240):  # 240 × 0.5s = 120s
+            await _aio.sleep(0.5)
+            activity = _guala._current_activity
+            if activity and activity.kind == "DREAMING":
+                continue
+            if activity is None or (activity.kind not in ("SLEEPING", "DREAMING")):
+                print(f"[UNPAUSE] Dream cycle complete at tick {_guala.tick}")
+                return
+        print(f"[UNPAUSE] Dream cycle timeout at tick {_guala.tick}")
+    _aio.create_task(_bg_dream())
+    return JSONResponse(
+        status_code=202,
+        content={"force_dream": "accepted", "start_tick": start_tick,
+                 "message": "Dream cycle initiated. Poll /status current_activity for completion."},
+    )
+
+
+@app.post("/api/v1/gualaloom/admin/force_reading", dependencies=[Depends(_api_key_dep)])
+async def admin_force_reading(request: Request):
+    """GL-CMD-SCENE-LANES-B1-188 follow-up: force a specific corpus into
+    READING right now instead of waiting on natural rotation (c1b's
+    handoff -- Secret Garden was uploaded but has never actually been
+    read). Mirrors admin_force_dream's _force_next_activity pre-emption
+    exactly -- same existing override, no new mechanism. Body:
+    {"corpus_id": "..."} (exact) or {"title_contains": "secret garden"}
+    (substring, case-insensitive); corpus_id wins if both given."""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    corpus_id = (body.get("corpus_id") or "").strip()
+    title_contains = (body.get("title_contains") or "").strip()
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("force_reading", corpus_id=corpus_id,
+                                 title_contains=title_contains, timeout=15.0)
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    target = None
+    if corpus_id and corpus_id in _guala._corpora:
+        target = corpus_id
+    elif title_contains:
+        tl = title_contains.lower()
+        for cid, c in _guala._corpora.items():
+            if tl in c.title.lower():
+                target = cid
+                break
+    if target is None:
+        return JSONResponse(
+            {"error": "no matching corpus", "corpus_id": corpus_id,
+             "title_contains": title_contains,
+             "available": [{"corpus_id": cid, "title": c.title}
+                          for cid, c in _guala._corpora.items()]},
+            status_code=404)
+    start_tick = _guala.tick
+    _guala._force_next_activity = ("READING", target)
+    if _guala._current_activity:
+        _guala._end_activity()
+    _guala._log_substrate_event("force_reading_initiated", tick=start_tick,
+                                corpus_id=target)
+    print(f"[UNPAUSE] Force reading initiated: corpus_id={target} at tick {start_tick}")
+    return {"force_reading": "accepted", "corpus_id": target,
+            "title": _guala._corpora[target].title, "start_tick": start_tick,
+            "message": "Reading initiated. Poll /status current_activity for progress."}
+
+
+@app.post("/api/v1/gualaloom/admin/repause", dependencies=[Depends(_api_key_dep)])
+async def admin_repause():
+    """Kill switch: re-pause decay immediately."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("repause")
+    global _runtime_decay_paused
+    os.environ["DECAY_PAUSED"] = "1"
+    _runtime_decay_paused = True
+    if _guala:
+        _guala._log_substrate_event("decay_repaused", tick=_guala.tick,
+                                     reason="manual_kill_switch")
+    print(f"[UNPAUSE] KILL SWITCH: decay re-paused")
+    return {"repause": "active", "DECAY_PAUSED": "1"}
+
+
+@app.post("/api/v1/gualaloom/admin/unpause", dependencies=[Depends(_api_key_dep)])
+async def admin_unpause():
+    """Unpause decay — durable transaction via substrate config file."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("unpause")
+    # Embedded mode fallback
+    global _runtime_decay_paused
+    os.environ["DECAY_PAUSED"] = "0"
+    _runtime_decay_paused = False
+    if _guala:
+        _guala._log_substrate_event("decay_unpaused", tick=_guala.tick,
+                                     reason="admin_unpause")
+    print(f"[UNPAUSE] Decay unpaused")
+    return {"unpaused": True, "tick": _guala.tick if _guala else 0}
+
+
+@app.get("/api/v1/gualaloom/admin/atlas_snapshot", dependencies=[Depends(_api_key_dep)])
+async def admin_atlas_snapshot():
+    """Monitor: live atlas stats for unpause monitoring."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("atlas_snapshot")
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    dist = _guala.atlas.strength_distribution()
+    return {
+        "tick": _guala.tick,
+        "total_strength": round(_guala.atlas.total_strength(), 2),
+        "n_live_bindings": _guala.atlas.n_live_bindings(),
+        "n_total_entries": sum(len(v) for v in _guala.atlas.entries.values()),
+        "strength_distribution": dist,
+        "decay_paused": os.environ.get("DECAY_PAUSED", "0"),
+        "decay_lambda_override": os.environ.get("DECAY_LAMBDA_OVERRIDE", ""),
+        "slow_div_override": os.environ.get("SLOW_DIV_OVERRIDE", ""),
+    }
+
+
+@app.get("/api/v1/gualaloom/admin/familiarity_debug", dependencies=[Depends(_api_key_dep)])
+async def admin_familiarity_debug():
+    """GL-CMD-FLOOD-HUNT-156: owed diagnostic from -107's unresolved
+    target_familiarity persistence gap. Dumps self.target_familiarity
+    directly, no serialization round-trip, plus its object id() — so two
+    calls across a save boundary can show whether the dict is ever a
+    different object (silent rebind) vs. the same object losing entries."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("familiarity_debug")
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    return {
+        "tick": _guala.tick,
+        "target_familiarity": dict(_guala.target_familiarity),
+        "n_keys": len(_guala.target_familiarity),
+        "dict_id": id(_guala.target_familiarity),
+        "last_save_tick": getattr(_guala, "_last_save_tick", None),
+        "last_save_timestamp": getattr(_guala, "_last_save_timestamp", None),
+    }
+
+
+# (A) Step-0 atlas backup with verification
+@app.post("/api/v1/gualaloom/admin/backup", dependencies=[Depends(_api_key_dep)])
+async def admin_backup():
+    """Step 0: Full state backup to dedicated UNPAUSE-PRE S3 prefix. Verified."""
+    if _is_remote():
+        # GL-CMD-104: API Gateway has 30s timeout. force_save takes 10-25s.
+        # Fire-and-forget: kick off backup in background, return 202 immediately.
+        # Caller polls /status for last_s3_backup to confirm completion.
+        import asyncio as _aio
+        async def _do_remote_backup():
+            try:
+                client = _get_substrate_client()
+                await client.call("backup", timeout=55.0)
+            except Exception as e:
+                print(f"[backup] remote backup error: {e}")
+        _aio.create_task(_do_remote_backup())
+        return JSONResponse(
+            status_code=202,
+            content={"backup": "accepted", "message": "EFS+S3 backup started. Poll /status for last_s3_backup."},
+        )
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    # Fix B: embedded mode uses same 202+background pattern as remote mode.
+    # save_full_state + S3 upload takes 30-120s; API GW has 30s timeout.
+    # Fire-and-forget: return 202 immediately, backup runs in background thread.
+    import asyncio as _aio, boto3 as _boto3
+    loop = _aio.get_event_loop()
+    def _do_backup():
+        t0 = time.time()
+        s3 = _boto3.client("s3", region_name="us-east-1")
+        bucket = "dsf-ai-site-backups"
+        ts = time.strftime("%Y%m%d-%H%M%S", time.gmtime())
+        prefix = f"guala/UNPAUSE-PRE-{ts}/"
+        # Save state to EFS first (fresh)
+        _guala.save_full_state(STATE_DIR)
+        # Upload all 11 state files
+        state_files = ["guala_core.json", "guala_needs.json", "guala_coordinator.json",
+                       "guala_atlas.json", "guala_sections.json", "guala_bucket.json",
+                       "guala_deep_atlas.json", "guala_visual.json", "guala_identity.json",
+                       "guala_sounds.json", "guala_videos.json"]
+        uploaded = 0
+        for f in state_files:
+            path = os.path.join(STATE_DIR, f)
+            if os.path.exists(path):
+                s3.upload_file(path, bucket, prefix + f)
+                uploaded += 1
+        # Also backup pictures
+        pic_dir = os.path.join(STATE_DIR, "pictures")
+        if os.path.isdir(pic_dir):
+            for pf in os.listdir(pic_dir):
+                s3.upload_file(os.path.join(pic_dir, pf), bucket, prefix + "pictures/" + pf)
+        # VERIFY: re-fetch atlas and check entry count
+        import tempfile
+        verify_path = tempfile.mktemp(suffix=".json")
+        try:
+            s3.download_file(bucket, prefix + "guala_atlas.json", verify_path)
+            import json as _json
+            with open(verify_path) as fh:
+                atlas_data = _json.load(fh)
+            inner = atlas_data.get("data", atlas_data)
+            entries_dict = inner.get("entries", inner)
+            backup_entries = sum(len(v) for v in entries_dict.values()
+                                if isinstance(v, list))
+            live_entries = sum(len(v) for v in _guala.atlas.entries.values())
+            os.unlink(verify_path)
+            if backup_entries != live_entries:
+                return {"error": f"verification failed: backup has {backup_entries} entries, "
+                                 f"live has {live_entries}", "s3_prefix": prefix}
+        except Exception as e:
+            return {"error": f"verification failed: {e}", "s3_prefix": prefix}
+        dt = time.time() - t0
+        print(f"[UNPAUSE] Backup verified: {uploaded} files to {prefix} in {dt:.1f}s, "
+              f"{live_entries} entries confirmed")
+        return {"backup": "verified", "s3_prefix": prefix, "files_uploaded": uploaded,
+                "n_entries_verified": live_entries, "duration_s": round(dt, 1)}
+    # Launch backup in background thread, return 202 immediately.
+    # Caller polls /status for last_s3_backup to confirm completion.
+    async def _bg_backup():
+        try:
+            await loop.run_in_executor(None, _do_backup)
+        except Exception as e:
+            print(f"[backup] embedded backup error: {e}")
+    _aio.create_task(_bg_backup())
+    return JSONResponse(
+        status_code=202,
+        content={"backup": "accepted", "message": "EFS+S3 backup started. Poll /status for last_s3_backup."},
+    )
+
+
+@app.post("/api/v1/gualaloom/admin/backfill_picture_titles", dependencies=[Depends(_api_key_dep)])
+async def admin_backfill_picture_titles():
+    """GL-CMD-PICTURE-TITLE-BIND Part 2: one-shot backfill of all existing picture
+    titles into language substrate, bundled to item:pic:<id>. Idempotent."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("backfill_picture_titles", timeout=60.0)
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    fed, skipped = 0, 0
+    max_strength_seen = 0.0
+    for pic_id, pic in list(_guala._pictures.items()):
+        title = (getattr(pic, "title", None) or "").strip()
+        if not title:
+            skipped += 1
+            continue
+        _guala.read_sentence(title, source="addpicture_backfill",
+                             bundle_id=f"item:pic:{pic_id}", salience=1.5)
+        fed += 1
+    return {"fed": fed, "skipped": skipped, "total_pictures": len(_guala._pictures)}
+
+
+@app.post("/api/v1/gualaloom/admin/backfill_sound_captions", dependencies=[Depends(_api_key_dep)])
+async def admin_backfill_sound_captions():
+    """GL-CMD-PICTURE-TITLE-BIND Part 3: one-shot backfill of all existing sound
+    titles into language substrate, bundled to item:snd:<id>. Idempotent."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("backfill_sound_captions", timeout=60.0)
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    fed, skipped = 0, 0
+    for snd_id, snd in list(_guala._sounds.items()):
+        caption = (snd.get("title") or "").strip()
+        if not caption:
+            skipped += 1
+            continue
+        _guala.read_sentence(caption, source="addsound_backfill",
+                             bundle_id=f"item:snd:{snd_id}", salience=1.5)
+        fed += 1
+    return {"fed": fed, "skipped": skipped, "total_sounds": len(_guala._sounds)}
+
+
+# (B.1) Atlas surgery — GL-CMD-ATLAS-SURGERY-EVE-20260627-18
+class AtlasSurgeryRequest(BaseModel):
+    operation_id: str
+    dry_run: bool = False
+    allow_overwrite: bool = False
+    high_strength_acknowledged: bool = False
+    bindings: list = []
+
+@app.post("/api/v1/gualaloom/admin/atlas_surgery", dependencies=[Depends(_api_key_dep)])
+async def admin_atlas_surgery(req: AtlasSurgeryRequest):
+    """B.1: Validated direct-write surface for atlas seeding (Phase G/I seeds use this)."""
+    if _is_remote():
+        client = _get_substrate_client()
+        try:
+            return await client.call("atlas_surgery", timeout=300.0,  # Path 3 sync backup ~170s
+                                     operation_id=req.operation_id,
+                                     dry_run=req.dry_run,
+                                     allow_overwrite=req.allow_overwrite,
+                                     high_strength_acknowledged=req.high_strength_acknowledged,
+                                     bindings=req.bindings)
+        except Exception as e:
+            return JSONResponse({"error": str(e), "writes": {"n_written": 0}}, status_code=503)
+    return JSONResponse({"error": "not in remote mode"}, status_code=503)
+
+
+# (B.2) Backup orchestrator — GL-CMD-BACKUP-ORCHESTRATOR-EVE-20260627-19
+@app.post("/api/v1/gualaloom/admin/backup_orchestrator/configure",
+          dependencies=[Depends(_api_key_dep)])
+async def admin_backup_orchestrator_configure(body: dict = None):
+    """B.2: Configure orchestrator trigger enables/disables."""
+    if _is_remote():
+        client = _get_substrate_client()
+        try:
+            return await client.call("backup_orchestrator_configure",
+                                     timeout=10.0, **(body or {}))
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=503)
+    return JSONResponse({"error": "not in remote mode"}, status_code=503)
+
+@app.get("/api/v1/gualaloom/admin/backup_orchestrator/status",
+         dependencies=[Depends(_api_key_dep)])
+async def admin_backup_orchestrator_status():
+    """B.2: Recent backup history and current config."""
+    if _is_remote():
+        client = _get_substrate_client()
+        try:
+            return await client.call("backup_orchestrator_status", timeout=10.0)
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=503)
+    return JSONResponse({"error": "not in remote mode"}, status_code=503)
+
+
+# (B) Cascade auto-trigger monitor
+class CascadeMonitorRequest(BaseModel):
+    baseline_n_bindings: int
+    baseline_strength: float
+    baseline_saturated: int = 0
+    interval_s: int = 10
+
+@app.post("/api/v1/gualaloom/admin/start_cascade_monitor", dependencies=[Depends(_api_key_dep)])
+async def admin_start_cascade_monitor(req: CascadeMonitorRequest):
+    """Start cascade detection — forwarded to substrate process."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("start_cascade_monitor",
+            baseline_n_bindings=req.baseline_n_bindings,
+            baseline_strength=req.baseline_strength,
+            baseline_saturated=req.baseline_saturated,
+            interval_s=req.interval_s,
+        )
+    return JSONResponse({"error": "cascade monitor requires remote substrate mode"},
+                        status_code=501)
+
+
+@app.post("/api/v1/gualaloom/admin/stop_cascade_monitor", dependencies=[Depends(_api_key_dep)])
+async def admin_stop_cascade_monitor():
+    """Stop cascade monitor — forwarded to substrate process."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("stop_cascade_monitor")
+    return JSONResponse({"error": "cascade monitor requires remote substrate mode"},
+                        status_code=501)
+
+
+@app.post("/api/v1/gualaloom/admin/restore_from_s3_prefix", dependencies=[Depends(_api_key_dep)])
+async def admin_restore_from_s3_prefix(request: Request):
+    """Restore state files from a specific S3 backup prefix.
+    Body: {"prefix": "auto/2026-06-29_23-58-17_activity_ended/"}
+    Downloads all files (including pictures/) to STATE_DIR.
+    Requires substrate restart to load restored state.
+    """
+    body = await request.json()
+    prefix = body.get("prefix", "").strip("/") + "/"
+    if not prefix or prefix == "/":
+        raise HTTPException(400, "prefix required")
+    import boto3, asyncio as _aio
+    def _do_restore():
+        s3 = boto3.client("s3", region_name="us-east-1")
+        bucket = "dsf-ai-site-backups"
+        full_prefix = f"guala/{prefix}"
+        paginator = s3.get_paginator("list_objects_v2")
+        pages = paginator.paginate(Bucket=bucket, Prefix=full_prefix)
+        files_restored = []
+        for page in pages:
+            for obj in page.get("Contents", []):
+                key = obj["Key"]
+                rel = key[len(full_prefix):]
+                if not rel:
+                    continue
+                local_path = os.path.join(STATE_DIR, rel)
+                os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                s3.download_file(bucket, key, local_path)
+                files_restored.append(rel)
+        return files_restored
+    loop = _aio.get_event_loop()
+    restored = await loop.run_in_executor(None, _do_restore)
+    return {"restored": len(restored), "files": restored,
+            "note": "restart substrate to load restored state"}
+
+
+@app.post("/api/v1/gualaloom/admin/compact_wave_atlas", dependencies=[Depends(_api_key_dep)])
+async def admin_compact_wave_atlas():
+    """GL-CMD-WAVE-DIET-82: one-time WaveAtlas compaction.
+
+    Drops every WaveAtlas binding with no live LivingAtlas counterpart.
+    Join key: (section, motif, chi_original). Cell phase_vecs preserved for
+    cells retaining >=1 live binding. No restart needed — runs in-place.
+    """
+    if _guala is None or _guala.wave_atlas is None:
+        raise HTTPException(503, "substrate not ready")
+    import asyncio as _aio
+    def _do_compact():
+        wa = _guala.wave_atlas
+        atlas = _guala.atlas
+        # Build live key set from LivingAtlas
+        live_keys = set()
+        for chi_k, entries in atlas.entries.items():
+            for e in entries:
+                live_keys.add((e["section"], e["motif"], e.get("chi", chi_k)))
+        before = sum(len(c.bindings) for c in wa.cells.values())
+        before_cells = len(wa.cells)
+        for cell in wa.cells.values():
+            orig = len(cell.bindings)
+            cell.bindings = [
+                b for b in cell.bindings
+                if (b.get("section"), b.get("motif"), b.get("chi")) in live_keys
+            ]
+            if len(cell.bindings) != orig:
+                cell.aggregate_strength = sum(
+                    float(b.get("strength", 0.05)) for b in cell.bindings)
+            cell.saturated = cell.aggregate_strength > 5.0
+        # Remove empty cells
+        empty = [k for k, c in wa.cells.items() if not c.bindings]
+        for k in empty:
+            del wa.cells[k]
+        after = sum(len(c.bindings) for c in wa.cells.values())
+        after_cells = len(wa.cells)
+        print(f"[GualaLoom] WaveAtlas compacted: {before}→{after} bindings, "
+              f"{before_cells}→{after_cells} cells")
+        return {"before_bindings": before, "after_bindings": after,
+                "removed": before - after,
+                "before_cells": before_cells, "after_cells": after_cells,
+                "live_keys_in_atlas": len(live_keys)}
+    loop = _aio.get_event_loop()
+    result = await loop.run_in_executor(None, _do_compact)
+    return result
+
+
+@app.post("/api/v1/gualaloom/admin/migrate_wave_atlas", dependencies=[Depends(_api_key_dep)])
+async def admin_migrate_wave_atlas():
+    """GL-CMD-WAVE-SEMANTICS-85 Part B.3: one-time WaveAtlas migration.
+
+    1. Snapshot raw state to S3 (compressed, pre-migration backup).
+    2. Collapse by (chi, section, motif) in-memory — sums duplicate strengths.
+    3. Save collapsed atlas to wave_atlas.npz on EFS.
+    Returns binding counts before/after and S3 snapshot key.
+    """
+    if _guala is None or _guala.wave_atlas is None:
+        raise HTTPException(503, "substrate not ready")
+    import asyncio as _aio, boto3 as _boto3, gzip as _gzip, json as _json, io as _io
+    loop = _aio.get_event_loop()
+
+    def _do_migrate():
+        wa = _guala.wave_atlas
+        before_b = wa.binding_count()
+        before_c = wa.cell_count()
+
+        # Step 1: S3 raw snapshot (pre-migration)
+        try:
+            s3 = _boto3.client("s3", region_name="us-east-1")
+            raw = _json.dumps(wa.to_dict()).encode("utf-8")
+            compressed = _gzip.compress(raw, compresslevel=6)
+            ts = time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime())
+            snap_key = f"guala/wave_migrate_pre/{ts}_wave_atlas_raw.json.gz"
+            s3.put_object(
+                Bucket="dsf-ai-site-backups",
+                Key=snap_key,
+                Body=compressed,
+                ContentType="application/gzip",
+            )
+            snap_uri = f"s3://dsf-ai-site-backups/{snap_key}"
+            print(f"[85-B3] Pre-migration snapshot: {snap_uri} ({len(compressed)/1e6:.1f}MB)")
+        except Exception as _se:
+            snap_uri = f"FAILED: {_se}"
+            print(f"[85-B3] S3 snapshot failed (non-fatal): {_se}")
+
+        # Step 2: collapse by (chi, section, motif)
+        collapse_result = wa.collapse_by_key()
+        after_b = collapse_result["after"]
+        after_c = collapse_result["cells"]
+        print(f"[85-B3] Collapse: {before_b}→{after_b} bindings, {before_c}→{after_c} cells")
+
+        # Step 3: save collapsed atlas to npz
+        try:
+            _guala._save_wave_atlas(STATE_DIR)
+        except Exception as _e:
+            print(f"[wave] save failed (non-fatal): {_e}")
+
+        return {
+            "before_bindings": before_b,
+            "after_bindings": after_b,
+            "removed": before_b - after_b,
+            "before_cells": before_c,
+            "after_cells": after_c,
+            "s3_snapshot": snap_uri,
+        }
+
+    result = await loop.run_in_executor(None, _do_migrate)
+    return result
+
+
+@app.get("/api/v1/gualaloom/admin/persistence_health", dependencies=[Depends(_api_key_dep)])
+async def admin_persistence_health():
+    """Full EFS-based persistence health. Uses executor so EFS stat() doesn't block
+    the event loop. May take 5-30s under NFS latency — poll infrequently.
+    For lightweight save-tick summary, read persistence_health from /status instead."""
+    if _guala is None:
+        raise HTTPException(status_code=503, detail="substrate loading")
+    import asyncio as _aio
+    loop = _aio.get_event_loop()
+    result = await loop.run_in_executor(
+        None, lambda: _guala.persistence_health(STATE_DIR))
+    result["last_s3_backup"] = _last_s3_backup
+    return result
+
+
+# GL-BRIEF-CHITRACE: read-only chi-geometry readout
+class ChiTraceRequest(BaseModel):
+    picture_ids: list = []
+    sound_ids: list = []
+    input_text: str = ""
+
+@app.post("/api/v1/gualaloom/chi_trace")
+async def chi_trace(req: ChiTraceRequest):
+    """Read-only chi-geometry readout. No state mutation."""
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "initializing"}, status_code=503)
+    if not req.picture_ids and not req.sound_ids and not req.input_text:
+        return JSONResponse({"error": "at least one of picture_ids, sound_ids, or input_text required"}, status_code=400)
+
+    result = {"tick": _guala.tick}
+
+    # Input chis
+    if req.input_text:
+        result["input_chis"] = _guala._chis_for_text(req.input_text)
+    else:
+        result["input_chis"] = []
+
+    # Refs
+    refs = {}
+    all_ids = [(pid, "picture") for pid in (req.picture_ids or [])] + \
+              [(sid, "sound") for sid in (req.sound_ids or [])]
+    for item_id, kind in all_ids:
+        ref = {"kind": kind, "title": None, "n_chis": 0, "chis": [], "_note": None}
+
+        if kind == "picture":
+            pic = _guala._pictures.get(item_id)
+            if pic is None:
+                ref["_note"] = "item not found"
+                refs[item_id] = ref
+                continue
+            ref["title"] = pic.title
+
+            # Reverse map: find sight motifs whose source_history contains this item_id
+            item_chis = []
+            for sm in _guala.sight.motifs:
+                if item_id in sm.source_history:
+                    # Find atlas entries for this motif in the sight section
+                    for chi_key, entries in _guala.atlas.entries.items():
+                        for e in entries:
+                            if e.get("section") == "sight" and e.get("motif") == sm.motif_id:
+                                deep_prior = _guala.deep_atlas.get_prior(chi_key, "sight", sm.motif_id)
+                                # Cross-modal neighbors
+                                assoc = _guala.atlas.query_associations("sight", chi_key)
+                                neighbors = {}
+                                for sec_name, motif_list in assoc.items():
+                                    top5 = sorted(motif_list, key=lambda x: x[1], reverse=True)[:5]
+                                    neighbors[sec_name] = [{"motif": m, "strength": round(s, 3)} for m, s in top5]
+                                item_chis.append({
+                                    "chi": chi_key,
+                                    "binding_strength": round(e["strength"], 3),
+                                    "encoded_strength": round(e.get("encoded_strength", 0), 3),
+                                    "dwell_ticks": e.get("dwell_ticks", 0),
+                                    "reinforcement_count": e.get("reinforcement_count", 0),
+                                    "deep_prior": round(deep_prior, 3),
+                                    "in_deep": deep_prior > 0,
+                                    "cross_modal_neighbors": neighbors,
+                                })
+            # Sort by strength, cap at 16
+            item_chis.sort(key=lambda x: x["binding_strength"], reverse=True)
+            ref["chis"] = item_chis[:16]
+            ref["n_chis"] = len(item_chis)
+
+        elif kind == "sound":
+            snd = _guala._sounds.get(item_id)
+            if snd is None:
+                ref["_note"] = "item not found"
+                refs[item_id] = ref
+                continue
+            ref["title"] = snd.get("title", item_id)
+            # Sound→chi: audio_* sections in atlas keyed by deterministic_motif_id(item_id)
+            target_motif = deterministic_motif_id(item_id)
+            item_chis = []
+            for chi_key, entries in _guala.atlas.entries.items():
+                for e in entries:
+                    if e.get("section", "").startswith("audio_") and e.get("motif") == target_motif:
+                        deep_prior = _guala.deep_atlas.get_prior(chi_key, e["section"], target_motif)
+                        assoc = _guala.atlas.query_associations(e["section"], chi_key)
+                        neighbors = {}
+                        for sec_name, motif_list in assoc.items():
+                            top5 = sorted(motif_list, key=lambda x: x[1], reverse=True)[:5]
+                            neighbors[sec_name] = [{"motif": m, "strength": round(s, 3)} for m, s in top5]
+                        item_chis.append({
+                            "chi": chi_key,
+                            "section": e["section"],
+                            "binding_strength": round(e["strength"], 3),
+                            "encoded_strength": round(e.get("encoded_strength", 0), 3),
+                            "dwell_ticks": e.get("dwell_ticks", 0),
+                            "reinforcement_count": e.get("reinforcement_count", 0),
+                            "deep_prior": round(deep_prior, 3),
+                            "in_deep": deep_prior > 0,
+                            "cross_modal_neighbors": neighbors,
+                        })
+            item_chis.sort(key=lambda x: x["binding_strength"], reverse=True)
+            ref["chis"] = item_chis[:16]
+            ref["n_chis"] = len(item_chis)
+            if not item_chis:
+                ref["_note"] = "no audio-section bindings found for this sound"
+
+        refs[item_id] = ref
+    result["refs"] = refs
+
+    # Input chi neighborhoods
+    if result["input_chis"]:
+        neighborhoods = {}
+        for chi_val in set(result["input_chis"]):
+            by_section = {}
+            for d in range(-_guala.atlas.band, _guala.atlas.band + 1):
+                for e in _guala.atlas.entries.get(chi_val + d, []):
+                    if e["strength"] < 0.01:
+                        continue
+                    sec = e["section"]
+                    if sec not in by_section:
+                        by_section[sec] = []
+                    deep_prior = _guala.deep_atlas.get_prior(chi_val + d, sec, e["motif"])
+                    by_section[sec].append({
+                        "motif_id": e["motif"],
+                        "strength": round(e["strength"], 3),
+                        "in_deep": deep_prior > 0,
+                    })
+            # Sort each section by strength, cap at 5
+            for sec in by_section:
+                by_section[sec] = sorted(by_section[sec], key=lambda x: x["strength"], reverse=True)[:5]
+            if by_section:
+                neighborhoods[str(chi_val)] = {"by_section": by_section}
+        result["input_chi_neighborhoods"] = neighborhoods
+    else:
+        result["input_chi_neighborhoods"] = {}
+
+    # Hard-cap response at 64KB
+    resp_str = json.dumps(result)
+    if len(resp_str) > 65536:
+        # Truncate cross_modal_neighbors first
+        for ref in result["refs"].values():
+            for c in ref.get("chis", []):
+                c["cross_modal_neighbors"] = {}
+        result["_truncated"] = True
+
+    return result
+
+
+# ════════════════════════════════════════════════════════════════
+# v7: Substrate event stream (SSE) + sleep endpoint
+# GUALALOOM-V7-AUTONOMY-WC-2026-06-06
+# ════════════════════════════════════════════════════════════════
+
+@app.get("/api/v1/gualaloom/events")
+async def gualaloom_events(since: int = 0, stream: bool = False, n: int = 50):
+    """Substrate events. ?stream=true for SSE, default returns JSON array.
+
+    GL-BUG-DUPLICATE-EVENTS-ROUTE (found during -196 live verification):
+    this path had TWO @app.get definitions -- an earlier stub (always
+    `return {"events": []}` in embedded mode, the production config)
+    registered first, silently shadowing this real implementation for
+    every request. Deleted; `n` (loomscan.html's limit param, previously
+    silently ignored here) now actually controls `limit` below instead
+    of a hardcoded 50 that only coincidentally matched loomscan's own
+    default."""
+    if _is_remote():
+        # Remote mode: poll substrate via socket for events
+        client = _get_substrate_client()
+        if stream:
+            import asyncio
+            # SSE stream gets its own dedicated client to avoid blocking
+            # the shared client with continuous /events polling
+            from dsf_ai_service.substrate_client import SubstrateClient
+            sse_client = SubstrateClient()
+            async def event_generator():
+                last_tick = since
+                while True:
+                    try:
+                        result = await sse_client.call("gualaloom_post",
+                                                       command="/events",
+                                                       text=str(last_tick))
+                        for ev in result.get("events", []):
+                            if ev.get("tick", 0) > last_tick:
+                                last_tick = ev["tick"]
+                            yield f"data: {json.dumps(ev)}\n\n"
+                    except Exception:
+                        pass
+                    await asyncio.sleep(1.5)
+            return StreamingResponse(event_generator(), media_type="text/event-stream")
+        else:
+            try:
+                result = await client.call("gualaloom_post",
+                                           command="/events",
+                                           text=str(since))
+                return {"events": result.get("events", [])}
+            except ConnectionError:
+                return {"events": []}
+    _gl_init()
+    if stream:
+        import asyncio
+
+        async def event_generator():
+            last_tick = since
+            while True:
+                events = _guala.get_recent_events(since_tick=last_tick, limit=n)
+                for ev in events:
+                    if ev["tick"] > last_tick:
+                        last_tick = ev["tick"]
+                    yield f"data: {json.dumps(ev)}\n\n"
+                await asyncio.sleep(1.0)
+
+        return StreamingResponse(event_generator(), media_type="text/event-stream")
+    else:
+        events = _guala.get_recent_events(since_tick=since, limit=n)
+        return {"events": events}
+
+
+@app.websocket("/events_stream")
+async def events_stream_ws(websocket):
+    """WebSocket: live event stream from substrate ring buffer.
+    Companion HTML and bridge subscribe here for real-time events."""
+    import asyncio
+    await websocket.accept()
+    try:
+        if _is_remote():
+            client = _get_substrate_client()
+            last_tick = 0
+            while True:
+                try:
+                    result = await client.call("gualaloom_post",
+                                               command="/events",
+                                               text=str(last_tick),
+                                               timeout=5.0)
+                    for ev in result.get("events", []):
+                        if ev.get("tick", 0) > last_tick:
+                            last_tick = ev["tick"]
+                        await websocket.send_json(ev)
+                except Exception:
+                    pass
+                await asyncio.sleep(0.5)
+        else:
+            ring = getattr(_guala, '_substrate_ring', None)
+            if ring is None:
+                await websocket.send_json({"error": "ring not initialized"})
+                return
+            cursor = ring.subscribe()
+            while True:
+                events = cursor.read_available()
+                for ev in events:
+                    await websocket.send_json(ev)
+                if not events:
+                    await asyncio.sleep(0.1)
+    except Exception:
+        pass
+
+
+@app.get("/api/v1/gualaloom/ring/read")
+async def ring_read(since_seq: int = 0, limit: int = 100):
+    """REST ring read — returns events from sequence since_seq.
+    Bridge and external consumers use this for stateless event polling."""
+    if _is_remote():
+        client = _get_substrate_client()
+        try:
+            return await client.call("ring_read",
+                                      since_seq=since_seq, limit=limit)
+        except ConnectionError:
+            return {"events": [], "published_seq": 0}
+    ring = getattr(_guala, '_substrate_ring', None)
+    if ring is None:
+        return {"events": [], "published_seq": 0}
+    from dsf_ai_service.substrate.ring_buffer import Cursor
+    cursor = Cursor(ring)
+    cursor._read_seq = since_seq
+    events = cursor.read_available()[:limit]
+    return {"events": events, "published_seq": ring._published_seq}
+
+
+@app.post("/api/v1/gualaloom/ring/write")
+async def ring_write(request: Request):
+    """REST ring write — publishes an input event to the InputRing.
+    Bridge uses this for guaranteed-ack writes."""
+    if _is_remote():
+        client = _get_substrate_client()
+        body = await request.json()
+        try:
+            return await client.call("ring_write", **body)
+        except ConnectionError:
+            return {"ok": False, "error": "substrate unreachable"}
+    from dsf_ai_service.substrate_runner import _input_ring
+    if _input_ring is None:
+        return {"ok": False, "error": "ring not initialized"}
+    body = await request.json()
+    seq = _input_ring.publish(
+        kind=body.get("kind", "text_input"),
+        source=body.get("source", "bridge"),
+        **body.get("data", {}))
+    return {"ok": True, "seq": seq}
+
+
+@app.post("/api/v1/gualaloom/sleep")
+async def gualaloom_sleep():
+    """Manual sleep trigger."""
+    _gl_init()
+    result = _guala.manual_sleep()
+    return result
+
+
+# ════════════════════════════════════════════════════════════════
+# v7 Phase 5: Upload endpoints
+# GUALALOOM-V7-AUTONOMY-WC-2026-06-06
+# ════════════════════════════════════════════════════════════════
+
+@app.post("/api/v1/gualaloom/upload/book")
+async def gualaloom_upload_book(file: UploadFile = File(...)):
+    """Upload a text file as a new corpus for autonomous reading."""
+    if _is_remote():
+        content = await file.read()
+        text = content.decode('utf-8')
+        client = _get_substrate_client()
+        return await client.call("gualaloom_post",
+                                 command=f"/addbook:{file.filename}",
+                                 text=text)
+    _gl_init()
+    if not file.filename.endswith('.txt'):
+        raise HTTPException(400, "Book must be a .txt file")
+    content = await file.read()
+    if len(content) > 1024 * 1024:
+        raise HTTPException(400, "File too large (max 1MB)")
+    try:
+        text = content.decode('utf-8')
+    except UnicodeDecodeError:
+        raise HTTPException(400, "File must be UTF-8")
+    lines = [l.strip() for l in text.splitlines() if l.strip()]
+    if not lines:
+        raise HTTPException(400, "File is empty")
+    title = file.filename.replace('.txt', '').replace('_', ' ')
+    corpus_id = file.filename.replace('.txt', '').replace(' ', '_').lower()
+    _guala.add_corpus(corpus_id, title, lines)
+    _guala._log_substrate_event("corpus_added",
+                                corpus_id=corpus_id, title=title,
+                                n_lines=len(lines))
+    return {"message": f"added \"{title}\" ({len(lines)} lines) to her library",
+            "corpus_id": corpus_id}
+
+
+@app.post("/api/v1/gualaloom/upload/picture")
+async def gualaloom_upload_picture(file: UploadFile = File(...)):
+    """Upload a picture for visual perception. C8: decode in executor."""
+    if _is_remote():
+        import base64
+        content = await file.read()
+        b64 = base64.b64encode(content).decode()
+        client = _get_substrate_client()
+        return await client.call("gualaloom_post",
+                                 command=f"/addpicture:{file.filename}",
+                                 text=b64, timeout=30.0)
+    _gl_init()
+    import asyncio as _aio, hashlib
+    content = await file.read()
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(400, "File too large (max 10MB)")
+    _fname = file.filename
+    def _decode():
+        """GL-CMD-PICTURE-UPLOAD-FAST-76: fast path. Decode + register in memory,
+        then background the EFS bytes write. The intensity_grid is what the substrate
+        uses for perception — it lands in _pictures before we return. The original
+        bytes are for UI redisplay and can arrive on disk seconds later without
+        blocking the upload response."""
+        t0 = time.time()
+        try:
+            try:
+                import pillow_heif as _ph; _ph.register_heif_opener()
+            except ImportError:
+                pass
+            from PIL import Image
+            import io as _io
+            img_full = Image.open(_io.BytesIO(content))
+            if img_full.mode not in ('RGB', 'L'):
+                img_full = img_full.convert('RGB')
+            orig_w, orig_h = img_full.size
+            grid = np.array(img_full.convert('L').resize((64, 64)), dtype=np.float64) / 255.0
+        except Exception as e:
+            print(f"[decode-upload-picture] {time.time()-t0:.2f}s ERROR")
+            return {"error": f"Cannot decode image: {e}"}
+        item_id = hashlib.md5(content).hexdigest()[:12]
+        title = _fname or item_id
+        pic_dir = os.path.join(STATE_DIR, "pictures")
+        try:
+            os.makedirs(pic_dir, exist_ok=True)
+        except OSError as _me:
+            print(f"[decode-upload-picture] pic_dir mkdir failed: {_me}")
+        ext = (_fname or "img").rsplit('.', 1)[1] if '.' in (_fname or "") else 'jpg'
+        orig_path = os.path.join(pic_dir, f"{item_id}_original.{ext}")
+
+        pic = PictureItem(item_id=item_id, title=title,
+                          intensity_grid=grid, source="upload",
+                          shown_at_tick=_guala.tick)
+        pic.original_path = orig_path
+        pic.original_width = orig_w
+        pic.original_height = orig_h
+        # In-memory registration BEFORE the slow EFS write — this is what makes the
+        # picture perceivable. Response can return once this lands.
+        _guala._pictures[item_id] = pic
+        _guala._log_substrate_event("picture_uploaded",
+                                    item_id=item_id, title=title)
+        print(f"[decode-upload-picture] fast-path {time.time()-t0:.2f}s")
+
+        # Background the original-bytes write. Don't block the response on EFS.
+        import threading as _t
+        def _write_original_bg(_content=content, _path=orig_path, _iid=item_id):
+            _t0 = time.time()
+            try:
+                _tmp = _path + ".tmp"
+                with open(_tmp, 'wb') as _f:
+                    _f.write(_content)
+                os.rename(_tmp, _path)
+                print(f"[decode-upload-picture] bg-write {_iid} {time.time()-_t0:.2f}s")
+            except Exception as _we:
+                print(f"[decode-upload-picture] bg-write {_iid} FAILED "
+                      f"after {time.time()-_t0:.2f}s: {_we}")
+                # Best-effort: keep _pictures entry with original_path pointing
+                # to a file that won't exist. Perception still works from grid.
+                # UI redisplay of original will fail gracefully.
+        _t.Thread(target=_write_original_bg, daemon=True,
+                  name=f"pic-write-{item_id[:6]}").start()
+
+        return {"message": f"picture \"{title}\" uploaded ({grid.shape[0]}x{grid.shape[1]})",
+                "item_id": item_id}
+    # GL-FIX-PIC-UPLOAD-EXECUTOR: dedicated 4-thread pool so picture decode
+    # never queues behind saves (fsync-heavy) or converse tasks in the default
+    # executor. Default pool saturates under load; uploads hung indefinitely.
+    import concurrent.futures as _cf
+    _pic_exec = getattr(gualaloom_upload_picture, "_executor", None)
+    if _pic_exec is None:
+        _pic_exec = _cf.ThreadPoolExecutor(max_workers=4, thread_name_prefix="pic-dec")
+        gualaloom_upload_picture._executor = _pic_exec
+    result = await _aio.get_event_loop().run_in_executor(_pic_exec, _decode)
+    if "error" in result:
+        raise HTTPException(400, result["error"])
+    return result
+
+
+@app.post("/api/v1/gualaloom/upload/sound")
+async def gualaloom_upload_sound(file: UploadFile = File(...)):
+    """A1 (042): Sound upload — decode, transduce, register for attention."""
+    if _is_remote():
+        import base64
+        content = await file.read()
+        b64 = base64.b64encode(content).decode()
+        client = _get_substrate_client()
+        return await client.call("gualaloom_post",
+                                 command=f"/addsound:{file.filename}",
+                                 text=b64, timeout=30.0)
+    _gl_init()
+    if _guala is None:
+        return {"message": "initializing..."}
+    import hashlib
+    content = await file.read()
+    item_id = hashlib.md5(content).hexdigest()[:12]
+    title = file.filename or item_id
+    # Save original to EFS
+    sound_dir = os.path.join(STATE_DIR, "sounds")
+    os.makedirs(sound_dir, exist_ok=True)
+    orig_path = os.path.join(sound_dir, f"{item_id}.audio")
+    with open(orig_path, 'wb') as f:
+        f.write(content)
+    # Process via /addsound: command path (reuse existing cochlear pipeline)
+    import base64
+    b64 = base64.b64encode(content).decode()
+    # Simulate the command
+    from pydantic import BaseModel
+    class FakeMsg(BaseModel):
+        text: str
+        command: str = ""
+        source: str = None
+    fake = FakeMsg(text=b64, command=f"/addsound:{title}")
+    result = await gualaloom_chat(fake)
+    return result
+
+
+@app.post("/api/v1/gualaloom/upload/video")
+async def gualaloom_upload_video(file: UploadFile = File(...)):
+    """Upload a video for visual perception. C8: decode in executor."""
+    if _is_remote():
+        # Video too large for base64 socket — save to EFS, let substrate pick it up
+        content = await file.read()
+        if len(content) > 30 * 1024 * 1024:
+            raise HTTPException(400, "Video too large (max 30MB)")
+        # Save to shared EFS for substrate to process
+        vid_dir = os.path.join("state", "uploads")
+        os.makedirs(vid_dir, exist_ok=True)
+        import hashlib
+        vid_id = hashlib.md5(content).hexdigest()[:12]
+        vid_path = os.path.join(vid_dir, f"{vid_id}.video")
+        with open(vid_path, 'wb') as f:
+            f.write(content)
+        return {"message": f"video saved ({len(content)//1024}KB) — processing queued",
+                "item_id": vid_id}
+    _gl_init()
+    import asyncio as _aio, hashlib, tempfile, subprocess
+    content = await file.read()
+    if len(content) > 50 * 1024 * 1024:
+        raise HTTPException(400, "File too large (max 50MB)")
+    _fname = file.filename
+    def _decode():
+        t0 = time.time()
+        item_id = hashlib.md5(content).hexdigest()[:12]
+        title = _fname or item_id
+        tmp_dir = tempfile.mkdtemp(prefix="guala_vid_")
+        video_path = os.path.join(tmp_dir, "input.mp4")
+        with open(video_path, "wb") as f:
+            f.write(content)
+        frame_dir = os.path.join(tmp_dir, "frames")
+        os.makedirs(frame_dir, exist_ok=True)
+        audio_path = os.path.join(tmp_dir, "audio.wav")
+        try:
+            subprocess.run([
+                "ffmpeg", "-i", video_path, "-vf",
+                "scale=160:120,format=gray", "-r", "15",
+                os.path.join(frame_dir, "frame_%05d.png"),
+                "-y", "-loglevel", "error"
+            ], check=True, timeout=60)
+            subprocess.run([
+                "ffmpeg", "-i", video_path, "-vn", "-ar", "16000",
+                "-ac", "1", audio_path,
+                "-y", "-loglevel", "error"
+            ], timeout=60)
+        except FileNotFoundError:
+            print(f"[decode-video] {time.time()-t0:.2f}s ERROR: no ffmpeg")
+            return {"message": "ffmpeg not available"}
+        except Exception as e:
+            print(f"[decode-video] {time.time()-t0:.2f}s ERROR")
+            return {"message": f"video decode error: {e}"}
+        frame_files = sorted(f for f in os.listdir(frame_dir) if f.endswith('.png'))
+        for fname in frame_files:
+            from PIL import Image
+            fpath = os.path.join(frame_dir, fname)
+            img = Image.open(fpath).convert('L')
+            arr = np.array(img, dtype=np.float64) / 255.0
+            np.save(fpath.replace('.png', '.npy'), arr)
+        n_frames = len(frame_files)
+        duration_ms = int(n_frames / 15.0 * 1000)
+        vid = VideoItem(item_id=item_id, title=title,
+                        frame_dir=frame_dir,
+                        audio_path=audio_path if os.path.exists(audio_path) else "",
+                        duration_ms=duration_ms, n_frames=n_frames,
+                        source="upload", shown_at_tick=_guala.tick)
+        _guala._videos[item_id] = vid
+        _guala._log_substrate_event("video_uploaded",
+                                    item_id=item_id, title=title,
+                                    n_frames=n_frames, duration_ms=duration_ms)
+        print(f"[decode-video] {time.time()-t0:.2f}s")
+        return {"message": f"video \"{title}\" decoded ({n_frames} frames, {duration_ms}ms)",
+                "item_id": item_id}
+    return await _aio.get_event_loop().run_in_executor(None, _decode)
+
+
+# ════════════════════════════════════════════════════════════════
+# Deep multimodal substrate — parallel test endpoint
+# GL-CMD-DEPLOY-DEEP-SUBSTRATE-WC-20260608-01
+# ════════════════════════════════════════════════════════════════
+
+_substrate = None
+
+def _get_substrate():
+    global _substrate
+    if _substrate is None:
+        _substrate = _init_substrate()
+    return _substrate
+
+def _init_substrate():
+    from dsf_ai_service.substrate.GL_MDL_MULTIMODAL_DEEP_WC_20260608_03 import DeepMultiModalCognition
+    cog = DeepMultiModalCognition()
+    SENSORY_WORDS = ["moon", "cow", "bears", "stars", "kittens", "room"]
+    OTHER_WORDS = ["the", "and", "a", "in", "was", "goodnight", "of",
+                   "picture", "over", "there", "were", "three", "little", "sitting", "on",
+                   "great", "green", "telephone", "red", "balloon",
+                   "chairs", "jumping", "air", "noises", "everywhere"]
+    for w in SENSORY_WORDS + OTHER_WORDS:
+        cog.install_word(w)
+    for _ in range(5):
+        for w in SENSORY_WORDS:
+            cog.hear_word_with_senses(w)
+            cog.run(8)
+    GOODNIGHT_MOON = """in the great green room there was a telephone and a red balloon.
+and a picture of the cow jumping over the moon.
+and there were three little bears sitting on chairs.
+goodnight room. goodnight moon.
+goodnight cow jumping over the moon.
+goodnight light and the red balloon.
+goodnight bears. goodnight chairs.
+goodnight kittens. goodnight mittens.
+goodnight stars. goodnight air. goodnight noises everywhere."""
+    sentences = [s.strip() for s in GOODNIGHT_MOON.replace("\n", " ").split(".") if s.strip()]
+    SENSORY_SET = set(SENSORY_WORDS)
+    for _ in range(3):
+        for sent in sentences:
+            words = sent.lower().replace(",", "").split()
+            for w in words:
+                w_clean = "".join(c for c in w if c.isalnum())
+                if w_clean in SENSORY_SET and w_clean in cog.sections["word"]:
+                    cog.hear_word_with_senses(w_clean)
+                elif w_clean in cog.sections["word"]:
+                    cog.fire("word", w_clean)
+                cog.run(3)
+            cog.run(4)
+    print(f"[Substrate] Initialized")
+    return cog
+
+
+class SubstrateHearRequest(BaseModel):
+    word: str
+
+class SubstrateFeedRequest(BaseModel):
+    word: str
+    modalities: List[str] = ["visual", "audio"]
+
+
+@app.post("/substrate/hear_word")
+async def substrate_hear_word(req: SubstrateHearRequest):
+    cog = _get_substrate()
+    word = req.word
+    cog.emissions.clear()
+    cog.run(15)
+    cog.emissions.clear()
+    cog.fire("word", word, salience=2.5)
+    em = cog.run(25)
+    first_per_section = {}
+    strongest_per_section = {}
+    for e in em:
+        sec = e["section"]
+        if sec not in first_per_section:
+            first_per_section[sec] = e["label"]
+        if sec not in strongest_per_section or e["activation"] > strongest_per_section[sec]["activation"]:
+            strongest_per_section[sec] = {"label": e["label"], "activation": e["activation"]}
+    # Bridge: relay multimodal winner to v7 default session (spec 4.2)
+    result = {"first": first_per_section, "strongest": strongest_per_section}
+    try:
+        from dsf_ai_service.substrate.v7_engine import get_or_create_session
+        v7_session = get_or_create_session("default", engine=_guala)
+        bridge = _get_bridge(v7_session)
+        # Use the heard word directly (attention_focus decays after 20 ticks)
+        bridge_result = bridge.multimodal_winner_to_v7(word)
+        if bridge_result:
+            result["bridge_mm_to_v7"] = bridge_result
+    except Exception:
+        pass
+    return result
+
+
+@app.post("/substrate/feed_senses")
+async def substrate_feed_senses(req: SubstrateFeedRequest):
+    cog = _get_substrate()
+    word = req.word
+    modalities = req.modalities
+    cog.emissions.clear()
+    cog.run(15)
+    cog.emissions.clear()
+    for modality in modalities:
+        modal_label = f"{word}__{modality}"
+        if modal_label in cog.sections.get(modality, {}):
+            cog.fire(modality, modal_label, salience=2.5, set_focus=False)
+    em = cog.run(25)
+    word_em = [e for e in em if e["section"] == "word"]
+    if not word_em:
+        return {"strongest_word": None, "top_words": []}
+    strongest = max(word_em, key=lambda e: e["activation"])
+    unique = []
+    for e in word_em:
+        if e["label"] not in unique:
+            unique.append(e["label"])
+    return {"strongest_word": strongest["label"], "activation": strongest["activation"],
+            "top_words": unique[:5]}
+
+
+# ════════════════════════════════════════════════════════════════
+# v7 DNA Recipe Substrate
+# GL-CMD-DEPLOY-DNA-RECIPE-WC-20260608-01
+# ════════════════════════════════════════════════════════════════
+
+import uuid as _uuid
+
+class V7ConverseRequest(BaseModel):
+    text: str
+    session_id: Optional[str] = None
+    emission_mode: Optional[str] = None  # "topk" | "grandurun"
+
+class V7FeedbackRequest(BaseModel):
+    session_id: str
+    correct: bool
+    expected_tokens: Optional[Dict] = None
+
+def _get_bridge(session):
+    """Get or create a bridge between a v7 session and the multimodal substrate."""
+    from dsf_ai_service.substrate.gl_bridge import SubstrateBridge
+    if not hasattr(session, '_bridge') or session._bridge is None:
+        mm = _get_substrate()
+        session._bridge = SubstrateBridge(session, mm)
+    return session._bridge
+
+@app.post("/v7/converse")
+async def v7_converse(req: V7ConverseRequest):
+    if _is_remote():
+        client = _get_substrate_client()
+        sid = req.session_id or str(_uuid.uuid4())[:8]
+        result = await client.call("v7_converse",
+                                   session_id=sid, text=req.text,
+                                   emission_mode=req.emission_mode)
+        result["session_id"] = sid
+        return result
+    if _guala is None:
+        raise HTTPException(status_code=503, detail={
+            "error": "guala_not_ready",
+            "retry_after_seconds": 10,
+            "message": "she is still loading — try again in a moment"
+        })
+    import asyncio as _aio
+    from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
+    sid = req.session_id or str(_uuid.uuid4())[:8]
+    text = req.text
+    def _do_converse():
+        session = get_or_create_session(sid, engine=_guala)
+        result = session.converse(text)
+        # Bridge: relay v7 emissions to multimodal (spec 4.2)
+        try:
+            bridge = _get_bridge(session)
+            tokens = [t.get("token", "") for t in result.get("response_tokens", [])]
+            if tokens:
+                bridge_result = bridge.v7_emission_to_multimodal(tokens)
+                if bridge_result:
+                    result["bridge_v7_to_mm"] = bridge_result
+        except Exception:
+            pass
+        return session, result
+    session, result = await _aio.get_event_loop().run_in_executor(None, _do_converse)
+    try:
+        await _aio.get_event_loop().run_in_executor(None, save_session, session)
+    except Exception:
+        pass
+    result["session_id"] = sid
+    return result
+
+@app.post("/v7/feedback")
+async def v7_feedback(req: V7FeedbackRequest):
+    if _is_remote():
+        client = _get_substrate_client()
+        result = await client.call("v7_feedback",
+                                   session_id=req.session_id,
+                                   correct=req.correct,
+                                   expected_tokens=req.expected_tokens)
+        return result
+    if _guala is None:
+        raise HTTPException(status_code=503, detail={
+            "error": "guala_not_ready",
+            "retry_after_seconds": 10,
+            "message": "she is still loading — try again in a moment"
+        })
+    import asyncio as _aio
+    from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
+    feedback_sid = req.session_id
+    correct = req.correct
+    expected_tokens = req.expected_tokens
+    def _do_feedback():
+        session = get_or_create_session(feedback_sid, engine=_guala)
+        result = session.apply_feedback(correct, expected_tokens)
+        return session, result
+    session, result = await _aio.get_event_loop().run_in_executor(None, _do_feedback)
+    try:
+        await _aio.get_event_loop().run_in_executor(None, save_session, session)
+    except Exception:
+        pass
+    result["session_id"] = feedback_sid
+    return result
+
+# ── GL-CMD-TEACHER-CORRECTION-UI: teacher endpoints ──────────
+
+class TeacherFeedbackRequest(BaseModel):
+    emission_id: Optional[str] = None
+    source: Optional[str] = "joe"
+
+class TeacherCorrectionRequest(BaseModel):
+    emission_id: Optional[str] = None
+    corrected_text: Optional[str] = None
+    story: Optional[str] = None
+    temporal: Optional[str] = None
+    sensory_freetext: Optional[str] = None
+    source: Optional[str] = "joe"
+
+@app.post("/api/v1/teacher/feedback")
+async def teacher_feedback(req: TeacherFeedbackRequest):
+    if req.source not in ("joe", "wc"):
+        raise HTTPException(status_code=403, detail="invalid source")
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("teacher_feedback",
+                                  emission_id=req.emission_id,
+                                  source=req.source)
+    if _guala is None:
+        raise HTTPException(status_code=503, detail="guala_not_ready")
+    return handle_teacher_feedback_local(req)
+
+
+@app.post("/api/v1/teacher/correction")
+async def teacher_correction(req: TeacherCorrectionRequest):
+    if req.source not in ("joe", "wc"):
+        raise HTTPException(status_code=403, detail="invalid source")
+    if not req.corrected_text or not req.corrected_text.strip():
+        raise HTTPException(status_code=400, detail="corrected_text required")
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("teacher_correction",
+                                  emission_id=req.emission_id,
+                                  corrected_text=req.corrected_text,
+                                  story=req.story,
+                                  temporal=req.temporal,
+                                  sensory_freetext=req.sensory_freetext,
+                                  source=req.source)
+    if _guala is None:
+        raise HTTPException(status_code=503, detail="guala_not_ready")
+    return handle_teacher_correction_local(req)
+
+
+def handle_teacher_feedback_local(req):
+    rec = _guala._emission_records.get(req.emission_id, {})
+    original_input = rec.get("input_text") or getattr(_guala, '_last_converse_input', "")
+    her_emission = rec.get("text") or getattr(_guala, '_last_converse_reply', "")
+    if not original_input or not her_emission:
+        raise HTTPException(status_code=400, detail="no conversation context")
+    return _guala.apply_teacher_correction(
+        original_input=original_input, her_emission=her_emission,
+        correct=True, source=req.source, emission_id=req.emission_id)
+
+
+def handle_teacher_correction_local(req):
+    rec = _guala._emission_records.get(req.emission_id, {})
+    original_input = rec.get("input_text") or getattr(_guala, '_last_converse_input', "")
+    her_emission = rec.get("text") or getattr(_guala, '_last_converse_reply', "")
+    if not original_input or not her_emission:
+        raise HTTPException(status_code=400, detail="no conversation context")
+    return _guala.apply_teacher_correction(
+        original_input=original_input, her_emission=her_emission,
+        correct=False, corrected_text=req.corrected_text, source=req.source,
+        emission_id=req.emission_id, story=req.story,
+        temporal=req.temporal, sensory_freetext=req.sensory_freetext)
+
+
+# ── GL-CMD-73: Curriculum endpoint ─────────────────────────────
+
+class LoadCorpusRequest(BaseModel):
+    corpus_id: str
+    title: str
+    url: Optional[str] = None      # fetch from URL if provided
+    lines: Optional[list] = None   # pre-fetched lines (skip URL fetch)
+    source: Optional[str] = None   # adapter name, e.g. "gutenberg"
+    book_id: Optional[int] = None  # source-specific ID (gutenberg book ID)
+
+
+async def _run_load_job(job_id: str, corpus_id: str, title: str, lines: list):
+    """Asyncio background task (GL-CMD-74): delegates to substrate fire-and-forget,
+    polls progress, updates web-container job registry to completion."""
+    import asyncio as _aio
+    from dsf_ai_service.curriculum import job_registry as _jr
+    client = _get_substrate_client()
+
+    # Tell substrate to start loading (returns immediately with "queued")
+    try:
+        substrate_resp = await client.call(
+            "load_corpus",
+            corpus_id=corpus_id,
+            title=title,
+            lines=lines,
+            timeout=30.0,
+        )
+    except Exception as e:
+        _jr.mark_failed(job_id, f"substrate call failed: {e}")
+        return
+
+    _jr.mark_running(job_id)
+
+    # Poll substrate until complete or failed
+    poll_interval = 5.0
+    deadline = _aio.get_event_loop().time() + 600.0  # 10 min hard stop
+    while _aio.get_event_loop().time() < deadline:
+        await _aio.sleep(poll_interval)
+        try:
+            status = await client.call("corpus_status", corpus_id=corpus_id, timeout=10.0)
+        except Exception as e:
+            # Substrate unreachable — keep trying
+            continue
+
+        n_fed = status.get("n_fed", 0)
+        _jr.update_progress(job_id, n_fed)
+
+        if status.get("status") == "complete":
+            _jr.mark_complete(job_id, result=status)
+            return
+        elif status.get("status") == "failed":
+            _jr.mark_failed(job_id, error=status.get("error", "unknown"), partial_n_fed=n_fed)
+            return
+        # status == "running" or "queued" — keep polling
+
+    # Timed out
+    _jr.mark_failed(job_id, error="load job timed out after 600s")
+
+
+@app.post("/api/v1/curriculum/load_corpus",
+          dependencies=[Depends(_api_key_dep)],
+          status_code=202)
+async def load_corpus(req: LoadCorpusRequest):
+    """GL-CMD-74: Async curriculum load — returns 202 immediately.
+    Poll GET /api/v1/curriculum/load_corpus/job/{job_id} for progress."""
+    import asyncio as _aio
+    from dsf_ai_service.curriculum import job_registry as _jr
+
+    # Conflict detection: single in-flight job per substrate
+    active = _jr.get_active_job()
+    if active:
+        return JSONResponse(
+            status_code=409,
+            content={
+                "error": "conflict",
+                "message": "a corpus load job is already in flight",
+                "existing_job_id": active["job_id"],
+                "existing_corpus_id": active["corpus_id"],
+                "state": active["state"],
+            },
+        )
+
+    # Resolve lines (synchronously — fast path, 30s timeout)
+    if req.lines:
+        lines = [str(l) for l in req.lines if l]
+    elif req.source == "gutenberg" and req.book_id is not None:
+        from dsf_ai_service.curriculum.adapters.gutenberg import GutenbergAdapter
+        from dsf_ai_service.curriculum.allowlist import CorpusSourceNotAllowed
+        try:
+            adapter = GutenbergAdapter(book_id=req.book_id)
+            loop = _aio.get_event_loop()
+            lines = await loop.run_in_executor(None, adapter.fetch_normalized)
+        except CorpusSourceNotAllowed as e:
+            raise HTTPException(status_code=403, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"fetch failed: {e}")
+    elif req.url:
+        from dsf_ai_service.curriculum.gutenberg_adapter import fetch_and_parse
+        try:
+            loop = _aio.get_event_loop()
+            lines, _ = await loop.run_in_executor(None, fetch_and_parse, req.url)
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"fetch failed: {e}")
+    else:
+        raise HTTPException(status_code=400, detail="either url, lines, or source+book_id required")
+
+    if not lines:
+        raise HTTPException(status_code=400, detail="no sentences extracted")
+
+    # Create job in registry
+    job = _jr.create_job(corpus_id=req.corpus_id, n_sentences=len(lines))
+    job_id = job["job_id"]
+
+    # Kick off background asyncio task
+    _aio.create_task(_run_load_job(job_id, req.corpus_id, req.title, lines))
+
+    return {
+        "job_id": job_id,
+        "corpus_id": req.corpus_id,
+        "n_sentences": len(lines),
+        "state": "queued",
+    }
+
+
+@app.get("/api/v1/curriculum/load_corpus/job/{job_id}",
+         dependencies=[Depends(_api_key_dep)])
+async def get_load_corpus_job(job_id: str):
+    """GL-CMD-74: Poll status of a corpus load job."""
+    from dsf_ai_service.curriculum import job_registry as _jr
+    job = _jr.get_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail=f"job {job_id!r} not found")
+    return {k: v for k, v in job.items() if not k.startswith("_")}
+
+
+@app.get("/api/v1/curriculum/corpus_status/{corpus_id}", dependencies=[Depends(_api_key_dep)])
+async def corpus_status(corpus_id: str):
+    """Substrate-side corpus load status (GL-CMD-73 compatibility)."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("corpus_status", corpus_id=corpus_id)
+    raise HTTPException(status_code=501, detail="not implemented for local mode")
+
+
+@app.get("/v7/state")
+async def v7_state(session_id: str = "default"):
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("v7_state", session_id=session_id)
+    if _guala is None:
+        raise HTTPException(status_code=503, detail={
+            "error": "guala_not_ready",
+            "retry_after_seconds": 10,
+            "message": "she is still loading — try again in a moment"
+        })
+    import asyncio as _aio, time as _t7
+    from dsf_ai_service.substrate.v7_engine import get_or_create_session
+    def _do_state():
+        _t0 = _t7.time()
+        session = get_or_create_session(session_id, engine=_guala)
+        _t1 = _t7.time()
+        result = session.get_state(engine=_guala)
+        _t2 = _t7.time()
+        print(f"[v7-state] sid={session_id} session={(_t1-_t0)*1000:.0f}ms "
+              f"get_state={(_t2-_t1)*1000:.0f}ms total={(_t2-_t0)*1000:.0f}ms")
+        return result
+    return await _aio.get_event_loop().run_in_executor(None, _do_state)
+
+@app.post("/v7/quiet")
+async def v7_quiet(session_id: str = "default", n_ticks: int = 10):
+    """Quiet ticks — substrate's Default Mode. Replay + consolidation."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("v7_quiet",
+                                 session_id=session_id, n_ticks=n_ticks)
+    if _guala is None:
+        raise HTTPException(status_code=503, detail={
+            "error": "guala_not_ready",
+            "retry_after_seconds": 10,
+            "message": "she is still loading — try again in a moment"
+        })
+    import asyncio as _aio
+    from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
+    capped_ticks = min(n_ticks, 50)
+    def _do_quiet():
+        session = get_or_create_session(session_id, engine=_guala)
+        results = session.quiet_tick(capped_ticks)
+        total_replayed = sum(len(r["replayed"]) for r in results)
+        total_commits = sum(len(r["commits"]) for r in results)
+        return session, {"session_id": session_id, "ticks": len(results),
+                         "replayed": total_replayed, "commits": total_commits}
+    session, result = await _aio.get_event_loop().run_in_executor(None, _do_quiet)
+    try:
+        await _aio.get_event_loop().run_in_executor(None, save_session, session)
+    except Exception:
+        pass
+    return result
+
+
+@app.post("/v7/save")
+async def v7_save(session_id: str = "default"):
+    """Manual save — Joe can hit this before risky operations."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("v7_save", session_id=session_id)
+    if _guala is None:
+        raise HTTPException(status_code=503, detail={
+            "error": "guala_not_ready",
+            "retry_after_seconds": 10,
+            "message": "she is still loading — try again in a moment"
+        })
+    import asyncio as _aio
+    from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
+    def _do_save():
+        session = get_or_create_session(session_id, engine=_guala)
+        save_session(session)
+        data = session.to_json()
+        return {"saved": True, "session_id": session_id,
+                "schema_version": data.get("schema_version"),
+                "tick": data.get("tick"),
+                "n_sections": len(data.get("sections", {})),
+                "vocab_size": sum(len(v) for v in session.vocab.values())}
+    try:
+        return await _aio.get_event_loop().run_in_executor(None, _do_save)
+    except Exception as e:
+        return {"saved": False, "error": str(e)}
+
+@app.get("/v7/persistence")
+async def v7_persistence(session_id: str = "default"):
+    """Check persistence health — is session state on disk?"""
+    import os, json as _json
+    from dsf_ai_service.substrate.v7_engine import STATE_DIR
+    path = os.path.join(STATE_DIR, f"{session_id}.json")
+    if not os.path.exists(path):
+        return {"on_disk": False, "session_id": session_id, "path": path}
+    try:
+        stat = os.stat(path)
+        with open(path) as f:
+            data = _json.load(f)
+        return {
+            "on_disk": True, "session_id": session_id,
+            "file_size_bytes": stat.st_size,
+            "last_modified": stat.st_mtime,
+            "schema_version": data.get("schema_version"),
+            "tick": data.get("tick"),
+            "n_sections": len(data.get("sections", {})),
+        }
+    except Exception as e:
+        return {"on_disk": True, "error": str(e)}
+
+@app.get("/v6/events_histogram")
+async def v6_events_histogram(source: str = "diary"):
+    """Histogram of event types. GL-CMD-EVENT-RETENTION-FIX-172 R5:
+    source='diary' (default) reads the durable, full-width, 7-day diary
+    (dsf_ai_service/v4/gualaloom_v5_engine.py Guala.DIARY_DIR). source=
+    'replay' (or 'events'/'events_log') reads the original narrow-
+    whitelist crash-replay log (events.log) — byte-identical to this
+    endpoint's pre-172 behavior, preserved for any caller that explicitly
+    asks for it; no existing caller breaks since the response shape
+    (total/histogram) is unchanged either way."""
+    import os as _os
+    from collections import Counter as _Counter
+
+    def _histogram_from_lines(lines_iter):
+        hist = _Counter()
+        total = 0
+        for line in lines_iter:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                ev = json.loads(line)
+                hist[ev.get("type", "unknown")] += 1
+                total += 1
+            except Exception:
+                hist["parse_error"] += 1
+        return total, hist
+
+    if source in ("replay", "events", "events_log"):
+        log_path = _os.path.join(STATE_DIR, "events.log")
+        if not _os.path.exists(log_path):
+            return {"error": "no events log", "source": "replay"}
+        with open(log_path) as f:
+            total, hist = _histogram_from_lines(f)
+        return {"total": total, "histogram": dict(hist.most_common()), "source": "replay"}
+
+    # default: diary (R5) — aggregate every retained daily file (<=7 days, R2)
+    diary_dir = _os.path.join(STATE_DIR, "diary")
+    if not _os.path.isdir(diary_dir):
+        return {"error": "no diary", "source": "diary"}
+    combined_hist = _Counter()
+    combined_total = 0
+    for fname in sorted(_os.listdir(diary_dir)):
+        if not fname.endswith(".log"):
+            continue
+        with open(_os.path.join(diary_dir, fname)) as f:
+            day_total, day_hist = _histogram_from_lines(f)
+        combined_total += day_total
+        combined_hist.update(day_hist)
+    return {"total": combined_total, "histogram": dict(combined_hist.most_common()),
+            "source": "diary"}
+
+
+# ════════════════════════════════════════════════════════════════
+# Health check
+# ════════════════════════════════════════════════════════════════
+
+_init_complete = False  # V2: health gate
+_BOOT_START = time.time()   # module load time — for elapsed_ms in readiness responses
+_LIFESPAN_STARTED = False   # set True as soon as startup event fires
+
+@app.on_event("startup")
+async def startup():
+    global _init_complete, _LIFESPAN_STARTED
+    _LIFESPAN_STARTED = True   # shallow-ready gate: uvicorn is up
+    # GL-CMD-HOTFIX-BUNDLE-95 item 4: build identity in the boot banner —
+    # the running code must name its own commit.
+    try:
+        with open("/BUILD_INFO") as _bf:
+            print(f"[build] {' '.join(_bf.read().split())}")
+    except OSError:
+        print("[build] BUILD_INFO absent (image predates -95 build stamp)")
+    result = initialize_integrity()
+    print(f"[DSF-AI] Integrity initialized: {result['files_present']}/{result['files_checked']} files hashed")
+
+    # GL-ARCH-FRONTEND-SPLIT: in remote mode, skip in-process substrate boot
+    if _is_remote():
+        _init_complete = True
+        print(f"[DSF-AI] SUBSTRATE_MODE=remote — substrate runs in separate process")
+        return
+
+    # Embedded mode: print the T1 boot banner before _gl_init fires
+    print("[app] Booting substrate in-process...")
+
+    # SIGTERM handler — defensive save for crash scenarios
+    import signal as _signal
+    def _shutdown_handler(signum, frame):
+        print(f"[GualaLoom] Signal {signum} — shutting down cleanly")
+        # GL-CMD-LOCK-CONTENTION-FIX-182 L2: defense in depth -- normally
+        # /sleep_for_deploy already failed in-flight tasks loudly before
+        # this fires, but a directly-killed container (no deploy pause
+        # step) should not orphan a conversation silently either.
+        _fail_inflight_converse_tasks("turn lost — server shut down mid-conversation, please resend")
+        if _guala is not None:
+            try:
+                _guala.save_full_state(STATE_DIR)
+                print("[GualaLoom] Final save complete")
+            except Exception as e:
+                print(f"[GualaLoom] Final save failed: {e}")
+            # GL-CMD-WAVE-DIET-82: WaveAtlas on clean shutdown
+            try:
+                _guala._save_wave_atlas(STATE_DIR)
+            except Exception as _e:
+                print(f"[wave] save failed (non-fatal): {_e}")
+        sys.exit(0)
+    _signal.signal(_signal.SIGTERM, _shutdown_handler)
+    _signal.signal(_signal.SIGINT, _shutdown_handler)
+    print("[GualaLoom] SIGTERM/SIGINT handlers installed")
+
+    # V2 EAGER INIT: initialize in background so health check passes immediately
+    import asyncio
+    async def _eager_init():
+        global _init_complete
+        loop = asyncio.get_event_loop()
+        t0 = time.time()
+        await loop.run_in_executor(None, _gl_init)
+        dt = time.time() - t0
+        print(f"[DSF-AI] Guala initialized in {dt:.1f}s")
+        _init_complete = True
+        # D3: S3 backup after init
+        try:
+            await loop.run_in_executor(None, _backup_to_s3, STATE_DIR)
+        except Exception as e:
+            print(f"[DSF-AI] Startup S3 backup failed: {e}")
+    asyncio.ensure_future(_eager_init())
+
+    # Server-side background replay for v7 sessions
+    # GL-BUG-V7-SESSION-LEAK (Joe, 2026-07-06): _sessions never evicted
+    # anything -- every page load/reload creates a new session_id, and this
+    # loop kept quiet_tick+save-ing every one of them, forever, every 15s,
+    # for the life of the container. Confirmed live: 128 accumulated
+    # session files going back to 2026-06-08, 1.4GB total, with tonight's
+    # active sessions alone ~20MB EACH -- re-serialized to disk every 15s
+    # regardless of whether anyone was still using them. That's real CPU
+    # (serializing tens of MB isn't free) and real EFS write bandwidth,
+    # competing with the same narrow storage throughput her actual memory
+    # saves already contend for (see the hot-save latency investigation
+    # earlier tonight). EVICT_AFTER_SECONDS stops the recurring per-15s tax
+    # for genuinely abandoned sessions (one final save, then drop from
+    # memory -- reloads from disk fine if that session_id ever reconnects).
+    # RETENTION_DAYS bounds the disk itself, same policy this file already
+    # uses for the diary (DIARY_RETENTION_DAYS=7) -- old test/dev session
+    # files here go back a MONTH with nothing removing them ever.
+    import asyncio
+    V7_SESSION_EVICT_AFTER_SECONDS = 3600  # 1 hour idle -> stop background-ticking it
+    # GL-BUG-V7-SESSION-LEAK follow-up (Joe, 2026-07-06): 7 days (matching
+    # DIARY_RETENTION_DAYS) was still too generous given each session file
+    # runs ~20MB even after the atlas-cap fix above -- confirmed live, 71
+    # files/1.2GB survived a 7-day cutoff. Cut hard per Joe's explicit
+    # "much more aggressively" call: 1 day is enough to resume a same-day
+    # browser tab, not enough to let a month of abandoned tabs pile up
+    # gigabytes again.
+    V7_SESSION_RETENTION_DAYS = 1
+    _v7_last_prune_day = [None]
+
+    def _prune_old_v7_session_files():
+        from dsf_ai_service.substrate.v7_engine import STATE_DIR as V7_STATE_DIR
+        cutoff = time.time() - V7_SESSION_RETENTION_DAYS * 86400
+        removed, freed_bytes = 0, 0
+        try:
+            for fname in os.listdir(V7_STATE_DIR):
+                if not (fname.endswith(".json") or fname.endswith(".json.tmp")
+                        or fname.endswith(".events.jsonl")):
+                    continue
+                fpath = os.path.join(V7_STATE_DIR, fname)
+                try:
+                    st = os.stat(fpath)
+                    if st.st_mtime < cutoff:
+                        freed_bytes += st.st_size
+                        os.remove(fpath)
+                        removed += 1
+                except OSError:
+                    pass
+        except OSError as e:
+            print(f"[v7-prune] scan failed: {e}")
+            return
+        if removed:
+            print(f"[v7-prune] removed {removed} session files older than "
+                  f"{V7_SESSION_RETENTION_DAYS}d, freed {freed_bytes/1e6:.1f}MB")
+
+    async def _background_replay():
+        """Run quiet_tick on idle sessions every 15s; evict long-abandoned
+        sessions from memory; prune disk files past retention once/day."""
+        from dsf_ai_service.substrate.v7_engine import (
+            _sessions, _sessions_lock, save_session,
+        )
+        while True:
+            await asyncio.sleep(15)
+            try:
+                today = time.strftime("%Y-%m-%d", time.gmtime())
+                if _v7_last_prune_day[0] != today:
+                    _v7_last_prune_day[0] = today
+                    loop = asyncio.get_event_loop()
+                    await loop.run_in_executor(None, _prune_old_v7_session_files)
+                with _sessions_lock:
+                    session_ids = list(_sessions.keys())
+                for sid in session_ids:
+                    with _sessions_lock:
+                        session = _sessions.get(sid)
+                    if session is None:
+                        continue
+                    idle = time.time() - getattr(session, '_last_converse_time', 0)
+                    if idle > V7_SESSION_EVICT_AFTER_SECONDS:
+                        try:
+                            loop = asyncio.get_event_loop()
+                            await loop.run_in_executor(None, save_session, session)
+                            with _sessions_lock:
+                                _sessions.pop(sid, None)
+                            print(f"[v7-evict] session={sid} idle={idle:.0f}s "
+                                  f"-- final save, dropped from memory")
+                        except Exception:
+                            pass
+                        continue
+                    if idle > 30:
+                        try:
+                            results = session.quiet_tick(3)
+                            total_c = sum(len(r.get("commits", [])) for r in results)
+                            if total_c > 0:
+                                print(f"[v7-replay] session={sid}: {total_c} commits from replay")
+                            loop = asyncio.get_event_loop()
+                            await loop.run_in_executor(None, save_session, session)
+                        except Exception:
+                            pass
+            except Exception:
+                pass
+    asyncio.ensure_future(_background_replay())
+
+    # N2: Periodic save + backup in executor (never blocks event loop)
+    # GL-CMD-DEEP-STORE-PHYSICS-86 P2: hot/cold split.
+    # Hot: small stores every 60s (target <5s). Cold: full state every 30 min.
+    def _do_hot_save_and_compact():
+        """Hot-lane: small stores only + event compact. Target <5s."""
+        t0 = time.time()
+        pre_size = _guala.events_log_size(STATE_DIR)
+        _guala.save_hot_state(STATE_DIR)
+        t1 = time.time()
+        _guala.compact_events(STATE_DIR, keep_after_offset=pre_size)
+        t2 = time.time()
+        total_dt = t2 - t0
+        print(f"[save-hot] {total_dt:.2f}s core={t1-t0:.2f}s compact={t2-t1:.2f}s")
+        return total_dt
+
+    def _do_save_and_compact(write_wave: bool = False):
+        """Cold-lane: full state + event compact + optional wave write."""
+        t0 = time.time()
+        pre_size = _guala.events_log_size(STATE_DIR)
+        results = _guala.save_full_state(STATE_DIR)
+        t1 = time.time()
+        _guala.compact_events(STATE_DIR, keep_after_offset=pre_size)
+        t2 = time.time()
+        core_dt = t1 - t0
+        compact_dt = t2 - t1
+        grids_dt = results.get("_grids_dt", 0.0) if isinstance(results, dict) else 0.0
+        if write_wave:
+            t3 = time.time()
+            try:
+                _guala._save_wave_atlas(STATE_DIR)
+            except Exception as _e:
+                print(f"[wave] save failed (non-fatal): {_e}")
+            wave_dt = time.time() - t3
+            total_dt = t2 - t0 + wave_dt
+            print(f"[save] {total_dt:.2f}s core={core_dt:.2f}s grids={grids_dt:.2f}s "
+                  f"wave={wave_dt:.2f}s compact={compact_dt:.2f}s")
+        else:
+            total_dt = t2 - t0
+            print(f"[save] {total_dt:.2f}s core={core_dt:.2f}s grids={grids_dt:.2f}s "
+                  f"wave=skip compact={compact_dt:.2f}s")
+        return total_dt
+
+    async def _periodic_v6_save():
+        save_count = 0
+        _last_cold_wall = 0.0   # wall-clock of last cold save
+        loop = asyncio.get_event_loop()
+        while True:
+            await asyncio.sleep(60)
+            if _guala is None:
+                continue
+            now = loop.time()
+            do_cold = (now - _last_cold_wall) >= 1800  # 30-min staleness bound
+            do_wave = save_count > 0 and save_count % 10 == 0
+            try:
+                if do_cold:
+                    await loop.run_in_executor(None, _do_save_and_compact, do_wave)
+                    _last_cold_wall = loop.time()
+                else:
+                    await loop.run_in_executor(None, _do_hot_save_and_compact)
+            except Exception as e:
+                print(f"[save] error: {e}")
+            finally:
+                # GL-CMD-SAVE-CONTAINMENT-91: save_count in finally — wave/snapshot
+                # exceptions can never jam the counter at #10.
+                save_count += 1
+            if do_wave and do_cold:
+                try:
+                    snap_dir = await loop.run_in_executor(
+                        None, lambda: _guala.snapshot_state(STATE_DIR, reason="periodic"))
+                    print(f"[v6] Snapshot: {snap_dir}")
+                except Exception as e:
+                    print(f"[wave] snapshot failed (non-fatal): {e}")
+    asyncio.ensure_future(_periodic_v6_save())
+
+    # Daily S3 backup (also in executor)
+    async def _daily_s3_backup():
+        loop = asyncio.get_event_loop()
+        while True:
+            await asyncio.sleep(86400)
+            try:
+                if _guala is not None:
+                    await loop.run_in_executor(None, _backup_to_s3, STATE_DIR)
+            except Exception as e:
+                print(f"[DSF-AI] S3 backup error: {e}")
+    asyncio.ensure_future(_daily_s3_backup())
+
+    # GL-CMD-SAVE-TRUTH-84: Hourly S3 sync — uploads EFS state as-is regardless
+    # of save completion. Date-stamped prefix; complements the 24h daily backup.
+    async def _hourly_s3_sync():
+        loop = asyncio.get_event_loop()
+        while True:
+            await asyncio.sleep(3600)
+            try:
+                if _guala is not None:
+                    await loop.run_in_executor(None, _backup_to_s3, STATE_DIR)
+            except Exception as e:
+                print(f"[DSF-AI] Hourly S3 sync error: {e}")
+    asyncio.ensure_future(_hourly_s3_sync())
+
+    # GL-CMD-74: Job registry GC — expire old jobs every 60 seconds
+    async def _job_registry_gc():
+        from dsf_ai_service.curriculum import job_registry as _jr
+        while True:
+            await asyncio.sleep(60)
+            try:
+                n = _jr.gc_expired()
+                if n > 0:
+                    print(f"[job-gc] Evicted {n} expired job(s)")
+            except Exception:
+                pass
+    asyncio.ensure_future(_job_registry_gc())
+
+    # GL-CMD-WAVE-SEMANTICS-85 Part D.2: S3 lifecycle policy at startup
+    # hourly backups expire 7d, auto/ dailies expire 60d, named restores permanent
+    def _apply_s3_lifecycle():
+        try:
+            import boto3 as _b3
+            _s3 = _b3.client("s3", region_name="us-east-1")
+            _s3.put_bucket_lifecycle_configuration(
+                Bucket="dsf-ai-site-backups",
+                LifecycleConfiguration={
+                    "Rules": [
+                        {
+                            "ID": "guala-hourly-expire-7d",
+                            "Status": "Enabled",
+                            "Filter": {"Prefix": "guala/2"},  # date-stamped hourly: guala/2026-...
+                            "Expiration": {"Days": 7},
+                        },
+                        {
+                            "ID": "guala-auto-expire-60d",
+                            "Status": "Enabled",
+                            "Filter": {"Prefix": "guala/auto/"},
+                            "Expiration": {"Days": 60},
+                        },
+                        {
+                            "ID": "guala-wave-migrate-expire-90d",
+                            "Status": "Enabled",
+                            "Filter": {"Prefix": "guala/wave_migrate_pre/"},
+                            "Expiration": {"Days": 90},
+                        },
+                    ]
+                },
+            )
+            print("[85-D2] S3 lifecycle policy applied: hourly→7d, auto/→60d, wave_migrate→90d")
+        except Exception as _le:
+            print(f"[85-D2] S3 lifecycle policy failed (non-fatal): {_le}")
+    loop = asyncio.get_event_loop()
+    loop.run_in_executor(None, _apply_s3_lifecycle)
+
+
+_last_s3_backup = None  # D3: tracked for persistence_health
+
+def _restore_from_s3(state_dir):
+    """P0: Restore state files from most recent S3 backup."""
+    import boto3
+    s3 = boto3.client("s3", region_name="us-east-1")
+    bucket = "dsf-ai-site-backups"
+    # Find most recent backup prefix — date-stamped folders only (exclude auto/, events/, etc.)
+    resp = s3.list_objects_v2(Bucket=bucket, Prefix="guala/", Delimiter="/")
+    import re as _re
+    _date_pat = _re.compile(r"guala/\d{4}-\d{2}-\d{2}_")
+    prefixes = sorted(
+        [p["Prefix"] for p in resp.get("CommonPrefixes", [])
+         if _date_pat.match(p["Prefix"])],
+        reverse=True)
+    if not prefixes:
+        raise RuntimeError("No S3 backups found")
+    latest = prefixes[0]
+    print(f"[GualaLoom] Restoring from {latest}")
+    # Download all files
+    objs = s3.list_objects_v2(Bucket=bucket, Prefix=latest)
+    for obj in objs.get("Contents", []):
+        key = obj["Key"]
+        filename = key[len(latest):]
+        if "/" in filename:
+            # pictures/xxx.npy → state/pictures/xxx.npy
+            subdir = os.path.join(state_dir, os.path.dirname(filename))
+            os.makedirs(subdir, exist_ok=True)
+        local_path = os.path.join(state_dir, filename)
+        s3.download_file(bucket, key, local_path)
+    print(f"[GualaLoom] Restored {len(objs.get('Contents', []))} files from S3")
+
+
+def _backup_to_s3(state_dir):
+    """V4/D3: Copy state files to S3 via boto3 (no aws CLI in container)."""
+    global _last_s3_backup
+    import boto3
+    s3 = boto3.client("s3", region_name="us-east-1")
+    bucket = "dsf-ai-site-backups"
+    date_str = time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime())
+    prefix = f"guala/{date_str}/"
+    files = ["guala_core.json", "guala_needs.json", "guala_coordinator.json",
+             "guala_atlas.json", "guala_sections.json", "guala_bucket.json",
+             "guala_deep_atlas.json", "guala_visual.json", "guala_identity.json",
+             "guala_sounds.json", "guala_videos.json",
+             "guala_organism.pkl.gz", "guala_tapestry.pkl.gz"]  # GL-CMD-175 P1
+    backed = 0
+    for f in files:
+        path = os.path.join(state_dir, f)
+        if os.path.exists(path):
+            try:
+                s3.upload_file(path, bucket, prefix + f)
+                backed += 1
+            except Exception as e:
+                print(f"[DSF-AI] S3 backup {f} failed: {e}")
+    # Also backup picture originals
+    pic_dir = os.path.join(state_dir, "pictures")
+    if os.path.isdir(pic_dir):
+        for pf in os.listdir(pic_dir):
+            try:
+                s3.upload_file(os.path.join(pic_dir, pf), bucket, prefix + "pictures/" + pf)
+            except Exception:
+                pass
+    _last_s3_backup = {
+        "timestamp": date_str,
+        "prefix": f"s3://{bucket}/{prefix}",
+        "file_count": backed,
+    }
+    print(f"[DSF-AI] S3 backup: {backed} files to s3://{bucket}/{prefix}")
+    return f"s3://{bucket}/{prefix}"
+
+
+# C3: Graceful SIGTERM — final save + lock release for zero-downtime deploys
+@app.on_event("shutdown")
+async def shutdown():
+    if _guala is not None:
+        import asyncio
+        loop = asyncio.get_event_loop()
+        def _final_save():
+            t0 = time.time()
+            try:
+                _guala.save_full_state(STATE_DIR)
+                dt = time.time() - t0
+                print(f"[shutdown] final save {dt:.2f}s")
+            except Exception as e:
+                print(f"[shutdown] save error: {e}")
+        await loop.run_in_executor(None, _final_save)
+
+
+@app.get("/health")
+async def health():
+    # Always return 200 for ALB liveness checks.
+    return {
+        "status": "ok" if _init_complete else "initializing",
+        "service": "dsf-ai",
+        "version": "1.0.0",
+        "ready": _init_complete,
+    }
+
+@app.get("/ready")
+async def ready():
+    """Shallow readiness — 200 as soon as uvicorn is up.
+    ECS health check hits this path. Never returns 503 for boot delay.
+    guala_ready field shows whether Guala is loaded.
+
+    64-B: split from deep readiness so ECS doesn't cycle during 195s embedded boot.
+    """
+    elapsed_ms = int((time.time() - _BOOT_START) * 1000)
+    guala_ready = _guala is not None
+    return {
+        "ready": True,           # always 200 after lifespan starts
+        "guala_ready": guala_ready,
+        "state": "ready" if guala_ready else "warming",
+        "elapsed_ms": elapsed_ms,
+    }
+
+
+@app.get("/ready/guala")
+async def ready_guala():
+    """Deep readiness — 200 only when Guala is fully loaded.
+    Non-critical consumers (bridge, UI) can poll this to know when to expect responses.
+    Returns 503 with Retry-After during boot.
+    """
+    elapsed_ms = int((time.time() - _BOOT_START) * 1000)
+    if _guala is None:
+        return JSONResponse(
+            status_code=503,
+            content={"ready": False, "error": "guala loading", "elapsed_ms": elapsed_ms},
+            headers={"Retry-After": "10"},
+        )
+    return {
+        "ready": True,
+        "guala_id": (getattr(_guala, '_guala_identity', None) or "")[:8],
+        "vocab": len(_guala.vocab),
+        "tick": _guala.tick,
+    }
+
+@app.post("/sleep_for_deploy")
+async def sleep_for_deploy():
+    """GL-BRIEF-SLEEP-DURING-DEPLOY: deploy script POSTs this
+    before update-service. Puts her to sleep, saves state,
+    writes .sleeping marker. Returns sleep tick."""
+    # GL-CMD-LOCK-CONTENTION-FIX-182 L2: fail any in-flight conversation
+    # loudly before the process that owns them goes away — see
+    # _fail_inflight_converse_tasks's own docstring for why.
+    _fail_inflight_converse_tasks("turn lost — server was redeployed mid-conversation, please resend")
+    if _is_remote():
+        client = _get_substrate_client()
+        try:
+            return await client.call("sleep_for_deploy")
+        except (RuntimeError, ConnectionError, OSError) as e:
+            # Substrate returned ok=False or socket closed during shutdown.
+            # Return 200 so the deploy script can proceed — state is recoverable
+            # from EFS snapshot taken before the substrate process exited.
+            return JSONResponse(status_code=200,
+                                content={"ok": False, "error": str(e)})
+    if _guala is None:
+        return JSONResponse(
+            status_code=503,
+            content={"ok": False,
+                     "message": "guala not loaded — cannot sleep"})
+    if _guala.is_asleep:
+        return {"ok": True,
+                "already_asleep": True,
+                "sleep_tick": _guala.tick}
+    try:
+        _guala.manual_sleep(state_dir=STATE_DIR)
+        return {"ok": True,
+                "sleep_tick": _guala.tick,
+                "vocab": len(_guala.vocab)}
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"ok": False, "error": str(e)})

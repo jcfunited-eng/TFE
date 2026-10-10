@@ -1,0 +1,2878 @@
+{
+  "schema": "guala.documentary_slice_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T07:33:08.829937+00:00",
+  "scope": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "PL01-01",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "010bf3ba6769eeac15fa629b4a34f0ede510de26",
+      "sha256": "61b045ac3000c0a199532e7c5cdad8bf7231117f08b4a4824286988f84d24138",
+      "bytes": 225235,
+      "lines": 3336,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-01--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T10:53:38+00:00",
+          "commit": "c79b256e91c3b3f5390b275c8d98c984de90c541",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T10:08:42+00:00",
+          "commit": "e48dcf2a98fa07d18d1400521a1466f53ab08bb7",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-01--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-02",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "03bfcc0695b9b15b5a3dcf5cab78eff7f51983ac",
+      "sha256": "9e971d1206e16fd471eed337fd37082313ba69d3bf8a1a2afb64f259cac3ed62",
+      "bytes": 101188,
+      "lines": 1476,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-02--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T22:03:24+00:00",
+          "commit": "f7c6f65e2e29cc3ca6f17e5b19e0b6a42aef65df",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T21:24:25+00:00",
+          "commit": "9a5c3f911e92deb42b543855bb52eb9524dfbf5e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-02--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-03",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "04e5099204d96566ee0b87aac545aff0feb8035e",
+      "sha256": "9bdaa2b3b1f4d584eaf97725d7e14a5c9df5bdd7003b750007cbd5037eb06eec",
+      "bytes": 91022,
+      "lines": 1337,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-03--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T20:08:33+00:00",
+          "commit": "81264530ade9722bd9a5a017092d181853fb81cd",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T18:41:28+00:00",
+          "commit": "8a989fb8dd876a72062323ed7208a8a178ad328e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-03--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-04",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "06ee799ba79fdb1abc001527ac14c8c775980278",
+      "sha256": "896b168e45044b623b982e9a2ce1ab914e7c4b375607e4dc5269ae94c3bd4645",
+      "bytes": 119374,
+      "lines": 1749,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-04--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T02:24:55+00:00",
+          "commit": "76e3e94248d6e2365eed2c845b3453abdff932f2",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T01:18:09+00:00",
+          "commit": "74befe4742e3b78fc29c4c4c496cb4cdb5dd8a38",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-04--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-05",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "0b407ab78df573487b8ad39ae6d3ccf20e9ed9c5",
+      "sha256": "a6a8062cc00fa2c68010e7b8d407c08ac09585356b81607836a5056c1f54e511",
+      "bytes": 193039,
+      "lines": 2826,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-05--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T13:28:49+00:00",
+          "commit": "161ec65afc0c4a61720a6626f6360e7214e10927",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T12:53:15+00:00",
+          "commit": "e14451d948269ea06062bf4f0883a5f32bf09b7a",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-05--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-06",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "11855a4fa56c121a867a38bb28fa0dd5c57998d8",
+      "sha256": "d3ae7df45afc45fbc68a62133765b8a2897c9c001ed04a2e4dd2370e951aa2dc",
+      "bytes": 108362,
+      "lines": 1585,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-06--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T00:13:09+00:00",
+          "commit": "57c7585f65325998c39002c0cabf27f70bf8b356",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T23:06:26+00:00",
+          "commit": "9f206832ae4a3bcef0848608ce9207c57cd744e5",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-06--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-07",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "158b8271179597c85593c9e43bdd71e797fb5f4a",
+      "sha256": "bceeaec31e98c40206cd9681fb43c472a356687124d290fac45bc8890534cc59",
+      "bytes": 64973,
+      "lines": 983,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-07--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T06:44:36+00:00",
+          "commit": "63910b7463d0aaa6a84bb50751ad21f1bfac11e7",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T05:37:29+00:00",
+          "commit": "7b90797b689171c873e8297ca27c83d867f4c789",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-07--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-08",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "1cfeb86eb66ba194c67a7c50eab000c79638ffb6",
+      "sha256": "0479212019289bea474c7257ade3927d2f8449a26aae91d5d0061aa8c7052a64",
+      "bytes": 205304,
+      "lines": 3016,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-08--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T02:43:03+00:00",
+          "commit": "7ddd7cc4e1144b025927867ee0fb97fc1b794b28",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T02:19:40+00:00",
+          "commit": "c8ce5b8ddffea36d8b38ef8bab6792e2b3138e28",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-08--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-09",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "1d696e7e6b1587564783808358cc76aa2c3874ca",
+      "sha256": "1a18055fdbde7ae1fcd3a16ab5b3e989f7e6a73f9f3b7d5d4785d6f40834e675",
+      "bytes": 149703,
+      "lines": 2187,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-09--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T07:27:59+00:00",
+          "commit": "421722b2e3749ae405ebc09cf5e7918eb002a9dc",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T06:58:41+00:00",
+          "commit": "966d90123758443e6a4ec4fb42b0913828d1dc03",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-09--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-10",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "204895df6eb3a74b3ef83a19211f2e4f20201012",
+      "sha256": "a63091ea7d34342c2b2a6647d2a63da9ecb4bf4efe9db3574c7e70801db71e39",
+      "bytes": 125692,
+      "lines": 1842,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-10--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T03:56:25+00:00",
+          "commit": "5ffa77acf6eb94193cbb2492a8d9b39619df1224",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T03:07:29+00:00",
+          "commit": "2f38230b08453637dddd1a41e71970da6b3d815f",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-10--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-11",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "214db36fee5e18c2a14b3d1e27b260d3d805e018",
+      "sha256": "09a28666200d162d028bf12eb3a3e49e694404833b95d76744538741ab582b65",
+      "bytes": 41819,
+      "lines": 613,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-11--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T01:31:32+00:00",
+          "commit": "220902c28cef4106486adaf97f7ac3cb0f7f289a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T01:04:20+00:00",
+          "commit": "de3e15abb662f74b420883b67958897a9b945c5b",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-11--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-12",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "223cf5b9dc67810ff99b89aa55e9934a82e54996",
+      "sha256": "7dd1df4e8eaa9a14c9cbe2e16504fbe89433c9c1efaadf712bf4d89506b9ab50",
+      "bytes": 116207,
+      "lines": 1703,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-12--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T01:18:09+00:00",
+          "commit": "74befe4742e3b78fc29c4c4c496cb4cdb5dd8a38",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T00:55:32+00:00",
+          "commit": "671bb9ade4445ed016723326e6e366d3165cc960",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-12--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-13",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "2513f90dff304e577604da27a5a5599905da65ed",
+      "sha256": "4d138a037420c1dd2a2bfe61f9ae12552bf3e6a396ba7d394a576fb9044cb3ab",
+      "bytes": 189803,
+      "lines": 2773,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-13--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T12:20:54+00:00",
+          "commit": "73cd56383ae60aae29f97a64aa49d84bf9d66d69",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T12:20:03+00:00",
+          "commit": "930e77eb14ae8b8e33cdd038620e5da11d412ad8",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-23T11:50:46+00:00",
+          "commit": "17c2cebb4844fa063d4ba4ea44a792e80bf372f7",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T13:46:42+00:00",
+          "commit": "90985c29058cc08f672a0e6ccfc4f9a63ccef2d0",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-13--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-14",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "27bc1cfef2e34191eed09ec9aba77e8fff30b8e8",
+      "sha256": "d6e7a7457ac8be64cccb0b1d0b1e33aa25fa96825b6528bd7def5ff24f4f4769",
+      "bytes": 75958,
+      "lines": 1119,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-14--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T16:31:32+00:00",
+          "commit": "d82918c7add06e6c2638885d064ed04ef38fadb7",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T07:39:45+00:00",
+          "commit": "fe5da839a7b88abbf7eb3389c2babb1fbc495cad",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-14--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-15",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "2af9dafc2cc25b320a522d3e460ca85f8ccb1b39",
+      "sha256": "1316235432337455cb4dd28e8e1c2a66809a41b9efa869640457ec257c1c3c37",
+      "bytes": 199299,
+      "lines": 2917,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-15--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T01:30:47+00:00",
+          "commit": "6c3430e7b054fa6f51889df8e603277b774955d7",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T00:54:13+00:00",
+          "commit": "96ab4340f70237c116b9a48ecc6af9e3de0a259a",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-15--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-16",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "2e7a2d3d74839ad2bf8e0e7eda95af22ab850032",
+      "sha256": "8fc361c9784d8980df1dedac14728de7141f868ce79cac9c4c2b27d9298b3423",
+      "bytes": 54225,
+      "lines": 806,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-16--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T03:50:45+00:00",
+          "commit": "4726c69bc44055dc9747654e833d2a6d807b38a1",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T03:21:33+00:00",
+          "commit": "f10f27d8a415283be43a92d19b58ca7fd9b1accb",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-16--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-17",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "35486c823dbc9eab25a3b97f13af1952b91e4e90",
+      "sha256": "eeebc375491ed62ebcc0e40d414fdded8676e4ef8fc1bee4e99dd61a8d29103a",
+      "bytes": 45193,
+      "lines": 668,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-17--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T02:12:20+00:00",
+          "commit": "a4d7b826110737cf71a235e99354d54c837c86ef",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T01:52:52+00:00",
+          "commit": "0ba655746723940cbfd43d29193e3fd21e5513f3",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-17--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-18",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "35f4b104f372c2870d44195858dd1fbab7ad478b",
+      "sha256": "2bb58ba0528ff75a5fd1d565561ab9f74a109d00e72a78c1049ea8dc23608972",
+      "bytes": 51164,
+      "lines": 766,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-18--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T03:21:33+00:00",
+          "commit": "f10f27d8a415283be43a92d19b58ca7fd9b1accb",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T02:57:21+00:00",
+          "commit": "cf2e6b4f94071f22422e0b64d031a6fa543fdb6c",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-18--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-19",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "36abf354a65f43c429a7c5f5719ea9c71573afb5",
+      "sha256": "67292eba84fa9e5e632abbb4f3f9771fd2b7bd982c58657f6d1769d32528f1ca",
+      "bytes": 192420,
+      "lines": 2817,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-19--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T13:28:51+00:00",
+          "commit": "0b48b7a2eefc60d8c0c50804406f2caf75aa181b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T13:28:49+00:00",
+          "commit": "161ec65afc0c4a61720a6626f6360e7214e10927",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-23T12:53:15+00:00",
+          "commit": "e14451d948269ea06062bf4f0883a5f32bf09b7a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T12:32:47+00:00",
+          "commit": "f390624f9bba75c2d1bbe6f4a70ce44a61738503",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-19--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-20",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "4568cd64768a6ce8348085389468cd1fdbd9e746",
+      "sha256": "8c480205d6609ceee09171eab79435252cc5ce2ea7c632a4e0565b4f0fe6cc41",
+      "bytes": 96409,
+      "lines": 1405,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-20--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T20:49:50+00:00",
+          "commit": "84ef177569fa7e49b8ecdcfbedfc05a0d70771e7",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T20:08:33+00:00",
+          "commit": "81264530ade9722bd9a5a017092d181853fb81cd",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-20--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-21",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "4746e9032b556df39fb639cae4ef73b04561ee2a",
+      "sha256": "12d0df34cc247140a6224309bcc956c19df9272a2e8583b47fdd3fd34cac8691",
+      "bytes": 123408,
+      "lines": 1810,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-21--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T03:07:29+00:00",
+          "commit": "2f38230b08453637dddd1a41e71970da6b3d815f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T02:24:55+00:00",
+          "commit": "76e3e94248d6e2365eed2c845b3453abdff932f2",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-21--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-22",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "47818a45f863583d893f360010ca818d7bf7f4d5",
+      "sha256": "cb2154c4efbb0f618c636c92aecb093c79a30f5c001b2376633537da7efccdc0",
+      "bytes": 135010,
+      "lines": 1977,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-22--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T06:16:56+00:00",
+          "commit": "80dfc2306b9b6ca72698defa2e504327c9f63e8a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T05:03:43+00:00",
+          "commit": "86903c62d461b545c0fe38f6738eabaa89d7fd29",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-22--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-23",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "482d3682ae83a8a77266143f7264193f3b902391",
+      "sha256": "ee5df2fb4442e24c9abfa9bb70b5c457cb47af53f76cc9c28a15bc955fba4af5",
+      "bytes": 186326,
+      "lines": 2716,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-23--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T13:46:42+00:00",
+          "commit": "90985c29058cc08f672a0e6ccfc4f9a63ccef2d0",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T13:23:56+00:00",
+          "commit": "d0a1956b93e3cd4af6cd7ca9cea4d296a64f1eb0",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-23--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-24",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "4b318abd1458f96ba37bbbb9d9f4fcd2f5df6b7f",
+      "sha256": "1a47a407949d942b5b9f99bb4b92a339112cca4a3447ff6beaef423633862b39",
+      "bytes": 191747,
+      "lines": 2807,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-24--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T12:20:03+00:00",
+          "commit": "930e77eb14ae8b8e33cdd038620e5da11d412ad8",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T11:50:46+00:00",
+          "commit": "17c2cebb4844fa063d4ba4ea44a792e80bf372f7",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-24--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-25",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "4cec3c0f6290013aa43e129de5f75b3253032a72",
+      "sha256": "6471b9db941f1aab7ed2a4ee4a9c5dd15bc15543d49bf278baa324d6468ca953",
+      "bytes": 200983,
+      "lines": 2944,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-25--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T01:38:41+00:00",
+          "commit": "037515de3e52d296e89be64fe81ecd6281cc909c",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T01:30:47+00:00",
+          "commit": "6c3430e7b054fa6f51889df8e603277b774955d7",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-25--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-26",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "4fc2bf23060da086e840b34b524a7c2cdb969d02",
+      "sha256": "ea35bab91e84afa3b6f0d7380f7aa7aed9083b69d9b0cdc8b965342d4643cd1b",
+      "bytes": 227110,
+      "lines": 3365,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-26--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T11:30:27+00:00",
+          "commit": "ca9a9e2eb6d55d021438be05dfea9577a3146091",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T10:53:38+00:00",
+          "commit": "c79b256e91c3b3f5390b275c8d98c984de90c541",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-26--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-27",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "4fff1df61abb16327b67773c75a83bad16bd592c",
+      "sha256": "0ea9d81c1b27d38bc58c3ab1a20619d6df5babace2a2c3d233e187e6532248cd",
+      "bytes": 206271,
+      "lines": 3032,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-27--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T03:03:25+00:00",
+          "commit": "4a69b09f0220dda27f1066f9b4aa5eda8ced0e02",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T02:43:03+00:00",
+          "commit": "7ddd7cc4e1144b025927867ee0fb97fc1b794b28",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-27--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-28",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "513e03b47ce50b87b8967f7264954f63377c9533",
+      "sha256": "7aca046c2bb4fcbfe5c032abea212e5aff9691bc153dc09d41136bb0f89966bd",
+      "bytes": 169265,
+      "lines": 2474,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-28--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T12:52:37+00:00",
+          "commit": "9a30306fba72d27f376b0c88b1c44d707dca5ab9",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T09:57:08+00:00",
+          "commit": "0aaf6caccc535a980b9eb639e417c1be14606991",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-28--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-29",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "540a0ce8a13a0e4e41bd9156869abb776f533810",
+      "sha256": "9867bdba022901ab0563ee996093c3d31d7ad80e4292cdc90f936dce6e997f15",
+      "bytes": 113729,
+      "lines": 1666,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-29--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T00:55:32+00:00",
+          "commit": "671bb9ade4445ed016723326e6e366d3165cc960",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T00:45:32+00:00",
+          "commit": "245e356e900686b004babd3dfd2806c903890a0a",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-29--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-30",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "56e8d7834cf77c2d708c6dd37f775dcc27cf3cec",
+      "sha256": "b2a220895d5629725d7d4c92a2e99a85a70f750a0d1ed573e21b684283256567",
+      "bytes": 219911,
+      "lines": 3253,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-30--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T09:03:21+00:00",
+          "commit": "3ab8816043681d652a95acbca7504a4b78846815",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T07:51:47+00:00",
+          "commit": "60a143bac0a94e5727978905a029a7bdfba4dd6f",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-30--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-31",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "5730fb549be2f1904225ea1b93982bba8bb1e3f2",
+      "sha256": "2aacbc68e3aaf597caa451ea2649b95b1852fbe78eb1869e957899791efe84ab",
+      "bytes": 209250,
+      "lines": 3081,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-31--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T03:52:50+00:00",
+          "commit": "8ca02c6a9e8bbd12d0da30c6647e36dd9f8279d1",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T03:33:45+00:00",
+          "commit": "18ac25a4b6c8877ab86a812f56f2bca43a97c81a",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-31--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-32",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "5a5ed22c106de662f4a1973e8af125b90c3c6859",
+      "sha256": "1b203932e75a838f84e7229b32899bdc0eb961c2ac7b4789b680a1946922ca9d",
+      "bytes": 232660,
+      "lines": 3451,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-32--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T08:56:31+00:00",
+          "commit": "7e9283c4895e81805d6815b0b905b43ab5ae05bc",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T20:54:00+00:00",
+          "commit": "22aec0c93ea9ca161eb1cbb402d287bf60d3e29a",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-32--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-33",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "5bb7e7ff9c345841831a40826bd892369da6c397",
+      "sha256": "ebc9c68211cb7ebe8f9a14cb5022033d8c4afe2b44d8115d5e5909103dafa499",
+      "bytes": 48480,
+      "lines": 721,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-33--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T02:33:42+00:00",
+          "commit": "7f8a5ececea4ef9219177f50f966cd418ae9050d",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T02:12:20+00:00",
+          "commit": "a4d7b826110737cf71a235e99354d54c837c86ef",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-33--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-34",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "5d1984dd3cb7f4384b5563acfd80f581cd3b8ebf",
+      "sha256": "4055abf9c7151a5ba3b1a338ac8e6a990874d1f2d221cfc3d2d1071f85ec786a",
+      "bytes": 83798,
+      "lines": 1225,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-34--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T17:17:50+00:00",
+          "commit": "f3e42daf1194a9faa8da55f878b53b31c4b4f7d7",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T16:31:32+00:00",
+          "commit": "d82918c7add06e6c2638885d064ed04ef38fadb7",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-34--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-35",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "65ae100077f269234a5176cddcdbd067a509162f",
+      "sha256": "f485bb75619f4b7e7451175ff3166f6f24d05f6a2a8b0bb3c6563464625385d0",
+      "bytes": 203237,
+      "lines": 2984,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-35--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T02:19:40+00:00",
+          "commit": "c8ce5b8ddffea36d8b38ef8bab6792e2b3138e28",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T01:59:26+00:00",
+          "commit": "2d014e10518a450e7c4361f5844b39b00c5b8989",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-35--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-36",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "6df7fb2eb4e9907a604ed60f4bd61f192756822e",
+      "sha256": "ea2fa3753ad761d26cd54938d600a899fda6fea787c8b1360d02027be2820c09",
+      "bytes": 21652,
+      "lines": 309,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-36--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T22:02:59+00:00",
+          "commit": "21ce988e0ca65d7456e5a967020589168d4b4a02",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T21:38:56+00:00",
+          "commit": "0611f6d3b92816e5c83d97f1dcb2b5b9bcc1da03",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-36--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-37",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "73c19b70424ddd746fccc514b6906dccae79c70b",
+      "sha256": "c2bd46c7ae5ad6ee47f4448c639f1bf0bd036653bb2ec8ba17e5270ffe6da19c",
+      "bytes": 29272,
+      "lines": 419,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-37--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T22:50:07+00:00",
+          "commit": "9d1719c80dc11a696bf42f83e38a9807497c6f3a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T22:22:03+00:00",
+          "commit": "ce25eeccb675c305e3a055c07109362704587892",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-37--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-38",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "76da0f906918f497b177b4b7a1dc3de61a0836b2",
+      "sha256": "3b537972b4aeba14058d5b8f676fe31826a6c45ad3097b0381e7fe14174531ed",
+      "bytes": 54869,
+      "lines": 817,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-38--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T04:22:03+00:00",
+          "commit": "f2a876c8e483d351868e53a625c6b79aebb12ecd",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T03:50:45+00:00",
+          "commit": "4726c69bc44055dc9747654e833d2a6d807b38a1",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-38--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-39",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "76ef96dcaf89365708e3e375bda6706330a51812",
+      "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5",
+      "bytes": 234568,
+      "lines": 3480,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T08:56:31+00:00",
+          "commit": "7e9283c4895e81805d6815b0b905b43ab5ae05bc",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-40",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "77b4f3dffc48c7db2e493d8a7e87f8b544dfbbf4",
+      "sha256": "e0277a8ec24de1d60aad5d9a13841d99419e6146813911179e1a60b64a67ea80",
+      "bytes": 127665,
+      "lines": 1872,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-40--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T05:03:43+00:00",
+          "commit": "86903c62d461b545c0fe38f6738eabaa89d7fd29",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T03:56:25+00:00",
+          "commit": "5ffa77acf6eb94193cbb2492a8d9b39619df1224",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-40--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-41",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "7a90550e4dd91829ed47d1d200a39bba55a6a6ba",
+      "sha256": "bcbd167314fa312b32a533e7b6c80e2dd9b726b596de76904a346722aec540c4",
+      "bytes": 74052,
+      "lines": 1092,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-41--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T07:39:45+00:00",
+          "commit": "fe5da839a7b88abbf7eb3389c2babb1fbc495cad",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T07:32:19+00:00",
+          "commit": "c6a1efa19fa65b6927850817bb6c97ae879aaf73",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-41--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-42",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "7b82bd10bb90df038d7c236c78a5caa1a189ad7f",
+      "sha256": "701c9753cd8d9423d43cdd61899f7ea6e3ec63b4198e1fc52592defa32326014",
+      "bytes": 228578,
+      "lines": 3388,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-42--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T14:44:55+00:00",
+          "commit": "51347f4049583a4f55438de5f43caf054049efcd",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T11:30:27+00:00",
+          "commit": "ca9a9e2eb6d55d021438be05dfea9577a3146091",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-42--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-43",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "7ef54f349e74265a117f5ed52dbeaaf14c0a66ff",
+      "sha256": "050a24aff5d5d25ea62af6b2776c2bf9a5b0ea3808439ac58a1f93a16de480f3",
+      "bytes": 216901,
+      "lines": 3203,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-43--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T07:12:27+00:00",
+          "commit": "a2885800423ba0e4f776fd420508569ad9c5d32b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T06:46:34+00:00",
+          "commit": "e5dfc4a4cbd31e99c4e1cba675d91f3b9d2ce85b",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-43--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-44",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "7f25f9feca978430b29b887f3080f89e44162abc",
+      "sha256": "eab59b33d950fe12b4b60b4d32aed6492f6b215fe395cc4710b6aafad8b6d7eb",
+      "bytes": 213858,
+      "lines": 3154,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-44--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T05:42:33+00:00",
+          "commit": "0dc44b2ba56d6c58eeb130099d8bd35f932b5758",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T05:10:16+00:00",
+          "commit": "e82f08d765d3e4487ae22c9953b7aa73b66ac2c5",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-44--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-45",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "801ca11b1779104542715d2f3d72921bc7ffd69c",
+      "sha256": "96d25ca33e5d9d6971e45fbe1b045b2d3755f9e3cb8a88f48911ecc0dfb0c1f5",
+      "bytes": 158494,
+      "lines": 2313,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-45--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T08:23:39+00:00",
+          "commit": "a4963e54020053a9c09a96f829b49ef1b2a7d930",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T07:52:01+00:00",
+          "commit": "2f1d64e4525c677c7cdded8c7fb89462b40222d6",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-45--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-46",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "8055f58d6f0f93db75e265314ed49962800fa3ed",
+      "sha256": "6baf90fb282fb507bbe6b4f7eb6825ebcca1461ba09e5d2e2871ce6a6dfa57d7",
+      "bytes": 210404,
+      "lines": 3101,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-46--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T04:50:03+00:00",
+          "commit": "98bee50669881467ffce6b0ee13269ec2e248180",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T03:52:50+00:00",
+          "commit": "8ca02c6a9e8bbd12d0da30c6647e36dd9f8279d1",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-46--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-47",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "835374d5b3bfdd6efc99de09521d7ca63346656b",
+      "sha256": "ac41c8180670ae643dda39c8639dddab5f375bc8d9a395501e6f9f392c788120",
+      "bytes": 218435,
+      "lines": 3229,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-47--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T07:51:47+00:00",
+          "commit": "60a143bac0a94e5727978905a029a7bdfba4dd6f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T07:12:27+00:00",
+          "commit": "a2885800423ba0e4f776fd420508569ad9c5d32b",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-47--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-48",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "8e83c7cfb961fc6389db0a042e57f0ac182b98ae",
+      "sha256": "77593117b5b63a04f5361db620091e93363c658c44cf38b8ea5afe10b9359aea",
+      "bytes": 105253,
+      "lines": 1538,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-48--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T23:06:26+00:00",
+          "commit": "9f206832ae4a3bcef0848608ce9207c57cd744e5",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T22:41:08+00:00",
+          "commit": "5624479e024924af066d44179826caa2c7ac80d6",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-48--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-49",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "924efaa5553494f46f6b1cef1ce9faf5501e1f09",
+      "sha256": "8ebdb8bda5fd7b2725173cfa64fe736e627c35570f7b053102630c7e88083b41",
+      "bytes": 191075,
+      "lines": 2795,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-49--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T12:23:00+00:00",
+          "commit": "faad0a5a3aadd2b80a70ea93a3f6e34dba087078",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T12:20:54+00:00",
+          "commit": "73cd56383ae60aae29f97a64aa49d84bf9d66d69",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-49--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-50",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "92824591f1ba7a3149767f9efe3525446cd5683b",
+      "sha256": "e2247f7aaf72b07c5de782f329847c96acf465b7bb368252e978a2296b43abb7",
+      "bytes": 60749,
+      "lines": 912,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-50--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T05:05:07+00:00",
+          "commit": "8c9c8b066df5828369d2141618204bb48e627dae",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T04:39:19+00:00",
+          "commit": "a2da3b8c59272b05faab5eb8782cd112e6cfff2c",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-50--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-51",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "991c85d9c960343275ca5f67dffaaf02548b1b0d",
+      "sha256": "4ef18792ab48d1e5a0da73f0b104e7a4f5afd0473ac0c8495365caf431a65e0f",
+      "bytes": 143792,
+      "lines": 2103,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-51--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T06:58:41+00:00",
+          "commit": "966d90123758443e6a4ec4fb42b0913828d1dc03",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T06:45:52+00:00",
+          "commit": "284636931045b0f55f50a926646093d8024f828c",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-51--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-52",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "9b0d95a0653b3d96ddf58592793bdf995c55a06c",
+      "sha256": "1019cbb6a8dc947db09afd3b470d512d3f54acfe0ce06513d3542db79f8203e0",
+      "bytes": 232568,
+      "lines": 3448,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-52--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T20:54:00+00:00",
+          "commit": "22aec0c93ea9ca161eb1cbb402d287bf60d3e29a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T20:51:31+00:00",
+          "commit": "6efa109a5952c7727facc5a369761c7f56b42ade",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-52--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-53",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "9bd98e9070745899b6aa43c0ebefa69c91f2713c",
+      "sha256": "f62230c607643c44ef24cb7e036b88aa1ebdb1641889e27a40ffbb995cd0c63a",
+      "bytes": 43091,
+      "lines": 632,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-53--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T01:52:52+00:00",
+          "commit": "0ba655746723940cbfd43d29193e3fd21e5513f3",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T01:31:32+00:00",
+          "commit": "220902c28cef4106486adaf97f7ac3cb0f7f289a",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-53--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-54",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "9e644dd5b145f856b548d79d8f08538a7d2fccc8",
+      "sha256": "076885ad489dcba3a981039afa24ab523d89d6771ba90c13d9304ae9f5a0a5c3",
+      "bytes": 49266,
+      "lines": 733,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-54--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T02:57:21+00:00",
+          "commit": "cf2e6b4f94071f22422e0b64d031a6fa543fdb6c",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T02:33:42+00:00",
+          "commit": "7f8a5ececea4ef9219177f50f966cd418ae9050d",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-54--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-55",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "a001ad9d3f7874cbf72e854e3d5c12f2e73a5155",
+      "sha256": "04977ca1bbd54a1895dd40af43d192057aae88763c1b65778b78a76dbc9f661c",
+      "bytes": 103287,
+      "lines": 1507,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-55--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T22:41:08+00:00",
+          "commit": "5624479e024924af066d44179826caa2c7ac80d6",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T22:03:24+00:00",
+          "commit": "f7c6f65e2e29cc3ca6f17e5b19e0b6a42aef65df",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-55--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-56",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "a12b13f929c5f370fd869e1187f2c260ce5d4edb",
+      "sha256": "c9dd28140ec3f4463c7ed4bac93b35eda4cfe07c37958ae80f6ee603bdede25f",
+      "bytes": 151461,
+      "lines": 2212,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-56--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T07:52:01+00:00",
+          "commit": "2f1d64e4525c677c7cdded8c7fb89462b40222d6",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T07:27:59+00:00",
+          "commit": "421722b2e3749ae405ebc09cf5e7918eb002a9dc",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-56--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-57",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "a61145f9a67479110f2c0bfba3a8f99dbbf651ec",
+      "sha256": "8b8314b69dc95e4e5acf8a26613f687f9ebbdba08b3bfe55df453f441e5b3e9a",
+      "bytes": 30883,
+      "lines": 444,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-57--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T23:11:08+00:00",
+          "commit": "22b7b724774d34a1923b4e47442ac553a85020fc",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T22:50:07+00:00",
+          "commit": "9d1719c80dc11a696bf42f83e38a9807497c6f3a",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-57--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-58",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "a9bb78a3d5ffca2b90e476e6778dfe6bc6a57060",
+      "sha256": "1895b5dd91ac0ae1130bae8170611fe0b5f9df0e62a0e0c5f81448005c90a970",
+      "bytes": 230633,
+      "lines": 3418,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-58--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T20:51:31+00:00",
+          "commit": "6efa109a5952c7727facc5a369761c7f56b42ade",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T14:44:55+00:00",
+          "commit": "51347f4049583a4f55438de5f43caf054049efcd",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-58--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-59",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "ae1f32812e2ff7c8091176644547780587a2a3ba",
+      "sha256": "ef91eaef1eca3f520962c8617108fb660bb3327850c09b55f62d5ecf86bc085e",
+      "bytes": 55970,
+      "lines": 834,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-59--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T04:39:19+00:00",
+          "commit": "a2da3b8c59272b05faab5eb8782cd112e6cfff2c",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T04:22:03+00:00",
+          "commit": "f2a876c8e483d351868e53a625c6b79aebb12ecd",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-59--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-60",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "b11d888488438bfdab404727cec2e7c4e7c065b4",
+      "sha256": "1ac302e867351360bb1b8ec2b9e6fad10755133a227aef81f4bae374510f41b7",
+      "bytes": 165839,
+      "lines": 2422,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-60--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T09:57:08+00:00",
+          "commit": "0aaf6caccc535a980b9eb639e417c1be14606991",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T09:15:32+00:00",
+          "commit": "3eacc6cd5191b7251d68ea0fd38f114304a340c5",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-60--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-61",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "b2df4f3ce67e86b1fd30acb3756374ec2601fd1a",
+      "sha256": "53bb7e442c51b3bb41a8e790c1eab055b18104b96dfd137f69480d089a29f59a",
+      "bytes": 160855,
+      "lines": 2351,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-61--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T09:15:32+00:00",
+          "commit": "3eacc6cd5191b7251d68ea0fd38f114304a340c5",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T08:23:39+00:00",
+          "commit": "a4963e54020053a9c09a96f829b49ef1b2a7d930",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-61--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-62",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "bf188e337412a995995c1877d6edf86c5d7b9cea",
+      "sha256": "e4745ae5062c32902eecc1ae36de8860d6ee2a3e7f555d866d6b32223b5263de",
+      "bytes": 202202,
+      "lines": 2964,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-62--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T01:59:26+00:00",
+          "commit": "2d014e10518a450e7c4361f5844b39b00c5b8989",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T01:38:41+00:00",
+          "commit": "037515de3e52d296e89be64fe81ecd6281cc909c",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-62--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-63",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "c0453374a367dee1054f3dbb6fef244997ecae23",
+      "sha256": "95b36a05c5d3609316befe5489c6fb607add5d5e88108f0f3132f83664187bdc",
+      "bytes": 223772,
+      "lines": 3313,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-63--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T10:08:42+00:00",
+          "commit": "e48dcf2a98fa07d18d1400521a1466f53ab08bb7",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T09:43:09+00:00",
+          "commit": "bca653f1af5d10e9d06283502735ad529e66f3e0",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-63--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-64",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "c0853bfc52056c076c7c7135a7c424b1d72e8b81",
+      "sha256": "2b7ee5cbdbbce3222334b44555bb8eed70442b179b00fcf3e328396f4c34ed19",
+      "bytes": 141993,
+      "lines": 2077,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-64--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T06:45:52+00:00",
+          "commit": "284636931045b0f55f50a926646093d8024f828c",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T06:16:56+00:00",
+          "commit": "80dfc2306b9b6ca72698defa2e504327c9f63e8a",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-64--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-65",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "c29747c9fb94553e971180c0c817415458b78ce9",
+      "sha256": "f7086c21f2997a238b8030ffc7bd62addb9a089c0a492834398228635fea6def",
+      "bytes": 63049,
+      "lines": 949,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-65--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T05:37:29+00:00",
+          "commit": "7b90797b689171c873e8297ca27c83d867f4c789",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T05:05:07+00:00",
+          "commit": "8c9c8b066df5828369d2141618204bb48e627dae",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-65--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-66",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "c36009e8602ae6dc68bc11f52673f35e2175a3e6",
+      "sha256": "07b62b25d01751404a946a329ef70953437e943e5f8c0f0fd5372dffe7d43d0d",
+      "bytes": 17059,
+      "lines": 228,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-66--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T21:11:54+00:00",
+          "commit": "9d4dfc1fa948de415c17a1e5bc5ac6562c02b577",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T20:34:21+00:00",
+          "commit": "ef08aa7c42435627b1a0be1d74251f5213af432a",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-66--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-67",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "caccaa0e161f6cde8766e01129df00876952cfe1",
+      "sha256": "8a75757fcd4bc6713299d9ebd0e28b89080bfc5e262b9a1f7438b8a6369c92ad",
+      "bytes": 191380,
+      "lines": 2799,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-67--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T13:30:20+00:00",
+          "commit": "9d3f89b5b26827eb481323e362c0d1c515d1b168",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T13:28:51+00:00",
+          "commit": "0b48b7a2eefc60d8c0c50804406f2caf75aa181b",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-23T12:32:47+00:00",
+          "commit": "f390624f9bba75c2d1bbe6f4a70ce44a61738503",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T12:23:00+00:00",
+          "commit": "faad0a5a3aadd2b80a70ea93a3f6e34dba087078",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-67--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-68",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "cbf47f2cff09276defd985dbafeaef4741b989a5",
+      "sha256": "d3ffbf6ca913caa4680d2a2dfae01263d67cf84de2dfc929aaa8707d977f4706",
+      "bytes": 20127,
+      "lines": 286,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-68--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T21:38:56+00:00",
+          "commit": "0611f6d3b92816e5c83d97f1dcb2b5b9bcc1da03",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T21:11:54+00:00",
+          "commit": "9d4dfc1fa948de415c17a1e5bc5ac6562c02b577",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-68--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-69",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "cfc2448650648f09741daa814ca8a02db4849254",
+      "sha256": "bce4179f4517db96a2657833ff6bebba90966ff12c29437fc7151438237eef8e",
+      "bytes": 33123,
+      "lines": 479,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-69--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T01:04:20+00:00",
+          "commit": "de3e15abb662f74b420883b67958897a9b945c5b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T23:11:08+00:00",
+          "commit": "22b7b724774d34a1923b4e47442ac553a85020fc",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-69--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-70",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "cfd2061536a1891c47297ae65c0ac18434410fa3",
+      "sha256": "a4be7b32ea513071e4977d0a11671e08194c0088aa9e87280c937116f77e4a4c",
+      "bytes": 198079,
+      "lines": 2899,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-70--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T00:54:13+00:00",
+          "commit": "96ab4340f70237c116b9a48ecc6af9e3de0a259a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T00:30:18+00:00",
+          "commit": "fb2e495cfd0099899396a9f0755bf04705529159",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-70--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-71",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "d0c7b94d2e18a0b5af34e1cdbfd9deb2de5cab38",
+      "sha256": "4a7f4d01271e2644c74e83e5997de2d7c6fa5d916d4e508df528c4d4258b8e32",
+      "bytes": 111429,
+      "lines": 1630,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-71--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T00:45:32+00:00",
+          "commit": "245e356e900686b004babd3dfd2806c903890a0a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T00:13:09+00:00",
+          "commit": "57c7585f65325998c39002c0cabf27f70bf8b356",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-71--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-72",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "d0d6412c11f0e340c88ca8278df579a6b38f9ca7",
+      "sha256": "60f01e8e1a13e9b22de34d8f99ba3f743de35586bacd1ecbdfd487d92a65ce92",
+      "bytes": 171405,
+      "lines": 2507,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-72--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T13:23:56+00:00",
+          "commit": "d0a1956b93e3cd4af6cd7ca9cea4d296a64f1eb0",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T12:52:37+00:00",
+          "commit": "9a30306fba72d27f376b0c88b1c44d707dca5ab9",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-72--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-73",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "d6f5f59865676993395a26ad46cb7ee6c6eeb172",
+      "sha256": "98fc9297be8f34c4c98dd53e6468e503607c5203f0b219af6633e158dc96f233",
+      "bytes": 192967,
+      "lines": 2823,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-73--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T00:30:18+00:00",
+          "commit": "fb2e495cfd0099899396a9f0755bf04705529159",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T13:30:20+00:00",
+          "commit": "9d3f89b5b26827eb481323e362c0d1c515d1b168",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-73--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-74",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "d7f5220584a5ecaa016edecd064b639eee461276",
+      "sha256": "0811174bc7a4ae36d3678b309fad9caa6cfaf1c6d876678298d9fdd748b67945",
+      "bytes": 85417,
+      "lines": 1249,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-74--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T17:59:32+00:00",
+          "commit": "cbe0122418c991f6430c06e0b1d3586aecbfdf15",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T17:17:50+00:00",
+          "commit": "f3e42daf1194a9faa8da55f878b53b31c4b4f7d7",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-74--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-75",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "dcf29ae8c7246da48324c4d697ca7e4f2404de19",
+      "sha256": "09c3e5de33823fb4bc794d1fc509ad137554271340c91e9c54e99dd7248da6aa",
+      "bytes": 215332,
+      "lines": 3177,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-75--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T06:46:34+00:00",
+          "commit": "e5dfc4a4cbd31e99c4e1cba675d91f3b9d2ce85b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T05:42:33+00:00",
+          "commit": "0dc44b2ba56d6c58eeb130099d8bd35f932b5758",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-75--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-76",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "e84c0ca896c987692e5461f442f8bb9ffea1316d",
+      "sha256": "1eb10df567bee7126ef9c069442d1264d40fe669aa86639ab751ae16676e3ad9",
+      "bytes": 222252,
+      "lines": 3290,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-76--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T09:43:09+00:00",
+          "commit": "bca653f1af5d10e9d06283502735ad529e66f3e0",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T09:03:21+00:00",
+          "commit": "3ab8816043681d652a95acbca7504a4b78846815",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-76--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-77",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "e87c4472c477ad5062edac5e49427f5af6af3f6a",
+      "sha256": "9c0543e2a855d5fdc2130e822c52d085f28358d67b96d1394d57751e56595fbb",
+      "bytes": 98954,
+      "lines": 1443,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-77--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T21:24:25+00:00",
+          "commit": "9a5c3f911e92deb42b543855bb52eb9524dfbf5e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T20:49:50+00:00",
+          "commit": "84ef177569fa7e49b8ecdcfbedfc05a0d70771e7",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-77--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-78",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "eac475dd6964b38ee31f9f5f8839393b4729d895",
+      "sha256": "9c83ca3809d1c651435c43c31508aa3460d5e6627b6760b8f402e51c4165dd79",
+      "bytes": 212296,
+      "lines": 3129,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-78--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T05:10:16+00:00",
+          "commit": "e82f08d765d3e4487ae22c9953b7aa73b66ac2c5",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T04:50:03+00:00",
+          "commit": "98bee50669881467ffce6b0ee13269ec2e248180",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-78--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-79",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "f2f8f115e9544dc6ba6769b9cfbfac8e22acc98c",
+      "sha256": "4109b14a545e3d8b6d06ea3439f652c66414493fe71d17b833e1fcaee8d680c9",
+      "bytes": 23234,
+      "lines": 335,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-79--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T22:22:03+00:00",
+          "commit": "ce25eeccb675c305e3a055c07109362704587892",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T22:02:59+00:00",
+          "commit": "21ce988e0ca65d7456e5a967020589168d4b4a02",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-79--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-80",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "fa7b04bd8b52073b55ffe91f005f5a7cd94f0e95",
+      "sha256": "06754a2f6e2edf72dd682f5072782367b2e00bc8506aaceab80c0ad99d5867fe",
+      "bytes": 72251,
+      "lines": 1063,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-80--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T07:32:19+00:00",
+          "commit": "c6a1efa19fa65b6927850817bb6c97ae879aaf73",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T06:44:36+00:00",
+          "commit": "63910b7463d0aaa6a84bb50751ad21f1bfac11e7",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-80--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-81",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "fae654989809e0a4e6ebf7a5db0fa1edbb1fb540",
+      "sha256": "21747f01b82db08f8092a6b85ba3fe1162aa90897335c555cd782ed598942efd",
+      "bytes": 207393,
+      "lines": 3052,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-81--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T03:33:45+00:00",
+          "commit": "18ac25a4b6c8877ab86a812f56f2bca43a97c81a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-24T03:03:25+00:00",
+          "commit": "4a69b09f0220dda27f1066f9b4aa5eda8ced0e02",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-81--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL01-82",
+      "path": "docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "ffcaa1a25fe531c52dd9bc794efecd5d364810f4",
+      "sha256": "0ad735837fbe9479ee67a57139252484f2b06d536432e8f5917c1f2ca71db701",
+      "bytes": 87031,
+      "lines": 1274,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL01-82--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T18:41:28+00:00",
+          "commit": "8a989fb8dd876a72062323ed7208a8a178ad328e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T17:59:32+00:00",
+          "commit": "cbe0122418c991f6430c06e0b1d3586aecbfdf15",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-82--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "PL02-01",
+      "path": "docs/GUALA_A0116_CONTACT_LOCAL_ELECTRICAL_PLASTICITY_CANDIDATE_2026-08-15.md",
+      "git_blob": "422a799b16cc3e6a25ad096d618254f1980d6cfb",
+      "sha256": "fa8da10c010a1fd0f363fe4b379830bbe8bd31b39d9aa487e88683d60e5bf744",
+      "bytes": 7877,
+      "lines": 112,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL02-01--GUALA_A0116_CONTACT_LOCAL_ELECTRICAL_PLASTICITY_CANDIDATE_2026-08-15.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T07:55:14+00:00",
+          "commit": "961aed0cff407b3aeb687bb73997ebbea3887501",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL02-01--GUALA_A0116_CONTACT_LOCAL_ELECTRICAL_PLASTICITY_CANDIDATE_2026-08-15.md"
+    },
+    {
+      "id": "PL03-01",
+      "path": "docs/GUALA_A0116_CONTACT_LOCAL_MODEL_RESULT_2026-08-15.md",
+      "git_blob": "ff5c6823371facfb1fea9e61fc17f6fe10812836",
+      "sha256": "e82a0c28bc2835e8fbd88b1506b315b319f64361b12453330c7c3318a81e6eb1",
+      "bytes": 6460,
+      "lines": 131,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL03-01--GUALA_A0116_CONTACT_LOCAL_MODEL_RESULT_2026-08-15.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T08:00:12+00:00",
+          "commit": "6434f5b2ddcec01905edb9e77c341d2058ced7fb",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL03-01--GUALA_A0116_CONTACT_LOCAL_MODEL_RESULT_2026-08-15.md"
+    },
+    {
+      "id": "PL04-01",
+      "path": "docs/GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+      "git_blob": "402b7e5d709ded46c932e558496d23bae26771cc",
+      "sha256": "30ecc20777e8f4203c51887c32d923b6995c74f50d791674cc24c43a6170101e",
+      "bytes": 5199,
+      "lines": 92,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL04-01--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T17:59:32+00:00",
+          "commit": "cbe0122418c991f6430c06e0b1d3586aecbfdf15",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL04-01--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md"
+    },
+    {
+      "id": "PL04-02",
+      "path": "docs/GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+      "git_blob": "a236801aa9f8de3cd67606e3b831e9413e522190",
+      "sha256": "5540fc5e670ebcab77afa41dd3a93c3ae7421c8142ed3bf362a0c93e97062e28",
+      "bytes": 5026,
+      "lines": 90,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL04-02--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T16:31:32+00:00",
+          "commit": "d82918c7add06e6c2638885d064ed04ef38fadb7",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T08:03:48+00:00",
+          "commit": "5dd2daf08aa784b6b4bfb77f0941d2ae48dcf4cc",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL04-02--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md"
+    },
+    {
+      "id": "PL04-03",
+      "path": "docs/GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+      "git_blob": "b117b431e8c267cb43f31dec9650528b79218243",
+      "sha256": "16185d6cb0aa3950ce13a0d3a2f530ee6e13efe3634fd3f94a6fd9061e69d6e1",
+      "bytes": 5054,
+      "lines": 90,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/sensorimotor-play/PL04-03--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+      "observations": [
+        {
+          "author_time": "2026-08-15T17:59:32+00:00",
+          "commit": "cbe0122418c991f6430c06e0b1d3586aecbfdf15",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-15T16:31:32+00:00",
+          "commit": "d82918c7add06e6c2638885d064ed04ef38fadb7",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of87 versions across4paths:3815 latest-document lines plus18 older-only passages/92lines. Historical execution, original approval, linked scientific premises, transitive implementation and current serving equivalence remain independently unqualified. No product code or tests executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sensorimotor-play/PL04-03--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "PLR01",
+      "name": "Operational play and positive-engagement predicates are narrower than named emotion",
+      "classification": "reported_native_recurrence_with_interpretive_scope_limits",
+      "historical_requirement_or_mechanism": "Tasks1056/1057 report distinct yaw actions from one retained formation with later sensed return;1059 adds affect/body participation;1065 calls varied return across changed world-state digests positive engagement despite nonzero local strain. The observer is declared noncausal, retains compact episodes and resets on restart. Yaw-only anatomy was initially the sole mounted motor route, although world commands exposed more actions.",
+      "current_disposition": "The reports preserve useful narrow motor/recurrence evidence, not independently replayed current results. Changed world digests, repeated actions and payable physiology alone do not establish subjective pleasure, broad autonomy or absence of aversion. Historical documents assert ratified interpretation; original approval and exact current predicate remain separate.",
+      "lawful_remedy": "Keep operational measured claims explicit and separate play, repeated movement, positive engagement, social response and learned speech. Bind labels to the ratified observable contract without adding scores, toy-name preferences or behavioral selectors.",
+      "unit_acceptance": "Verify distinct actions, ordering, same retained cause and actual sensed return; repeated reads and duplicate receipts cannot count.",
+      "module_acceptance": "Prove compact observation has no cognitive reader or intervention route and interpretive labels preserve their exact scope.",
+      "system_acceptance": "Qualify authentic self-initiated varied return and changed context without preload or tutor selection; disclose absent affect evidence.",
+      "release_acceptance": "Bind the exact current candidate and original acceptance; never promote play counters into whole-organism or speech success.",
+      "repair_actions": [
+        "A01",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A13",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 120,
+          "anchor": "- The existing organism therefore already supplies the minimum physical",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 701,
+          "anchor": "| Read-only interpretation | `dsf_ai_service/native_production_app.py::_sensorimotor_play_record` | Evaluate the complete retained trajectory; never feed a result back to cognition | `positive_engagement_trajectory_observed` only when every physical relationship is present |",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 752,
+          "anchor": "  `positive_engagement_trajectory_observed` with",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 690,
+          "anchor": "`distress_absence_authority=false`; the positive-engagement claim rests on the",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ]
+    },
+    {
+      "id": "PLR02",
+      "name": "Repeated invented observer topology concealed real causal paths",
+      "classification": "observer_false_negatives_and_corrected_physical_chronology",
+      "historical_requirement_or_mechanism": "Tasks1058–1085 reject direct motor/affective lineage equality, an unrelated organic relation, same-origin gradient timing, one shared contact for distinct converging branches, identical motor neurons/ordinals, byte-adjacent world states and identical formations across social turns. Exact accumulated multi-hop evidence was also dropped by final-hop-only binding and accumulator ordering. Later generic no-cycle/revisit vetoes suppressed lawful native recurrence.",
+      "current_disposition": "Some corrections remove genuine false requirements; relaxing a mistaken observer condition is not automatically test cheating. Each relaxation still requires the actual causal path. Old passing fixtures and declarations of ratification do not make the abandoned conditions physical laws.",
+      "lawful_remedy": "Ratify one exact causal chronology and branch/action binding. Preserve every branch’s real source, transfer, tick and consequence; remove observer-invented anatomy without accepting timing coincidence. Keep superseded constraints and their falsifiers in the history.",
+      "unit_acceptance": "Exercise separate/converging branches, nonfinal hops, lawful recurrent cycles and negative coincidence cases.",
+      "module_acceptance": "Trace every native producer through aggregation to observation without changed magnitudes or invented lineage joins.",
+      "system_acceptance": "Use authentic mature occurrences to show both actual causal paths and refusal of unrelated simultaneous activity.",
+      "release_acceptance": "No shipped observer may silently restore the rejected topology/clock requirements or certify unsupported causal joins.",
+      "repair_actions": [
+        "A01",
+        "A08",
+        "A09",
+        "A13",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 299,
+          "anchor": "  candidate's direct-lineage equality was therefore physically wrong and is",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 886,
+          "anchor": "`formation_to_affective_bond` evidence. This uses the separately ratified",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1464,
+          "anchor": "- Requiring one identical layer-12 neuron for both branches is false topology:",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1496,
+          "anchor": "  consequence. One embodied population action is not one motor-neuron ordinal.",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-31",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-31--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3066,
+          "anchor": "  prior path remains retired; arbitrary lineage revisits remain rejected; a",
+          "sha256": "2aacbc68e3aaf597caa451ea2649b95b1852fbe78eb1869e957899791efe84ab"
+        }
+      ]
+    },
+    {
+      "id": "PLR03",
+      "name": "Standing metabolic state was double-counted and overinterpreted",
+      "classification": "observer_accounting_error_with_narrow_physiological_scope",
+      "historical_requirement_or_mechanism": "Task1060 summed standing unmet dissipation over13hops and reported77,090 unmet quanta although the final state was zero. Correction keeps genuinely additive drained work and exhausted-hop counts but uses final standing unmet state. Later local body-strain projection replaces latest values by stable lineage, distinguishes unmounted from evaluated zero and does not infer pain or universal distress absence.",
+      "current_disposition": "The resulting overload/strain evidence is read-only and narrower than organism interoception or positive valence. The recorded interoception switch was0. Nonzero dissipated material is not automatically nociception; zero in one measured class cannot exclude all aversive states.",
+      "lawful_remedy": "Specify each quantity as flow, stock, event count or observer interpretation. Preserve local identity and lane quantities, evaluated-zero versus unavailable and actual sensing authority; do not feed convenience totals or semantic distress flags back into cognition.",
+      "unit_acceptance": "Prove exact stock replacement versus flow accumulation, all hop producers and zero/missing distinctions.",
+      "module_acceptance": "Carry units, lineage and clock through native/runtime/FFI/body/observer without defaults or repeated counting.",
+      "system_acceptance": "Bind internal sensing and actual causal effects separately from displayed metabolic summaries.",
+      "release_acceptance": "Qualify effective mounts and report narrow exclusion scope rather than pain/fun/whole-health claims.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A11",
+        "A13",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 436,
+          "anchor": "  transaction `totals` reported 77,090 unmet quanta. `unmet` is the standing",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 436,
+          "anchor": "  transaction `totals` reported 77,090 unmet quanta. `unmet` is the standing",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 497,
+          "anchor": "  the earlier value; zero removes the nonzero sparse record while preserving",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 574,
+          "anchor": "4. a compact witness receipt and explicit `organism_sensing_authority=false`;",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 656,
+          "anchor": "  `pain_authority=false` and `organism_sensing_authority=false`.",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ]
+    },
+    {
+      "id": "PLR04",
+      "name": "Neuron-wide plastic saturation failed to supply repeatable contact-specific learning",
+      "classification": "documented_physical_learning_gap_and_contact_local_successor",
+      "historical_requirement_or_mechanism": "Task1070 delivered9/16 to3/4zJ locally but mature plastic rest stayed4/3→4/3nm. The neuron-wide support could show first generic yield, not repeated contact-specific reinforcement. The candidate replaces fixed electrical-contact conductance with a finite local conducting-channel population; aggregate neuron reservoir energy must not be redistributed to invent contact history. Initial contact changes and later route use are reported separately from action effects.",
+      "current_disposition": "This is a concrete historical failure explanation and documented proposed repair, not proof that ArcLoom cannot learn speech. Exact source law, original authorization, historical run and present64-column equivalence require independent binding. The old neuron-wide support was explicitly preserved rather than reinterpreted as new synaptic state.",
+      "lawful_remedy": "Reconcile each current contact’s actual retained physical variable, local work source, modulation and later conductance reader against the approved law. Require local persistent causal influence and eliminate generic plasticity claims that have no contact-specific functional effect.",
+      "unit_acceptance": "Show one/three-contact locality, conservation, repeated change and untouched-contact invariance.",
+      "module_acceptance": "Prove exact predecessor conductance drives transfer and successor change is usable only later; exclude aggregate redistribution.",
+      "system_acceptance": "Use authentic experience and controls to establish retained contact contribution to later action/articulation.",
+      "release_acceptance": "Bind native law/source/state/candidate and preserve prior useful effects; no speech inference from generic yield or contact counts.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1104,
+          "anchor": "  admitted with zero gate-work residue, and every cell's plastic rest remained",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1108,
+          "anchor": "  yield, but it cannot retain repeated episode-specific reinforcement and does",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL02-01",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL02-01--GUALA_A0116_CONTACT_LOCAL_ELECTRICAL_PLASTICITY_CANDIDATE_2026-08-15.md",
+          "line": 10,
+          "anchor": "2. **Current code reality:** `ElectricalContactAnatomy` contains one fixed conductance. `ElectricalContactState` retains carrier phase plus an inert legacy copy of neuron-wide `PlasticSupportState`. Settlement always uses the fixed anatomical conductance, and the legacy state cannot change conduction.",
+          "sha256": "fa8da10c010a1fd0f363fe4b379830bbe8bd31b39d9aa487e88683d60e5bf744"
+        },
+        {
+          "source_id": "PL03-01",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL03-01--GUALA_A0116_CONTACT_LOCAL_MODEL_RESULT_2026-08-15.md",
+          "line": 11,
+          "anchor": "The existing task-1070 physiological-energy settlement is **not** sufficient to drive that state lawfully. It first sums association and body contact activity at one neuron, then debits one neuron-local recovery reservoir. It does not preserve which exact contact received which share of the delivered work. Distributing that aggregate back to contacts after settlement would invent contact history.",
+          "sha256": "e82a0c28bc2835e8fbd88b1506b315b319f64361b12453330c7c3318a81e6eb1"
+        }
+      ]
+    },
+    {
+      "id": "PLR05",
+      "name": "Synthetic junction constitution is declared, not a biological derivation or a scalar bound proof",
+      "classification": "explicit_constitutive_adoption_with_derivation_and_storage_obligations",
+      "historical_requirement_or_mechanism": "The proposal explicitly says published statistical Cx36 observations do not by themselves authorize an exact deterministic barrier. The model then deliberately adopts7/4charges×75mV×epsilon=16822854657/800000000zJ (21.02856832125zJ), with6400channels,50conducting and10pS each. The final document states approval and adds bidirectional gradient-directed transitions, tie/quiescent preservation, next-interval conductance and dissipative transition work. Proper phase rho=R/q represents the same residue.",
+      "current_disposition": "Independent rational arithmetic confirms the stated products and500pS initialization, not physical validity or actual approval. Literature was not independently reviewed here. Finite channel count and bounded residue magnitude alone do not bound rational numerator/denominator storage. The historical16.42447zJ residue is below this21.02857zJ constitution; it must not be compared to a different later quantum without version binding.",
+      "lawful_remedy": "Authenticate the original exact constitution and map every later material-law change, including current contact-yield laws, to authority and preserved state. Separate synthetic authored anatomy from measured biological necessity. Derive exact representational bit/storage bounds without truncation, and account transition work as heat rather than double-counted stored energy.",
+      "unit_acceptance": "Verify exact units/products, signs, boundary/tie behavior, energy bookkeeping and worst-case representation widths.",
+      "module_acceptance": "Bind ratified version, endpoint gradients, contact-local released work and codec; no stale copied plastic state may affect conductance.",
+      "system_acceptance": "Demonstrate repeated mature experience and persistence without residue-width failure or substituted energy scale.",
+      "release_acceptance": "No ML/physics clearance merely from naming the model physical or approved; require full derivation and actual implementation qualification.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A09",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "PL02-01",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL02-01--GUALA_A0116_CONTACT_LOCAL_ELECTRICAL_PLASTICITY_CANDIDATE_2026-08-15.md",
+          "line": 94,
+          "anchor": "The evidence supports finite channel populations and activity-dependent electrical-synapse plasticity. It does not directly provide one exact deterministic `E_transition` for Guala. Boltzmann-fit voltage sensitivity and equivalent gating charge are population/statistical observations; silently treating them as a deterministic transition barrier would be an invented conversion.",
+          "sha256": "fa8da10c010a1fd0f363fe4b379830bbe8bd31b39d9aa487e88683d60e5bf744"
+        },
+        {
+          "source_id": "PL03-01",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL03-01--GUALA_A0116_CONTACT_LOCAL_MODEL_RESULT_2026-08-15.md",
+          "line": 36,
+          "anchor": "`             = 21.02856832125 zJ`.",
+          "sha256": "e82a0c28bc2835e8fbd88b1506b315b319f64361b12453330c7c3318a81e6eb1"
+        },
+        {
+          "source_id": "PL04-01",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL04-01--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+          "line": 59,
+          "anchor": "If transition capacity remains, `R_i' = A_i - m_i'*q`. If the relevant population boundary is reached, `R_i' = 0` and the excess joins heat. Each completed transition dissipates its transition work; it is not counted again as stored membrane or fluid energy.",
+          "sha256": "30ecc20777e8f4203c51887c32d923b6995c74f50d791674cc24c43a6170101e"
+        },
+        {
+          "source_id": "PL04-01",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL04-01--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+          "line": 34,
+          "anchor": "- retained representation: the exact proper phase `rho_i = R_i / q`, where",
+          "sha256": "30ecc20777e8f4203c51887c32d923b6995c74f50d791674cc24c43a6170101e"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1258,
+          "anchor": "  `14651898759795200000000000000000000000 zJ`, approximately `16.42447 zJ`,",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ]
+    },
+    {
+      "id": "PLR06",
+      "name": "Contact codec evolution required preserving every nested predecessor format",
+      "classification": "legitimate_representation_corrections_with_historical_preservation_limits",
+      "historical_requirement_or_mechanism": "Initial contact-local candidates failed before cutover: GLRCS06 evidence under oldGLEXP05, old cross-cohort/reached-cell GLSEC02 reencoded asGLSEC03 and omittedV5digest admission. Correction retains old wrappers/payloads and uses new formats only for changed channel state. A later exact-work multiplication exceeded signed128 intermediate width; wide arithmetic plus proper residue phase resolved that reported case.",
+      "current_disposition": "Reports include byte-identical58,413,197-byte reencoding and cold restores of specific envelopes. They are narrow historical claims, not authentication of every format or proof of all future rational bounds. Fresh genesis and final byte equality do not alone verify all lived causal state across later migrations.",
+      "lawful_remedy": "Preserve exact source-format anatomy, nested digests and original raw predecessor artifacts. Verify legacy data is decoded as historical evidence without regaining active authority. Distinguish lossless representation from the separately authorized lossy V27 transition.",
+      "unit_acceptance": "Cover each nested format, first changed contact, unchanged legacy bytes, malformed input and exact work widths.",
+      "module_acceptance": "Exercise authentic mature predecessor through first successor, save, cold restore and next interval.",
+      "system_acceptance": "Prove relevant learned effects survive actual admitted current-format migrations with exact loss accounting.",
+      "release_acceptance": "Bind source/binary/image/format and prohibit unannounced reinterpretation or compatibility-driven invented state.",
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1232,
+          "anchor": "- The deployment failure exposed three coupled format-version omissions in",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1241,
+          "anchor": "  format. The comparison reached the end of all `58,413,197` cognitive bytes",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1255,
+          "anchor": "  signed-128-bit rational numerator. Production remained task 1070.",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1236,
+          "anchor": "  The correction preserves every predecessor wrapper and payload byte, adds",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ]
+    },
+    {
+      "id": "PLR07",
+      "name": "Contact change, active participation and functional reinforcement were conflated",
+      "classification": "acceptance_scope_evolution_not_equivalent_learning_proof",
+      "historical_requirement_or_mechanism": "Tasks1073/1075 report changed contact state and later use;1075 then admits separate projections did not bind the same contact. Subsequent observers required conductance change on every response, then accepted phase-only same-path activity under the narrower name active-contact participation. This avoids demanding relearning on every use but does not prove a prior conductance change caused improved or different behavior.",
+      "current_disposition": "The explicitly renamed scope is a legitimate narrowing. Retained contact use, phase change, active path and counterfactual learned contribution are different propositions. The reported -8582-carrier route alone is not a matched changed-versus-unchanged conductance effect.",
+      "lawful_remedy": "Keep separate acceptance for acquisition, storage, active use and functional learned consequence. Trace genuine learned contact state into later action and compare lawful controls; never claim reinforcement merely from physical participation or population counts.",
+      "unit_acceptance": "Distinguish unchanged, phase-only, population/conductance change, off-path and wrong-action cases.",
+      "module_acceptance": "Bind the same stable contact and versioned law through actual causative transfers without forcing unrelated branches to share a bond.",
+      "system_acceptance": "Show later behavior’s dependence on the retained experience using authentic matched controls, not replayed semantic targets.",
+      "release_acceptance": "Expose exact claim scope and unresolved functional influence; no phase-only success may certify learning or speech.",
+      "repair_actions": [
+        "A04",
+        "A09",
+        "A10",
+        "A11",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1384,
+          "anchor": "  the same stable contact across that boundary. The earlier statement that no",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1834,
+          "anchor": "  unchanged or off-path contact. Rename the bounded evidence from reinforcement",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1827,
+          "anchor": "  their transition-work phase changed during the same causal action. Requiring a",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1346,
+          "anchor": "  `-8582` whole carriers at interval 2; the successor cold-restored exactly;",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ]
+    },
+    {
+      "id": "PLR08",
+      "name": "Task1086 social success lacked participant-to-response causality",
+      "classification": "documented_false_positive_later_retracted",
+      "historical_requirement_or_mechanism": "Task1086 reported reciprocal_social_positive_engagement_observed after ordered turns but had no directed path from participant-perturbed retinal lineages to the accepted internal-formation motor response. The candidate was seeded before sensory commit. Correction exports exact perturbed lineages after commit, follows real cross-interval carriers and rejects temporal coincidence. One-seal aggregation initially hid intermediate ticks and broke that trace; per-interval immutable evidence restored it.",
+      "current_disposition": "This is explicit historical false acceptance, not proof of intentional lying. Task1091 later reports one actual participant-to-motor-to-sensed-return path; a second response remained absent. Creator clarification is recorded as narrowing A-011.6 to the physical circuit, leaving stronger social joy unproved; original clarification must still be authenticated.",
+      "lawful_remedy": "Retract the temporal-only result and preserve the actual narrower path. Bind every claimed social or learned response to sensory cause and native consequence; do not carry semantic stimulus receipts after physical causation ends. Preserve acceptance changes as scoped authority changes, not retroactive proof of reciprocity.",
+      "unit_acceptance": "Reject recorded coincidence, precommit candidate seeding and unrelated internally cued responses.",
+      "module_acceptance": "Preserve exact source receipts and every interval frontier through native/FFI/observer with no cognitive feedback.",
+      "system_acceptance": "Demonstrate actual participant-caused behavior separately from a full reciprocal exchange and later learned contribution.",
+      "release_acceptance": "Report circuit completion and unproved social behavior distinctly on the exact release; authenticate any narrowed acceptance.",
+      "repair_actions": [
+        "A01",
+        "A06",
+        "A08",
+        "A09",
+        "A11",
+        "A13",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1895,
+          "anchor": "- **Falsified claim:** the reported reciprocal result proves causal order but",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1901,
+          "anchor": "  not require a physical path from that participant action's sensory successor",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2481,
+          "anchor": "  four-turn observer window. The prior second-response condition",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2435,
+          "anchor": "- **First live participant-caused response:** one participant move from",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ]
+    },
+    {
+      "id": "PLR09",
+      "name": "Reported body-owned laughter did not qualify intelligible speech",
+      "classification": "narrow_native_vocal_witness_with_unproved_acoustic_meaning",
+      "historical_requirement_or_mechanism": "Task1095 reports two autonomous recurrences of formationbda19caf… with exact motor→articulator junctions, four active body ports,16,000pressure samples each, self-hearing and sensed world/body return. Their pressure digest was unchanged while yaw varied-34→-2mdeg. Laughter was an observer interpretation bound to prior play; no canned audio or target utterance was claimed. V27 later retired that learned witness; current post-cleanup laughter was separately unproved.",
+      "current_disposition": "Documentary reports of native emission and self-hearing deserve preservation but are not independently authenticated here. Nonempty/repeated PCM and a play label do not establish laughter-like acoustics, learned control, intelligible words, semantics or syntax. Later source retirement prevents using the old witness as current capability.",
+      "lawful_remedy": "Keep the authentic historical audio, native source/artifact and causal chain where recoverable. Name emitted vocalization and behavioral context separately from perceptually identified laughter or speech. Qualify current preserved learned articulation with matched controls and independent intelligibility; do not synthesize a laugh or word to satisfy the observer.",
+      "unit_acceptance": "Verify exact motor-articulator ancestry, pressure source, units, timing, self-hearing and absence of canned output.",
+      "module_acceptance": "Bind actual body mechanics, all active articulation dimensions and original acoustic waveform to retained causal state.",
+      "system_acceptance": "Establish experience-dependent vocal variation, grounded use and independently assessed claimed acoustic behavior; disclose failed/absent controls.",
+      "release_acceptance": "No whole-speech or current-laughter certificate from Task1095’s labels, counts, recurrence or HTTP health.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A06",
+        "A08",
+        "A09",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2756,
+          "anchor": "  to `-2` millidegrees. The pressure receipt happened to recur unchanged, so",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2760,
+          "anchor": "  `body_owned_laughter_recurred`, receipt",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2618,
+          "anchor": "  yaw, a committed world revision, `16,000` emitted pressure samples, all four",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2750,
+          "anchor": "  apex `144`, mouth area `305`, perioral displacement `40`, `16,000` emitted",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2835,
+          "anchor": "  background topology. The historical task-1095 play/laughter witness cannot",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ]
+    },
+    {
+      "id": "PLR10",
+      "name": "Mature recurrent circulation falsely passed formation-specific recognition",
+      "classification": "documented_recurrence_shortcuts_rejected_by_mature_evidence",
+      "historical_requirement_or_mechanism": "Task1185 replaced exact retained-fractal replay with recurrent-cell flow and reported1,219partial/158endogenous reassemblies after472native tests passed. It was drained/reverted. Two subsequent two-interval candidates failed exact mature word-apple external-cue rehearsals; nine episodes produced internal recurrences, not required external recognition. Removed passages preserve these proposals and their rejection.",
+      "current_disposition": "Neither ordinary recurrent current nor a cue-shaped ordered path is sufficient proof of specific learned recognition. The old task1095 closure was already challenged by broad-recurrence correction before later V27 loss. Reverted candidate source must not become authority through a recovered older document.",
+      "lawful_remedy": "Preserve rejected candidate/fixture/state bindings and exact causal external-versus-internal origin. Require formation-specific mature-state differential evidence before changing recurrence admission; derive any lawful relaxation from actual retained-state identity, not desired recognition counts.",
+      "unit_acceptance": "Reject generic circulation and unrelated formation admission while preserving valid exact retained relations.",
+      "module_acceptance": "Use authenticated mature topology, true cue ancestry and the actual current formation law across recurrence/recognition readers.",
+      "system_acceptance": "Demonstrate learned external recognition and endogenous recall separately with matched unrelated/absent-cue controls.",
+      "release_acceptance": "No pristine/unit pass can override failed mature recognition; verify retired candidates cannot re-enter serving authority.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A09",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2781,
+          "anchor": "  task `dsf-ai-task:1185` exposed `1,219` partial and `158` endogenous",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2812,
+          "anchor": "  episode, but every one was internally originated and none was the required",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-24",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-24--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2777,
+          "anchor": "The historical task-1095 closure above is no longer current acceptance",
+          "sha256": "1a47a407949d942b5b9f99bb4b92a339112cca4a3447ff6beaef423633862b39"
+        },
+        {
+          "source_id": "PL01-05",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-05--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2804,
+          "anchor": "already-existing recurrent anatomy. In the predecessor interval the proper cue",
+          "sha256": "a6a8062cc00fa2c68010e7b8d407c08ac09585356b81607836a5056c1f54e511"
+        }
+      ]
+    },
+    {
+      "id": "PLR11",
+      "name": "Latency improvements preserved exact state but did not establish continuous cadence",
+      "classification": "documented_exact_optimization_and_separate_runtime_boundaries",
+      "historical_requirement_or_mechanism": "Historical repeated successor seals cost8.420895s for8hops versus5.698864s with one seal and identical finalbytes; readiness then improved to0.114702–0.253178s using one immutable persisted snapshot. Compact XZ preset0 reconstructed58.45MBrawstate fromabout102kB, removing duplicate ordinary restore/save. Yet mutation cadence remained tens of seconds. Later63kfrontiers exposed quadratic sortedVec insertion and linear component membership, permitting billions of comparisons.",
+      "current_disposition": "These are documented distinct improvements and failures, not present latency diagnosis. Compact raw-byte preservation is not DSF/cognitive flattening. Fast cached health reads, small physical storage and bounded peak memory do not establish simulation cadence, lifetime resource bounds or preserved behavior after a lossy migration.",
+      "lawful_remedy": "Keep matched exact successor evidence and measure settlement, body/world return, publication and observation separately. Bound work by actual reached frontier and retained structure without truncation. Preserve canonical raw state and fail explicit on representation corruption; do not substitute cadence with fast readiness.",
+      "unit_acceptance": "Prove exact sparse composition, ordering, raw/compact round trips and finite representation/operation bounds.",
+      "module_acceptance": "Compare identical full mature input/state with every action and intermediate causal record preserved.",
+      "system_acceptance": "Measure autonomous progress, end-to-end sensory latency and real feedback under actual configuration and external load.",
+      "release_acceptance": "Bind current source/image/maturestate and live trajectory; historical optimization timings are not a new performance certificate.",
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A08",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2036,
+          "anchor": "  episodes took `8.420895 s` and eight seals through the predecessor path;",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2200,
+          "anchor": "  `0.114702`–`0.253178` seconds; later independent samples remained below",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2244,
+          "anchor": "  with standard XZ/LZMA preset 0 to `101784` bytes in `0.172716` seconds and",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3382,
+          "anchor": "  approximately 63,000-participant frontier therefore permits billions of",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2210,
+          "anchor": "  the organism. The unattended mutation-and-publication cadence itself still",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ]
+    },
+    {
+      "id": "PLR12",
+      "name": "Nominally read-only observation could veto publication or call back into cognition",
+      "classification": "observer_authority_breach_and_retirement",
+      "historical_requirement_or_mechanism": "AtTask1200 causal observation ran after native hops but before CURRENT publication, so malformed evidence could cause refusal/rollback. Correction publishes first, consumes immutable hop frontiers and reports bounded unavailable reason. A dormant resident callback survived until separately removed; no-cycle filters also hid lawful recurrent paths. Display witnesses intentionally reset on restart.",
+      "current_disposition": "This documents a real authority breach despite no action selection. A declared read-only function is not noncausal if failure changes state adoption. Preserving an old display witness after observer failure must not relabel it current; exact as-of identity and unavailable status require verification.",
+      "lawful_remedy": "Keep all observation downstream of canonical state adoption with no route to mutate, veto, schedule or recover cognition. Remove dormant fallback callbacks and show stale/as-of evidence truthfully. Bound observer state and output independently from the organism’s retained history.",
+      "unit_acceptance": "Inject missing/malformed frontier and prove committed state cannot be vetoed or advanced; verify callback absence.",
+      "module_acceptance": "Trace publication/cache/failure ordering and every observer caller, including cold start and display failures.",
+      "system_acceptance": "Verify autonomous progress and exact persisted receipts during observer failure while unavailable/stale evidence is visible.",
+      "release_acceptance": "Audit packaged and live reachability, not authority booleans alone; no dormant fallback resurrection.",
+      "repair_actions": [
+        "A02",
+        "A09",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2951,
+          "anchor": "  chose neural activity, but a malformed observation could still become a",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2958,
+          "anchor": "- Observer failure is bounded to a 512-character unavailable reason, preserves",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3023,
+          "anchor": "  was absent. The deployed path passed `None`, but the dormant callback made the",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3063,
+          "anchor": "  task-1204 correction removed every generic revisit rejection: return to an",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ]
+    },
+    {
+      "id": "PLR13",
+      "name": "Missing body and stopped-load return contributed to terminal saturation",
+      "classification": "documented_feedback_gaps_and_changed_load_constitution",
+      "historical_requirement_or_mechanism": "Task1204 repeatedly recruited lip/grip at stops; native trajectory deliberately emitted empty typed proprioceptive sources. GLJSRC03return repair preserved actual stalls but position feedback alone did not expose reacted load. GLJSRC04 added load endings; it initially renamed living length-receptor identity andTask1206committed no successor. After identity repair and antagonist rewiring, variable reacted/discharged residues causedResidueWidth;Task1214’s candidate switched to fixed elementary-carrier mechanical work and retired off-lattice residues when reached.",
+      "current_disposition": "This supplies historical concrete feedback and representation failures, not proof of today’s turn loop. An exact normalized ratio is not by itself a full law for transduced work. Antagonist rewiring removed dependent evidence; residue retirement is a state/constitution change requiring original authority and loss accounting. Later successful feedback does not itself prove learned choice.",
+      "lawful_remedy": "Trace current motor discharge, mechanical stop/reaction, units, native body state, same-organism afferent and later effect. Ratify load-work conversion and receptor identity; account every retired residue/bond/evidence record and preserve genuine learned state. Do not add an escape rule or heuristic turn chooser.",
+      "unit_acceptance": "Verify nonzero movement versus stall, exact loads and units, stable receptor identity and arbitrary repeated source lifecycles.",
+      "module_acceptance": "Prove all physical consequences re-enter the same organism through actual full-field transduction and canonical persistence.",
+      "system_acceptance": "Observe ordinary action variation and learned causal use under stops/antagonists with intact history and controls.",
+      "release_acceptance": "Bind exact effective anatomy/config and live feedback/trajectory; reject healthy-but-no-successor and unaccounted cleanup.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A06",
+        "A08",
+        "A09",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3111,
+          "anchor": "  exact articulated-body consequences but deliberately returned an empty typed",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3190,
+          "anchor": "  `NeuronLineageAuthorityChanged`; repeating the load return was therefore",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3402,
+          "anchor": "  Existing load residues not on that fixed carrier/gate lattice are retired",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3243,
+          "anchor": "  and removed only frontier/formation evidence naming the rejected bond.",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3397,
+          "anchor": "  denominator changed with each action. That history is not a mechanical state",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ]
+    },
+    {
+      "id": "PLR14",
+      "name": "Effector eligibility admitted tonic and outgoing current as action preparation",
+      "classification": "documented_motor_fanout_and_causal_boundary_corrections",
+      "historical_requirement_or_mechanism": "Task1209admitted tonic layer8position routes and produced whole-body fanout;1210restricted that reflex to actual reacted-load ancestry. Removing transient causally_active_lineages membership from effector authority then exposedTask1211:287events/all37axes, because preparation accepted both directions across contacts. Correction requires exact incoming layer11 or mounted reacted-load transfer into the motor; articulation requires actual adjacent motor input plus discharge.",
+      "current_disposition": "A transient bookkeeping set cannot replace physical preparation. Removing it without verifying the true direction law exposed a real defect; body movement was correctly rejected as acceptance. Reflex-driven or new-fractal action is not proof of retained-formation autonomy or speech.",
+      "lawful_remedy": "Ratify preparation and discharge at each motor/vocal terminal using real direction, anatomy, local state and work. Keep observer/causal bookkeeping out of effector authority; distinguish tonic sensing, reflex and retained experiential action without semantic selectors.",
+      "unit_acceptance": "Reject outgoing, tonic, unrelated or cancelled input; accept only lawful incoming preparation and actual discharge.",
+      "module_acceptance": "Trace motor/articulatory channels and antagonist reaction without ledger membership or Python selection.",
+      "system_acceptance": "Run authentic passive mature intervals and ordinary learned action with complete sensed consequences, exposing fanout/stalls.",
+      "release_acceptance": "Qualify exact candidate behavior and bounded cadence; a movement or recruitment count alone cannot pass.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A08",
+        "A09",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3261,
+          "anchor": "  produced an unacceptable whole-body motor fanout. That task is rejected as",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3297,
+          "anchor": "  their exact physical preparation/discharge law and membership in a transient",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3322,
+          "anchor": "  recruited `287` motor events and changed all `37` body axes. The release is",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3326,
+          "anchor": "  preparation. Motor-to-neighbour current is a physical consequence, not an",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        }
+      ]
+    },
+    {
+      "id": "PLR15",
+      "name": "Later GLCOG030 preservation and narrowed closure must remain distinct from V27 loss",
+      "classification": "reported_evolution_with_separate_preservation_and_acceptance_scope",
+      "historical_requirement_or_mechanism": "AfterV27retirement,Task1222reportsGLCOG030active-retained-bond growth and238,255→30,433contacts/212.6→77.0MBcognitive state while retaining93mosaics. A new same-formation varied-action/sensed-return witness closes basicA011 under recorded creator clarification; affect, reciprocaljoy and laughter remain separate open capabilities. Task1326participant-held bear exposure is explicitly not interest, word or meaning proof.",
+      "current_disposition": "The narrower closure and preservation claim must not be flattened into “allplay/laughtercomplete” or “allmigrationsdestroyedmemory”.93retainedrecords is a reported count, not proof of all learned causal effects. Original clarifications, exact migration source/artifacts and current retained-state mapping remain open.",
+      "lawful_remedy": "Authenticate every separate authority/state transition and preserve the full narrower acceptance chronology. Audit GLCOG030’s actual per-owner losses/retention and useful causal effects before inheriting its claim. Treat external caregiver actions as sensory opportunities, not Guala’s selected behavior or semantics.",
+      "unit_acceptance": "Bind old/new formats, state identities and every preserved/removed relation, plus original scoped acceptance.",
+      "module_acceptance": "Verify actual growth/migration implementation and genuine world participant ownership without semantic injection.",
+      "system_acceptance": "Show preserved learned effects and new acquisition separately; qualify only the witnessed function.",
+      "release_acceptance": "No broad completion or current-state certificate from a ledger label or equal mosaic count.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A08",
+        "A09",
+        "A10",
+        "A12",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3431,
+          "anchor": "  contacts while preserving all `93` retained mosaics. The exact mature-body",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3447,
+          "anchor": "  remain separately open capabilities under the complete Guala objective; they",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3477,
+          "anchor": "- This is a real shared-world bear experience, not proof that the bear caused",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-52",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-52--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 3447,
+          "anchor": "  explicitly unavailable in the same live observation and remain the serial",
+          "sha256": "1019cbb6a8dc947db09afd3b470d512d3f54acfe0ce06513d3542db79f8203e0"
+        }
+      ]
+    },
+    {
+      "id": "PLR16",
+      "name": "Historical release and test evidence needs exact scope, not a green count",
+      "classification": "documentary_acceptance_lineage_with_unverified_original_execution",
+      "historical_requirement_or_mechanism": "The full ledger records stale native/Python paths and mocks, unsupported historical fixtures, zero-executed malformed commands, deliberately ignored cases, ECRsame-digest pull races, partial commits behind504, and successive candidate versus live distinctions. Some observer corrections passed fixtures repeatedly before failing mature live evidence. Historical instructions about task seriality, actors, deployment and approvals are preserved as evidence only.",
+      "current_disposition": "87capturedversions across4paths are content-reconciled; their claims, linked science, every intermediate source and original approval are not thereby independently authenticated. This audit runs no product code/tests and grants no broad completion. Original V27approval is separately recovered inMGR06; other claimed approvals need their own original contexts.",
+      "lawful_remedy": "Keep each result tied to exact requirement, source/binary/image, environment, input/state and executed predicate. Resolve genuine current failures through the lawful owner while preserving old failures and scoped exclusions. Reconcile all acceptance changes rather than inheriting old closed labels or test totals.",
+      "unit_acceptance": "Validate source/hash/anchor/old-passage coverage and distinguish available, skipped, no-op, failed and executed checks.",
+      "module_acceptance": "Authenticate each decisive historical proof and original authority; compare fixtures with actual mature production boundaries.",
+      "system_acceptance": "Complete ordered preserved-state qualification on one frozen current candidate with every failure visible.",
+      "release_acceptance": "G1implementation/A1audit remain current; no historical directive or document status supplies new execution/reset authority.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A15",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2686,
+          "anchor": "- The complete unchanged native organism suite passed 576 tests with zero",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 1637,
+          "anchor": "  stopped before container start with an exact ECR `digest not found` pull",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL01-39",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL01-39--GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 2806,
+          "anchor": "- Both immutable discarded-state rehearsals failed before cutover: neither",
+          "sha256": "5c288b435866e2157798d6fc213a9af0187eafe198d556f0a26fba6ff83282b5"
+        },
+        {
+          "source_id": "PL04-02",
+          "path": "docs/guala_reconciliation/sources/sensorimotor-play/PL04-02--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+          "line": 3,
+          "anchor": "**Status:** exact proposal awaiting Joseph's approval; no implementation or deployment  ",
+          "sha256": "5540fc5e670ebcab77afa41dd3a93c3ae7421c8142ed3bf362a0c93e97062e28"
+        }
+      ]
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false
+}

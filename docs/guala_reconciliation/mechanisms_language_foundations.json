@@ -1,0 +1,679 @@
+{
+  "schema": "guala.language_foundation_mechanisms.v1",
+  "at_utc": "2026-10-10T05:18:59.685343+00:00",
+  "scope": "Separate fabric program, historical documents and isolated vocal bench. Current Guala activation or complete exclusion not established.",
+  "mechanisms": [
+    {
+      "id": "VLF01",
+      "name": "Prose files are executable language policy, not sensory experience",
+      "classification": "Authored semantic authority; not qualified for pupil cognition",
+      "finding": "LFR01",
+      "observed_mechanism": "The sentence document says every number is knowledge and that changing the file changes the reading without touching machinery. first_ribbon.py actually reads spelled thresholds from ESSENCE/CANNOT/HOLDS entries. core.py compiles words, authored clauses and ASKED-AS into masks and indices. ribbon_language.py reads MEANS-SAME/SPLITS-INTO into sense/context dictionaries, chooses the crowd with most matching words and appends up to 12 sorted crowd words to the query.",
+      "evidence_limits": "This is direct source evidence of a separate fabric program, not proof it serves current Guala. A declarative program can be deterministic and documented while still supplying authored semantics. Calling a file knowledge or deleting its tables does not prove sensory learning.",
+      "replacement": "Retain the files as historical material or explicitly external curriculum at an approved boundary. Exclude their direct parser/answer/decision authority from the pupil and bind every reachable caller before making any absence claim. Moving a rule from code to prose is not remediation.",
+      "acceptance": {
+        "unit": "Classify each value, table, parser rule, output selector and semantic payload by origin and reader.",
+        "module": "Verify content-supplier isolation on all pupil callers; read-only observation and teaching must not inject inferred concepts.",
+        "system": "Demonstrate syntax and answer content depend on retained multimodal substrate state rather than document edits or keyword expansions.",
+        "release": "Inspect the frozen image/configuration/frontend and current serving chain; record any separate fabric tool at its actual scope."
+      },
+      "refs": [
+        {
+          "source_id": "LD08-08",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD08-08--174_how_a_sentence_is_built.md",
+          "line": 10,
+          "anchor": "because the school classes fail on half the vocabulary. Every number",
+          "sha256": "f57878cdb4bc9800336a1ab550e41ce233917dcc3f312bb38fe30cea77ab168b"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 55,
+          "anchor": "class Settings:",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 156,
+          "anchor": "                         same=part(\"MEANS-SAME\"),",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 75,
+          "anchor": "                    area=best_area if best_hit >= 2 else None,",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 91,
+          "anchor": "        sorted(r[\"crowd\"])[:12])",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLF02",
+      "name": "The parser is a statistical rule system with self-labelled classes",
+      "classification": "Corpus statistics plus authored thresholds; native learned syntax unproved",
+      "finding": "LFR02",
+      "observed_mechanism": "The design sets four sightings, overlap above one half, 100 frame words, subject spread above three fifths, three pair sightings, three-quarters pointer frequency, 50 pointer sightings and four staged groups. Source adds a top-4000 scan and learns two classes from its own rule-selected readings, limiting seeds by counts 60/25/20 and comparing average boolean similarities. Role choice then uses positional rules, minimum pointer rate and word frequency. A scalar score or corpus-induced class is not full DSF evaluation.",
+      "evidence_limits": "No trained neural model is imported by these inspected files, but that is not an ML-free system finding. The explicit data-derived classifier and heuristic decision law require classification regardless of library, language or the word deterministic. The complete transitive implementation is not reviewed here.",
+      "replacement": "Do not port these classifiers or numeric choices into ArcLoom. Qualify the approved local adaptation and retained structural relations that actually support syntax, with authentic causal use and no authored grammar deciding the answer.",
+      "acceptance": {
+        "unit": "Bind every state update and selection predicate to its approved law; identify dimensional quantities and rule parameters separately.",
+        "module": "Test retained causal relations and readout without statistical grammar teachers or pseudo-labels entering pupil authority.",
+        "system": "Use new role/order/context combinations with matched retained-state controls to demonstrate grounded composition.",
+        "release": "No library-free, deterministic or accurate-parser result may clear the current system of ML/heuristics."
+      },
+      "refs": [
+        {
+          "source_id": "LD08-08",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD08-08--174_how_a_sentence_is_built.md",
+          "line": 18,
+          "anchor": "  always is. A word seen fewer than four times has no behaviour yet:",
+          "sha256": "f57878cdb4bc9800336a1ab550e41ce233917dcc3f312bb38fe30cea77ab168b"
+        },
+        {
+          "source_id": "LD08-08",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD08-08--174_how_a_sentence_is_built.md",
+          "line": 38,
+          "anchor": "ESSENCE: the frame is the commonest hundred words in the writing THAT",
+          "sha256": "f57878cdb4bc9800336a1ab550e41ce233917dcc3f312bb38fe30cea77ab168b"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 160,
+          "anchor": "        for w, _n in self.count.most_common(4000):",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 656,
+          "anchor": "def classes():",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 706,
+          "anchor": "    d = sum(C.alike(w, s) for s in cl[\"doing\"]) / len(cl[\"doing\"])",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 878,
+          "anchor": "    pick = min(cand, key=lambda i: (C.opened(head(gs[i])),",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A05",
+        "A08",
+        "A09",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLF03",
+      "name": "Preserve explicit failed-rule history without ratifying the next patch",
+      "classification": "Genuine retractions; unsupported successor selection and design/source drift",
+      "finding": "LFR03",
+      "observed_mechanism": "Across 24 versions, the sentence file retracts adjacency asymmetry, a co-occurrence wall that killed all longer readings, an inverted verb rule, a grouping change that dropped 62/70 to 29/70, and a two-times overlap relation that confused unrelated music/salt with animal/dog. It marks several later rules MINE, ON TRIAL. Current first_ribbon.py additionally admits shipped order rules misread two statements in five, then selects orders through a constraint, inferred word class or later bare number. That differs from the latest captured document’s pointer/frame/asking-word criteria.",
+      "evidence_limits": "The explicit counterexamples and admissions are valuable evidence of correction, not proof of intent or permanent impossibility. Reported hand-labelled benchmark improvements do not independently authorize a heuristic or validate general syntax. Current document/source agreement must be checked rather than assumed.",
+      "replacement": "Preserve failed designs, original tests and their exact causes. Do not import any successor merely because it improves that benchmark. Reconcile the actual intended law and implementation; source retirement must include every indirect user.",
+      "acceptance": {
+        "unit": "Retain negative cases as architectural falsifiers; do not tune thresholds or exceptions to pass them.",
+        "module": "Compare specification to every decision branch and distinguish a fixed representation defect from another answer-selection rule.",
+        "system": "Demonstrate preserved-state sensory generalization under independently specified controls, with unimplemented cases visible.",
+        "release": "No promotion from a local benchmark or retrospective prose claim without source/authority/runtime custody."
+      },
+      "refs": [
+        {
+          "source_id": "LD08-08",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD08-08--174_how_a_sentence_is_built.md",
+          "line": 77,
+          "anchor": "  the bench fell from 62 of 70 to 29. It was hand-judged on fifty",
+          "sha256": "f57878cdb4bc9800336a1ab550e41ce233917dcc3f312bb38fe30cea77ab168b"
+        },
+        {
+          "source_id": "LD08-08",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD08-08--174_how_a_sentence_is_built.md",
+          "line": 168,
+          "anchor": "  MINE, ON TRIAL: this between-rule is my construct, not ratified,",
+          "sha256": "f57878cdb4bc9800336a1ab550e41ce233917dcc3f312bb38fe30cea77ab168b"
+        },
+        {
+          "source_id": "LD08-08",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD08-08--174_how_a_sentence_is_built.md",
+          "line": 376,
+          "anchor": "  against 0.07 and music bears salt scores 0.57 against 0.23 — a true",
+          "sha256": "f57878cdb4bc9800336a1ab550e41ce233917dcc3f312bb38fe30cea77ab168b"
+        },
+        {
+          "source_id": "LD08-11",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD08-11--174_how_a_sentence_is_built.md",
+          "line": 231,
+          "anchor": "  more than two times the share the other way, and the one with the",
+          "sha256": "3a0c5b3c4369e212467c2c95d343e56027939b857e4229f1238cbb26d3a9695b"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 794,
+          "anchor": "    # were reading two statements in five as orders. A constraint",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 808,
+          "anchor": "                 or any(head(g).isdigit() for g in gs[1:]))):",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A05",
+        "A09",
+        "A10",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLF04",
+      "name": "New word arrangements do not establish semantic composition",
+      "classification": "Generation/novelty substituted for grounded relation evidence",
+      "finding": "LFR04",
+      "observed_mechanism": "first_ribbon.py calls six high-ranked shared-context words a generated space and produces senses through positive frequency lift. say() simply joins supplied doer/doing/done-to strings. joint() correctly stopped asserting a type relation after overlap was falsified, returning only meet and shares, while its docstring still claims the old three-way relation is known. The design explicitly says how to distinguish those joints is unknown.",
+      "evidence_limits": "A string can be absent from the stored corpus without being grounded, meaningful or learned. The scoped withdrawal of false relation labels should be preserved. It does not turn residual word rankings into an approved physical relation mechanism.",
+      "replacement": "Require an actual retained relation with its causal sensory/body/context/order origin and later effect. Keep unsupported relation types unavailable; do not fill them with six-word lists, prompt novelty, lookup text or positional joins.",
+      "acceptance": {
+        "unit": "Verify relation identity, direction and provenance rather than only novel bytes or unique word combinations.",
+        "module": "Trace the real recalled relation into endogenous articulation without an independent semantic composer.",
+        "system": "Demonstrate new grounded relations and role reversals through authentic experienced consequences.",
+        "release": "Certificate language must name the proved relation and acoustic/behavioral scope, not general composition."
+      },
+      "refs": [
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 464,
+          "anchor": "def between(a, b, k=6, floor=2):",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 561,
+          "anchor": "    return \" \".join(parts) if len(parts) >= 2 else None",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 608,
+          "anchor": "        lift = n / len(near) - allc[v] / len(mine)",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 535,
+          "anchor": "    # No kind is returned. Telling the three kinds of joint apart from",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LD08-08",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD08-08--174_how_a_sentence_is_built.md",
+          "line": 382,
+          "anchor": "  whatever the two are. HOW to tell the three kinds of joint apart is",
+          "sha256": "f57878cdb4bc9800336a1ab550e41ce233917dcc3f312bb38fe30cea77ab168b"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLF05",
+      "name": "Core masks discard order and negation before ranked retrieval",
+      "classification": "Explicit reduced semantic representation; not a full-field mechanism",
+      "finding": "LFR05",
+      "observed_mechanism": "core.py drops authored stop words including no/not, applies suffix stripping, and converts remaining words to an unordered bitmask. reach() sums inverse document frequency and returns a limited ranking; judge() recognizes only selected regex clause forms with a two-token overlap condition. Its docstring says nothing here decides anything and judging uses no search, but those are actual selection and rule predicates. Other fabric paths retain some word order, so loss in this core must not be attributed indiscriminately to every caller.",
+      "evidence_limits": "This is a verified reduced text mechanism, not a claim that the L0–L4 kernel was changed. Independent document-only predicates show the token probes dog bit man/man bit dog and dog bit man/dog do not bit man reduce to identical sets at this stage; these are representation fixtures, not grammatical-language tests. No organism or product function was run.",
+      "replacement": "Exclude this proxy from pupil cognition and retain complete event/field structure under the approved architecture. Where used as a separate historical tool, label its exact information loss and do not call it logical or cognitive proof.",
+      "acceptance": {
+        "unit": "Prove the actual representation distinguishes every order, polarity and role required by the claimed operation.",
+        "module": "Follow authoritative full-field/event values to real consumers; a parallel full archive cannot repair a reduced decision.",
+        "system": "Verify different experienced causal orders produce appropriately different retained and later-used relations.",
+        "release": "No full-field or understanding claim from keyword coverage, ranking or bitwise execution."
+      },
+      "refs": [
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 34,
+          "anchor": "STOP = set(\"\"\"the a an is are of in on at to for with by from and or",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 117,
+          "anchor": "            m |= 1 << i",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 217,
+          "anchor": "                    hits[eid] = hits.get(eid, 0.0) + rare",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 233,
+          "anchor": "                   min(2, bin(L[\"b\"]).count(\"1\")):",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        },
+        {
+          "source_id": "LD12-01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD12-01--67_grammar_and_sentences.md",
+          "line": 13,
+          "anchor": "ESSENCE: in English, position says who did what to whom — \"the dog",
+          "sha256": "f1cdc8b40ff89191868f92136540f975a5b0ccc8a647e4401987201ca28c467a"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A05",
+        "A06",
+        "A08",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLF06",
+      "name": "The conversational move system is an authored controller",
+      "classification": "Procedural response policy; changing output wording does not remove it",
+      "finding": "LFR06",
+      "observed_mechanism": "The cognitive-syntax document prescribes rejecting, ranking and choosing the move that opens the most for the other person. saying.py executes a fixed list of moves, supplies a greeting from a document list, picks the rarest subject, selects a sense by near-count, applies a six-line repeat window and emits ground: none when no move survives. Its comment says no sentences or moves are the author’s, while those conditions and the output vocabulary are explicitly written. An unread move returns an empty word list that _t discards.",
+      "evidence_limits": "This separate program may disclose its limited terse output, which is better than claiming fluent prose. That does not turn its controller into ArcLoom autonomy, physical silence or syntax learned from experience. Set iteration in the repeated greeting also does not supply a stable tie rule.",
+      "replacement": "Keep authored conversation moves and anti-repeat recipes outside pupil authority. Preserve honest absence of capability and distinguish a UI diagnostic from something the organism chose to say.",
+      "acceptance": {
+        "unit": "Identify all selection, fallback and suppression rules, including empty/refused input.",
+        "module": "Trace the source of every displayed or audible occurrence and verify no controller supplies pupil content.",
+        "system": "Demonstrate autonomous vocal initiation and retained-context use from native state, including lawful silence.",
+        "release": "Verify actual shipped UI routes and output provenance; concise diagnostics must remain observer text."
+      },
+      "refs": [
+        {
+          "source_id": "LD13-01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD13-01--74_cognitive_syntax.md",
+          "line": 113,
+          "anchor": "RULE: to take a turn in a conversation — reach for what the",
+          "sha256": "ca90babffcfdd554f9787c10cca36149ab1caa5b2f3ee1c68a5ac06317adcce6"
+        },
+        {
+          "source_id": "LDC03",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC03--saying.py",
+          "line": 335,
+          "anchor": "    MOVES = [\"m_unread\", \"m_greet\", \"m_lean\", \"m_group\", \"m_say\",",
+          "sha256": "4251fdcd55cd2bc4620b395ee1defacd07cecb35ad88913817af5a3e67eefada"
+        },
+        {
+          "source_id": "LDC03",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC03--saying.py",
+          "line": 242,
+          "anchor": "            return self._t(\"turn\", list(self.no_subject)[:1])",
+          "sha256": "4251fdcd55cd2bc4620b395ee1defacd07cecb35ad88913817af5a3e67eefada"
+        },
+        {
+          "source_id": "LDC03",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC03--saying.py",
+          "line": 348,
+          "anchor": "            if line not in self.spoken[-6:]:",
+          "sha256": "4251fdcd55cd2bc4620b395ee1defacd07cecb35ad88913817af5a3e67eefada"
+        },
+        {
+          "source_id": "LDC03",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC03--saying.py",
+          "line": 351,
+          "anchor": "            out = [\"ground: none\"]",
+          "sha256": "4251fdcd55cd2bc4620b395ee1defacd07cecb35ad88913817af5a3e67eefada"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A05",
+        "A09",
+        "A10",
+        "A11",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLF07",
+      "name": "Declared retirement and live corpus refresh do not match the loaders",
+      "classification": "Source-bound lifecycle defects in the separate language program",
+      "finding": "LFR07",
+      "observed_mechanism": "The cognitive-syntax file places STATE: FADED before its first ESSENCE. Both loaders split on the next ESSENCE and check FADED only inside the resulting entry, so the first faded entry remains admitted by those predicates. Independent text segmentation confirms this without importing product code. core.signature hashes path/mtime/size, not contents, despite saying it catches every edit; Company, Language, line indices and learned-class caches are initialized once without binding to later core rebuilds.",
+      "evidence_limits": "These are source/document correspondence defects; no live occurrence, active Guala dependency or actual cache mutation is claimed. The historical FADED marker’s exact intended scope still needs original authority.",
+      "replacement": "G1 must determine whether any permitted external tool still needs this path; otherwise exclude it from the pupil and retire it with explicit scope. If retained externally, use one schema with authenticated lifecycle and content-versioned dependent state rather than prose-position parsing or independent stale caches.",
+      "acceptance": {
+        "unit": "Verify retirement before/inside/after an entry and distinguish equal stat metadata from equal content.",
+        "module": "Verify all dependent readers share one content/version identity through updates and refusal.",
+        "system": "Prove retired source cannot alter pupil behavior; retained external tools must report their actual version and role.",
+        "release": "Inspect effective files and every reader rather than treating FADED or a cache label as exclusion proof."
+      },
+      "refs": [
+        {
+          "source_id": "LD13-01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD13-01--74_cognitive_syntax.md",
+          "line": 7,
+          "anchor": "STATE: FADED",
+          "sha256": "ca90babffcfdd554f9787c10cca36149ab1caa5b2f3ee1c68a5ac06317adcce6"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 142,
+          "anchor": "                if \"STATE: FADED\" in block: continue",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        },
+        {
+          "source_id": "LDC05",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC05--fabric_ask.py",
+          "line": 38,
+          "anchor": "            if \"STATE: FADED\" in b: continue",
+          "sha256": "09e1cea4f3c164a08cdc0618a45330ce9627294a7b165066ce19fc32b6ed2206"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 82,
+          "anchor": "            h.update(str(st.st_mtime_ns).encode())",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 317,
+          "anchor": "        COMPANY = Company(Settings())",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 82,
+          "anchor": "    if LANG is None: LANG = Language()",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A05",
+        "A10",
+        "A12",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLF08",
+      "name": "The accepted vocal bench is a component demonstration with exact source custody",
+      "classification": "Preserve legitimate scoped acceptance; not learned native speech",
+      "finding": "LFR09",
+      "observed_mechanism": "The v22 manifest reports Joe accepted the full board and records an exact HTML hash, ordered gestures, default dials and V8 waveform hashes. The inspected HTML matches that source hash exactly and states Nothing here touches Guala. It generates labelled gestures from authored pitch/formant/duration sequences, seeded pitch/pace variation, a reduced-order source and resonators, then browser playback. Those controls are pressed externally.",
+      "evidence_limits": "Source identity is independently verified; Joe’s original acceptance context and the recorded waveform hashes were not replayed here. Reduced-order oscillators, phase and resonances are not automatically cheats or ML. Acceptance of this bench does not authorize its gesture table to select pupil words or certify endogenous articulation.",
+      "replacement": "Preserve the accepted artifact and its exact component scope. Reconcile the approved physical organ against it where relevant, but require native efferents and retained experience to govern actual pupil articulation; no gesture name or word table may supply that behavior.",
+      "acceptance": {
+        "unit": "Qualify physical controls and acoustic response with independent organ inputs; keep test gestures outside pupil choice authority.",
+        "module": "Verify actual efferent→organ→pressure→same-organism ear timing and energy custody.",
+        "system": "Demonstrate retained sensory experience causes later endogenous articulation on preserved state.",
+        "release": "Use original acceptance/source/audio custody at its scope and separately qualify the exact current organ and serving artifact."
+      },
+      "refs": [
+        {
+          "source_id": "LD20-01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD20-01--ACCEPTED_V22_MANIFEST.md",
+          "line": 8,
+          "anchor": "- SHA-256: becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589",
+          "sha256": "9b3b41b43ea3c6015dde191c68ae0d3c8191791beda47a70bd9c5f662afcf77c"
+        },
+        {
+          "source_id": "LD20-01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD20-01--ACCEPTED_V22_MANIFEST.md",
+          "line": 3,
+          "anchor": "Joe's acceptance: \"Yep that's it\" on bench v22, full board.",
+          "sha256": "9b3b41b43ea3c6015dde191c68ae0d3c8191791beda47a70bd9c5f662afcf77c"
+        },
+        {
+          "source_id": "LDC06",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC06--toy_vocal_organ_bench_v22.html",
+          "line": 82,
+          "anchor": "  damped throat resonances, breath that puffs with the valve, mouth radiation. Renders locally in milliseconds. Nothing here touches Guala.</p>",
+          "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589"
+        },
+        {
+          "source_id": "LDC06",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC06--toy_vocal_organ_bench_v22.html",
+          "line": 300,
+          "anchor": "const GESTURES = {",
+          "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589"
+        },
+        {
+          "source_id": "LDC06",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC06--toy_vocal_organ_bench_v22.html",
+          "line": 345,
+          "anchor": "  const segs = GESTURES[name];",
+          "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A04",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLF09",
+      "name": "The vocal bench has observer and acoustic-scale limits",
+      "classification": "Overstrong diagnosis and nonphysical normalization at a demonstration boundary",
+      "finding": "LFR10",
+      "observed_mechanism": "The bench claims that equal-sounding comparison buttons prove the listening path is defective and the bench is fine. A subjective failed distinction cannot identify that boundary by itself. The renderer also peak-normalizes each complete clip to0.8, adds selected room reflections and changes each press through a seeded counter. These affect heard sound and source identity; normalized clip amplitude is not calibrated vocal power or proof of native breath energetics.",
+      "evidence_limits": "No listening or waveform replay occurred in this audit, and none of these browser-demo choices proves a current native defect. Preserve the manifest’s explicit engine/sequence dependence rather than imposing cross-engine byte identity or treating seeded variation as living behavior.",
+      "replacement": "Record raw source pressure, renderer transformations and actual playback separately. Diagnose from measured boundaries, and keep every gain/noise/reverb/variation law at its approved component scope. Do not transplant perceptual tuning into physical acceptance.",
+      "acceptance": {
+        "unit": "Verify unnormalized quantities, rendering transformations and reproducible initial conditions with declared units.",
+        "module": "Trace actual source samples through playback/device capture before attributing a failed distinction.",
+        "system": "Qualify native body work and sensed sound independently of any display/audio convenience normalization.",
+        "release": "Bind audio claims to exact engine, state, controls and occurrence; an observer symptom alone cannot clear source correctness."
+      },
+      "refs": [
+        {
+          "source_id": "LDC06",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC06--toy_vocal_organ_bench_v22.html",
+          "line": 123,
+          "anchor": "  (remote-desktop audio, phone speaker) — then the bench is fine and the",
+          "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589"
+        },
+        {
+          "source_id": "LDC06",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC06--toy_vocal_organ_bench_v22.html",
+          "line": 288,
+          "anchor": "  for (let i = 0; i < total; i++) x[i] = x[i] / peak * 0.8;",
+          "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589"
+        },
+        {
+          "source_id": "LDC06",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC06--toy_vocal_organ_bench_v22.html",
+          "line": 266,
+          "anchor": "  const taps = [[0.013,0.13],[0.019,0.10],[0.027,0.08],[0.036,0.06],",
+          "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589"
+        },
+        {
+          "source_id": "LDC06",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC06--toy_vocal_organ_bench_v22.html",
+          "line": 348,
+          "anchor": "  pressCount += 1;",
+          "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589"
+        },
+        {
+          "source_id": "LD20-01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LD20-01--ACCEPTED_V22_MANIFEST.md",
+          "line": 26,
+          "anchor": "Engine caveat: Math.sin/cos/exp are not bit-specified across JS",
+          "sha256": "9b3b41b43ea3c6015dde191c68ae0d3c8191791beda47a70bd9c5f662afcf77c"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A10",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VLF10",
+      "name": "A bounded keyword failure was recorded as a certified no-path result",
+      "classification": "Certificate exceeds its exact search predicate",
+      "finding": "LFR11",
+      "observed_mechanism": "fabric_ask.walk ranks matching words, limits candidates to12, uses rarity/overlap thresholds and chooses prewritten entries or paired clauses. ask may fall through to other mechanisms after a turn-taking exception, offers nearest knowledge, and eventually writes VERDICT: no path — certified by deterministic walk to the white sheet. The sentence stager enumerates n(n+1)^n candidates but only for its capped first groups; it does disclose omitted groups, which is a useful limit to preserve.",
+      "evidence_limits": "Failure of this selected representation, limited pool and authored rules does not establish no answer, no knowledge, no physical relation or no possible speech. Four staged groups imply2500 candidates; eight imply344373768 by the printed algorithm. This exact arithmetic is not a measurement of Task1434 or the current substrate.",
+      "replacement": "Scope certificates to the exact attempted operation, complete searched domain and actual stop condition. Preserve unknowns and budget refusals without promoting them into universal negative facts. Do not make a failure green through fallbacks or a larger arbitrary work limit.",
+      "acceptance": {
+        "unit": "Verify mathematical search bounds, declared omissions, exception paths and exact certificate predicate.",
+        "module": "Distinguish unavailable mechanism, exhausted resource, limited search and actual logical contradiction.",
+        "system": "Locate the first failed current speech boundary with preserved-state causal evidence, not an old parser’s silence certificate.",
+        "release": "Require authentic source/configuration/state/time receipts and visible unresolved capabilities; no universal claim from determinism."
+      },
+      "refs": [
+        {
+          "source_id": "LDC05",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC05--fabric_ask.py",
+          "line": 59,
+          "anchor": "    rel=[e for e in rel[:12] if len(qs&wt(e))>=need]",
+          "sha256": "09e1cea4f3c164a08cdc0618a45330ce9627294a7b165066ce19fc32b6ed2206"
+        },
+        {
+          "source_id": "LDC05",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC05--fabric_ask.py",
+          "line": 120,
+          "anchor": "        except Exception as e:",
+          "sha256": "09e1cea4f3c164a08cdc0618a45330ce9627294a7b165066ce19fc32b6ed2206"
+        },
+        {
+          "source_id": "LDC05",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC05--fabric_ask.py",
+          "line": 279,
+          "anchor": "                    f\"  VERDICT: no path — certified by deterministic\"",
+          "sha256": "09e1cea4f3c164a08cdc0618a45330ce9627294a7b165066ce19fc32b6ed2206"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 918,
+          "anchor": "            for parents in itertools.product(*[slots] * n)",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        },
+        {
+          "source_id": "LDC02",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+          "line": 1009,
+          "anchor": "        gs = gs[:cap]",
+          "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A09",
+        "A10",
+        "A13",
+        "A14",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

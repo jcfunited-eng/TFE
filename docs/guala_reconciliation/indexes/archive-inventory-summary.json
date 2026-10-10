@@ -1,0 +1,98 @@
+[
+  {
+    "path": ".guala_release_work/guala-release-candidate-15a7dca9.zip",
+    "bytes": 97131107,
+    "sha256": "f67d4bea581e5f9b171da6ccdf61ccb87658085ab413f93086cac2b39ed14626",
+    "members": 305,
+    "uncompressed_bytes": 106048975,
+    "status": "central_metadata_read_only"
+  },
+  {
+    "path": ".guala_release_work/guala-release-candidate-da11405b.zip",
+    "bytes": 97129197,
+    "sha256": "4238cdda7547e823bea0df463c47eaf71faba6fd0a31a72012cd3ee298e4a2c3",
+    "members": 305,
+    "uncompressed_bytes": 106036542,
+    "status": "central_metadata_read_only"
+  },
+  {
+    "path": "L5_CURRENT_SYSTEM_FULL_SPEC_latex.zip",
+    "bytes": 9842,
+    "sha256": "02a6388c9ab4f6007c095703637bb8ec25333c18dab1603a06fabc6516558a08",
+    "members": 1,
+    "uncompressed_bytes": 36611,
+    "status": "central_metadata_read_only"
+  },
+  {
+    "path": "arcloom/hdl/arcloom_hdl.zip",
+    "bytes": 45304,
+    "sha256": "227ee3be6a223077cdb6679df736c0c68d187967f3068d5422d0fb6411a05e94",
+    "members": 18,
+    "uncompressed_bytes": 168858,
+    "status": "central_metadata_read_only"
+  },
+  {
+    "path": "arcloom_demonstrator_v1.0.tar.gz",
+    "bytes": 86508,
+    "sha256": "ba7ee131a1b1840a014db0b339d467cc32f75d8b8074486fce1bffd567920e9b",
+    "members": 29,
+    "uncompressed_bytes": 478301,
+    "status": "central_metadata_read_only"
+  },
+  {
+    "path": "arcloom_demonstrator_v1.0.zip",
+    "bytes": 76358,
+    "sha256": "67ad18b4e8b30f97b7f06ca3905a876d95196f765be664b0b7688b618fb215a3",
+    "members": 30,
+    "uncompressed_bytes": 408931,
+    "status": "central_metadata_read_only"
+  },
+  {
+    "path": "arcloom_hdl.zip",
+    "bytes": 45304,
+    "sha256": "227ee3be6a223077cdb6679df736c0c68d187967f3068d5422d0fb6411a05e94",
+    "members": 18,
+    "uncompressed_bytes": 168858,
+    "status": "central_metadata_read_only"
+  },
+  {
+    "path": "arcloom_hdl_june_backup.zip",
+    "bytes": 68723,
+    "sha256": "f9c1cda7a73ce84e60019ce643779416d0d8dc9f63def36dd47165676e6355eb",
+    "members": 25,
+    "uncompressed_bytes": 261033,
+    "status": "central_metadata_read_only"
+  },
+  {
+    "path": "docs/DSF_AI_Domain_Agnostic_Overleaf.zip",
+    "bytes": 49990,
+    "sha256": "00d9dea55ec6b254eb4680922c4eb35735231e3c31d97c26f736b1aad5eda83f",
+    "members": 1,
+    "uncompressed_bytes": 49824,
+    "status": "central_metadata_read_only"
+  },
+  {
+    "path": "docs/pynq-z2_v1.0.xdc (1).zip",
+    "bytes": 7733,
+    "sha256": "60e6d72e3fd9d8771da60567e038be2e69baf9a95290b627a4955aa89c3048f3",
+    "members": 2,
+    "uncompressed_bytes": 56298,
+    "status": "central_metadata_read_only"
+  },
+  {
+    "path": "docs/tfe_specification/TFE_Kernel_L5_Overleaf.zip",
+    "bytes": 347397,
+    "sha256": "570e666fa125417a6866713e3b4f8f210069af3cce4e2d3bea1c3034556920b1",
+    "members": 28,
+    "uncompressed_bytes": 894004,
+    "status": "central_metadata_read_only"
+  },
+  {
+    "path": "gualaloom_kickoff.tar.gz",
+    "bytes": 9870,
+    "sha256": "252fedb5859e13ffc7dc90adf371bd43fd4d90fc8ab356d4513be2f09c760d75",
+    "members": 12,
+    "uncompressed_bytes": 26557,
+    "status": "central_metadata_read_only"
+  }
+]

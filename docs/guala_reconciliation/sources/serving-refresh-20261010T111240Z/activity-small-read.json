@@ -1,0 +1,9 @@
+{
+  "started_utc": "2026-10-10T11:17:57.073798+00:00",
+  "finished_utc": "2026-10-10T11:17:59.678591+00:00",
+  "task": "54d300e31f754c8f913f70b4dd0840f1",
+  "code": "import json,time,os\nfrom pathlib import Path\nfor sample in range(2):\n rows=[]\n for t in sorted(Path('/proc/1/task').iterdir()):\n  try:\n   stat=(t/'stat').read_text();v=stat[stat.rfind(')')+2:].split()\n   rows.append([int(t.name),v[0],int(v[11]),int(v[12]),(t/'wchan').read_text().strip()])\n  except FileNotFoundError:pass\n print(json.dumps(dict(kind='sample',index=sample,monotonic=time.monotonic(),hz=os.sysconf('SC_CLK_TCK'),threads=rows)),flush=True)\n time.sleep(5 if sample==0 else 1)\n",
+  "exit_code": 0,
+  "stdout": "\nThe Session Manager plugin was installed successfully. Use the AWS CLI to start a session.\n\n\nStarting session with SessionId: ecs-execute-command-a8hjnldyrjroge5g2onnh8clvu\n{\"kind\": \"sample\", \"index\": 0, \"monotonic\": 750.185281216, \"hz\": 100, \"threads\": [[1, \"S\", 737, 76, \"futex_wait_queue\"], [27, \"S\", 10, 0, \"futex_wait_queue\"], [40, \"S\", 0, 0, \"futex_wait_queue\"], [41, \"R\", 49825, 178, \"0\"]]}\nCannot perform start session: EOF\n",
+  "stderr": ""
+}

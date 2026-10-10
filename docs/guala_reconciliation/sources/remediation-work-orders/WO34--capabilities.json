@@ -1,0 +1,2210 @@
+{
+  "schema": "guala.historical_capability_reconciliation.v1",
+  "scope": "Fifty-three functional responsibilities; historical Task1598 findings preserved as dated evidence. Current Task1606 qualification is not established.",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "dimensions": [
+    "availability",
+    "participation",
+    "retention",
+    "recognition",
+    "recall",
+    "causal_use",
+    "transfer",
+    "autonomous_use",
+    "durability",
+    "integration_depth"
+  ],
+  "capabilities": [
+    {
+      "name": "Recall",
+      "responsibility": "Later distributed reassembly and use of retained fractals/formations from a lawful partial cue. Hippocampal navigation, sensory/body/neocortical structure, prefrontal ordering, and affective reach may all participate.",
+      "required_causal_evidence": "Cue provenance; prior formation lineage; reached neurons; reassembly distinct from replay; causal use; persistence.",
+      "origin_group": "historical_fifteen",
+      "historical_reference_and_warning": "`GL-KB-COGNITION-ARC-RECOVERED-EVE-20260703-v2.md`; `GL-SPC-MEMORY-RECALL-STATE-EVE-20260704-v1.md`. Retire word indexes, atlas scans, max similarity, and database return as cognition.",
+      "id": "C01",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/episodic_binding_engine.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Serving source uses semantic moments/meaning stores and procedural retention; this is not qualified distributed physical memory.",
+      "finding_refs": [
+        "R03",
+        "R04",
+        "R06"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Composition and syntax",
+      "responsibility": "Emergent ordered relations among word, body, sensory, action, and context mosaics, becoming sentence tapestries and sustained expression.",
+      "required_causal_evidence": "Cross-experience word mosaics; ordered relation lineage; body-owned articulation; varied-context use; self-heard consequence.",
+      "origin_group": "historical_fifteen",
+      "historical_reference_and_warning": "`GL-CMD-BRAIN-FULL-DEPLOY-TODAY-EVE-20260704-175-v2.md`. Old LoomMosaic/LoomTapestry source presence did not prove live composition.",
+      "id": "C02",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_voice.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Serving speech includes a reward/example selector and authored fallback. Articulation is distinct from learned words or syntax.",
+      "finding_refs": [
+        "R03",
+        "R05"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Association",
+      "responsibility": "Causally learned relation among distinct formations without collapsing them.",
+      "required_causal_evidence": "Exact members, causal occurrence, sparse relation, later cross-cue reach, changed action/thought.",
+      "origin_group": "historical_fifteen",
+      "historical_reference_and_warning": "`GL-CMD-C2-WHOLE-BRAIN-EVE-20260704-168-v3.md`. Retire co-occurrence dictionaries and cosine/score associations.",
+      "id": "C03",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/episodic_binding_engine.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Serving source uses semantic moments/meaning stores and procedural retention; this is not qualified distributed physical memory.",
+      "finding_refs": [
+        "R03",
+        "R04",
+        "R06"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Retention",
+      "responsibility": "Durable preservation of neuronal fractals and recursive formation relationships through time and restart.",
+      "required_causal_evidence": "Exact lineage; bounded persistence; sleep/restart survival; later recurrence/use; no copied media as memory.",
+      "origin_group": "historical_fifteen",
+      "historical_reference_and_warning": "`GL-SPC-MEMORY-RECALL-STATE-EVE-20260704-v1.md`. Historical retention numbers must be remeasured, never inherited.",
+      "id": "C04",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/episodic_binding_engine.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Serving source uses semantic moments/meaning stores and procedural retention; this is not qualified distributed physical memory.",
+      "finding_refs": [
+        "R03",
+        "R04",
+        "R06"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Cross-modal binding",
+      "responsibility": "One causal episode relating distinct sensory, body, affective, action, and consequence perspectives.",
+      "required_causal_evidence": "One occurrence boundary; distinct neurons/modalities; whole-organism connectedness; later cross-cue recurrence.",
+      "origin_group": "historical_fifteen",
+      "historical_reference_and_warning": "`GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md`; `GL-BRIEF-response-binding-wC-20260609-028.md`. Retire atlas links as the binding authority.",
+      "id": "C05",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_physical_sensorium.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_cochlea.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/substrate/modular_column_substrate.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Sensory and native interfaces exist; full-field/context-preserving causal integration is not requalified on Task 1598.",
+      "finding_refs": [
+        "R06",
+        "R09"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Habituation",
+      "responsibility": "Changed physical response to lawful recurrence with recovery, context, energy, and consequence preserved.",
+      "required_causal_evidence": "Same/related structure recurs; predecessor/successor response differs; recovery and context distinguish adaptation from deletion.",
+      "origin_group": "historical_fifteen",
+      "historical_reference_and_warning": "`GL-CHARTER-motivation-v3-wC-20260609-024.md`. Retire cooldown timers and familiarity scores as cognition.",
+      "id": "C06",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Authored thresholds, dwell-dependent scores and action priorities are visible in serving source; requested physical motivational operators remain unqualified.",
+      "finding_refs": [
+        "R03",
+        "R11"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Recognition and familiarity",
+      "responsibility": "Prior distributed structure physically recurs and changes the reached frontier.",
+      "required_causal_evidence": "Prior formation reference; recurrence relation; novelty distinction; later causal use.",
+      "origin_group": "historical_fifteen",
+      "historical_reference_and_warning": "`GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md`. No nearest-match answer or label lookup.",
+      "id": "C07",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/episodic_binding_engine.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Serving source uses semantic moments/meaning stores and procedural retention; this is not qualified distributed physical memory.",
+      "finding_refs": [
+        "R03",
+        "R04",
+        "R06"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Attention and orienting",
+      "responsibility": "Body/organism state causally concentrates a sparse frontier, gaze, listening, or internal processing on unresolved structure.",
+      "required_causal_evidence": "Physical cause; reached/foregone frontier; gaze/body/listening change; retained consequence.",
+      "origin_group": "historical_fifteen",
+      "historical_reference_and_warning": "`GL-SPC-WAVE-BAND-ATTENTION-EVE-20260630-59v1.md` preserves questions, not its cell/spillover scoring design.",
+      "id": "C08",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Authored thresholds, dwell-dependent scores and action priorities are visible in serving source; requested physical motivational operators remain unqualified.",
+      "finding_refs": [
+        "R03",
+        "R11"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Sequence",
+      "responsibility": "Retained causal and temporal order among perceptions, body states, actions, consequences, and formations.",
+      "required_causal_evidence": "Exact clock/order; predecessor/successor relations; later partial-cue continuation; no counter-based promotion.",
+      "origin_group": "historical_fifteen",
+      "historical_reference_and_warning": "`MOSAIC_TAPESTRY_WEAVE_PROGRESSION_LAW.md`.",
+      "id": "C09",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/episodic_binding_engine.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Serving source uses semantic moments/meaning stores and procedural retention; this is not qualified distributed physical memory.",
+      "finding_refs": [
+        "R03",
+        "R04",
+        "R06"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Imagination and internal simulation",
+      "responsibility": "Wake-originated recombination of retained structure inside bounded body/world simulation with explicit non-external provenance.",
+      "required_causal_evidence": "Internal cause; source formation lineage; simulated provenance; novel recombination; later causal usefulness.",
+      "origin_group": "historical_fifteen",
+      "historical_reference_and_warning": "`GL-RPT-BRAIN-IMAGINATION-REFLECTION-DESIGN-C1-20260711-v1.md`. A similarity diagnostic is not imagination.",
+      "id": "C10",
+      "source_paths": [],
+      "current_boundary": "No complete current causal path independently established; source names, telemetry or historical claims are insufficient.",
+      "finding_refs": [
+        "R09",
+        "R14"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Reflection",
+      "responsibility": "Comparison and causal use of Guala's own prior/current body, action, attention, consequence, and formation states.",
+      "required_causal_evidence": "Self-continuity; bounded prior/current evidence; detected relation; change to regulation/thought/action; no narration required.",
+      "origin_group": "historical_fifteen",
+      "historical_reference_and_warning": "Same imagination/reflection report plus current anatomy. Snapshot diffs alone are only a precursor.",
+      "id": "C11",
+      "source_paths": [],
+      "current_boundary": "No complete current causal path independently established; source names, telemetry or historical claims are insufficient.",
+      "finding_refs": [
+        "R09",
+        "R14"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Whole-brain integration",
+      "responsibility": "Sparse participation across specialized anatomy in one organism without a master hemisphere or copied global state.",
+      "required_causal_evidence": "Cross-region causal lineage; preserved local perspectives; bounded sparse frontier; no independent brain owners.",
+      "origin_group": "historical_fifteen",
+      "historical_reference_and_warning": "`GL-CMD-C2-WHOLE-BRAIN-EVE-20260704-168-v3.md`; `GUALA_CURRENT_BRAIN_ANATOMY_2026-07-28.tex`. Fixed H0-H7 topology is historical, not current law.",
+      "id": "C12",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/lean_production_app.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/paired_current_store.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Identity/world custody exists; September genesis conversion did not translate native cognition. Current startup restores functional state, without that conversion branch.",
+      "finding_refs": [
+        "R01",
+        "R02"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Other-mind modelling",
+      "responsibility": "Learned model of another entity's perspective and potentially divergent knowledge while preserving self/other/reality distinction.",
+      "required_causal_evidence": "Authenticated interaction; self/other sources; other-state model; prediction; disagreement/false-belief capacity; consequence.",
+      "origin_group": "historical_fifteen",
+      "historical_reference_and_warning": "`GL-RPT-BRAIN-THEORY-OF-MIND-SCOPE-C1-20260711-v1.md`; `GL-NOTE-DUAL-MIND-ARCHITECTURE-EVE-20260627-15.md`. Who-tags or presence are precursors only.",
+      "id": "C13",
+      "source_paths": [],
+      "current_boundary": "No complete current causal path independently established; source names, telemetry or historical claims are insufficient.",
+      "finding_refs": [
+        "R09",
+        "R14"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Affect modulation",
+      "responsibility": "Whole-organism body, chemistry, appraisal, memory, prediction, and action state changes cognitive reach and consequence.",
+      "required_causal_evidence": "Physical body/chemical state; neural participation; changed attention/retention/action; recovery trajectory.",
+      "origin_group": "historical_fifteen",
+      "historical_reference_and_warning": "`GL-KB-COGNITION-ARC-RECOVERED-EVE-20260703-v2.md`. Retire named-emotion fields, fixed valence thresholds, and top-down Needs labels.",
+      "id": "C14",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/substrate/neurochemical_flow.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/substrate/whole_organism_neurochemical_mount.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Fluid candidate source is present; its whole-organism native mount and causal contribution are not established. Do not substitute a named mood scalar.",
+      "finding_refs": [
+        "R10"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Meta-monitoring",
+      "responsibility": "Bounded observation of Guala's own action, attention, body/chemistry availability, recovery, consequence, perturbation, and formation state without decision authority.",
+      "required_causal_evidence": "Exact referenced snapshots; bounded retention; no copied owner state; demonstrated later use if claiming cognition.",
+      "origin_group": "historical_fifteen",
+      "historical_reference_and_warning": "`GUALA_CURRENT_BRAIN_ANATOMY_2026-07-28.tex`. A monitor record is not awareness by itself.",
+      "id": "C15",
+      "source_paths": [],
+      "current_boundary": "No complete current causal path independently established; source names, telemetry or historical claims are insufficient.",
+      "finding_refs": [
+        "R09",
+        "R14"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Receptor and sensory mechanics",
+      "responsibility": "Pinna/cochlea, optics/eye, skin/contact/temperature, chemical smell/taste, proprioceptive, vestibular, and interoceptive mechanics transform world/body events before neuronal settlement.",
+      "required_causal_evidence": "Authenticated physical input, reached specialized neurons, retained fractals, recurrence across lawful variation, action consequence.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C16",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_physical_sensorium.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_cochlea.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/substrate/modular_column_substrate.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Sensory and native interfaces exist; full-field/context-preserving causal integration is not requalified on Task 1598.",
+      "finding_refs": [
+        "R06",
+        "R09"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Sensory cortical organization",
+      "responsibility": "Specialized sparse neuronal populations develop form, motion, depth, sound, rhythm, touch, chemical, body-position, and internal-state relations.",
+      "required_causal_evidence": "Local perspectives plus collective formations; no modality label or feature vector as meaning.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C17",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_physical_sensorium.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_cochlea.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/substrate/modular_column_substrate.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Sensory and native interfaces exist; full-field/context-preserving causal integration is not requalified on Task 1598.",
+      "finding_refs": [
+        "R06",
+        "R09"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Immediate/working causal state",
+      "responsibility": "Compact short-lived physical state relates current arrivals, active formations, prepared actions, and context without becoming long-term memory.",
+      "required_causal_evidence": "Exact bounded horizon, decay/rest, causal use during current settlement, no transcript buffer.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C18",
+      "source_paths": [],
+      "current_boundary": "No complete current causal path independently established; source names, telemetry or historical claims are insufficient.",
+      "finding_refs": [
+        "R09",
+        "R14"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Hippocampal indexing",
+      "responsibility": "Sparse navigation among episode components and formation references; rapid episode binding without storing complete answers.",
+      "required_causal_evidence": "Exact reference pages/paths, distributed reassembly, cue reach, later neocortical/body participation, persistence.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C19",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/episodic_binding_engine.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Serving source uses semantic moments/meaning stores and procedural retention; this is not qualified distributed physical memory.",
+      "finding_refs": [
+        "R03",
+        "R04",
+        "R06"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Neocortical distributed retention",
+      "responsibility": "Long-term structure remains distributed across participating sensory, body, relational, language, and action formations.",
+      "required_causal_evidence": "Cross-region retained lineage and later reconstruction; no central memory row.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C20",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/episodic_binding_engine.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Serving source uses semantic moments/meaning stores and procedural retention; this is not qualified distributed physical memory.",
+      "finding_refs": [
+        "R03",
+        "R04",
+        "R06"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Prefrontal ordering and deliberation",
+      "responsibility": "Bounded active maintenance, comparison, prediction, inhibition, planning, and ordering of available continuations.",
+      "required_causal_evidence": "Authenticated alternatives; active tapestry relations; prepared intent; action and consequence; no score selector.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C21",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_functional_loop.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/affordance_planner.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "The active functional loop applies body consequences, but procedural action/plan authority remains. The Task 1597 navigation failure is historical; Task 1598 is not behaviorally qualified.",
+      "finding_refs": [
+        "R03",
+        "R07",
+        "R12"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Amygdala/affective reach",
+      "responsibility": "Learned body-affective relevance changes attention, recall reach, retention, preparation, avoidance, and recovery.",
+      "required_causal_evidence": "Affect/body evidence linked to formations and later changed behavior; no injected fear/like label.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C22",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/substrate/neurochemical_flow.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/substrate/whole_organism_neurochemical_mount.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Fluid candidate source is present; its whole-organism native mount and causal contribution are not established. Do not substitute a named mood scalar.",
+      "finding_refs": [
+        "R10"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Emotion and regulation",
+      "responsibility": "Emergent organism condition and capacity to remain coherent, adapt, and recover under perturbation.",
+      "required_causal_evidence": "Exact body/fluid/neural trajectory, consequence, recovery/adaptation, transfer across contexts.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C23",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/substrate/neurochemical_flow.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/substrate/whole_organism_neurochemical_mount.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Fluid candidate source is present; its whole-organism native mount and causal contribution are not established. Do not substitute a named mood scalar.",
+      "finding_refs": [
+        "R10"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Fluid brain and metabolic regulation",
+      "responsibility": "Non-neuronal emulated circulation, respiration, nutrients, waste, chemistry, energy, temperature, recovery, and sleep-linked restoration influence local neuronal physics.",
+      "required_causal_evidence": "Conserved local passoff, units, predecessor/successor quantities, recovery consequence; fluids never become neurons or semantic state.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C24",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/substrate/neurochemical_flow.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/substrate/whole_organism_neurochemical_mount.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Fluid candidate source is present; its whole-organism native mount and causal contribution are not established. Do not substitute a named mood scalar.",
+      "finding_refs": [
+        "R10"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Motivation, needs, and curiosity",
+      "responsibility": "Endogenous physical pressure from body state, unresolved structure, novelty, recurrence, expected consequence, social relation, and surplus supports sustained attention/action.",
+      "required_causal_evidence": "Physical origin; persistence; changed attention/action; satisfaction or unresolved consequence; no fixed targets, timer drift, random selection, or seeded goals.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C25",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Authored thresholds, dwell-dependent scores and action priorities are visible in serving source; requested physical motivational operators remain unqualified.",
+      "finding_refs": [
+        "R03",
+        "R11"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Prediction",
+      "responsibility": "Retained formation structure settles an expectation of a future physical or relational consequence.",
+      "required_causal_evidence": "Prior lineage; prepared expectation; later actual consequence; exact agreement/disagreement without rewriting history.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C26",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_functional_loop.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/affordance_planner.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "The active functional loop applies body consequences, but procedural action/plan authority remains. The Task 1597 navigation failure is historical; Task 1598 is not behaviorally qualified.",
+      "finding_refs": [
+        "R03",
+        "R07",
+        "R12"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Choice and action preparation",
+      "responsibility": "Organism physics settles one available continuation and prepares an at-most-once body/world intent.",
+      "required_causal_evidence": "Authentic alternatives, successor state, prepared intent, execution, sensed consequence, re-entry.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C27",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_functional_loop.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/affordance_planner.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "The active functional loop applies body consequences, but procedural action/plan authority remains. The Task 1597 navigation failure is historical; Task 1598 is not behaviorally qualified.",
+      "finding_refs": [
+        "R03",
+        "R07",
+        "R12"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Motor/body control",
+      "responsibility": "Gaze, face, mouth, breath, posture, locomotion, manipulation, and other effectors execute learned physical continuations.",
+      "required_causal_evidence": "Exact actuator trajectory; proprioceptive/vestibular/tactile consequence; procedural tapestry/weave reuse.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C28",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_functional_loop.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/affordance_planner.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "The active functional loop applies body consequences, but procedural action/plan authority remains. The Task 1597 navigation failure is historical; Task 1598 is not behaviorally qualified.",
+      "finding_refs": [
+        "R03",
+        "R07",
+        "R12"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Speech and articulation",
+      "responsibility": "Ordered thought drives breath, larynx, mouth, face, and timing; emitted sound returns through self-hearing.",
+      "required_causal_evidence": "Thought/formation lineage, articulatory trajectory, PCM, self-heard consequence, varied-context use. TTS is transport, not cognition.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C29",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_voice.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Serving speech includes a reward/example selector and authored fallback. Articulation is distinct from learned words or syntax.",
+      "finding_refs": [
+        "R03",
+        "R05"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Language comprehension",
+      "responsibility": "Heard, seen, embodied, relational, and contextual language becomes integrated learned structure.",
+      "required_causal_evidence": "Cross-sensory word mosaics, sentence tapestries, partial-cue recognition, action/response consequence, transfer beyond exact text.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C30",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_voice.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Serving speech includes a reward/example selector and authored fallback. Articulation is distinct from learned words or syntax.",
+      "finding_refs": [
+        "R03",
+        "R05"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Self/body continuity",
+      "responsibility": "One continuing organism distinguishes self-caused body/action/history from world and others through restart.",
+      "required_causal_evidence": "Identity/generation lineage, body boundary, self-caused action, self-sensing, persistence without owner fork.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C31",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/lean_production_app.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/paired_current_store.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Identity/world custody exists; September genesis conversion did not translate native cognition. Current startup restores functional state, without that conversion branch.",
+      "finding_refs": [
+        "R01",
+        "R02"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Joint attention and response binding",
+      "responsibility": "Self, other, object/event, utterance, attention, and consequence participate in one causal episode.",
+      "required_causal_evidence": "Gaze/attention/source evidence, episode formation, later reciprocal/cross-cue use. It is a precursor to language/social cognition, not theory of mind.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C32",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_voice.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Serving speech includes a reward/example selector and authored fallback. Articulation is distinct from learned words or syntax.",
+      "finding_refs": [
+        "R03",
+        "R05"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Social cognition and empathy",
+      "responsibility": "Guala learns other agents, relationships, perspectives, and observed states while preserving self/other distinction.",
+      "required_causal_evidence": "Interaction episodes, other-source lineage, affective/action adjustment, later prediction and recall; no sentiment templates.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C33",
+      "source_paths": [],
+      "current_boundary": "No complete current causal path independently established; source names, telemetry or historical claims are insufficient.",
+      "finding_refs": [
+        "R09",
+        "R14"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Sleep and rest",
+      "responsibility": "Body/energy/fluid state lawfully shifts the organism toward quiescence and recovery.",
+      "required_causal_evidence": "Physical cause, reduced external action, retained identity, recovery, lawful wake. No scheduler-chosen sleep.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C34",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/substrate/modular_column_substrate.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Serving _dream moves selected dictionary entries. The new test does not invoke actual consolidation or prove its result.",
+      "finding_refs": [
+        "R04",
+        "R08"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Dream and consolidation",
+      "responsibility": "During sleep, retained structures reactivate/recombine with explicit simulated provenance and may reorganize durable formations.",
+      "required_causal_evidence": "Sleep cause, source formation references, bounded simulated occurrence, before/after structural change, later recall/use. No random atlas replay or dream counter.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C35",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/substrate/modular_column_substrate.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Serving _dream moves selected dictionary entries. The new test does not invoke actual consolidation or prove its result.",
+      "finding_refs": [
+        "R04",
+        "R08"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Subconscious/background cognition",
+      "responsibility": "Causally active internal transitions outside current reportable attention that can later influence formations, body state, attention, or action.",
+      "required_causal_evidence": "Native causal lineage, bounded work, later measurable influence, no background script/process/second identity.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C36",
+      "source_paths": [],
+      "current_boundary": "No complete current causal path independently established; source names, telemetry or historical claims are insufficient.",
+      "finding_refs": [
+        "R09",
+        "R14"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Autonomy, play, and exploration",
+      "responsibility": "Endogenous sensing, quiescence, thought, safe action, consequence, sleep, wake, and learning continue without an operator.",
+      "required_causal_evidence": "Unattended generations, lawful wake causes, action closure, formation change, bounded resources, no prompt/timer chooser.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C37",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_functional_loop.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/affordance_planner.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "The active functional loop applies body consequences, but procedural action/plan authority remains. The Task 1597 navigation failure is historical; Task 1598 is not behaviorally qualified.",
+      "finding_refs": [
+        "R03",
+        "R07",
+        "R12"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Navigation and avoidance",
+      "responsibility": "Spatial, sensory, body, affective, and action relations form usable ordered structures.",
+      "required_causal_evidence": "Tapestry lineage, changing world/body positions, action outcomes, adaptation without scripted paths.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C38",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_functional_loop.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/affordance_planner.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "The active functional loop applies body consequences, but procedural action/plan authority remains. The Task 1597 navigation failure is historical; Task 1598 is not behaviorally qualified.",
+      "finding_refs": [
+        "R03",
+        "R07",
+        "R12"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Procedural capability",
+      "responsibility": "Repeated action-consequence closure becomes durable coordinated performance.",
+      "required_causal_evidence": "Tapestry/weave reuse across variations, correction, autonomous execution, restart durability.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C39",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_functional_loop.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/affordance_planner.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "The active functional loop applies body consequences, but procedural action/plan authority remains. The Task 1597 navigation failure is historical; Task 1598 is not behaviorally qualified.",
+      "finding_refs": [
+        "R03",
+        "R07",
+        "R12"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Creativity and self-expression",
+      "responsibility": "Internally originated coherent recombination of established capital produces distinctive artifacts or performances.",
+      "required_causal_evidence": "Weave lineage, novelty relative to Guala's own history, enactment, self-observation, consequence; no template/randomness substitution.",
+      "origin_group": "additional_whole_organism",
+      "historical_reference_and_warning": "Recovered cognitive catalog; responsibility, not implementation proof.",
+      "id": "C40",
+      "source_paths": [],
+      "current_boundary": "No complete current causal path independently established; source names, telemetry or historical claims are insufficient.",
+      "finding_refs": [
+        "R09",
+        "R14"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Story and contextual experience",
+      "responsibility": "External ambient conditions, internal state, place, participants, time/order and ongoing activity belong to the experienced event.",
+      "required_causal_evidence": "Preserve authentic context changes and demonstrate later context-sensitive recall without supplying labels.",
+      "origin_group": "explicit_reconciliation_coverage",
+      "historical_reference_and_warning": "Joe, June 23 and October 9; decisions D01/D06/D07.",
+      "id": "C41",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_physical_sensorium.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_cochlea.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/substrate/modular_column_substrate.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Sensory and native interfaces exist; full-field/context-preserving causal integration is not requalified on Task 1598.",
+      "finding_refs": [
+        "R06",
+        "R09"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Needs and hunger",
+      "responsibility": "Actual bodily deficit participates through internal sensing and changes the same causal organism.",
+      "required_causal_evidence": "Trace food material, storage, expenditure, waste, deficit sensing, native response and later actual intake.",
+      "origin_group": "explicit_reconciliation_coverage",
+      "historical_reference_and_warning": "Joe October 9; D3 motivation and intake boundaries.",
+      "id": "C42",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Authored thresholds, dwell-dependent scores and action priorities are visible in serving source; requested physical motivational operators remain unqualified.",
+      "finding_refs": [
+        "R03",
+        "R11"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Wants",
+      "responsibility": "Learned motivational responsibility requested by Joe; exact current physical operator unresolved.",
+      "required_causal_evidence": "Identify the ratified causal operator before implementation; no semantic goal table.",
+      "origin_group": "explicit_reconciliation_coverage",
+      "historical_reference_and_warning": "Joe October 9; no direct operator ratification established.",
+      "id": "C43",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Authored thresholds, dwell-dependent scores and action priorities are visible in serving source; requested physical motivational operators remain unqualified.",
+      "finding_refs": [
+        "R03",
+        "R11"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Boredom",
+      "responsibility": "Changing engagement with recurrent structure must arise from the declared physical dynamics.",
+      "required_causal_evidence": "Explain local saturation/exhaustion and recovery with units and causal counterfactuals; a dwell timer is insufficient.",
+      "origin_group": "explicit_reconciliation_coverage",
+      "historical_reference_and_warning": "Historical motivation charter; current _choose dwell-score conflict.",
+      "id": "C44",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Authored thresholds, dwell-dependent scores and action priorities are visible in serving source; requested physical motivational operators remain unqualified.",
+      "finding_refs": [
+        "R03",
+        "R11"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Curiosity",
+      "responsibility": "Unresolved reachable structure can originate exploration through the same organism.",
+      "required_causal_evidence": "Show internal cause, sparse reach, autonomous action and learned consequence, with external novelty labels removed.",
+      "origin_group": "explicit_reconciliation_coverage",
+      "historical_reference_and_warning": "D3; August baseline A-006 is a narrow historical report.",
+      "id": "C45",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Authored thresholds, dwell-dependent scores and action priorities are visible in serving source; requested physical motivational operators remain unqualified.",
+      "finding_refs": [
+        "R03",
+        "R11"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Entropy, cohesion and System Greed",
+      "responsibility": "Preserve distinct domain-agnostic structural laws and geometry-mediated access to unresolved potential.",
+      "required_causal_evidence": "State exact equations and their authority; demonstrate the physical transition without reward reduction.",
+      "origin_group": "explicit_reconciliation_coverage",
+      "historical_reference_and_warning": "Recovered D3/autonomy authority; no new equation adopted here.",
+      "id": "C46",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Authored thresholds, dwell-dependent scores and action priorities are visible in serving source; requested physical motivational operators remain unqualified.",
+      "finding_refs": [
+        "R03",
+        "R11"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Sensory memory",
+      "responsibility": "Retained modality-specific physical impressions that participate in distributed experience.",
+      "required_causal_evidence": "Later partial sensory cue changes reached state after the original stimulus is absent and after restore.",
+      "origin_group": "explicit_reconciliation_coverage",
+      "historical_reference_and_warning": "Recovered cognitive-chain law.",
+      "id": "C47",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/episodic_binding_engine.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Serving source uses semantic moments/meaning stores and procedural retention; this is not qualified distributed physical memory.",
+      "finding_refs": [
+        "R03",
+        "R04",
+        "R06"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Episodic memory",
+      "responsibility": "Retained relations preserve an event and the context of its occurrence.",
+      "required_causal_evidence": "Later reconstruction preserves origin, participants, causal order and internal/external distinction.",
+      "origin_group": "explicit_reconciliation_coverage",
+      "historical_reference_and_warning": "Joe story definition; whole-organism continuity law.",
+      "id": "C48",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/episodic_binding_engine.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Serving source uses semantic moments/meaning stores and procedural retention; this is not qualified distributed physical memory.",
+      "finding_refs": [
+        "R03",
+        "R04",
+        "R06"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Relational memory",
+      "responsibility": "Experience changes physical relationships across otherwise distinct formations.",
+      "required_causal_evidence": "Cross-cue reassembly and transfer without a co-occurrence dictionary as authority.",
+      "origin_group": "explicit_reconciliation_coverage",
+      "historical_reference_and_warning": "Recovered cognitive-chain law.",
+      "id": "C49",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/episodic_binding_engine.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Serving source uses semantic moments/meaning stores and procedural retention; this is not qualified distributed physical memory.",
+      "finding_refs": [
+        "R03",
+        "R04",
+        "R06"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Procedural memory",
+      "responsibility": "Actual repeated action/consequence changes later coordinated performance.",
+      "required_causal_evidence": "Cold-restored varied-context execution and corrective sensory feedback.",
+      "origin_group": "explicit_reconciliation_coverage",
+      "historical_reference_and_warning": "Recovered cognitive catalog; no recipe injection.",
+      "id": "C50",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_functional_loop.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/affordance_planner.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "native/guala_core/src/cortical_column.rs",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "The active functional loop applies body consequences, but procedural action/plan authority remains. The Task 1597 navigation failure is historical; Task 1598 is not behaviorally qualified.",
+      "finding_refs": [
+        "R03",
+        "R07",
+        "R12"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Affective and body memory",
+      "responsibility": "Body and locally regulated state participate in later recall and action.",
+      "required_causal_evidence": "Change the actual body/fluid cause and measure the retained and later causal difference.",
+      "origin_group": "explicit_reconciliation_coverage",
+      "historical_reference_and_warning": "Recovered fluid/formation law.",
+      "id": "C51",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/substrate/neurochemical_flow.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/substrate/whole_organism_neurochemical_mount.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Fluid candidate source is present; its whole-organism native mount and causal contribution are not established. Do not substitute a named mood scalar.",
+      "finding_refs": [
+        "R10"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Language memory",
+      "responsibility": "Heard/seen expression becomes related to experienced body/world events.",
+      "required_causal_evidence": "Recognize and use across different contexts; retained sound alone is not meaning.",
+      "origin_group": "explicit_reconciliation_coverage",
+      "historical_reference_and_warning": "August 8 correction; Joe forbids word-only mosaic definitions.",
+      "id": "C52",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_functional_organism.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/episodic_binding_engine.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "Serving source uses semantic moments/meaning stores and procedural retention; this is not qualified distributed physical memory.",
+      "finding_refs": [
+        "R03",
+        "R04",
+        "R06"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    },
+    {
+      "name": "Food availability and replenishment",
+      "responsibility": "Consumed food leaves edible availability; external provisions introduce accounted new material.",
+      "required_causal_evidence": "Conservation, exhausted-object lifecycle, relocated new food and learning without a location hint.",
+      "origin_group": "explicit_reconciliation_coverage",
+      "historical_reference_and_warning": "Joe October 9; environment responsibility rather than pupil memory policy.",
+      "id": "C53",
+      "source_paths": [
+        {
+          "path": "dsf_ai_service/guala_home_world.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/guala_functional_loop.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        },
+        {
+          "path": "dsf_ai_service/substrate/embodiment_world.py",
+          "present_in_worktree": true,
+          "proof_level": "source lead; see task-specific immutable evidence for serving claims"
+        }
+      ],
+      "current_boundary": "World/caretaker and pupil responsibilities must be separated. One positive reserve snapshot does not prove autonomous feeding or provision closure.",
+      "finding_refs": [
+        "R07",
+        "R12"
+      ],
+      "current_release_qualification": {
+        "availability": "not_independently_qualified_on_Task1598",
+        "participation": "not_independently_qualified_on_Task1598",
+        "retention": "not_independently_qualified_on_Task1598",
+        "recognition": "not_independently_qualified_on_Task1598",
+        "recall": "not_independently_qualified_on_Task1598",
+        "causal_use": "not_independently_qualified_on_Task1598",
+        "transfer": "not_independently_qualified_on_Task1598",
+        "autonomous_use": "not_independently_qualified_on_Task1598",
+        "durability": "not_independently_qualified_on_Task1598",
+        "integration_depth": "not_independently_qualified_on_Task1598"
+      },
+      "qualification_warning": "Unqualified is not absent, zero capacity, a completed review or a denial of narrower historical evidence.",
+      "lawful_remedy": "Preserve this responsibility and lawful retained physical state; remove conflicting authority at the traced causal boundary. Prove the required causal evidence before claiming the capability."
+    }
+  ],
+  "latest_evidence_scope": {
+    "task": 1606,
+    "sample": "2026-10-10T11:12–11:19UTC",
+    "qualification": "NOT_QUALIFIED",
+    "source": "docs/guala_reconciliation/task1606-boundary-reconciliation.md",
+    "functional_equivalence": true,
+    "microscopic_reconstruction_required": false
+  }
+}

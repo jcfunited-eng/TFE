@@ -1,0 +1,14 @@
+--- efe8da63e0b2498a060f40182a57804582eda510
+
++++ 3de831cec0efd58b8f381e9de56ea3110492958b
+
+@@ -50,5 +50,7 @@
+
+   - When no target is active (idle roaming), head yaw and pitch default to the height of environmental structure, and the seed site defaults to the gaze center site as before.
+ 
+-## 6. Where she looks (built and measured 2026-09-15, Joe's word on both decisions)
++## 6 as built and measured (C1, 2026-09-15) — where she looks
++
++A1's §6 above states the ratified law; this is what is built on c1/drive-organ and what it measured. One difference of range: as built the neck_pitch axis is declared symmetric, seventy degrees down and seventy up (one number, declared once), not seventy down and forty-five up.
+ 
+ - **The neck's pitch bound is seventy degrees** (neck_pitch declared so): at forty-five she was blind to her own hand, sixty-seven degrees below her eye line at her grip's reach.

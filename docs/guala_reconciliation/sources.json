@@ -1,0 +1,568 @@
+[
+  {
+    "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+    "path": "docs/GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+    "returncode": 0,
+    "snapshot": "recovered-authorities/714cd6b9feff--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+    "bytes": 15417,
+    "sha256": "de642b233d3b62a48a87dd71d19288136b91fa86c4e179f161214c46420f5184",
+    "preserved_copy": "docs/guala_reconciliation/sources/714cd6b9feff--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+    "authority": "Historical document; its own ratification/completion labels require original evidence.",
+    "review": "selected sections unless individually recorded otherwise"
+  },
+  {
+    "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+    "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+    "returncode": 0,
+    "snapshot": "recovered-authorities/714cd6b9feff--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+    "bytes": 17670,
+    "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2",
+    "preserved_copy": "docs/guala_reconciliation/sources/714cd6b9feff--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+    "authority": "Historical document; its own ratification/completion labels require original evidence.",
+    "review": "selected sections unless individually recorded otherwise"
+  },
+  {
+    "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+    "path": "docs/MOSAIC_TAPESTRY_WEAVE_PROGRESSION_LAW.md",
+    "returncode": 0,
+    "snapshot": "recovered-authorities/714cd6b9feff--MOSAIC_TAPESTRY_WEAVE_PROGRESSION_LAW.md",
+    "bytes": 21789,
+    "sha256": "71722804d2d6254b3b57e6dc0d78ccb7298df60f767f2c625b436ac3e910236a",
+    "preserved_copy": "docs/guala_reconciliation/sources/714cd6b9feff--MOSAIC_TAPESTRY_WEAVE_PROGRESSION_LAW.md",
+    "authority": "Historical document; its own ratification/completion labels require original evidence.",
+    "review": "selected sections unless individually recorded otherwise"
+  },
+  {
+    "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+    "path": "docs/WHOLE_ORGANISM_CONTIGUITY_LAW.md",
+    "returncode": 0,
+    "snapshot": "recovered-authorities/714cd6b9feff--WHOLE_ORGANISM_CONTIGUITY_LAW.md",
+    "bytes": 12749,
+    "sha256": "8b699a973e4827b12afc82be56c98fb10705fa1ff6f015fdbb93b02e6068c5af",
+    "preserved_copy": "docs/guala_reconciliation/sources/714cd6b9feff--WHOLE_ORGANISM_CONTIGUITY_LAW.md",
+    "authority": "Historical document; its own ratification/completion labels require original evidence.",
+    "review": "selected sections unless individually recorded otherwise"
+  },
+  {
+    "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+    "path": "docs/GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+    "returncode": 0,
+    "snapshot": "recovered-authorities/714cd6b9feff--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+    "bytes": 19123,
+    "sha256": "6b55dfc86fc793851ddc656cc7907eb4e9cee0d64a3984a0639cf067c825c09f",
+    "preserved_copy": "docs/guala_reconciliation/sources/714cd6b9feff--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+    "authority": "Historical document; its own ratification/completion labels require original evidence.",
+    "review": "selected sections unless individually recorded otherwise"
+  },
+  {
+    "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+    "path": "docs/GUALA_CURRENT_ARCHITECTURE_BASELINE_2026-08-29.md",
+    "returncode": 0,
+    "snapshot": "recovered-authorities/714cd6b9feff--GUALA_CURRENT_ARCHITECTURE_BASELINE_2026-08-29.md",
+    "bytes": 14051,
+    "sha256": "2b44ac21a61558af265328cbc62a6d9863e8ff28f3ccabe7444b9ec6273bd26b",
+    "preserved_copy": "docs/guala_reconciliation/sources/714cd6b9feff--GUALA_CURRENT_ARCHITECTURE_BASELINE_2026-08-29.md",
+    "authority": "Historical document; its own ratification/completion labels require original evidence.",
+    "review": "selected sections unless individually recorded otherwise"
+  },
+  {
+    "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+    "path": "docs/PLAY_DREAM_WAKE_GROWTH_LAW.md",
+    "returncode": 0,
+    "snapshot": "recovered-authorities/714cd6b9feff--PLAY_DREAM_WAKE_GROWTH_LAW.md",
+    "bytes": 8997,
+    "sha256": "ad6c52b6856997f99586df90b6bd966f3cd8dc5b2a20f5dc8baeff46f62d8649",
+    "preserved_copy": "docs/guala_reconciliation/sources/714cd6b9feff--PLAY_DREAM_WAKE_GROWTH_LAW.md",
+    "authority": "Historical document; its own ratification/completion labels require original evidence.",
+    "review": "selected sections unless individually recorded otherwise"
+  },
+  {
+    "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+    "path": "docs/GUALA_DEVELOPMENTAL_CONNECTIVITY_LAW_2026-08-11.md",
+    "returncode": 0,
+    "snapshot": "recovered-authorities/714cd6b9feff--GUALA_DEVELOPMENTAL_CONNECTIVITY_LAW_2026-08-11.md",
+    "bytes": 4703,
+    "sha256": "545f9eaa896d1a736e12b679bbea9370c81d8722d4fc8b17dff778435391b528",
+    "preserved_copy": "docs/guala_reconciliation/sources/714cd6b9feff--GUALA_DEVELOPMENTAL_CONNECTIVITY_LAW_2026-08-11.md",
+    "authority": "Historical document; its own ratification/completion labels require original evidence.",
+    "review": "selected sections unless individually recorded otherwise"
+  },
+  {
+    "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+    "path": "docs/GUALA_D3_COMPLETE_DELIVERY_CONTRACT_2026-08-04.md",
+    "returncode": 0,
+    "snapshot": "recovered-authorities/714cd6b9feff--GUALA_D3_COMPLETE_DELIVERY_CONTRACT_2026-08-04.md",
+    "bytes": 12320,
+    "sha256": "213dda82ed5c3c62780e8504fd2170c8c3605b8d7d3237d182e4c04be83601ce",
+    "preserved_copy": "docs/guala_reconciliation/sources/714cd6b9feff--GUALA_D3_COMPLETE_DELIVERY_CONTRACT_2026-08-04.md",
+    "authority": "Historical document; its own ratification/completion labels require original evidence.",
+    "review": "selected sections unless individually recorded otherwise"
+  },
+  {
+    "commit": "05f8f5c560e0aa19aa3f1e1358cea47c58e95b63",
+    "path": "docs/GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+    "returncode": 0,
+    "snapshot": "recovered-authorities/05f8f5c560e0--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+    "bytes": 15001,
+    "sha256": "6ad32eea3addc93d414eb9ed64e495d9e79fae656a402902374dcf137cd9c101",
+    "preserved_copy": "docs/guala_reconciliation/sources/05f8f5c560e0--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+    "authority": "Historical document; its own ratification/completion labels require original evidence.",
+    "review": "selected sections unless individually recorded otherwise"
+  },
+  {
+    "path": "docs/GL-CMD-C2-WHOLE-BRAIN-EVE-20260704-168-v3.md",
+    "preserved_copy": "docs/guala_reconciliation/sources/observed-20261009--GL-CMD-C2-WHOLE-BRAIN-EVE-20260704-168-v3.md",
+    "sha256": "f331f20a4f4413425dba0f7dcceabd062a9e7b49147d2ae4d10c96d1c07aac60",
+    "bytes": 3436,
+    "authority": "Dated source/report; not automatically a ratified or live mechanism.",
+    "review": "selected sections; source presence is not semantic clearance"
+  },
+  {
+    "path": "docs/GL-SPC-EXPERIENCE-FIRST-20260702-v2.md",
+    "preserved_copy": "docs/guala_reconciliation/sources/observed-20261009--GL-SPC-EXPERIENCE-FIRST-20260702-v2.md",
+    "sha256": "1b142234586b5bba8b4870423fa7ba1bbabbe42481b5bd5239a0e3de7d79395d",
+    "bytes": 21321,
+    "authority": "Dated source/report; not automatically a ratified or live mechanism.",
+    "review": "selected sections; source presence is not semantic clearance"
+  },
+  {
+    "path": "docs/GL-RPT-BRAIN-IMAGINATION-REFLECTION-DESIGN-C1-20260711-v1.md",
+    "preserved_copy": "docs/guala_reconciliation/sources/observed-20261009--GL-RPT-BRAIN-IMAGINATION-REFLECTION-DESIGN-C1-20260711-v1.md",
+    "sha256": "06b2626e5cb9f09c3a4bcef06a0c8cce6547e745bcbfe65252000c1ed6885dfe",
+    "bytes": 23147,
+    "authority": "Dated source/report; not automatically a ratified or live mechanism.",
+    "review": "selected sections; source presence is not semantic clearance"
+  },
+  {
+    "path": "docs/GL-SPEC-cognition-wC-20260608-007.md",
+    "preserved_copy": "docs/guala_reconciliation/sources/observed-20261009--GL-SPEC-cognition-wC-20260608-007.md",
+    "sha256": "ceec06d92426d46304e0f6f543a405f4d066a2fdee8a94d62c29ddab9e23a3bf",
+    "bytes": 27023,
+    "authority": "Dated source/report; not automatically a ratified or live mechanism.",
+    "review": "selected sections; source presence is not semantic clearance"
+  },
+  {
+    "path": "docs/GL-RPT-SLEEP-PURPOSE-C1-20260914-v1.md",
+    "preserved_copy": "docs/guala_reconciliation/sources/observed-20261009--GL-RPT-SLEEP-PURPOSE-C1-20260914-v1.md",
+    "sha256": "51a03c0b6c13c4d281caa851afc2942a9774d113b00eb5329bb0999672e92c3e",
+    "bytes": 9502,
+    "authority": "Dated source/report; not automatically a ratified or live mechanism.",
+    "review": "selected sections; source presence is not semantic clearance"
+  },
+  {
+    "path": "docs/COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+    "preserved_copy": "docs/guala_reconciliation/sources/observed-20261009--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+    "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+    "bytes": 10546,
+    "authority": "Dated source/report; not automatically a ratified or live mechanism.",
+    "review": "selected sections; source presence is not semantic clearance"
+  },
+  {
+    "path": "docs/GUALA_COGNITIVE_MOSAIC_TAPESTRY_WEAVE_SPECIFICATION_2026-10-09.md",
+    "preserved_copy": "docs/guala_reconciliation/sources/observed-20261009--GUALA_COGNITIVE_MOSAIC_TAPESTRY_WEAVE_SPECIFICATION_2026-10-09.md",
+    "sha256": "a7dbe3fec1115b27dd91e766e96e1bb457a2183895fc61d910902b3b4f61148f",
+    "bytes": 9823,
+    "authority": "Dated source/report; not automatically a ratified or live mechanism.",
+    "review": "selected sections; source presence is not semantic clearance"
+  },
+  {
+    "path": "docs/GUALA_OPTION2_NATIVE64_PHYSICAL_AUDIT_2026-10-09.md",
+    "preserved_copy": "docs/guala_reconciliation/sources/observed-20261009--GUALA_OPTION2_NATIVE64_PHYSICAL_AUDIT_2026-10-09.md",
+    "sha256": "3b5ce3396fb0b3b8128011764f3bb91b5f773375e16b06ee51e2cb155c911960",
+    "bytes": 5932,
+    "authority": "Dated source/report; not automatically a ratified or live mechanism.",
+    "review": "selected sections; source presence is not semantic clearance"
+  },
+  {
+    "path": "docs/GUALA_R3_AUDIT_RECONCILIATION_20260902.md",
+    "preserved_copy": "docs/guala_reconciliation/sources/observed-20261009--GUALA_R3_AUDIT_RECONCILIATION_20260902.md",
+    "sha256": "f09e96827a3b04f21e9d5362d44f4e149bb0d596f0f22cc6dc9b90a1d03cee36",
+    "bytes": 5172,
+    "authority": "Dated source/report; not automatically a ratified or live mechanism.",
+    "review": "selected sections; source presence is not semantic clearance"
+  },
+  {
+    "path": "docs/GUALA_LEARNING_DECISION_MECHANISM_CONTRACT_2026-10-08.md",
+    "preserved_copy": "docs/guala_reconciliation/sources/observed-20261009--GUALA_LEARNING_DECISION_MECHANISM_CONTRACT_2026-10-08.md",
+    "sha256": "15ca8ce53cab440680b1c246ac9530d7967d4f46b41f7d7173195b8bad35f38b",
+    "bytes": 19732,
+    "authority": "Dated source/report; not automatically a ratified or live mechanism.",
+    "review": "selected sections; source presence is not semantic clearance"
+  },
+  {
+    "path": "docs/GUALA_LEARNING_DECISION_CLASSIFICATION_2026-10-08.md",
+    "preserved_copy": "docs/guala_reconciliation/sources/observed-20261009--GUALA_LEARNING_DECISION_CLASSIFICATION_2026-10-08.md",
+    "sha256": "1524db3246b7eddf04109a580eac92c8e645ef87301a032a3976c0a4c00111e1",
+    "bytes": 14002,
+    "authority": "Dated source/report; not automatically a ratified or live mechanism.",
+    "review": "selected sections; source presence is not semantic clearance"
+  },
+  {
+    "path": "docs/GUALA_LEARNING_DECISION_CLASSIFICATION_TASK1593_2026-10-09.json",
+    "preserved_copy": "docs/guala_reconciliation/sources/observed-20261009--GUALA_LEARNING_DECISION_CLASSIFICATION_TASK1593_2026-10-09.json",
+    "sha256": "0e502ef3808357db7724d5ec43d924382cf8c1688c429ff2af6fedbc24a17569",
+    "bytes": 262421,
+    "authority": "Dated source/report; not automatically a ratified or live mechanism.",
+    "review": "selected sections; source presence is not semantic clearance"
+  },
+  {
+    "path": "docs/GUALA_TASK1597_SPATIAL_CARETAKER_AUDIT_2026-10-09.md",
+    "preserved_copy": "docs/guala_reconciliation/sources/observed-20261009--GUALA_TASK1597_SPATIAL_CARETAKER_AUDIT_2026-10-09.md",
+    "sha256": "34e7d479b091a54b82ce4f5b2ce3ed594adb6d9f04fa5ee6c460f65496933ca9",
+    "bytes": 13477,
+    "authority": "Dated source/report; not automatically a ratified or live mechanism.",
+    "review": "selected sections; source presence is not semantic clearance"
+  },
+  {
+    "path": "docs/GUALA_FORCE_WORK_LIMIT_AUDIT_2026-10-09.md",
+    "preserved_copy": "docs/guala_reconciliation/sources/observed-20261009--GUALA_FORCE_WORK_LIMIT_AUDIT_2026-10-09.md",
+    "sha256": "8aaf997fa187d8e9605a80eeee690f93049186d372c62a86e22e39cef6820ae2",
+    "bytes": 7053,
+    "authority": "Dated source/report; not automatically a ratified or live mechanism.",
+    "review": "selected sections; source presence is not semantic clearance"
+  },
+  {
+    "path": "docs/ArcLoom_Master_Specification_v5_0.tex",
+    "preserved_copy": "docs/guala_reconciliation/sources/observed-20261009--ArcLoom_Master_Specification_v5_0.tex",
+    "sha256": "d8c33af74dc81937b5954b28fb1f678773e600c39f30240b233f9e01ba734a5a",
+    "bytes": 56240,
+    "authority": "Dated source/report; not automatically a ratified or live mechanism.",
+    "review": "selected sections; source presence is not semantic clearance"
+  },
+  {
+    "path": "docs/ArcLoom_Consolidated_Spec_v1_0.txt",
+    "preserved_copy": "docs/guala_reconciliation/sources/observed-20261009--ArcLoom_Consolidated_Spec_v1_0.txt",
+    "sha256": "c87a46ee703b2942b9b0e79919ab70dc0953ac20e0e7b35bc811572e9fcd45ed",
+    "bytes": 43800,
+    "authority": "Dated source/report; not automatically a ratified or live mechanism.",
+    "review": "selected sections; source presence is not semantic clearance"
+  },
+  {
+    "path": "backups/runtime/a1-architecture-reconciliation-20261009/revisions.jsonl",
+    "preserved_copy": "docs/guala_reconciliation/indexes/revisions.jsonl.gz",
+    "encoding": "gzip",
+    "uncompressed_sha256": "0b57207e7f088fd3f3c92d70a3f3aaecf42e609db6a30839d8d2d7c0f08bcd88",
+    "sha256": "d595e23b241361ce833e0512a2570619b9f2a91430224a74a4924dcf24725e66",
+    "bytes": 1716774,
+    "authority": "Mechanical inventory, never semantic review or approval."
+  },
+  {
+    "path": "backups/runtime/a1-architecture-reconciliation-20261009/working-file-inventory.jsonl",
+    "preserved_copy": "docs/guala_reconciliation/indexes/working-file-inventory.jsonl.gz",
+    "encoding": "gzip",
+    "uncompressed_sha256": "1fbcd1fbb73028105109565a47803c855ac20a71b242903864a0e3bfa041b88c",
+    "sha256": "443b96ac3de5d616c5fdaa3b5c45169f7a2ca23c124069c339fd8f459e9ea6cb",
+    "bytes": 543288,
+    "authority": "Mechanical inventory, never semantic review or approval."
+  },
+  {
+    "path": "backups/runtime/a1-architecture-reconciliation-20261009/refs.txt",
+    "preserved_copy": "docs/guala_reconciliation/indexes/refs.txt.gz",
+    "encoding": "gzip",
+    "uncompressed_sha256": "b56b67e963f2ce22e27b0f503818549a528f670487c1082ad13d5d88e99a239c",
+    "sha256": "012338772991429005012710a2d001cf6f41c1a59d2ba48d9524c7224b6107b4",
+    "bytes": 7000,
+    "authority": "Mechanical inventory, never semantic review or approval."
+  },
+  {
+    "path": "/root/.codex/skills/guala-cognitive-development/references/cognitive-mechanism-catalog.md",
+    "preserved_copy": "docs/guala_reconciliation/sources/skill-20261009--cognitive-mechanism-catalog.md",
+    "sha256": "12d67759adbbb7bce7e81679f52bbba018cd18d3d3c98a5b4a3e398013b24581",
+    "bytes": 16004,
+    "authority": "Installed guidance, subordinate to Joe and source-bound evidence."
+  },
+  {
+    "path": "/root/.codex/skills/guala-cognitive-development/references/cognitive-chain.md",
+    "preserved_copy": "docs/guala_reconciliation/sources/skill-20261009--cognitive-chain.md",
+    "sha256": "8e2bc521f62060b27795e0b8c1bce4be77b232beb1e1f2e0bf86053cf4de10fd",
+    "bytes": 9876,
+    "authority": "Installed guidance, subordinate to Joe and source-bound evidence."
+  },
+  {
+    "path": "/root/.codex/skills/guala-neuron-physics/references/definitive-neuron-model.md",
+    "preserved_copy": "docs/guala_reconciliation/sources/skill-20261009--definitive-neuron-model.md",
+    "sha256": "173cba3a6c7487139ce9c8d170db3decf7bfb192f3f1fe0ec7ad219457ebbcb5",
+    "bytes": 23501,
+    "authority": "Installed guidance, subordinate to Joe and source-bound evidence."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/6795991bf8ec-ledger-diff.txt",
+    "preserved_copy": "docs/guala_reconciliation/indexes/6795991bf8ec-ledger-diff.txt",
+    "bytes": 5088,
+    "sha256": "ce062c40ea029d62c1b9c05f74ca586ae96fca0f47101b0e04babb1092dd8724",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/7406b9ab35d4-entrypoint-diff.txt",
+    "preserved_copy": "docs/guala_reconciliation/indexes/7406b9ab35d4-entrypoint-diff.txt",
+    "bytes": 12880,
+    "sha256": "88b8096af1e7deda1d5579d7c8751c5e449e449f35b6d21fe273331b4983a967",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/archive-inventory-summary.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/archive-inventory-summary.json",
+    "bytes": 3105,
+    "sha256": "72ed8b74ac37f0df6ec2ead64f79935c495e50ff2b28970db44a8fd74fd754be",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/archive-members.jsonl.gz",
+    "preserved_copy": "docs/guala_reconciliation/indexes/archive-members.jsonl.gz",
+    "bytes": 20251,
+    "sha256": "19044a4e7ab29941ee23947d55172b01faef93abe67065f913956c62b5ca1d17",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/archive-source-custody.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/archive-source-custody.json",
+    "bytes": 1991,
+    "sha256": "e8715301caa648c159d85290737f6de98a28e1aabf1568f7f166ff784993a9f2",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/checkpoint-known-prefix-inventory.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/checkpoint-known-prefix-inventory.json",
+    "bytes": 155549,
+    "sha256": "6643fe4f9645c9ca60e1df143872f86358f7e37ba6fe6a8eeb08ee1480965728",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/current-snapshot-custody.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/current-snapshot-custody.json",
+    "bytes": 3763,
+    "sha256": "6d66185f4e566c4bc0ec1cfb37986ece6b5949699df313db403a662d18899e6e",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/discussion-extraction-result.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/discussion-extraction-result.json",
+    "bytes": 272,
+    "sha256": "154664912a0256e085db6c27f70c1c4808c510711a2dc7002351771c18e005a8",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/discussion-input-custody.jsonl.gz",
+    "preserved_copy": "docs/guala_reconciliation/indexes/discussion-input-custody.jsonl.gz",
+    "bytes": 242359,
+    "sha256": "93eb015caaa2467c34e9d0899e9331b634dab4541ea3b53cdcee996c398b37c1",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/f0d6129c1e46-ledger-diff.txt",
+    "preserved_copy": "docs/guala_reconciliation/indexes/f0d6129c1e46-ledger-diff.txt",
+    "bytes": 2369,
+    "sha256": "3d4b95e05ff1c8e7c350c9f7cd40aa89540fd89b0e335b2cbbb1effbcfa53073",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/guidance-updates.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/guidance-updates.json",
+    "bytes": 4688,
+    "sha256": "6256c5168819aa262b52044cae8d7493b87b34ace6db36b1e5305d02f425d6f5",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/historical-native-absence-candidates.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/historical-native-absence-candidates.json",
+    "bytes": 15027,
+    "sha256": "2bdabee945e6d4fec1427e8805b69109e00710dce4d54a04d196cfff0a93ada7",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/live-observation-recheck-receipt.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/live-observation-recheck-receipt.json",
+    "bytes": 128,
+    "sha256": "14cf6838ddfecdddc361958f5cf9099c4ee06d1f4ed6229bd5afd6d6b0601d76",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/live-service-recheck.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/live-service-recheck.json",
+    "bytes": 635,
+    "sha256": "47578d470057f0824a9093555b7722512d1475b1e5d8d0a105e6f117f3dfa185",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/live-tasks-recheck.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/live-tasks-recheck.json",
+    "bytes": 821,
+    "sha256": "7842d5edd303e468c3909b0a16da7c6b4bdb61a0a576b3fe809c7549e1ecdcf9",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/milestone-commit-metadata.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/milestone-commit-metadata.json",
+    "bytes": 19965,
+    "sha256": "f2aaaa7ec405d9316b23e4d46b6a54f06323a3fc747d10216486fe7cc20c48ce",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/recovered-authorities.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/recovered-authorities.json",
+    "bytes": 3633,
+    "sha256": "4652aec09ad9fe9149b482bad91a1cb6d9e19f686fc5f17d5e0e6f516fd20abb",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/recovered-checkpoint-custody.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/recovered-checkpoint-custody.json",
+    "bytes": 2567,
+    "sha256": "388d5d2d50f73da1ae3af2d58346fbec34e8da66812c263a61456b3675a8983c",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/recovered-checkpoint-integrity.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/recovered-checkpoint-integrity.json",
+    "bytes": 2765,
+    "sha256": "3dd784e0794dcf071f4e3a86d6af69e086e1c6534c240b4df254596fd6ce7ff1",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/revision-inventory-summary.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/revision-inventory-summary.json",
+    "bytes": 443,
+    "sha256": "5100483b9b08b317d649c2481a0c09eed7a301a695cf6d5a15a51deda68c8c82",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/root-guard-validation.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/root-guard-validation.json",
+    "bytes": 1265,
+    "sha256": "b66a1f21cce88f690a2538727ae8532e02680a64450c093776c58ae2c644222b",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/skill-validation.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/skill-validation.json",
+    "bytes": 549,
+    "sha256": "c47fd297ba3931119193221fac30da172bee54f992a6c02300f3dad0590b4100",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/task1598-image-config.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/task1598-image-config.json",
+    "bytes": 517,
+    "sha256": "34e08f1f509162f919aad88e0f6f1c3c8a8bc9bf9760e1eaaaf7235267558570",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/task1598-image-custody.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/task1598-image-custody.json",
+    "bytes": 2791,
+    "sha256": "a3f3cb585a722256036be75978eb6bc4ab51d08bc57279a4f7212b888f26dd62",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/task1598-report-correction-custody.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/task1598-report-correction-custody.json",
+    "bytes": 416,
+    "sha256": "0cc50efb335c924e80211ccaf24238ffc56bafc9d6e4d18a71efcfcc57848c94",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/working-inventory-summary.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/working-inventory-summary.json",
+    "bytes": 90,
+    "sha256": "d434cdd34978eee2a5d6919d4d55e33ac355e72c889d9a45f9cb8ceb8f04c93e",
+    "authority": "Captured audit evidence; scope and unresolved limits remain in the individual record."
+  },
+  {
+    "path": "backups/runtime/a1-architecture-reconciliation-20261009/current-snapshots/docs/GUALA_TASK1598_OPTION1_DELIVERY_AUDIT_2026-10-09.md",
+    "preserved_copy": "docs/guala_reconciliation/sources/observed-20261009--GUALA_TASK1598_OPTION1_DELIVERY_AUDIT_2026-10-09.md",
+    "bytes": 8263,
+    "sha256": "0b60e14b445023069568b4daee1c36a522ca8a0d39bd93796c08e685ac675c4b",
+    "authority": "Preserved historical source/report, not current capability qualification."
+  },
+  {
+    "path": "714cd6b9feff41a709f9132c672e4b59de9063ae:native/guala_core/src/organism_runtime.rs:6242-6268",
+    "preserved_copy": "docs/guala_reconciliation/sources/714cd6b9feff--organism_runtime-envelope-source.txt",
+    "bytes": 1209,
+    "sha256": "7f4706849a74e70761a832c7a5fab8f4a51346762e514c5d4c44f642febb0337",
+    "authority": "Preserved historical source/report, not current capability qualification."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/cutover-archive-custody.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/cutover-archive-custody.json",
+    "bytes": 2359,
+    "sha256": "56f1850461c473238d1a2b749ee0bbcc703f26ec1affd912c964cbe9f66270ce",
+    "authority": "Captured forensic evidence; scope and unresolved limits in accompanying report."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/cutover-body-pair-integrity.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/cutover-body-pair-integrity.json",
+    "bytes": 3172,
+    "sha256": "5fb377a5c76fa16be6ad3444afb4c1a46a67b8c2f75666165b66f7cad7d358b6",
+    "authority": "Captured forensic evidence; scope and unresolved limits in accompanying report."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/guidance-preservation-validation.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/guidance-preservation-validation.json",
+    "bytes": 1424,
+    "sha256": "36c2208e0559626b28e7a60b3b35a85bda100c68ea1089d8575c9bbbe7248383",
+    "authority": "Captured forensic evidence; scope and unresolved limits in accompanying report."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/incident-bucket-root-inventory.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/incident-bucket-root-inventory.json",
+    "bytes": 1943,
+    "sha256": "6718901c610b333b44eebaee1085be3f1f587f4b4ee347f71150a6adfc9c94c2",
+    "authority": "Captured forensic evidence; scope and unresolved limits in accompanying report."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/incident-cutover-prefix-inventory.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/incident-cutover-prefix-inventory.json",
+    "bytes": 9626,
+    "sha256": "31b6bf9f96e2e50e9884e40cfce4bc72992ccb0f506a6fd40d78dd8980fd2246",
+    "authority": "Captured forensic evidence; scope and unresolved limits in accompanying report."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/incident-captures-inventory.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/incident-captures-inventory.json",
+    "bytes": 9572,
+    "sha256": "b2344143dad1018773ef2aee52e158d25e0ef4d1afeaf0cd46979ff46c7b29a8",
+    "authority": "Captured audit evidence; qualifications and limits remain in its record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/post-conversion-archive-integrity.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/post-conversion-archive-integrity.json",
+    "bytes": 2810,
+    "sha256": "80f3d166ebffe8351899fb3ca15804b1360bf739293049234ed2879971f8f87b",
+    "authority": "Captured audit evidence; qualifications and limits remain in its record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/reused-controller-log-at-inspection.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/reused-controller-log-at-inspection.json",
+    "bytes": 347,
+    "sha256": "db5f20bf6a1ea16297cd324dcb26679f5b0fb4c7864f02b044c306bdccb3f128",
+    "authority": "Captured audit evidence; qualifications and limits remain in its record."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/document-corpus.jsonl.gz",
+    "preserved_copy": "docs/guala_reconciliation/indexes/document-corpus.jsonl.gz",
+    "bytes": 1114169,
+    "sha256": "47e43deccb2d47b8adaf9125f3b1ef62c6913dba9d3411a1abdedc58c623cdd9",
+    "authority": "Captured audit evidence with scope explicitly retained; no organism qualification."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/document-reconciliation-coverage.json",
+    "preserved_copy": "docs/guala_reconciliation/indexes/document-reconciliation-coverage.json",
+    "bytes": 1426,
+    "sha256": "40a391ec957660e4fe47a1873e9d591b3a34969c1f1c20fdc46d59120b5f16f9",
+    "authority": "Captured audit evidence with scope explicitly retained; no organism qualification."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/document-semantic-coverage.jsonl.gz",
+    "preserved_copy": "docs/guala_reconciliation/indexes/document-semantic-coverage.jsonl.gz",
+    "bytes": 427102,
+    "sha256": "ae75f3b80fdb8caf60c39f15cdf26d0bb13e5dce5d2e307de6dec4b58bc0d9da",
+    "authority": "Captured audit evidence with scope explicitly retained; no organism qualification."
+  },
+  {
+    "path": "docs/guala_reconciliation/indexes/document-version-edges.jsonl.gz",
+    "preserved_copy": "docs/guala_reconciliation/indexes/document-version-edges.jsonl.gz",
+    "bytes": 564593,
+    "sha256": "c06a595b2c4f39ea039346f388db008f1c4592348cd7227c1f3918ab463caa84",
+    "authority": "Captured audit evidence with scope explicitly retained; no organism qualification."
+  }
+]

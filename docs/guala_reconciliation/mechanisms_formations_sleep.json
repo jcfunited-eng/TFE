@@ -1,0 +1,590 @@
+{
+  "schema": "guala.documentary_mechanisms.v1",
+  "at_utc": "2026-10-10T07:54:11.541876+00:00",
+  "scope": "Complete captured content of20 versions/eight paths:2432 latest-document lines plus50 older-only passages/132 lines. Historical source/execution and original authority are reported, not independently rerun or authenticated here. No product execution or current qualification.",
+  "mechanisms": [
+    {
+      "id": "VFS01",
+      "name": "Multisensory formation corrected missing participation but retired earlier entries",
+      "classification": "documented_functional_progress_with_open_loss_scope",
+      "finding": "FSR02",
+      "observed_mechanism": "C003 reports that task988 had two retinal-only entries counted as organism mosaics, while the requested body/multisensory proof was missing. Delayed quiescent deltas needed their actual earlier transfer evidence carried into settlement. Candidate admission retired the two entries and extended territory-derived receptor population beyond sight; task989 then reported a retained 16-member formation spanning sight, sound, chemical and body participation with 33 bonds and cold-byte continuity.",
+      "evidence_limits": "This is a narrower reported accomplishment than word or experience understanding. Failing a multisensory acceptance scenario does not make every single-sense memory illegitimate. Original retirement authority and exact retained-state mapping are not authenticated by this ledger.",
+      "replacement": "Preserve real modality/body participation and the causal settlement carrier; locate the exact authority and state account for each retired entry. Do not erase legitimate unimodal learning merely to satisfy a broader test. Trace current senses from physical input through retained effect.",
+      "acceptance": {
+        "unit": "Distinguish absent modalities, actual receptor work and delayed causal settlement without fabricated activation.",
+        "module": "Verify exact members/bonds and retirement mapping through codecs, source sites and mounted senses.",
+        "system": "Show later partial-cue use of the acquired multimodal/body experience with unrelated-cue controls.",
+        "release": "Qualify exact current state and preservation independently; historical counts are not a current memory certificate."
+      },
+      "refs": [
+        {
+          "source_id": "FS02-01",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS02-01--GUALA_C003_MULTISENSORY_BODY_MOSAIC_SPRINT_2026-08-12.md",
+          "line": 120,
+          "anchor": "2. retire the two task-988 retinal-only entries as non-authoritative rather",
+          "sha256": "97aeaaca7462bc09654d8eed923587f14f55239416317f560e938f9886817e3f"
+        },
+        {
+          "source_id": "FS02-01",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS02-01--GUALA_C003_MULTISENSORY_BODY_MOSAIC_SPRINT_2026-08-12.md",
+          "line": 200,
+          "anchor": "only the governing physics: at least three changed neuronal members, one",
+          "sha256": "97aeaaca7462bc09654d8eed923587f14f55239416317f560e938f9886817e3f"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A06",
+        "A09",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFS02",
+      "name": "Named-modality quotas and fixed membership must not replace causal admission",
+      "classification": "rejected_heuristic_and_unresolved_admission_correspondence",
+      "finding": "FSR03",
+      "observed_mechanism": "C003 rejects an admission quota requiring two named external senses plus a layer7 member. Its replacement requires at least three changed neurons, connected actual transfer evidence and more than one living cohort. Same population with different physical deltas and bonds may represent a distinct moment; member-set deduplication loses that distinction. The later progression law additionally requires a shared authenticated episode, collective later recurrence, partial-cue reach, durability and resource accounting for a mature mosaic.",
+      "evidence_limits": "Three is a documented ratified architectural floor, not a learning threshold or consequence of ternary arithmetic. The documents do not establish that every C003 retained entry satisfies all later mature-admission obligations. Current exact predicates and original law approvals remain to be matched.",
+      "replacement": "Use the ratified causal formation law, not a modality quota, member-set key or count-triggered promotion. Distinguish retained physical candidate state from a qualified mature formation without introducing semantic proto-objects. Resolve the exact historical/current predicate change before claiming compliance.",
+      "acceptance": {
+        "unit": "Reject duplicates, unrelated simultaneous members and count-only formation; permit legitimate single-sense/body causes.",
+        "module": "Bind episode, actual local transitions, transfer evidence and later recurrence through current admission and restore.",
+        "system": "Show genuine acquired relation affects later settlement rather than only increasing inventory.",
+        "release": "Authenticate original law and all format migrations; no architecture pass from a three-member fixture."
+      },
+      "refs": [
+        {
+          "source_id": "FS02-01",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS02-01--GUALA_C003_MULTISENSORY_BODY_MOSAIC_SPRINT_2026-08-12.md",
+          "line": 200,
+          "anchor": "only the governing physics: at least three changed neuronal members, one",
+          "sha256": "97aeaaca7462bc09654d8eed923587f14f55239416317f560e938f9886817e3f"
+        },
+        {
+          "source_id": "FS07-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS07-02--MOSAIC_TAPESTRY_WEAVE_PROGRESSION_LAW.md",
+          "line": 113,
+          "anchor": "Three is a necessary floor, not a sufficient trigger. Merely counting three",
+          "sha256": "71722804d2d6254b3b57e6dc0d78ccb7298df60f767f2c625b436ac3e910236a"
+        },
+        {
+          "source_id": "FS07-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS07-02--MOSAIC_TAPESTRY_WEAVE_PROGRESSION_LAW.md",
+          "line": 315,
+          "anchor": "| Three episode-bound neurons without later collective recurrence evidence | Do not admit a mature mosaic |",
+          "sha256": "71722804d2d6254b3b57e6dc0d78ccb7298df60f767f2c625b436ac3e910236a"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A06",
+        "A09",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFS03",
+      "name": "Recurrence witness replacement is not demonstrated strengthening or learned semantics",
+      "classification": "legitimate_counter_retirement_with_narrow_function",
+      "finding": "FSR04",
+      "observed_mechanism": "C004 implements only the alters branch: preserve original member fractals and bonds while replacing the latest recurrence cue/bond witness. reinforcement_count becomes inert codec custody and is not read or incremented as learning. Task990 reports the original 16-member/33-bond formation retained while its recurrence witness changes from 33 to 16 bonds under a one-member cue, with the retired count still zero.",
+      "evidence_limits": "Changing a bounded witness is not by itself contact strengthening, useful recall, recognition of a word, weakening or dissolution. Later Task1184/1185 recurrence-law failures and V27 losses mean a historical closed status cannot certify the present mechanism.",
+      "replacement": "Preserve lawful structural recurrence and the retirement of counters as cognition. Demonstrate which durable physical state actually changes later behavior; separately classify witness updates, plastic adaptation and semantic/function claims. Reconcile every subsequent recurrence predicate and migration.",
+      "acceptance": {
+        "unit": "Require proper cue and actual connected member changes; leave original identity intact and inert counts nonauthoritative.",
+        "module": "Trace recurrence readers, native contacts and encode/decode across exact versions.",
+        "system": "Show acquired physical change causes a later discriminating response with controls.",
+        "release": "Current release must retain both historical scope limits and its own positive causal proof."
+      },
+      "refs": [
+        {
+          "source_id": "FS03-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS03-02--GUALA_C004_PHYSICAL_MOSAIC_RECURRENCE_SPRINT_2026-08-12.md",
+          "line": 21,
+          "anchor": "The sprint implements only the **alters** branch of C-004: a recognized",
+          "sha256": "8e5a0de17dc73990e34787338b988aee8591d24c2c30552d5ac332844b69ed1c"
+        },
+        {
+          "source_id": "FS03-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS03-02--GUALA_C004_PHYSICAL_MOSAIC_RECURRENCE_SPRINT_2026-08-12.md",
+          "line": 75,
+          "anchor": "- `reinforcement_count` does not increase and is not consulted.",
+          "sha256": "8e5a0de17dc73990e34787338b988aee8591d24c2c30552d5ac332844b69ed1c"
+        },
+        {
+          "source_id": "FS03-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS03-02--GUALA_C004_PHYSICAL_MOSAIC_RECURRENCE_SPRINT_2026-08-12.md",
+          "line": 235,
+          "anchor": "  changed from 33 to 16 bonds, its receipt changed from",
+          "sha256": "8e5a0de17dc73990e34787338b988aee8591d24c2c30552d5ac332844b69ed1c"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A09",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFS04",
+      "name": "Transient relations between formations must not be promoted to retained higher cognition",
+      "classification": "reported_relation_with_test_and_observer_corrections",
+      "finding": "FSR05",
+      "observed_mechanism": "C005 observes a current physical relation when one reassembled formation reaches another recognized formation by shared lineage or an actual active bond. It rejects a demand for two simultaneous full reassemblies and fixes loss of earlier-hop evidence at a quiet final hop. Task991 reports five exact relation occurrences in each of two ordinary eight-hop observations; the relationship is transient, not a newly stored hierarchy or incremented relation counter.",
+      "evidence_limits": "Removing an unsupported test restriction is not automatically a cheat, but does require an unchanged ratified claim and actual causal proof. Repeated transient relations alone do not establish retained tapestry, ordered story, syntax, planning or a weave. Current correspondence is unqualified.",
+      "replacement": "Preserve ordered actual per-hop evidence and physical relations while keeping observation read-only. Specify how learned temporal/contextual relations persist and later govern behavior through native state; do not create a hierarchy label or parent object as its substitute.",
+      "acceptance": {
+        "unit": "Distinguish one formation, disconnected formations, genuine active relations and quiet-final-hop aggregation.",
+        "module": "Bind all occurrences to exact committed transitions and stable physical identity.",
+        "system": "Demonstrate retained ordering/context later changes action or expression after restart.",
+        "release": "Qualify the actual higher function; transient relation counts cannot pass syntax or speech."
+      },
+      "refs": [
+        {
+          "source_id": "FS04-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS04-02--GUALA_C005_ORGANIC_MOSAIC_RELATION_SPRINT_2026-08-12.md",
+          "line": 181,
+          "anchor": "  One ordinary eight-hop experience produced five exact relation occurrences",
+          "sha256": "7eac04ddb9039b16c21558ae8894c7d001449e6d568850ec92f25b300ecd9011"
+        },
+        {
+          "source_id": "FS04-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS04-02--GUALA_C005_ORGANIC_MOSAIC_RELATION_SPRINT_2026-08-12.md",
+          "line": 242,
+          "anchor": "  per qualifying hop, never two, so the original simultaneous-full-reassembly",
+          "sha256": "7eac04ddb9039b16c21558ae8894c7d001449e6d568850ec92f25b300ecd9011"
+        },
+        {
+          "source_id": "FS04-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS04-02--GUALA_C005_ORGANIC_MOSAIC_RELATION_SPRINT_2026-08-12.md",
+          "line": 189,
+          "anchor": "  regression test proves an earlier-hop relation survives a quiet final hop",
+          "sha256": "7eac04ddb9039b16c21558ae8894c7d001449e6d568850ec92f25b300ecd9011"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFS05",
+      "name": "Historical speed improvements require equivalent-work and exact-width accounting",
+      "classification": "documented_resource_correction_not_current_latency_diagnosis",
+      "finding": "FSR06",
+      "observed_mechanism": "C003 reports a one-time receptor-material expansion of about 11.18 MB; its warm eight-hop candidate took 14.33 seconds versus 87.47 seconds with different anatomy. The precomputed all-possible-denominator lattice was removed as duplicate validation. An unused global pump-work sum overflowed while local neuron/reservoir balances remained authoritative; that unused aggregate was removed. Cold rehearsal still required roughly 146 seconds and 1.74 GB.",
+      "evidence_limits": "The timings are not an equal-physical-work benchmark or an explanation for current latency. Exact rational magnitude does not bound denominator width. Removing an unused observer sum cannot authorize removing conservation checks that actually constrain transitions.",
+      "replacement": "Preserve exact local balances and remove only proven redundant work. Compare identical retained states and physical work; separately bound reached population, numerator/denominator width, allocations, storage and observation. Locate the current measured bottleneck before assigning causation.",
+      "acceptance": {
+        "unit": "Check local conservation and overflow/refusal boundaries without silent truncation or saturation.",
+        "module": "Verify the removed structure has no physical authority and exact successors remain equal for equivalent work.",
+        "system": "Measure mature-state work and latency across ordinary intervals and resource exhaustion.",
+        "release": "Bind resource evidence to the serving image/state; do not extrapolate a historical speed ratio to current health."
+      },
+      "refs": [
+        {
+          "source_id": "FS02-01",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS02-01--GUALA_C003_MULTISENSORY_BODY_MOSAIC_SPRINT_2026-08-12.md",
+          "line": 248,
+          "anchor": "eight hops in 14.33 seconds with a 1,567,644 KiB process peak.  The exact",
+          "sha256": "97aeaaca7462bc09654d8eed923587f14f55239416317f560e938f9886817e3f"
+        },
+        {
+          "source_id": "FS02-01",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS02-01--GUALA_C003_MULTISENSORY_BODY_MOSAIC_SPRINT_2026-08-12.md",
+          "line": 250,
+          "anchor": "carrier, required 87.47 seconds and 1,544,352 KiB and grew only 10,518 bytes",
+          "sha256": "97aeaaca7462bc09654d8eed923587f14f55239416317f560e938f9886817e3f"
+        },
+        {
+          "source_id": "FS02-01",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS02-01--GUALA_C003_MULTISENSORY_BODY_MOSAIC_SPRINT_2026-08-12.md",
+          "line": 257,
+          "anchor": "The candidate also deletes the precomputed all-possible-denominator lattice",
+          "sha256": "97aeaaca7462bc09654d8eed923587f14f55239416317f560e938f9886817e3f"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A04",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFS06",
+      "name": "Rest required true quiet causes and physical effector eligibility",
+      "classification": "documented_causal_repair_with_later_law_conflict_to_resolve",
+      "finding": "FSR07",
+      "observed_mechanism": "C021 first found that a zero-yaw sample was still a vestibular occurrence and that declared zero-energy receptors seeded downstream current. Corrected seeds used actual transduced energy, physical vestibular gates, metabolic perturbation or active frontier. A second failure showed the wider passive settlement neighborhood incorrectly authorized effectors; the fix required a real causal seed or whole-carrier transfer across a contact. The accepted copied-current rehearsal recovered 32 neurons with zero motor/articulatory recruitment before responding to an ordinary vestibular cause.",
+      "evidence_limits": "At the accepted interval, standing dissipation fell and available headroom rose by exactly 61/16 zJ. This is recovery bookkeeping, not proof of spontaneous sleep, nourishment or generalized consolidation. The later Task1211 removal of causally_active_lineages gating needs exact law reconciliation; the same name can conceal either a necessary causal boundary or an invalid added controller.",
+      "replacement": "Preserve genuine quiet physiology while deriving actuator eligibility from actual native transfer. Trace the earlier gate and later removal to their exact mechanisms and approvals. Prove rest and wake on the current mature state without artificial zero-input events, time-based sleep scripts or arbitrary activity filters.",
+      "acceptance": {
+        "unit": "Distinguish no external work from a zero-valued admitted occurrence and passive recovery from efferent current.",
+        "module": "Verify actual source/contact transfer, rest recovery and exported observations share one committed state.",
+        "system": "Show physical rest, conserved recovery and later lawful waking cause; separate copied rehearsal from ordinary live behavior.",
+        "release": "Bind current rest law and configuration to the deployed state and preserve learned structures."
+      },
+      "refs": [
+        {
+          "source_id": "FS05-03",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS05-03--GUALA_C021_PHYSICAL_REST_WAKE_SPRINT_LEDGER_2026-08-13.md",
+          "line": 220,
+          "anchor": "  current causal seed or an exact whole-carrier transfer moved away from a",
+          "sha256": "d96ae565aa14ef899cf3d66a34ed173abf9927e27ddfe0c5151b8bf819406f63"
+        },
+        {
+          "source_id": "FS05-03",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS05-03--GUALA_C021_PHYSICAL_REST_WAKE_SPRINT_LEDGER_2026-08-13.md",
+          "line": 236,
+          "anchor": "  `2348273/16` to `587053/4` zJ; reachable dissipation headroom rose from",
+          "sha256": "d96ae565aa14ef899cf3d66a34ed173abf9927e27ddfe0c5151b8bf819406f63"
+        },
+        {
+          "source_id": "FS05-03",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS05-03--GUALA_C021_PHYSICAL_REST_WAKE_SPRINT_LEDGER_2026-08-13.md",
+          "line": 237,
+          "anchor": "  `8447551/16` to `2111903/4` zJ.",
+          "sha256": "d96ae565aa14ef899cf3d66a34ed173abf9927e27ddfe0c5151b8bf819406f63"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A08",
+        "A09",
+        "A11",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFS07",
+      "name": "Endogenous consolidation added a missing internal cause and typed provenance",
+      "classification": "reported_native_progress_with_explicit_origin_limits",
+      "finding": "FSR08",
+      "observed_mechanism": "C022 identifies a concrete missing boundary: local recurrence already had metabolic cues, but organism mosaic settlement used only externally reached/perturbed lineages and stored no origin. The candidate carries metabolic lineages separately, admits internal cues only when the external perturbation set is empty, and retains internally_simulated origin in GLMOS007. External and original formats GLMOS004/006 remain unchanged; legacy external origin is justified by the then-external-only producer.",
+      "evidence_limits": "This is a reported functional native correction, not scripted archive replay. Internal full-member cues are allowed while external work requires a proper partial cue. The external-empty priority also leaves concurrent internal/external contribution semantics needing explicit classification; it does not establish all causal provenance for mixed cases.",
+      "replacement": "Preserve actual metabolic source and native reassembly, audit each legacy producer before assigning origin, and expose mixed physical causes truthfully without inventing an extra dream event. Map current internal and external paths and formats; no timer, receipt, archived lesson or semantic selector may supply the cause.",
+      "acceptance": {
+        "unit": "Reject absent/disconnected internal cues and verify distinct external/internal/mixed causal branches.",
+        "module": "Bind source lineages, changed physical members/bonds, origin and exact old/new codecs.",
+        "system": "Demonstrate internally sourced retained reactivation and later use with external input absent and proper controls.",
+        "release": "Authenticate exact current code/state and origin mapping rather than inheriting a historical closed label."
+      },
+      "refs": [
+        {
+          "source_id": "FS06-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS06-02--GUALA_C022_INTERNAL_CONSOLIDATION_SPRINT_LEDGER_2026-08-14.md",
+          "line": 182,
+          "anchor": "  solely from externally reached/perturbed lineages, and",
+          "sha256": "d03486de1a7e00b02615822ec332a0effe4c5b4713f967e98f4f6cda1f3a9bf3"
+        },
+        {
+          "source_id": "FS06-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS06-02--GUALA_C022_INTERNAL_CONSOLIDATION_SPRINT_LEDGER_2026-08-14.md",
+          "line": 191,
+          "anchor": "  external perturbation set is empty.",
+          "sha256": "d03486de1a7e00b02615822ec332a0effe4c5b4713f967e98f4f6cda1f3a9bf3"
+        },
+        {
+          "source_id": "FS06-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS06-02--GUALA_C022_INTERNAL_CONSOLIDATION_SPRINT_LEDGER_2026-08-14.md",
+          "line": 197,
+          "anchor": "  only an internally simulated recurrence uses `GLMOS007` and one origin byte.",
+          "sha256": "d03486de1a7e00b02615822ec332a0effe4c5b4713f967e98f4f6cda1f3a9bf3"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A06",
+        "A09",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFS08",
+      "name": "Consolidation rehearsal rejected unsupported single-formation and immobility gates",
+      "classification": "test_correction_requiring_exact_scope_not_false_pass",
+      "finding": "FSR09",
+      "observed_mechanism": "C022 attempt1 refused simultaneous reorganization of multiple formations despite a one-or-more requirement. Attempt2 refused motor/articulatory co-recruitment even though the consolidation scope did not require absolute immobility. The diagnostic retained zero external receptor changes, five metabolic changes, actual recovery and two reorganized prior formations. Final acceptance preserved all predecessor formations and excluded newly formed entries as consolidation evidence.",
+      "evidence_limits": "These corrections can remove false rejection gates without manufacturing a result, provided the original requirement and physical cause truly remain unchanged. C021 quiet-rest acceptance and C022 internally sourced reorganization are distinct tests. Their motor criteria must not be silently merged or interpreted as whole sleep qualification.",
+      "replacement": "Authenticate the original scope and retain failed runs with the precise predicate change. Require preserved pre-existing members/original bonds, real internal change and cold persistence; report motor effects explicitly. Never soften a real causality or preservation requirement because the candidate fails it.",
+      "acceptance": {
+        "unit": "Verify multiple lawful reorganizations and motor co-occurrence against the exact declared function; reject newly created substitutes.",
+        "module": "Compare pre/post acceptance predicates and show no hidden physics or fixture changes.",
+        "system": "Demonstrate actual reorganization of retained experience with recovery and zero fabricated external cause.",
+        "release": "Report failed attempts, scope corrections and separate rest/consolidation outcomes in the current qualification."
+      },
+      "refs": [
+        {
+          "source_id": "FS06-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS06-02--GUALA_C022_INTERNAL_CONSOLIDATION_SPRINT_LEDGER_2026-08-14.md",
+          "line": 223,
+          "anchor": "  it because one interval reorganized more than one retained formation. That",
+          "sha256": "d03486de1a7e00b02615822ec332a0effe4c5b4713f967e98f4f6cda1f3a9bf3"
+        },
+        {
+          "source_id": "FS06-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS06-02--GUALA_C022_INTERNAL_CONSOLIDATION_SPRINT_LEDGER_2026-08-14.md",
+          "line": 244,
+          "anchor": "  it does not require absolute motor immobility. The rehearsal now requires",
+          "sha256": "d03486de1a7e00b02615822ec332a0effe4c5b4713f967e98f4f6cda1f3a9bf3"
+        },
+        {
+          "source_id": "FS06-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS06-02--GUALA_C022_INTERNAL_CONSOLIDATION_SPRINT_LEDGER_2026-08-14.md",
+          "line": 249,
+          "anchor": "- A formation created in the same interval is not consolidation evidence and",
+          "sha256": "d03486de1a7e00b02615822ec332a0effe4c5b4713f967e98f4f6cda1f3a9bf3"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A09",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFS09",
+      "name": "Latest recurrence origin and structural change are not lifetime history or functional improvement",
+      "classification": "positive_live_witness_with_unproved_learning_benefit",
+      "finding": "FSR10",
+      "observed_mechanism": "Task1040 rehearsal reports two pre-existing formations reorganized with 37 recovering neurons, five metabolic changes, zero external changes and exact cold replay. Ordinary production later retained one internally_simulated formation with four cue lineages at tick80623. A later external recurrence replaced that latest-origin witness. The document explicitly defers cross-context use to C023.",
+      "evidence_limits": "The record supports a narrow historical live internal-reassembly claim, stronger than a counter alone. It does not prove that rest improves later recall, preserves the full story, organizes syntax or enables speech. A latest-origin byte is not an immutable experience history; replacing it does not itself prove all original experience was erased either.",
+      "replacement": "Keep immutable original formation custody and genuine latest-transition provenance distinct. Preserve audit evidence externally without a sidecar becoming organism state. Demonstrate a retained physical effect of consolidation on later contextual recall/action and prove canonical checkpoint continuity across subsequent migrations.",
+      "acceptance": {
+        "unit": "Verify origin replacement changes only its declared latest-witness scope and cannot rewrite original provenance.",
+        "module": "Trace all persistent formation, contact and episode-context state through consolidation and canonical checkpoint.",
+        "system": "Compare lawful acquired-state behavior before/after real rest with matched controls and cold retention.",
+        "release": "No whole sleep, memory or speech pass until later function and current preservation are independently established."
+      },
+      "refs": [
+        {
+          "source_id": "FS06-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS06-02--GUALA_C022_INTERNAL_CONSOLIDATION_SPRINT_LEDGER_2026-08-14.md",
+          "line": 270,
+          "anchor": "  four exact cue lineages at public tick 80,623 and state receipt",
+          "sha256": "d03486de1a7e00b02615822ec332a0effe4c5b4713f967e98f4f6cda1f3a9bf3"
+        },
+        {
+          "source_id": "FS06-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS06-02--GUALA_C022_INTERNAL_CONSOLIDATION_SPRINT_LEDGER_2026-08-14.md",
+          "line": 275,
+          "anchor": "  formation. This is lawful: origin describes the latest reassembly and is not",
+          "sha256": "d03486de1a7e00b02615822ec332a0effe4c5b4713f967e98f4f6cda1f3a9bf3"
+        },
+        {
+          "source_id": "FS06-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS06-02--GUALA_C022_INTERNAL_CONSOLIDATION_SPRINT_LEDGER_2026-08-14.md",
+          "line": 80,
+          "anchor": "provenance remain bounded. Later cross-context use belongs to C-023 and is not",
+          "sha256": "d03486de1a7e00b02615822ec332a0effe4c5b4713f967e98f4f6cda1f3a9bf3"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFS10",
+      "name": "Mature formation law changed from recurrent cycles to actual episode participation",
+      "classification": "documented_law_revision_with_original_authority_gap",
+      "finding": "FSR11",
+      "observed_mechanism": "The older progression version requires a recurrent causal path and a path into and back from every added member. The later law preserves actual weak/one-way transfers separately from proven participation in the same body/fluid episode, while still requiring later collective recurrence and partial-cue reach. It explicitly rejects fabricating a directed cycle merely to qualify an original moment. The document reports July28/Aug2 ratification; original approval context is not recovered in this slice.",
+      "evidence_limits": "This is a substantive change in admission law, not a cosmetic rename. A connected or recurrent graph alone cannot establish learned meaning; shared time cannot establish a shared causal episode. The Aug29 notice marks its task853 implementation ledger historical, so old unimplemented statements must not override later narrower proofs.",
+      "replacement": "Recover original authority and exact transition of predicates, fixtures, persisted states and current readers. Keep the legitimate causal episode requirement and actual transfers separate; do not manufacture edges or discard one-way experience just to meet a graph pattern.",
+      "acceptance": {
+        "unit": "Falsify unrelated co-occurrence, invented cycles and graph-only maturity; retain lawful one-way original transfers.",
+        "module": "Verify exact local transition and episode references at admission and restore across law versions.",
+        "system": "Show collective later retained effect and partial-cue reach from authentic experience.",
+        "release": "Date each implementation claim and ratification; do not infer present architecture from an old canonical heading."
+      },
+      "refs": [
+        {
+          "source_id": "FS07-04",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS07-04--MOSAIC_TAPESTRY_WEAVE_PROGRESSION_LAW.md",
+          "line": 109,
+          "anchor": "4. **Collective closure:** a recurrent causal path spans at least three member",
+          "sha256": "30b17333d07f90e8036cc7521de9ec94345692998f9f66a5efe61f862d21196b"
+        },
+        {
+          "source_id": "FS07-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS07-02--MOSAIC_TAPESTRY_WEAVE_PROGRESSION_LAW.md",
+          "line": 143,
+          "anchor": "   weak-connected inter-neuron transfer or by their proven participation in",
+          "sha256": "71722804d2d6254b3b57e6dc0d78ccb7298df60f767f2c625b436ac3e910236a"
+        },
+        {
+          "source_id": "FS07-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS07-02--MOSAIC_TAPESTRY_WEAVE_PROGRESSION_LAW.md",
+          "line": 9,
+          "anchor": "canonical. The task-853 architecture gate and implementation ledger below are",
+          "sha256": "71722804d2d6254b3b57e6dc0d78ccb7298df60f767f2c625b436ac3e910236a"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A09",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFS11",
+      "name": "Authored app weave and learned cognitive weave are incompatible uses of one term",
+      "classification": "terminology_collision_with_conflicting_architecture",
+      "finding": "FSR12",
+      "observed_mechanism": "WeaveSpec v0.1 is dated January6 but present in the April22 and Aug5 recovered history. It defines a weave as an authored declarative app with mount/unmount lifecycle, selected laws/goals and output rendering. July/August progression instead defines a weave as integrated learned relation capability expressed through the organism body, and explicitly excludes stored answers, supplied language/TTS and scripted motor programs.",
+      "evidence_limits": "The older app document cannot serve as a current cognition specification because it uses the same name. It may document an external historical application concept; no active mount or implementation is established by its presence. Renaming it would not repair an active conflicting controller.",
+      "replacement": "Canonicalize cognitive terms by actual physical state and function. Retain the older application specification as dated historical context and audit all consumers before retirement or migration. Keep caretaker/app configuration external to pupil cognitive authority and resolve original decisions rather than treating the newest label as proof.",
+      "acceptance": {
+        "unit": "Classify every term consumer by its actual state, writer, reader and decision role.",
+        "module": "Separate historical app mounting/configuration from permanently wired organism mechanisms.",
+        "system": "Demonstrate learned bodily expression without authored app content supplying the answer.",
+        "release": "Bind current documentation and active mechanism registry to the serving image; no term-based capability claims."
+      },
+      "refs": [
+        {
+          "source_id": "FS08-01",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS08-01--WeaveSpec_v0_1.txt",
+          "line": 32,
+          "anchor": "A Weave is the ArcLoom equivalent of an app. It specifies how the loom couples to inputs, how it constrains internal settling (laws/goals), what it commits to memory, and how it renders outputs. A weave is mounted, not executed.",
+          "sha256": "e5b574ddc2e6abc2847e0fa48e89c42eb1699347eca432d46cc2f06d0f3c19c4"
+        },
+        {
+          "source_id": "FS08-01",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS08-01--WeaveSpec_v0_1.txt",
+          "line": 32,
+          "anchor": "A Weave is the ArcLoom equivalent of an app. It specifies how the loom couples to inputs, how it constrains internal settling (laws/goals), what it commits to memory, and how it renders outputs. A weave is mounted, not executed.",
+          "sha256": "e5b574ddc2e6abc2847e0fa48e89c42eb1699347eca432d46cc2f06d0f3c19c4"
+        },
+        {
+          "source_id": "FS07-02",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS07-02--MOSAIC_TAPESTRY_WEAVE_PROGRESSION_LAW.md",
+          "line": 261,
+          "anchor": "A weave is not a stored answer, job title, response template, text completion,",
+          "sha256": "71722804d2d6254b3b57e6dc0d78ccb7298df60f767f2c625b436ac3e910236a"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A05",
+        "A09",
+        "A10",
+        "A12",
+        "A13",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFS12",
+      "name": "Seeded determinism and bounded output do not legalize score-driven cognition",
+      "classification": "historical_spec_contains_unratified_decision_shortcuts",
+      "finding": "FSR13",
+      "observed_mechanism": "WeaveSpec gives explicit seeds, lowest-id tie examples, float32/64 precision, weighted law/goal examples, det_commit0.85, p_commit0.70, cooldown gates, motif budgets and 30/60-day decay half-lives. Those are declarative design examples, not traced active execution. Stable seeds/hashes and SafeHold output limits establish neither full-field cognition nor a derived memory law.",
+      "evidence_limits": "A deterministic algorithm can still be a forbidden heuristic. Conversely, a physical sampling rate or justified output safety bound is not automatically one. Precision language in this old application spec does not authorize changing frozen L0-L4 or truncating exact native ternary state. Current invocation and original approval remain unproved.",
+      "replacement": "Classify each parameter by its actual role and derivation. Keep required physical/resource bounds, reject unratified score, tie, timeout and decay authority over pupil learning or expression. Do not import the old text example as an implementation shortcut for speech.",
+      "acceptance": {
+        "unit": "Distinguish transport/resource limits from cognitive ranking and thresholds; reject seeded canned outputs as learning.",
+        "module": "Trace actual readers of weights, goals, commit policies, mapinject seeds and memory decay across current packages.",
+        "system": "Show experience-derived expression and retained learning with full DSF and no authored answer path.",
+        "release": "Require exact source/package/runtime closure before any no-heuristic or ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "FS08-01",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS08-01--WeaveSpec_v0_1.txt",
+          "line": 187,
+          "anchor": "  \"det_commit\": 0.85,",
+          "sha256": "e5b574ddc2e6abc2847e0fa48e89c42eb1699347eca432d46cc2f06d0f3c19c4"
+        },
+        {
+          "source_id": "FS08-01",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS08-01--WeaveSpec_v0_1.txt",
+          "line": 146,
+          "anchor": "  \"weight\": 0.40,",
+          "sha256": "e5b574ddc2e6abc2847e0fa48e89c42eb1699347eca432d46cc2f06d0f3c19c4"
+        },
+        {
+          "source_id": "FS08-01",
+          "path": "docs/guala_reconciliation/sources/formations-sleep/FS08-01--WeaveSpec_v0_1.txt",
+          "line": 119,
+          "anchor": "• Tie-breaks MUST be specified (e.g., “lowest id wins”).",
+          "sha256": "e5b574ddc2e6abc2847e0fa48e89c42eb1699347eca432d46cc2f06d0f3c19c4"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A14",
+        "A15",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

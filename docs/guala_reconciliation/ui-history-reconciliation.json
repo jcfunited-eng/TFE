@@ -1,0 +1,1577 @@
+{
+  "schema": "guala.historical_family_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T00:38:12.174334+00:00",
+  "scope": "Seventeen complete recovered UI/sensory/support documents, twenty-nine explicit reconciled obligations; not complete transitive code or live-history qualification.",
+  "source_read_complete": true,
+  "implementation_closure": false,
+  "sources": [
+    {
+      "id": "HUI01-01",
+      "path": "docs/GL-CMD-UI-HONESTY-EVE-20260629-38.md",
+      "git_blob": "7db514002c9ed0c5d82207bfbea933d9a9961fd4",
+      "sha256": "3876dc417c500942ab7af73a9bf4a890cbb493ba572fda7eed165e8ff6113138",
+      "bytes": 10337,
+      "lines": 233,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-29T19:41:25+00:00",
+          "commit": "a3c96b782288b04bcd0a90935acb08dc03bac6d9",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/ui-history/HUI01-01--GL-CMD-UI-HONESTY-EVE-20260629-38.md",
+      "review": "Entire recovered document read; semantic dispositions below. No transitive implementation, historical deployment or current capability clearance inferred.",
+      "canonical_copy": "docs/guala_reconciliation/sources/ui-history/HUI01-01--GL-CMD-UI-HONESTY-EVE-20260629-38.md"
+    },
+    {
+      "id": "HUI02-01",
+      "path": "docs/GL-RPT-UI-HONESTY-C1-20260629-38.md",
+      "git_blob": "7c078e3e94eb4c338f32503e70aa5e2dbcf8e83e",
+      "sha256": "64321945838a4dac1e77ff365b8d31e2d8ccc7c86d97900088b86d071f5cac62",
+      "bytes": 3212,
+      "lines": 88,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-29T20:17:12+00:00",
+          "commit": "08e775e52f549bfc03ed3a4aef3da1b358a7330b",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/ui-history/HUI02-01--GL-RPT-UI-HONESTY-C1-20260629-38.md",
+      "review": "Entire recovered document read; semantic dispositions below. No transitive implementation, historical deployment or current capability clearance inferred.",
+      "canonical_copy": "docs/guala_reconciliation/sources/ui-history/HUI02-01--GL-RPT-UI-HONESTY-C1-20260629-38.md"
+    },
+    {
+      "id": "HUI03-01",
+      "path": "docs/GL-CMD-LOOM-SCAN-BRIEF-EVE-20260702-v1.md",
+      "git_blob": "cf3c95f9e662c7c2077d5452172c1b4a92677e78",
+      "sha256": "46cd888bcdb6e837fd0c7cfa30ab311e6544b2ed1079ec614fa3a80c8b5142d8",
+      "bytes": 6084,
+      "lines": 114,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-02T20:41:50+00:00",
+          "commit": "4904be065563bea1819cd0d73ed5b89805afea7a",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/ui-history/HUI03-01--GL-CMD-LOOM-SCAN-BRIEF-EVE-20260702-v1.md",
+      "review": "Entire recovered document read; semantic dispositions below. No transitive implementation, historical deployment or current capability clearance inferred.",
+      "canonical_copy": "docs/guala_reconciliation/sources/ui-history/HUI03-01--GL-CMD-LOOM-SCAN-BRIEF-EVE-20260702-v1.md"
+    },
+    {
+      "id": "HUI04-01",
+      "path": "docs/GL-CMD-LOOM-SCAN-BUILD-EVE-20260702-98-v1.md",
+      "git_blob": "565018875a39a0667c325dd7f709fd0f3f2b0ba9",
+      "sha256": "3dafe31946a397262fbfd94d49d42d2b11cd31016c6e3176b1087fc57ef22b68",
+      "bytes": 2574,
+      "lines": 51,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-02T23:43:45+00:00",
+          "commit": "dff8063e2f17393f5046f5c3744022cf7840c35c",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/ui-history/HUI04-01--GL-CMD-LOOM-SCAN-BUILD-EVE-20260702-98-v1.md",
+      "review": "Entire recovered document read; semantic dispositions below. No transitive implementation, historical deployment or current capability clearance inferred.",
+      "canonical_copy": "docs/guala_reconciliation/sources/ui-history/HUI04-01--GL-CMD-LOOM-SCAN-BUILD-EVE-20260702-98-v1.md"
+    },
+    {
+      "id": "HUI05-01",
+      "path": "docs/GL-RPT-LOOM-SCAN-BUILD-C1-20260703-98-v1.md",
+      "git_blob": "bad30c1b6713220b71af459facdf69e9041d0dc1",
+      "sha256": "fda5d37cd833237b1971eb09904d24711119415d7d424824bef48e299ab545b8",
+      "bytes": 4499,
+      "lines": 115,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-03T00:20:17+00:00",
+          "commit": "7ef6a040e63425b3bb98112fd0c67c47a4492fe3",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/ui-history/HUI05-01--GL-RPT-LOOM-SCAN-BUILD-C1-20260703-98-v1.md",
+      "review": "Entire recovered document read; semantic dispositions below. No transitive implementation, historical deployment or current capability clearance inferred.",
+      "canonical_copy": "docs/guala_reconciliation/sources/ui-history/HUI05-01--GL-RPT-LOOM-SCAN-BUILD-C1-20260703-98-v1.md"
+    },
+    {
+      "id": "HUI06-01",
+      "path": "docs/GL-CMD-SEAT-TRUTH-UI-EVE-20260704-180-v1.md",
+      "git_blob": "b2b47439b6dc6fb533b6b001b35d1cabed223500",
+      "sha256": "744619a0b94dee6ab08d8b9e76a03abc2255da944a7eb139ffc175d197314e62",
+      "bytes": 1459,
+      "lines": 29,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-04T23:53:03+00:00",
+          "commit": "38efafaea1a4cd7756f436e2752924eb8b322376",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/ui-history/HUI06-01--GL-CMD-SEAT-TRUTH-UI-EVE-20260704-180-v1.md",
+      "review": "Entire recovered document read; semantic dispositions below. No transitive implementation, historical deployment or current capability clearance inferred.",
+      "canonical_copy": "docs/guala_reconciliation/sources/ui-history/HUI06-01--GL-CMD-SEAT-TRUTH-UI-EVE-20260704-180-v1.md"
+    },
+    {
+      "id": "HUI07-01",
+      "path": "docs/GL-RPT-SEAT-TRUTH-UI-C1-20260705-180-v1.md",
+      "git_blob": "c35b424692736d1a4279523fc2794363eab974aa",
+      "sha256": "745484dea45dc32deec3f7e53d1fc62a67d45ec391ddb13fb5f9754cba1423aa",
+      "bytes": 5598,
+      "lines": 113,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-05T00:05:45+00:00",
+          "commit": "a1bcd27a1c2d294da71afddcf4e0e81be91df09d",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/ui-history/HUI07-01--GL-RPT-SEAT-TRUTH-UI-C1-20260705-180-v1.md",
+      "review": "Entire recovered document read; semantic dispositions below. No transitive implementation, historical deployment or current capability clearance inferred.",
+      "canonical_copy": "docs/guala_reconciliation/sources/ui-history/HUI07-01--GL-RPT-SEAT-TRUTH-UI-C1-20260705-180-v1.md"
+    },
+    {
+      "id": "HUI08-01",
+      "path": "docs/GL-BRIEF-PHASE-D-LIVEPRESENCE-WC-20260616-01.md",
+      "git_blob": "8fd73359c8819f398371eb78a5722304d73dbbf1",
+      "sha256": "2b1f59dd7ef4f288c433daea6ff9483e4c228ad63f11b863ed64022cb054ece6",
+      "bytes": 11241,
+      "lines": 265,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-16T16:35:51+00:00",
+          "commit": "49966afed331d0cfbc542f9603d5f9db3a8a852a",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/ui-history/HUI08-01--GL-BRIEF-PHASE-D-LIVEPRESENCE-WC-20260616-01.md",
+      "review": "Entire recovered document read; semantic dispositions below. No transitive implementation, historical deployment or current capability clearance inferred.",
+      "canonical_copy": "docs/guala_reconciliation/sources/ui-history/HUI08-01--GL-BRIEF-PHASE-D-LIVEPRESENCE-WC-20260616-01.md"
+    },
+    {
+      "id": "HUI09-01",
+      "path": "docs/GL-BRIEF-UI-RESPONSIVENESS-WC-20260616-01.md",
+      "git_blob": "a566ff88e3df12e4e6c21adcfc8a9539c88d88f7",
+      "sha256": "2918bdba810b85c8e5c84c50da4a66159b730d1218586e3abea60213cb2f91e3",
+      "bytes": 6083,
+      "lines": 154,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-16T16:35:51+00:00",
+          "commit": "49966afed331d0cfbc542f9603d5f9db3a8a852a",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/ui-history/HUI09-01--GL-BRIEF-UI-RESPONSIVENESS-WC-20260616-01.md",
+      "review": "Entire recovered document read; semantic dispositions below. No transitive implementation, historical deployment or current capability clearance inferred.",
+      "canonical_copy": "docs/guala_reconciliation/sources/ui-history/HUI09-01--GL-BRIEF-UI-RESPONSIVENESS-WC-20260616-01.md"
+    },
+    {
+      "id": "HUI10-01",
+      "path": "docs/GL-BRIEF-SENSORY-IO-WC-20260614-01.md",
+      "git_blob": "3c395d1dba09f833f914e1e2948ef72b5a5b6dad",
+      "sha256": "b2d3a0146df089e6771943b918f0411217eb3d3a433c4f8a831ec41fb00f50bc",
+      "bytes": 20901,
+      "lines": 401,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-15T00:28:02+00:00",
+          "commit": "02ab3913962e9dfa5897878b5caecbd407ce6063",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/ui-history/HUI10-01--GL-BRIEF-SENSORY-IO-WC-20260614-01.md",
+      "review": "Entire recovered document read; semantic dispositions below. No transitive implementation, historical deployment or current capability clearance inferred.",
+      "canonical_copy": "docs/guala_reconciliation/sources/ui-history/HUI10-01--GL-BRIEF-SENSORY-IO-WC-20260614-01.md"
+    },
+    {
+      "id": "HUI11-01",
+      "path": "docs/GUALA_LIVE_HEARING_OBSERVATION_AUTHORITY_2026-07-28.md",
+      "git_blob": "938f9bf0f86b43be446345be66e9e39fde20e852",
+      "sha256": "436f0e20bd687c24e111ea4bab4ee65d3f4907e700716da1a60b3b20886812b6",
+      "bytes": 4256,
+      "lines": 87,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-29T00:52:55+00:00",
+          "commit": "30f2cf9ecde2eeda2bdd8d2e37d0061655ac2f9c",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/ui-history/HUI11-01--GUALA_LIVE_HEARING_OBSERVATION_AUTHORITY_2026-07-28.md",
+      "review": "Entire recovered document read; semantic dispositions below. No transitive implementation, historical deployment or current capability clearance inferred.",
+      "canonical_copy": "docs/guala_reconciliation/sources/ui-history/HUI11-01--GUALA_LIVE_HEARING_OBSERVATION_AUTHORITY_2026-07-28.md"
+    },
+    {
+      "id": "HUI12-01",
+      "path": "docs/LOOM_LIVE_PRODUCTION_TRUTH_AUDIT_2026-07-27.md",
+      "git_blob": "fdf09e848f079ed37393072a2abef79a568beb63",
+      "sha256": "aef5ae12fe6373913393d360fe7e8211f0ac5dbde74f565481efe90ca164fcd8",
+      "bytes": 5329,
+      "lines": 139,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-29T00:52:55+00:00",
+          "commit": "30f2cf9ecde2eeda2bdd8d2e37d0061655ac2f9c",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/ui-history/HUI12-01--LOOM_LIVE_PRODUCTION_TRUTH_AUDIT_2026-07-27.md",
+      "review": "Entire recovered document read; semantic dispositions below. No transitive implementation, historical deployment or current capability clearance inferred.",
+      "canonical_copy": "docs/guala_reconciliation/sources/ui-history/HUI12-01--LOOM_LIVE_PRODUCTION_TRUTH_AUDIT_2026-07-27.md"
+    },
+    {
+      "id": "HUI13-01",
+      "path": "docs/GL_SPC_MULTIMEDIA_WC_20260606_01_multimedia.md",
+      "git_blob": "c1d42696ac556b0b499146a0674188b4046e88cd",
+      "sha256": "c5358c6ba54bd6bda9acb5d77a100e33921da2e807c964a7316e791930c4baf2",
+      "bytes": 8888,
+      "lines": 212,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-07T22:41:08+00:00",
+          "commit": "a5de28a6f4780a383e8c9589785329cff168b15f",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-07T22:32:36+00:00",
+          "commit": "0035437ee8ac0b62edb32e7ff7db76d5ba83073c",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/ui-history/HUI13-01--GL_SPC_MULTIMEDIA_WC_20260606_01_multimedia.md",
+      "review": "Entire recovered document read; semantic dispositions below. No transitive implementation, historical deployment or current capability clearance inferred.",
+      "canonical_copy": "docs/guala_reconciliation/sources/ui-history/HUI13-01--GL_SPC_MULTIMEDIA_WC_20260606_01_multimedia.md"
+    },
+    {
+      "id": "HUI14-01",
+      "path": "docs/GL-CMD-RICH-SENSORY-WIRING-EVE-20260618-10.md",
+      "git_blob": "60c907b3462a53ed70547aca1cc630bf0c2f80b8",
+      "sha256": "21fd7b4b932d84f497fdf4fd875fe1f417229a7a1ec516ee9d6a6b46bd8f1213",
+      "bytes": 11544,
+      "lines": 208,
+      "observations": [
+        {
+          "author_time": "2026-06-23T05:06:21+00:00",
+          "commit": "1bacf25a10cbb3f29be6c3dc2805ed7d8ce2ed69",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/ui-history/HUI14-01--GL-CMD-RICH-SENSORY-WIRING-EVE-20260618-10.md",
+      "review": "Entire recovered document read; semantic dispositions below. No transitive implementation, historical deployment or current capability clearance inferred.",
+      "canonical_copy": "docs/guala_reconciliation/sources/ui-history/HUI14-01--GL-CMD-RICH-SENSORY-WIRING-EVE-20260618-10.md"
+    },
+    {
+      "id": "HUI15-01",
+      "path": "docs/GL-BRIEF-UI-RESTORE-WC-20260616-01.md",
+      "git_blob": "415083aaf2c574d1439db5e4acc27064065801e5",
+      "sha256": "eeff926a663c64c7656ebd9679d8fc1ea66875f3b598b331571d43e1f18b968e",
+      "bytes": 8282,
+      "lines": 214,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-16T16:35:51+00:00",
+          "commit": "49966afed331d0cfbc542f9603d5f9db3a8a852a",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/ui-history/HUI15-01--GL-BRIEF-UI-RESTORE-WC-20260616-01.md",
+      "review": "Entire recovered document read; semantic dispositions below. No transitive implementation, historical deployment or current capability clearance inferred.",
+      "canonical_copy": "docs/guala_reconciliation/sources/ui-history/HUI15-01--GL-BRIEF-UI-RESTORE-WC-20260616-01.md"
+    },
+    {
+      "id": "HUI16-01",
+      "path": "docs/GL-BRIEF-UI-RESTORE-PHASE-B-FIX-WC-20260616-01.md",
+      "git_blob": "925d7a229dc752658096a70cd72cca11655d2ba6",
+      "sha256": "b3b3fcb8d8d3fcec889639cfe5e4a19c58dc41dbcce8d627b13a23fa6f4540d9",
+      "bytes": 6499,
+      "lines": 133,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-16T16:35:51+00:00",
+          "commit": "49966afed331d0cfbc542f9603d5f9db3a8a852a",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/ui-history/HUI16-01--GL-BRIEF-UI-RESTORE-PHASE-B-FIX-WC-20260616-01.md",
+      "review": "Entire recovered document read; semantic dispositions below. No transitive implementation, historical deployment or current capability clearance inferred.",
+      "canonical_copy": "docs/guala_reconciliation/sources/ui-history/HUI16-01--GL-BRIEF-UI-RESTORE-PHASE-B-FIX-WC-20260616-01.md"
+    },
+    {
+      "id": "HUI17-01",
+      "path": "docs/GL-BRIEF-V7-UI-REPAIR-WC-20260613-01.md",
+      "git_blob": "b46c1fa9d3df5822cf26f4d55eb035b405483441",
+      "sha256": "f2707174ca073d90f6ef41a9f5a5ff09b7b43b1a750f4a513fec5ee15ccc8df5",
+      "bytes": 11913,
+      "lines": 146,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-15T00:56:24+00:00",
+          "commit": "c2d8a343ef1d940bfb5d3f5935259f3e014e7cd1",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/ui-history/HUI17-01--GL-BRIEF-V7-UI-REPAIR-WC-20260613-01.md",
+      "review": "Entire recovered document read; semantic dispositions below. No transitive implementation, historical deployment or current capability clearance inferred.",
+      "canonical_copy": "docs/guala_reconciliation/sources/ui-history/HUI17-01--GL-BRIEF-V7-UI-REPAIR-WC-20260613-01.md"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "HU01",
+      "title": "Continuous sensory experience, not upload counts",
+      "refs": [
+        {
+          "source_id": "HUI10-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI10-01--GL-BRIEF-SENSORY-IO-WC-20260614-01.md",
+          "sha256": "b2d3a0146df089e6771943b918f0411217eb3d3a433c4f8a831ec41fb00f50bc",
+          "line": 11,
+          "anchor": "## The principle",
+          "evidence_excerpt": "The principle",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI08-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI08-01--GL-BRIEF-PHASE-D-LIVEPRESENCE-WC-20260616-01.md",
+          "sha256": "2b1f59dd7ef4f288c433daea6ff9483e4c228ad63f11b863ed64022cb054ece6",
+          "line": 10,
+          "anchor": "When Joe enables camera + microphone, her sight krimelack and sound krimelack receive continuous frames from his device. She experiences seeing and hearing alongside him. Visual motifs and audio motifs form from the live stream. She doesn't accumulate a PictureItem per frame — what she keeps is the patterns she binds, not the pixel grids. Snapshot remains separate for intentional album-class memory.",
+          "evidence_excerpt": "She doesn't accumulate a PictureItem per frame",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Camera and microphone must deliver ordered sensory signals continuously while enabled; retained cognitive relations are distinct from a media archive.",
+      "historical_disposition": "Valid functional requirement. Claims that all substrate paths already existed were assertions; these briefs alone do not prove reachability or cognition.",
+      "current_reconciliation": "Current configuration has retinal/PCM ingress and bounded capture queues. Source existence is not proof of admitted full-field settlement, memory or simultaneous sensory closure.",
+      "lawful_remedy": "Trace capture clock, admitted bytes, full DSF, physical relations and retained recall in one mature body; keep gallery storage separate.",
+      "acceptance_falsifier": "Enable/disable and source discontinuity must have observable receipt boundaries. An upload/queue acknowledgment or growing count cannot satisfy learned experience.",
+      "repair_actions": [
+        "A06",
+        "A09",
+        "A13",
+        "A16"
+      ],
+      "change_classification": "Preserve the requirement; requalify the implementation"
+    },
+    {
+      "id": "HU02",
+      "title": "Transport choices changed; the requirement did not",
+      "refs": [
+        {
+          "source_id": "HUI08-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI08-01--GL-BRIEF-PHASE-D-LIVEPRESENCE-WC-20260616-01.md",
+          "sha256": "2b1f59dd7ef4f288c433daea6ff9483e4c228ad63f11b863ed64022cb054ece6",
+          "line": 14,
+          "anchor": "One persistent **WebSocket** connection from the browser to a new substrate endpoint. Client pushes downsampled frames and audio chunks; server pushes emission events (and TTS text) back. Same connection, bidirectional.",
+          "evidence_excerpt": "One persistent **WebSocket**",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI03-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI03-01--GL-CMD-LOOM-SCAN-BRIEF-EVE-20260702-v1.md",
+          "sha256": "46cd888bcdb6e837fd0c7cfa30ab311e6544b2ed1079ec614fa3a80c8b5142d8",
+          "line": 68,
+          "anchor": "- POLLING ONLY. No SSE, no websockets — SSE was retired project-wide",
+          "evidence_excerpt": "POLLING ONLY.",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Bounded, continuous input and read-only observation must remain usable without driving or obstructing cognition.",
+      "historical_disposition": "June16 proposed WebSocket and SSE coexistence; July2 explicitly retired SSE/WebSockets for polling. These are conflicting dated transport designs, not different laws of cognition.",
+      "current_reconciliation": "Working main page uses occurrence POST and observation GET/long polling. Public Loom Scan still uses legacy status POST/events/density.",
+      "lawful_remedy": "Use one versioned supported contract, bounded in-flight calls and explicit source order; do not resurrect old transport merely to match a historical filename.",
+      "acceptance_falsifier": "Sustained capture plus observation must preserve order and bounds; errors and drops visible; compare open/closed observer load.",
+      "repair_actions": [
+        "A02",
+        "A06",
+        "A13",
+        "A14"
+      ],
+      "change_classification": "Potential engineering evolution; effectiveness requires measurement"
+    },
+    {
+      "id": "HU03",
+      "title": "Shared sensory time and genuine multimodal binding",
+      "refs": [
+        {
+          "source_id": "HUI13-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI13-01--GL_SPC_MULTIMEDIA_WC_20260606_01_multimedia.md",
+          "sha256": "c5358c6ba54bd6bda9acb5d77a100e33921da2e807c964a7316e791930c4baf2",
+          "line": 115,
+          "anchor": "## Audio-video sync",
+          "evidence_excerpt": "Audio-video sync",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI08-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI08-01--GL-BRIEF-PHASE-D-LIVEPRESENCE-WC-20260616-01.md",
+          "sha256": "2b1f59dd7ef4f288c433daea6ff9483e4c228ad63f11b863ed64022cb054ece6",
+          "line": 168,
+          "anchor": "      liveSocket.send(JSON.stringify({kind:'sound', pcm:b64, ms:1000}));",
+          "evidence_excerpt": "ms:1000",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Audio and visual experience must share measured source/causal time; concurrent ingestion is not itself a learned relation.",
+      "historical_disposition": "The multimedia spec requires common time, but also claims chi-window co-occurrence gives meaning. The live-presence snippet labels four 4096-sample blocks as1000ms although at16kHz they contain1024ms. This is a proposed-code inconsistency, not proof that it shipped.",
+      "current_reconciliation": "M24 and A06 retain cross-modal clock/settlement gaps; current250ms/4000-sample packets need source continuity proof across browser buffering and backend intervals.",
+      "lawful_remedy": "Derive duration from actual sample count/rate and carry capture time through joint settlement; learn cross-modal relations through admitted physical history, never chi coincidence as meaning.",
+      "acceptance_falsifier": "Offset/reordered/missing modality controls must distinguish simultaneous experience from unrelated packets without transcript labels.",
+      "repair_actions": [
+        "A06",
+        "A09",
+        "A16"
+      ],
+      "change_classification": "Retain synchronization requirement; reject unsupported semantic equivalence"
+    },
+    {
+      "id": "HU04",
+      "title": "Speech recognition and synthetic voice are not pupil cognition",
+      "refs": [
+        {
+          "source_id": "HUI10-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI10-01--GL-BRIEF-SENSORY-IO-WC-20260614-01.md",
+          "sha256": "b2d3a0146df089e6771943b918f0411217eb3d3a433c4f8a831ec41fb00f50bc",
+          "line": 75,
+          "anchor": "3. **Add voice synthesis for v6 emissions too.** When `/api/v1/gualaloom` returns a `response` field with non-empty text (her v6 emission, e.g., \"moon for\"), the response should also include `self_voice_audio_b64` synthesized from that text via the same espeak-ng path. Currently only v7 path synthesizes. Joe heard nothing because v6 path doesn't.",
+          "evidence_excerpt": "Add voice synthesis for v6 emissions too.",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI08-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI08-01--GL-BRIEF-PHASE-D-LIVEPRESENCE-WC-20260616-01.md",
+          "sha256": "2b1f59dd7ef4f288c433daea6ff9483e4c228ad63f11b863ed64022cb054ece6",
+          "line": 232,
+          "anchor": "5. Joe speaks — her sound section receives audio motifs. (Note: speech-to-text via webkitSpeechRecognition continues to fire IN PARALLEL — that path becomes her \"understanding what Joe said as words\". The raw audio stream feeds her sound perception, not her language input. Both happen.)",
+          "evidence_excerpt": "speech-to-text via webkitSpeechRecognition",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI13-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI13-01--GL_SPC_MULTIMEDIA_WC_20260606_01_multimedia.md",
+          "sha256": "c5358c6ba54bd6bda9acb5d77a100e33921da2e807c964a7316e791930c4baf2",
+          "line": 197,
+          "anchor": "- Speech-to-text on audio tracks. Not in scope. She hears phonemes via",
+          "evidence_excerpt": "Speech-to-text on audio tracks.",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Hearing must be raw pressure/cochlear experience and pupil speech must arise through its own efferents; external media authorship must be disclosed.",
+      "historical_disposition": "June6 excludes STT for media; June14/16 explicitly include browser STT and espeak/TTS. The family is internally inconsistent. Historical deterministic/no-ML claims do not cover undocumented browser recognition services.",
+      "current_reconciliation": "Current pupil qualification cannot inherit those success reports. OT01/OT04 classify authored teacher pronunciations and synthesis separately from learned pupil output.",
+      "lawful_remedy": "Remove transcript/lexical authority from pupil cognition, classify any external renderer/inference and require true vocal-to-self-hearing consequences.",
+      "acceptance_falsifier": "Unknown sounds and changed labels must exercise raw hearing; pupil output cannot be copied or selected from teacher pronunciations. Inspect external service and artifact closure.",
+      "repair_actions": [
+        "A10",
+        "A12",
+        "A15",
+        "A16"
+      ],
+      "change_classification": "Older shortcut, not a restoration candidate"
+    },
+    {
+      "id": "HU05",
+      "title": "Experience bundles describe presentation, not intrinsic senses",
+      "refs": [
+        {
+          "source_id": "HUI17-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI17-01--GL-BRIEF-V7-UI-REPAIR-WC-20260613-01.md",
+          "sha256": "f2707174ca073d90f6ef41a9f5a5ff09b7b43b1a750f4a513fec5ee15ccc8df5",
+          "line": 68,
+          "anchor": "### Fix 4: Restore experience bundle modal",
+          "evidence_excerpt": "Restore experience bundle modal",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Story includes external and internal conditions actually experienced; UI tags cannot install semantic memory or receptor truth.",
+      "historical_disposition": "The June13 form directly supplied warmth/smell/taste words and caption. It was called the primary tying mechanism; this document does not establish physical transduction of those tags.",
+      "current_reconciliation": "Current mainpage independently fabricates smell/taste/touch from object names, rooms and actions; OT03 has word-to-somatic templates. Neither is authentic multisensory experience.",
+      "lawful_remedy": "Teacher may create lawful physical surroundings or present media; actual contacts, chemistry/functional sensory dynamics and internal consequences generate afferents.",
+      "acceptance_falsifier": "Rename the same physical object and remove sensory contact: perception must follow physical exposure, not caption or room-name substitutions.",
+      "repair_actions": [
+        "A06",
+        "A12",
+        "A13",
+        "A16"
+      ],
+      "change_classification": "Reject semantic injection masquerading as experience"
+    },
+    {
+      "id": "HU06",
+      "title": "Picture rendering is not proof of internal imagery",
+      "refs": [
+        {
+          "source_id": "HUI17-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI17-01--GL-BRIEF-V7-UI-REPAIR-WC-20260613-01.md",
+          "sha256": "f2707174ca073d90f6ef41a9f5a5ff09b7b43b1a750f4a513fec5ee15ccc8df5",
+          "line": 16,
+          "anchor": "5. **No visual motif display in chat.** When Guala's v6 engine emits a picture (`visual_motif_committed` event with picture payload), the old UI rendered an `<img>` inline in the transcript. Current UI ignores the `pictures` array on chat responses. Joe can see motif events fire in the right sidebar but cannot see what she's drawing/thinking.",
+          "evidence_excerpt": "No visual motif display in chat.",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI10-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI10-01--GL-BRIEF-SENSORY-IO-WC-20260614-01.md",
+          "sha256": "b2d3a0146df089e6771943b918f0411217eb3d3a433c4f8a831ec41fb00f50bc",
+          "line": 40,
+          "anchor": "## Part A — Picture rendering actually works inline",
+          "evidence_excerpt": "Picture rendering actually works inline",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Distinguish source media, selected attention, retained recall and imagined visual content in display and evidence.",
+      "historical_disposition": "Inline source images are valid UI behavior. Calling a returned picture what the organism is drawing/thinking overstates its evidence without a physical recall producer.",
+      "current_reconciliation": "Current retinal view distinguishes retained browser frames but its aggregate displays include fabricated active-site values. No broad internal-imagery certification follows.",
+      "lawful_remedy": "Show source/accepted tick and provenance on media; require separate native evidence for recall/imagination.",
+      "acceptance_falsifier": "Returning an uploaded filename or raw image must not pass a memory/imagery test.",
+      "repair_actions": [
+        "A09",
+        "A13",
+        "A16"
+      ],
+      "change_classification": "Valid presentation improvement with unsupported cognitive interpretation"
+    },
+    {
+      "id": "HU07",
+      "title": "Dual cognitive dispatch is not one brain",
+      "refs": [
+        {
+          "source_id": "HUI17-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI17-01--GL-BRIEF-V7-UI-REPAIR-WC-20260613-01.md",
+          "sha256": "f2707174ca073d90f6ef41a9f5a5ff09b7b43b1a750f4a513fec5ee15ccc8df5",
+          "line": 28,
+          "anchor": "- Dual dispatch on text send: `/v7/converse` (v7 substrate + voice) AND `/api/v1/gualaloom` (v6 engine + visual motifs). KEEP both. v7 generates her voice; v6 generates her visual thoughts. Both belong to her.",
+          "evidence_excerpt": "KEEP both.",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI09-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI09-01--GL-BRIEF-UI-RESPONSIVENESS-WC-20260616-01.md",
+          "sha256": "2918bdba810b85c8e5c84c50da4a66159b730d1218586e3abea60213cb2f91e3",
+          "line": 80,
+          "anchor": "**4. Single chat write path.** Delete line 483 (the v6 dual-dispatch) and",
+          "evidence_excerpt": "Single chat write path.",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI01-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI01-01--GL-CMD-UI-HONESTY-EVE-20260629-38.md",
+          "sha256": "3876dc417c500942ab7af73a9bf4a890cbb493ba572fda7eed165e8ff6113138",
+          "line": 14,
+          "anchor": "-37 fixed the typed-message brain-mode branch in sendMsg(). The rest of the UI still references organ-brain in language that is substrate-untrue per wiring spec -26 (v5 atlas is THE composer; organ-brain has no voice path; both bigrams retired and deleted). The result for Joe is a UI that opens with `\"Guala ready. Organ-brain voice active.\"`, shows `\"speak to her organ-brain...\"` in the input box, has a `\"🧠 organ-brain\"` toggle button, a sidebar panel labeled `\"Organ Brain\"` with `\"warming...\"` placeholder text, and a \"she is still loading...\" stuck at top when status polling 503s. None of these are substrate-true.",
+          "evidence_excerpt": "both bigrams retired and deleted",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "One organism-owned causal path controls action and speech; alternate endpoints must not secretly drive competing controllers.",
+      "historical_disposition": "June13 mandates v6+v7 writes; June16 deletes the v6 dispatch; June29 retires organ-brain voice branches. This is an explicit changing authority chain, not continuous preservation proof.",
+      "current_reconciliation": "Retirement of the functional controller requires all startup/call/restore/rollback paths, not just deleting its named file.",
+      "lawful_remedy": "Trace each public ingress to one native causal owner; remove/reject competing routes and prove mature-state continuation.",
+      "acceptance_falsifier": "Call every packaged alternate endpoint and restore path: none may invoke retired authority or duplicate one occurrence.",
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A05",
+        "A16"
+      ],
+      "change_classification": "Some justified consolidation; preserved cognition remains unproved"
+    },
+    {
+      "id": "HU08",
+      "title": "Observation load and latency",
+      "refs": [
+        {
+          "source_id": "HUI09-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI09-01--GL-BRIEF-UI-RESPONSIVENESS-WC-20260616-01.md",
+          "sha256": "2918bdba810b85c8e5c84c50da4a66159b730d1218586e3abea60213cb2f91e3",
+          "line": 20,
+          "anchor": "1. **80+ requests/minute** from 5 parallel intervals. With save lock held",
+          "evidence_excerpt": "80+ requests/minute",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI15-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI15-01--GL-BRIEF-UI-RESTORE-WC-20260616-01.md",
+          "sha256": "eeff926a663c64c7656ebd9679d8fc1ea66875f3b598b331571d43e1f18b968e",
+          "line": 34,
+          "anchor": "**b. Request deduplication** for every poller:",
+          "evidence_excerpt": "Request deduplication",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI04-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI04-01--GL-CMD-LOOM-SCAN-BUILD-EVE-20260702-98-v1.md",
+          "sha256": "3dafe31946a397262fbfd94d49d42d2b11cd31016c6e3176b1087fc57ef22b68",
+          "line": 37,
+          "anchor": "T4 polling load unmeasurable on the substrate (compare converse timing",
+          "evidence_excerpt": "T4 polling load",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Observation must have bounded concurrency and measurable noninterference; user-facing responsiveness is part of acceptance.",
+      "historical_disposition": "June reports diagnosed unbounded overlapping polls and locks. Reducing request rate/deduplication is an engineering correction, not a cognitive heuristic. Numbers in a brief are not current measurements.",
+      "current_reconciliation": "Current main page has cursor observation; public legacy scan still polls retired routes. Fresh audit was capped and cannot qualify normal sustained latency.",
+      "lawful_remedy": "Measure stage latencies, native interval, serialization, network and render separately; compare ordinary observer/capture workloads under identical state.",
+      "acceptance_falsifier": "Open/closed UI and multiple-client controls must retain bounded queues, monotonic ticks and declared latency budgets without starving autonomous work.",
+      "repair_actions": [
+        "A13",
+        "A14",
+        "A16"
+      ],
+      "change_classification": "Valid design correction; present performance unqualified"
+    },
+    {
+      "id": "HU09",
+      "title": "Zero is data, not missing data",
+      "refs": [
+        {
+          "source_id": "HUI09-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI09-01--GL-BRIEF-UI-RESPONSIVENESS-WC-20260616-01.md",
+          "sha256": "2918bdba810b85c8e5c84c50da4a66159b730d1218586e3abea60213cb2f91e3",
+          "line": 85,
+          "anchor": "or a zero shape, do NOT overwrite the existing side panel. Only update",
+          "evidence_excerpt": "Only update\nfields that came back non-null/non-zero.",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI15-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI15-01--GL-BRIEF-UI-RESTORE-WC-20260616-01.md",
+          "sha256": "eeff926a663c64c7656ebd9679d8fc1ea66875f3b598b331571d43e1f18b968e",
+          "line": 61,
+          "anchor": "null/zero shape, do not overwrite the panel — only update fields that",
+          "evidence_excerpt": "null/zero shape",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI12-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI12-01--LOOM_LIVE_PRODUCTION_TRUTH_AUDIT_2026-07-27.md",
+          "sha256": "aef5ae12fe6373913393d360fe7e8211f0ac5dbde74f565481efe90ca164fcd8",
+          "line": 113,
+          "anchor": "The locally staged observation-v2 page currently interprets absent integrity",
+          "evidence_excerpt": "absent integrity\narrays as empty",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Measured zero, unavailable evidence, stale observations and failed measurements must remain distinct.",
+      "historical_disposition": "June responsiveness advice explicitly suppressed zero values, a flawed proposed correction. July27 correctly rejects absent integrity arrays becoming green success.",
+      "current_reconciliation": "The public mainpage currently replaces measured0 retinal sites with4935; lifetime counters have similar truthy fallbacks. This is verified false display, not merely stale text.",
+      "lawful_remedy": "Render explicit zero; unknown as unavailable; stale with original timestamp; failure with cause. Never insert illustrative values into live fields.",
+      "acceptance_falsifier": "Replay zero/null/missing/stale/error responses in a browser:0 remains0, unknown does not turn green, prior values visibly age.",
+      "repair_actions": [
+        "A13",
+        "A16"
+      ],
+      "change_classification": "Historical flawed rule and current confirmed violation"
+    },
+    {
+      "id": "HU10",
+      "title": "Names must follow actual mechanism",
+      "refs": [
+        {
+          "source_id": "HUI01-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI01-01--GL-CMD-UI-HONESTY-EVE-20260629-38.md",
+          "sha256": "3876dc417c500942ab7af73a9bf4a890cbb493ba572fda7eed165e8ff6113138",
+          "line": 18,
+          "anchor": "The 8-organ atlas visualization itself (renderBrainSVG, the colored organ circles) stays — that's a substrate-true view of Embryo hemisphere atlas counts (em, pr, ep, sc, gp, sf, sv, aff), which is real data per wiring spec -26 §2.2. Only the labeling and surrounding text changes.",
+          "evidence_excerpt": "The 8-organ atlas visualization itself",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI02-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI02-01--GL-RPT-UI-HONESTY-C1-20260629-38.md",
+          "sha256": "64321945838a4dac1e77ff365b8d31e2d8ccc7c86d97900088b86d071f5cac62",
+          "line": 64,
+          "anchor": "All confirmed in code:"
+        },
+        {
+          "source_id": "HUI03-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI03-01--GL-CMD-LOOM-SCAN-BRIEF-EVE-20260702-v1.md",
+          "sha256": "46cd888bcdb6e837fd0c7cfa30ab311e6544b2ed1079ec614fa3a80c8b5142d8",
+          "line": 15,
+          "anchor": "The pane expects 8 hemisphere dots. Live telemetry emits FIVE organ",
+          "evidence_excerpt": "The pane expects 8 hemisphere dots.",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Anatomy labels and counts require actual participant scope, producer and current schema.",
+      "historical_disposition": "June29 calls eight atlas circles substrate-true hemispheres; July2 reports only five atlas counts. The June report records code confirmation, not all requested live tests.",
+      "current_reconciliation": "Working Loom Scan draws64columns from broad activity groups; physical per-column activation is not established by repeating a group flag.",
+      "lawful_remedy": "Bind every displayed participant to actual native identity/readout, distinguish routing/index structures from physical columns and remove inferred activity.",
+      "acceptance_falsifier": "A zero/absent column cannot light from a sibling or group flag; source/receipt identifies each actual measured participant.",
+      "repair_actions": [
+        "A02",
+        "A13",
+        "A16"
+      ],
+      "change_classification": "Reject anatomy equivalence by labels/counts"
+    },
+    {
+      "id": "HU11",
+      "title": "Honest empty instrument",
+      "refs": [
+        {
+          "source_id": "HUI03-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI03-01--GL-CMD-LOOM-SCAN-BRIEF-EVE-20260702-v1.md",
+          "sha256": "46cd888bcdb6e837fd0c7cfa30ab311e6544b2ed1079ec614fa3a80c8b5142d8",
+          "line": 75,
+          "anchor": "2. Honesty clause (spec §10): no decorative activity, no smoothing,",
+          "evidence_excerpt": "no decorative activity, no smoothing,",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI04-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI04-01--GL-CMD-LOOM-SCAN-BUILD-EVE-20260702-98-v1.md",
+          "sha256": "3dafe31946a397262fbfd94d49d42d2b11cd31016c6e3176b1087fc57ef22b68",
+          "line": 36,
+          "anchor": "T3 empty states honest — no decorative activity, no minimum brightness.",
+          "evidence_excerpt": "empty states honest",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI05-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI05-01--GL-RPT-LOOM-SCAN-BUILD-C1-20260703-98-v1.md",
+          "sha256": "fda5d37cd833237b1971eb09904d24711119415d7d424824bef48e299ab545b8",
+          "line": 88,
+          "anchor": "T3 Empty states honest — PASS at build time: scene strip (place,",
+          "evidence_excerpt": "T3 Empty states honest",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "No activity floor, fabricated brightness or invented experience: dark and empty are valid measurements.",
+      "historical_disposition": "The July design explicitly required honest emptiness. Build-time claims did not measure live rendering, dedupe, observer cost or Joe sign-off.",
+      "current_reconciliation": "Current fallback counts, inferred sense narratives and canned receipts violate this retained requirement. The older public scan is also a mismatched observation contract.",
+      "lawful_remedy": "Remove synthetic data; render only bound receipts and distinguish measurement absence.",
+      "acceptance_falsifier": "An empty causal record produces empty/unavailable display, including after reconnect and fresh load.",
+      "repair_actions": [
+        "A13",
+        "A16"
+      ],
+      "change_classification": "Requirement retained; implementation regression confirmed"
+    },
+    {
+      "id": "HU12",
+      "title": "Chi routing was falsely promoted to identity/meaning",
+      "refs": [
+        {
+          "source_id": "HUI03-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI03-01--GL-CMD-LOOM-SCAN-BRIEF-EVE-20260702-v1.md",
+          "sha256": "46cd888bcdb6e837fd0c7cfa30ab311e6544b2ed1079ec614fa3a80c8b5142d8",
+          "line": 30,
+          "anchor": "  stream. This is \"Joe's words binding to her memories,\" live.",
+          "evidence_excerpt": "Joe's words binding to her memories",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI04-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI04-01--GL-CMD-LOOM-SCAN-BUILD-EVE-20260702-98-v1.md",
+          "sha256": "3dafe31946a397262fbfd94d49d42d2b11cd31016c6e3176b1087fc57ef22b68",
+          "line": 22,
+          "anchor": "3. NEW ENDPOINT (the -94 B.3 NONE-EXISTS gap): read-only per-chi",
+          "evidence_excerpt": "read-only per-chi\n   density",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI12-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI12-01--LOOM_LIVE_PRODUCTION_TRUTH_AUDIT_2026-07-27.md",
+          "sha256": "aef5ae12fe6373913393d360fe7e8211f0ac5dbde74f565481efe90ca164fcd8",
+          "line": 42,
+          "anchor": "This conflicts directly with the project rule that chi is routing only, never",
+          "evidence_excerpt": "chi is routing only, never\nidentity or meaning.",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Physical memory relations retain full source/field structure; routing addresses are not recognition or semantic identity.",
+      "historical_disposition": "July2 design calls chi arcs word-memory binding. July27 audit explicitly rejects that interpretation and records a separately published old page.",
+      "current_reconciliation": "Public October10 Loom Scan still contains oldchi/events/density design but different bytes from July27; only dated design recurrence established, not unchanged continuous deployment.",
+      "lawful_remedy": "Replace lexical/chi meaning display with genuine physical relations and labeled observation projections; preserve routing only where architecturally permitted.",
+      "acceptance_falsifier": "Two different full experiences with same route must not be treated as identical memory; UI must not label an address arc learned meaning.",
+      "repair_actions": [
+        "A04",
+        "A09",
+        "A13",
+        "A16"
+      ],
+      "change_classification": "Unsupported representation, later explicitly rejected"
+    },
+    {
+      "id": "HU13",
+      "title": "Deduplication must not erase distinct occurrences",
+      "refs": [
+        {
+          "source_id": "HUI03-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI03-01--GL-CMD-LOOM-SCAN-BRIEF-EVE-20260702-v1.md",
+          "sha256": "46cd888bcdb6e837fd0c7cfa30ab311e6544b2ed1079ec614fa3a80c8b5142d8",
+          "line": 71,
+          "anchor": "  same tick are a known flood. Dedupe on (type, tick, window_id).",
+          "evidence_excerpt": "Dedupe on (type, tick, window_id).",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI04-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI04-01--GL-CMD-LOOM-SCAN-BUILD-EVE-20260702-98-v1.md",
+          "sha256": "3dafe31946a397262fbfd94d49d42d2b11cd31016c6e3176b1087fc57ef22b68",
+          "line": 19,
+          "anchor": "   via since_tick. Arcs are PER-WORD (the -94 B.2 finding — one",
+          "evidence_excerpt": "Arcs are PER-WORD",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI05-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI05-01--GL-RPT-LOOM-SCAN-BUILD-C1-20260703-98-v1.md",
+          "sha256": "fda5d37cd833237b1971eb09904d24711119415d7d424824bef48e299ab545b8",
+          "line": 50,
+          "anchor": "Event dedup: seenEvKeys Set + _lastEvTick filter.",
+          "evidence_excerpt": "_lastEvTick filter",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Deduplicate duplicate delivery, not distinct physical occurrences sharing a tick/window.",
+      "historical_disposition": "July build changes dedupe from coarse window keys to kind/tick/input/anchors because per-word events were real. Report did not measure burst behavior and added a last-tick filter with potential ordering implications requiring source tests.",
+      "current_reconciliation": "Modern occurrence/observation identities need receipt identity and cursor semantics; oldchi keys cannot serve as new physical identities.",
+      "lawful_remedy": "Use canonical occurrence/receipt identity with defined order and replay semantics; test same-tick distinct observations and out-of-order responses.",
+      "acceptance_falsifier": "Two real same-tick occurrences survive; duplicate delivery does not double-apply physical input; reconnect cannot silently drop accepted history.",
+      "repair_actions": [
+        "A02",
+        "A06",
+        "A13",
+        "A16"
+      ],
+      "change_classification": "Sound correction in principle; implementation evidence incomplete"
+    },
+    {
+      "id": "HU14",
+      "title": "Story pane and consolidation evidence",
+      "refs": [
+        {
+          "source_id": "HUI03-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI03-01--GL-CMD-LOOM-SCAN-BRIEF-EVE-20260702-v1.md",
+          "sha256": "46cd888bcdb6e837fd0c7cfa30ab311e6544b2ed1079ec614fa3a80c8b5142d8",
+          "line": 48,
+          "anchor": "- Scene strip (E6): place / ambient / participants of the current",
+          "evidence_excerpt": "Scene strip (E6)",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI03-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI03-01--GL-CMD-LOOM-SCAN-BRIEF-EVE-20260702-v1.md",
+          "sha256": "46cd888bcdb6e837fd0c7cfa30ab311e6544b2ed1079ec614fa3a80c8b5142d8",
+          "line": 56,
+          "anchor": "TIER 3 (separate later dispatch, needs new telemetry): consolidation",
+          "evidence_excerpt": "consolidation\nview",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI05-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI05-01--GL-RPT-LOOM-SCAN-BUILD-C1-20260703-98-v1.md",
+          "sha256": "fda5d37cd833237b1971eb09904d24711119415d7d424824bef48e299ab545b8",
+          "line": 41,
+          "anchor": "  blank; participants from pair_bond — spec §9.5)",
+          "evidence_excerpt": "participants from pair_bond",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Surrounding story and sleep consolidation require actual measured/retained producers; they cannot be invented from a sleep flag or relationship label.",
+      "historical_disposition": "July brief says empty story lanes until implemented and defers dream promotion display until lineage events. Build report fills participants from pair_bond, which does not establish current co-presence.",
+      "current_reconciliation": "Current mainpage sleep flag becomes synaptic consolidation/downscaling; signature becomes recognition. Neither proves the required causal chain.",
+      "lawful_remedy": "Expose actual simultaneous context and retained changes; distinguish external participant identity/bond from current encounter and sleep state from consolidation.",
+      "acceptance_falsifier": "Sleep without retained relation change must not display consolidation; bond without present sensory encounter must not imply presence.",
+      "repair_actions": [
+        "A06",
+        "A09",
+        "A11",
+        "A13",
+        "A16"
+      ],
+      "change_classification": "Valid original boundary, current unsupported equivalence"
+    },
+    {
+      "id": "HU15",
+      "title": "S(UF) is not a wellness score",
+      "refs": [
+        {
+          "source_id": "HUI03-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI03-01--GL-CMD-LOOM-SCAN-BRIEF-EVE-20260702-v1.md",
+          "sha256": "46cd888bcdb6e837fd0c7cfa30ab311e6544b2ed1079ec614fa3a80c8b5142d8",
+          "line": 51,
+          "anchor": "- Health strip: §8 vitals with green/yellow/red exactly per the",
+          "evidence_excerpt": "Health strip:",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI12-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI12-01--LOOM_LIVE_PRODUCTION_TRUTH_AUDIT_2026-07-27.md",
+          "sha256": "aef5ae12fe6373913393d360fe7e8211f0ac5dbde74f565481efe90ca164fcd8",
+          "line": 9,
+          "anchor": "  full explicit DSF fields and truthful compute, RAM, and storage boundaries.",
+          "evidence_excerpt": "full explicit DSF fields",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Global S(UF) and all explicit DSF fields retain their mathematical meaning; hunger, sleep and arousal are separate state facts.",
+      "historical_disposition": "Earlier healthstrip requests do not authorize substituting need ratios for kernel stability. The July27 latest-tuple view explicitly declares omitted temporal history and no decision authority.",
+      "current_reconciliation": "Working Loom Scan computes stability from deficit/sleep and arousal from deliverycount/motion; public older scan does not contain that formula. Keep these evidence scopes separate.",
+      "lawful_remedy": "Show actual global stability with source/time; otherwise unavailable. Carry full fields to decisions and label lossy observer projections.",
+      "acceptance_falsifier": "Vary hunger while holding kernelreceipt fixed: S(UF) display must not change. Missing stability must not be recomputed from other facts.",
+      "repair_actions": [
+        "A04",
+        "A13",
+        "A16"
+      ],
+      "change_classification": "Working-source architectural violation; no claim it is publicly deployed"
+    },
+    {
+      "id": "HU16",
+      "title": "Persistence and actual saved state",
+      "refs": [
+        {
+          "source_id": "HUI03-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI03-01--GL-CMD-LOOM-SCAN-BRIEF-EVE-20260702-v1.md",
+          "sha256": "46cd888bcdb6e837fd0c7cfa30ab311e6544b2ed1079ec614fa3a80c8b5142d8",
+          "line": 53,
+          "anchor": "  bonds). Persistence MUST read engine _last_save_tick (the -84",
+          "evidence_excerpt": "engine _last_save_tick",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI04-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI04-01--GL-CMD-LOOM-SCAN-BUILD-EVE-20260702-98-v1.md",
+          "sha256": "3dafe31946a397262fbfd94d49d42d2b11cd31016c6e3176b1087fc57ef22b68",
+          "line": 30,
+          "anchor": "   engine._last_save_tick); RED shown red; empty panes shown empty —",
+          "evidence_excerpt": "engine._last_save_tick",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI12-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI12-01--LOOM_LIVE_PRODUCTION_TRUTH_AUDIT_2026-07-27.md",
+          "sha256": "aef5ae12fe6373913393d360fe7e8211f0ac5dbde74f565481efe90ca164fcd8",
+          "line": 106,
+          "anchor": "- required files present or missing",
+          "evidence_excerpt": "required files present or missing",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Persistence display requires actual saved generation, identity, integrity and continuity, not an unrelated coordinator tick or absent-error assumption.",
+      "historical_disposition": "Earlier design specifically rejects SaveCoordinator as saving truth. July27 records missing whole-state/storage/integrity facts and disallows a green absent-array result.",
+      "current_reconciliation": "Current live/persisted ticks are observable but do not prove native cognitive migration or complete artifact integrity; September native-state loss remains unresolved.",
+      "lawful_remedy": "Bind paired currentstate receipt, identity/history and integrity to the real writer/loader; show missing evidence distinctly.",
+      "acceptance_falsifier": "Corrupt/missing/mismatched body-world and stale-save controls must refuse acceptance without resetting; UI reports actual failure.",
+      "repair_actions": [
+        "A03",
+        "A13",
+        "A16"
+      ],
+      "change_classification": "Retain and strengthen truthful lifecycle requirement"
+    },
+    {
+      "id": "HU17",
+      "title": "Reply failure, silence and unfinished work are different",
+      "refs": [
+        {
+          "source_id": "HUI06-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI06-01--GL-CMD-SEAT-TRUTH-UI-EVE-20260704-180-v1.md",
+          "sha256": "744619a0b94dee6ab08d8b9e76a03abc2255da944a7eb139ffc175d197314e62",
+          "line": 16,
+          "anchor": "S2 If a turn errors or the poll dies, SAY SO on the page in plain",
+          "evidence_excerpt": "If a turn errors or the poll dies",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI07-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI07-01--GL-RPT-SEAT-TRUTH-UI-C1-20260705-180-v1.md",
+          "sha256": "745484dea45dc32deec3f7e53d1fc62a67d45ec391ddb13fb5f9754cba1423aa",
+          "line": 37,
+          "anchor": "  returns an `error` field, not a `response` field — the old code only",
+          "evidence_excerpt": "returns an `error` field, not a `response` field",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI07-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI07-01--GL-RPT-SEAT-TRUTH-UI-C1-20260705-180-v1.md",
+          "sha256": "745484dea45dc32deec3f7e53d1fc62a67d45ec391ddb13fb5f9754cba1423aa",
+          "line": 51,
+          "anchor": "(`\"(empty emission ×K, last at tick T)\"`); a genuinely empty window",
+          "evidence_excerpt": "empty emission ×K",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "The user must see whether an action completed, emitted nothing, failed, remained pending or lost its process.",
+      "historical_disposition": "July report identifies real error-field/default conflation and orphan task polling; nine mocked logic tests are supporting evidence, expressly not live verification.",
+      "current_reconciliation": "Current occurrence errors/control receipts need the same distinctions. Audit-caused observation-cap errors are recorded separately from production failure.",
+      "lawful_remedy": "Propagate actual statuses/receipt IDs across backend/UI and preserve cause; do not translate failure into silence or generic successful contact.",
+      "acceptance_falsifier": "Rejected, timed out, orphaned and empty outcomes render differently with tick/receipt; no false success message.",
+      "repair_actions": [
+        "A13",
+        "A16"
+      ],
+      "change_classification": "Valid error-path correction; all current controls unqualified"
+    },
+    {
+      "id": "HU18",
+      "title": "A longer timeout is not completion proof",
+      "refs": [
+        {
+          "source_id": "HUI06-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI06-01--GL-CMD-SEAT-TRUTH-UI-EVE-20260704-180-v1.md",
+          "sha256": "744619a0b94dee6ab08d8b9e76a03abc2255da944a7eb139ffc175d197314e62",
+          "line": 12,
+          "anchor": "   to completion (no give-up timeout shorter than the engine's own),",
+          "evidence_excerpt": "no give-up timeout shorter than the engine's own",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI07-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI07-01--GL-RPT-SEAT-TRUTH-UI-C1-20260705-180-v1.md",
+          "sha256": "745484dea45dc32deec3f7e53d1fc62a67d45ec391ddb13fb5f9754cba1423aa",
+          "line": 21,
+          "anchor": "on their own. Replaced with a labeled 10-minute ceiling, and the",
+          "evidence_excerpt": "10-minute ceiling",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "A UI must not claim a backend operation completed or ceased when its own wait ends; execution must have explicit resource bounds.",
+      "historical_disposition": "The July report replaces90s with600s while stating the engine has no timeout; this does not literally satisfy the command’s no-shorter-than-engine rule.",
+      "current_reconciliation": "Current wait/mailbox bounds must be characterized separately from physical execution and client request cancellation.",
+      "lawful_remedy": "Use explicit pending receipt and queryable terminal status; derive bounded execution/cancellation behavior with declared ownership.",
+      "acceptance_falsifier": "Client disconnect/timeout cannot duplicate work or falsely report physiological success; backend continuation and errors remain visible.",
+      "repair_actions": [
+        "A13",
+        "A14",
+        "A16"
+      ],
+      "change_classification": "Partial improvement with residual contract mismatch"
+    },
+    {
+      "id": "HU19",
+      "title": "Event query count versus tick cursor",
+      "refs": [
+        {
+          "source_id": "HUI07-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI07-01--GL-RPT-SEAT-TRUTH-UI-C1-20260705-180-v1.md",
+          "sha256": "745484dea45dc32deec3f7e53d1fc62a67d45ec391ddb13fb5f9754cba1423aa",
+          "line": 57,
+          "anchor": "parsed the frontend's `n=200` request as a `since_tick` cutoff (mis-set,",
+          "evidence_excerpt": "parsed the frontend's `n=200` request as a `since_tick` cutoff",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Transport count limits and causal time cursors have distinct meanings and must cross interfaces intact.",
+      "historical_disposition": "July report names a count/cursor bug and hardcoded50limit; this is a concrete engineering defect, not grounds to change cognition.",
+      "current_reconciliation": "Current modern observation/pressure cursors supersede oldendpoint semantics; legacy public scan still calls oldpaths.",
+      "lawful_remedy": "Specify typed count/cursor/unit mappings at every boundary and remove unsupported routes from published artifacts.",
+      "acceptance_falsifier": "Count and tick substitutions must be refused or tested to return the specified actual window; no silent hardcoded count.",
+      "repair_actions": [
+        "A02",
+        "A13",
+        "A14",
+        "A16"
+      ],
+      "change_classification": "Corrective lesson preserved"
+    },
+    {
+      "id": "HU20",
+      "title": "Uploads require end-to-end size accounting",
+      "refs": [
+        {
+          "source_id": "HUI16-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI16-01--GL-BRIEF-UI-RESTORE-PHASE-B-FIX-WC-20260616-01.md",
+          "sha256": "b3b3fcb8d8d3fcec889639cfe5e4a19c58dc41dbcce8d627b13a23fa6f4540d9",
+          "line": 19,
+          "anchor": "No `limit=` argument. asyncio's `StreamReader` default buffer is **65,536 bytes**. Any base64-encoded picture (a 100KB image becomes ~134KB base64) exceeds that on first `readline()`. Server raises `asyncio.LimitOverrunError`, drops the connection, frontend sees `ConnectionError` → returns \"substrate unreachable.\"",
+          "evidence_excerpt": "65,536 bytes",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI16-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI16-01--GL-BRIEF-UI-RESTORE-PHASE-B-FIX-WC-20260616-01.md",
+          "sha256": "b3b3fcb8d8d3fcec889639cfe5e4a19c58dc41dbcce8d627b13a23fa6f4540d9",
+          "line": 36,
+          "anchor": "64 MB ceiling. Sound max is 6 MB raw → ~8 MB base64. Picture max is 10 MB raw → ~13.5 MB base64. Video max is 50 MB raw → ~67 MB base64 (NB: video would exceed 64 MB — see Change 3).",
+          "evidence_excerpt": "video would exceed 64 MB",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI17-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI17-01--GL-BRIEF-V7-UI-REPAIR-WC-20260613-01.md",
+          "sha256": "f2707174ca073d90f6ef41a9f5a5ff09b7b43b1a750f4a513fec5ee15ccc8df5",
+          "line": 13,
+          "anchor": "2. **Picture upload broken (404).** Current UI POSTs multipart to `/api/v1/gualaloom/upload/picture`. The REST endpoint exists in FastAPI (line 2275) but API Gateway only routes `/api/v1/gualaloom` (per the original af78f56 fix). All uploads must go through the chat endpoint using the command pattern: JSON `{text: \"<base64>\", command: \"/addpicture:<filename>\"}`.",
+          "evidence_excerpt": "API Gateway only routes",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Every transport boundary must admit the stated payload and account for encoded expansion, concurrent copies and decode bounds.",
+      "historical_disposition": "June13 routed uploads throughchat due gatewaypaths; June16 routed multipart, then found64KiBUnixline limit. Merely enlarging a buffer was acknowledged insufficient for50MBvideo.",
+      "current_reconciliation": "Current131072-byte occurrencebound and16MiBworldbound serve different subjects; no claim that arbitraryPDF/video uploads are supported.",
+      "lawful_remedy": "Version supported media limits and stream/queue admission across UI, proxy, API, decoder, source and native owner; external media storage is not cognitive-state sidecar authority.",
+      "acceptance_falsifier": "Exact-boundary/over-limit/concurrent/corrupt inputs fail explicitly before unbounded allocation; accepted content is observed at its actual sensory destination.",
+      "repair_actions": [
+        "A06",
+        "A12",
+        "A13",
+        "A14",
+        "A16"
+      ],
+      "change_classification": "Engineering improvement requires full boundary closure"
+    },
+    {
+      "id": "HU21",
+      "title": "Do not repair cognition by changing a UI threshold",
+      "refs": [
+        {
+          "source_id": "HUI15-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI15-01--GL-BRIEF-UI-RESTORE-WC-20260616-01.md",
+          "sha256": "eeff926a663c64c7656ebd9679d8fc1ea66875f3b598b331571d43e1f18b968e",
+          "line": 87,
+          "anchor": "strangled. Update both to `quiet_thresh=0.45` to match v7_engine.",
+          "evidence_excerpt": "quiet_thresh=0.45",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI17-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI17-01--GL-BRIEF-V7-UI-REPAIR-WC-20260613-01.md",
+          "sha256": "f2707174ca073d90f6ef41a9f5a5ff09b7b43b1a750f4a513fec5ee15ccc8df5",
+          "line": 132,
+          "anchor": "- **Engine init race (`v6_vocab_count=0` when session created during _guala load).** c1 flagged in deploy report; not new. Separate brief. Workaround: once Joe uses the experience bundle modal a few times, pools get seeded via vocabulary growth regardless of the race.",
+          "evidence_excerpt": "pools get seeded via vocabulary growth",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Transport/UI work cannot silently tune cognition or seed representations to mask an initialization fault.",
+      "historical_disposition": "June16 restoration quietly includes raising two cognition thresholds. June13 suggests bundle-induced vocabulary growth as an init-race workaround. Both contradict claims that the changes are UI-only/restoration without architectural change.",
+      "current_reconciliation": "Current Qrequirements prohibit threshold tuning or preloading to force green behavior; unused oldfixes must not be restored wholesale.",
+      "lawful_remedy": "Fix ownership/initialization/physical settlement from direct cause; treat unexplained thresholds and vocabulary seeding as rejected mechanisms until authority is established.",
+      "acceptance_falsifier": "Cold/mature repeated-use acceptance must pass without corrective prompts or bundled labels; changes in UI cannot alter native thresholds.",
+      "repair_actions": [
+        "A05",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "change_classification": "Unsupported cognitive intervention labeled as UI repair"
+    },
+    {
+      "id": "HU22",
+      "title": "Rich sensory wiring specified heuristic candidate selection",
+      "refs": [
+        {
+          "source_id": "HUI14-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI14-01--GL-CMD-RICH-SENSORY-WIRING-EVE-20260618-10.md",
+          "sha256": "21fd7b4b932d84f497fdf4fd875fe1f417229a7a1ec516ee9d6a6b46bd8f1213",
+          "line": 36,
+          "anchor": "2. **Filter input chis to content words.** Apply the same content-word filter that picture emission uses (see `GL-RPT-PICTURE-EMISSION-TRACE-EVE-20260618-08`). Function words still get heard (ingested) but they don't drive emission lookup. This single change breaks the function-word dominance.",
+          "evidence_excerpt": "Filter input chis to content words.",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI14-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI14-01--GL-CMD-RICH-SENSORY-WIRING-EVE-20260618-10.md",
+          "sha256": "21fd7b4b932d84f497fdf4fd875fe1f417229a7a1ec516ee9d6a6b46bd8f1213",
+          "line": 114,
+          "anchor": "w_chi = exp(-chi_distance / 2.0)       # closer = stronger",
+          "evidence_excerpt": "w_chi = exp(-chi_distance / 2.0)",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI14-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI14-01--GL-CMD-RICH-SENSORY-WIRING-EVE-20260618-10.md",
+          "sha256": "21fd7b4b932d84f497fdf4fd875fe1f417229a7a1ec516ee9d6a6b46bd8f1213",
+          "line": 133,
+          "anchor": "- For each candidate in the seed set, if its chi is within ±2 of the attending chi: multiply its activation by 1.3.",
+          "evidence_excerpt": "multiply its activation by 1.3.",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Recall/action must arise from retained physical relations under full field dynamics, not semantic lists and hand-tuned candidate scores.",
+      "historical_disposition": "June18 prescribes function-word exclusion, ±2/±1chi neighborhoods, exp distance,0.30clip,0.1floor,0.5affect coefficients,1.3/0.7attention multipliers. No law derivation appears in this complete document. It explicitly calls this substrate-true.",
+      "current_reconciliation": "This falsifies any blanket assertion that all pre64-column approaches were heuristic-free. It does not prove this exact flag was enabled in any particular live image.",
+      "lawful_remedy": "Retain the unmet crossmodal recall requirement but reject the lookup/scoring mechanism; reconstruct physical association/recall using existing64columns and genuine retained experience.",
+      "acceptance_falsifier": "Remove wordlabels, change spelling and routecollisions while holding physical history: no canned score/wordfilter may determine recall or speech.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "change_classification": "Unsupported historical mechanism; live reachability still requires tracing"
+    },
+    {
+      "id": "HU23",
+      "title": "Behavioral success criteria did not qualify architecture",
+      "refs": [
+        {
+          "source_id": "HUI14-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI14-01--GL-CMD-RICH-SENSORY-WIRING-EVE-20260618-10.md",
+          "sha256": "21fd7b4b932d84f497fdf4fd875fe1f417229a7a1ec516ee9d6a6b46bd8f1213",
+          "line": 160,
+          "anchor": "1. At least three of five inputs produce emissions where content-word activations dominate over function-word activations (no `are` flooding).",
+          "evidence_excerpt": "At least three of five inputs",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI14-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI14-01--GL-CMD-RICH-SENSORY-WIRING-EVE-20260618-10.md",
+          "sha256": "21fd7b4b932d84f497fdf4fd875fe1f417229a7a1ec516ee9d6a6b46bd8f1213",
+          "line": 165,
+          "anchor": "**Pass:** report all of the above, do NOT flip the production flag.",
+          "evidence_excerpt": "do NOT flip the production flag",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI05-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI05-01--GL-RPT-LOOM-SCAN-BUILD-C1-20260703-98-v1.md",
+          "sha256": "fda5d37cd833237b1971eb09904d24711119415d7d424824bef48e299ab545b8",
+          "line": 82,
+          "anchor": "T1 Renders from live data <2s after page load — NOT MEASURED (requires",
+          "evidence_excerpt": "NOT MEASURED",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Passing outputs or build checks cannot certify that a mechanism conforms to architecture, preserves history or is live.",
+      "historical_disposition": "Richsensory A/B/C tests target worddominance and candidatecounts, not exclusion of its own authored scores. Loomscan report honestly leaves keylivegates unmeasured. Different evidence must retain different levels.",
+      "current_reconciliation": "Current18actionplan and24qualificationrequirements require source/artifact/cause closure. Neither mapping counts nor documentation validators are organism tests.",
+      "lawful_remedy": "Require falsifiers for each prohibited predecessor plus unit/module/system/maturecoldcontinuation on the exactartifact; preserve open or failed results.",
+      "acceptance_falsifier": "A scripted teacher phrase or canned count cannot pass; a build-only report cannot be promoted to live verification.",
+      "repair_actions": [
+        "A02",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "change_classification": "Historical tests insufficient for the claimed architecture"
+    },
+    {
+      "id": "HU24",
+      "title": "Reduced hearing identities stay reduced",
+      "refs": [
+        {
+          "source_id": "HUI11-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI11-01--GUALA_LIVE_HEARING_OBSERVATION_AUTHORITY_2026-07-28.md",
+          "sha256": "436f0e20bd687c24e111ea4bab4ee65d3f4907e700716da1a60b3b20886812b6",
+          "line": 29,
+          "anchor": "The decisive identity-loss boundary is `_peak_atoms_from_experience` followed",
+          "evidence_excerpt": "_peak_atoms_from_experience",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI11-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI11-01--GUALA_LIVE_HEARING_OBSERVATION_AUTHORITY_2026-07-28.md",
+          "sha256": "436f0e20bd687c24e111ea4bab4ee65d3f4907e700716da1a60b3b20886812b6",
+          "line": 42,
+          "anchor": "cutover. Its recognition identity converts every exact DSF magnitude and",
+          "evidence_excerpt": "converts every exact DSF magnitude and",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI11-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI11-01--GUALA_LIVE_HEARING_OBSERVATION_AUTHORITY_2026-07-28.md",
+          "sha256": "436f0e20bd687c24e111ea4bab4ee65d3f4907e700716da1a60b3b20886812b6",
+          "line": 66,
+          "anchor": "it as derived presemantic perturbations. The serialized",
+          "evidence_excerpt": "serialized\n`AuditoryLiveMotifResult` alone",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Full hearing evidence includes joint magnitudes, trajectories, channel/source timing and causal settlement; retained rawwitnesses do not repair a reduced decision identity.",
+      "historical_disposition": "July28 explicitly documents four-order-relation peak quotient and ternarysign recognition, rejects the latter cutover, and requires full upstream hearing at wholeorganism formation.",
+      "current_reconciliation": "Current native64 and cochlear candidates must be checked against this law; no acceptance from motif counts, hashes, signpaths or a separate unusedfullfieldcopy.",
+      "lawful_remedy": "Pass authoritative fullfield settlement into retained relations and cognition; clearlylabel derived presemantic perturbations as nonauthority.",
+      "acceptance_falsifier": "Same-sign/different-magnitude and same-peak-order/different-joint-trajectory controls must remain distinct wherever fullfield identity is required.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A09",
+        "A16"
+      ],
+      "change_classification": "Valid later correction to earlier representational shortcuts"
+    },
+    {
+      "id": "HU25",
+      "title": "Whole resource bounds are separate from local caps",
+      "refs": [
+        {
+          "source_id": "HUI12-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI12-01--LOOM_LIVE_PRODUCTION_TRUTH_AUDIT_2026-07-27.md",
+          "sha256": "aef5ae12fe6373913393d360fe7e8211f0ac5dbde74f565481efe90ca164fcd8",
+          "line": 111,
+          "anchor": "- global persistent-storage ceiling",
+          "evidence_excerpt": "global persistent-storage ceiling",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI13-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI13-01--GL_SPC_MULTIMEDIA_WC_20260606_01_multimedia.md",
+          "sha256": "c5358c6ba54bd6bda9acb5d77a100e33921da2e807c964a7316e791930c4baf2",
+          "line": 69,
+          "anchor": "720×1280 grayscale 30fps clip at 30s = 30×30×720×1280 = ~830M floats = 3.3GB.",
+          "evidence_excerpt": "3.3GB",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "CPU/RAM/storage/call growth must be bounded over the actual subject, not inferred from one tensor/media buffer or elapsedtick counter.",
+      "historical_disposition": "June multimedia calculates excessive fullclip memory and recommends streamdecoding. July liveaudit separates tasklimits/measuredutilization from localcomponentbounds and elasticEFS.",
+      "current_reconciliation": "Current encoded/stagednativebound and ECS8GiB are documented separately. The disputed10^9worklimit still requires units, derivation and measured physical/compute roles.",
+      "lawful_remedy": "Account for all liveowners, queues, serialization, media and history; preserve sourceprovenance for admissions without numerical tuning to force passage.",
+      "acceptance_falsifier": "Mature/repeated-use workloads remain bounded; omitting externalprocess/RSS/EFSgrowth fails whole-system claim.",
+      "repair_actions": [
+        "A02",
+        "A14",
+        "A16"
+      ],
+      "change_classification": "Preserve bounded-stream engineering; reject cap-as-whole-proof"
+    },
+    {
+      "id": "HU26",
+      "title": "Published page and backend must share an authenticated contract",
+      "refs": [
+        {
+          "source_id": "HUI12-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI12-01--LOOM_LIVE_PRODUCTION_TRUTH_AUDIT_2026-07-27.md",
+          "sha256": "aef5ae12fe6373913393d360fe7e8211f0ac5dbde74f565481efe90ca164fcd8",
+          "line": 62,
+          "anchor": "The static page and backend therefore belong to different observation",
+          "evidence_excerpt": "different observation\ncontracts.",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI03-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI03-01--GL-CMD-LOOM-SCAN-BRIEF-EVE-20260702-v1.md",
+          "sha256": "46cd888bcdb6e837fd0c7cfa30ab311e6544b2ed1079ec614fa3a80c8b5142d8",
+          "line": 80,
+          "anchor": "4. The UI ships inside the substrate image → deploying it RESTARTS",
+          "evidence_excerpt": "deploying it RESTARTS",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI06-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI06-01--GL-CMD-SEAT-TRUTH-UI-EVE-20260704-180-v1.md",
+          "sha256": "744619a0b94dee6ab08d8b9e76a03abc2255da944a7eb139ffc175d197314e62",
+          "line": 24,
+          "anchor": "SHA to c1b; rides the next window or ships as static-asset sync if",
+          "evidence_excerpt": "static-asset sync",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Exact backend, UI, externalprogram and configuration versions must be identified independently and jointly qualified.",
+      "historical_disposition": "Historical docs show both image-coupledUI and laterstatic-sync paths. July27 found publicS3page differing from stagedbackend despite local17tests passing.",
+      "current_reconciliation": "October10 again shows separately published oldLoomScan and fake mainpagecounts; workingHTML hashes differ from bothpublicartifacts.",
+      "lawful_remedy": "Bind bothstaticobjects and API/nativeimage hashes inrelease/rehearsal; do not infer publication from sourceedit or backenddeployment.",
+      "acceptance_falsifier": "Mismatch, staleCDN, wrongAPIbase or missingfields fail browseracceptance on exactpublishedobjects.",
+      "repair_actions": [
+        "A02",
+        "A13",
+        "A17"
+      ],
+      "change_classification": "Recurring integration failure; publication is its own proof"
+    },
+    {
+      "id": "HU27",
+      "title": "Live acceptance belongs to the team, not a claim Joe should verify later",
+      "refs": [
+        {
+          "source_id": "HUI10-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI10-01--GL-BRIEF-SENSORY-IO-WC-20260614-01.md",
+          "sha256": "b2d3a0146df089e6771943b918f0411217eb3d3a433c4f8a831ec41fb00f50bc",
+          "line": 376,
+          "anchor": "- **Verify on the live page.** c1 loads `dsf-ai.com/gualaloom.html` himself, enables camera + mic, sends a message, observes: pictures render, voice plays, frames stream, stats populate. If c1 cannot verify these by direct observation, the deploy is NOT done.",
+          "evidence_excerpt": "If c1 cannot verify these by direct observation",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI05-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI05-01--GL-RPT-LOOM-SCAN-BUILD-C1-20260703-98-v1.md",
+          "sha256": "fda5d37cd833237b1971eb09904d24711119415d7d424824bef48e299ab545b8",
+          "line": 100,
+          "anchor": "T7 Joe opens it live and says so — PENDING (post-deploy).",
+          "evidence_excerpt": "T7 Joe opens it live",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI07-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI07-01--GL-RPT-SEAT-TRUTH-UI-C1-20260705-180-v1.md",
+          "sha256": "745484dea45dc32deec3f7e53d1fc62a67d45ec391ddb13fb5f9754cba1423aa",
+          "line": 93,
+          "anchor": "- **Not verified against the live site directly** — this is a static",
+          "evidence_excerpt": "Not verified against the live site directly",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Completion needs independent actualbrowser and systemevidence; user signoff, if required, is distinct from engineeringtests.",
+      "historical_disposition": "Some briefs putmanualsteps onJoe, others explicitlyrequire agentliveverification; Julyreports preserve pending/unverifiedboundaries. Neither fulfills the other automatically.",
+      "current_reconciliation": "A1 performed bounded readonlybrowseraudit proving false display, but deliberatelydidnotexecute mutation/control/media paths. These remain unqualified.",
+      "lawful_remedy": "G1 supplies exactcandidate and causalcontrolproof; A1 independently verifies boundrelease/browser without attributing testinterventions tosubstratefailure.",
+      "acceptance_falsifier": "Live page visibility alone cannot pass feeding/speech/learning; auditrequestcaps and disabledmutations remain explicitlylogged.",
+      "repair_actions": [
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "change_classification": "Evidence distinction retained; no retroactive signoff"
+    },
+    {
+      "id": "HU28",
+      "title": "No silent drops presented as successful experience",
+      "refs": [
+        {
+          "source_id": "HUI10-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI10-01--GL-BRIEF-SENSORY-IO-WC-20260614-01.md",
+          "sha256": "b2d3a0146df089e6771943b918f0411217eb3d3a433c4f8a831ec41fb00f50bc",
+          "line": 156,
+          "anchor": "    } catch (e) { /* drop frame silently */ }",
+          "evidence_excerpt": "drop frame silently",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI10-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI10-01--GL-BRIEF-SENSORY-IO-WC-20260614-01.md",
+          "sha256": "b2d3a0146df089e6771943b918f0411217eb3d3a433c4f8a831ec41fb00f50bc",
+          "line": 62,
+          "anchor": "  voiceEl.play().catch(()=>{});",
+          "evidence_excerpt": "voiceEl.play().catch(()=>{});",
+          "anchor_kind": "exact_source_line"
+        },
+        {
+          "source_id": "HUI17-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI17-01--GL-BRIEF-V7-UI-REPAIR-WC-20260613-01.md",
+          "sha256": "f2707174ca073d90f6ef41a9f5a5ff09b7b43b1a750f4a513fec5ee15ccc8df5",
+          "line": 19,
+          "anchor": "8. **Dual-endpoint dispatch ignores v6 responses.** Line 209: `fetch('/api/v1/gualaloom', ...).catch(()=>{})` fires the v6 chat in parallel but discards everything it returns — including `pictures`, `motifs`, and any text response. The v6 engine is being driven but its outputs are dropped.",
+          "evidence_excerpt": ".catch(()=>{})",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "Failed capture, playback, decode or transport must remain visible and cannot be reported as heard/seen/spoken.",
+      "historical_disposition": "June proposed snippets intentionallysilenced errors; repairbriefs repeatedlydiagnosed these hides. A silenthandler is not itselfML but can fabricate apparentcontinuity.",
+      "current_reconciliation": "Public legacy scan still suppresses some failures; mainUIcontrolsuccess text must bebound to actualconsequence.",
+      "lawful_remedy": "Carry explicit failure/drop counters and receiptstates; restore only valid continuity and label gaps.",
+      "acceptance_falsifier": "Denied audio, offlineroute, corruptPCM and interruptedcapture must produce specific visibleerror/gap withno physiologicalsuccess claim.",
+      "repair_actions": [
+        "A06",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "change_classification": "Confirmed historical design flaw; current routes need individual closure"
+    },
+    {
+      "id": "HU29",
+      "title": "Functional emulation does not require reinstating historical infrastructure",
+      "refs": [
+        {
+          "source_id": "HUI13-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI13-01--GL_SPC_MULTIMEDIA_WC_20260606_01_multimedia.md",
+          "sha256": "c5358c6ba54bd6bda9acb5d77a100e33921da2e807c964a7316e791930c4baf2",
+          "line": 56,
+          "anchor": "No architectural change for video."
+        },
+        {
+          "source_id": "HUI14-01",
+          "path": "docs/guala_reconciliation/sources/ui-history/HUI14-01--GL-CMD-RICH-SENSORY-WIRING-EVE-20260618-10.md",
+          "sha256": "21fd7b4b932d84f497fdf4fd875fe1f417229a7a1ec516ee9d6a6b46bd8f1213",
+          "line": 22,
+          "anchor": "She is starved. Her cortical infrastructure (V1/V2/V4/LOC for vision, cochlear/A1 for audio, somatosensory, taste, smell) exists in `substrate/senses/`. Her cross-modal cognition primitives (`FoldedAtlas`, `cofire_bind`, `cascade`, `mgn_gate`, `top_down_expectation`, `coordinator`) exist in `substrate/GL_MDL_MULTIMODAL_DEEP_WC_20260608_03.py`. **None of it is imported by her live converse path.**",
+          "evidence_excerpt": "None of it is imported by her live converse path.",
+          "anchor_kind": "exact_source_line"
+        }
+      ],
+      "requirement": "The canonical design must realize the requested functions under existing64columnscope without treating every oldclass,atlas,endpoint orbrain-region label as mandatory.",
+      "historical_disposition": "The documents mix unmounted machinery with asserted automaticcapability. Their useful functions do not authenticate the proposedmechanisms orprove anythingworkedwithoutheuristics.",
+      "current_reconciliation": "Current53responsibilities and12boundaries remainfunctionalrequirements, notan orderto resurrect v5/v7/chi/pools orbuildatomisticbiology.",
+      "lawful_remedy": "Reconcile eachlostfunction and physicalcause, retain validlaws and provenusefulparts; implement directfunctionalmechanisms withsource/state/testproof.",
+      "acceptance_falsifier": "A renamedclass, largercatalog or count ofmodules cannot close a capability; directcausalexperience and consequence are required.",
+      "repair_actions": [
+        "A01",
+        "A05",
+        "A09",
+        "A18"
+      ],
+      "change_classification": "Preserve functions; reject equivalence by infrastructure volume"
+    }
+  ],
+  "status_authority": "collaborative_todo.md"
+}

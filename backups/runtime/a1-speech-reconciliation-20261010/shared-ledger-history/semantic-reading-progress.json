@@ -1,0 +1,40 @@
+{
+  "base_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+  "base_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+  "fully_read_contiguous_base_lines": [
+    1,
+    23949
+  ],
+  "total_base_lines": 38362,
+  "old_literal_passages_read": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23
+  ],
+  "semantic_read_complete": false,
+  "whole_reconciliation_complete": false,
+  "product_execution": false,
+  "old_literal_lines_read": 176,
+  "expanding_historical_review_stopped": "Joe October10 directed straightforward reconciliation and functional equivalence, not continuing microscopic re-audit. Remaining base and other history are unreviewed; no full-read credit."
+}

@@ -1,0 +1,33 @@
+Historical source excerpt, not a program to execute.
+Commit: 714cd6b9feff41a709f9132c672e4b59de9063ae
+Path: native/guala_core/src/organism_runtime.rs
+Full file SHA256: b140fd1e7116a55aa4991ed2d5cdadbdb80a465ae9d8d86d050967264d75b3cd
+Lines 6242–6268:
+
+fn encode_envelope(
+    identity: [u8; IDENTITY_BYTES],
+    organism_tick: u64,
+    fabric: &[u8],
+    budget: RuntimeBudget,
+) -> Result<Vec<u8>, RuntimeError> {
+    if fabric.len() > budget.max_fabric_bytes {
+        return Err(RuntimeError::FabricBudgetExceeded);
+    }
+    let length = FIXED_BYTES
+        .checked_add(fabric.len())
+        .ok_or(RuntimeError::FabricLengthOverflow)?;
+    if length > budget.max_envelope_bytes {
+        return Err(RuntimeError::EnvelopeBudgetExceeded);
+    }
+    let mut output = Vec::with_capacity(length);
+    output.extend_from_slice(MAGIC);
+    output.extend_from_slice(&VERSION.to_le_bytes());
+    output.extend_from_slice(&identity);
+    output.extend_from_slice(&organism_tick.to_le_bytes());
+    output.extend_from_slice(
+        &u32::try_from(fabric.len())
+            .map_err(|_| RuntimeError::FabricLengthOverflow)?
+            .to_le_bytes(),
+    );
+    output.extend_from_slice(fabric);
+    Ok(output)

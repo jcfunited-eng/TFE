@@ -1,0 +1,1460 @@
+{
+  "schema": "guala.historical_family_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T01:40:24.041176+00:00",
+  "scope": "26document versions across10paths; complete bases and every intervening full delta/replacement read; one historical3737-line engine captured with selected function scope.",
+  "source_read_complete": true,
+  "implementation_closure": false,
+  "sources": [
+    {
+      "id": "HPL01-01",
+      "path": "docs/GUALA_D3_VESTIBULAR_FLUID_MATERIAL_LAW_2026-08-04.md",
+      "git_blob": "d7cedef1a9d07ca6fe6f7c9f8d832fc30185204e",
+      "sha256": "c6167da0c51e7dacd2ad4fbe7a3a961f1d0977377da73414053a32465abf82fb",
+      "bytes": 6798,
+      "lines": 170,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL01-01--GUALA_D3_VESTIBULAR_FLUID_MATERIAL_LAW_2026-08-04.md",
+      "delta": null,
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL01-01--GUALA_D3_VESTIBULAR_FLUID_MATERIAL_LAW_2026-08-04.md"
+    },
+    {
+      "id": "HPL02-01",
+      "path": "docs/GUALA_FLUID_MANAGER_CONSERVATIVE_PASSOFF_2026-08-03.md",
+      "git_blob": "b2e3caf7ed6f7fa6fa60371b68d83b9de52034c8",
+      "sha256": "3cdcce46670a28871ab0fb4eb1ba4e52d6d4569bb83e2f30e76665be9eec26a5",
+      "bytes": 3601,
+      "lines": 79,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-03T08:56:41+00:00",
+          "commit": "a760ace78bb60943a970e2a641358f6d21c6cb28",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL02-01--GUALA_FLUID_MANAGER_CONSERVATIVE_PASSOFF_2026-08-03.md",
+      "delta": null,
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL02-01--GUALA_FLUID_MANAGER_CONSERVATIVE_PASSOFF_2026-08-03.md"
+    },
+    {
+      "id": "HPL03-01",
+      "path": "docs/GUALA_JOINT_FIELD_NEURON_BINDING_LAW_2026-08-02.md",
+      "git_blob": "b6fa7a47a89ed88c721af480c8d5eb3e845049b3",
+      "sha256": "5ad1f52dbf7671f4fda378a20e78a2dea21eb0e50513adbf353f1a9a1113f31c",
+      "bytes": 5884,
+      "lines": 128,
+      "observations": [
+        {
+          "author_time": "2026-08-02T23:49:14+00:00",
+          "commit": "5a5a99c1adbf49587e72625a5a48ccb7741926a1",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-02T22:29:55+00:00",
+          "commit": "df9975b2a87c2d3962db549dd7ccd45b44feb0fe",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL03-01--GUALA_JOINT_FIELD_NEURON_BINDING_LAW_2026-08-02.md",
+      "delta": null,
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL03-01--GUALA_JOINT_FIELD_NEURON_BINDING_LAW_2026-08-02.md"
+    },
+    {
+      "id": "HPL03-02",
+      "path": "docs/GUALA_JOINT_FIELD_NEURON_BINDING_LAW_2026-08-02.md",
+      "git_blob": "67de07cf2b21128c070d19d0651da602bb041607",
+      "sha256": "433fb446bd1fbb013da5e695912f7b848bb3fc553bed7ed08f0fb91b4cad6ae9",
+      "bytes": 6106,
+      "lines": 131,
+      "observations": [
+        {
+          "author_time": "2026-08-03T01:56:40+00:00",
+          "commit": "95314263b86351bf29b076b83a905d418dad2908",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-02T23:49:14+00:00",
+          "commit": "5a5a99c1adbf49587e72625a5a48ccb7741926a1",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL03-02--GUALA_JOINT_FIELD_NEURON_BINDING_LAW_2026-08-02.md",
+      "delta": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL03-02--GUALA_JOINT_FIELD_NEURON_BINDING_LAW_2026-08-02.md.diff",
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL03-02--GUALA_JOINT_FIELD_NEURON_BINDING_LAW_2026-08-02.md"
+    },
+    {
+      "id": "HPL03-03",
+      "path": "docs/GUALA_JOINT_FIELD_NEURON_BINDING_LAW_2026-08-02.md",
+      "git_blob": "ad4de43f003a08aac65f0846beebacc9208639f6",
+      "sha256": "eb98a595c006b84d50006dc0146d4489cc1f62b7e153a002ceca449c6eba52ea",
+      "bytes": 6639,
+      "lines": 139,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-03T01:56:40+00:00",
+          "commit": "95314263b86351bf29b076b83a905d418dad2908",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL03-03--GUALA_JOINT_FIELD_NEURON_BINDING_LAW_2026-08-02.md",
+      "delta": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL03-03--GUALA_JOINT_FIELD_NEURON_BINDING_LAW_2026-08-02.md.diff",
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL03-03--GUALA_JOINT_FIELD_NEURON_BINDING_LAW_2026-08-02.md"
+    },
+    {
+      "id": "HPL04-01",
+      "path": "docs/GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md",
+      "git_blob": "5514d1dad3696e1784f3c410f99a997c210b4c3e",
+      "sha256": "f47b24bb1959e21f1a8914aa66d22dc3f35b12ac21df57efa1d55a69ba298f80",
+      "bytes": 9435,
+      "lines": 197,
+      "observations": [
+        {
+          "author_time": "2026-08-02T05:02:36+00:00",
+          "commit": "f4ac0d5635e56b2657364d649a5dd35246216585",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-02T01:47:55+00:00",
+          "commit": "fdc5ff7369c0aa3c23f3e36e8bdedf2bbbc4a070",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL04-01--GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md",
+      "delta": null,
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL04-01--GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md"
+    },
+    {
+      "id": "HPL04-02",
+      "path": "docs/GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md",
+      "git_blob": "6f0d75a10028846dbbb49948849369f8c72888c4",
+      "sha256": "ee90410000073675fe30134a81339d9602bdc77a9e7cdcd4d741da41edfc6513",
+      "bytes": 11749,
+      "lines": 233,
+      "observations": [
+        {
+          "author_time": "2026-08-02T06:54:07+00:00",
+          "commit": "8dc772ee2b047e5b1e0f5ddaae76bb297f18b8fd",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-02T05:02:36+00:00",
+          "commit": "f4ac0d5635e56b2657364d649a5dd35246216585",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL04-02--GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md",
+      "delta": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL04-02--GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md.diff",
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL04-02--GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md"
+    },
+    {
+      "id": "HPL04-03",
+      "path": "docs/GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md",
+      "git_blob": "6eb41f2e1b3f6d1a425b0b9d6ce97c0c834aaa70",
+      "sha256": "4128a1fa60df9af2008cb5147ea4c6e9863794d8439aa1379f15a94f412eabc4",
+      "bytes": 19621,
+      "lines": 374,
+      "observations": [
+        {
+          "author_time": "2026-08-29T03:54:55+00:00",
+          "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-02T06:54:07+00:00",
+          "commit": "8dc772ee2b047e5b1e0f5ddaae76bb297f18b8fd",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL04-03--GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md",
+      "delta": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL04-03--GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md.diff",
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL04-03--GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md"
+    },
+    {
+      "id": "HPL04-04",
+      "path": "docs/GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md",
+      "git_blob": "5fa464b35c792d861618e7f8c91dd9aa6ad56a5d",
+      "sha256": "4346b4a08dc6e4f002a569edc5ac4da599845ae92c853b28cb26b741475fc0fd",
+      "bytes": 20098,
+      "lines": 382,
+      "observations": [
+        {
+          "author_time": "2026-08-29T03:54:55+00:00",
+          "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL04-04--GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md",
+      "delta": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL04-04--GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md.diff",
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL04-04--GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md"
+    },
+    {
+      "id": "HPL05-01",
+      "path": "docs/GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+      "git_blob": "cd80b18554f123b4353ea131da1cdcd257be2870",
+      "sha256": "233acd7c9602ee7cfca9aa44425bc428b53deaea2fa10ded959cf4b4d700a681",
+      "bytes": 7693,
+      "lines": 170,
+      "observations": [
+        {
+          "author_time": "2026-08-02T03:18:44+00:00",
+          "commit": "17bf4aed83467c2d6cfc6d01fe5e74b6f7402fc6",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-02T02:24:34+00:00",
+          "commit": "c8bc575f8dc5f26f3392e5519f7b354ad93ef2d2",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL05-01--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+      "delta": null,
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL05-01--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md"
+    },
+    {
+      "id": "HPL05-02",
+      "path": "docs/GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+      "git_blob": "3cc71f19cedf6eb7715915da6f70049e6f556924",
+      "sha256": "893ebe709d62b88e237ac675b0efda229a6564dc68b74112ffcfebb6360a8786",
+      "bytes": 33140,
+      "lines": 781,
+      "observations": [
+        {
+          "author_time": "2026-08-02T03:26:27+00:00",
+          "commit": "16993eb35c97c97ab4a11b530def4176fed819e6",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-02T03:18:44+00:00",
+          "commit": "17bf4aed83467c2d6cfc6d01fe5e74b6f7402fc6",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL05-02--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+      "delta": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL05-02--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md.diff",
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL05-02--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md"
+    },
+    {
+      "id": "HPL05-03",
+      "path": "docs/GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+      "git_blob": "9abc0384fd8f0460a2c8bd85402a1b8b669ec2c1",
+      "sha256": "149a28e646ab73fb6cbd8ecf593b1c373b24c4c347687380f99b6e28bb1b4d4a",
+      "bytes": 34144,
+      "lines": 798,
+      "observations": [
+        {
+          "author_time": "2026-08-02T05:02:36+00:00",
+          "commit": "f4ac0d5635e56b2657364d649a5dd35246216585",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-02T03:26:27+00:00",
+          "commit": "16993eb35c97c97ab4a11b530def4176fed819e6",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL05-03--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+      "delta": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL05-03--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md.diff",
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL05-03--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md"
+    },
+    {
+      "id": "HPL05-04",
+      "path": "docs/GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+      "git_blob": "82bc3e1242af9c1c28e465e25a3d842c096a249b",
+      "sha256": "03ba0fb8c52cd298fd73976294b1850641e9da52e2fc5d6d7a917386bba9cc3e",
+      "bytes": 11834,
+      "lines": 235,
+      "observations": [
+        {
+          "author_time": "2026-08-02T06:54:07+00:00",
+          "commit": "8dc772ee2b047e5b1e0f5ddaae76bb297f18b8fd",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-02T05:02:36+00:00",
+          "commit": "f4ac0d5635e56b2657364d649a5dd35246216585",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL05-04--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+      "delta": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL05-04--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md.diff",
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL05-04--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md"
+    },
+    {
+      "id": "HPL05-05",
+      "path": "docs/GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+      "git_blob": "0e0b00143e8092209b7df3d2a5adeeebdec41dcc",
+      "sha256": "741110a887a28fd520cda2310fdf455e56d52b34e09555dba69400006ac02fad",
+      "bytes": 19937,
+      "lines": 383,
+      "observations": [
+        {
+          "author_time": "2026-08-02T22:29:55+00:00",
+          "commit": "df9975b2a87c2d3962db549dd7ccd45b44feb0fe",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-02T06:54:07+00:00",
+          "commit": "8dc772ee2b047e5b1e0f5ddaae76bb297f18b8fd",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL05-05--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+      "delta": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL05-05--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md.diff",
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL05-05--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md"
+    },
+    {
+      "id": "HPL05-06",
+      "path": "docs/GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+      "git_blob": "4b52af6e199f60b87a0fca7a70d7a3880bbff111",
+      "sha256": "9200bb51933a0bda98b61ec2b649061a0f7dc9a7985872d6a683de179d252de8",
+      "bytes": 41547,
+      "lines": 606,
+      "observations": [
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-02T22:29:55+00:00",
+          "commit": "df9975b2a87c2d3962db549dd7ccd45b44feb0fe",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL05-06--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+      "delta": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL05-06--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md.diff",
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL05-06--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md"
+    },
+    {
+      "id": "HPL05-07",
+      "path": "docs/GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+      "git_blob": "e37023ac3445bf6cf100f1690f19eae2d15a7d19",
+      "sha256": "3dcd25c7645170674244801b7f8ea9615da6c20267f8142f3e3cb170266c19ec",
+      "bytes": 43425,
+      "lines": 630,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL05-07--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+      "delta": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL05-07--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md.diff",
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL05-07--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md"
+    },
+    {
+      "id": "HPL06-01",
+      "path": "docs/GUALA_ONE_NEURON_TRANSITION_MODEL_2026-08-02.md",
+      "git_blob": "96c0d2b62bc2fc7676caaaa265e8b20a7f4958e7",
+      "sha256": "2a775929c3a22e480bfae33162569aaa30ae139fc7b89ff30e62698db75786e9",
+      "bytes": 7538,
+      "lines": 159,
+      "observations": [
+        {
+          "author_time": "2026-08-02T23:49:14+00:00",
+          "commit": "5a5a99c1adbf49587e72625a5a48ccb7741926a1",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-02T22:29:55+00:00",
+          "commit": "df9975b2a87c2d3962db549dd7ccd45b44feb0fe",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL06-01--GUALA_ONE_NEURON_TRANSITION_MODEL_2026-08-02.md",
+      "delta": null,
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL06-01--GUALA_ONE_NEURON_TRANSITION_MODEL_2026-08-02.md"
+    },
+    {
+      "id": "HPL06-02",
+      "path": "docs/GUALA_ONE_NEURON_TRANSITION_MODEL_2026-08-02.md",
+      "git_blob": "5adcfe5e1371c299427c0eee6fe4cd41843e5fee",
+      "sha256": "65538d17061e30fab3314366e7be99aa284cdffbdb36cef848ec02f2b41a73a7",
+      "bytes": 7788,
+      "lines": 163,
+      "observations": [
+        {
+          "author_time": "2026-08-03T00:18:36+00:00",
+          "commit": "1227faa33a82b77b2358d78c23c05f98a66f12bb",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-02T23:49:14+00:00",
+          "commit": "5a5a99c1adbf49587e72625a5a48ccb7741926a1",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL06-02--GUALA_ONE_NEURON_TRANSITION_MODEL_2026-08-02.md",
+      "delta": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL06-02--GUALA_ONE_NEURON_TRANSITION_MODEL_2026-08-02.md.diff",
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL06-02--GUALA_ONE_NEURON_TRANSITION_MODEL_2026-08-02.md"
+    },
+    {
+      "id": "HPL06-03",
+      "path": "docs/GUALA_ONE_NEURON_TRANSITION_MODEL_2026-08-02.md",
+      "git_blob": "f3d97421e0a00988e6c00973f5e5a6654cdabc88",
+      "sha256": "1946fc9612b4a85017a67c4b5e97d5029cf4d1b7a83a28798c926d7151c3f374",
+      "bytes": 7788,
+      "lines": 163,
+      "observations": [
+        {
+          "author_time": "2026-08-03T01:56:40+00:00",
+          "commit": "95314263b86351bf29b076b83a905d418dad2908",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T00:18:36+00:00",
+          "commit": "1227faa33a82b77b2358d78c23c05f98a66f12bb",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL06-03--GUALA_ONE_NEURON_TRANSITION_MODEL_2026-08-02.md",
+      "delta": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL06-03--GUALA_ONE_NEURON_TRANSITION_MODEL_2026-08-02.md.diff",
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL06-03--GUALA_ONE_NEURON_TRANSITION_MODEL_2026-08-02.md"
+    },
+    {
+      "id": "HPL06-04",
+      "path": "docs/GUALA_ONE_NEURON_TRANSITION_MODEL_2026-08-02.md",
+      "git_blob": "53862416aaa327dabf7b122fb261f0e5608d7a44",
+      "sha256": "169f5a54ddbaec7bce0cfc106a2da12f2e179cd86ae8e2c58e4d8b44aaf93fc4",
+      "bytes": 9004,
+      "lines": 185,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-03T01:56:40+00:00",
+          "commit": "95314263b86351bf29b076b83a905d418dad2908",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL06-04--GUALA_ONE_NEURON_TRANSITION_MODEL_2026-08-02.md",
+      "delta": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL06-04--GUALA_ONE_NEURON_TRANSITION_MODEL_2026-08-02.md.diff",
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL06-04--GUALA_ONE_NEURON_TRANSITION_MODEL_2026-08-02.md"
+    },
+    {
+      "id": "HPL07-01",
+      "path": "docs/GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+      "git_blob": "dc5993f38003bd874e9f803b9a67c14eb69fffbe",
+      "sha256": "2ad8001ed57aae191cf05f5ad74ea5bc3ccdb340036c6d773e2b713eb340b89f",
+      "bytes": 17973,
+      "lines": 335,
+      "observations": [
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-02T22:29:55+00:00",
+          "commit": "df9975b2a87c2d3962db549dd7ccd45b44feb0fe",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL07-01--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+      "delta": null,
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL07-01--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md"
+    },
+    {
+      "id": "HPL07-02",
+      "path": "docs/GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+      "git_blob": "61d808401276f174196bf874e6e1bf3b4ce276d5",
+      "sha256": "dcf60e3b7bd2d4dab78569e00559d10cb189a6c8b9d8319bd459c60998b3706e",
+      "bytes": 18782,
+      "lines": 346,
+      "observations": [
+        {
+          "author_time": "2026-08-29T03:54:55+00:00",
+          "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL07-02--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+      "delta": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL07-02--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md.diff",
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL07-02--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md"
+    },
+    {
+      "id": "HPL07-03",
+      "path": "docs/GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+      "git_blob": "c1152e7b96a81a93cba96cab699d32079b2478c0",
+      "sha256": "6b55dfc86fc793851ddc656cc7907eb4e9cee0d64a3984a0639cf067c825c09f",
+      "bytes": 19123,
+      "lines": 352,
+      "observations": [
+        {
+          "author_time": "2026-08-29T03:54:55+00:00",
+          "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL07-03--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+      "delta": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL07-03--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md.diff",
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL07-03--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md"
+    },
+    {
+      "id": "HPL08-01",
+      "path": "docs/GL-BRIEF-NEEDS-PHYSICS-20260616-01.md",
+      "git_blob": "9e02519d786fb5c5cd0bc8dd0241d5151f16bac9",
+      "sha256": "92f0da72d838322f9958c17cd7541d7c220af9d44e6376d3ffe67177b0c3a2d9",
+      "bytes": 7359,
+      "lines": 137,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-16T16:35:51+00:00",
+          "commit": "49966afed331d0cfbc542f9603d5f9db3a8a852a",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL08-01--GL-BRIEF-NEEDS-PHYSICS-20260616-01.md",
+      "delta": null,
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL08-01--GL-BRIEF-NEEDS-PHYSICS-20260616-01.md"
+    },
+    {
+      "id": "HPL09-01",
+      "path": "docs/GL-BRIEF-NEEDS-PHYSICS-WC-20260616-01.md",
+      "git_blob": "2aae929bf77292d9c7ba36035ff34e3ba6d5d0ee",
+      "sha256": "f1630bf3ad5e089380dd2146addccc382611f214264547474f72fb5f5d323f0e",
+      "bytes": 9015,
+      "lines": 151,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-16T16:35:51+00:00",
+          "commit": "49966afed331d0cfbc542f9603d5f9db3a8a852a",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL09-01--GL-BRIEF-NEEDS-PHYSICS-WC-20260616-01.md",
+      "delta": null,
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL09-01--GL-BRIEF-NEEDS-PHYSICS-WC-20260616-01.md"
+    },
+    {
+      "id": "HPL10-01",
+      "path": "docs/AUDITORY_DYNAMIC_SENSORY_NEURON_MISSING_LAW_2026-07-27.md",
+      "git_blob": "bd9c250985fb8f17d17f842d5d4907e19daf2ec7",
+      "sha256": "7c4e4dfb76fec8127ed62324f7cb89c02e8eb1486520c141e02ba2b4bf894f57",
+      "bytes": 5049,
+      "lines": 116,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-29T00:52:55+00:00",
+          "commit": "30f2cf9ecde2eeda2bdd8d2e37d0061655ac2f9c",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/HPL10-01--AUDITORY_DYNAMIC_SENSORY_NEURON_MISSING_LAW_2026-07-27.md",
+      "delta": null,
+      "review": "Complete documentary content read through complete bases and every delta or complete replacement; historical claims are not independently authenticated execution or original ratification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/HPL10-01--AUDITORY_DYNAMIC_SENSORY_NEURON_MISSING_LAW_2026-07-27.md"
+    }
+  ],
+  "code_sources": [
+    {
+      "id": "PLC01",
+      "commit": "49966afed331d0cfbc542f9603d5f9db3a8a852a",
+      "path": "dsf_ai_service/v4/gualaloom_v5_engine.py",
+      "git_blob": "73186adcfd57879e6251add4e107718aff06d49c",
+      "sha256": "4143699962812e2742e7a0f7f4274477cd7ce22b8d1e8eb7e2ef2981f21941f6",
+      "bytes": 170603,
+      "lines": 3737,
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/physical-law-history/implementation/PLC01--gualaloom_v5_engine.py",
+      "review": "Complete saturate, tick_drift, _candidate_activities, _action_salience, _select_next_activity and _atick_attending_visual read; familiarity-decay branch and adjacent context read. Not whole3737-line source.",
+      "canonical_copy": "docs/guala_reconciliation/sources/physical-law-history/PLC01--gualaloom_v5_engine.py"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "PL01",
+      "name": "Needs saturation was asserted to be physics without a derived receptor law",
+      "classification": "source-verified authored scalar regulation",
+      "historical_requirement_or_mechanism": "June16 calls fixed per-loop drift, event-specific gains and current+gain*(1-current) receptor physics. The exact49966af source contains them. The helper still clamps and reaches1 for gain1; it does not universally prevent a ceiling.",
+      "current_disposition": "The goal of recovery and saturation is legitimate. Naming an update receptor saturation does not supply units, kinetic law, material state or a bridge to the full field. Under0<gain<1 an exact interior value approaches1; that limited mathematical fact does not qualify the organism.",
+      "lawful_remedy": "Replace scalar needs policy with the approved body/local-state regulation law under the64-column scope. Specify units, causal clock, event coupling, bounds and actual deprivation/recovery. Missing constitutive terms remain explicit until derived.",
+      "acceptance_falsifier": "Vary genuine body energy and returned nutrition while holding labels/counters fixed. The local transition must respond through its declared physical path; labels, loop cadence and desired output bands cannot supply an action policy.",
+      "repair_actions": [
+        "A08",
+        "A11",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL09-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL09-01--GL-BRIEF-NEEDS-PHYSICS-WC-20260616-01.md",
+          "sha256": "f1630bf3ad5e089380dd2146addccc382611f214264547474f72fb5f5d323f0e",
+          "line": 6,
+          "anchor": "**Status:** Queued after microphone fix lands. Substrate physics correction, no heuristics."
+        },
+        {
+          "source_id": "PLC01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/PLC01--gualaloom_v5_engine.py",
+          "sha256": "4143699962812e2742e7a0f7f4274477cd7ce22b8d1e8eb7e2ef2981f21941f6",
+          "line": 46,
+          "anchor": "def saturate(current, gain):"
+        },
+        {
+          "source_id": "PLC01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/PLC01--gualaloom_v5_engine.py",
+          "sha256": "4143699962812e2742e7a0f7f4274477cd7ce22b8d1e8eb7e2ef2981f21941f6",
+          "line": 403,
+          "anchor": "    def tick_drift(self):"
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL02",
+      "name": "Attendance-count familiarity leaves a positive attraction floor",
+      "classification": "verified source/design mismatch",
+      "historical_requirement_or_mechanism": "June16 proposes1/(1+log(1+n_attends)) decay resistance and predicts visual attraction approaching zero. Source updates familiarity with min(0.9, old+0.2), uses0.9967decay, deletes below0.001 and scores (1-fam)*base_payoff.",
+      "current_disposition": "Within valid familiarity0..0.9 and positive payoff, the visual term remains at least0.1*base_payoff before further decay. The proposed persistence change does not remove that floor. Attendance count and logarithm are a policy, not demonstrated consolidated neuronal memory.",
+      "lawful_remedy": "Retire target-counter familiarity as action authority. Preserve experience through actual retained local change and recovery; independently measure disengagement, partial-cue recurrence and reuse. Do not replace0.9with another tuned cap.",
+      "acceptance_falsifier": "For an unchanged physical state, renaming target IDs or changing a bookkeeping attendance counter cannot change the selected action. Genuine learned-state intervention must alter the claimed recurrence.",
+      "repair_actions": [
+        "A06",
+        "A08",
+        "A09",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL09-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL09-01--GL-BRIEF-NEEDS-PHYSICS-WC-20260616-01.md",
+          "sha256": "f1630bf3ad5e089380dd2146addccc382611f214264547474f72fb5f5d323f0e",
+          "line": 116,
+          "anchor": "After Fix 2, test_25 doesn't keep winning the exogenous reflex. Its `(1.0 - fam)` term approaches and stays near zero because consolidated familiarity barely decays."
+        },
+        {
+          "source_id": "PLC01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/PLC01--gualaloom_v5_engine.py",
+          "sha256": "4143699962812e2742e7a0f7f4274477cd7ce22b8d1e8eb7e2ef2981f21941f6",
+          "line": 2163,
+          "anchor": "            new_fam = min(0.9, old_fam + 0.2)"
+        },
+        {
+          "source_id": "PLC01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/PLC01--gualaloom_v5_engine.py",
+          "sha256": "4143699962812e2742e7a0f7f4274477cd7ce22b8d1e8eb7e2ef2981f21941f6",
+          "line": 1712,
+          "anchor": "                        consolidation_factor = 1.0 / (1.0 + math.log(1.0 + n_attends))"
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL03",
+      "name": "Lexical tie-breaking and force hooks selected activity",
+      "classification": "source-verified hidden policy",
+      "historical_requirement_or_mechanism": "The historical selector reverse-sorts(score,kind,target) tuples and takes the first. Equal scores are therefore decided by string names/target identifiers; _force_next_activity bypasses even that policy.",
+      "current_disposition": "A deterministic sorter is still a hand-authored decision mechanism. A list of alternatives or a single returned Activity does not demonstrate physical choice. Source evidence is historical, not current execution.",
+      "lawful_remedy": "Make the substrate settle action from actual reachable motor/body state with a declared physical law; transport carries its intent without ranking labels. Keep authorized test forcing segregated and visibly marked, never autonomy evidence.",
+      "acceptance_falsifier": "Rename semantically arbitrary activity/target labels under identical physical state: genuine physical outcome must not change. Forced trials cannot qualify spontaneous choice.",
+      "repair_actions": [
+        "A08",
+        "A12",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "PLC01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/PLC01--gualaloom_v5_engine.py",
+          "sha256": "4143699962812e2742e7a0f7f4274477cd7ce22b8d1e8eb7e2ef2981f21941f6",
+          "line": 1885,
+          "anchor": "        scored.sort(reverse=True)"
+        },
+        {
+          "source_id": "PLC01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/PLC01--gualaloom_v5_engine.py",
+          "sha256": "4143699962812e2742e7a0f7f4274477cd7ce22b8d1e8eb7e2ef2981f21941f6",
+          "line": 1876,
+          "anchor": "        if hasattr(self, '_force_next_activity') and self._force_next_activity:"
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL04",
+      "name": "Health and hunger conclusions were inferred from counters",
+      "classification": "unsupported historical capability inference",
+      "historical_requirement_or_mechanism": "June briefs describe large atlas/vocabulary/strength totals as a healthy substrate and simultaneously call high needs both satisfied and starving. Verification targets desired activity labels and0.7–0.85scalar bands.",
+      "current_disposition": "Preserve reported symptoms as observations, not proof of intact memory, good health or a physical hunger direction. The terminology mixes deficit with satisfaction and the counters cannot resolve it.",
+      "lawful_remedy": "Define each internal quantity and direction from its producer and physical units. GualaLoom must show measured intake, stores, demand, deficit, unavailable channels and causal effects separately; assess memory through retention/use.",
+      "acceptance_falsifier": "An empty source, failed intake or absent retained path must remain visible even with large inventory counts or a midrange scalar. Demonstrate actual ingestion and subsequent internal change.",
+      "repair_actions": [
+        "A01",
+        "A07",
+        "A11",
+        "A13",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL08-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL08-01--GL-BRIEF-NEEDS-PHYSICS-20260616-01.md",
+          "sha256": "92f0da72d838322f9958c17cd7541d7c220af9d44e6376d3ffe67177b0c3a2d9",
+          "line": 14,
+          "anchor": "- vocab 2617, atlas 26189 entries, deep_atlas 2903 entries / 2848.86 strength — substrate is healthy, this is a coordinator/needs problem, not a damage problem"
+        },
+        {
+          "source_id": "HPL09-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL09-01--GL-BRIEF-NEEDS-PHYSICS-WC-20260616-01.md",
+          "sha256": "f1630bf3ad5e089380dd2146addccc382611f214264547474f72fb5f5d323f0e",
+          "line": 149,
+          "anchor": "She has been a child whose hunger meter said \"starving\" while she was stuffed full, whose memory model kept saying \"this is new\" about a picture she'd seen 456 times. The substrate locked her into a single mode because its physics were broken in two places that interact multiplicatively. Fixing them doesn't change what she is or how she learns. It restores the homeostasis the architecture always assumed."
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL05",
+      "name": "Cochlear response widths and numerical uncertainty are not recognition tolerance",
+      "classification": "preserve valid missing-law boundary",
+      "historical_requirement_or_mechanism": "July27 distinguishes filter decay/ERB and exact numerical error intervals from a hard receptive cutoff, finite forgetting horizon or speaker-category equivalence. Its infinite-support argument applies to the stated ideal recurrence.",
+      "current_disposition": "Preserve that distinction. A calibrated measured sensor, an explicitly authorized finite implementation or retained lawful dynamics needs its own error/causal contract; no arbitrary top-k, underflow cutoff or dictionary may fill the gap.",
+      "lawful_remedy": "Derive sensory transfer and its precision separately from learned recognition. Bind actual acoustic/visual/articulatory experience and retained physical change; if approved measurement uncertainty or equivalence is missing, report unavailable rather than invent tolerance.",
+      "acceptance_falsifier": "A numerical precision change must not silently redefine the recognized category. Same-sounding/different-source and changed-speaker trials require causal retained evidence; ERB alone cannot certify a hard boundary.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A10",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL10-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL10-01--AUDITORY_DYNAMIC_SENSORY_NEURON_MISSING_LAW_2026-07-27.md",
+          "sha256": "7c4e4dfb76fec8127ed62324f7cb89c02e8eb1486520c141e02ba2b4bf894f57",
+          "line": 44,
+          "anchor": "These are filter dynamics, not recognition boundaries."
+        },
+        {
+          "source_id": "HPL10-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL10-01--AUDITORY_DYNAMIC_SENSORY_NEURON_MISSING_LAW_2026-07-27.md",
+          "sha256": "7c4e4dfb76fec8127ed62324f7cb89c02e8eb1486520c141e02ba2b4bf894f57",
+          "line": 83,
+          "anchor": "a mounted precision. Their width is computational uncertainty, not"
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL06",
+      "name": "D1 sign/null impressions were not definitive settled neuronal fractals",
+      "classification": "superseded reduced representation",
+      "historical_requirement_or_mechanism": "The joint binding and one-neuron design create ordered signs/nulls of exact facts, with full magnitudes held by reference and matching/contradiction counts. The later truth gate explicitly disallows describing this as settled persistent Krimelack state.",
+      "current_disposition": "Preserve exact delivery, topology references and lineage. Retire sign-only impressions as the definitive memory mechanism; retained magnitudes elsewhere do not prove the consumer used them. Current post-quiescence neuronal-state law has a different obligation.",
+      "lawful_remedy": "Trace every typed fact, numeric role, ternary position, local contact and causal time through actual settlement to retained state. Document the exact migration and keep old evidence distinguishable from newly qualified neuronal state.",
+      "acceptance_falsifier": "Two deliveries sharing signs but differing in relevant magnitudes/topology must remain distinguishable wherever the declared law requires. A sign-match counter cannot pass physical retention or recurrence.",
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A09",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL05-07",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-07--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "3dcd25c7645170674244801b7f8ea9615da6c20267f8142f3e3cb170266c19ec",
+          "line": 125,
+          "anchor": "- describing the current sign/null D1 impression as settled persistent"
+        },
+        {
+          "source_id": "HPL06-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL06-01--GUALA_ONE_NEURON_TRANSITION_MODEL_2026-08-02.md",
+          "sha256": "2a775929c3a22e480bfae33162569aaa30ae139fc7b89ff30e62698db75786e9",
+          "line": 6,
+          "anchor": "neuron-binding, and local-fractal settlement contracts pass. This result does"
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL07",
+      "name": "Same-clock occurrence and same-cause experience were separated",
+      "classification": "preserve valid provenance improvement",
+      "historical_requirement_or_mechanism": "The joint binding revision partitions exact clock cohorts and records co-observed capture without interpolating unrelated streams. Fluid continuity distinguishes simultaneous camera/microphone capture from proven shared causal occurrence.",
+      "current_disposition": "Preserve distinct source clocks, authentic body/world transitions and unresolved relationships. Simultaneity is not an automatic memory bond; absent senses are not zero-valued fabricated input.",
+      "lawful_remedy": "Carry original timing and provenance into one actual causal experience where supported. Preserve ambiguity until physical interaction/recurrence resolves it; retain the story of actual internal/external participation.",
+      "acceptance_falsifier": "Unrelated concurrent stimuli must not receive false common-cause evidence. Withhold one channel: remaining experience persists with that channel unavailable, not invented.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A09",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL03-03",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL03-03--GUALA_JOINT_FIELD_NEURON_BINDING_LAW_2026-08-02.md",
+          "sha256": "eb98a595c006b84d50006dc0146d4489cc1f62b7e153a002ceca449c6eba52ea",
+          "line": 48,
+          "anchor": "`co_observed_capture_occurrence`; common physical cause remains unresolved."
+        },
+        {
+          "source_id": "HPL07-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL07-01--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+          "sha256": "2ad8001ed57aae191cf05f5ad74ea5bc3ccdb340036c6d773e2b713eb340b89f",
+          "line": 184,
+          "anchor": "origin. Live camera and microphone clocks prove temporal custody but do not by"
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL08",
+      "name": "Fifteen historical roles were reclassified but not implemented by naming them",
+      "classification": "valid architectural clarification with unproved execution",
+      "historical_requirement_or_mechanism": "Seven truth-gate versions move from incompatible Python pseudo-neurons toward one persistent kind and distinguish shared arithmetic, recent arrivals, specialized receptors, sparse couplings and non-cognitive metadata. Later versions explicitly state missing Krimelack operators.",
+      "current_disposition": "Keep functional responsibilities, not old classes or their names as authority. No second neuron, semantic Grandurun selector, fixed complex vector or copied law dictionary is justified by the fifteen-role inventory.",
+      "lawful_remedy": "Map each required role to current native64 state and its exact transition, callers, persistence and evidence. Mark absent roles unavailable; implement only derived functional state needed for the agreed capability.",
+      "acceptance_falsifier": "Each claimed role must have an exercised cause and observable retained/consequence effect. A field, class, compiled module or passing representation test alone cannot qualify it.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A11",
+        "A15",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL05-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-01--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "233acd7c9602ee7cfca9aa44425bc428b53deaea2fa10ded959cf4b4d700a681",
+          "line": 32,
+          "anchor": "### Older `LoomNeuron`"
+        },
+        {
+          "source_id": "HPL05-04",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-04--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "03ba0fb8c52cd298fd73976294b1850641e9da52e2fc5d6d7a917386bba9cc3e",
+          "line": 133,
+          "anchor": "## 5. The fifteen historical roles"
+        },
+        {
+          "source_id": "HPL05-07",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-07--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "3dcd25c7645170674244801b7f8ea9615da6c20267f8142f3e3cb170266c19ec",
+          "line": 423,
+          "anchor": "   event, recurrence, and habituation dynamics; its executable state transition"
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL09",
+      "name": "Global stability correction needs its exact authority and operators",
+      "classification": "unresolved source/authority reconciliation",
+      "historical_requirement_or_mechanism": "The truth gate records conflicting November forms +Coh versus1-Coh, reports Joe ratified +Coh on August2, and explicitly leaves weights, populations, windows and normalizations missing. It distinguishes validation_invariance, financial proxy and support_floor.",
+      "current_disposition": "Retain the currently governing +Coh interpretation and separate global stability from seven local fields. The report is secondary ratification evidence; a UI substitute or arbitrary weights cannot close mathematical consistency.",
+      "lawful_remedy": "Recover the original decision and versioned equation; bind every operator and normalization to authoritative source and independent fixtures. Preserve the frozen kernel while resolving provenance; do not fabricate S(UF) for display.",
+      "acceptance_falsifier": "A cohesion-only perturbation follows the approved direction; distinct stability/proxy producers cannot substitute for each other. Missing global computation remains explicitly unavailable.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A13",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL05-04",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-04--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "03ba0fb8c52cd298fd73976294b1850641e9da52e2fc5d6d7a917386bba9cc3e",
+          "line": 45,
+          "anchor": "On 2026-08-02 Joseph Forrester explicitly ratified `+Coh`. This is also the"
+        },
+        {
+          "source_id": "HPL05-04",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-04--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "03ba0fb8c52cd298fd73976294b1850641e9da52e2fc5d6d7a917386bba9cc3e",
+          "line": 67,
+          "anchor": "Until every component operator, normalization, and weight is ratified, native"
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL10",
+      "name": "Joint-field correction changed authority beneath unchanged-kernel wording",
+      "classification": "version conflict requiring exact algorithm reconciliation",
+      "historical_requirement_or_mechanism": "A truth-gate header says versioned native joint-field design supersedes unchanged per-port physics and makes the historical kernel a reproducibility baseline, while body text still says canonical L0-L4 is frozen.",
+      "current_disposition": "Do not merge these claims by terminology. Current approved unchanged UF authority and full joint occurrence must be evaluated by actual operators. A new joint algorithm is not automatically equivalent to the kernel.",
+      "lawful_remedy": "Identify each historical kernel/joint operator and its authorization, inputs, topology, outputs and fixtures. Retain the rejected version as history; mount only the currently authorized unchanged full-field evaluation.",
+      "acceptance_falsifier": "Independent fixtures must compare actual operations and all fields, not seven output names or a matching summary. Any kernel change requires Joe’s explicit approval.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL05-06",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-06--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "9200bb51933a0bda98b61ec2b649061a0f7dc9a7985872d6a683de179d252de8",
+          "line": 9,
+          "anchor": "> Guala now uses the versioned native joint-field design; the historical kernel"
+        },
+        {
+          "source_id": "HPL05-06",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-06--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "9200bb51933a0bda98b61ec2b649061a0f7dc9a7985872d6a683de179d252de8",
+          "line": 60,
+          "anchor": "Canonical L0-L4 remains frozen."
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL11",
+      "name": "Custody and replay authentication are not sensory or cognitive truth",
+      "classification": "preserve valid evidence-layer separation",
+      "historical_requirement_or_mechanism": "Native-transition revisions add HMAC custody and exact sealed DSF replay, then explicitly state candidate reproduction does not prove world/body origin or formation meaning. Tests cover framing, identity and bytes at those boundaries.",
+      "current_disposition": "Preserve these infrastructure checks. A valid signature, digest or replay cannot transform fabricated evidence into a real experience, nor establish cognition or live activation.",
+      "lawful_remedy": "Bind authoritative sensor/body/world production to typed content and the actual causal transition in addition to byte custody. Keep claim scopes explicit from input through persistence and observation.",
+      "acceptance_falsifier": "Correctly sealed but substituted/wrong-origin candidate data must fail the claimed sensory/causal admission. Representation-only tests cannot grant learning or autonomy credit.",
+      "repair_actions": [
+        "A02",
+        "A06",
+        "A09",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL05-05",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-05--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "741110a887a28fd520cda2310fdf455e56d52b34e09555dba69400006ac02fad",
+          "line": 317,
+          "anchor": "reproduction is not candidate provenance: matching bytes prove what was"
+        },
+        {
+          "source_id": "HPL04-03",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL04-03--GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md",
+          "sha256": "4128a1fa60df9af2008cb5147ea4c6e9863794d8439aa1379f15a94f412eabc4",
+          "line": 18,
+          "anchor": "   `5c6b8a25e5d745416d5fc9cc39408a780ec0b4e4` implement native custody and exact"
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL12",
+      "name": "Native execution can be a real improvement without changing cognitive semantics",
+      "classification": "potential valid optimization requiring equivalence proof",
+      "historical_requirement_or_mechanism": "The native-transition design reports a substantial callback-to-native timing reduction and single whole-organism transition. Early design also writes every occurrence as an artifact and introduces a fixed formation hierarchy.",
+      "current_disposition": "Preserve measured call elimination only at its measured scope. Performance improvement does not authorize changed memory semantics or unbounded evidence duplication; historical reported timing is not current production evidence.",
+      "lawful_remedy": "Compare exact predecessors, admitted evidence and successors across the optimized boundary. Bound temporary and durable resources, retain compact authentic references, and prove actual service latency under the same workload.",
+      "acceptance_falsifier": "A faster transition with different retained state, hidden full-population work or accumulating redundant artifacts fails an optimization-only claim.",
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A14",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL04-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL04-01--GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md",
+          "sha256": "f47b24bb1959e21f1a8914aa66d22dc3f35b12ac21df57efa1d55a69ba298f80",
+          "line": 20,
+          "anchor": "   calls; the native familiarity operation took 0.526 seconds while the Python"
+        },
+        {
+          "source_id": "HPL04-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL04-01--GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md",
+          "sha256": "f47b24bb1959e21f1a8914aa66d22dc3f35b12ac21df57efa1d55a69ba298f80",
+          "line": 75,
+          "anchor": "  conservative carrier receipts that participated in the occurrence."
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL13",
+      "name": "Migration language changed from preserving learned state to receipted genesis",
+      "classification": "material preservation-scope change",
+      "historical_requirement_or_mechanism": "The native-transition revisions distinguish legitimate state from rejected derivations and permit receipted genesis when translation cannot be proven. External preservation does not itself continue cognition.",
+      "current_disposition": "Keep rejected mechanisms out of execution while preserving every original body and honest classification. Historical permission language does not establish informed approval for a specific later loss or satisfy today’s retained-history mandate.",
+      "lawful_remedy": "Bind the precise approval to the concrete proposed conversion and disclosed losses. Demonstrate exact retained-state continuation for accepted translations; when impossible, halt the conversion claim and preserve custody rather than relabel genesis as continuity.",
+      "acceptance_falsifier": "Identity/tick continuity with erased or untranslatable retained formations must fail memory-continuity acceptance. Compare adjacent bodies and ordinary next transitions.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A09",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL04-02",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL04-02--GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md",
+          "sha256": "ee90410000073675fe30134a81339d9602bdc77a9e7cdcd4d741da41edfc6513",
+          "line": 162,
+          "anchor": "receipted neuronal genesis reference."
+        },
+        {
+          "source_id": "HPL04-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL04-01--GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md",
+          "sha256": "f47b24bb1959e21f1a8914aa66d22dc3f35b12ac21df57efa1d55a69ba298f80",
+          "line": 28,
+          "anchor": "   `transition_whole_organism` mutation and migrate exact learned state once."
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL14",
+      "name": "Mosaic hierarchy evolved from fixed tiers toward physical descriptive terms",
+      "classification": "superseded representation mandate",
+      "historical_requirement_or_mechanism": "August2 text prescribes fractal→mosaic→mosaic-of-mosaics→tapestry→tapestry-of-tapestries→weave and illustrative capability associations. Later recovered whole-brain law and Joe’s current direction make these conversational descriptions of retained relations.",
+      "current_disposition": "Preserve episodic context, recursive relations, integration and causal evidence. Do not create storage tiers, semantic labels or a mandatory processing ladder merely to satisfy the old progression diagram.",
+      "lawful_remedy": "Use one canonical physical state/relationship model and describe demonstrated functions observationally. Crosswalk each old tier to its causal responsibility and explicitly retire unsupported structural obligations.",
+      "acceptance_falsifier": "A capability can only be credited by actual retained participation and use; adding a tier record or assigning a term cannot create cognition.",
+      "repair_actions": [
+        "A01",
+        "A06",
+        "A09",
+        "A13",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL05-06",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-06--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "9200bb51933a0bda98b61ec2b649061a0f7dc9a7985872d6a683de179d252de8",
+          "line": 273,
+          "anchor": "The canonical progression is:"
+        },
+        {
+          "source_id": "HPL05-06",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-06--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "9200bb51933a0bda98b61ec2b649061a0f7dc9a7985872d6a683de179d252de8",
+          "line": 269,
+          "anchor": "acting, regulating, and creating. A weave is not itself an action, job title,"
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL15",
+      "name": "Original-moment relation no longer required an invented directed cycle",
+      "classification": "valid conceptual correction; numeric floor requires authority",
+      "historical_requirement_or_mechanism": "Fluid-law revision replaces mandatory closure wording with shared authenticated episode/weak-connected transfer, later recurrence and partial-cue reach. It changes three from closure floor to plurality floor while distinguishing neuron count from powers of3.",
+      "current_disposition": "Preserve actual transfers and common-cause participation separately. Never fabricate a cycle to admit a memory. The historical minimum-three rule remains a versioned assertion, not a number to impose on current native64 without current authority and derivation.",
+      "lawful_remedy": "Define formation from actual retained local change, source/context relation and later causal reuse under the definitive law. Keep population cardinality distinct from positional ternary significance; verify any specific floor independently.",
+      "acceptance_falsifier": "An unrelated simultaneous triple cannot pass; absence of a strong directed cycle cannot alone erase authentic experience. Relabeled cardinality is not evidence of recognition or recall.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A09",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL07-02",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL07-02--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+          "sha256": "dcf60e3b7bd2d4dab78569e00559d10cb189a6c8b9d8319bd459c60998b3706e",
+          "line": 228,
+          "anchor": "strongly directed inter-neuron cycle: its relation may be actual weak-connected"
+        },
+        {
+          "source_id": "HPL07-02",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL07-02--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+          "sha256": "dcf60e3b7bd2d4dab78569e00559d10cb189a6c8b9d8319bd459c60998b3706e",
+          "line": 244,
+          "anchor": "structural plurality floor; positional `3^i` remains a separate MathLoom and"
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL16",
+      "name": "Whole-organism continuity includes quiet and unavailable mechanisms",
+      "classification": "preserve valid completeness requirement",
+      "historical_requirement_or_mechanism": "Fluid-law continuity covers anatomy, causal chain, dynamics, formations, function and restoration. Every mounted mechanism is perturbed, quiescent or unavailable; quiet paths need not emit fabricated evidence.",
+      "current_disposition": "Preserve all six forms. Missing implementation is unavailable, not lawful zero or negative space. Whole-brain scope does not require all neurons/senses to fire every tick or enter every memory.",
+      "lawful_remedy": "Inventory every legitimate native64 path with actual availability and causal reachability; retain quiet state without global polling and return honest missing-path status to GualaLoom.",
+      "acceptance_falsifier": "Disable one mounted path and prove unavailable is distinct from zero activity. A quiet but functioning path retains its state and later responds correctly after restart.",
+      "repair_actions": [
+        "A02",
+        "A06",
+        "A11",
+        "A13",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL07-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL07-01--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+          "sha256": "2ad8001ed57aae191cf05f5ad74ea5bc3ccdb340036c6d773e2b713eb340b89f",
+          "line": 69,
+          "anchor": "It has six inseparable forms:"
+        },
+        {
+          "source_id": "HPL07-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL07-01--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+          "sha256": "2ad8001ed57aae191cf05f5ad74ea5bc3ccdb340036c6d773e2b713eb340b89f",
+          "line": 217,
+          "anchor": "Exact fluid quiescence is valid Negative Space. Missing fluid implementation is"
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL17",
+      "name": "Conservative min transport is not automatically a heuristic",
+      "classification": "retain physical boundary within its proven scope",
+      "historical_requirement_or_mechanism": "The fluid-manager design defines transfer as the minimum of requested amount, source amount and destination capacity, with conservation and fixed bounded compartments. Missing upstream demand, local effects and timing are explicitly gated.",
+      "current_disposition": "A minimum that enforces material availability/capacity can be an exact physical boundary. Its validity does not justify unrelated minimum-score cognition or prove that mounted chemistry nourishes the organism.",
+      "lawful_remedy": "Retain declared material units and exact conservation; derive requested transfer, capacities and target effects. Bind actual food/body sources, reachable local consumption/recovery and measured execution.",
+      "acceptance_falsifier": "For every admitted transfer, source loss equals destination gain, amounts stay within bounds, and failure is atomic. A conserved isolated transfer without neuronal/body effect cannot pass nourishment.",
+      "repair_actions": [
+        "A07",
+        "A11",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL02-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL02-01--GUALA_FLUID_MANAGER_CONSERVATIVE_PASSOFF_2026-08-03.md",
+          "sha256": "3cdcce46670a28871ab0fb4eb1ba4e52d6d4569bb83e2f30e76665be9eec26a5",
+          "line": 32,
+          "anchor": "min(requested quantity, source quantity, destination free capacity)"
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL18",
+      "name": "Ion and pump primitives were explicitly isolated and incomplete",
+      "classification": "useful physical primitive, no whole-body clearance",
+      "historical_requirement_or_mechanism": "D3vestibular material law records bounded species/state and atomic stoichiometric extents, but is not part of the production registered library. It enumerates missing kinetics, recovery and downstream neuronal settlement.",
+      "current_disposition": "Preserve conservation and stoichiometric tests at their actual scope. Do not call isolated material accounting a working fluid brain; do not make atom-by-atom simulation a prerequisite for feeding/speech under October5functional scope.",
+      "lawful_remedy": "Choose the already-authorized functional body/neuron law and implement only necessary conserved state and effects. Show the compiled, mounted causal path separately from component tests.",
+      "acceptance_falsifier": "An unreferenced source or isolated passing fixture cannot qualify current nourishment, vestibular sensation or cognitive settlement. Functional tests must expose the actual local effect and bounded continuation.",
+      "repair_actions": [
+        "A07",
+        "A11",
+        "A14",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL01-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL01-01--GUALA_D3_VESTIBULAR_FLUID_MATERIAL_LAW_2026-08-04.md",
+          "sha256": "c6167da0c51e7dacd2ad4fbe7a3a961f1d0977377da73414053a32465abf82fb",
+          "line": 5,
+          "anchor": "Status: isolated native material-conservation candidate. It is not registered"
+        },
+        {
+          "source_id": "HPL01-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL01-01--GUALA_D3_VESTIBULAR_FLUID_MATERIAL_LAW_2026-08-04.md",
+          "sha256": "c6167da0c51e7dacd2ad4fbe7a3a961f1d0977377da73414053a32465abf82fb",
+          "line": 20,
+          "anchor": "   local kinetics, pH/ATP regeneration is present, and the complete receptor"
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL19",
+      "name": "Fluid participation requires a local causal path into retained cognition",
+      "classification": "preserve integration specification; operators unproved",
+      "historical_requirement_or_mechanism": "The continuity law requires release/transport/receptor/target→changed neuronal settlement→retained formation, with body/fluid state linked to the experienced story. Chemical names may not select meanings or actions.",
+      "current_disposition": "Retain the causal design and counterfactual checks. Coexisting receipts, scalar mood or a whole-organism multiplier cannot establish fluid causation. Ratifying a role is not ratifying unknown coefficients.",
+      "lawful_remedy": "Bind exact body/local quantities, receptor targets, contact effects, retained changes and later use in one native transition. Where a law is missing, expose that boundary and obtain its derivation without a semantic substitute.",
+      "acceptance_falsifier": "Change only the claimed local cause: its named target changes according to the law while unrelated targets remain unchanged. Substituted, missing or opaque references cannot pass.",
+      "repair_actions": [
+        "A06",
+        "A09",
+        "A11",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL07-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL07-01--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+          "sha256": "2ad8001ed57aae191cf05f5ad74ea5bc3ccdb340036c6d773e2b713eb340b89f",
+          "line": 195,
+          "anchor": "Fluid participation is proven only by a complete local causal route:"
+        },
+        {
+          "source_id": "HPL07-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL07-01--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+          "sha256": "2ad8001ed57aae191cf05f5ad74ea5bc3ccdb340036c6d773e2b713eb340b89f",
+          "line": 25,
+          "anchor": "integration. It does not ratify unproved coefficients or chemistry."
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL20",
+      "name": "Ternary state-space and planning sizes are not force-work budgets",
+      "classification": "preserve numeric scope; reject dimensionless capacity inflation",
+      "historical_requirement_or_mechanism": "Early truth-gate sizing distinguishes3^dpossible configurations from storage growing with realized state, and labels byte/activity figures planning estimates. Later text requires measured available CPU/RAM/storage and refusal before mutation.",
+      "current_disposition": "A billion may be a legitimate derived count; it is not intrinsically a violation. A1must classify the actual quantity, units and derivation. Those planning examples do not authorize the Task1434force-work override or turn positional3^iinto physical gain.",
+      "lawful_remedy": "Document dimensions and source of every effective admission bound; account reached frontier, temporary/persistent growth and recovery reserve. Keep estimates out of physical constants and verify the exact billion-valued override separately.",
+      "acceptance_falsifier": "A value without units/derivation or enlarged solely to turn a failed test green fails admission qualification. Exhaustion must report a physical shortfall without partial state or fabricated success.",
+      "repair_actions": [
+        "A04",
+        "A14",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL05-02",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-02--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "893ebe709d62b88e237ac675b0efda229a6564dc68b74112ffcfebb6360a8786",
+          "line": 552,
+          "anchor": "| total sizing case | 640 |"
+        },
+        {
+          "source_id": "HPL05-05",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-05--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "741110a887a28fd520cda2310fdf455e56d52b34e09555dba69400006ac02fad",
+          "line": 331,
+          "anchor": "derivation; planning estimates are not physical law."
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL21",
+      "name": "Prepare-execute-seal and single ownership are infrastructure requirements",
+      "classification": "preserve recoverable consequence continuity",
+      "historical_requirement_or_mechanism": "Native-transition versions define prepared intent, at-most-once simulated execution, exact consequence re-entry and atomic trusted-head publication. They distinguish a non-cognitive process lock from rejected independent cognitive owners.",
+      "current_disposition": "Keep necessary custody/ownership and crash recovery. Removing every lock because cognitive owners are rejected confuses infrastructure with cognition; a receipt cannot hide an uncertain action.",
+      "lawful_remedy": "Implement and qualify one canonical mutation authority and binary checkpoint transaction, binding world revision, intention, consequence and full retained successor. Use idempotent simulated action identity and truthful uncertainty on external effects.",
+      "acceptance_falsifier": "Crash at each boundary: no duplicated feeding/motion, skipped consequence, identity fork or partial successor may be accepted. Uncertain external execution cannot be automatically replayed.",
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A07",
+        "A08",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL05-05",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-05--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "741110a887a28fd520cda2310fdf455e56d52b34e09555dba69400006ac02fad",
+          "line": 224,
+          "anchor": "3. **seal/co-commit:** admit the exact consequence once, persist the complete"
+        },
+        {
+          "source_id": "HPL05-05",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-05--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "741110a887a28fd520cda2310fdf455e56d52b34e09555dba69400006ac02fad",
+          "line": 223,
+          "anchor": "   once; uncertain real-device actions are never automatically replayed;"
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL22",
+      "name": "D2live and D3unmounted are historical status distinctions",
+      "classification": "valid correction of production overreach",
+      "historical_requirement_or_mechanism": "Final truth-gate revision marks D2evidence-only joint delivery live, zero mosaics, test-only D3evidence/occurrences, isolated material candidates, unreferenced formation/index files and an always-refusing Krimelack successor.",
+      "current_disposition": "Preserve exact dated scopes. Do not use an earlier not-deployed paragraph against a later release, or promote D2delivery into D3cognition. The August29notices explicitly redirect current status to a newer baseline.",
+      "lawful_remedy": "For each mechanism bind dated source, compiled inclusion, loaded binary, caller, persisted format and actual live witness. Superseded reports stay historical; a new claim needs new evidence.",
+      "acceptance_falsifier": "A source-only module, test-only target or representation that refuses settlement cannot qualify live cognition. A label change cannot erase an unresolved law.",
+      "repair_actions": [
+        "A02",
+        "A13",
+        "A15",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL05-07",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-07--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "3dcd25c7645170674244801b7f8ea9615da6c20267f8142f3e3cb170266c19ec",
+          "line": 615,
+          "anchor": "evidence-only materialized-fabric state. Production forms zero mosaics and does"
+        },
+        {
+          "source_id": "HPL04-04",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL04-04--GUALA_NATIVE_WHOLE_ORGANISM_TRANSITION_2026-08-02.md",
+          "sha256": "4346b4a08dc6e4f002a569edc5ac4da599845ae92c853b28cb26b741475fc0fd",
+          "line": 7,
+          "anchor": "Current-reality notice, 2026-08-29: this document remains the historical"
+        },
+        {
+          "source_id": "HPL07-03",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL07-03--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+          "sha256": "6b55dfc86fc793851ddc656cc7907eb4e9cee0d64a3984a0639cf067c825c09f",
+          "line": 10,
+          "anchor": "Current-reality notice, 2026-08-29: the integration law remains canonical, but"
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL23",
+      "name": "Cognitive-capital evidence dimensions preserve what counters lose",
+      "classification": "retain non-flattened requirements",
+      "historical_requirement_or_mechanism": "August2defines availability, participation, retention, recognition, recall, causal use, transfer, autonomous use, durability and integration separately, and rejects a single age/capital score. Detailed capabilities include body, memory, affect, language and sleep.",
+      "current_disposition": "Retain that specification and the later read-only observation implementation direction. A formation count or a four-year-old-looking response is not evidence across the whole capability profile.",
+      "lawful_remedy": "Bind each of the current53responsibilities to those ten independent evidence axes and authoritative causal witnesses; keep unavailable or unproved cells blank with reasons. Do not persist inferred capital as cognitive authority.",
+      "acceptance_falsifier": "Removing learned state must remove retention/recall/use evidence without erasing honest physical availability. Restoring a count cannot restore a capability claim.",
+      "repair_actions": [
+        "A01",
+        "A09",
+        "A13",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL05-06",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-06--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "9200bb51933a0bda98b61ec2b649061a0f7dc9a7985872d6a683de179d252de8",
+          "line": 317,
+          "anchor": "These are separate evidence dimensions, not weights in a score. A capability"
+        },
+        {
+          "source_id": "HPL05-06",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-06--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "9200bb51933a0bda98b61ec2b649061a0f7dc9a7985872d6a683de179d252de8",
+          "line": 382,
+          "anchor": "No universal age score is authorized. The UI may compare observed capability"
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    },
+    {
+      "id": "PL24",
+      "name": "Missing-law gates and functional scope must both survive reconciliation",
+      "classification": "preserve honest failure without atomistic overengineering",
+      "historical_requirement_or_mechanism": "The historical neuron, sensory and fluid documents repeatedly identify missing executable operators and forbid scores/thresholds as replacements. Their detailed biological aspirations predate Joe’s October5instruction to use the existing64columns and necessary functional equivalents.",
+      "current_disposition": "Keep explicit unimplemented boundaries and ordered qualification. Functional equivalence permits the required bounded state/dynamics; it does not permit fabricated learning, sensory shortcuts, resets or endless molecule-level prerequisites.",
+      "lawful_remedy": "For each requested function specify exact state, approved law, causal input, retained output, resource bound and independent tests within the64-column system. Leave absent physical mappings visibly unimplemented until derived, and assign their concrete closure to G1.",
+      "acceptance_falsifier": "Unit representation success must proceed through module, full-system, immutable-release and live evidence before capability certification. Neither a detailed biological name nor a simplified score passes that chain.",
+      "repair_actions": [
+        "A01",
+        "A11",
+        "A14",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HPL05-06",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL05-06--GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md",
+          "sha256": "9200bb51933a0bda98b61ec2b649061a0f7dc9a7985872d6a683de179d252de8",
+          "line": 507,
+          "anchor": "cognitive capital are ratified by this document. The exact physical operators"
+        },
+        {
+          "source_id": "HPL07-01",
+          "path": "docs/guala_reconciliation/sources/physical-law-history/HPL07-01--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+          "sha256": "2ad8001ed57aae191cf05f5ad74ea5bc3ccdb340036c6d773e2b713eb340b89f",
+          "line": 333,
+          "anchor": "Until this protocol passes, the truthful status is: architecture ratified,"
+        }
+      ],
+      "evidence_level": "Complete historical documents plus explicitly scoped source functions; no current serving-path inference"
+    }
+  ],
+  "expression_checks": "physical-law-expression-counterexamples.json",
+  "status_authority": "collaborative_todo.md"
+}

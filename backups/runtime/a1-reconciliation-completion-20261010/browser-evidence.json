@@ -1,0 +1,264 @@
+{
+  "at_utc": "2026-10-10T00:28:54.140560+00:00",
+  "scope": "Real public pages, read-only GET observation; all POST/PUT/PATCH/DELETE and external hosts blocked; no controls clicked or sensory permissions granted",
+  "playwright": "1.63.0",
+  "pages": [
+    {
+      "name": "gualaloom",
+      "blocked": [
+        {
+          "method": "GET",
+          "url": "https://dsf-ai.com/api/v1/guala/observation?after=4227410",
+          "reason": "audit maximum two GETs per API path"
+        },
+        {
+          "method": "GET",
+          "url": "https://dsf-ai.com/api/v1/guala/observation?after=4227410",
+          "reason": "audit maximum two GETs per API path"
+        },
+        {
+          "method": "GET",
+          "url": "https://dsf-ai.com/api/v1/guala/observation?after=4227410",
+          "reason": "audit maximum two GETs per API path"
+        },
+        {
+          "method": "GET",
+          "url": "https://dsf-ai.com/api/v1/guala/observation?after=4227410",
+          "reason": "audit maximum two GETs per API path"
+        },
+        {
+          "method": "GET",
+          "url": "https://dsf-ai.com/api/v1/guala/observation?after=4227410",
+          "reason": "audit maximum two GETs per API path"
+        },
+        {
+          "method": "GET",
+          "url": "https://dsf-ai.com/api/v1/guala/observation?after=4227410",
+          "reason": "audit maximum two GETs per API path"
+        },
+        {
+          "method": "GET",
+          "url": "https://dsf-ai.com/api/v1/guala/observation?after=4227410",
+          "reason": "audit maximum two GETs per API path"
+        },
+        {
+          "method": "GET",
+          "url": "https://dsf-ai.com/api/v1/guala/observation?after=4227410",
+          "reason": "audit maximum two GETs per API path"
+        },
+        {
+          "method": "GET",
+          "url": "https://dsf-ai.com/api/v1/guala/observation?after=4227410",
+          "reason": "audit maximum two GETs per API path"
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://dsf-ai.com/gualaloom.html",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "url": "https://dsf-ai.com/Guala_Talking_Bust_No_Bow_Transparent.png",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "url": "https://dsf-ai.com/cards/alphabet-a-apple-v1.png",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "url": "https://dsf-ai.com/api/v1/guala/observation",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "url": "https://dsf-ai.com/guala-brain-foundation-v1.png",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "url": "https://dsf-ai.com/api/v1/guala/observation?after=4227409",
+          "status": 200
+        }
+      ],
+      "console_errors": [
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: net::ERR_FAILED"
+      ],
+      "page_errors": [],
+      "observations": [
+        {
+          "sha256": "34bff2e50587f4fde39304b2a3f84accc0eca208f537f36b8a7823e648ba828e",
+          "artifact": "browser-gualaloom-observation-0.json",
+          "live_tick": 4227409,
+          "external_retinal_site_count": 0,
+          "physically_transitioned_neuron_count": 10108,
+          "her_counts": {
+            "bites": 2164,
+            "strides": 1141682,
+            "syllables": 264131,
+            "meals_micrograms": 19346722,
+            "handled": 132805,
+            "structures": 4096,
+            "learned": 125,
+            "nights": 19,
+            "events": 4096,
+            "figures": 1056,
+            "moments": 128,
+            "own_events": 1024,
+            "meanings": 3795,
+            "conserved_objects": 63,
+            "active_synapses": 182746,
+            "modular_active_synapses": 3290715
+          },
+          "her_sleep": {
+            "asleep": false,
+            "pressure": [
+              93144,
+              113600
+            ],
+            "nights": 19
+          }
+        },
+        {
+          "sha256": "a818c2c8525396e0e8ce4ff136225b6272dda11d49269e83968b6a30c915d931",
+          "artifact": "browser-gualaloom-observation-1.json",
+          "live_tick": 4227410,
+          "external_retinal_site_count": 0,
+          "physically_transitioned_neuron_count": 10650,
+          "her_counts": {
+            "bites": 2164,
+            "strides": 1141683,
+            "syllables": 264131,
+            "meals_micrograms": 19346722,
+            "handled": 132805,
+            "structures": 4096,
+            "learned": 125,
+            "nights": 19,
+            "events": 4096,
+            "figures": 1056,
+            "moments": 128,
+            "own_events": 1024,
+            "meanings": 3795,
+            "conserved_objects": 63,
+            "active_synapses": 182746,
+            "modular_active_synapses": 3290715
+          },
+          "her_sleep": {
+            "asleep": false,
+            "pressure": [
+              93145,
+              113600
+            ],
+            "nights": 19
+          }
+        }
+      ],
+      "displayed_fields": {
+        "connection": "Guala unavailable",
+        "tick": "4227410 (+1)",
+        "dash-retinal-sites": "4935 sites active",
+        "dash-strides-count": "1141683",
+        "dash-syllables-count": "264131 syllables \u00b7 132805 handled",
+        "text-smell": "olfactory plume: apple (volatile organic esters)",
+        "text-feel": "ambient cutaneous (30.1\u00b0C)",
+        "text-memory": "structural attractor recognized: T--+-++- D--++++- S--++++- V-+0-+0- D+-0-+0- S000-+00 S000-+00 S000-+00 S000-+00 S000-+00 V0-0-+0- V-+0-+0- S000-+00 S000-+00 S000-+00 S000-+00 V--+-++- V0+0+++- V-+0-+0- V--+-++- V--++++- S--++++- (391 gates)",
+        "dash-reserve-badge": "\u26a0\ufe0f 66% Reserve (Hungry Deficit)",
+        "hdr-id": null,
+        "hdr-tick": null,
+        "actKind": null,
+        "health": null
+      },
+      "duplicate_ids": {
+        "dash-sleep-badge": 2
+      },
+      "mutation_requests_sent": []
+    },
+    {
+      "name": "loomscan",
+      "blocked": [
+        {
+          "method": "POST",
+          "url": "https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com/api/v1/gualaloom",
+          "reason": "audit read-only/host boundary"
+        },
+        {
+          "method": "GET",
+          "url": "https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com/api/v1/gualaloom/events?n=50",
+          "reason": "audit read-only/host boundary"
+        },
+        {
+          "method": "GET",
+          "url": "https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com/api/v1/gualaloom/chi_density",
+          "reason": "audit read-only/host boundary"
+        },
+        {
+          "method": "GET",
+          "url": "https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com/api/v1/gualaloom/events?n=50",
+          "reason": "audit read-only/host boundary"
+        },
+        {
+          "method": "POST",
+          "url": "https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com/api/v1/gualaloom",
+          "reason": "audit read-only/host boundary"
+        },
+        {
+          "method": "POST",
+          "url": "https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com/api/v1/gualaloom",
+          "reason": "audit read-only/host boundary"
+        },
+        {
+          "method": "GET",
+          "url": "https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com/api/v1/gualaloom/events?n=50",
+          "reason": "audit read-only/host boundary"
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "url": "https://dsf-ai.com/loomscan.html",
+          "status": 200
+        }
+      ],
+      "console_errors": [
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: net::ERR_FAILED"
+      ],
+      "page_errors": [],
+      "observations": [],
+      "displayed_fields": {
+        "connection": null,
+        "tick": null,
+        "dash-retinal-sites": null,
+        "dash-strides-count": null,
+        "dash-syllables-count": null,
+        "text-smell": null,
+        "text-feel": null,
+        "text-memory": null,
+        "dash-reserve-badge": null,
+        "hdr-id": "guala \u00b7 loading\u2026",
+        "hdr-tick": "tick \u2014",
+        "actKind": "\u2014",
+        "health": "loading\u2026"
+      },
+      "duplicate_ids": {},
+      "mutation_requests_sent": []
+    }
+  ],
+  "browser_version": "153.0.8010.12"
+}

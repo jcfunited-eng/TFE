@@ -1,0 +1,528 @@
+{
+  "schema": "guala.reconciliation_mechanism_supplement.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-09T23:55:36.379768+00:00",
+  "audit": "orthographic source audit",
+  "predecessor_registry": "docs/GUALA_LEARNING_DECISION_CLASSIFICATION_TASK1593_2026-10-09.json",
+  "preserved_sources": [
+    {
+      "path": "dsf_ai_service/orthographic_sensory_transducer.py",
+      "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/orthographic_sensory_transducer.py",
+      "bytes": 34081,
+      "sha256": "a7c6ed3563dbb93680c7eb3ff8f51d0835226534af4bd472e867a6f734889967"
+    },
+    {
+      "path": "dsf_ai_service/dynamic_television_broadcast.py",
+      "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/dynamic_television_broadcast.py",
+      "bytes": 10901,
+      "sha256": "4ef037c8ce14bb8b1ca641f5822b0fd768ee68e4c48c1816fffca6f0df96034c"
+    },
+    {
+      "path": "dsf_ai_service/guala_home_world.py",
+      "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/guala_home_world.py",
+      "bytes": 128305,
+      "sha256": "ef990956ded18c3dc9c3abe690dadd3df171eec9e02dbff9c523490757b27595"
+    },
+    {
+      "path": "dsf_ai_service/guala_caretaker_hand.py",
+      "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/guala_caretaker_hand.py",
+      "bytes": 97339,
+      "sha256": "d2df9d3344b8dec9f3601149ec6618cc1da4cd54053b792665c351492f9bd5b6"
+    },
+    {
+      "path": "dsf_ai_service/guala_voice.py",
+      "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/guala_voice.py",
+      "bytes": 12385,
+      "sha256": "a7b03520aaf5df0dc3082d8c8860eaa0ea0f7d6f39041013dc2b15e301090313"
+    },
+    {
+      "path": "dsf_ai_service/lean_sensory_occurrence.py",
+      "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/lean_sensory_occurrence.py",
+      "bytes": 13571,
+      "sha256": "cb7ebef4b506c04f1f87e0f2dc593d53d21dd3d76badf3d41d514c8dc93f8b6d"
+    },
+    {
+      "path": "tests/test_orthographic_sensory_transducer.py",
+      "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/tests/test_orthographic_sensory_transducer.py",
+      "bytes": 9459,
+      "sha256": "27438596491858db5f6714f6f8e98cb3ee0f3cb3e5c0b9ba46272147b3b8e4bf"
+    },
+    {
+      "path": "docs/COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+      "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/docs/COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+      "bytes": 11180,
+      "sha256": "f281291714949f1f3654717579d03f79223ee203f4c90939fe3ef01f45589c54"
+    },
+    {
+      "path": "docs/TODO.md",
+      "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/docs/TODO.md",
+      "bytes": 7879,
+      "sha256": "48d3d2262a27a36f3f973469f8a495f747584f7fc30671384cf4e0850bac9307"
+    },
+    {
+      "path": "tests/test_environmental_variety_and_channels.py",
+      "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/tests/test_environmental_variety_and_channels.py",
+      "bytes": 12203,
+      "sha256": "fbd0df17b6b71511bbcc648325f949f734d460576ba9b713eac89c5097bbe6af"
+    }
+  ],
+  "static_receipt": "backups/runtime/a1-orthographic-audit-20261009/static-findings.json",
+  "scope": {
+    "exhaustive_classification": false,
+    "source_heuristic_free_claim": "FAIL",
+    "genuine_grounding_claim": "FAIL",
+    "pupil_speech_scripted_by_this_module": "NOT_ESTABLISHED",
+    "local_module_ml_training_or_inference": "NOT_FOUND_IN_INSPECTED_MODULE",
+    "whole_release_ml_free": "NOT_CERTIFIED",
+    "current_live_execution": "NOT_ESTABLISHED"
+  },
+  "mechanisms": [
+    {
+      "id": "OT01",
+      "name": "Authored pronunciation table and letter substitutions",
+      "algorithm_classes": [
+        "example_matching",
+        "hand_authored_policy"
+      ],
+      "policy_owner": "external media author in the traced caller; pupil control not demonstrated",
+      "architecture_disposition": "forbidden as learned recognition or pupil speech; external content does not qualify as learned cognition",
+      "observed_mechanism": "42 exact word entries; vowel lookup and c/q/x→k, f/v→p, s/z→d, j/r→w, h→empty rules; empty/unresolved output becomes ah. No local experience update.",
+      "inputs": "Text token; authored onset/vowel/pitch values, pitch in decihertz",
+      "state": "Static authored tables; transient syllable list; no retained learned state in this stage",
+      "outputs": "Authored syllable specifications passed to waveform synthesis",
+      "refs": [
+        {
+          "path": "dsf_ai_service/orthographic_sensory_transducer.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/orthographic_sensory_transducer.py",
+          "sha256": "a7c6ed3563dbb93680c7eb3ff8f51d0835226534af4bd472e867a6f734889967",
+          "start": 321,
+          "end": 368,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "dsf_ai_service/orthographic_sensory_transducer.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/orthographic_sensory_transducer.py",
+          "sha256": "a7c6ed3563dbb93680c7eb3ff8f51d0835226534af4bd472e867a6f734889967",
+          "start": 623,
+          "end": 685,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "dsf_ai_service/dynamic_television_broadcast.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/dynamic_television_broadcast.py",
+          "sha256": "4ef037c8ce14bb8b1ca641f5822b0fd768ee68e4c48c1816fffca6f0df96034c",
+          "start": 235,
+          "end": 242,
+          "scope": "captured working source; no live-image binding"
+        }
+      ],
+      "replacement": "Remove the zero-heuristic/cortex/learned-language claims. Replace fabricated pronunciation rules with verified external recordings or explicitly approved authored media; never let this table select pupil recognition, recall or speech.",
+      "required_unit": "Invalid and unsupported material remains explicit; no invented syllable. Verify external media provenance and complete sample sequence.",
+      "required_module": "Trace external media through world propagation and pupil receptors without semantic answers or motor drives entering pupil cognition.",
+      "required_system": "For a learning claim, show experience→retained neuronal change→later recall/articulation after stimulus removal and cold continuation; independent controls rule out reading this table.",
+      "evidence_level": "source",
+      "artifact_runtime_scope": "captured working tree only; not currently image-bound",
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_passed",
+      "full_dsf": "This module does not evaluate DSF. Symbolic templates are not a reduction computed from an incoming full DSF field and cannot substitute for physical sensing or learned native relationships.",
+      "preservation": "Preserve existing organism identity, retained history, world state and canonical checkpoint. No reset, live mutation or product-source edit by A1 in this audit.",
+      "resource_evidence": "No CPU, latency or live allocation measurement. Finite image/table sizes do not establish bounded arbitrary text input or playback.",
+      "forbidden_alternatives": [
+        "Relabel dictionary lookup as learned physical cognition",
+        "Feed text semantics directly to pupil action or somatic truth",
+        "Use prohibited FunctionalOrganism harness as acceptance",
+        "Make unsupported capability pass by defaults or injected validation data"
+      ]
+    },
+    {
+      "id": "OT02",
+      "name": "Word-to-somatic template substitution",
+      "algorithm_classes": [
+        "example_matching",
+        "physical_model_unverified"
+      ],
+      "architecture_disposition": "rejected as physical grounding; direct pupil somatic injection not demonstrated",
+      "observed_mechanism": "17 noun and 19 adjective dictionaries invent texture, warmth, compliance, smell, taste and reflectance from word identity; compound dictionaries overwrite values. Frame stores this metadata but Lean export omits it.",
+      "inputs": "Word string, not actual object material, exposure, thermal state or contact",
+      "state": "Authored constants and transient metadata dictionaries; no physical experience history",
+      "outputs": "physical_affordances metadata; not exported by the inspected Lean adapter",
+      "refs": [
+        {
+          "path": "dsf_ai_service/orthographic_sensory_transducer.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/orthographic_sensory_transducer.py",
+          "sha256": "a7c6ed3563dbb93680c7eb3ff8f51d0835226534af4bd472e867a6f734889967",
+          "start": 156,
+          "end": 319,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "dsf_ai_service/orthographic_sensory_transducer.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/orthographic_sensory_transducer.py",
+          "sha256": "a7c6ed3563dbb93680c7eb3ff8f51d0835226534af4bd472e867a6f734889967",
+          "start": 474,
+          "end": 503,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "dsf_ai_service/orthographic_sensory_transducer.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/orthographic_sensory_transducer.py",
+          "sha256": "a7c6ed3563dbb93680c7eb3ff8f51d0835226534af4bd472e867a6f734889967",
+          "start": 703,
+          "end": 758,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "tests/test_orthographic_sensory_transducer.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/tests/test_orthographic_sensory_transducer.py",
+          "sha256": "27438596491858db5f6714f6f8e98cb3ee0f3cb3e5c0b9ba46272147b3b8e4bf",
+          "start": 129,
+          "end": 166,
+          "scope": "captured working source; no live-image binding"
+        }
+      ],
+      "replacement": "Retire semantic template grounding. Taste/smell/touch/temperature must derive from actual world material, exposure and contact reaching the appropriate receptor. Seeing or hearing apple must not create eating/contact sensation. A word may cue a learned relation only inside the authorized retained neuronal mechanism.",
+      "required_unit": "Changing a label while holding material/contact fixed cannot change receptor quantities; absent contact or exposure cannot become fabricated somatic evidence.",
+      "required_module": "Compare no-contact reading, visible real object, smelling, touching and eating; each has the appropriate causal receptor path and context.",
+      "required_system": "The same preserved organism associates real multimodal experience and internal hunger/consequence, retains it across sleep where claimed and restart, then recalls it without metadata lookup.",
+      "evidence_level": "source",
+      "artifact_runtime_scope": "captured working tree only; not currently image-bound",
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_passed",
+      "full_dsf": "This module does not evaluate DSF. Symbolic templates are not a reduction computed from an incoming full DSF field and cannot substitute for physical sensing or learned native relationships.",
+      "preservation": "Preserve existing organism identity, retained history, world state and canonical checkpoint. No reset, live mutation or product-source edit by A1 in this audit.",
+      "resource_evidence": "No CPU, latency or live allocation measurement. Finite image/table sizes do not establish bounded arbitrary text input or playback.",
+      "forbidden_alternatives": [
+        "Relabel dictionary lookup as learned physical cognition",
+        "Feed text semantics directly to pupil action or somatic truth",
+        "Use prohibited FunctionalOrganism harness as acceptance",
+        "Make unsupported capability pass by defaults or injected validation data"
+      ]
+    },
+    {
+      "id": "OT03",
+      "name": "Image rendering versus imposed validation pixels",
+      "algorithm_classes": [
+        "deterministic_transduction",
+        "state_transport"
+      ],
+      "architecture_disposition": "authored font geometry is legitimate external representation; invented pixels to force validation are rejected",
+      "observed_mechanism": "Glyph stroke geometry is external display content. transduce_token uses only token[0]. Unknown glyphs become the space pattern; empty/full rasters are altered to satisfy nontriviality. Television injects missing palette indices expressly to satisfy physical optical verification.",
+      "inputs": "One character, authored stroke/font geometry, requested display dimensions/luminance",
+      "state": "Transient raster and TV frame/channel state",
+      "outputs": "Glyph geometry and RGB/optical surface, not demonstrated full-word rendering",
+      "refs": [
+        {
+          "path": "dsf_ai_service/orthographic_sensory_transducer.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/orthographic_sensory_transducer.py",
+          "sha256": "a7c6ed3563dbb93680c7eb3ff8f51d0835226534af4bd472e867a6f734889967",
+          "start": 371,
+          "end": 415,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "dsf_ai_service/orthographic_sensory_transducer.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/orthographic_sensory_transducer.py",
+          "sha256": "a7c6ed3563dbb93680c7eb3ff8f51d0835226534af4bd472e867a6f734889967",
+          "start": 524,
+          "end": 563,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "dsf_ai_service/orthographic_sensory_transducer.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/orthographic_sensory_transducer.py",
+          "sha256": "a7c6ed3563dbb93680c7eb3ff8f51d0835226534af4bd472e867a6f734889967",
+          "start": 728,
+          "end": 741,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "dsf_ai_service/dynamic_television_broadcast.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/dynamic_television_broadcast.py",
+          "sha256": "4ef037c8ce14bb8b1ca641f5822b0fd768ee68e4c48c1816fffca6f0df96034c",
+          "start": 175,
+          "end": 197,
+          "scope": "captured working source; no live-image binding"
+        }
+      ],
+      "replacement": "Preserve a truthful font/rendering boundary. Render the requested content or report unsupported input; preserve genuine blank and uniform surfaces. Remove verifier-accommodation pixels and validate the real geometry contract. An alphabet card is acceptable when specified as such, but not a claim of rendering an entire word/book.",
+      "required_unit": "Blank, unsupported, uniform and representative multi-character inputs retain specified geometry without synthetic evidence pixels.",
+      "required_module": "World display and retinal observations agree for viewpoint, illumination and occlusion; alphabet-card scope is explicit.",
+      "required_system": "Present rendered content as external stimulus; require independent retained recognition evidence before calling it reading.",
+      "evidence_level": "source",
+      "artifact_runtime_scope": "captured working tree only; not currently image-bound",
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_passed",
+      "full_dsf": "This module does not evaluate DSF. Symbolic templates are not a reduction computed from an incoming full DSF field and cannot substitute for physical sensing or learned native relationships.",
+      "preservation": "Preserve existing organism identity, retained history, world state and canonical checkpoint. No reset, live mutation or product-source edit by A1 in this audit.",
+      "resource_evidence": "No CPU, latency or live allocation measurement. Finite image/table sizes do not establish bounded arbitrary text input or playback.",
+      "forbidden_alternatives": [
+        "Relabel dictionary lookup as learned physical cognition",
+        "Feed text semantics directly to pupil action or somatic truth",
+        "Use prohibited FunctionalOrganism harness as acceptance",
+        "Make unsupported capability pass by defaults or injected validation data"
+      ]
+    },
+    {
+      "id": "OT04",
+      "name": "Silently repaired invalid phonetics and word-tail loss",
+      "algorithm_classes": [
+        "deterministic_transduction",
+        "state_transport"
+      ],
+      "architecture_disposition": "confirmed data/fidelity defects; no runtime exercise this audit",
+      "observed_mechanism": "chair/hot/hard contain invalid ah onsets; blue contains invalid l vowel. Caller silently maps invalid values to index0. Joined syllables are cut to4000 samples,250ms,8000bytes. Each syllable is about219–250ms, so multiple syllables cannot survive whole-word truncation.",
+      "inputs": "Authored syllable tuples, seed,16kHz signed16bit samples",
+      "state": "Transient per-word chunk list and joined buffer; length proportional to supplied text before truncation",
+      "outputs": "One padded/truncated250ms packet, not a complete multi-syllable utterance",
+      "refs": [
+        {
+          "path": "dsf_ai_service/orthographic_sensory_transducer.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/orthographic_sensory_transducer.py",
+          "sha256": "a7c6ed3563dbb93680c7eb3ff8f51d0835226534af4bd472e867a6f734889967",
+          "start": 321,
+          "end": 368,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "dsf_ai_service/orthographic_sensory_transducer.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/orthographic_sensory_transducer.py",
+          "sha256": "a7c6ed3563dbb93680c7eb3ff8f51d0835226534af4bd472e867a6f734889967",
+          "start": 660,
+          "end": 685,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "dsf_ai_service/guala_voice.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/guala_voice.py",
+          "sha256": "a7b03520aaf5df0dc3082d8c8860eaa0ea0f7d6f39041013dc2b15e301090313",
+          "start": 24,
+          "end": 28,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "dsf_ai_service/guala_voice.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/guala_voice.py",
+          "sha256": "a7b03520aaf5df0dc3082d8c8860eaa0ea0f7d6f39041013dc2b15e301090313",
+          "start": 203,
+          "end": 218,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "tests/test_orthographic_sensory_transducer.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/tests/test_orthographic_sensory_transducer.py",
+          "sha256": "27438596491858db5f6714f6f8e98cb3ee0f3cb3e5c0b9ba46272147b3b8e4bf",
+          "start": 99,
+          "end": 126,
+          "scope": "captured working source; no live-image binding"
+        }
+      ],
+      "replacement": "Validate external source media without defaulting invalid symbols. Stream complete verified utterances over bounded successive physical intervals with explicit progress/end, preserving order and remaining samples. Bound incoming material and retained buffers; do not solve truncation by an arbitrary giant capacity.",
+      "required_unit": "Reject all four invalid entries and unsupported symbols; concatenate emitted packets and compare to the complete authenticated external source including its ending.",
+      "required_module": "Clocked playback emits each sample once and ends; test frame boundaries, cancellation and bounded memory.",
+      "required_system": "World speaker→ear delivery preserves duration and sample order across ordinary intervals; cold continuation must not silently replay or discard material if persistence is claimed.",
+      "evidence_level": "source",
+      "artifact_runtime_scope": "captured working tree only; not currently image-bound",
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_passed",
+      "full_dsf": "This module does not evaluate DSF. Symbolic templates are not a reduction computed from an incoming full DSF field and cannot substitute for physical sensing or learned native relationships.",
+      "preservation": "Preserve existing organism identity, retained history, world state and canonical checkpoint. No reset, live mutation or product-source edit by A1 in this audit.",
+      "resource_evidence": "No CPU, latency or live allocation measurement. Finite image/table sizes do not establish bounded arbitrary text input or playback.",
+      "forbidden_alternatives": [
+        "Relabel dictionary lookup as learned physical cognition",
+        "Feed text semantics directly to pupil action or somatic truth",
+        "Use prohibited FunctionalOrganism harness as acceptance",
+        "Make unsupported capability pass by defaults or injected validation data"
+      ]
+    },
+    {
+      "id": "OT05",
+      "name": "Unsupported zero-contamination acceptance",
+      "algorithm_classes": [
+        "state_transport",
+        "unknown"
+      ],
+      "architecture_disposition": "historical acceptance rejected; test harness invokes prohibited controller",
+      "observed_mechanism": "Tests repeat dictionary constants, assert nonzero audio and frame size, then create FunctionalOrganism.genesis and accept ticking, identity and positive reserve as zero cognitive contamination. These facts prove neither unchanged kernel, learned reading, physical grounding nor retained cognition.",
+      "inputs": "Authored sentence and fresh prohibited FunctionalOrganism fixture",
+      "state": "Fresh test-only body; not preserved mature organism history",
+      "outputs": "Assertions with substantially broader test/doc claims",
+      "refs": [
+        {
+          "path": "tests/test_orthographic_sensory_transducer.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/tests/test_orthographic_sensory_transducer.py",
+          "sha256": "27438596491858db5f6714f6f8e98cb3ee0f3cb3e5c0b9ba46272147b3b8e4bf",
+          "start": 1,
+          "end": 10,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "tests/test_orthographic_sensory_transducer.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/tests/test_orthographic_sensory_transducer.py",
+          "sha256": "27438596491858db5f6714f6f8e98cb3ee0f3cb3e5c0b9ba46272147b3b8e4bf",
+          "start": 129,
+          "end": 166,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "tests/test_orthographic_sensory_transducer.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/tests/test_orthographic_sensory_transducer.py",
+          "sha256": "27438596491858db5f6714f6f8e98cb3ee0f3cb3e5c0b9ba46272147b3b8e4bf",
+          "start": 200,
+          "end": 223,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "docs/TODO.md",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/docs/TODO.md",
+          "sha256": "48d3d2262a27a36f3f973469f8a495f747584f7fc30671384cf4e0850bac9307",
+          "start": 37,
+          "end": 41,
+          "scope": "captured working source; no live-image binding"
+        }
+      ],
+      "replacement": "Withdraw the Delivered & Verified cognitive qualification and preserve old evidence. Retire prohibited harness. Specify and test actual external-input containment, genuine learning and retained native state separately; keep unsupported capability failing until implemented.",
+      "required_unit": "Meaningful falsifiers for source fidelity and prohibited information paths, rather than equality to implementation constants.",
+      "required_module": "Instrument actual native sensory intake and state writers; test whether external labels/templates can bypass physical learning.",
+      "required_system": "Use the same mature preserved body, ordinary closed-loop learning, sleep where claimed, cold continuation and later sensory recall/action. Identity/tick continuity alone is insufficient.",
+      "evidence_level": "source",
+      "artifact_runtime_scope": "captured working tree only; not currently image-bound",
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_passed",
+      "full_dsf": "This module does not evaluate DSF. Symbolic templates are not a reduction computed from an incoming full DSF field and cannot substitute for physical sensing or learned native relationships.",
+      "preservation": "Preserve existing organism identity, retained history, world state and canonical checkpoint. No reset, live mutation or product-source edit by A1 in this audit.",
+      "resource_evidence": "No CPU, latency or live allocation measurement. Finite image/table sizes do not establish bounded arbitrary text input or playback.",
+      "forbidden_alternatives": [
+        "Relabel dictionary lookup as learned physical cognition",
+        "Feed text semantics directly to pupil action or somatic truth",
+        "Use prohibited FunctionalOrganism harness as acceptance",
+        "Make unsupported capability pass by defaults or injected validation data"
+      ]
+    },
+    {
+      "id": "OT06",
+      "name": "Television source reachability and missing audio serving proof",
+      "algorithm_classes": [
+        "state_transport",
+        "unknown"
+      ],
+      "architecture_disposition": "source renderer caller established; timed audio serving unknown",
+      "observed_mechanism": "home_world_authority constructs TelevisionBroadcast; switch_tv_channel installs rendered screen surface/emission. Educational audio helper calls word synthesis, but search of dsf_ai_service finds no caller of generate_audio_pcm. Direct helper callers are tests.",
+      "inputs": "World TV channel operation/frame index; authored curriculum words",
+      "state": "Broadcast object attached to world authority; complete clock and persistence binding not established",
+      "outputs": "Source-level screen update; audio helper output in fixtures; no live playback demonstrated",
+      "refs": [
+        {
+          "path": "dsf_ai_service/guala_home_world.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/guala_home_world.py",
+          "sha256": "ef990956ded18c3dc9c3abe690dadd3df171eec9e02dbff9c523490757b27595",
+          "start": 1507,
+          "end": 1513,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "dsf_ai_service/guala_home_world.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/guala_home_world.py",
+          "sha256": "ef990956ded18c3dc9c3abe690dadd3df171eec9e02dbff9c523490757b27595",
+          "start": 1755,
+          "end": 1797,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "dsf_ai_service/dynamic_television_broadcast.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/dynamic_television_broadcast.py",
+          "sha256": "4ef037c8ce14bb8b1ca641f5822b0fd768ee68e4c48c1816fffca6f0df96034c",
+          "start": 199,
+          "end": 243,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "tests/test_environmental_variety_and_channels.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/tests/test_environmental_variety_and_channels.py",
+          "sha256": "fbd0df17b6b71511bbcc648325f949f734d460576ba9b713eac89c5097bbe6af",
+          "start": 40,
+          "end": 85,
+          "scope": "captured working source; no live-image binding"
+        }
+      ],
+      "replacement": "G1 must trace and attest the actual world media clock, propagation, receptor path, package and persistence before claiming audible curriculum. If no route exists, state the capability absent until implemented under the external media boundary.",
+      "required_unit": "Source/clock/cancellation contract for bounded world media.",
+      "required_module": "Observe real invocation and delivered timed pressure, not merely helper availability.",
+      "required_system": "Bind exact source and image to a deployed ordinary tick witness with actual world pressure and same-organism ear return; no direct test-only injection.",
+      "evidence_level": "source",
+      "artifact_runtime_scope": "captured working tree only; not currently image-bound",
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_passed",
+      "full_dsf": "This module does not evaluate DSF. Symbolic templates are not a reduction computed from an incoming full DSF field and cannot substitute for physical sensing or learned native relationships.",
+      "preservation": "Preserve existing organism identity, retained history, world state and canonical checkpoint. No reset, live mutation or product-source edit by A1 in this audit.",
+      "resource_evidence": "No CPU, latency or live allocation measurement. Finite image/table sizes do not establish bounded arbitrary text input or playback.",
+      "forbidden_alternatives": [
+        "Relabel dictionary lookup as learned physical cognition",
+        "Feed text semantics directly to pupil action or somatic truth",
+        "Use prohibited FunctionalOrganism harness as acceptance",
+        "Make unsupported capability pass by defaults or injected validation data"
+      ]
+    },
+    {
+      "id": "OT07",
+      "name": "History and evolution classification",
+      "algorithm_classes": [
+        "unknown"
+      ],
+      "architecture_disposition": "false physical/cognitive equivalence; scoped import cleanup is a separate change",
+      "observed_mechanism": "Commit aa8c312f479c1f1b40c50688301f349f62530629 authored by Codex on2026-09-20 added this module/tests and marked Asset6 delivered. Current diff moves acoustic helpers out of FunctionalOrganism imports but retains semantic and phonetic substitutions. No approval of those exact cognitive shortcuts was authenticated in this slice.",
+      "inputs": "Historical claim, current captured source and working diff",
+      "state": "Source/version history, not learned organism memory",
+      "outputs": "Separate authority/conformity/continuity/effectiveness judgments",
+      "refs": [
+        {
+          "path": "dsf_ai_service/orthographic_sensory_transducer.py",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/orthographic_sensory_transducer.py",
+          "sha256": "a7c6ed3563dbb93680c7eb3ff8f51d0835226534af4bd472e867a6f734889967",
+          "start": 1,
+          "end": 49,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "docs/COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/docs/COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "f281291714949f1f3654717579d03f79223ee203f4c90939fe3ef01f45589c54",
+          "start": 96,
+          "end": 146,
+          "scope": "captured working source; no live-image binding"
+        },
+        {
+          "path": "docs/TODO.md",
+          "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/docs/TODO.md",
+          "sha256": "48d3d2262a27a36f3f973469f8a495f747584f7fc30671384cf4e0850bac9307",
+          "start": 37,
+          "end": 41,
+          "scope": "captured working source; no live-image binding"
+        }
+      ],
+      "replacement": "Preserve useful external visual presentation while rejecting the claim that symbolic recipes are physical grounding or acquired cortex. Credit import detachment only for its proved boundary; it is not mechanism retirement or restored learning. Reconcile original approval separately without inventing intent.",
+      "required_unit": "No cognitive capability inferred from an import change.",
+      "required_module": "Review the complete caller and transitive prohibited-controller closure.",
+      "required_system": "Qualify actual retained learning and artifact boundaries with their own evidence; no blanket evolutionary-improvement label.",
+      "evidence_level": "source",
+      "artifact_runtime_scope": "captured working tree only; not currently image-bound",
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_passed",
+      "full_dsf": "This module does not evaluate DSF. Symbolic templates are not a reduction computed from an incoming full DSF field and cannot substitute for physical sensing or learned native relationships.",
+      "preservation": "Preserve existing organism identity, retained history, world state and canonical checkpoint. No reset, live mutation or product-source edit by A1 in this audit.",
+      "resource_evidence": "No CPU, latency or live allocation measurement. Finite image/table sizes do not establish bounded arbitrary text input or playback.",
+      "forbidden_alternatives": [
+        "Relabel dictionary lookup as learned physical cognition",
+        "Feed text semantics directly to pupil action or somatic truth",
+        "Use prohibited FunctionalOrganism harness as acceptance",
+        "Make unsupported capability pass by defaults or injected validation data"
+      ]
+    }
+  ]
+}

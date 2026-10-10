@@ -1,0 +1,973 @@
+{
+  "schema": "guala.documentary_full_content_read.v1",
+  "sources": [
+    {
+      "id": "DR001",
+      "path": "arcloom_demonstrator/README.md",
+      "git_blob": "8247cb20e0ad9050291dc6dc6568f8ff4a83e731",
+      "sha256": "f5473bf194d63f2412ee46a4dc044feac18aded28675216c0e55ae6916e01fdc",
+      "bytes": 6844,
+      "lines": 113,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/demonstrator-readme-history/DR001--README.md",
+      "observations": [
+        {
+          "author_time": "2026-09-30T03:20:51+00:00",
+          "commit": "50ad18c60015b9c3a9cbd04b680b2d394d6f6e8e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-30T02:11:03+00:00",
+          "commit": "94f13e7a0e35de6f6901a4408b778bd4d69004f9",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "DR002",
+      "path": "arcloom_demonstrator/README.md",
+      "git_blob": "4a5e8bef2e8a62beec0b594f22e2a125b644b7e1",
+      "sha256": "cba5a82ec02a0c2a5946458967670a778b1599a061b242a00804923bd3c9c551",
+      "bytes": 7818,
+      "lines": 125,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/demonstrator-readme-history/DR002--README.md",
+      "observations": [
+        {
+          "author_time": "2026-09-30T16:47:55+00:00",
+          "commit": "cb69d23eab47b6472f070af27f88819cd3586977",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-30T03:20:51+00:00",
+          "commit": "50ad18c60015b9c3a9cbd04b680b2d394d6f6e8e",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "DR003",
+      "path": "arcloom_demonstrator/README.md",
+      "git_blob": "8a8790bf0ca81f35a350f9208aeecee8bdc806e0",
+      "sha256": "381070aebe1b64853a3d68b49ae5a827686a474f8cc8288d2da676a1ff6249ed",
+      "bytes": 8403,
+      "lines": 129,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/demonstrator-readme-history/DR003--README.md",
+      "observations": [
+        {
+          "author_time": "2026-09-30T17:47:05+00:00",
+          "commit": "8c3244cb31ea062014430f85db8c8e6d2211bb94",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-30T16:47:55+00:00",
+          "commit": "cb69d23eab47b6472f070af27f88819cd3586977",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "DR004",
+      "path": "arcloom_demonstrator/README.md",
+      "git_blob": "1f60e3e29ab1906abcedd50ef10e92f90ec930e9",
+      "sha256": "95f4ca1d69d3e85c9701d0522115af92a873567703a7e0ecfac8c00029a28ecb",
+      "bytes": 8433,
+      "lines": 129,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/demonstrator-readme-history/DR004--README.md",
+      "observations": [
+        {
+          "author_time": "2026-09-30T19:13:12+00:00",
+          "commit": "03b4d4525e040370287056b32f5b64cfe4ac88bf",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-30T17:47:05+00:00",
+          "commit": "8c3244cb31ea062014430f85db8c8e6d2211bb94",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "DR005",
+      "path": "arcloom_demonstrator/README.md",
+      "git_blob": "5493c0c4c85ae7a358e2811831613a2ef498ba2a",
+      "sha256": "095aec03f8e2beb11ff8cf1d17d801b3d5fc13152289ba981ecb91fc247ca85b",
+      "bytes": 8488,
+      "lines": 129,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/demonstrator-readme-history/DR005--README.md",
+      "observations": [
+        {
+          "author_time": "2026-09-30T20:05:31+00:00",
+          "commit": "0dad5f2b9deb042991e6c30f8b9f7169da74ca2d",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-30T19:13:12+00:00",
+          "commit": "03b4d4525e040370287056b32f5b64cfe4ac88bf",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "DR006",
+      "path": "arcloom_demonstrator/README.md",
+      "git_blob": "53a4a5962bc3683c8e26db14fac74153df2a62f0",
+      "sha256": "2eaf2bf79188ec46c2170ad81241e3b432a3a83b364c4bf703abc429b7004329",
+      "bytes": 8621,
+      "lines": 129,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/demonstrator-readme-history/DR006--README.md",
+      "observations": [
+        {
+          "author_time": "2026-09-30T21:20:47+00:00",
+          "commit": "4b96a43fc643457255f6a60f82caa18931c91b8b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-30T20:05:31+00:00",
+          "commit": "0dad5f2b9deb042991e6c30f8b9f7169da74ca2d",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "DR007",
+      "path": "arcloom_demonstrator/README.md",
+      "git_blob": "8c0cd3b4cd2420b246f0923a2b760b0d29c7ff0f",
+      "sha256": "12c22dda2665c70892cea37086c197b7bfb20651a91a618560c9196454fe0efb",
+      "bytes": 8624,
+      "lines": 129,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/demonstrator-readme-history/DR007--README.md",
+      "observations": [
+        {
+          "author_time": "2026-10-01T02:55:23+00:00",
+          "commit": "e378c9296ebabc16b9e972e2584927ebcef21877",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-30T21:20:47+00:00",
+          "commit": "4b96a43fc643457255f6a60f82caa18931c91b8b",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "DR008",
+      "path": "arcloom_demonstrator/README.md",
+      "git_blob": "a47ee829eb8e89fd8ecd9caa7c1a5199567a3b4a",
+      "sha256": "321bb28eea56055b387395d81f5201299ba44a79cff29ddac87dbc8999df3cfa",
+      "bytes": 4319,
+      "lines": 107,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/demonstrator-readme-history/DR008--README.md",
+      "observations": [
+        {
+          "author_time": "2026-10-01T17:46:14+00:00",
+          "commit": "95d1ded7863bd996fb1e4cf04166e08ea6ebccf1",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-10-01T02:55:23+00:00",
+          "commit": "e378c9296ebabc16b9e972e2584927ebcef21877",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "DR009",
+      "path": "arcloom_demonstrator/README.md",
+      "git_blob": "5dabbeb54cc2e102a3d9521031843d073b965f13",
+      "sha256": "db8ed2660f9d7594de6698eb473136fef2a5e0449387b50eacc3bab66112ff4f",
+      "bytes": 3450,
+      "lines": 81,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/demonstrator-readme-history/DR009--README.md",
+      "observations": [
+        {
+          "author_time": "2026-10-01T19:01:26+00:00",
+          "commit": "5f07d64a79a88dfd531b7b410fc8586eb19fb5fa",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-10-01T17:46:14+00:00",
+          "commit": "95d1ded7863bd996fb1e4cf04166e08ea6ebccf1",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "DR010",
+      "path": "arcloom_demonstrator/README.md",
+      "git_blob": "d902bf3360d7974e9a068a255b3eb03b8faddee4",
+      "sha256": "81ca30745eff45934e14d60666a7172335f7a8279d71f6971f56ce59c1de815d",
+      "bytes": 4130,
+      "lines": 87,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/demonstrator-readme-history/DR010--README.md",
+      "observations": [
+        {
+          "author_time": "2026-10-01T21:13:11+00:00",
+          "commit": "6292eefa154df69fa03c86a842eb31b6f148ebe8",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-10-01T19:01:26+00:00",
+          "commit": "5f07d64a79a88dfd531b7b410fc8586eb19fb5fa",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "DR011",
+      "path": "arcloom_demonstrator/README.md",
+      "git_blob": "8315756408bbe968cee6935f7a513bcc32929636",
+      "sha256": "82c99f6c555fae2bf7b224f3492b5b4a2df45532b28366d64edf0059e1c8ed89",
+      "bytes": 4525,
+      "lines": 86,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/demonstrator-readme-history/DR011--README.md",
+      "observations": [
+        {
+          "author_time": "2026-10-01T21:30:46+00:00",
+          "commit": "5fdcb7750f5b2237d3c06c9d8af5106f067ae6ae",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-10-01T21:13:11+00:00",
+          "commit": "6292eefa154df69fa03c86a842eb31b6f148ebe8",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "DR012",
+      "path": "arcloom_demonstrator/README.md",
+      "git_blob": "01feb2f82bca45dd3db5b8650d02ca2e27ad2b47",
+      "sha256": "9f129b68af0f2e43d8f305d6c96e39d36c46873ed61f31d21fa4e3d42fd69af1",
+      "bytes": 2926,
+      "lines": 60,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/demonstrator-readme-history/DR012--README.md",
+      "observations": [
+        {
+          "author_time": "2026-10-02T03:56:05+00:00",
+          "commit": "784fd99b123a977ce24fee58f7853b370a2f9d73",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-10-01T21:30:46+00:00",
+          "commit": "5fdcb7750f5b2237d3c06c9d8af5106f067ae6ae",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "DR013",
+      "path": "arcloom_demonstrator/README.md",
+      "git_blob": "7fef8c80989fb73d23d1ea27afd735d1ebad5269",
+      "sha256": "888f42ca51dd57232595a3743faafef819f1cd6a20573994a3fc9299820af742",
+      "bytes": 3647,
+      "lines": 73,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/demonstrator-readme-history/DR013--README.md",
+      "observations": [
+        {
+          "author_time": "2026-10-02T03:56:05+00:00",
+          "commit": "784fd99b123a977ce24fee58f7853b370a2f9d73",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    }
+  ],
+  "base": "DR013",
+  "base_lines": 73,
+  "historical_only_passages": [
+    {
+      "source_id": "DR001",
+      "start_line": 1,
+      "end_line": 2,
+      "latest_id": "DR013",
+      "latest_start_line": 1,
+      "latest_end_line": 1,
+      "kind": "replace",
+      "text": "# ArcLoom 8-Column Neuromorphic Hardware Demonstrator\n**Clean-Room Benchtop Demonstration Package (DARPA / AFRL Proving Ground)**"
+    },
+    {
+      "source_id": "DR001",
+      "start_line": 4,
+      "end_line": 4,
+      "latest_id": "DR013",
+      "latest_start_line": 3,
+      "latest_end_line": 5,
+      "kind": "replace",
+      "text": "This standalone package contains the exact physical and digital circuits required to demonstrate the **ArcLoom discrete balanced-ternary neuromorphic architecture** on a local benchtop workstation, PYNQ-Z2 FPGA board, and Siglent 4-channel oscilloscope."
+    },
+    {
+      "source_id": "DR001",
+      "start_line": 6,
+      "end_line": 6,
+      "latest_id": "DR013",
+      "latest_start_line": 7,
+      "latest_end_line": 7,
+      "kind": "replace",
+      "text": "---"
+    },
+    {
+      "source_id": "DR001",
+      "start_line": 8,
+      "end_line": 8,
+      "latest_id": "DR013",
+      "latest_start_line": 9,
+      "latest_end_line": 24,
+      "kind": "replace",
+      "text": "## 1. System Architecture: 8-Column Balanced Octet"
+    },
+    {
+      "source_id": "DR001",
+      "start_line": 10,
+      "end_line": 10,
+      "latest_id": "DR013",
+      "latest_start_line": 26,
+      "latest_end_line": 26,
+      "kind": "replace",
+      "text": "The substrate models 8 specialized cortical macrocolumns ($2,560$ ternary nodes, $1.31\\text{ million}$ plastic fasciculi) operating under continuum material yield stress mechanics ($f = |\\sigma| - Y \\le 0$):"
+    },
+    {
+      "source_id": "DR001",
+      "start_line": 12,
+      "end_line": 29,
+      "latest_id": "DR013",
+      "latest_start_line": 28,
+      "latest_end_line": 44,
+      "kind": "replace",
+      "text": "```\n                     ┌─────────────────────────────────────────┐\n                     │       8-COLUMN DYNAMICAL OCTET          │\n                     └─────────────────────────────────────────┘\n                          │               │               │\n            ┌─────────────┴─────┐   ┌─────┴───────┐   ┌───┴─────────────┐\n            │      OPTICAL      │   │  ACOUSTIC   │   │  SOMATOSENSORY  │\n            │ V1: Depth  (r)    │   │ A1: Formant │   │ S1: Tactile Grip│\n            │ V2: Heading (θ)   │   │ A2: Pitch   │   │ S2: Yield Stress│\n            └─────────────┬─────┘   └─────┬───────┘   └───┬─────────────┘\n                          │               │               │\n                          └───────────────┼───────────────┘\n                                          ▼\n                                 ┌─────────────────┐\n                                 │      MOTOR      │\n                                 │ M1: Vocal Pulse │\n                                 │ M2: Stride Drive│\n                                 └─────────────────┘"
+    },
+    {
+      "source_id": "DR001",
+      "start_line": 32,
+      "end_line": 39,
+      "latest_id": "DR013",
+      "latest_start_line": 47,
+      "latest_end_line": 52,
+      "kind": "replace",
+      "text": "1. **Column 0 ($V_1$)**: Optical Foveal Focal Target (polar distance $r_{\\text{mm}}$, focal target presence).\n2. **Column 1 ($V_2$)**: Optical Motion Gradient & Spatial Angle (polar azimuth $\\theta_{\\text{mdeg}}$, heading).\n3. **Column 2 ($A_1$)**: Cochlear Formant Peak Resonance (primary acoustic formant band).\n4. **Column 3 ($A_2$)**: Cochlear Pitch / Envelope (spectral contour and volume).\n5. **Column 4 ($S_1$)**: Somatosensory Palmar Tactile Contact (palmar grip pressure).\n6. **Column 5 ($S_2$)**: Somatosensory Barrier Stress (continuum yield evaluation: $f = |\\sigma| - Y \\le 0$).\n7. **Column 6 ($M_1$)**: Motor Airway Vocal Valve (homeostatic exhaust discharge pulse).\n8. **Column 7 ($M_2$)**: Motor Locomotion Stride & Steer (gated by $S_2$ barrier refusal)."
+    },
+    {
+      "source_id": "DR001",
+      "start_line": 43,
+      "end_line": 43,
+      "latest_id": "DR013",
+      "latest_start_line": 58,
+      "latest_end_line": 60,
+      "kind": "replace",
+      "text": "## 2. Directory Structure"
+    },
+    {
+      "source_id": "DR001",
+      "start_line": 45,
+      "end_line": 69,
+      "latest_id": "DR013",
+      "latest_start_line": 62,
+      "latest_end_line": 62,
+      "kind": "replace",
+      "text": "```\narcloom_demonstrator/\n├── README.md                       # This architecture & operation guide\n├── setup.sh                        # 1-click cleanroom bootstrap (<3 minutes)\n├── run_demonstrator.py             # Real-time interactive console dashboard\n├── benchmark_octal_substrate.py    # 5-Suite physical invariant & timing benchmark\n├── native/\n│   └── guala_core/                 # High-performance 64-bit SIMD Rust core\n│       ├── Cargo.toml\n│       ├── pyproject.toml\n│       └── src/\n│           ├── lib.rs\n│           └── cortical_column.rs\n├── hdl/                            # Synthesizable Verilog RTL cores for FPGA\n│   ├── arcloom_octal_column.v      # 8-Column balanced octet digital circuit\n│   ├── arcloom_octal_tb.v          # Cycle-accurate Verilog testbench\n│   ├── arcloom_mathloom.v          # Ternary arithmetic core\n│   ├── arcloom_mathloom_div.v      # Ternary iterative folding divider\n│   └── constraints/\n│       └── pynq_z2_scope.xdc       # Siglent oscilloscope PMOD pin constraints\n├── substrate/\n│   └── modular_column_substrate.py # Python adapter for 8D physical substrate\n└── tests/\n    └── test_octal_column_invariants.py # Verification test suite (100% pass)\n```"
+    },
+    {
+      "source_id": "DR001",
+      "start_line": 73,
+      "end_line": 113,
+      "latest_id": "DR013",
+      "latest_start_line": 69,
+      "latest_end_line": 73,
+      "kind": "replace",
+      "text": "## 3. Quickstart (New Demonstrator Laptop)\n\n### Step 1: Run the 1-Click Bootstrap\nInside Windows 11 Pro WSL2 (Ubuntu 24.04):\n```bash\ncd arcloom_demonstrator\nbash setup.sh\n```\nThis automatically compiles the native 8-column Rust kernel in release mode, executes the multi-phase invariant tests, and runs the comparative benchmarks.\n\n### Step 2: Launch the Interactive Tactical Console\n```bash\nsource .venv/bin/activate\npython3 run_demonstrator.py\n```\n\n#### Interactive Controls:\n* **`[B]` Blind Camera**: Simulates total optical occlusion. Demonstrates the invariant spatial permanence attractor locking target coordinates $(r, \\theta)$ in Layer 5 deep wells with $0.00\\text{ mm}$ drift.\n* **`[A]` Acoustic Pulse**: Injects a $220\\text{ Hz}$ acoustic formant peak into $A_1$, demonstrating plastic associative binding.\n* **`[C]` Collision Impact**: Induces over-yield barrier stress ($\\sigma = 0.95 > Y = 0.60$), demonstrating immediate locomotion stride arrest ($0.0\\text{ mm}$) and airway vocal exhaust pulse ($220.0\\text{ Hz}$).\n* **`[S]` Sleep Consolidation**: Executes nocturnal downscaling and pruning of sub-threshold noise without memory collapse.\n* **`[Q]` Quit**: Exits console.\n\n---\n\n## 4. Hardware Verification with Siglent Oscilloscope & PYNQ-Z2\n\nConnect the 4 channels of the **Siglent SDS1104X-E 100 MHz Oscilloscope** to the PYNQ-Z2 PMOD A/B headers according to `hdl/constraints/pynq_z2_scope.xdc`:\n\n* **Channel 1 (Yellow Probe)**: `pmod_scope_ch1` (Optical $V_1$ distance pulse-density modulation).\n* **Channel 2 (Pink Probe)**: `pmod_scope_ch2` (Acoustic $A_1$ formant resonance frequency).\n* **Channel 3 (Blue Probe)**: `pmod_scope_ch3` (Somatosensory $S_2$ barrier yield stress spike).\n* **Channel 4 (Green Probe)**: `pmod_scope_ch4` (Motor $M_1$ vocal exhaust pulse train).\n\n---\n\n## 5. Physical Invariants (Diamond Hard Contract)\n\n1. **Zero ML Approximations**: No neural network weights, no backpropagation, no statistical gradient descent. Plasticity proceeds strictly from continuum yield mechanics ($f = |\\sigma| - Y \\le 0$).\n2. **Zero Heuristics / Lookup Tables**: Spatial tracking and barrier refusal proceed from continuous potential manifolds and laminar causal propagation.\n3. **Deterministic Latency**: Sub-millisecond ($255\\ \\mu\\text{s}$) software simulation; sub-microsecond ($< 100\\text{ ns}$) digital circuit clocking."
+    },
+    {
+      "source_id": "DR002",
+      "start_line": 1,
+      "end_line": 2,
+      "latest_id": "DR013",
+      "latest_start_line": 1,
+      "latest_end_line": 1,
+      "kind": "replace",
+      "text": "# ArcLoom Neuromorphic Hardware Demonstrator\n**Clean-Room Benchtop Demonstration Package (DARPA / AFRL Proving Ground)**"
+    },
+    {
+      "source_id": "DR002",
+      "start_line": 8,
+      "end_line": 8,
+      "latest_id": "DR013",
+      "latest_start_line": 9,
+      "latest_end_line": 24,
+      "kind": "replace",
+      "text": "## 1. System Architectures: Two Complementary Scales"
+    },
+    {
+      "source_id": "DR002",
+      "start_line": 10,
+      "end_line": 11,
+      "latest_id": "DR013",
+      "latest_start_line": 26,
+      "latest_end_line": 26,
+      "kind": "replace",
+      "text": "### A. The 8-Column Balanced Octet (FPGA Silicon Synthesis & Scope Probes)\nThe hardware substrate models 8 specialized cortical macrocolumns ($2,560$ ternary nodes, $1.05\\text{ million}$ plastic fasciculi) operating under continuum material yield stress mechanics ($f = |\\sigma| - Y \\le 0$). Synthesizes directly into Xilinx Zynq-7020 FPGA silicon (~$22,000\\text{ LUTs}$, $41\\%$ fabric utilization):"
+    },
+    {
+      "source_id": "DR002",
+      "start_line": 42,
+      "end_line": 46,
+      "latest_id": "DR013",
+      "latest_start_line": 54,
+      "latest_end_line": 56,
+      "kind": "replace",
+      "text": "### B. The 64-Column Cortical Array (High-Capacity Multi-Modal Cognition)\nThe workstation host executes the 64-Column Cortical Array (`ModularSubstrate64D`):\n- **Structure**: 8 interconnected macro-clusters of 8 columns each ($20,480$ ternary nodes, $83.8\\text{ million}$ plastic fasciculi).\n- **Sensory Capacity**: 512-channel cochlear filterbank, full foveal retinal grid, multi-word spoken command syntax tracking (\"pick up bear\", \"find tv remote\", \"get bottle\").\n- **Throughput**: $8.5\\text{ ms}$ per tick ($118\\text{ Hz}$ execution in native Rust SIMD)."
+    },
+    {
+      "source_id": "DR002",
+      "start_line": 52,
+      "end_line": 76,
+      "latest_id": "DR013",
+      "latest_start_line": 64,
+      "latest_end_line": 67,
+      "kind": "replace",
+      "text": "```\narcloom_demonstrator/\n├── README.md                       # This architecture & operation guide\n├── setup.sh                        # 1-click cleanroom bootstrap (<3 minutes)\n├── run_demonstrator.py             # Real-time interactive console dashboard (--columns 8 or 64)\n├── benchmark_octal_substrate.py    # Physical invariant & timing benchmark\n├── native/\n│   └── guala_core/                 # High-performance 64-bit SIMD Rust core (4D, 8D, 64D)\n│       ├── Cargo.toml\n│       ├── pyproject.toml\n│       └── src/\n│           ├── lib.rs\n│           └── cortical_column.rs\n├── hdl/                            # Synthesizable Verilog RTL cores for FPGA\n│   ├── arcloom_octal_column.v      # 8-Column balanced octet digital circuit\n│   ├── arcloom_octal_tb.v          # Cycle-accurate Verilog testbench\n│   ├── arcloom_mathloom.v          # Ternary arithmetic core\n│   ├── arcloom_mathloom_div.v      # Ternary iterative folding divider\n│   └── constraints/\n│       └── pynq_z2_scope.xdc       # Siglent oscilloscope PMOD pin constraints\n├── substrate/\n│   └── modular_column_substrate.py # Python adapter for 8D & 64D physical substrate\n└── tests/\n    └── test_octal_column_invariants.py # Verification test suite (13/13 passing)\n```"
+    },
+    {
+      "source_id": "DR002",
+      "start_line": 78,
+      "end_line": 125,
+      "latest_id": "DR013",
+      "latest_start_line": 69,
+      "latest_end_line": 73,
+      "kind": "replace",
+      "text": "---\n\n## 3. Quickstart (New Demonstrator Laptop)\n\n### Step 1: Run the 1-Click Bootstrap\nInside Windows 11 Pro WSL2 (Ubuntu 24.04):\n```bash\ncd arcloom_demonstrator\nbash setup.sh\n```\nThis automatically compiles the native Rust kernel in release mode, executes the multi-phase invariant tests, and runs the comparative benchmarks.\n\n### Step 2: Launch the Interactive Tactical Console\n```bash\nsource .venv/bin/activate\n\n# Launch 8-Column Hardware Octet Mode (default, matches FPGA scope pins):\npython3 run_demonstrator.py\n\n# Or launch 64-Column Cortical Array Mode (high-capacity):\npython3 run_demonstrator.py --columns 64\n```\n\n#### Interactive Controls:\n* **`[B]` Blind Camera**: Simulates total optical occlusion. Demonstrates the invariant spatial permanence attractor locking target coordinates $(r, \\theta)$ in Layer 5 deep wells with $0.00\\text{ mm}$ drift.\n* **`[A]` Acoustic Pulse**: Injects acoustic formant peaks into cochlear columns, demonstrating plastic associative binding.\n* **`[C]` Collision Impact**: Induces over-yield barrier stress ($\\sigma = 0.95 > Y = 0.60$), demonstrating immediate locomotion stride arrest ($0.0\\text{ mm}$) and airway vocal exhaust pulse ($220.0\\text{ Hz}$).\n* **`[S]` Sleep Consolidation**: Executes nocturnal downscaling and pruning of sub-threshold noise without memory collapse.\n* **`[Q]` Quit**: Exits console.\n\n---\n\n## 4. Hardware Verification with Siglent Oscilloscope & PYNQ-Z2\n\nConnect the 4 channels of the **Siglent SDS1104X-E 100 MHz Oscilloscope** to the PYNQ-Z2 PMOD A/B headers according to `hdl/constraints/pynq_z2_scope.xdc`:\n\n* **Channel 1 (Yellow Probe)**: `pmod_scope_ch1` (Optical $V_1$ distance pulse-density modulation).\n* **Channel 2 (Pink Probe)**: `pmod_scope_ch2` (Acoustic $A_1$ formant resonance frequency).\n* **Channel 3 (Blue Probe)**: `pmod_scope_ch3` (Somatosensory $S_2$ barrier yield stress spike).\n* **Channel 4 (Green Probe)**: `pmod_scope_ch4` (Motor $M_1$ vocal exhaust pulse train).\n\n---\n\n## 5. Physical Invariants (Diamond Hard Contract)\n\n1. **Zero ML Approximations**: No neural network weights, no backpropagation, no statistical gradient descent. Plasticity proceeds strictly from continuum yield mechanics ($f = |\\sigma| - Y \\le 0$).\n2. **Zero Heuristics / Lookup Tables**: Spatial tracking and barrier refusal proceed from continuous potential manifolds and laminar causal propagation.\n3. **Deterministic Latency**: Sub-millisecond ($255\\ \\mu\\text{s}$ for 8D, $8.5\\text{ ms}$ for 64D) software simulation; sub-microsecond ($< 100\\text{ ns}$) digital circuit clocking."
+    },
+    {
+      "source_id": "DR003",
+      "start_line": 10,
+      "end_line": 11,
+      "latest_id": "DR013",
+      "latest_start_line": 26,
+      "latest_end_line": 26,
+      "kind": "replace",
+      "text": "### A. The 8-Column Balanced Octet (Hardware Model & Scope Probes)\nThe substrate models 8 specialized cortical macrocolumns ($2,560$ ternary nodes, $1.05\\text{ million}$ plastic fasciculi) operating under continuum material yield stress mechanics ($f = |\\sigma| - Y \\le 0$)."
+    },
+    {
+      "source_id": "DR003",
+      "start_line": 13,
+      "end_line": 14,
+      "latest_id": "DR013",
+      "latest_start_line": 28,
+      "latest_end_line": 31,
+      "kind": "replace",
+      "text": "> [!NOTE]\n> **FPGA Verification Scope Note**: The `hdl/` directory provides complete cycle-accurate Verilog RTL circuits (`arcloom_octal_column.v`, `arcloom_mathloom.v`, `arcloom_mathloom_div.v`) and testbenches (`arcloom_octal_tb.v`). Target estimates (~$22,000\\text{ LUTs}$, $41\\%$ fabric utilization, 8.5 ms / 20 Hz timing) represent projected architectural synthesis targets; formal bitstream and on-board timing sign-off remain lab milestones currently verified in cycle-accurate HDL testbenches and native Rust SIMD execution."
+    },
+    {
+      "source_id": "DR003",
+      "start_line": 55,
+      "end_line": 80,
+      "latest_id": "DR013",
+      "latest_start_line": 64,
+      "latest_end_line": 67,
+      "kind": "replace",
+      "text": "```\narcloom_demonstrator/\n├── README.md                       # This architecture & operation guide\n├── setup.sh                        # 1-click cleanroom bootstrap (<3 minutes)\n├── run_demonstrator.py             # Real-time interactive console dashboard (--columns 8 or 64)\n├── benchmark_octal_substrate.py    # Physical invariant & timing benchmark\n├── native/\n│   └── guala_core/                 # High-performance 64-bit SIMD Rust core (4D, 8D, 64D)\n│       ├── Cargo.toml\n│       ├── pyproject.toml\n│       └── src/\n│           ├── lib.rs\n│           └── cortical_column.rs\n├── hdl/                            # Synthesizable Verilog RTL cores for FPGA\n│   ├── arcloom_octal_column.v      # 8-Column balanced octet digital circuit\n│   ├── arcloom_octal_tb.v          # Cycle-accurate Verilog testbench\n│   ├── arcloom_mathloom.v          # Ternary arithmetic core\n│   ├── arcloom_mathloom_div.v      # Ternary iterative folding divider\n│   └── constraints/\n│       └── pynq_z2_scope.xdc       # Siglent oscilloscope PMOD pin constraints\n├── substrate/\n│   └── modular_column_substrate.py # Python adapter for 8D & 64D physical substrate\n└── tests/\n    ├── test_octal_column_invariants.py    # Multi-phase invariant test suite\n    └── test_arcloom_causal_action_witness.py # Formal audit witness suite (A2-01 through A2-06)\n```"
+    },
+    {
+      "source_id": "DR003",
+      "start_line": 82,
+      "end_line": 129,
+      "latest_id": "DR013",
+      "latest_start_line": 69,
+      "latest_end_line": 73,
+      "kind": "replace",
+      "text": "---\n\n## 3. Quickstart (New Demonstrator Laptop)\n\n### Step 1: Run the 1-Click Bootstrap\nInside Windows 11 Pro WSL2 (Ubuntu 24.04):\n```bash\ncd arcloom_demonstrator\nbash setup.sh\n```\nThis automatically compiles the native Rust kernel in release mode, executes the multi-phase invariant tests, and runs the comparative benchmarks.\n\n### Step 2: Launch the Interactive Tactical Console\n```bash\nsource .venv/bin/activate\n\n# Launch 8-Column Hardware Octet Mode (default, matches FPGA scope pins):\npython3 run_demonstrator.py\n\n# Or launch 64-Column Cortical Array Mode (high-capacity):\npython3 run_demonstrator.py --columns 64\n```\n\n#### Interactive Controls:\n* **`[B]` Blind Camera**: Simulates total optical occlusion. Demonstrates the invariant spatial permanence attractor locking target coordinates $(r, \\theta)$ in Layer 5 deep wells with $0.00\\text{ mm}$ drift.\n* **`[A]` Acoustic Pulse**: Injects acoustic formant peaks into cochlear columns, demonstrating plastic associative binding.\n* **`[C]` Collision Impact**: Induces over-yield barrier stress ($\\sigma = 0.95 > Y = 0.60$), demonstrating immediate locomotion stride arrest ($0.0\\text{ mm}$) and airway vocal exhaust pulse ($220.0\\text{ Hz}$).\n* **`[S]` Sleep Consolidation**: Executes nocturnal downscaling and pruning of sub-threshold noise without memory collapse.\n* **`[Q]` Quit**: Exits console.\n\n---\n\n## 4. Hardware Verification with Siglent Oscilloscope & PYNQ-Z2\n\nConnect the 4 channels of the **Siglent SDS1104X-E 100 MHz Oscilloscope** to the PYNQ-Z2 PMOD A/B headers according to `hdl/constraints/pynq_z2_scope.xdc`:\n\n* **Channel 1 (Yellow Probe)**: `pmod_scope_ch1` (Optical $V_1$ distance pulse-density modulation).\n* **Channel 2 (Pink Probe)**: `pmod_scope_ch2` (Acoustic $A_1$ formant resonance frequency).\n* **Channel 3 (Blue Probe)**: `pmod_scope_ch3` (Somatosensory $S_2$ barrier yield stress spike).\n* **Channel 4 (Green Probe)**: `pmod_scope_ch4` (Motor $M_1$ vocal exhaust pulse train).\n\n---\n\n## 5. Physical Invariants (Diamond Hard Contract)\n\n1. **Zero ML Approximations**: No neural network weights, no backpropagation, no statistical gradient descent. Plasticity proceeds strictly from continuum yield mechanics ($f = |\\sigma| - Y \\le 0$).\n2. **Zero Heuristics / Lookup Tables**: Spatial tracking and barrier refusal proceed from continuous potential manifolds and laminar causal propagation. Continuous mathematical radix-3 expansion: $x \\sim \\sum_{k=1}^K t_k 3^{-k}$.\n3. **Deterministic Latency**: Sub-millisecond ($255\\ \\mu\\text{s}$ for 8D, $8.5\\text{ ms}$ for 64D) software simulation; sub-microsecond ($< 100\\text{ ns}$) digital circuit clocking."
+    },
+    {
+      "source_id": "DR004",
+      "start_line": 55,
+      "end_line": 80,
+      "latest_id": "DR013",
+      "latest_start_line": 64,
+      "latest_end_line": 67,
+      "kind": "replace",
+      "text": "```\narcloom_demonstrator/\n├── README.md                       # This architecture & operation guide\n├── setup.sh                        # 1-click cleanroom bootstrap (<3 minutes)\n├── run_demonstrator.py             # Real-time interactive console dashboard (--columns 8 or 64)\n├── benchmark_octal_substrate.py    # Physical invariant & timing benchmark\n├── native/\n│   └── guala_core/                 # High-performance 64-bit SIMD Rust core (4D, 8D, 64D)\n│       ├── Cargo.toml\n│       ├── pyproject.toml\n│       └── src/\n│           ├── lib.rs\n│           └── cortical_column.rs\n├── hdl/                            # Synthesizable Verilog RTL cores for FPGA\n│   ├── arcloom_octal_column.v      # 8-Column balanced octet digital circuit\n│   ├── arcloom_octal_tb.v          # Cycle-accurate Verilog testbench\n│   ├── arcloom_mathloom.v          # Ternary arithmetic core\n│   ├── arcloom_mathloom_div.v      # Ternary iterative folding divider\n│   └── constraints/\n│       └── pynq_z2_scope.xdc       # Siglent oscilloscope PMOD pin constraints\n├── substrate/\n│   └── modular_column_substrate.py # Python adapter for 8D & 64D physical substrate\n└── tests/\n    ├── test_octal_column_invariants.py    # Multi-phase invariant test suite\n    └── test_arcloom_causal_action_witness.py # Formal audit witness suite (A3-01 through A3-06)\n```"
+    },
+    {
+      "source_id": "DR004",
+      "start_line": 82,
+      "end_line": 129,
+      "latest_id": "DR013",
+      "latest_start_line": 69,
+      "latest_end_line": 73,
+      "kind": "replace",
+      "text": "---\n\n## 3. Quickstart (New Demonstrator Laptop)\n\n### Step 1: Run the 1-Click Bootstrap\nInside Windows 11 Pro WSL2 (Ubuntu 24.04):\n```bash\ncd arcloom_demonstrator\nbash setup.sh\n```\nThis automatically compiles the native Rust kernel in release mode, executes the multi-phase invariant tests, and runs the comparative benchmarks.\n\n### Step 2: Launch the Interactive Tactical Console\n```bash\nsource .venv/bin/activate\n\n# Launch 8-Column Hardware Octet Mode (default, matches FPGA scope pins):\npython3 run_demonstrator.py\n\n# Or launch 64-Column Cortical Array Mode (high-capacity):\npython3 run_demonstrator.py --columns 64\n```\n\n#### Interactive Controls:\n* **`[B]` Blind Camera**: Simulates total optical occlusion. Demonstrates egocentric polar spatial tracking registers maintaining target coordinates $(r, \\theta)$ under occlusion while persistence trace decays exponentially.\n* **`[A]` Acoustic Pulse**: Injects acoustic formant peaks into cochlear columns, demonstrating plastic associative binding.\n* **`[C]` Collision Impact**: Induces over-yield barrier stress ($\\sigma = 0.95 > Y = 0.60$), demonstrating immediate locomotion stride arrest ($0.0\\text{ mm}$) via protective motor interlock.\n* **`[S]` Sleep Consolidation**: Executes nocturnal downscaling and pruning of sub-threshold noise without memory collapse.\n* **`[Q]` Quit**: Exits console.\n\n---\n\n## 4. Hardware Verification with Siglent Oscilloscope & PYNQ-Z2\n\nConnect the 4 channels of the **Siglent SDS1104X-E 100 MHz Oscilloscope** to the PYNQ-Z2 PMOD A/B headers according to `hdl/constraints/pynq_z2_scope.xdc`:\n\n* **Channel 1 (Yellow Probe)**: `pmod_scope_ch1` (Optical $V_1$ distance pulse-density modulation).\n* **Channel 2 (Pink Probe)**: `pmod_scope_ch2` (Acoustic $A_1$ formant resonance frequency).\n* **Channel 3 (Blue Probe)**: `pmod_scope_ch3` (Somatosensory $S_2$ barrier yield stress spike).\n* **Channel 4 (Green Probe)**: `pmod_scope_ch4` (Motor $M_1$ vocal exhaust pulse train).\n\n---\n\n## 5. Physical Invariants (Diamond Hard Contract)\n\n1. **Zero ML Approximations**: No neural network weights, no backpropagation, no statistical gradient descent. Plasticity proceeds strictly from continuum yield mechanics ($f = |\\sigma| - Y \\le 0$).\n2. **Zero Heuristics / Lookup Tables**: Spatial tracking and barrier refusal proceed from continuous potential manifolds and laminar causal propagation. Continuous mathematical radix-3 expansion: $x \\sim \\sum_{k=1}^K t_k 3^{-k}$.\n3. **Deterministic Latency**: Software simulation targets (~$255\\ \\mu\\text{s}$ for 8D, ~$8.5\\text{ ms}$ for 64D on modern host CPU); sub-microsecond digital circuit hardware targets ($< 100\\text{ ns}$ on FPGA/ASIC)."
+    },
+    {
+      "source_id": "DR005",
+      "start_line": 45,
+      "end_line": 49,
+      "latest_id": "DR013",
+      "latest_start_line": 54,
+      "latest_end_line": 56,
+      "kind": "replace",
+      "text": "### B. The 64-Column Cortical Array (High-Capacity Modular Substrate)\nThe workstation host executes the 64-Column Cortical Array (`ModularSubstrate64D`):\n- **Structure**: 8 interconnected macro-clusters of 8 columns each ($20,480$ ternary nodes, up to $83.8\\text{ million}$ potential inter-column plastic fasciculi).\n- **Sensory Interface**: Multi-column sensory transductions (optical, cochlear, somatosensory, and prefrontal projection sheets) mapped across modular column clusters.\n- **Measured Throughput**: Native Rust SIMD execution scales sub-millisecond per column group, executing well within the 20 Hz real-time control target."
+    },
+    {
+      "source_id": "DR005",
+      "start_line": 55,
+      "end_line": 80,
+      "latest_id": "DR013",
+      "latest_start_line": 64,
+      "latest_end_line": 67,
+      "kind": "replace",
+      "text": "```\narcloom_demonstrator/\n├── README.md                       # This architecture & operation guide\n├── setup.sh                        # 1-click cleanroom bootstrap (<3 minutes)\n├── run_demonstrator.py             # Real-time interactive console dashboard (--columns 8 or 64)\n├── benchmark_octal_substrate.py    # Physical invariant & timing benchmark\n├── native/\n│   └── guala_core/                 # High-performance 64-bit SIMD Rust core (4D, 8D, 64D)\n│       ├── Cargo.toml\n│       ├── pyproject.toml\n│       └── src/\n│           ├── lib.rs\n│           └── cortical_column.rs\n├── hdl/                            # Synthesizable Verilog RTL cores for FPGA\n│   ├── arcloom_octal_column.v      # 8-Column balanced octet digital circuit\n│   ├── arcloom_octal_tb.v          # Cycle-accurate Verilog testbench\n│   ├── arcloom_mathloom.v          # Ternary arithmetic core\n│   ├── arcloom_mathloom_div.v      # Ternary iterative folding divider\n│   └── constraints/\n│       └── pynq_z2_scope.xdc       # Siglent oscilloscope PMOD pin constraints\n├── substrate/\n│   └── modular_column_substrate.py # Python adapter for 8D & 64D physical substrate\n└── tests/\n    ├── test_octal_column_invariants.py    # Multi-phase invariant test suite\n    └── test_arcloom_causal_action_witness.py # Formal audit witness suite (A4-01 through A4-06)\n```"
+    },
+    {
+      "source_id": "DR005",
+      "start_line": 82,
+      "end_line": 129,
+      "latest_id": "DR013",
+      "latest_start_line": 69,
+      "latest_end_line": 73,
+      "kind": "replace",
+      "text": "---\n\n## 3. Quickstart (New Demonstrator Laptop)\n\n### Step 1: Run the 1-Click Bootstrap\nInside Windows 11 Pro WSL2 (Ubuntu 24.04):\n```bash\ncd arcloom_demonstrator\nbash setup.sh\n```\nThis automatically compiles the native Rust kernel in release mode, executes the multi-phase invariant tests, and runs the comparative benchmarks.\n\n### Step 2: Launch the Interactive Tactical Console\n```bash\nsource .venv/bin/activate\n\n# Launch 8-Column Hardware Octet Mode (default, matches FPGA scope pins):\npython3 run_demonstrator.py\n\n# Or launch 64-Column Cortical Array Mode (high-capacity):\npython3 run_demonstrator.py --columns 64\n```\n\n#### Interactive Controls:\n* **`[B]` Blind Camera**: Simulates total optical occlusion. Demonstrates egocentric polar spatial tracking registers maintaining target coordinates $(r, \\theta)$ under occlusion while persistence trace decays exponentially.\n* **`[A]` Acoustic Pulse**: Injects acoustic formant peaks into cochlear columns, demonstrating plastic associative binding.\n* **`[C]` Collision Impact**: Induces over-yield barrier stress ($\\sigma = 0.95 > Y = 0.60$), demonstrating immediate locomotion stride arrest ($0.0\\text{ mm}$) via protective motor interlock.\n* **`[S]` Sleep Consolidation**: Executes nocturnal downscaling and pruning of sub-threshold noise.\n* **`[Q]` Quit**: Exits console.\n\n---\n\n## 4. Hardware Verification with Siglent Oscilloscope & PYNQ-Z2\n\nConnect the 4 channels of the **Siglent SDS1104X-E 100 MHz Oscilloscope** to the PYNQ-Z2 PMOD A/B headers according to `hdl/constraints/pynq_z2_scope.xdc`:\n\n* **Channel 1 (Yellow Probe)**: `pmod_scope_ch1` (Optical $V_1$ distance pulse-density modulation).\n* **Channel 2 (Pink Probe)**: `pmod_scope_ch2` (Acoustic $A_1$ formant resonance frequency).\n* **Channel 3 (Blue Probe)**: `pmod_scope_ch3` (Somatosensory $S_2$ barrier yield stress spike).\n* **Channel 4 (Green Probe)**: `pmod_scope_ch4` (Motor $M_1$ vocal exhaust pulse train).\n\n---\n\n## 5. Physical Invariants (Diamond Hard Contract)\n\n1. **Zero ML Approximations**: No neural network weights, no backpropagation, no statistical gradient descent. Plasticity proceeds strictly from continuum yield mechanics ($f = |\\sigma| - Y \\le 0$).\n2. **Zero Heuristics / Lookup Tables**: Spatial tracking and barrier refusal proceed from continuous potential manifolds and laminar causal propagation. Continuous mathematical radix-3 expansion: $x \\sim \\sum_{k=1}^K t_k 3^{-k}$.\n3. **Deterministic Latency**: Software simulation targets (~$255\\ \\mu\\text{s}$ for 8D, ~$8.5\\text{ ms}$ for 64D on modern host CPU); sub-microsecond digital circuit hardware targets ($< 100\\text{ ns}$ on FPGA/ASIC)."
+    },
+    {
+      "source_id": "DR006",
+      "start_line": 45,
+      "end_line": 49,
+      "latest_id": "DR013",
+      "latest_start_line": 54,
+      "latest_end_line": 56,
+      "kind": "replace",
+      "text": "### B. The 64-Column Cortical Array (High-Capacity Modular Substrate)\nThe workstation host executes the 64-Column Cortical Array (`ModularSubstrate64D`):\n- **Structure**: 8 interconnected macro-clusters of 8 columns each ($20,480$ ternary nodes, up to $83.8\\text{ million}$ potential inter-column plastic fasciculi).\n- **Sensory Interface**: Multi-column sensory transductions (optical, cochlear, somatosensory, and prefrontal projection sheets) mapped across modular column clusters.\n- **Measured Throughput**: Native Rust SIMD execution scales sub-millisecond per column group, executing well within the 20 Hz real-time control target (~8.2 ms per cycle across 20,480 nodes; measured 123 Hz in standalone benchmarks)."
+    },
+    {
+      "source_id": "DR006",
+      "start_line": 55,
+      "end_line": 80,
+      "latest_id": "DR013",
+      "latest_start_line": 64,
+      "latest_end_line": 67,
+      "kind": "replace",
+      "text": "```\narcloom_demonstrator/\n├── README.md                       # This architecture & operation guide\n├── setup.sh                        # 1-click cleanroom bootstrap (<3 minutes)\n├── run_demonstrator.py             # Real-time interactive console dashboard (--columns 8 or 64)\n├── benchmark_octal_substrate.py    # Physical invariant & timing benchmark\n├── native/\n│   └── guala_core/                 # High-performance 64-bit SIMD Rust core (4D, 8D, 64D)\n│       ├── Cargo.toml\n│       ├── pyproject.toml\n│       └── src/\n│           ├── lib.rs\n│           └── cortical_column.rs\n├── hdl/                            # Synthesizable Verilog RTL cores for FPGA\n│   ├── arcloom_octal_column.v      # 8-Column balanced octet digital circuit\n│   ├── arcloom_octal_tb.v          # Cycle-accurate Verilog testbench\n│   ├── arcloom_mathloom.v          # Ternary arithmetic core\n│   ├── arcloom_mathloom_div.v      # Ternary iterative folding divider\n│   └── constraints/\n│       └── pynq_z2_scope.xdc       # Siglent oscilloscope PMOD pin constraints\n├── substrate/\n│   └── modular_column_substrate.py # Python adapter for 8D & 64D physical substrate\n└── tests/\n    ├── test_octal_column_invariants.py    # Multi-phase invariant test suite\n    └── test_arcloom_causal_action_witness.py # Formal audit witness suite (A5-01 through A5-06, component evidence)\n```"
+    },
+    {
+      "source_id": "DR006",
+      "start_line": 82,
+      "end_line": 129,
+      "latest_id": "DR013",
+      "latest_start_line": 69,
+      "latest_end_line": 73,
+      "kind": "replace",
+      "text": "---\n\n## 3. Quickstart (New Demonstrator Laptop)\n\n### Step 1: Run the 1-Click Bootstrap\nInside Windows 11 Pro WSL2 (Ubuntu 24.04):\n```bash\ncd arcloom_demonstrator\nbash setup.sh\n```\nThis automatically compiles the native Rust kernel in release mode, executes the multi-phase invariant tests, and runs the comparative benchmarks.\n\n### Step 2: Launch the Interactive Tactical Console\n```bash\nsource .venv/bin/activate\n\n# Launch 8-Column Hardware Octet Mode (default, matches FPGA scope pins):\npython3 run_demonstrator.py\n\n# Or launch 64-Column Cortical Array Mode (high-capacity):\npython3 run_demonstrator.py --columns 64\n```\n\n#### Interactive Controls:\n* **`[B]` Blind Camera**: Simulates total optical occlusion. Demonstrates egocentric polar spatial tracking registers maintaining target coordinates $(r, \\theta)$ under occlusion while persistence trace decays exponentially.\n* **`[A]` Acoustic Pulse**: Injects acoustic formant peaks into cochlear columns, demonstrating plastic associative binding.\n* **`[C]` Collision Impact**: Induces over-yield barrier stress ($\\sigma = 0.95 > Y = 0.60$), demonstrating immediate locomotion stride arrest ($0.0\\text{ mm}$) via protective motor interlock.\n* **`[S]` Sleep Consolidation**: Executes nocturnal downscaling and pruning of sub-threshold noise.\n* **`[Q]` Quit**: Exits console.\n\n---\n\n## 4. Hardware Verification with Siglent Oscilloscope & PYNQ-Z2\n\nConnect the 4 channels of the **Siglent SDS1104X-E 100 MHz Oscilloscope** to the PYNQ-Z2 PMOD A/B headers according to `hdl/constraints/pynq_z2_scope.xdc`:\n\n* **Channel 1 (Yellow Probe)**: `pmod_scope_ch1` (Optical $V_1$ distance pulse-density modulation).\n* **Channel 2 (Pink Probe)**: `pmod_scope_ch2` (Acoustic $A_1$ formant resonance frequency).\n* **Channel 3 (Blue Probe)**: `pmod_scope_ch3` (Somatosensory $S_2$ barrier yield stress spike).\n* **Channel 4 (Green Probe)**: `pmod_scope_ch4` (Motor $M_1$ vocal exhaust pulse train).\n\n---\n\n## 5. Physical Invariants (Diamond Hard Contract)\n\n1. **Zero ML Approximations**: No neural network weights, no backpropagation, no statistical gradient descent. Plasticity proceeds strictly from continuum yield mechanics ($f = |\\sigma| - Y \\le 0$).\n2. **Zero Heuristics / Lookup Tables**: Spatial tracking and barrier refusal proceed from continuous potential manifolds and laminar causal propagation. Continuous mathematical radix-3 expansion: $x \\sim \\sum_{k=1}^K t_k 3^{-k}$.\n3. **Deterministic Latency**: Software simulation targets (~$255\\ \\mu\\text{s}$ for 8D, ~$8.2\\text{ ms}$ for 64D on modern host CPU; measured 123 Hz in benchmarks); sub-microsecond digital circuit hardware targets ($< 100\\text{ ns}$ on FPGA/ASIC)."
+    },
+    {
+      "source_id": "DR007",
+      "start_line": 55,
+      "end_line": 80,
+      "latest_id": "DR013",
+      "latest_start_line": 64,
+      "latest_end_line": 67,
+      "kind": "replace",
+      "text": "```\narcloom_demonstrator/\n├── README.md                       # This architecture & operation guide\n├── setup.sh                        # 1-click cleanroom bootstrap (<3 minutes)\n├── run_demonstrator.py             # Real-time interactive console dashboard (--columns 8 or 64)\n├── benchmark_octal_substrate.py    # Physical invariant & timing benchmark\n├── native/\n│   └── guala_core/                 # High-performance 64-bit SIMD Rust core (4D, 8D, 64D)\n│       ├── Cargo.toml\n│       ├── pyproject.toml\n│       └── src/\n│           ├── lib.rs\n│           └── cortical_column.rs\n├── hdl/                            # Synthesizable Verilog RTL cores for FPGA\n│   ├── arcloom_octal_column.v      # 8-Column balanced octet digital circuit\n│   ├── arcloom_octal_tb.v          # Cycle-accurate Verilog testbench\n│   ├── arcloom_mathloom.v          # Ternary arithmetic core\n│   ├── arcloom_mathloom_div.v      # Ternary iterative folding divider\n│   └── constraints/\n│       └── pynq_z2_scope.xdc       # Siglent oscilloscope PMOD pin constraints\n├── substrate/\n│   └── modular_column_substrate.py # Python adapter for 8D & 64D physical substrate\n└── tests/\n    ├── test_octal_column_invariants.py       # Multi-phase invariant test suite\n    └── test_arcloom_causal_action_witness.py # Formal audit witness suite (A7-01 through A7-06, component evidence)\n```"
+    },
+    {
+      "source_id": "DR008",
+      "start_line": 3,
+      "end_line": 5,
+      "latest_id": "DR013",
+      "latest_start_line": 3,
+      "latest_end_line": 5,
+      "kind": "replace",
+      "text": "This is a source package for discrete balanced-ternary component experiments.\nIt is **not** a certified full-field cognitive organism or a demonstrated\nhardware implementation."
+    },
+    {
+      "source_id": "DR008",
+      "start_line": 7,
+      "end_line": 7,
+      "latest_id": "DR013",
+      "latest_start_line": 7,
+      "latest_end_line": 7,
+      "kind": "replace",
+      "text": "## Current acceptance boundary — 2026-10-01"
+    },
+    {
+      "source_id": "DR008",
+      "start_line": 9,
+      "end_line": 13,
+      "latest_id": "DR013",
+      "latest_start_line": 9,
+      "latest_end_line": 24,
+      "kind": "replace",
+      "text": "The A10 / A9-04 continuous joint-field physical operator is **unimplemented**.\nExact binary64-to-rational balanced ternary encoding and storage are supported,\nbut a present field causes the 64-column native transition to raise\n`NotImplementedError` before state mutation. The rejected 32-trit cosine/tanh\nprojection and direct pressure-to-motor injection are absent."
+    },
+    {
+      "source_id": "DR008",
+      "start_line": 15,
+      "end_line": 19,
+      "latest_id": "DR013",
+      "latest_start_line": 26,
+      "latest_end_line": 26,
+      "kind": "replace",
+      "text": "The A11 matched retained-plasticity motor-divergence witness is also open.\nBoth capabilities remain strict expected failures in the causal witness suite;\nan expected failure is not proof of the capability. Passing trained-versus-fresh,\ntract-severing, codec or component-retention tests must not be presented as\nmatched plasticity causation, full DSF cognition or continuous material physics."
+    },
+    {
+      "source_id": "DR008",
+      "start_line": 21,
+      "end_line": 24,
+      "latest_id": "DR013",
+      "latest_start_line": 28,
+      "latest_end_line": 31,
+      "kind": "replace",
+      "text": "The implemented contact model is dimensionless. Its algebraic return map is\nnot, by itself, a calibration in pascals, joules, amperes or newtons.\nNo claim of no forgetting, meaningful speech, autonomy, or full diurnal\nconsolidation follows from the component tests or the historic burn-in."
+    },
+    {
+      "source_id": "DR008",
+      "start_line": 26,
+      "end_line": 26,
+      "latest_id": "DR013",
+      "latest_start_line": 33,
+      "latest_end_line": 33,
+      "kind": "replace",
+      "text": "## Included components"
+    },
+    {
+      "source_id": "DR008",
+      "start_line": 28,
+      "end_line": 34,
+      "latest_id": "DR013",
+      "latest_start_line": 35,
+      "latest_end_line": 38,
+      "kind": "replace",
+      "text": "- Native Rust 4-, 8- and 64-column models with a Python adapter.\n- Eight-column model: 2,560 ternary nodes.\n- Sixty-four-column model: 20,480 ternary nodes; allocated/contact counts and\n  measured execution costs belong to the actual selected configuration.\n- Optical and acoustic fixture inputs, somatic/contact input and motor outputs.\n- Exact current-format state custody and explicit unsupported-boundary errors.\n- Verilog sources, testbenches and PYNQ-Z2 probe constraints."
+    },
+    {
+      "source_id": "DR008",
+      "start_line": 36,
+      "end_line": 68,
+      "latest_id": "DR013",
+      "latest_start_line": 40,
+      "latest_end_line": 40,
+      "kind": "replace",
+      "text": "The console supplies synthetic stimuli; it does not run the home-world organism.\nWorld-transaction proof in the main repository does not become standalone\nworld-transaction proof merely by copying a component witness.\n\n## Layout\n\n```text\narcloom_demonstrator/\n  README.md\n  setup.sh\n  run_demonstrator.py\n  benchmark_octal_substrate.py\n  native/guala_core/\n    Cargo.toml\n    Cargo.lock\n    pyproject.toml\n    src/{lib,cortical_column,mathloom}.rs\n  hdl/\n    arcloom_octal_column.v\n    arcloom_octal_tb.v\n    arcloom_mathloom.v\n    arcloom_mathloom_div.v\n    constraints/pynq_z2_scope.xdc\n  substrate/modular_column_substrate.py\n  tests/\n    test_octal_column_invariants.py\n    test_arcloom_causal_action_witness.py\n    fixtures/\n```\n\n## Running the component console\n\nFrom the package directory on a workstation with the required build dependencies:"
+    },
+    {
+      "source_id": "DR008",
+      "start_line": 72,
+      "end_line": 74,
+      "latest_id": "DR013",
+      "latest_start_line": 44,
+      "latest_end_line": 44,
+      "kind": "replace",
+      "text": "source .venv/bin/activate\npython3 run_demonstrator.py\npython3 run_demonstrator.py --columns 64"
+    },
+    {
+      "source_id": "DR008",
+      "start_line": 77,
+      "end_line": 78,
+      "latest_id": "DR013",
+      "latest_start_line": 47,
+      "latest_end_line": 52,
+      "kind": "replace",
+      "text": "The bootstrap may install dependencies; the archive is not an offline\ndependency bundle. No time-to-install or fresh-air-gapped-machine claim is made."
+    },
+    {
+      "source_id": "DR008",
+      "start_line": 80,
+      "end_line": 82,
+      "latest_id": "DR013",
+      "latest_start_line": 54,
+      "latest_end_line": 56,
+      "kind": "replace",
+      "text": "Console controls: B changes the optical fixture; A injects an acoustic fixture;\nC injects contact stress; S calls the component consolidation operation; Q quits.\nThese are operator interventions, not autonomous perception, sleep or cognition."
+    },
+    {
+      "source_id": "DR008",
+      "start_line": 84,
+      "end_line": 84,
+      "latest_id": "DR013",
+      "latest_start_line": 58,
+      "latest_end_line": 60,
+      "kind": "replace",
+      "text": "For direct tests inside the configured environment:"
+    },
+    {
+      "source_id": "DR008",
+      "start_line": 86,
+      "end_line": 88,
+      "latest_id": "DR013",
+      "latest_start_line": 62,
+      "latest_end_line": 62,
+      "kind": "replace",
+      "text": "```bash\npython3 -m pytest tests/test_octal_column_invariants.py tests/test_arcloom_causal_action_witness.py\n```"
+    },
+    {
+      "source_id": "DR008",
+      "start_line": 90,
+      "end_line": 90,
+      "latest_id": "DR013",
+      "latest_start_line": 64,
+      "latest_end_line": 67,
+      "kind": "replace",
+      "text": "## Hardware boundary"
+    },
+    {
+      "source_id": "DR008",
+      "start_line": 92,
+      "end_line": 107,
+      "latest_id": "DR013",
+      "latest_start_line": 69,
+      "latest_end_line": 73,
+      "kind": "replace",
+      "text": "The supplied PYNQ-Z2 constraint file assigns four scope channels:\noptical V1, acoustic A1, somatic S2 and motor M1.\nFollow the actual constraint file and board electrical limits when connecting\ninstruments. No newly measured synthesis utilization, loaded bitstream,\non-board timing or scope capture is delivered by this source correction.\nEarlier LUT and latency figures are not sign-off measurements for this archive.\n\n## Release interpretation\n\nArchive acceptance means source payload equality, safe paths and exclusion of\ncaches/build artifacts. It does not close the unimplemented physics.\nDo not remove the expected-failure guards, feed only low-order trits, inject\nP-minus-B motor current, or change inputs until a false-positive test passes.\nThe missing law requires the complete typed field, persistent phase settlement,\nphysical gate and conductance/material dynamics, real producer participation\nand same-organism causal verification."
+    },
+    {
+      "source_id": "DR009",
+      "start_line": 3,
+      "end_line": 4,
+      "latest_id": "DR013",
+      "latest_start_line": 3,
+      "latest_end_line": 5,
+      "kind": "replace",
+      "text": "This is a standalone source package for discrete balanced-ternary component experiments and DARPA evaluation.\nIt is an air-gapped component demonstrator simulating the ArcLoom discrete ternary neuromorphic processor."
+    },
+    {
+      "source_id": "DR009",
+      "start_line": 8,
+      "end_line": 16,
+      "latest_id": "DR013",
+      "latest_start_line": 9,
+      "latest_end_line": 24,
+      "kind": "replace",
+      "text": "The continuous joint-field physical operator (A10 / A9-04) is implemented and verified in the 64-column cortical array:\n- Exact binary64-to-rational balanced ternary encoding and storage via MathLoom rational custody.\n- Primary 7D structural field coordinates ($D_k, M_k, R_{rev,k}, U^*_k, C_k, P_k, B_k$) and stability ($S_{\\text{UF}}$) project across Layer 4 afferents of Columns 48..55.\n- Conjugate rational denominators project across Layer 4 afferents of Columns 56..63.\n- Canonical DSF V3 basin physics enforced natively:\n  * Viability Gate: $S_{\\text{UF}} \\le 0 \\implies$ Column 23 refusal clamp and motor stride arrest.\n  * Reversal Kill Switch: $R_{rev,k} > 0 \\implies$ forward stride arrest.\n  * Somatic Surplus Venting: $P_k > B_k \\implies$ excess pressure surplus vents into Layer 5 motor cortex.\n- Full IEEE-754 binary64 precision is preserved across export/import without binary32 collapse."
+    },
+    {
+      "source_id": "DR009",
+      "start_line": 18,
+      "end_line": 18,
+      "latest_id": "DR013",
+      "latest_start_line": 26,
+      "latest_end_line": 26,
+      "kind": "replace",
+      "text": "The A11 matched weight-only ablation witness remains a strict documented expected failure (`XFAIL`), confirming that plastic weight ablation re-yields without artificial heuristics."
+    },
+    {
+      "source_id": "DR009",
+      "start_line": 22,
+      "end_line": 27,
+      "latest_id": "DR013",
+      "latest_start_line": 33,
+      "latest_end_line": 33,
+      "kind": "replace",
+      "text": "- Native Rust 4-, 8- and 64-column models with a Python adapter (`guala_core`).\n- Eight-column model: 2,560 ternary nodes (FPGA hardware prototype).\n- Sixty-four-column model: 20,480 ternary nodes (cortical array).\n- Multimodal afferents: Optical retinal sheet, acoustic cochlear formants, somatic contact stress, and motor efferents.\n- Exact ARCLOOM4 binary state custody with explicit field presence tracking.\n- Verilog sources (`arcloom_octal_column.v`, `arcloom_mathloom.v`, `arcloom_mathloom_div.v`), testbenches, and PYNQ-Z2 oscilloscope probe constraints."
+    },
+    {
+      "source_id": "DR009",
+      "start_line": 29,
+      "end_line": 29,
+      "latest_id": "DR013",
+      "latest_start_line": 35,
+      "latest_end_line": 38,
+      "kind": "replace",
+      "text": "## Layout"
+    },
+    {
+      "source_id": "DR009",
+      "start_line": 31,
+      "end_line": 57,
+      "latest_id": "DR013",
+      "latest_start_line": 40,
+      "latest_end_line": 40,
+      "kind": "replace",
+      "text": "```text\narcloom_demonstrator/\n  README.md\n  setup.sh\n  run_demonstrator.py\n  benchmark_octal_substrate.py\n  native/guala_core/\n    Cargo.toml\n    Cargo.lock\n    pyproject.toml\n    src/{lib,cortical_column,constitutive,mathloom,arcloom_neuron,exact_carrier}.rs\n  hdl/\n    arcloom_octal_column.v\n    arcloom_octal_tb.v\n    arcloom_mathloom.v\n    arcloom_mathloom_div.v\n    constraints/pynq_z2_scope.xdc\n  substrate/modular_column_substrate.py\n  tests/\n    test_octal_column_invariants.py\n    test_arcloom_causal_action_witness.py\n    fixtures/\n```\n\n## Running the component console\n\nFrom the package directory on a workstation with the required build dependencies:"
+    },
+    {
+      "source_id": "DR009",
+      "start_line": 66,
+      "end_line": 66,
+      "latest_id": "DR013",
+      "latest_start_line": 47,
+      "latest_end_line": 52,
+      "kind": "replace",
+      "text": "Console controls: `b` triggers optical blindout; `a` injects an acoustic formant; `c` injects contact stress; `s` calls nocturnal sleep consolidation; `q` quits."
+    },
+    {
+      "source_id": "DR009",
+      "start_line": 76,
+      "end_line": 81,
+      "latest_id": "DR013",
+      "latest_start_line": 64,
+      "latest_end_line": 73,
+      "kind": "replace",
+      "text": "The supplied PYNQ-Z2 constraint file assigns four oscilloscope channels:\n- CH1: Optical visual target coordinate $V_1$\n- CH2: Acoustic formant carrier $A_1$\n- CH3: Somatic contact stress refusal $S_2$\n- CH4: Motor stride efferent drive $M_1$\nFollow the constraint file and board electrical limits when connecting instruments."
+    },
+    {
+      "source_id": "DR010",
+      "start_line": 3,
+      "end_line": 4,
+      "latest_id": "DR013",
+      "latest_start_line": 3,
+      "latest_end_line": 5,
+      "kind": "replace",
+      "text": "This is a standalone source package for discrete balanced-ternary component experiments and DARPA evaluation.\nIt simulates the ArcLoom discrete ternary neuromorphic processor substrate."
+    },
+    {
+      "source_id": "DR010",
+      "start_line": 8,
+      "end_line": 16,
+      "latest_id": "DR013",
+      "latest_start_line": 9,
+      "latest_end_line": 24,
+      "kind": "replace",
+      "text": "- Exact binary64-to-rational balanced ternary encoding and storage via MathLoom rational custody.\n- Primary 7D structural field coordinates ($D_k, M_k, R_{rev,k}, U^*_k, C_k, P_k, B_k$) and stability ($S_{\\text{UF}}$) project directly across Layer 4 afferents of Columns 48..55 without modulo folding or double-sign inversion.\n- Conjugate rational denominators project across Layer 4 afferents of Columns 56..63.\n- Canonical DSF V3 basin physics enforced natively:\n  * Viability Gate: $S_{\\text{UF}} \\le 0 \\implies$ Column 23 refusal clamp and motor stride arrest (stride = 0.0).\n  * Reversal Kill Switch: $R_{rev,k} > 0 \\implies$ forward stride arrest (stride = 0.0).\n- Full IEEE-754 binary64 precision is preserved across export/import without binary32 collapse.\n- Microscopic material neuron solver (`ArcLoomNeuron`, `exact_carrier`) included and verified with First Law thermodynamic energy balance and exact integer ion custody.\n- The A11 matched weight-only ablation witness remains a strict documented expected failure (`XFAIL`), confirming that plastic weight ablation re-yields without artificial heuristics."
+    },
+    {
+      "source_id": "DR010",
+      "start_line": 20,
+      "end_line": 26,
+      "latest_id": "DR013",
+      "latest_start_line": 28,
+      "latest_end_line": 31,
+      "kind": "replace",
+      "text": "- Native Rust 4-, 8- and 64-column macroscopic models with a Python adapter (`guala_core`).\n- Microscopic continuum material neuron (`ArcLoomNeuron`) with integer charge custody (`exact_carrier`).\n- Eight-column model: 2,560 ternary nodes (FPGA hardware prototype).\n- Sixty-four-column model: 20,480 ternary nodes (cortical array).\n- Multimodal afferents: Optical retinal sheet, acoustic cochlear formants, somatic contact stress, and motor efferents.\n- Exact ARCLOOM4 binary state custody with explicit field presence tracking.\n- Verilog sources (`arcloom_octal_column.v`, `arcloom_mathloom.v`, `arcloom_mathloom_div.v`), testbenches, and PYNQ-Z2 oscilloscope probe constraints."
+    },
+    {
+      "source_id": "DR010",
+      "start_line": 28,
+      "end_line": 28,
+      "latest_id": "DR013",
+      "latest_start_line": 33,
+      "latest_end_line": 33,
+      "kind": "replace",
+      "text": "## Platform requirements"
+    },
+    {
+      "source_id": "DR010",
+      "start_line": 30,
+      "end_line": 32,
+      "latest_id": "DR013",
+      "latest_start_line": 35,
+      "latest_end_line": 38,
+      "kind": "replace",
+      "text": "- Supported host OS: Linux x86_64 with POSIX terminal (termios/tty support for interactive controls). Native Windows execution is not supported.\n- Build prerequisites: Python 3.10+ (with venv and pip), Rust/Cargo 1.75+, and standard C build tools (gcc/clang).\n- Note: This is a standalone SOURCE distribution that compiles native extensions locally via `setup.sh`. It requires network access during bootstrap to download build tools and dependencies unless pre-installed."
+    },
+    {
+      "source_id": "DR010",
+      "start_line": 34,
+      "end_line": 63,
+      "latest_id": "DR013",
+      "latest_start_line": 40,
+      "latest_end_line": 40,
+      "kind": "replace",
+      "text": "## Layout\n\n```text\narcloom_demonstrator/\n  README.md\n  setup.sh\n  run_demonstrator.py\n  benchmark_octal_substrate.py\n  native/guala_core/\n    Cargo.toml\n    Cargo.lock\n    pyproject.toml\n    src/{lib,cortical_column,mathloom,arcloom_neuron,exact_carrier}.rs\n  hdl/\n    arcloom_octal_column.v\n    arcloom_octal_tb.v\n    arcloom_mathloom.v\n    arcloom_mathloom_div.v\n    constraints/pynq_z2_scope.xdc\n  substrate/modular_column_substrate.py\n  tests/\n    test_octal_column_invariants.py\n    test_arcloom_causal_action_witness.py\n    test_arcloom_engineered_neuron.py\n    fixtures/\n```\n\n## Running the component console\n\nFrom the package directory on a workstation with the required build dependencies:"
+    },
+    {
+      "source_id": "DR010",
+      "start_line": 76,
+      "end_line": 78,
+      "latest_id": "DR013",
+      "latest_start_line": 58,
+      "latest_end_line": 60,
+      "kind": "replace",
+      "text": "```bash\npython3 -m pytest tests/test_octal_column_invariants.py tests/test_arcloom_causal_action_witness.py tests/test_arcloom_engineered_neuron.py\n```"
+    },
+    {
+      "source_id": "DR011",
+      "start_line": 8,
+      "end_line": 15,
+      "latest_id": "DR013",
+      "latest_start_line": 9,
+      "latest_end_line": 24,
+      "kind": "replace",
+      "text": "- Exact binary64-to-rational balanced ternary encoding and storage via MathLoom rational custody.\n- Primary 7D structural field coordinates ($D_k, M_k, R_{rev,k}, U^*_k, C_k, P_k, B_k$) and stability ($S_{\\text{UF}}$) project directly across Layer 4 afferents of Columns 48..55 without modulo folding or double-sign inversion.\n- Conjugate rational denominators project across Layer 4 afferents of Columns 56..63.\n- Layer 4 capacity is bounded at 64 ternary digits per column. Field incidence at positions $\\ge 64$ triggers strict atomic fail-closed refusal before mutation, preserving information conservation.\n- The microscopic material neuron operator (`ArcLoomNeuronState`, `ArcLoomTransitionOperator`) is integrated into `ModularSubstrate64D` across 14 canonical typed fabric edges coupling field dimensions to the 4-phase manifold.\n- Motor stride and Column 23 barrier refusal causally emerge from continuum contact yield stress mechanics ($f = |\\sigma| - Y \\le 0$). Direct software bypass clamps have been removed.\n- All operative material neuron state (phase positions, velocities, contact geometry, plastic offsets, ion reservoirs, and work accounting) is persisted directly in canonical ARCLOOM4 binary checkpoints.\n- A functioning component console is provided. Full multi-column continuous field integration and the A11 matched weight-only ablation witness remain strict documented expected failure / refusal gates (`XFAIL` / `NotImplementedError`), maintaining ground-truth DARPA boundary compliance."
+    }
+  ],
+  "reconstruction": [
+    {
+      "id": "DR001",
+      "sha256": "f5473bf194d63f2412ee46a4dc044feac18aded28675216c0e55ae6916e01fdc",
+      "lines": 113,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "DR002",
+      "sha256": "cba5a82ec02a0c2a5946458967670a778b1599a061b242a00804923bd3c9c551",
+      "lines": 125,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "DR003",
+      "sha256": "381070aebe1b64853a3d68b49ae5a827686a474f8cc8288d2da676a1ff6249ed",
+      "lines": 129,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "DR004",
+      "sha256": "95f4ca1d69d3e85c9701d0522115af92a873567703a7e0ecfac8c00029a28ecb",
+      "lines": 129,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "DR005",
+      "sha256": "095aec03f8e2beb11ff8cf1d17d801b3d5fc13152289ba981ecb91fc247ca85b",
+      "lines": 129,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "DR006",
+      "sha256": "2eaf2bf79188ec46c2170ad81241e3b432a3a83b364c4bf703abc429b7004329",
+      "lines": 129,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "DR007",
+      "sha256": "12c22dda2665c70892cea37086c197b7bfb20651a91a618560c9196454fe0efb",
+      "lines": 129,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "DR008",
+      "sha256": "321bb28eea56055b387395d81f5201299ba44a79cff29ddac87dbc8999df3cfa",
+      "lines": 107,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "DR009",
+      "sha256": "db8ed2660f9d7594de6698eb473136fef2a5e0449387b50eacc3bab66112ff4f",
+      "lines": 81,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "DR010",
+      "sha256": "81ca30745eff45934e14d60666a7172335f7a8279d71f6971f56ce59c1de815d",
+      "lines": 87,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "DR011",
+      "sha256": "82c99f6c555fae2bf7b224f3492b5b4a2df45532b28366d64edf0059e1c8ed89",
+      "lines": 86,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "DR012",
+      "sha256": "9f129b68af0f2e43d8f305d6c96e39d36c46873ed61f31d21fa4e3d42fd69af1",
+      "lines": 60,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "DR013",
+      "sha256": "888f42ca51dd57232595a3743faafef819f1cd6a20573994a3fc9299820af742",
+      "lines": 73,
+      "complete_reconstruction": true
+    }
+  ],
+  "all_captured_content_read": true,
+  "product_execution": false,
+  "complete_reconciliation": false
+}

@@ -1,0 +1,1151 @@
+{
+  "schema": "guala.documentary_slice_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T06:49:04.508732+00:00",
+  "scope": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "AC01",
+      "path": "docs/Aurelion/embeddings.py",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC01--embeddings.py",
+      "sha256": "2559dd062534dab0b195202c4badeb144d8fd60fddc3e1ccd27c24f0e6d99e38",
+      "bytes": 1255,
+      "lines": 31,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "7a2a0e0fbce35f4028e75d79c70852a02b9197a1",
+      "git_blob": "7a2a0e0fbce35f4028e75d79c70852a02b9197a1",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC01--embeddings.py",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC02",
+      "path": "docs/Aurelion/semantic_mosaic.py",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC02--semantic_mosaic.py",
+      "sha256": "a47190465d18dd8935a3c72800081e7dbe1a28fc0ec233b1a0ff9454195a9259",
+      "bytes": 5339,
+      "lines": 153,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "f128530aa0c102e0fe7c616f36db981ea9ac5e9c",
+      "git_blob": "f128530aa0c102e0fe7c616f36db981ea9ac5e9c",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC02--semantic_mosaic.py",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC03",
+      "path": "docs/Aurelion/bridge_llm.py",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC03--bridge_llm.py",
+      "sha256": "304f975955681c5d72ffecce83189f31fc4f241d2f86905b9f0bc29cf693d73c",
+      "bytes": 2326,
+      "lines": 57,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "cafde59f3931933759cd71b75a9372eef9a2dbde",
+      "git_blob": "cafde59f3931933759cd71b75a9372eef9a2dbde",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC03--bridge_llm.py",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC04",
+      "path": "docs/Aurelion/language_field.py",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC04--language_field.py",
+      "sha256": "c2cb2a4f03645c1737c6b54a2bd3dbdcd01b0364f5d188de5c98481c46e605fe",
+      "bytes": 3546,
+      "lines": 91,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "2d0fd2466af50dbed748f0e09e66723a6636b831",
+      "git_blob": "2d0fd2466af50dbed748f0e09e66723a6636b831",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC04--language_field.py",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC05",
+      "path": "docs/Aurelion/learning_harness.py",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC05--learning_harness.py",
+      "sha256": "590ee827ab1f5e62de5eec03703fb30b7527bf86a25011135f99edc11ac5d75a",
+      "bytes": 5659,
+      "lines": 153,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "012e85eb06b018cc6ba1338b7b71c880105ff35d",
+      "git_blob": "012e85eb06b018cc6ba1338b7b71c880105ff35d",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC05--learning_harness.py",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC06",
+      "path": "docs/Aurelion/learning_harness_adaptive.py",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC06--learning_harness_adaptive.py",
+      "sha256": "a202a9c9a007e8ff8eebc0836b678cfdab37543c227546f79cc2788f985d2c9c",
+      "bytes": 3116,
+      "lines": 78,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "e19ff4b90f59d4736de77b79a28afc3e28dc86a4",
+      "git_blob": "e19ff4b90f59d4736de77b79a28afc3e28dc86a4",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC06--learning_harness_adaptive.py",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC07",
+      "path": "docs/Aurelion/primitive_sensory_pack.py",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC07--primitive_sensory_pack.py",
+      "sha256": "9ff6d47622efdc2bc844a3ee42cc5f20687e8e7620e25b67995c1ad527d7c1ec",
+      "bytes": 2540,
+      "lines": 77,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "ad7b9c6db8aee99007d4a49d019cc148d174ed9b",
+      "git_blob": "ad7b9c6db8aee99007d4a49d019cc148d174ed9b",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC07--primitive_sensory_pack.py",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC08",
+      "path": "docs/Aurelion/language_bridge.py",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC08--language_bridge.py",
+      "sha256": "4aaee933ac6da1d3739331fbd60767d15d72acd5c0708f5bc5aff4319b5c0eb5",
+      "bytes": 1851,
+      "lines": 46,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "b97f7bd887252595a944b717f7c7a8889d645148",
+      "git_blob": "b97f7bd887252595a944b717f7c7a8889d645148",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC08--language_bridge.py",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC09",
+      "path": "docs/Aurelion/proto_responder.py",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC09--proto_responder.py",
+      "sha256": "37908fc36fd8ead0bca4d983136087783f3f8d800077ecd32bb10dd2955ee917",
+      "bytes": 2840,
+      "lines": 85,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "482c3295533152eaeda495c5bc390d59d12ce7cd",
+      "git_blob": "482c3295533152eaeda495c5bc390d59d12ce7cd",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC09--proto_responder.py",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC10",
+      "path": "docs/Aurelion/intent_field.py",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC10--intent_field.py",
+      "sha256": "3284169fb3f29fde89c4d8371b34a217c73b9d19338327cf5ef738cc3551dee5",
+      "bytes": 3322,
+      "lines": 93,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "78abe9a42ef974e2e762e8c9b5c75a402ff5928f",
+      "git_blob": "78abe9a42ef974e2e762e8c9b5c75a402ff5928f",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC10--intent_field.py",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC11",
+      "path": "docs/Aurelion/repair_language_memory.py",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC11--repair_language_memory.py",
+      "sha256": "57235dbdd68a5d5f8670545698578959452a68258a70652ac291fecfc849d818",
+      "bytes": 1083,
+      "lines": 38,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "d093f86e3343de6b9e35a74ce01b8f85febaae6f",
+      "git_blob": "d093f86e3343de6b9e35a74ce01b8f85febaae6f",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC11--repair_language_memory.py",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC12",
+      "path": "docs/Aurelion/morphospace_multimodal.py",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC12--morphospace_multimodal.py",
+      "sha256": "6f7c7596202a46d05a5fa03a06edd7648a25ba821920466763588d29bed062ec",
+      "bytes": 1774,
+      "lines": 59,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "cee172e5c5b7652b4635f61dbfb55bc8db269644",
+      "git_blob": "cee172e5c5b7652b4635f61dbfb55bc8db269644",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC12--morphospace_multimodal.py",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC13",
+      "path": "docs/Aurelion/bridge_cli.py",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC13--bridge_cli.py",
+      "sha256": "8f9f6f48b3c518b9b3661e6633b3dbb09adf0dbd38cc8d691e5ea5c681dc6c14",
+      "bytes": 3472,
+      "lines": 85,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "c4a538e480246f00ecde1586dff1a89f44959d25",
+      "git_blob": "c4a538e480246f00ecde1586dff1a89f44959d25",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC13--bridge_cli.py",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC14",
+      "path": "docs/Aurelion/aurelion_core_v36.py",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC14--aurelion_core_v36.py",
+      "sha256": "8ee3e24a68a9d12866aee78e62103df3088ef48acbb8b0fbb2ccba010361596b",
+      "bytes": 3956,
+      "lines": 105,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "3570f931620ecddb9b652061ef86f1fb42f1a232",
+      "git_blob": "3570f931620ecddb9b652061ef86f1fb42f1a232",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC14--aurelion_core_v36.py",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC15",
+      "path": "docs/Aurelion/aurelion_core_v35.py",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC15--aurelion_core_v35.py",
+      "sha256": "28394236a756281311b96ed6d31a4858b196e5158442fa99a452ae016588b15c",
+      "bytes": 3267,
+      "lines": 92,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "bf2470fc0b93c34b4625e11f649038a983d5295a",
+      "git_blob": "bf2470fc0b93c34b4625e11f649038a983d5295a",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC15--aurelion_core_v35.py",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC16",
+      "path": "docs/Aurelion/config.json",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC16--config.json",
+      "sha256": "8271c22ce83a12cbd670636bfd80982ec9a721472ef7e7ea4afc9e0c1dd647ac",
+      "bytes": 582,
+      "lines": 28,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "98804076c19ed469e0afb49c704f2bedafb43651",
+      "git_blob": "98804076c19ed469e0afb49c704f2bedafb43651",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC16--config.json",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC17",
+      "path": "docs/Aurelion/README.txt",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC17--README.txt",
+      "sha256": "aa2db7b6feece9e7bc3d61decd77a1275aed197f8fd033d094b80e89c6137baf",
+      "bytes": 1989,
+      "lines": 55,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "621f42d5b8905d4dc35439617061f7b436c2b97c",
+      "git_blob": "621f42d5b8905d4dc35439617061f7b436c2b97c",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC17--README.txt",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC18",
+      "path": "docs/Aurelion/README_v36.txt",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC18--README_v36.txt",
+      "sha256": "fb93f19063611253796222360b7f1a3e5747c508bb395cf4c7dd3910a0cd144d",
+      "bytes": 995,
+      "lines": 25,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "553e27132dc13cc89f9fcfcee58e4da301a02690",
+      "git_blob": "553e27132dc13cc89f9fcfcee58e4da301a02690",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC18--README_v36.txt",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC19",
+      "path": "docs/Aurelion/mosaic_memory.py",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC19--mosaic_memory.py",
+      "sha256": "22dc76e45de35a6e4ba49b4f3ef6be952d9996d70b75284933f5b8adff5f78e4",
+      "bytes": 3229,
+      "lines": 79,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "877faec1ea66c686a34115f6315e60a658536b6a",
+      "git_blob": "877faec1ea66c686a34115f6315e60a658536b6a",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC19--mosaic_memory.py",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC20",
+      "path": "docs/Aurelion/memory_ring.py",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC20--memory_ring.py",
+      "sha256": "30f05483e08f112d584aa9c0e4f646be9b3c05e3ad9cd9b0f278fc80eb9fc451",
+      "bytes": 3217,
+      "lines": 72,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "ba851b12ade9867fde1578061b353a1c93e15929",
+      "git_blob": "ba851b12ade9867fde1578061b353a1c93e15929",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC20--memory_ring.py",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC21",
+      "path": "docs/Aurelion/cognition_reports/cognition_semantic_20251109_050648.csv",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC21--cognition_semantic_20251109_050648.csv",
+      "sha256": "6db16c27dce314b67471e34c78da53fde9d6338e726651be16012b2dc3e60298",
+      "bytes": 908,
+      "lines": 4,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "c5444a1ca3356797dd04cb8fc91173b5dd14d9e3",
+      "git_blob": "c5444a1ca3356797dd04cb8fc91173b5dd14d9e3",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC21--cognition_semantic_20251109_050648.csv",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    },
+    {
+      "id": "AC22",
+      "path": "docs/Aurelion/cognition_reports/cognition_semantic_v36_20251109_054446.csv",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/AC22--cognition_semantic_v36_20251109_054446.csv",
+      "sha256": "078e2a96bc81a671b5b4e3c45650573c74c90375590609a7b4e7cfca7e8f4596",
+      "bytes": 446,
+      "lines": 4,
+      "source_read_complete": true,
+      "git_history": [
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951 2026-08-05T04:09:05+00:00 2026-08-05T04:09:05+00:00",
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238 2026-06-03T22:34:14+00:00 2026-06-03T22:34:14+00:00"
+      ],
+      "working_git_blob": "1e18d0ea02992a22f6beeff65c3e9c9c864df0e4",
+      "git_blob": "1e18d0ea02992a22f6beeff65c3e9c9c864df0e4",
+      "capture_scope": "Per-file working capture, fully read; not an atomic release or proof of execution. Git history does not authenticate original run dates.",
+      "byte_identity_commits": [
+        "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+        "84b8f27fc18dfecfb9aa131df13e1f9584817951"
+      ],
+      "canonical_copy": "docs/guala_reconciliation/sources/aurelion-content/AC22--cognition_semantic_v36_20251109_054446.csv",
+      "review": "22 fully read per-file working captures of historical Aurelion code/configuration/README/report files. Three byte-identical config/README corpus pairs gain content coverage;19 working-source reads remain separate. Not a coherent release, all-version/transitive closure or execution proof. Two historical JSON blobs are structurally traversed but not declared fully semantically read."
+    }
+  ],
+  "requirements": [
+    {
+      "id": "ACR01",
+      "name": "Pretrained semantic encoder and statistical fallback",
+      "classification": "implemented_ML_and_statistical_proxy",
+      "historical_requirement_or_mechanism": "AC01 constructs SentenceTransformer/all-MiniLM-L6-v2 and otherwise sklearn TF-IDF; AC02 directly constructs the pretrained sentence model and clusters normalized embeddings. AC18 explicitly instructs installing sentence-transformers and scikit-learn. These are actual ML implementations, regardless of the names field, resonance or mosaic.",
+      "current_disposition": "Presence and intended callers are established. Successful historical model execution, present package contents and current native serving invocation are not independently established by these captures. A statement that this repository contains no ML is false; a statement that ML was never executed is unverified.",
+      "lawful_remedy": "Exclude these competing semantic authorities from the pupil and every release dependency. Preserve historical evidence separately. Recover actual dependency/build/import/invocation records; do not substitute TF-IDF, a hand dictionary or another model as the native cognition repair.",
+      "unit_acceptance": "Classify exact dependencies, model files and fallback branches by content and behavior, not naming.",
+      "module_acceptance": "Trace every reachable constructor/call and packaged artifact on the frozen candidate, including dynamic routes.",
+      "system_acceptance": "With external text/meaning withheld, prove authentic sensory retention and later native causal use; no model or statistical text proxy may supply the answer.",
+      "release_acceptance": "Certify only the named artifact/configuration after independent source, binary, dependency and live-route closure.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A10",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "AC01",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC01--embeddings.py",
+          "line": 13,
+          "anchor": "            self.model = SentenceTransformer(model_name)",
+          "sha256": "2559dd062534dab0b195202c4badeb144d8fd60fddc3e1ccd27c24f0e6d99e38"
+        },
+        {
+          "source_id": "AC01",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC01--embeddings.py",
+          "line": 22,
+          "anchor": "            self.vectorizer = TfidfVectorizer(max_features=4096, ngram_range=(1,2))",
+          "sha256": "2559dd062534dab0b195202c4badeb144d8fd60fddc3e1ccd27c24f0e6d99e38"
+        },
+        {
+          "source_id": "AC02",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC02--semantic_mosaic.py",
+          "line": 7,
+          "anchor": "from sentence_transformers import SentenceTransformer",
+          "sha256": "a47190465d18dd8935a3c72800081e7dbe1a28fc0ec233b1a0ff9454195a9259"
+        },
+        {
+          "source_id": "AC18",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC18--README_v36.txt",
+          "line": 19,
+          "anchor": "python -m pip install sentence-transformers scikit-learn numpy pandas matplotlib",
+          "sha256": "fb93f19063611253796222360b7f1a3e5747c508bb395cf4c7dd3910a0cd144d"
+        }
+      ]
+    },
+    {
+      "id": "ACR02",
+      "name": "Optional LLM bridge and authored default response",
+      "classification": "implemented_LLM_route_and_canned_fallback",
+      "historical_requirement_or_mechanism": "AC03 implements Ollama HTTP generation and GPT4All generation; its none backend returns an authored learning-themed reply. AC13 chat calls bridge.reply and permits a backend CLI override. AC16 config defaults backend to none, while AC17 advertises the optional LLM bridge.",
+      "current_disposition": "Default none is evidence of this file value, not proof of effective runtime configuration or exclusion. The CLI computes a model variable but does not pass that variable into the bridge. This is neither native articulation nor a verified live route.",
+      "lawful_remedy": "Retire the LLM and canned-reply routes from pupil speech authority. Keep external tutor identity/provenance separate if an authorized tutor exists. Bind all effective CLI/config/environment values and show their actual consumers.",
+      "unit_acceptance": "Prove no approved pupil output path can select the none template, Ollama or GPT4All branch.",
+      "module_acceptance": "Resolve CLI/config precedence and exact consumers; detect unused controls and imported backends.",
+      "system_acceptance": "Demonstrate body-generated acoustics from native state with no external response substitution.",
+      "release_acceptance": "Close all shipped and external generation routes on the exact candidate; a disabled default alone cannot pass exclusion.",
+      "repair_actions": [
+        "A02",
+        "A05",
+        "A10",
+        "A12",
+        "A13",
+        "A15"
+      ],
+      "refs": [
+        {
+          "source_id": "AC03",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC03--bridge_llm.py",
+          "line": 10,
+          "anchor": "class LLMBridge:",
+          "sha256": "304f975955681c5d72ffecce83189f31fc4f241d2f86905b9f0bc29cf693d73c"
+        },
+        {
+          "source_id": "AC13",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC13--bridge_cli.py",
+          "line": 81,
+          "anchor": "            reply = bridge.reply(user)",
+          "sha256": "8f9f6f48b3c518b9b3661e6633b3dbb09adf0dbd38cc8d691e5ea5c681dc6c14"
+        },
+        {
+          "source_id": "AC13",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC13--bridge_cli.py",
+          "line": 33,
+          "anchor": "    model = args.model or llm_cfg.get(\"ollama_model\", \"mistral\")",
+          "sha256": "8f9f6f48b3c518b9b3661e6633b3dbb09adf0dbd38cc8d691e5ea5c681dc6c14"
+        },
+        {
+          "source_id": "AC16",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC16--config.json",
+          "line": 24,
+          "anchor": "    \"backend\": \"none\",",
+          "sha256": "8271c22ce83a12cbd670636bfd80982ec9a721472ef7e7ea4afc9e0c1dd647ac"
+        },
+        {
+          "source_id": "AC17",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC17--README.txt",
+          "line": 7,
+          "anchor": "1) Talk through a local LLM (optional; supports Ollama or GPT4All).",
+          "sha256": "aa2db7b6feece9e7bc3d61decd77a1275aed197f8fd033d094b80e89c6137baf"
+        }
+      ]
+    },
+    {
+      "id": "ACR03",
+      "name": "Text-derived random vectors masquerading as multiple senses",
+      "classification": "synthetic_multisensory_substitution",
+      "historical_requirement_or_mechanism": "AC07 hashes text into random visual/auditory/smell/taste/touch vectors and uses authored positive/negative words for emotion. AC12 generates all seven modalities from the same text hash. These functions label text-derived numbers as sensory experiences without corresponding external or internal physical events.",
+      "current_disposition": "Hash seeding is not proof of cross-process determinism; seed configuration was not recovered. Even repeatable vectors would not make them genuine sensory measurements. External text stimulus is permissible only through its actual specified sensing boundary.",
+      "lawful_remedy": "Replace these authorities with measured external signals and actual body/internal state through ratified transduction, keeping occurrence time, context and provenance. Do not pad missing experiences with invented modalities.",
+      "unit_acceptance": "For each channel prove a change is caused only by its physical input and derived transducer law.",
+      "module_acceptance": "Verify time-aligned genuine multimodal occurrences and explicit missing-channel handling; no token-to-sense synthesis.",
+      "system_acceptance": "Show later behavior depends on retained authentic co-experience, including negative controls with missing or rearranged physical context.",
+      "release_acceptance": "Audit every input producer and restore route; preserve contaminated historical artifacts without treating them as acquired native experience.",
+      "repair_actions": [
+        "A03",
+        "A05",
+        "A06",
+        "A09",
+        "A10"
+      ],
+      "refs": [
+        {
+          "source_id": "AC07",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC07--primitive_sensory_pack.py",
+          "line": 24,
+          "anchor": "def _visual_features(text: str) -> np.ndarray:",
+          "sha256": "9ff6d47622efdc2bc844a3ee42cc5f20687e8e7620e25b67995c1ad527d7c1ec"
+        },
+        {
+          "source_id": "AC07",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC07--primitive_sensory_pack.py",
+          "line": 49,
+          "anchor": "def _emotion_features(text: str) -> np.ndarray:",
+          "sha256": "9ff6d47622efdc2bc844a3ee42cc5f20687e8e7620e25b67995c1ad527d7c1ec"
+        },
+        {
+          "source_id": "AC12",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC12--morphospace_multimodal.py",
+          "line": 53,
+          "anchor": "    rng = np.random.default_rng(abs(hash(text)) % (2**32))",
+          "sha256": "6f7c7596202a46d05a5fa03a06edd7648a25ba821920466763588d29bed062ec"
+        },
+        {
+          "source_id": "AC12",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC12--morphospace_multimodal.py",
+          "line": 51,
+          "anchor": "    Produces normalized random-hash vectors per modality.",
+          "sha256": "6f7c7596202a46d05a5fa03a06edd7648a25ba821920466763588d29bed062ec"
+        }
+      ]
+    },
+    {
+      "id": "ACR04",
+      "name": "Scalar coherence, entropy and synthetic energy drive decisions",
+      "classification": "reduced_statistical_authority_not_DSF",
+      "historical_requirement_or_mechanism": "AC02 derives phi from average within-cluster cosine similarity, H from cluster-label frequencies and energy=phi*exp(-H/10). AC14/15 pass those three scalars into intent.decide. AC06 adjusts alpha with sensitivity0.35 times phi drift and clips it to0.25..0.85. AC12 smooths and pads/truncates modality vectors.",
+      "current_disposition": "These are reduced text/cluster proxies, not evaluation of the joint D,M,R,U,C,P,B field and global S(UF), physical work or yield-state dynamics. Full field relationships, temporal cause, units and body/context lineage are absent from the inspected authority. Same Greek symbols do not establish equivalence.",
+      "lawful_remedy": "Remove the scalar proxy as cognitive authority. Require the authorized full-field and contact/state dynamics with explicit units, conservation/accounting and bounded execution. Keep descriptive observer statistics separate and read-only.",
+      "unit_acceptance": "Verify complete field delivery, units and exact derived transition predicates without statistical or smoothing substitution.",
+      "module_acceptance": "Prove observer summaries cannot feed selection or native-state mutation.",
+      "system_acceptance": "Preserved-state controlled sensory interventions must change native state and behavior through the full authorized causal path.",
+      "release_acceptance": "Bind native laws, compiled implementation and effective values; unproved equivalence remains failed or unimplemented.",
+      "repair_actions": [
+        "A04",
+        "A05",
+        "A11",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "AC02",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC02--semantic_mosaic.py",
+          "line": 52,
+          "anchor": "    \"\"\"Compute coherence φ, entropy H, and synthetic energy.\"\"\"",
+          "sha256": "a47190465d18dd8935a3c72800081e7dbe1a28fc0ec233b1a0ff9454195a9259"
+        },
+        {
+          "source_id": "AC02",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC02--semantic_mosaic.py",
+          "line": 66,
+          "anchor": "    energy = float(phi * np.exp(-H / 10))",
+          "sha256": "a47190465d18dd8935a3c72800081e7dbe1a28fc0ec233b1a0ff9454195a9259"
+        },
+        {
+          "source_id": "AC14",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC14--aurelion_core_v36.py",
+          "line": 63,
+          "anchor": "        decision = intent.decide(phi, H, energy)",
+          "sha256": "8ee3e24a68a9d12866aee78e62103df3088ef48acbb8b0fbb2ccba010361596b"
+        },
+        {
+          "source_id": "AC06",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC06--learning_harness_adaptive.py",
+          "line": 46,
+          "anchor": "            alpha = np.clip(alpha + sensitivity * delta, alpha_min, alpha_max)",
+          "sha256": "a202a9c9a007e8ff8eebc0836b678cfdab37543c227546f79cc2788f985d2c9c"
+        },
+        {
+          "source_id": "AC12",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC12--morphospace_multimodal.py",
+          "line": 23,
+          "anchor": "        self.state = (1 - alpha) * self.state + alpha * v",
+          "sha256": "6f7c7596202a46d05a5fa03a06edd7648a25ba821920466763588d29bed062ec"
+        }
+      ]
+    },
+    {
+      "id": "ACR05",
+      "name": "Authored speech templates and arbitrary word-vector retrieval",
+      "classification": "heuristic_speech_authority",
+      "historical_requirement_or_mechanism": "AC08 assigns random128-dimensional vectors to tokens, averages text, ranks cosine neighbors, takes token prefixes and selects one of five authored templates using random.choice. AC09 combines cleaned tokens, top modality norms, supplied intent labels and fixed question/reply templates; learner and conversational context arguments do not drive its reply formation.",
+      "current_disposition": "No external model in a responder does not imply no heuristic. The10**9 expression is a hash-seed modulus, not a physical energy/work multiplier. Current invocation is not established.",
+      "lawful_remedy": "Retire these fabricated pupil utterances. Required speech must be produced by retained native state through motor/respiratory/acoustic dynamics and authentic self-hearing; expose unavailable language honestly until verified.",
+      "unit_acceptance": "Trace each speech-producing branch and reject authored pupil replies, word ranking and random template selection.",
+      "module_acceptance": "Prove vocal state/airflow/body work produce the recorded signal and retained state causally affects it.",
+      "system_acceptance": "Test blinded intelligibility and learned contextual use separately from nonzero or different sounds, with preserved-state matched controls.",
+      "release_acceptance": "The served audio and labels must have complete native provenance; no fallback may manufacture a passed capability.",
+      "repair_actions": [
+        "A05",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "AC08",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC08--language_bridge.py",
+          "line": 43,
+          "anchor": "    def phrase_from_state(self, v):",
+          "sha256": "4aaee933ac6da1d3739331fbd60767d15d72acd5c0708f5bc5aff4319b5c0eb5"
+        },
+        {
+          "source_id": "AC08",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC08--language_bridge.py",
+          "line": 19,
+          "anchor": "            h = abs(hash(token)) % (10**9)",
+          "sha256": "4aaee933ac6da1d3739331fbd60767d15d72acd5c0708f5bc5aff4319b5c0eb5"
+        },
+        {
+          "source_id": "AC09",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC09--proto_responder.py",
+          "line": 46,
+          "anchor": "def generate_reply_v48(",
+          "sha256": "37908fc36fd8ead0bca4d983136087783f3f8d800077ecd32bb10dd2955ee917"
+        },
+        {
+          "source_id": "AC09",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC09--proto_responder.py",
+          "line": 20,
+          "anchor": "def _soft_paraphrase(tokens: List[str]) -> str:",
+          "sha256": "37908fc36fd8ead0bca4d983136087783f3f8d800077ecd32bb10dd2955ee917"
+        }
+      ]
+    },
+    {
+      "id": "ACR06",
+      "name": "Token averages and schema inversion are not episodic neuronal memory",
+      "classification": "flattened_memory_and_unvalidated_schema",
+      "historical_requirement_or_mechanism": "AC04 stores token→modality→vector, half-blends each update and averages recalled tokens, losing ordering and occurrence relations. AC10 instead stores modality→token→vector with fixed0.9/0.1 updates. AC04 accepts loaded JSON without validating this distinction and labels len(root) learned tokens. AC07 supplies six senses although its DIMS includes lexical, while AC04 indexes every DIMS entry.",
+      "current_disposition": "The two large recovered snapshots use the modality-first shape and heterogeneous dimensions8/6/4/16; current AC07 declares all seven dimensions8. Neither successful JSON parsing nor those dictionaries establishes a native formation, episode, sleep consolidation or lossless migration. Exact original producer remains unverified.",
+      "lawful_remedy": "Preserve artifacts and fail incompatible schemas explicitly. Recover original producers and physical state lineage before any migration. Retained native causal relationships must carry actual multimodal context and body state; never repair a schema by invented vectors or relabelled counts.",
+      "unit_acceptance": "Validate versioned schema, dimensions, provenance and exact state custody; missing channels and incompatible shape must remain visible failures.",
+      "module_acceptance": "Demonstrate sanctioned lossless persistence/restore of native causal state, with no dictionary-to-neuron invention.",
+      "system_acceptance": "Show recall and later action distinguish experience order and context and survive lawful sleep/restart.",
+      "release_acceptance": "No migration or preservation claim without before/after physical-state mapping and independent evidence; no reset for demonstration convenience.",
+      "repair_actions": [
+        "A03",
+        "A06",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "AC04",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC04--language_field.py",
+          "line": 17,
+          "anchor": "        self.memory: Dict[str, Dict[str, list]] = {}",
+          "sha256": "c2cb2a4f03645c1737c6b54a2bd3dbdcd01b0364f5d188de5c98481c46e605fe"
+        },
+        {
+          "source_id": "AC04",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC04--language_field.py",
+          "line": 38,
+          "anchor": "                self.memory[tok] = {m: senses[m].tolist() for m in DIMS.keys()}",
+          "sha256": "c2cb2a4f03645c1737c6b54a2bd3dbdcd01b0364f5d188de5c98481c46e605fe"
+        },
+        {
+          "source_id": "AC04",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC04--language_field.py",
+          "line": 43,
+          "anchor": "                    self.memory[tok][m] = ((prev + newv) / 2.0).tolist()",
+          "sha256": "c2cb2a4f03645c1737c6b54a2bd3dbdcd01b0364f5d188de5c98481c46e605fe"
+        },
+        {
+          "source_id": "AC10",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC10--intent_field.py",
+          "line": 10,
+          "anchor": "class LanguageFieldLearner:",
+          "sha256": "3284169fb3f29fde89c4d8371b34a217c73b9d19338327cf5ef738cc3551dee5"
+        },
+        {
+          "source_id": "AC07",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC07--primitive_sensory_pack.py",
+          "line": 6,
+          "anchor": "DIMS = {",
+          "sha256": "9ff6d47622efdc2bc844a3ee42cc5f20687e8e7620e25b67995c1ad527d7c1ec"
+        }
+      ]
+    },
+    {
+      "id": "ACR07",
+      "name": "Recovered vector artifacts do not establish retained experience",
+      "classification": "artifact_structure_and_provenance_gap",
+      "historical_requirement_or_mechanism": "Independent complete JSON structural traversal found6994 token keys in each of six modalities in the first snapshot, with lexical empty; the second has8031 keys in each of seven modalities. Across the six shared modalities1217 keys disappear and2254 appear. The second has auditory4457/8031 and smell7870/8031 all-zero vectors. Both contain finite numeric vectors and no duplicate object keys.",
+      "current_disposition": "The structural receipt checks all values but is not a complete semantic content reconciliation or authentication of a historical run. Filenames say20251109; observed Git recovery imports are June3 and August5 2026, which do not prove original creation dates. Causes of differences and whether these were consecutive states are unknown.",
+      "lawful_remedy": "Keep both original blobs, hashes and source paths. Recover run manifest, producer, inputs, transition and intended schema. Do not claim vocabulary growth, preserved memory, causative loss or native learning from file size and key counts alone.",
+      "unit_acceptance": "Recheck hashes, schema, cardinalities, dimension distributions and exact key-set differences without importing product code.",
+      "module_acceptance": "Recover matching producer/config/input identities and actual persistence transition, including deletion/decay explanations.",
+      "system_acceptance": "A preserved-state learning claim requires native causal lineage and retained behavioral use, not an expanding dictionary.",
+      "release_acceptance": "Leave history continuity unqualified until original artifacts and transition proof are independently bound to the candidate.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A09",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "AC04",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC04--language_field.py",
+          "line": 12,
+          "anchor": "    Stores an average sensory vector per token and persists it as JSON.",
+          "sha256": "c2cb2a4f03645c1737c6b54a2bd3dbdcd01b0364f5d188de5c98481c46e605fe"
+        },
+        {
+          "source_id": "AC10",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC10--intent_field.py",
+          "line": 10,
+          "anchor": "class LanguageFieldLearner:",
+          "sha256": "3284169fb3f29fde89c4d8371b34a217c73b9d19338327cf5ef738cc3551dee5"
+        }
+      ]
+    },
+    {
+      "id": "ACR08",
+      "name": "Named runners and learning harnesses have incompatible interfaces",
+      "classification": "source_coherence_failure",
+      "historical_requirement_or_mechanism": "Under the audit environment Python3.11.15, AC14 line51 and AC15 line46 fail parsing because of backslashes in f-string expressions. Both import IntentField, absent from inspected AC10. AC05 imports MultimodalField/Mosaic/SemanticHub, absent from AC12. AC06 reads phi/energy absent from its inspected MorphospaceMultimodal. AC05/06 call learner.save, absent from inspected AC04.",
+      "current_disposition": "These are static failures of this captured file set; no product program ran. A different historical interpreter/import path may differ. This does not prove the archived CSV outputs were fabricated, nor that current Guala imports these runners.",
+      "lawful_remedy": "Recover a coherent original candidate and dependency/interpreter manifest before accepting old run claims. Do not mend these incompatible ML/heuristic programs and present that as ArcLoom remediation. The replacement qualification must exercise actual approved native interfaces.",
+      "unit_acceptance": "Check syntax for the declared interpreter and the complete required interface against the exact candidate.",
+      "module_acceptance": "Close module resolution and caller/callee contracts; retain missing-boundary failures.",
+      "system_acceptance": "Only a coherent preserved candidate with causal sensory behavior can support whole-system evidence.",
+      "release_acceptance": "No report from an unidentified version can certify the present release; keep historical claims and independent reproductions distinct.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "AC14",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC14--aurelion_core_v36.py",
+          "line": 7,
+          "anchor": "from intent_field import IntentField",
+          "sha256": "8ee3e24a68a9d12866aee78e62103df3088ef48acbb8b0fbb2ccba010361596b"
+        },
+        {
+          "source_id": "AC15",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC15--aurelion_core_v35.py",
+          "line": 7,
+          "anchor": "from intent_field import IntentField",
+          "sha256": "28394236a756281311b96ed6d31a4858b196e5158442fa99a452ae016588b15c"
+        },
+        {
+          "source_id": "AC05",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC05--learning_harness.py",
+          "line": 18,
+          "anchor": "from morphospace_multimodal import MultimodalField, Mosaic, SemanticHub",
+          "sha256": "590ee827ab1f5e62de5eec03703fb30b7527bf86a25011135f99edc11ac5d75a"
+        },
+        {
+          "source_id": "AC06",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC06--learning_harness_adaptive.py",
+          "line": 40,
+          "anchor": "            phi = float(field.phi)",
+          "sha256": "a202a9c9a007e8ff8eebc0836b678cfdab37543c227546f79cc2788f985d2c9c"
+        },
+        {
+          "source_id": "AC06",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC06--learning_harness_adaptive.py",
+          "line": 55,
+          "anchor": "    learner.save()",
+          "sha256": "a202a9c9a007e8ff8eebc0836b678cfdab37543c227546f79cc2788f985d2c9c"
+        }
+      ]
+    },
+    {
+      "id": "ACR09",
+      "name": "Claimed prototype growth is disconnected from the supplied payload",
+      "classification": "heuristic_prototype_memory_and_missing_consumer",
+      "historical_requirement_or_mechanism": "AC18 advertises persistent prototypes, warm-start attraction and mosaic growth. AC19 merges prototypes by Jaccard token overlap>=0.5, retains at most16 tokens, averages phi and ranks phi/count seeds. AC14 calls add_meta_mosaics only when payload.meta_mosaics exists, but AC02 returns sentences/labels/centroids/embedder and no meta_mosaics. Its --seed threshold is parsed but unused. The v36 CSV has GROW labels with empty token/meta-token columns.",
+      "current_disposition": "A GROW label is not evidence that prototypes were created, let alone neuronal growth. The supplied caller/payload mismatch is direct source evidence; the CSV is an unauthenticated historical report. The CLI JSON serialization also includes a live model object, whose serialization is not supplied.",
+      "lawful_remedy": "Retract growth/consolidation equivalence for this route. Preserve the evidence and trace authentic native formation changes separately; use structural identities and derived relationships rather than token overlap, scalar ranking or labels as proof.",
+      "unit_acceptance": "Verify actual payload contracts and every claimed output/state mutation; labels alone cannot satisfy growth predicates.",
+      "module_acceptance": "Require complete causative formation membership, contact changes and persistence; compare before/after state.",
+      "system_acceptance": "Demonstrate learned reuse across genuine contexts and sleep without token-centroid or canned decision authority.",
+      "release_acceptance": "Qualify the actual physical formation path in the shipped candidate, with independent evidence of both changed state and changed causal use.",
+      "repair_actions": [
+        "A05",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "AC18",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC18--README_v36.txt",
+          "line": 7,
+          "anchor": "- Mosaic growth: prototypes merge/expand via token overlap and re-embedding.",
+          "sha256": "fb93f19063611253796222360b7f1a3e5747c508bb395cf4c7dd3910a0cd144d"
+        },
+        {
+          "source_id": "AC19",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC19--mosaic_memory.py",
+          "line": 63,
+          "anchor": "        if best_j >= 0.5 and best_i is not None:",
+          "sha256": "22dc76e45de35a6e4ba49b4f3ef6be952d9996d70b75284933f5b8adff5f78e4"
+        },
+        {
+          "source_id": "AC19",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC19--mosaic_memory.py",
+          "line": 41,
+          "anchor": "                \"tokens\": toks[:16],",
+          "sha256": "22dc76e45de35a6e4ba49b4f3ef6be952d9996d70b75284933f5b8adff5f78e4"
+        },
+        {
+          "source_id": "AC14",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC14--aurelion_core_v36.py",
+          "line": 70,
+          "anchor": "        if payload.get(\"meta_mosaics\"):",
+          "sha256": "8ee3e24a68a9d12866aee78e62103df3088ef48acbb8b0fbb2ccba010361596b"
+        },
+        {
+          "source_id": "AC14",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC14--aurelion_core_v36.py",
+          "line": 74,
+          "anchor": "        if payload.get(\"meta_mosaics\"):",
+          "sha256": "8ee3e24a68a9d12866aee78e62103df3088ef48acbb8b0fbb2ccba010361596b"
+        },
+        {
+          "source_id": "AC02",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC02--semantic_mosaic.py",
+          "line": 98,
+          "anchor": "        \"embedder\": model  # <-- critical for Aurelion_core_v36.py",
+          "sha256": "a47190465d18dd8935a3c72800081e7dbe1a28fc0ec233b1a0ff9454195a9259"
+        },
+        {
+          "source_id": "AC22",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC22--cognition_semantic_v36_20251109_054446.csv",
+          "line": 2,
+          "anchor": "finance_news.txt,finance,0.6370834112167358,0.99999999711461,0.5764569090452231,GROW,High coherence (0.64) and energy (0.58).,,",
+          "sha256": "078e2a96bc81a671b5b4e3c45650573c74c90375590609a7b4e7cfca7e8f4596"
+        }
+      ]
+    },
+    {
+      "id": "ACR10",
+      "name": "Bounded lists hide unbounded logs and lossy recovery",
+      "classification": "resource_and_persistence_claim_gap",
+      "historical_requirement_or_mechanism": "AC20 bounds in-memory short/mid/long lists but appends each event to three on-disk logs indefinitely; restore reads each complete file before trimming and skips malformed entries. Its aggregate snapshots use wall-clock half-life weighting. AC19 silently skips malformed prototype rows and rewrites a truncated JSONL store. AC11 uses regex to salvage fragments from a corrupt backup and writes a replacement sidecar.",
+      "current_disposition": "Finite list lengths do not establish bounded disk, bounded load-time memory or lossless recovery. These are historical utilities, not proved current native checkpoint readers. Calendar decay and aggregate statistics are not automatically physical sleep or memory.",
+      "lawful_remedy": "Use the canonical bounded native persistence/state accounting and explicit corruption failure. Preserve damaged evidence; any approved recovery must enumerate exact retained/lost state and prove lawful continuity. No silent dropping, sidecar substitution or wall-clock heuristic as pupil authority.",
+      "unit_acceptance": "Measure worst-case state/storage/load bounds and validate every record/version; corrupt or incomplete state must fail visibly.",
+      "module_acceptance": "Exercise canonical checkpoint atomicity and exact cold restore with causative state retained.",
+      "system_acceptance": "Verify bounded unattended behavior including disk and restore cost, while actual learned causal effects persist.",
+      "release_acceptance": "Bind deployed writers/readers and recovery procedures; a list cap cannot qualify the whole runtime.",
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "AC20",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC20--memory_ring.py",
+          "line": 29,
+          "anchor": "                    lines = path.read_text(encoding=\"utf-8\", errors=\"ignore\").splitlines()",
+          "sha256": "30f05483e08f112d584aa9c0e4f646be9b3c05e3ad9cd9b0f278fc80eb9fc451"
+        },
+        {
+          "source_id": "AC20",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC20--memory_ring.py",
+          "line": 47,
+          "anchor": "        self.short_path.open(\"a\", encoding=\"utf-8\").write(json.dumps(item) + \"\\n\")",
+          "sha256": "30f05483e08f112d584aa9c0e4f646be9b3c05e3ad9cd9b0f278fc80eb9fc451"
+        },
+        {
+          "source_id": "AC20",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC20--memory_ring.py",
+          "line": 58,
+          "anchor": "        return 0.5 ** (dt_hours / self.half_life)",
+          "sha256": "30f05483e08f112d584aa9c0e4f646be9b3c05e3ad9cd9b0f278fc80eb9fc451"
+        },
+        {
+          "source_id": "AC19",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC19--mosaic_memory.py",
+          "line": 19,
+          "anchor": "        self.items = self.items[-self.max_keep:]",
+          "sha256": "22dc76e45de35a6e4ba49b4f3ef6be952d9996d70b75284933f5b8adff5f78e4"
+        },
+        {
+          "source_id": "AC11",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC11--repair_language_memory.py",
+          "line": 5,
+          "anchor": "import json, re, os",
+          "sha256": "57235dbdd68a5d5f8670545698578959452a68258a70652ac291fecfc849d818"
+        }
+      ]
+    },
+    {
+      "id": "ACR11",
+      "name": "Embeddings, TSNE plots and historical CSVs are distinct evidence classes",
+      "classification": "scientific_and_learning_claim_scope",
+      "historical_requirement_or_mechanism": "AC05 creates a TSNE plot of concatenated stored modality vectors. AC21 reports EXPLORE using phi0.194..0.366; AC22 reports GROW using phi0.637..0.748. README installation instructions and those report rows do not show the actual invoked model or native learning. Textbooks and corpora are external materials, not active architectural authority by presence.",
+      "current_disposition": "TSNE is a statistical visualization and its presence alone does not establish current cognitive ML authority. In contrast AC02 uses pretrained embeddings for its semantic mechanism. Neither plot appearance nor a larger scalar implies intelligence, native plasticity, speech or full-field conformance.",
+      "lawful_remedy": "Keep observer/external content, executed cognitive authority and mere packaged evidence separately classified. Recover actual report provenance; replace self-labelled learning success with predeclared causal physical predicates.",
+      "unit_acceptance": "Label every evidence item as source, historical report, independent execution or current live proof.",
+      "module_acceptance": "Trace whether each derived quantity or external content can mutate/select native state or remains read-only observation.",
+      "system_acceptance": "Measure acquired capability with matched sensory/context controls and independently assessed speech, not plots or self-reported intent labels.",
+      "release_acceptance": "No broad no-ML or learned-speech claim without exact scope and complete executable/package/runtime evidence.",
+      "repair_actions": [
+        "A01",
+        "A10",
+        "A13",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "AC05",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC05--learning_harness.py",
+          "line": 39,
+          "anchor": "        from sklearn.manifold import TSNE",
+          "sha256": "590ee827ab1f5e62de5eec03703fb30b7527bf86a25011135f99edc11ac5d75a"
+        },
+        {
+          "source_id": "AC21",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC21--cognition_semantic_20251109_050648.csv",
+          "line": 2,
+          "anchor": "finance_news.txt,finance,0.194,-0.0,0.194,EXPLORE,\"Mixed signal (φ=0.19, H=0.00, e=0.19).\",market investors data yields stay remained elevated longer rates stay rates reserve indicated,market investors data yields stay remained elevated longer rates stay",
+          "sha256": "6db16c27dce314b67471e34c78da53fde9d6338e726651be16012b2dc3e60298"
+        },
+        {
+          "source_id": "AC22",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC22--cognition_semantic_v36_20251109_054446.csv",
+          "line": 2,
+          "anchor": "finance_news.txt,finance,0.6370834112167358,0.99999999711461,0.5764569090452231,GROW,High coherence (0.64) and energy (0.58).,,",
+          "sha256": "078e2a96bc81a671b5b4e3c45650573c74c90375590609a7b4e7cfca7e8f4596"
+        },
+        {
+          "source_id": "AC17",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC17--README.txt",
+          "line": 55,
+          "anchor": "- We can later plug its outputs into Morphospace/RRE or other modules.",
+          "sha256": "aa2db7b6feece9e7bc3d61decd77a1275aed197f8fd033d094b80e89c6137baf"
+        }
+      ]
+    },
+    {
+      "id": "ACR12",
+      "name": "Literal caller search cannot certify current exclusion",
+      "classification": "current_activation_not_established",
+      "historical_requirement_or_mechanism": "A corrected bounded search for Aurelion/all-MiniLM/semantic_mosaic/LLMBridge/language_field across dsf_ai_service,native,tests,tools Python/Rust/TOML files found only two Aurelion decay-rate comments in v4 engines. This narrows the observed references but does not close imports, aliases, generated/native binaries, alternate roots, image contents or external service calls.",
+      "current_disposition": "No current serving refresh, model inference probe or import tracing was performed. Previous independently captured Task1598 Whisper/YOLO/controller findings remain separately authoritative. Present source presence and historical CSVs must not be mislabeled as current execution.",
+      "lawful_remedy": "G1 must supply the frozen source/build/image/configuration and effective process dependency closure. A1 independently verifies the actual native speech chain and every prohibited competing route, preserving failure evidence.",
+      "unit_acceptance": "Enumerate actual entries, imports, build manifests, assets and externally resolved backends by content.",
+      "module_acceptance": "Trace every speech-producing and semantic input route with verified owner/consumer boundaries.",
+      "system_acceptance": "Observe the preserved live candidate under authentic sensory challenge and normal caretaker/environment load.",
+      "release_acceptance": "Issue only scoped claims tied to verified image/config/state and fresh live evidence; unknown routes remain open.",
+      "repair_actions": [
+        "A02",
+        "A05",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "AC13",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC13--bridge_cli.py",
+          "line": 3,
+          "anchor": "from bridge_llm import LLMBridge",
+          "sha256": "8f9f6f48b3c518b9b3661e6633b3dbb09adf0dbd38cc8d691e5ea5c681dc6c14"
+        },
+        {
+          "source_id": "AC14",
+          "path": "docs/guala_reconciliation/sources/aurelion-content/AC14--aurelion_core_v36.py",
+          "line": 6,
+          "anchor": "from semantic_mosaic import run_semantic_mosaic",
+          "sha256": "8ee3e24a68a9d12866aee78e62103df3088ef48acbb8b0fbb2ccba010361596b"
+        }
+      ]
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false,
+  "supporting_artifacts": [
+    {
+      "path": "docs/guala_reconciliation/sources/aurelion-content/memory-structure-receipt.json",
+      "bytes": 7674,
+      "sha256": "6d7b460a78d2090eaa2c23014dc77068d787085623fb78d1ad9ac00e21e978c0",
+      "review": "Independent static/structural audit receipt; no product execution"
+    },
+    {
+      "path": "docs/guala_reconciliation/sources/aurelion-content/static-interface-receipt.json",
+      "bytes": 9983,
+      "sha256": "8c04b074f50277493c7ef3d3c9b096c7e35cc0b11fc9961f924d7e8cc745d71f",
+      "review": "Independent static/structural audit receipt; no product execution"
+    },
+    {
+      "path": "docs/guala_reconciliation/sources/aurelion-content/20251109_152133--language_memory.json",
+      "bytes": 7620088,
+      "sha256": "12fcd7b86fe8f6d99d3cbfd728bd07da0b5098525ff6f6018a28324449ad6259",
+      "review": "Complete structural/numeric traversal only; not full semantic content review"
+    },
+    {
+      "path": "docs/guala_reconciliation/sources/aurelion-content/20251109_153751--language_memory.json",
+      "bytes": 11019687,
+      "sha256": "34c8cf837abea25e5ac664461295373733c0f8eb107d0d29cba2dc738efd7be6",
+      "review": "Complete structural/numeric traversal only; not full semantic content review"
+    },
+    {
+      "path": "docs/guala_reconciliation/sources/aurelion-content/memory-artifact-provenance.json",
+      "bytes": 1823,
+      "sha256": "4dc124674e753d8a1f6a7c9f1134d0b453d4067094a879e08c608e6087a0dd3c",
+      "review": "Independent static/structural audit receipt; no product execution"
+    }
+  ],
+  "source_kind": "mixed fully read working captures; only matched corpus pairs count toward documentary coverage"
+}

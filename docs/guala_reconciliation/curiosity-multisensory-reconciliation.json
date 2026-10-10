@@ -1,0 +1,2026 @@
+{
+  "schema": "guala.documentary_slice_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T06:57:43.760456+00:00",
+  "scope": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "CM01-01",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "07c2649e7ae4407a5d472f6bfea2182866ab183c",
+      "sha256": "cd6236384cfc17312c93adf70bcf1d64e6661352843dd356d112975f861d0428",
+      "bytes": 7440,
+      "lines": 118,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-01--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T17:08:22+00:00",
+          "commit": "f0ffd62b9cdd1d52418188d2125695ae4a44ffbe",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T16:46:56+00:00",
+          "commit": "f2278fb20fc469c2af66d7f1bcbb691bb7aac55a",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-01--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-02",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "0ab53fe6df10be6798f17dc7bc255caee0c5a1fa",
+      "sha256": "5b05eb1dbf725fb6caaf4697331616b3bcff3bb15cf7a3b54ba5a341b4906ba7",
+      "bytes": 28347,
+      "lines": 421,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-02--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T05:17:23+00:00",
+          "commit": "b6c8fbdcb934091c4740df96594ac78be3391630",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T05:02:05+00:00",
+          "commit": "9b07b5baf93c8e17ba98b407639e406781512484",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-02--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-03",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "0b94789f84f9ced34ef50baa4660065d08ec8db2",
+      "sha256": "33703813584bcda6af6e852842ed6e8e3f495ed756e4ccd090298140eb2e7f64",
+      "bytes": 60233,
+      "lines": 927,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-03--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T00:15:38+00:00",
+          "commit": "4321ef0e8c0b8c4e177d88b16efbfb151bcbcb83",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T23:26:20+00:00",
+          "commit": "1a3f4d0880dbaa6181a9535d4a2e3b13f309d071",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-03--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-04",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "0f0cd318227d78cd8faf032b8e441970e42be718",
+      "sha256": "e0f9d1a440df68d51c1a6c12beabe074c51733fdaaed5df2f7018d8c2c776fb5",
+      "bytes": 34185,
+      "lines": 516,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-04--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T06:53:53+00:00",
+          "commit": "2cc89f952f1397aa834b593235968d35d5e4ebf3",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T06:44:22+00:00",
+          "commit": "2755cd3f96392c68a6c8ab9da10bf2dad8e74289",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-04--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-05",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "1c335714e626b795094694015e11903756835346",
+      "sha256": "ae226fa12ff3a5734adbef1f27fc15a58522577aedfbb8f7cd4d4a6557977a2c",
+      "bytes": 18881,
+      "lines": 275,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-05--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T21:12:00+00:00",
+          "commit": "863b0a26366e49eb23df8092b9451a1ef06f7602",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T20:47:45+00:00",
+          "commit": "21c42a74756ea1b7f3eeaaaf071fcad8e1c4884c",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-05--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-06",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "219069774a23a2865a16f26cfedadf8b21f32c7f",
+      "sha256": "5773618b582cd83f1f2fa3967c1fe7a5ebc6386243827675e55952da1d15a241",
+      "bytes": 8733,
+      "lines": 140,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-06--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T20:09:44+00:00",
+          "commit": "aef1a2cac7a0ba46d3b7f16fc922ee850b1ec738",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T17:08:22+00:00",
+          "commit": "f0ffd62b9cdd1d52418188d2125695ae4a44ffbe",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-06--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-07",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "2405a3496e05edb9bf0296fdd66c4edc00759914",
+      "sha256": "670b47b9cda344467c4e62185f366853b0162119b8ca61dd44de60be966b1448",
+      "bytes": 14993,
+      "lines": 212,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-07--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T20:10:50+00:00",
+          "commit": "96bc624e7155ce49e06af17c9b2e8edf06abf99a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T20:09:44+00:00",
+          "commit": "aef1a2cac7a0ba46d3b7f16fc922ee850b1ec738",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-07--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-08",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "26410004d10ad21e0a8a0a56c26baa1f1b32d7d7",
+      "sha256": "88434eadd27bf89052f69aeabde02f79bfd326939eb4cf414cb830cb40aee0ae",
+      "bytes": 20843,
+      "lines": 305,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-08--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T00:44:57+00:00",
+          "commit": "e38165b4a2642dff5a22ac5d979071ac54ba228e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T22:20:18+00:00",
+          "commit": "8ff54541cb36f87ea089a19521021b9e3549b375",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-08--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-09",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "40515392560db81d24c93d5476b6466cd95166ec",
+      "sha256": "5fab971ba23775c921d3650130e89b18a9c32869ca3e5ed6f872252f3af320ec",
+      "bytes": 48622,
+      "lines": 750,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-09--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T19:58:27+00:00",
+          "commit": "9fe721ea4556d56a6da7f7fff30af25819983fc4",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T18:14:06+00:00",
+          "commit": "4bef4afe1133d0b4adcb3436ce8b1d5a636a080a",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-09--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-10",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "47490df39328b9b091c0ef58bca18c31757d2c13",
+      "sha256": "c194c4f4b2d4f6317fb0f3f23cee78b672d5135b3eecd3c6e0baa44d76c37c0e",
+      "bytes": 56955,
+      "lines": 876,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-10--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T23:21:33+00:00",
+          "commit": "33163727a5b9edf2e998b4f91c7b5e6619af57f4",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T21:01:34+00:00",
+          "commit": "87659b80534b420294921c3a62030bc974f443ee",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-10--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-11",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "560bcd94367a2995d716dd91f0a915105cabf96d",
+      "sha256": "0981ca25252347c8a64c94f934f55c1d6b32b1cdcaae21bca1d44b5e7a102bd4",
+      "bytes": 19337,
+      "lines": 281,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-11--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T22:20:18+00:00",
+          "commit": "8ff54541cb36f87ea089a19521021b9e3549b375",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T21:12:00+00:00",
+          "commit": "863b0a26366e49eb23df8092b9451a1ef06f7602",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-11--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-12",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "6b7e404deff80ff24e1e5daf69a90dc96c03608e",
+      "sha256": "669fa51d34d3fcde2b5fb352cf6815cee4af458a86a520450da7f09a716e7447",
+      "bytes": 5720,
+      "lines": 88,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-12--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T16:46:56+00:00",
+          "commit": "f2278fb20fc469c2af66d7f1bcbb691bb7aac55a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T16:20:42+00:00",
+          "commit": "72baabc7ee0b28ce30c32cf785451175c4017003",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-12--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-13",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "6e8685edfc02af00f3262dc0b903a446a7b1f700",
+      "sha256": "91c35ed9b7cf72522acacee82a04ef3ceec7b16f0a35bc3237e1d6e5e34c01e4",
+      "bytes": 53925,
+      "lines": 830,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-13--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T20:46:57+00:00",
+          "commit": "429050479e4f1822f8b28f115342f5a691b876ac",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T19:58:27+00:00",
+          "commit": "9fe721ea4556d56a6da7f7fff30af25819983fc4",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-13--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-14",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "8682bb93c1831befc76a0ea8eef40037bb274201",
+      "sha256": "dd554cfad7113fc72d7ab5522ef5571e1bcf689a8f97f89c5e5ca112e4c833ee",
+      "bytes": 17447,
+      "lines": 251,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-14--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T20:47:45+00:00",
+          "commit": "21c42a74756ea1b7f3eeaaaf071fcad8e1c4884c",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T20:42:01+00:00",
+          "commit": "7e473f582f069115041316b0ff7e8a1ed01b4b0e",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-14--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-15",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "8a2aa2e8f7001c9e9797738f2575b88df3eb9dca",
+      "sha256": "10d5cef2a77813b22cb279844c8175a905cd44da6e034853a318b0196f457a48",
+      "bytes": 35528,
+      "lines": 539,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-15--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T07:40:49+00:00",
+          "commit": "007211790f1a4041b9ceaffe4cc0eb46165d9130",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T06:53:53+00:00",
+          "commit": "2cc89f952f1397aa834b593235968d35d5e4ebf3",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-15--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-16",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "8e50fa6e89cb53b8b7febf6d0b4eaaae2129721f",
+      "sha256": "c90b1352e5a7f49634e3b7bd5488775303e66a8428faa853ce254f731364a033",
+      "bytes": 43846,
+      "lines": 676,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-16--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T13:36:09+00:00",
+          "commit": "42fb44a91afe72820bec3bf6987c6bc1f168f0f0",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T11:11:08+00:00",
+          "commit": "264146c14873f2a4c459e64156d25d11989ef861",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-16--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-17",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "9830fb71a2208425d8c103fc6d6cda994eb3c336",
+      "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e",
+      "bytes": 62505,
+      "lines": 963,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-24T00:15:38+00:00",
+          "commit": "4321ef0e8c0b8c4e177d88b16efbfb151bcbcb83",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-18",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "9b9c916ca4b26fcf4c9c13366a1a319d0ff8bcd0",
+      "sha256": "fa0bc983902a8319fde88acbd1d31a96cb4c77e8b0aa5af06b9a9456de55b98d",
+      "bytes": 38993,
+      "lines": 596,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-18--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T08:12:21+00:00",
+          "commit": "d782600c09ab64e20aecd77b9d9c9cfbcd6ca7d8",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T07:40:49+00:00",
+          "commit": "007211790f1a4041b9ceaffe4cc0eb46165d9130",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-18--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-19",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "a3d08217aee74286f4bb5d7bd7989e58224ef9ce",
+      "sha256": "aeae5e6d3dbd719434fb7fa95462d69dbcb7d46daf8bf73491b95e4dfd3f85f1",
+      "bytes": 15339,
+      "lines": 218,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-19--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T20:42:01+00:00",
+          "commit": "7e473f582f069115041316b0ff7e8a1ed01b4b0e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T20:10:50+00:00",
+          "commit": "96bc624e7155ce49e06af17c9b2e8edf06abf99a",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-19--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-20",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "a488a46b169184c5bebb8515a4dae7467ff58eeb",
+      "sha256": "cb468b4d2741ab612bd98c2aef955f9232ab94d8b8cba7dda2ffe21200366208",
+      "bytes": 42531,
+      "lines": 652,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-20--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T11:11:08+00:00",
+          "commit": "264146c14873f2a4c459e64156d25d11989ef861",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T10:51:13+00:00",
+          "commit": "5451e2ed2373d3035fdd629a36af444cc72de22e",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-20--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-21",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "a5cd2ba5ae21d690f44c8ea2a97d347e78a4f841",
+      "sha256": "bf0bbe29d2a892817d7e965d6ffbce80803b6df692c261bf8a21418097023d7c",
+      "bytes": 30049,
+      "lines": 449,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-21--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T05:31:28+00:00",
+          "commit": "28a429f6af3d0c57b66a59a633ad8b73ed69752f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T05:17:23+00:00",
+          "commit": "b6c8fbdcb934091c4740df96594ac78be3391630",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-21--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-22",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "a683c5b9a85f868c3ee0d970774e9ea91689d704",
+      "sha256": "6210a1664168efccb4ebd74dd19a44387d2b340fca7f0d5759d506ffced103fd",
+      "bytes": 56833,
+      "lines": 875,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-22--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T21:01:34+00:00",
+          "commit": "87659b80534b420294921c3a62030bc974f443ee",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T20:46:57+00:00",
+          "commit": "429050479e4f1822f8b28f115342f5a691b876ac",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-22--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-23",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "b0e57b634e2ad86c335217b09aa76fba7ac8c7b2",
+      "sha256": "054b330db84c564d7026264e822da8146035189cc1e96acfb5c835e9fe46b202",
+      "bytes": 23016,
+      "lines": 337,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-23--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T00:50:04+00:00",
+          "commit": "985ea4809a2b9b4fd1111a847f2b5d9669e061d9",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T00:44:57+00:00",
+          "commit": "e38165b4a2642dff5a22ac5d979071ac54ba228e",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-23--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-24",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "c10b81c77c38ce821ad715728709850149c54122",
+      "sha256": "a1364f82e9a9d5f095c2b464fad0b72e860dfc6dfb4f7c7af5890e0ad8fe9a62",
+      "bytes": 45258,
+      "lines": 698,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-24--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T14:07:59+00:00",
+          "commit": "88d1b11accd9d14da119f07662f08016a807921f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T13:36:09+00:00",
+          "commit": "42fb44a91afe72820bec3bf6987c6bc1f168f0f0",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-24--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-25",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "c22dec8ddce04c5232c5854da4e6476dede64c5e",
+      "sha256": "fa6f7838ef91519a7cdfdc19a1627000e0b1fcbdc1d7575feea5e1f7fcac8cf2",
+      "bytes": 41150,
+      "lines": 629,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-25--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T10:51:13+00:00",
+          "commit": "5451e2ed2373d3035fdd629a36af444cc72de22e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T08:12:21+00:00",
+          "commit": "d782600c09ab64e20aecd77b9d9c9cfbcd6ca7d8",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-25--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-26",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "c2643f20c0cfd9b79fd2f9a3bafa23f2dae59402",
+      "sha256": "3e7c4e66bd05475dcbb05c364a180196251f1adca84a3f2b1ffd3162e7044e9d",
+      "bytes": 32948,
+      "lines": 494,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-26--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T06:44:22+00:00",
+          "commit": "2755cd3f96392c68a6c8ab9da10bf2dad8e74289",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T06:09:24+00:00",
+          "commit": "ad468ed50e7717b38ea7cb15f32fd863847306fd",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-26--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-27",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "c4bf4fedecda0d4f15f2b2036cfe037c66e0e550",
+      "sha256": "cf828820f962acdbb1cab9bbed01646935b33c10e441427eb66fd9d0ebadf7d5",
+      "bytes": 31074,
+      "lines": 463,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-27--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T06:09:24+00:00",
+          "commit": "ad468ed50e7717b38ea7cb15f32fd863847306fd",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T05:31:28+00:00",
+          "commit": "28a429f6af3d0c57b66a59a633ad8b73ed69752f",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-27--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-28",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "c5c75fc9541e220c54bb7a320dbcdde62e5ee25f",
+      "sha256": "d593743f425fb23d085795a9144571645bcd522bddf21cb8c7a458021d7c1d55",
+      "bytes": 47323,
+      "lines": 729,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-28--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T18:14:06+00:00",
+          "commit": "4bef4afe1133d0b4adcb3436ce8b1d5a636a080a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T14:07:59+00:00",
+          "commit": "88d1b11accd9d14da119f07662f08016a807921f",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-28--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-29",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "d03127d194270c717c944becdd53c8608125944b",
+      "sha256": "3abe8b5ff7da71681afad007bbfbb4f14f4cd5be8e55fb2c3ca55c095778dd9d",
+      "bytes": 59635,
+      "lines": 918,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-29--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T23:26:20+00:00",
+          "commit": "1a3f4d0880dbaa6181a9535d4a2e3b13f309d071",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T23:21:33+00:00",
+          "commit": "33163727a5b9edf2e998b4f91c7b5e6619af57f4",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-29--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-30",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "d5a2d7d9c0eec47f6a4e6e5082400bb23a107f5a",
+      "sha256": "3bd18d56e13fae4bbc7a174f06c6b6bb870a1f6d38891be67c32257592b6823f",
+      "bytes": 23866,
+      "lines": 351,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-30--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T01:48:47+00:00",
+          "commit": "e0e8e60cc351bcf273f92077a55dbf7020975d9c",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T00:50:04+00:00",
+          "commit": "985ea4809a2b9b4fd1111a847f2b5d9669e061d9",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-30--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM01-31",
+      "path": "docs/GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "ffb597cc973647c1d2be559d8f8160b6f70fb160",
+      "sha256": "d0160b6242141318d225bdcc88175cb1b9bf42042ab1081f83fe00e5dc91ef4b",
+      "bytes": 26296,
+      "lines": 389,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM01-31--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T05:02:05+00:00",
+          "commit": "9b07b5baf93c8e17ba98b407639e406781512484",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T01:48:47+00:00",
+          "commit": "e0e8e60cc351bcf273f92077a55dbf7020975d9c",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-31--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-01",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "0fea244a2247315e79a3da1007133f620b4e7969",
+      "sha256": "8d16772c8d8728c8b4f6e19f3653a54c865ffc5a1b147fa6a3fc5463e75051ad",
+      "bytes": 24078,
+      "lines": 354,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-01--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-21T20:23:46+00:00",
+          "commit": "a9e136108feb56baac65b8af67c66ea37db13ffb",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-21T19:53:35+00:00",
+          "commit": "5caf12535a3ea055d86fb800d7fcd51cb057873b",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-01--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-02",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "10d64f1efb150955468ea710dd2b4399d91be7dd",
+      "sha256": "5e8ed420628ae5519239579f7803287f32cbceba964f38f41796a70fa09b78d1",
+      "bytes": 26256,
+      "lines": 393,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-02--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-20T23:49:37+00:00",
+          "commit": "1f95a9f85c1d232592e282cf4eec315e43632fb5",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-20T21:54:19+00:00",
+          "commit": "6d41c584c5ac68945653e39fabfa43af5926d6a3",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-02--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-03",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "1446d5538d65e8f3b90b9e4d884c69c14bb01166",
+      "sha256": "27ee97f01f3ffb4c616711b8127bbe3629127f8e8c830baf181b078357cbe264",
+      "bytes": 35379,
+      "lines": 546,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-03--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T10:00:53+00:00",
+          "commit": "3a08f6b1381b887da8d65f75cdb9b1059688ef97",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-23T09:24:17+00:00",
+          "commit": "ceb3f82bfae93cb4f1e4f0394ebadf225fb11719",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-03--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-04",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "158a23eafaaace45e1971cb6093b0174607c7d95",
+      "sha256": "3553e78d0180b5b542c0f47c4a598d4e7e0b6610c13876588975d462ebae0c9d",
+      "bytes": 26187,
+      "lines": 391,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-04--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-21T23:53:46+00:00",
+          "commit": "da0af0dec2897a5ef6f9cf8662a72ecf0faa0d55",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-21T22:22:20+00:00",
+          "commit": "e4f79a51a62755d214764f82d6c2b1dd8d3e3b53",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-04--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-05",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "191c5a1b3f8d161c09417f8edb4ba16530c84f57",
+      "sha256": "ae9917717a83c32ecb334b69993f76ef935df8e4da64e51fe0acd146fe12cb5d",
+      "bytes": 33641,
+      "lines": 514,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-05--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T09:24:17+00:00",
+          "commit": "ceb3f82bfae93cb4f1e4f0394ebadf225fb11719",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T01:34:17+00:00",
+          "commit": "f7a6d4fd8a941a81887f747a357913ba7044e50a",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-05--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-06",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "3d2efef881a506e87db678954442b1d7ba5e3150",
+      "sha256": "c24721892d3b6398d28e5ad7ff393af311ccc929d2ecc18961e6357cb6c6d574",
+      "bytes": 25501,
+      "lines": 379,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-06--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-20T21:54:19+00:00",
+          "commit": "6d41c584c5ac68945653e39fabfa43af5926d6a3",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-20T21:31:37+00:00",
+          "commit": "61aeaa3ad5e15fddd354be82aeaccd39fd42455a",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-06--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-07",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "4c6f1f9c5b0c504201e79f1f18980f0fc60d368f",
+      "sha256": "ed3ad27109355920f85afa8813b8fd26f759aac562eb93abdeb94e092b88d46a",
+      "bytes": 25236,
+      "lines": 375,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-07--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-21T22:22:20+00:00",
+          "commit": "e4f79a51a62755d214764f82d6c2b1dd8d3e3b53",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-21T20:23:46+00:00",
+          "commit": "a9e136108feb56baac65b8af67c66ea37db13ffb",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-07--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-08",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "4d40c8a6f80aef5c9d2664bfc455d9fe2010e44c",
+      "sha256": "b5e0f2df88130af808edf3a49dd5db977fbdabf323e2786b08afe1550a430608",
+      "bytes": 41850,
+      "lines": 659,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-08--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-21T01:36:31+00:00",
+          "commit": "abffeefd2c671cc7516a5436707e4a95e01d10c1",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-21T01:11:06+00:00",
+          "commit": "cc7cc3dfbcb6010aba2cb37567c19caf0a865ed2",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-08--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-09",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "554b9109e3638a500dca757c48819b8c303c974f",
+      "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5",
+      "bytes": 37010,
+      "lines": 575,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-23T10:00:53+00:00",
+          "commit": "3a08f6b1381b887da8d65f75cdb9b1059688ef97",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-10",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "5a171ef4d93e070835baaa17631559231163750f",
+      "sha256": "da86c204793f680aa2a4d96e616153d974b57a122b620044337a3392ff607a7c",
+      "bytes": 36768,
+      "lines": 566,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-10--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-21T00:41:35+00:00",
+          "commit": "635805a184e20c68523302350ed03c71e5fe6e21",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-21T00:13:36+00:00",
+          "commit": "27d26b62a5e0f90798e654f7d06b47a458c905c5",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-10--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-11",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "5fc34c37952a373ce47482f5046afa4eb3cac1e8",
+      "sha256": "14bf01906e8721699c844e948a3c3a604674c5457b563a024c9152a573f56fd0",
+      "bytes": 29690,
+      "lines": 451,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-11--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T01:01:59+00:00",
+          "commit": "68415a1fb1509bc8a5aa98db33f66f69a6f024b2",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T00:18:18+00:00",
+          "commit": "27f979203b338daa07a814d87eafa4bc6d8a1e29",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-11--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-12",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "6470e8363b0735f9f6751feeedb893c75385c031",
+      "sha256": "7cf3fdecc8e262b5f4846c2066befee91032e0c007e00bf8dcba6f7c5498d687",
+      "bytes": 61641,
+      "lines": 988,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-12--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-20T12:38:56+00:00",
+          "commit": "648b0a6764642216e18c357e6cb2f341d68d766a",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-12--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-13",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "6642f273cfbe0e2717e556617a921d711a03e124",
+      "sha256": "b8cd697b4dfd27e4dbdb4399e90db68a6432f29a5e3d43c59e67c15c440a6590",
+      "bytes": 15444,
+      "lines": 208,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-13--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T19:53:23+00:00",
+          "commit": "42b5b9bc0c1cd0fd44a23e440e9ba022692c1f3c",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T19:29:26+00:00",
+          "commit": "f0e60e339eb18845a938ba83ccb7de1754a846f0",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-13--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-14",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "6e88fbfba45caba83261eb39560b19bac542821b",
+      "sha256": "5c1fe0e802571df16d6b224bea1c4673b7ec225d1ea1dde539ee8c6c329bb664",
+      "bytes": 23414,
+      "lines": 343,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-14--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-20T20:58:26+00:00",
+          "commit": "a08b0f54f3931224ca1012c10b27a42ac5f6026c",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-20T20:20:45+00:00",
+          "commit": "9e37f4a075f24bfb599ef1ad5a68a2e623e5960d",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-14--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-15",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "7011fa68051c5955e37b9a6a4f9661056d7982f6",
+      "sha256": "e303dcb3b697ec79b0a5aa5081d1a9dde47c1080e08b1df7d8b46ade2ab20654",
+      "bytes": 31689,
+      "lines": 482,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-15--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T01:25:26+00:00",
+          "commit": "6ac402f3788267e3a19fe8f33d7aaeb603168258",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T01:01:59+00:00",
+          "commit": "68415a1fb1509bc8a5aa98db33f66f69a6f024b2",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-15--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-16",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "7b8c4d4f47174159db4c275195348696c49cc30a",
+      "sha256": "8398c680869693fd6e7e6c83a8337f32002c29e245ff181c46d0c2db2cb88494",
+      "bytes": 35444,
+      "lines": 541,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-16--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-21T00:13:36+00:00",
+          "commit": "27d26b62a5e0f90798e654f7d06b47a458c905c5",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-20T23:49:37+00:00",
+          "commit": "1f95a9f85c1d232592e282cf4eec315e43632fb5",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-16--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-17",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "8402d4aca38a036cbfc8bdab1098dd65a422ddb3",
+      "sha256": "99e84065ef3d199c9474b2658d488aa6d0200492042a47318b6aec6cee6cc819",
+      "bytes": 42618,
+      "lines": 676,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-17--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-21T01:36:31+00:00",
+          "commit": "abffeefd2c671cc7516a5436707e4a95e01d10c1",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-17--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-18",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "8d8e6b9a93f970988e745260369af55933e69f2a",
+      "sha256": "8475dec751158356b321ca0e6dceabb5166dbf191b3ca218e8cd502f28ae03ee",
+      "bytes": 32649,
+      "lines": 497,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-18--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T01:34:17+00:00",
+          "commit": "f7a6d4fd8a941a81887f747a357913ba7044e50a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T01:25:26+00:00",
+          "commit": "6ac402f3788267e3a19fe8f33d7aaeb603168258",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-18--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-19",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "8e5fb9ba7f055b5c93664f93cf6dc6287bfb2bab",
+      "sha256": "8f3d8e4d855a628579341f41f066bf397e906bcc43b4894555e8031c3559f8de",
+      "bytes": 13269,
+      "lines": 174,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-19--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T19:29:26+00:00",
+          "commit": "f0e60e339eb18845a938ba83ccb7de1754a846f0",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T19:00:50+00:00",
+          "commit": "2df85e770b89b0dcd3dcd2eb24a4639c228d626e",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-19--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-20",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "9a44875ae9bcdac984dab848b1f799082897a8c4",
+      "sha256": "06fc5d4764a025905d461f2bbcf391cf3ba7290c2d2e265adbec1c2bde2fb72e",
+      "bytes": 17054,
+      "lines": 234,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-20--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-21T19:53:35+00:00",
+          "commit": "5caf12535a3ea055d86fb800d7fcd51cb057873b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-20T20:20:45+00:00",
+          "commit": "9e37f4a075f24bfb599ef1ad5a68a2e623e5960d",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-20T12:38:56+00:00",
+          "commit": "648b0a6764642216e18c357e6cb2f341d68d766a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T19:53:23+00:00",
+          "commit": "42b5b9bc0c1cd0fd44a23e440e9ba022692c1f3c",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-20--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-21",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "ad093a6ca8ad3078e5637d6ad0acc17c97037138",
+      "sha256": "86b0bbd0ee11d8a0b360538345363b98d2a4f568d68c50faa516f4ecd5f015c9",
+      "bytes": 27943,
+      "lines": 419,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-21--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-22T00:18:18+00:00",
+          "commit": "27f979203b338daa07a814d87eafa4bc6d8a1e29",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-21T23:53:46+00:00",
+          "commit": "da0af0dec2897a5ef6f9cf8662a72ecf0faa0d55",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-21--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-22",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "d2696803e336aa0d50f6bc920a13e3e5c160b7f8",
+      "sha256": "4ae72e2b763cfef1c0532ae7b2f96b88381c1b796b6d9669060d2f86088be19d",
+      "bytes": 24426,
+      "lines": 360,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-22--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-20T21:31:37+00:00",
+          "commit": "61aeaa3ad5e15fddd354be82aeaccd39fd42455a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-20T20:58:26+00:00",
+          "commit": "a08b0f54f3931224ca1012c10b27a42ac5f6026c",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-22--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-23",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "ddab3dcf2cdea490932444c020470cc60da75cbe",
+      "sha256": "ba7f494403a7602caf199aae9832f5cefa90a78a04aa41cc4b7178f00f68539d",
+      "bytes": 40572,
+      "lines": 637,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-23--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-21T01:11:06+00:00",
+          "commit": "cc7cc3dfbcb6010aba2cb37567c19caf0a865ed2",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-21T01:07:29+00:00",
+          "commit": "8192d66cb254def65763d2339db3f5f03b4f77b2",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-23--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CM02-24",
+      "path": "docs/GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "eb0c4ab3961f33bfab7e6f48a97697bc81e6212b",
+      "sha256": "db1fc7a2f3fd283bd20b4e5c210f58a8462c06a0aecf63242870efb6dac049a6",
+      "bytes": 39597,
+      "lines": 618,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/curiosity-multisensory/CM02-24--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-21T01:07:29+00:00",
+          "commit": "8192d66cb254def65763d2339db3f5f03b4f77b2",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-21T00:41:35+00:00",
+          "commit": "635805a184e20c68523302350ed03c71e5fe6e21",
+          "side": "new"
+        }
+      ],
+      "review": "All55 recovered versions across two paths:1538 latest-document lines plus121 older-only hunks/1146 lines, covered by119 exact-containment basis hunks/1116 reading lines. Complete captured content only; original approval, scientific premises, historical execution, transitive implementation and current serving behavior are not independently verified.",
+      "canonical_copy": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-24--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "CMR01",
+      "name": "New sensory impression to action is a real but bounded historical claim",
+      "classification": "historical_causal_path_and_corrected_claim_scope",
+      "historical_requirement_or_mechanism": "A006 records new impressions later traversing exact carrier paths to motor action and sensed consequence on tasks1051/1052, later1184 and1198. The observer excludes an impression’s own antecedent transfers and supports distinct retained-recurrence/new-impression root classes in one frontier query. Early whole-item closure was later narrowed because social participation was absent. Final1198 reports a separate authenticated other-body causal occurrence in the same organism.",
+      "current_disposition": "These are detailed historical reports, not newly replayed results or proof of current64-column capability. Native causal novelty-to-action supports a narrower accomplishment; it does not by itself establish every need, affection, curiosity capability, learned speech or enduring history continuity. Same-action/same-tick coincidence is stronger evidence when present, not automatically a ratified necessary condition.",
+      "lawful_remedy": "Recover original candidate/state/witness artifacts, retain their narrow accomplishments, and map equivalent native causal boundaries to the preserved current candidate. Derive each acceptance condition from authorized causal requirements, not the observer’s output shape or desired label.",
+      "unit_acceptance": "Verify origin time, exact transfer direction, motor cause and actual sensed return; reject missing or reversed links.",
+      "module_acceptance": "Prove the observer cannot choose actions or mutate/persist cognitive authority, including across intake boundaries.",
+      "system_acceptance": "Measure each required influence through exact causal occurrences in the same preserved candidate; distinguish social occurrence from affection and broader development.",
+      "release_acceptance": "Fresh current release evidence must close the stated scope; historical labels or zero Python callbacks cannot certify current learning or ML exclusion.",
+      "repair_actions": [
+        "A01",
+        "A05",
+        "A09",
+        "A11",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 75,
+          "anchor": "- A new impression becomes a root only after the interval that formed it. It",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 674,
+          "anchor": "Status: **the intrinsic novelty-to-action subpath is live-verified; full A-006",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 929,
+          "anchor": "### Final live A-006 closure — 2026-08-24",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 947,
+          "anchor": "  social and novelty paths to fabricate one shared action.",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        }
+      ]
+    },
+    {
+      "id": "CMR02",
+      "name": "Authentic action consequences include lawful unchanged senses",
+      "classification": "genuine_multisensory_boundary_and_rejected_substitution",
+      "historical_requirement_or_mechanism": "A009 distinguishes exact action-caused world/body return from preceding ambient input. Early109-port sensing used27 sight,34 sound,27 touch,8 smell,5 taste and8 body ports. Later37-axis/74-terminal body development changed the roster. Global XYZ/yaw coordinates were rejected as substitute proprioceptors; genuine local receptors could be quiescent during rigid yaw while vestibular rotation remained active. The document explicitly reports no learned fractal from a single newborn action.",
+      "current_disposition": "The cited biological papers and original executions were not independently revalidated by this documentary review. A reached channel is not necessarily changed, and a changed channel is not necessarily retained learning. Roster counts and anatomy are version-specific, not reusable current64-column constants.",
+      "lawful_remedy": "Preserve actual per-channel laws, time/units and action-bound before/after state. Reject synthetic all-senses-changed flags and invented modality mappings. Reconcile current body/sense mount configuration with actual native consumers and truthful changed/quiescent/unavailable reports.",
+      "unit_acceptance": "For each channel verify its real producer, physical units, anatomy, changed/quiescent predicate and unavailable boundary.",
+      "module_acceptance": "Bind native action, exact world/body predecessor/successor and all physically applicable receptor return to one occurrence.",
+      "system_acceptance": "Verify ordinary self-initiated actions and continued processing, with genuine silence/no-contact/unchanged inputs accepted without fake changes.",
+      "release_acceptance": "Prove the actual mounted roster and effective configuration on the frozen release; do not substitute an older roster or observation flag.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A08",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 23,
+          "anchor": "3. Conflict: yes. Ambient lanes in the preceding interval are not proof of",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 85,
+          "anchor": "- Rejected after candidate-native falsification: treating global XYZ/yaw",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 134,
+          "anchor": "  A-009 does not claim learning from this single action.",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 221,
+          "anchor": "  smell 8, taste 5, and body 8. Four local proprioceptive receptors re-entered",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        }
+      ]
+    },
+    {
+      "id": "CMR03",
+      "name": "Chronological consequence delivery must survive transport redesign",
+      "classification": "conflicting_transport_contracts_require_causal_reconciliation",
+      "historical_requirement_or_mechanism": "Older A009 revisions demand pause/consequence/resume immediately after every native discharge and before later original sources. Later records retire that Python/native pause architecture and say the next ordinary application occurrence carries the actual body plus world sensorium. The final continuous lived-intake change removes intermediate seals and reports identical final bytes in focused tests. Self-hearing/vestibular motor rows were initially omitted from cumulative action evidence; another wrapper mistook changed carrier counts6 then3 for conflicting anatomy although axis/direction remained stable.",
+      "current_disposition": "The documents describe materially different transport contracts. Neither restoring a rejected pause helper nor a final receipt alone establishes complete physically timed causality for every intervening action. Ordered discharge strength is not a static motor identity. Exact current source/timeline equivalence remains unproved.",
+      "lawful_remedy": "Ratify one clocked native/world feedback contract and trace every action and subsequent sensory event against it. Preserve all ordered discharges with stable terminal identity and exact strength. Keep the sole continuous native authority and canonical final publication; do not fabricate missing consequences or require a rejected implementation by name.",
+      "unit_acceptance": "Distinguish stable axis/direction identity from event carrier strength and retain exact time order.",
+      "module_acceptance": "Verify every discharge, world commit, body/vestibular/self-hearing return, later source and final publication against the authorized timeline.",
+      "system_acceptance": "On preserved mature state, demonstrate consecutive real actions with correct intermediate consequences and exact failure/restart custody.",
+      "release_acceptance": "Close production reachability of conflicting helpers and show the served candidate’s actual chronology, not only final aggregate counts.",
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A06",
+        "A08",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CM02-08",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-08--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 408,
+          "anchor": "Acceptance condition: each actual layer-12 discharge pauses the same unsealed",
+          "sha256": "b5e0f2df88130af808edf3a49dd5db977fbdabf323e2786b08afe1550a430608"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 325,
+          "anchor": "  resident body, and the next ordinary application occurrence carries that",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 407,
+          "anchor": "3. Carrier count is event strength, not static effector identity. The wrapper",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 386,
+          "anchor": "evidence emitted by the self-hearing continuation was left only in `last_hop`",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 520,
+          "anchor": "serialized the complete organism between causal segments. That serialization",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        }
+      ]
+    },
+    {
+      "id": "CMR04",
+      "name": "Mutable topology identities and background growth caused historical runaway",
+      "classification": "documented_topology_defects_and_narrow_corrections",
+      "historical_requirement_or_mechanism": "A006 task1175 had623 layer12 cells for70 mounted terminals and98053 layer11→12 contacts because motor identity used changing participant sets. Task1176 migration removed553 generated motor artifacts; later72 motors were distinct terminals. Layer11 identity then used mutable neighbor sets, causing repeated route creation and full-fabric extensions. The later growth path also admitted static neighbors or background activity rather than actual conducting paths. A009 reports a global Cartesian-product motor recruitment that grew62551 spurious contacts.",
+      "current_disposition": "These explain specific pre64 historical stalls; they do not diagnose the current latency or left-turn loop. A static identity repair, causal growth restriction and batching may be genuine improvements, but migration losses and original authority need separate proof.",
+      "lawful_remedy": "Use exact persistent terminal/physical-bond identity independent of changing activity, and derive growth only from authorized causative physical transitions. Batch exact structural extensions while preserving existing learned state. Measure current identities and growth paths before attributing today’s failures to the same defect.",
+      "unit_acceptance": "Enrich an existing route and re-reach its founding bond without duplicating its identity or contacts.",
+      "module_acceptance": "Verify only actual lawful source/carrier causality can recruit growth; quiet local physiology still settles.",
+      "system_acceptance": "Measure mature ordinary intervals, topology changes and behavior under realistic input without combinatorial contact growth.",
+      "release_acceptance": "Bind identity/migration invariants to the actual source, format and serving candidate; old repair reports cannot prove present bounds.",
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A08",
+        "A11",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 154,
+          "anchor": "  `623` layer-12 motor cells for only `70` exact mounted body-effector",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 158,
+          "anchor": "  complete, changing set of reached layer-11 participants. Each new participant",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 292,
+          "anchor": "  neighbour set. Later lawful recurrence, motor, or articulation contacts",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 404,
+          "anchor": "  successor added one layer-12 cell and `2,628` layer-11-to-layer-12 contacts.",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 327,
+          "anchor": "- Motor recruitment no longer forms the global Cartesian product of every",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        }
+      ]
+    },
+    {
+      "id": "CMR05",
+      "name": "One-way topology retirement erased retained formations despite identity continuity",
+      "classification": "authorized_lossy_retirement_with_unresolved_preservation_scope",
+      "historical_requirement_or_mechanism": "A006 first requires refusing motor-duplicate repair if retained evidence/mosaics/frontier would be discarded. A later ordering repair explicitly removes dependent formations and reports200→175 retained records. GLCOG027 then retires layers9,10,11,13, their dependent evidence/frontiers/mosaics and the hippocampal checkpoint while preserving source/body structures and organism identity. The reported body changes2105→551 neurons,46770→2104 contacts and113474571→48025872 bytes; retained mosaics become zero. The record calls this a one-way authority correction.",
+      "current_disposition": "The original Aug23 public proposal and Joe’s direction to proceed are recovered in MGR06/MG05. The disclosed cleanup was contextually authorized. Approval does not prove every removed structure invalid, justify unaccounted surviving-cohort experience loss, or establish complete history preservation. Source review confirms broad custody clearing while preserving physical state in surviving cohorts. Later new acquisition does not restore the old experiences; historical permission does not authorize a current reset.",
+      "lawful_remedy": "Bind recovered original approval and exact V27 code to a complete per-owner loss/preservation inventory. Identify which invalidity claims are supported and which useful causal effects were lost. Any recovery requires an authorized direct physical mapping and ordered requalification; do not fabricate memory or infer continuity from identity.",
+      "unit_acceptance": "Account for every removed/retained neuron, contact, formation and dependent causal relationship by original identity and bytes.",
+      "module_acceptance": "Compare the authenticated approved proposal with actual migration scope, including surviving-cohort custody, and account for every sanctioned and unresolved loss.",
+      "system_acceptance": "Compare retained learned effects before/after where authentic artifacts allow; separate new acquisition from preservation.",
+      "release_acceptance": "No history-preservation or performance-equivalence claim without explicit losses, sanctioned transition and independent exact-candidate proof.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A09",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 168,
+          "anchor": "| One-way repair | Keep the oldest stable lineage for each exact mounted terminal; retire later duplicate/unspecialized layer-12 artifacts and every incident generated contact; release their claimed resting places; refuse repair if retained evidence, a mosaic, or an active frontier would be discarded |",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 383,
+          "anchor": "  `83,437 -> 36,242`; retained formations `200 -> 175`. No DSF field, neuron",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 889,
+          "anchor": "  seven-field DSF authority. It retires unauthenticated layers 9, 10, 11, and",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 901,
+          "anchor": "  `0-8` plus `74` layer-12 terminal motors; retained mosaics are zero.",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 899,
+          "anchor": "  from `113,474,571` to `48,025,872` bytes, contacts from `46,770` to `2,104`,",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        }
+      ],
+      "authority_correction": {
+        "at_utc": "2026-10-10T07:23:04.223619+00:00",
+        "evidence": "migration-v27-reconciliation.json",
+        "ids": [
+          "MGR01",
+          "MGR06"
+        ],
+        "original_authority_recovered": true,
+        "current_reset_authorized": false
+      }
+    },
+    {
+      "id": "CMR06",
+      "name": "Exact recurrence and unresolved-original replacement need different proofs",
+      "classification": "physical_pattern_correction_with_unqualified_retention_bound",
+      "historical_requirement_or_mechanism": "The historical organism-wide recurrence path reduced exact physical deltas to changed lineages, permitting different co-activity to count as recurrence. Exact retained-delta matching reportedly changed partial-cue reassemblies313→0 and endogenous reassemblies131→0 without structural growth. A later rule replaces older original_only custody sharing a member neuron or conducting bond, leaving recognized formations. Two identical occurrences reduced pending originals7→6→4. Thirty-seven receptor bodies expanded once from2228 to32258 bytes and were unchanged on the second occurrence. Another optimization directly computes five retained coordinate families and excludes transient DNA waste.",
+      "current_disposition": "The exact-pattern correction is narrower than a current recall qualification. Two/three repeats do not prove a lifetime bound for all distinct disjoint unresolved paths. Shared member/bond overlap does not itself prove that discarding an earlier unresolved experience follows a ratified physical retention law. Five-coordinate retained-state projection is not automatically DSF flattening, but its authority and sufficiency must be recovered.",
+      "lawful_remedy": "Preserve exact physically retained patterns and their relations. Derive pending-original custody, replacement and resource bounds from authorized native laws with explicit loss semantics. Separately qualify source-clock capacity and retained-versus-transient coordinates; do not tune recurrence counts or force growth positive.",
+      "unit_acceptance": "Reject same-lineage/different-pattern false recurrence and verify distinct patterns on shared neurons.",
+      "module_acceptance": "Prove authorized retained-coordinate sufficiency and every unresolved-custody retirement with exact causal provenance.",
+      "system_acceptance": "Stress distinct/shared/disjoint physical paths over bounded resources while preserving later legitimate recurrence and sleep use.",
+      "release_acceptance": "No global retention/bound claim from a few repeated inputs; bind actual laws, limits and memory-loss accounting to the release.",
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A09",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 426,
+          "anchor": "  physical deltas, reduced them to changed lineage identities, and therefore",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 439,
+          "anchor": "  `6.517794` seconds. False partial-cue reassemblies fell `313 -> 0`, false",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 475,
+          "anchor": "  only older `original_only` custody sharing an exact member neuron or",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 480,
+          "anchor": "  `7 -> 6 -> 4` and total formation records changed `182 -> 181 -> 179`",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 524,
+          "anchor": "- The corrected projection computes exactly the five authorized retained",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 468,
+          "anchor": "  receptor-state bodies are one-time source-clock capacity: their second",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        }
+      ]
+    },
+    {
+      "id": "CMR07",
+      "name": "Exact representation improvements must preserve mature behavior and scope",
+      "classification": "legitimate_optimization_distinguished_from_reduced_workload",
+      "historical_requirement_or_mechanism": "A009 reports156786093 duplicate anatomy bytes, including one135981-byte body repeated1154 times, and a later exact shared-anatomy format. Other changes remove redundant scans/copies and intermediate seals. A006 fused canonical seal/observation proves identical bytes and reports only0.130864s gain; a rational-aggregation draft regressed and was rejected. Source indexing and a zero-current local shortcut were explicitly not dominant cadence fixes. The much faster1.448848s roster run follows GLCOG027 removal of retained higher layers.",
+      "current_disposition": "Exact sharing of immutable anatomy and identical-state computation can be genuine improvements. The post-retirement run is a materially changed workload and cannot demonstrate preserving the mature cognitive capability while accelerating it. All timings are historical reports, not current measurements.",
+      "lawful_remedy": "Preserve proven exact sharing/batching/one-seal design where it maps to current authority. Compare identical full occurrences on identical preserved state, including all consequences and persistence. Report retained-state loss and workload changes separately from optimization.",
+      "unit_acceptance": "Prove identical canonical state, exact physical observations and unchanged untouched bytes for each representation optimization.",
+      "module_acceptance": "Measure the complete producer-reachable path, including seal/observation/restore and resource peaks.",
+      "system_acceptance": "Compare matched mature states, rosters and histories; show actual progress and unchanged learned effects.",
+      "release_acceptance": "Bind before/after artifacts and scope; never claim speedup from deleting cognitive state or omitting required physiology.",
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 250,
+          "anchor": "- exact duplicate anatomy bodies: 156,786,093 bytes;",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 300,
+          "anchor": "  227,509,619-byte production predecessor migrates to 103,858,436 bytes, a",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 594,
+          "anchor": "- The exact gain is `0.130864` seconds. This closes the duplicate terminal",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 510,
+          "anchor": "  not presented as A-006 closure or a performance success.",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 915,
+          "anchor": "  roster in `1.448848` seconds with `760` physical neuron transitions.",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        }
+      ]
+    },
+    {
+      "id": "CMR08",
+      "name": "Solver independence and quiet physiology limit safe parallelization",
+      "classification": "conditional_exact_optimization_and_rejected_shortcut",
+      "historical_requirement_or_mechanism": "A006 reports active electrical pathways formed after raw exact contact transfer is derived; zero-transfer topological bridges then do not merge that interval’s independent energy settlement. Sparse contact replacement validates all indices before writes. Cohort/formation work is prepared independently against immutable state and committed canonically. A draft removing quiet receptor settlement was rejected because relaxation, fractal timing and full-field delivery changed; the discarded result had4145 transitions/hash996542..., while the final matched1/4-worker result has4153/hashd49227....",
+      "current_disposition": "The zero-current argument is specific to this solver phase and interval, not a general law that a conducting contact can be removed from a network. Current implementation, independent-law derivation and all concurrency/boundary cases remain unqualified by documentary reading.",
+      "lawful_remedy": "Keep every physical relaxation and shared conservation reconciliation required by the law. Parallelize only proved-independent preparation, apply deterministically, and preserve exact source-clock/full-field effects. Carry rejected counterexamples forward without adopting their apparent speed gain.",
+      "unit_acceptance": "Prove phase-specific independence, all-before-write validation and exact shared energy/carrier constraints.",
+      "module_acceptance": "Compare serialized and concurrent successors/receipts byte-for-byte, including quiet receptors and failed preparation.",
+      "system_acceptance": "Use identical mature full sensory occurrences and verify work/resource bounds and causal behavior.",
+      "release_acceptance": "Ship only the matched candidate; changed successor hashes or delivery counts require explicit physical review, not a performance waiver.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 807,
+          "anchor": "  raw per-contact transfer is derived before pathway components, so a contact",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 615,
+          "anchor": "  and malformed sparse contact replacements refuse without any mutation while",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 835,
+          "anchor": "  release. Quiet mounted receptors must still relax locally so quiescence,",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 815,
+          "anchor": "  `d49227ffdc296dccdf449f738753cf202f96878a10e4ebf16bfaa20f72e2a704`,",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 853,
+          "anchor": "  `d49227ffdc296dccdf449f738753cf202f96878a10e4ebf16bfaa20f72e2a704`,",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-22",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-22--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 854,
+          "anchor": "  `99654202744049b2040ee9859d89d4cb853e393cbf99d4c856cf767348bd4619`,",
+          "sha256": "6210a1664168efccb4ebd74dd19a44387d2b340fca7f0d5759d506ffced103fd"
+        }
+      ]
+    },
+    {
+      "id": "CMR09",
+      "name": "Observer failures can hide real action or imply health without progress",
+      "classification": "read_only_observation_repair_and_activation_limits",
+      "historical_requirement_or_mechanism": "Historical observer defects dropped still-advancing new-impression paths at intake boundaries, required vestibular change for non-rotating actions, omitted native action evidence from continuations, and exported multi-megabyte repeated graphs. A display exception cleared readiness despite advancing CURRENT. Corrections preserve real changed-body returns, exact counts/receipts and independent native readiness; response reductions169k/280k remain whole-response measurements, not automatic worst-case bounds.",
+      "current_disposition": "Observer correction can legitimately expose an existing physical event; it cannot manufacture the event or prove new learning. Historical healthy services on tasks1146–1148/1178–1180 sometimes never committed an ordinary successor. HTTP200, healthy ECS and zero Python callbacks are insufficient behavioral or ML-free evidence.",
+      "lawful_remedy": "Separate native progress, causal capability and display availability. Keep observation read-only with bounded output and exact source/state identity. Require actual timed successors and accurate unknown/failed capability reporting in GualaLoom.",
+      "unit_acceptance": "Prove display failure cannot alter native state/readiness; verify conditional changed/quiescent and root-time predicates.",
+      "module_acceptance": "Trace observed evidence to the exact settled transition and preserve ordered action/consequence fields.",
+      "system_acceptance": "Measure real time-separated advancement and causal behavior independently of HTTP/UI health under normal load.",
+      "release_acceptance": "Verify served UI and native observations agree on state/time/scope; do not infer system health or absence of prohibited mechanisms from a green endpoint.",
+      "repair_actions": [
+        "A02",
+        "A08",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 258,
+          "anchor": "  neuron or DSF physics: it discarded a still-advancing",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 274,
+          "anchor": "  rotating the body, but the A-006 projector still required a positive",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 503,
+          "anchor": "display body before the native readiness body and cleared both on any display",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 497,
+          "anchor": "was 280,306 bytes; its bounded latest-transition witness was 1,729 bytes.",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        },
+        {
+          "source_id": "CM02-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-17--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 674,
+          "anchor": "The exact unchanged-state delta traversal is delivered, but the five-minute",
+          "sha256": "99e84065ef3d199c9474b2658d488aa6d0200492042a47318b6aec6cee6cc819"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 286,
+          "anchor": "  interval remained CPU-active for more than 40 minutes without publishing a",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        }
+      ]
+    },
+    {
+      "id": "CMR10",
+      "name": "Timing and acceptance must remain bound to actual workload and predicate",
+      "classification": "measurement_scope_and_false_closure_prevention",
+      "historical_requirement_or_mechanism": "A006 distinguishes6.27/6.19s full occurrences from4.15/4.28s body-only intervals and later approximately12s larger-body workloads. Four workers initially yielded only1.0549 effective cores; corrected independent work later reported8.612931s versus12.369487s with byte-identical state. Earlier healthy releases missed required generation advance. Tests that supplied fabricated displacement, used wrong global native wheels, failed before candidate import or counted only closure labels were insufficient.",
+      "current_disposition": "Historical test/run reports are not independent current execution. A phase timing from a separate probe cannot simply be summed into another run. A new accepted1.45s roster after state retirement is not matched mature performance. Correcting an invalid test may be justified, but its replacement predicate and authority must be visible.",
+      "lawful_remedy": "Freeze exact acceptance and candidate before testing. Preserve failures, actual execution counts, workload/state/roster/time scope, and any requirement revision. Judge progress, preservation, sensing, learning and intelligibility separately.",
+      "unit_acceptance": "Verify each predicate actually executes the intended mechanism and cannot pass on no-op, wrong module, empty evidence or fake input.",
+      "module_acceptance": "Bind compiled module/configuration and authenticated body/world to every result.",
+      "system_acceptance": "Compare identical full occurrences under realistic external load and require actual successors plus maintained causal capabilities.",
+      "release_acceptance": "No local pass, component optimization or successful deployment can erase failed behavioral or preservation gates.",
+      "repair_actions": [
+        "A02",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 789,
+          "anchor": "  intervals. They are not a like-for-like improvement. This correction must",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 818,
+          "anchor": "- The four-worker process consumed only `1.0549` effective cores. A separate",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 851,
+          "anchor": "  full occurrence in `8.612931` seconds; one CPU completed it in `12.369487`",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM02-12",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-12--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 243,
+          "anchor": "focused test supplied an external/fabricated body displacement, admitted a",
+          "sha256": "7cf3fdecc8e262b5f4846c2066befee91032e0c007e00bf8dcba6f7c5498d687"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 103,
+          "anchor": "- Failed candidate-native probe: the globally installed `guala_core` was older",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        }
+      ]
+    },
+    {
+      "id": "CMR11",
+      "name": "Caretaker/media transport can alter timing without being cognitive authority",
+      "classification": "historical_external_ingress_and_borrow_race",
+      "historical_requirement_or_mechanism": "Task1188’s participant approach and separately requested apple lesson were separated by lawful unattended intervals, so the participant frontier no longer caused the later action. Combined invite-card preparation later hit Already mutably borrowed while reading retinal/body axes outside the existing transition lock. The documented correction prepares under that existing short lock and keeps external-intake admission active through the real contiguous invitation/presentation, with bounded replies.",
+      "current_disposition": "This establishes historical transport interference and a race, not a diagnosis that today’s high-care caretaker causes latency or turn loops. Continuous external signals, locks and scheduling must be measured in the current candidate; an external teaching event cannot be mislabeled spontaneous pupil choice.",
+      "lawful_remedy": "Reconstruct exact current external program/configuration/ingress timing and ownership alongside native progress. Preserve actual social/sensory continuity without synthetic context retention or directing the pupil’s action. Bound admission occupancy and concurrent read access under the authorized native owner.",
+      "unit_acceptance": "Verify common body reads use correct ownership and no concurrent mutable alias; expose admission timing and failures.",
+      "module_acceptance": "Trace invitation, media preparation, delivery and autonomous intervals with exact actor/source/tick identity.",
+      "system_acceptance": "Compare real native cadence and behavior under measured caretaker/environment loads without changing preserved pupil state to force success.",
+      "release_acceptance": "Report actual effective programs and observed interference; historical races alone cannot certify or condemn current behavior.",
+      "repair_actions": [
+        "A02",
+        "A06",
+        "A11",
+        "A12",
+        "A13",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 712,
+          "anchor": "  the two HTTP requests. The full lesson committed at tick `152849` with 1,795",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 737,
+          "anchor": "  CloudWatch recorded `RuntimeError: Already mutably borrowed` at",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 773,
+          "anchor": "  admission signal on every physical media intake route. This serializes one",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 801,
+          "anchor": "  transport lock, and every physical media intake route uses the existing",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 723,
+          "anchor": "- This is transport continuity only. It does not retain a social context,",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        }
+      ]
+    },
+    {
+      "id": "CMR12",
+      "name": "Rejected ownership drafts explain bloat but are not current instructions",
+      "classification": "historical_reengineering_failures_and_contract_evolution",
+      "historical_requirement_or_mechanism": "Removed A009 passages preserve repeated rejected full-successor candidates: mem::take before fallible preparation, whole mosaic copies, commit-time allocating map inserts, Arc-sharing that still duplicates population wrappers, and4267 added lines without removing the forbidden successor. A proposed stable parallel-contact ordinal format was also labelled GLCOG024, while later accepted documentation describes V24 shared-anatomy changes. Historical source-only gates and stash prohibitions are evidence, not fresh delegation or product authority.",
+      "current_disposition": "The current byte layout and actual ancestry must be resolved from exact source/artifacts; a shared version name is insufficient. Useful sparse custody and stable physical identity ideas must be distinguished from rejected transaction architecture. This audit has not restored or executed any rejected stash.",
+      "lawful_remedy": "Recover exact format/candidate lineage and original approvals. Keep the smallest current design that satisfies single physical authority, complete failure custody, stable contact identity and bounded reached work; do not resurrect abandoned frameworks or throw away proved exact improvements merely because a larger draft failed.",
+      "unit_acceptance": "Verify stable parallel-contact identity across insertion/restore and exact prepare/failure/commit invariants on current source.",
+      "module_acceptance": "Prove no fallible step can lose the only valid predecessor and no hidden complete-state controller or allocation path violates declared bounds.",
+      "system_acceptance": "Exercise mature failure/restart continuity and actual sensory/action behavior with the ratified current ownership contract.",
+      "release_acceptance": "Bind format magic to exact schema/source/migration identity; reports using V24 cannot establish interchangeability or current authorization.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A14",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "CM02-12",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-12--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 813,
+          "anchor": "The root owner stopped the in-progress resident draft after measuring 4,267",
+          "sha256": "7cf3fdecc8e262b5f4846c2066befee91032e0c007e00bf8dcba6f7c5498d687"
+        },
+        {
+          "source_id": "CM02-12",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-12--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 465,
+          "anchor": "envelope and cognition with `mem::take` before its fallible trajectory build;",
+          "sha256": "7cf3fdecc8e262b5f4846c2066befee91032e0c007e00bf8dcba6f7c5498d687"
+        },
+        {
+          "source_id": "CM02-12",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-12--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 524,
+          "anchor": "commit called `BTreeMap::insert` for new `contact_by_bond`, `bond_by_contact`,",
+          "sha256": "7cf3fdecc8e262b5f4846c2066befee91032e0c007e00bf8dcba6f7c5498d687"
+        },
+        {
+          "source_id": "CM02-12",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-12--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 555,
+          "anchor": "The exact correction is GLCOG024. The resident cognitive state owns one `u32`",
+          "sha256": "7cf3fdecc8e262b5f4846c2066befee91032e0c007e00bf8dcba6f7c5498d687"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 299,
+          "anchor": "- GLCOG024 stores each distinct immutable heavy neuron anatomy once. The exact",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        }
+      ]
+    },
+    {
+      "id": "CMR13",
+      "name": "Historical closure and source retirement must remain explicit in canonical history",
+      "classification": "evolution_regression_and_preservation_reconciliation",
+      "historical_requirement_or_mechanism": "The complete55-version slice contains real corrective evolution, withdrawn Live-Closed statements, rejected shortcuts, resource failures, lost retained state and later narrow live witnesses. Earlier A009 pause/resume and journal designs disappear from the latest text but remain in recovered versions. A006’s Aug23 broad closure is explicitly narrowed in later content before the final Aug24 claim.",
+      "current_disposition": "All1538 latest lines and121 old-only hunks/1146 lines were reconciled;119 exact-containment basis hunks cover1116 distinct reading lines. This closes captured content only, not original approval, code implementation, scientific premises, independent historical execution or current release qualification.",
+      "lawful_remedy": "Keep dated source-bound decisions, supersession reasons, losses, narrow accomplishments and unresolved requirements together. G1 must map useful earlier native mechanisms into the preserved current candidate rather than assume either total continuity or total fabrication.",
+      "unit_acceptance": "Validate all source hashes, passage anchors and exact old-hunk coverage; retain removed counterevidence.",
+      "module_acceptance": "Map every disposition to requirements/design/configuration/repair and actual original candidate dependencies.",
+      "system_acceptance": "Independently qualify claimed current equivalents and retained causal history; unimplemented boundaries remain explicit.",
+      "release_acceptance": "Do not close the wider April-current reconciliation or issue any speech/system/ML-free certificate from a completed documentary slice.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "CM01-16",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-16--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 674,
+          "anchor": "Status: **Live-Closed 2026-08-23**. The next serial item is A-011; this closure",
+          "sha256": "c90b1352e5a7f49634e3b7bd5488775303e66a8428faa853ce254f731364a033"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 675,
+          "anchor": "remains Reconciled Partial**. The canonical acceptance sentence also requires",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM01-17",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM01-17--GUALA_A006_INTRINSIC_CURIOSITY_SPRINT_LEDGER_2026-08-14.md",
+          "line": 728,
+          "anchor": "  not yet deployed; full A-006 remains Reconciled Partial pending its one live",
+          "sha256": "5acd310348a7c4092382330297b2d79549f38bf75a51151d53e064bde9265f1e"
+        },
+        {
+          "source_id": "CM02-12",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-12--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 236,
+          "anchor": "## 2026-08-17 reconciliation — closure withdrawn",
+          "sha256": "7cf3fdecc8e262b5f4846c2066befee91032e0c007e00bf8dcba6f7c5498d687"
+        },
+        {
+          "source_id": "CM02-09",
+          "path": "docs/guala_reconciliation/sources/curiosity-multisensory/CM02-09--GUALA_A009_MULTISENSORY_ACTION_CONSEQUENCE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 238,
+          "anchor": "The earlier Live-Closed statement is superseded for the current production",
+          "sha256": "17fb6eb47a6ff11dbe68a56bbecfb5e265bbfdbc13116e3469c30fd8005c06b5"
+        }
+      ]
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false,
+  "authority_correction_at_utc": "2026-10-10T07:23:04.223619+00:00"
+}

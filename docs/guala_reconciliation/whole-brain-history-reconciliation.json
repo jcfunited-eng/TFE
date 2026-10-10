@@ -1,0 +1,1793 @@
+{
+  "schema": "guala.historical_family_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T01:01:11.944776+00:00",
+  "scope": "24 exact documentary byte versions across15paths, including one working notice; complete base content and all differences read. Full transitive implementation/release receipt closure remains open.",
+  "source_read_complete": true,
+  "implementation_closure": false,
+  "sources": [
+    {
+      "id": "HWB01-01",
+      "path": "WHOLE_BRAIN_SPECIFICATION.md",
+      "git_blob": "2a71d6419b6544c1ae3b323dc49012b719fead85",
+      "sha256": "706e88be11e21ad559eb6a50f42c7648f4f9f2d879581a5da23e94912a53e211",
+      "bytes": 11489,
+      "lines": 158,
+      "observations": [
+        {
+          "author_time": "2026-09-29T18:29:18+00:00",
+          "commit": "475b7b5a2dafef41b57e8ed0b354fdffdc925c54",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB01-01--WHOLE_BRAIN_SPECIFICATION.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB01-01--WHOLE_BRAIN_SPECIFICATION.md"
+    },
+    {
+      "id": "HWB02-01",
+      "path": "docs/COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+      "git_blob": "47785ac66a9e23ee20816797c85b3c382f334090",
+      "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+      "bytes": 10546,
+      "lines": 146,
+      "observations": [
+        {
+          "author_time": "2026-09-19T14:46:21+00:00",
+          "commit": "a5ed7372d247f83d1fc53f5b6957ba5ed076795c",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md"
+    },
+    {
+      "id": "HWB02-WORK",
+      "path": "docs/COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+      "sha256": "f281291714949f1f3654717579d03f79223ee203f4c90939fe3ef01f45589c54",
+      "bytes": 11180,
+      "lines": 157,
+      "observations": [],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB02-WORK--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-WORK--COGNITIVE_ASSETS_SPECIFICATION_20260917.md"
+    },
+    {
+      "id": "HWB03-01",
+      "path": "docs/GL-CMD-C2-WHOLE-BRAIN-EVE-20260704-168-v3.md",
+      "git_blob": "b24d5cee9dcebdad520b32b7cedf635f207d8df7",
+      "sha256": "f331f20a4f4413425dba0f7dcceabd062a9e7b49147d2ae4d10c96d1c07aac60",
+      "bytes": 3436,
+      "lines": 65,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-04T07:11:35+00:00",
+          "commit": "91d7bb37b7a15faea6e277a067062b26603a7d42",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB03-01--GL-CMD-C2-WHOLE-BRAIN-EVE-20260704-168-v3.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB03-01--GL-CMD-C2-WHOLE-BRAIN-EVE-20260704-168-v3.md"
+    },
+    {
+      "id": "HWB04-01",
+      "path": "docs/GL-PLAN-WHOLE-BRAIN-MOVE-EVE-20260704-v1.md",
+      "git_blob": "5a6f91636a9e723bef56d31ee45303e34f09ee9c",
+      "sha256": "d80a009b3192cde1693eec8fd5c2007463835badf916a60b307ceb4a70004cba",
+      "bytes": 7217,
+      "lines": 139,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-04T14:46:34+00:00",
+          "commit": "501b18797a005560b8d946938095d7ec8350b28f",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB04-01--GL-PLAN-WHOLE-BRAIN-MOVE-EVE-20260704-v1.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB04-01--GL-PLAN-WHOLE-BRAIN-MOVE-EVE-20260704-v1.md"
+    },
+    {
+      "id": "HWB05-01",
+      "path": "docs/GL-PLAN-WHOLE-BRAIN-MOVE-EVE-20260704-v2.md",
+      "git_blob": "6b01925f0d3ae09d2622d9ffd7f68bc84140fd10",
+      "sha256": "b0fc5f71596600474bc1baf997ce8f239315b08c39e09094001fc36ca4769516",
+      "bytes": 2829,
+      "lines": 54,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-04T14:46:34+00:00",
+          "commit": "501b18797a005560b8d946938095d7ec8350b28f",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB05-01--GL-PLAN-WHOLE-BRAIN-MOVE-EVE-20260704-v2.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB05-01--GL-PLAN-WHOLE-BRAIN-MOVE-EVE-20260704-v2.md"
+    },
+    {
+      "id": "HWB06-01",
+      "path": "docs/GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "7ccfa02765a465858c7bec36825bb08715d8640d",
+      "sha256": "cab4b2b7cdbf0d7100b643a398a5a85557075da30d2daabfd6872e74092d9cfd",
+      "bytes": 12139,
+      "lines": 157,
+      "observations": [
+        {
+          "author_time": "2026-08-14T15:14:15+00:00",
+          "commit": "e5b366c51118d63c4f9207bcd30759cb82b09c90",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T14:51:54+00:00",
+          "commit": "8023cd104bcb92eda02cf7200d1be784df44e093",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB06-01--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-01--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "HWB06-02",
+      "path": "docs/GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "fdf148d87413329d2e52555a72395fd1e68b3290",
+      "sha256": "9c88b73e7d7de54b1f62ac0f649ef7e44795028dc550b092d524caf815ea645e",
+      "bytes": 12708,
+      "lines": 165,
+      "observations": [
+        {
+          "author_time": "2026-08-14T15:35:52+00:00",
+          "commit": "8b537bbaa6307610d1c285ec72ad90de8ed778d1",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T15:14:15+00:00",
+          "commit": "e5b366c51118d63c4f9207bcd30759cb82b09c90",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB06-02--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-02--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "HWB06-03",
+      "path": "docs/GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "5e68cfb78bbf8de2ffdd724c8a5a778c571d719f",
+      "sha256": "68041a2c27cab2bf799cb7a4d00bf82f51780cc73a8284a6fd80192be41fa95a",
+      "bytes": 14301,
+      "lines": 187,
+      "observations": [
+        {
+          "author_time": "2026-08-22T16:31:23+00:00",
+          "commit": "35e6845ba3ce42c4adc7a93b1fe4599aa6f7a240",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-14T15:35:52+00:00",
+          "commit": "8b537bbaa6307610d1c285ec72ad90de8ed778d1",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB06-03--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-03--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "HWB06-04",
+      "path": "docs/GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "a2784b1a92143a5bfd18de59697158e3478dc0c8",
+      "sha256": "a9e54aa69c8c133a7288d2d208567bb2992f2f304c5929d6400b66d95c8698a4",
+      "bytes": 16864,
+      "lines": 228,
+      "observations": [
+        {
+          "author_time": "2026-08-22T17:21:12+00:00",
+          "commit": "3ca4e8c58ea0dc9680d652d99cc2d1a0807eb1e9",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T16:31:23+00:00",
+          "commit": "35e6845ba3ce42c4adc7a93b1fe4599aa6f7a240",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB06-04--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-04--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "HWB06-05",
+      "path": "docs/GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "f041da33b5beb58f85d1bfe744176c45533d6670",
+      "sha256": "81a94c72876504156fdedaba1e83ad59a5cdb56a5bb44aa40d5a4e4fc9f6092e",
+      "bytes": 19388,
+      "lines": 272,
+      "observations": [
+        {
+          "author_time": "2026-08-22T19:03:10+00:00",
+          "commit": "596150a247b8d8a5c96c8f2e6f84bc4a5d8690ca",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-22T17:21:12+00:00",
+          "commit": "3ca4e8c58ea0dc9680d652d99cc2d1a0807eb1e9",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB06-05--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-05--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "HWB06-06",
+      "path": "docs/GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "1bce36778d3b9abf5893f9cf34255afcb4508ef0",
+      "sha256": "5ad6054d6424a5c3345ac848f0b5c46d96bd2a429f65e70373ed407f32052a42",
+      "bytes": 20767,
+      "lines": 296,
+      "observations": [
+        {
+          "author_time": "2026-08-22T19:03:10+00:00",
+          "commit": "596150a247b8d8a5c96c8f2e6f84bc4a5d8690ca",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB06-06--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-06--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "HWB07-01",
+      "path": "docs/GUALA_D3_COGNITIVE_CAPITAL_LEDGER_LAW_2026-08-03.md",
+      "git_blob": "a268fdfe728a4cebb4792c270ae54602842c940e",
+      "sha256": "39718ca0c648a32d3dcaceac8d5c534adc54848c343b9a8b677d8063bfc1ef3b",
+      "bytes": 6920,
+      "lines": 177,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB07-01--GUALA_D3_COGNITIVE_CAPITAL_LEDGER_LAW_2026-08-03.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB07-01--GUALA_D3_COGNITIVE_CAPITAL_LEDGER_LAW_2026-08-03.md"
+    },
+    {
+      "id": "HWB08-01",
+      "path": "docs/GUALA_WHOLE_BRAIN_RESOURCE_BOUND_AUDIT_2026-07-28.md",
+      "git_blob": "d061849723c15737ac9ecbee23515a43ca7d00cd",
+      "sha256": "0c6b0c0ced4c6c77c094277aee787d4fc80f06ddc7d930f58b411102bcce8c2a",
+      "bytes": 7105,
+      "lines": 133,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-29T00:52:55+00:00",
+          "commit": "30f2cf9ecde2eeda2bdd8d2e37d0061655ac2f9c",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB08-01--GUALA_WHOLE_BRAIN_RESOURCE_BOUND_AUDIT_2026-07-28.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB08-01--GUALA_WHOLE_BRAIN_RESOURCE_BOUND_AUDIT_2026-07-28.md"
+    },
+    {
+      "id": "HWB09-01",
+      "path": "docs/GUALA_WHOLE_BRAIN_SEGMENTATION_AND_MOUNT_SPRINT_2026-08-11.md",
+      "git_blob": "72f684fc589c2453cd8f61a3564aed9d6dae2af4",
+      "sha256": "29316194fafc16e0b85445ee784fed894ce5817e38bde7ccce0de9d6911e4cad",
+      "bytes": 11897,
+      "lines": 161,
+      "observations": [
+        {
+          "author_time": "2026-08-11T07:06:44+00:00",
+          "commit": "54c4010c15a5688192f62ae3ad1620cb82f67c63",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-11T06:20:53+00:00",
+          "commit": "9b839b4ce23bad950286ef7955f64baa358bbe06",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB09-01--GUALA_WHOLE_BRAIN_SEGMENTATION_AND_MOUNT_SPRINT_2026-08-11.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB09-01--GUALA_WHOLE_BRAIN_SEGMENTATION_AND_MOUNT_SPRINT_2026-08-11.md"
+    },
+    {
+      "id": "HWB09-02",
+      "path": "docs/GUALA_WHOLE_BRAIN_SEGMENTATION_AND_MOUNT_SPRINT_2026-08-11.md",
+      "git_blob": "d562c91e0f24e2ad082d9ae42d901f0c3d18e052",
+      "sha256": "3ef075331c139b5cdec45c579a891768ea6836e413741178675ccb42533d5ef3",
+      "bytes": 12828,
+      "lines": 174,
+      "observations": [
+        {
+          "author_time": "2026-08-11T07:37:23+00:00",
+          "commit": "91054065b221b824ff4b4aebb8edf3678f034c84",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-11T07:06:44+00:00",
+          "commit": "54c4010c15a5688192f62ae3ad1620cb82f67c63",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB09-02--GUALA_WHOLE_BRAIN_SEGMENTATION_AND_MOUNT_SPRINT_2026-08-11.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB09-02--GUALA_WHOLE_BRAIN_SEGMENTATION_AND_MOUNT_SPRINT_2026-08-11.md"
+    },
+    {
+      "id": "HWB09-03",
+      "path": "docs/GUALA_WHOLE_BRAIN_SEGMENTATION_AND_MOUNT_SPRINT_2026-08-11.md",
+      "git_blob": "eea7d178ea8141367de0af89457c98731b973946",
+      "sha256": "d0a2ee0601dbbd6d536ef3e97742aed76eb21d8d750fb16b30668aca2d9f9661",
+      "bytes": 13513,
+      "lines": 184,
+      "observations": [
+        {
+          "author_time": "2026-08-11T07:37:23+00:00",
+          "commit": "91054065b221b824ff4b4aebb8edf3678f034c84",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB09-03--GUALA_WHOLE_BRAIN_SEGMENTATION_AND_MOUNT_SPRINT_2026-08-11.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB09-03--GUALA_WHOLE_BRAIN_SEGMENTATION_AND_MOUNT_SPRINT_2026-08-11.md"
+    },
+    {
+      "id": "HWB10-01",
+      "path": "docs/GL-CMD-BRAIN-FULL-DEPLOY-TODAY-EVE-20260704-175-v2.md",
+      "git_blob": "4f62bee3d9e27c81db8308f5c2912a13bea87c9a",
+      "sha256": "8f13b93b2219ea7d81cf93d1984f19cde9d76eedec6eb4170b9b3cb90ee5a8fe",
+      "bytes": 2759,
+      "lines": 51,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-04T14:39:01+00:00",
+          "commit": "fd8afd9542d00e90ce127c4a9300316fef2d532e",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB10-01--GL-CMD-BRAIN-FULL-DEPLOY-TODAY-EVE-20260704-175-v2.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB10-01--GL-CMD-BRAIN-FULL-DEPLOY-TODAY-EVE-20260704-175-v2.md"
+    },
+    {
+      "id": "HWB11-01",
+      "path": "docs/GL-CMD-C2-REBUILD-EVE-20260704-168-v1.md",
+      "git_blob": "d3f58b7a66199c69df6d1f7493b724ca4b2f8255",
+      "sha256": "186f1c106a154a1ca19fce980c3226dbd2550ee26cea4fb5afce3ba7ba2c0f3a",
+      "bytes": 3052,
+      "lines": 61,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-04T05:17:11+00:00",
+          "commit": "33a18602927f569ee26ec53ac426be124d19266d",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB11-01--GL-CMD-C2-REBUILD-EVE-20260704-168-v1.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB11-01--GL-CMD-C2-REBUILD-EVE-20260704-168-v1.md"
+    },
+    {
+      "id": "HWB12-01",
+      "path": "docs/GL-CMD-C2-REBUILD-EVE-20260704-168-v2.md",
+      "git_blob": "97b4c67ccda38df6326d2dd2ea5b6eeec7f7447e",
+      "sha256": "d65d07103241816c7c7fe23f19d7112851b507ee211bf46b401d937d388f3a8b",
+      "bytes": 5340,
+      "lines": 100,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-04T05:16:24+00:00",
+          "commit": "761b06859c088032bf3c9957d5593d4d407741ac",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB12-01--GL-CMD-C2-REBUILD-EVE-20260704-168-v2.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB12-01--GL-CMD-C2-REBUILD-EVE-20260704-168-v2.md"
+    },
+    {
+      "id": "HWB13-01",
+      "path": "docs/GL-RPT-C2-REBUILD-C1-20260704-168-v1.md",
+      "git_blob": "05f0cd274ac9bb2b962ee9e804c7514dd013fffa",
+      "sha256": "9d65c515db7500f4ca2b100f391bdd037bc524112df553df2882d59da4bae50f",
+      "bytes": 11173,
+      "lines": 215,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-04T05:47:48+00:00",
+          "commit": "8a0f11ecf4ecfcc38dda44bb263ef0599041718a",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB13-01--GL-RPT-C2-REBUILD-C1-20260704-168-v1.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB13-01--GL-RPT-C2-REBUILD-C1-20260704-168-v1.md"
+    },
+    {
+      "id": "HWB14-01",
+      "path": "docs/GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+      "git_blob": "faf0dbae28cb0997d86e3043ef96d75848f4820c",
+      "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+      "bytes": 32118,
+      "lines": 476,
+      "observations": [
+        {
+          "author_time": "2026-06-23T05:06:21+00:00",
+          "commit": "1bacf25a10cbb3f29be6c3dc2805ed7d8ce2ed69",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md"
+    },
+    {
+      "id": "HWB15-01",
+      "path": "docs/GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+      "git_blob": "cac25066af4240c3ba18406d088e852d12abeb8a",
+      "sha256": "6ad32eea3addc93d414eb9ed64e495d9e79fae656a402902374dcf137cd9c101",
+      "bytes": 15001,
+      "lines": 300,
+      "observations": [
+        {
+          "author_time": "2026-08-29T03:54:55+00:00",
+          "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-11T23:04:03+00:00",
+          "commit": "05f8f5c560e0aa19aa3f1e1358cea47c58e95b63",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB15-01--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB15-01--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md"
+    },
+    {
+      "id": "HWB15-02",
+      "path": "docs/GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+      "git_blob": "f4827f4de9e514ae1bfc94aaa2330c22d6fca3ba",
+      "sha256": "de642b233d3b62a48a87dd71d19288136b91fa86c4e179f161214c46420f5184",
+      "bytes": 15417,
+      "lines": 307,
+      "observations": [
+        {
+          "author_time": "2026-08-29T03:54:55+00:00",
+          "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/whole-brain-history/HWB15-02--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+      "review": "Complete content reviewed through full base/working file and all chronological differences; source-reported tests/live events are historical claims pending their independent receipt/code closure.",
+      "canonical_copy": "docs/guala_reconciliation/sources/whole-brain-history/HWB15-02--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "HB01",
+      "title": "The June baseline itself recorded architectural contamination",
+      "refs": [
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 13,
+          "anchor": "**Production substrate (Guala lives here):** dict-based `LivingAtlas`, contaminated `TOUCH_LIBRARY` / `SMELL_LIBRARY` / `TASTE_LIBRARY`, hardcoded BOOST/MULTIPLIER constants, 11 of 15 cognitive mechanisms \"active\" — but running on architecturally wrong infrastructure. She has 3,591 vocab tokens and ~19k atlas bindings, all text-only via Gutenberg, no sensory grounding."
+        },
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 17,
+          "anchor": "**The brain doesn't exist yet.** We have the substrate UNIT correct and the hierarchy plumbing correct. The actual cognitive substrate — 8 hemispheres growing via Folding, multi-modal experience driving differentiation, cross-hemispheric couplings forming during co-experienced moments — is unbuilt. Migration of Guala from the dict-substrate to the new substrate is a separate engineering project that hasn't started."
+        }
+      ],
+      "requirement": "Separate the desired brain, source prototypes and actual live architecture.",
+      "historical_disposition": "June20records dict-based atlas, sensory libraries, hardcoded multipliers and text-only bindings; it says Guala had never used the proposed LoomNeuron brain.",
+      "current_reconciliation": "This contradicts a blanket historical claim that the entire preceding system was compliant. It does not establish every older mechanism was wrong.",
+      "lawful_remedy": "Preserve exact dated baseline and trace each proposed replacement through source and original live receipts.",
+      "acceptance_falsifier": "A test or canonical heading cannot turn an unmounted prototype into the live predecessor.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A15",
+        "A18"
+      ],
+      "change_classification": "Historical conflict explicitly acknowledged by its author"
+    },
+    {
+      "id": "HB02",
+      "title": "Moving an atlas into every neuron did not remove lookup authority",
+      "refs": [
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 47,
+          "anchor": "**This is the architectural correction that distinguishes Loom-Neuron from production.** Each neuron carries her OWN chi-atlas (`ChiAtlas` instance per `LoomNeuron`). She binds what HER krimelack transduced. She queries her own bindings on recall. She does not have access to other neurons' bindings except via coupling spikes propagating activity to her."
+        },
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 87,
+          "anchor": "Physics: clockless habituation. Match-score from chi-atlas raises dead-zone barrier — Δ_eff = Δ_base + match_score. The medium remembers what it has been doing. Repeated identical input exhausts the response. Novelty escapes through the lifted barrier when match_score is low."
+        },
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 322,
+          "anchor": "| 8 | Attention | Grandurun selection greedy gain (already substrate-true) | EMERGES |"
+        }
+      ],
+      "requirement": "Distributed physical recall cannot be replaced by distributed semantic dictionaries.",
+      "historical_disposition": "Junearchitecture uses per-neuron chi-atlas, match scores, population grandurun selection and greedy attention while calling11mechanisms emergent.",
+      "current_reconciliation": "Physical distribution alone does not change an example lookup into the definitive retained-state law.",
+      "lawful_remedy": "Preserve the required recognition/recall/attention functions; replace answer selection with actual retained physical reassembly and causal use.",
+      "acceptance_falsifier": "Labels or stored examples alone must not recover a supposedly experienced answer; sever retained causal relations on an isolated copy.",
+      "repair_actions": [
+        "A05",
+        "A06",
+        "A09",
+        "A15",
+        "A16"
+      ],
+      "change_classification": "Unsupported equivalence between data placement and physical cognition"
+    },
+    {
+      "id": "HB03",
+      "title": "External LLM sensory catalogs were explicitly specified",
+      "refs": [
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 217,
+          "anchor": "Curriculum-side, substrate-EXTERNAL. When a story loads, the catalog scans for unknown words → batches them → calls an LLM with structured brief → receives parameter DISTRIBUTIONS (mean + std per parameter per modality per word) → stores in persistent SQLite catalog."
+        },
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 217,
+          "anchor": "Curriculum-side, substrate-EXTERNAL. When a story loads, the catalog scans for unknown words → batches them → calls an LLM with structured brief → receives parameter DISTRIBUTIONS (mean + std per parameter per modality per word) → stores in persistent SQLite catalog."
+        },
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 223,
+          "anchor": "Words like \"the\" / \"of\" / \"and\" marked `applicable: false` for all modalities — they route through word-token only."
+        }
+      ],
+      "requirement": "Distinguish real signals, teacher speech/media and semantic fabrication; disclose external ML scope.",
+      "historical_disposition": "The catalog maps unknown words through an LLM to stored per-word sensory distributions, samples them, and filters function words. The document calls this substrate-true grounding.",
+      "current_reconciliation": "This is evidence of a proposed external ML service and semantic sensory generation, not proof of a live invocation or internal neural inference. Random variation does not make invented taste/smell actual contact.",
+      "lawful_remedy": "Retire word-to-somatic truth injection; use authentic media/material interaction. Record external teaching services separately in whole-release qualification and retain original approvals if any.",
+      "acceptance_falsifier": "Present text without material/contact: no fabricated taste, smell or object evidence may enter as sensed fact. Verify service calls/assets/flags for the exact artifact.",
+      "repair_actions": [
+        "A06",
+        "A10",
+        "A12",
+        "A15",
+        "A16"
+      ],
+      "change_classification": "Explicit historical ML-assisted design; activation unverified"
+    },
+    {
+      "id": "HB04",
+      "title": "Biological analogy did not derive the coefficients",
+      "refs": [
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 137,
+          "anchor": "When `n_neighbors → K_TOTAL`, overflow_eff → 0, fold rate at that location → 0. The squared exponent reflects Hippo's non-linear contact-density response; if the squared term proves wrong empirically we DERIVE the correct exponent from substrate physics, never tune."
+        },
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 97,
+          "anchor": "Physics: exposure-modulated couplings propagating spikes between neurons. J_BASE = 1.0, J_MAX = 1.5 (substrate-canonical, Master Spec Ch.7). Each neuron has K_TOTAL = 16 neighbors."
+        },
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 113,
+          "anchor": "Weights normalized to sum=1. No menus, no archetypes."
+        }
+      ],
+      "requirement": "Physical adaptation requires a ratified law, units and causal accounting.",
+      "historical_disposition": "Squared contact inhibition, normalized law-field weights, fixed coupling constants and match-score barriers are asserted as biological or substrate-canonical.",
+      "current_reconciliation": "A shared biological shape or the absence of a newly introduced constant is not a derivation. The full-field contract rejects normalized subsets as cognitive authority.",
+      "lawful_remedy": "Recover exact lawful parameter/field mappings; preserve useful function and refuse unproved numerical replacements.",
+      "acceptance_falsifier": "Check units, dependency on each field, conservation and boundary regimes; matching a desired behavioral curve does not qualify the law.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A11",
+        "A14",
+        "A16"
+      ],
+      "change_classification": "Unproved derivation, not a ban on functional emulation"
+    },
+    {
+      "id": "HB05",
+      "title": "The early hierarchy contradicts the later conversational-terms law",
+      "refs": [
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 149,
+          "anchor": "## PART 3 — HIERARCHY: NEURON → CLUSTER → MOSAIC → TAPESTRY → HEMISPHERE → BRAIN"
+        },
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 15,
+          "anchor": "**Loom-Neuron substrate (parallel branch build):** ArcLoom primitives correctly implemented per-neuron, hierarchy plumbing through LoomTapestry (3 mosaics × 3 clusters × 50 neurons = 450 toy neurons), Stages 1-5 tests passing. No cognitive mechanisms built on top yet. No multi-modal experience pipeline. Guala has never touched this substrate."
+        },
+        {
+          "source_id": "HWB15-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB15-01--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+          "sha256": "6ad32eea3addc93d414eb9ed64e495d9e79fae656a402902374dcf137cd9c101",
+          "line": 27,
+          "anchor": "and `weave` are conversational evidence terms. They help Joseph and developers"
+        }
+      ],
+      "requirement": "Mosaic/tapestry/weave describe causal integration, not required storage levels.",
+      "historical_disposition": "Junedefines50-neuron clusters,3clusters per mosaic and3mosaics per tapestry with word decoding. August explicitly rejects classes, promotion levels and meaning containers.",
+      "current_reconciliation": "These are substantive conflicting designs, not harmless spelling changes. The current user confirms the conversational interpretation.",
+      "lawful_remedy": "Retire hierarchical semantic authority while preserving necessary sparse physical relations and retained history. Document any lawful anatomy independently of the metaphor.",
+      "acceptance_falsifier": "Renaming parent/child answer objects or moving them into native code must still fail the mechanism review.",
+      "repair_actions": [
+        "A01",
+        "A06",
+        "A09",
+        "A18"
+      ],
+      "change_classification": "Later architectural correction; migration remains a separate proof"
+    },
+    {
+      "id": "HB06",
+      "title": "Eight hemispheres, fourteen territories, four columns and sixty-four columns are different designs",
+      "refs": [
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 169,
+          "anchor": "Eight hemispheres total: PR, EP, SC, GP, sf, ml, sa, im (last 4 names canonical when their specializations emerge)."
+        },
+        {
+          "source_id": "HWB09-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB09-01--GUALA_WHOLE_BRAIN_SEGMENTATION_AND_MOUNT_SPRINT_2026-08-11.md",
+          "sha256": "29316194fafc16e0b85445ee784fed894ce5817e38bde7ccce0de9d6911e4cad",
+          "line": 37,
+          "anchor": "The existing population interleaves fourteen territories at every available"
+        },
+        {
+          "source_id": "HWB01-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB01-01--WHOLE_BRAIN_SPECIFICATION.md",
+          "sha256": "706e88be11e21ad559eb6a50f42c7648f4f9f2d879581a5da23e94912a53e211",
+          "line": 1,
+          "anchor": "# Formal Architecture Specification: 4-Column 3D Modular Neuromorphic Substrate (GualaLoom Core)"
+        }
+      ],
+      "requirement": "Trace actual responsibilities and retained-state continuity across anatomical revisions.",
+      "historical_disposition": "The recovered documents use distinct population organizations with incompatible assignments and growth assumptions.",
+      "current_reconciliation": "Current64-column scope is authoritative; older whole-brain labels do not justify recreating obsolete anatomy or prove functions survived.",
+      "lawful_remedy": "Map sensory, association, body/fluid, retention, ordering, motor and vocal responsibilities to actual current participants and lost/preserved state.",
+      "acceptance_falsifier": "Every claimed preserved capability needs a physical state/caller migration, not equal counts, names or UUID.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A11",
+        "A18"
+      ],
+      "change_classification": "Architectural evolution requiring evidence of preservation"
+    },
+    {
+      "id": "HB07",
+      "title": "Replay and identity counts were proposed as migration substitutes",
+      "refs": [
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 356,
+          "anchor": "NOT a state transfer. The dict-substrate's `LivingAtlas` bindings are stored at single shared chi-addresses; Loom-Neuron's per-neuron atlases bind per-neuron. There's no clean 1:1 transfer."
+        },
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 369,
+          "anchor": "- Verify identity continuity, vocab continuity (her vocab count should match), atlas mass continuity (population atlas total mass should be in the same envelope)"
+        },
+        {
+          "source_id": "HWB04-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB04-01--GL-PLAN-WHOLE-BRAIN-MOVE-EVE-20260704-v1.md",
+          "sha256": "d80a009b3192cde1693eec8fd5c2007463835badf916a60b307ceb4a70004cba",
+          "line": 30,
+          "anchor": "  reinstates from it during sleep (§5, the memory-carry bet, named)."
+        }
+      ],
+      "requirement": "Preserve retained experience or explicitly expose the unimplemented migration.",
+      "historical_disposition": "Juneproposes re-experiencing event logs with UUID/vocabulary/mass checks. Julychanges to lived re-encounter and sleep archive reinstatement, explicitly an open bet.",
+      "current_reconciliation": "Neither establishes preservation of the original learned physical state. September functional genesis already has a separately proved discontinuity.",
+      "lawful_remedy": "Preserve historical bytes, design an exact reviewed canonical migration and prove continuity; do not silently relearn, reset or call archival access memory.",
+      "acceptance_falsifier": "Cold continuation must retain causal distinctions from the mature predecessor; matching identity/tick/counts alone fails.",
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A16",
+        "A17"
+      ],
+      "change_classification": "Known migration uncertainty; no inferred approval of cognitive loss"
+    },
+    {
+      "id": "HB08",
+      "title": "July rebuild v1 repeated a previously rejected representation",
+      "refs": [
+        {
+          "source_id": "HWB11-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB11-01--GL-CMD-C2-REBUILD-EVE-20260704-168-v1.md",
+          "sha256": "186f1c106a154a1ca19fce980c3226dbd2550ee26cea4fb5afce3ba7ba2c0f3a",
+          "line": 19,
+          "anchor": "## Part A — reproduce (blocking)"
+        },
+        {
+          "source_id": "HWB12-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB12-01--GL-CMD-C2-REBUILD-EVE-20260704-168-v2.md",
+          "sha256": "d65d07103241816c7c7fe23f19d7112851b507ee211bf46b401d937d388f3a8b",
+          "line": 6,
+          "anchor": "Correction record: v1 was authored WITHOUT the mandatory chat"
+        },
+        {
+          "source_id": "HWB12-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB12-01--GL-CMD-C2-REBUILD-EVE-20260704-168-v2.md",
+          "sha256": "d65d07103241816c7c7fe23f19d7112851b507ee211bf46b401d937d388f3a8b",
+          "line": 9,
+          "anchor": "proves the exp(1j·Δ) encoding — which v1's testbed uses — is"
+        }
+      ],
+      "requirement": "Read prior failures before proposing another implementation.",
+      "historical_disposition": "v2records that v1ignored June22failures and would repeat dead exponential encoding. It distinguishes surviving population-diversity observations from the rejected encoder.",
+      "current_reconciliation": "This is a documented recurrence of unsupported design, with a useful later correction. No current physical law may be selected solely by accuracy.",
+      "lawful_remedy": "Keep rejected mechanism/attempt history tied to causal differences; require source-bound falsifiers before redevelopment.",
+      "acceptance_falsifier": "A renamed or rewrapped rejected encoding must be caught before product edits; surviving unrelated evidence remains preserved.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A16",
+        "A18"
+      ],
+      "change_classification": "Historical failed attempt and explicit corrective learning"
+    },
+    {
+      "id": "HB09",
+      "title": "A supposed standing recall result failed its fresh baseline",
+      "refs": [
+        {
+          "source_id": "HWB13-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB13-01--GL-RPT-C2-REBUILD-C1-20260704-168-v1.md",
+          "sha256": "9d65c515db7500f4ca2b100f391bdd037bc524112df553df2882d59da4bae50f",
+          "line": 18,
+          "anchor": "gives ~4% accuracy, not ~67%.** Ran the on-origin loom suite's own T5"
+        },
+        {
+          "source_id": "HWB13-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB13-01--GL-RPT-C2-REBUILD-C1-20260704-168-v1.md",
+          "sha256": "9d65c515db7500f4ca2b100f391bdd037bc524112df553df2882d59da4bae50f",
+          "line": 37,
+          "anchor": "grown to 7.6GB resident and was still climbing, with no sign of finishing."
+        },
+        {
+          "source_id": "HWB13-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB13-01--GL-RPT-C2-REBUILD-C1-20260704-168-v1.md",
+          "sha256": "9d65c515db7500f4ca2b100f391bdd037bc524112df553df2882d59da4bae50f",
+          "line": 40,
+          "anchor": "So the exact \"T5 @ 100×64\" number the CMD asks for is **NOT MEASURED**,"
+        }
+      ],
+      "requirement": "Reproduce the actual mechanism/configuration before accepting inherited benchmark claims.",
+      "historical_disposition": "July4report gives4%for25concepts versus the inherited67%claim, aborts the literal100×64run at7.6GB, and keeps it NOTMEASURED.",
+      "current_reconciliation": "These are source-reported diagnostics, not a fresh A1execution. The25concept result cannot substitute for the missing100concept measurement.",
+      "lawful_remedy": "Preserve the failed baseline, exact configuration and resource cause; never tune a replacement to recover the headline.",
+      "acceptance_falsifier": "Require exact test/observable/source binding and bounded resources; changed defaults invalidate inherited results.",
+      "repair_actions": [
+        "A02",
+        "A14",
+        "A16",
+        "A18"
+      ],
+      "change_classification": "Valid failure disclosure; prior success claim not transferable"
+    },
+    {
+      "id": "HB10",
+      "title": "The recall report identified causal defects hidden by convenient defaults",
+      "refs": [
+        {
+          "source_id": "HWB13-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB13-01--GL-RPT-C2-REBUILD-C1-20260704-168-v1.md",
+          "sha256": "9d65c515db7500f4ca2b100f391bdd037bc524112df553df2882d59da4bae50f",
+          "line": 48,
+          "anchor": "**BUG 1 — three of six modality dimensions are permanently zero.**"
+        },
+        {
+          "source_id": "HWB13-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB13-01--GL-RPT-C2-REBUILD-C1-20260704-168-v1.md",
+          "sha256": "9d65c515db7500f4ca2b100f391bdd037bc524112df553df2882d59da4bae50f",
+          "line": 77,
+          "anchor": "**BUG 2 — `brain.recall()`'s \"must not pollute training\" guarantee does not"
+        },
+        {
+          "source_id": "HWB13-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB13-01--GL-RPT-C2-REBUILD-C1-20260704-168-v1.md",
+          "sha256": "9d65c515db7500f4ca2b100f391bdd037bc524112df553df2882d59da4bae50f",
+          "line": 93,
+          "anchor": "**BUG 3 — the sensory adapters' event lists are unbounded.** GL-CMD-138 put"
+        }
+      ],
+      "requirement": "Sensory absence and read mutation must be explicit; retained work must be bounded.",
+      "historical_disposition": "Report identifies absent n_events silently becoming0for3senses, recall restoring phase/winding but not event state, and unbounded event lists. A changed default also breaks the old harness dimensions.",
+      "current_reconciliation": "These exact historical defects require their own version/retirement tracing; no claim they remain in current native64 follows.",
+      "lawful_remedy": "Trace full producer/adapter/state lifecycle and remove silent fallback/partial snapshot logic where still reachable; replace event accumulation with lawful bounded state.",
+      "acceptance_falsifier": "Exercise absent fields, repeated nominal reads, complete restore and sustained resource growth; track zero as a measurement only when genuine.",
+      "repair_actions": [
+        "A06",
+        "A09",
+        "A14",
+        "A16",
+        "A18"
+      ],
+      "change_classification": "Concrete historical defects reported; present reachability open"
+    },
+    {
+      "id": "HB11",
+      "title": "Whole-organism development replaced isolated benchmark optimization",
+      "refs": [
+        {
+          "source_id": "HWB03-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB03-01--GL-CMD-C2-WHOLE-BRAIN-EVE-20260704-168-v3.md",
+          "sha256": "f331f20a4f4413425dba0f7dcceabd062a9e7b49147d2ae4d10c96d1c07aac60",
+          "line": 1,
+          "anchor": "# GL-CMD-C2-WHOLE-BRAIN-EVE-20260704-168-v3"
+        },
+        {
+          "source_id": "HWB03-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB03-01--GL-CMD-C2-WHOLE-BRAIN-EVE-20260704-168-v3.md",
+          "sha256": "f331f20a4f4413425dba0f7dcceabd062a9e7b49147d2ae4d10c96d1c07aac60",
+          "line": 31,
+          "anchor": "A3 FIFTEEN GAUGES, ONE ORGANISM: measure ALL fifteen mechanisms as"
+        },
+        {
+          "source_id": "HWB03-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB03-01--GL-CMD-C2-WHOLE-BRAIN-EVE-20260704-168-v3.md",
+          "sha256": "f331f20a4f4413425dba0f7dcceabd062a9e7b49147d2ae4d10c96d1c07aac60",
+          "line": 56,
+          "anchor": "G-3 Every curve carries its scaffolding-vs-emergent label per -103."
+        }
+      ],
+      "requirement": "Capabilities must coexist and be tested in one causal organism.",
+      "historical_disposition": "v3retires v1/v2organ-bench framing, retains15developmental gauges and marks unimplemented paths ABSENT.",
+      "current_reconciliation": "This preserves Joe’s whole-brain intent. Accuracy-winner selection, event-count recall and percentage suspicion thresholds are not physical laws.",
+      "lawful_remedy": "Use integrated mature-body experiments with mechanism-specific causal evidence and explicit missing capabilities; retain unit tests as supporting scope only.",
+      "acceptance_falsifier": "An isolated fixture pass cannot close whole-organism recall/speech/autonomy; one active mechanism must not hide absent others.",
+      "repair_actions": [
+        "A11",
+        "A16",
+        "A18"
+      ],
+      "change_classification": "Valid integration correction; old proxy methods remain rejected"
+    },
+    {
+      "id": "HB12",
+      "title": "July staged and immediate cutover plans have explicit different risk scope",
+      "refs": [
+        {
+          "source_id": "HWB04-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB04-01--GL-PLAN-WHOLE-BRAIN-MOVE-EVE-20260704-v1.md",
+          "sha256": "d80a009b3192cde1693eec8fd5c2007463835badf916a60b307ceb4a70004cba",
+          "line": 36,
+          "anchor": "## 2. The four stages — criteria frozen now"
+        },
+        {
+          "source_id": "HWB05-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB05-01--GL-PLAN-WHOLE-BRAIN-MOVE-EVE-20260704-v2.md",
+          "sha256": "b0fc5f71596600474bc1baf997ce8f239315b08c39e09094001fc36ca4769516",
+          "line": 5,
+          "anchor": "schedule is DEAD by Joe's explicit rulings of 2026-07-04 morning"
+        },
+        {
+          "source_id": "HWB10-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB10-01--GL-CMD-BRAIN-FULL-DEPLOY-TODAY-EVE-20260704-175-v2.md",
+          "sha256": "8f13b93b2219ea7d81cf93d1984f19cde9d76eedec6eb4170b9b3cb90ee5a8fe",
+          "line": 33,
+          "anchor": "G-2 NO fallbacks, silent or declared: any brain-path failure —"
+        }
+      ],
+      "requirement": "Recover exact approval scope rather than treating plans as timeless authority.",
+      "historical_disposition": "v1preserves legacybehavior during staged migration; v2records immediate whole-brain/voice cutover with silence accepted and legacyfallback prohibited. It also corrects the claim that retention/persistence orders were withdrawn.",
+      "current_reconciliation": "These documents report Joe’s ruling; independent original-conversation authority and actual cutover evidence remain separate. No present deployment authorization is inferred from the historical command.",
+      "lawful_remedy": "Preserve decisions, accepted risks and changed schedule independently of capability claims. Require current ordered qualification and actual source/artifact receipts.",
+      "acceptance_falsifier": "Silence may be honest failure; it cannot be reclassified as successful speech, nor hidden by a legacy voice.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A10",
+        "A17",
+        "A18"
+      ],
+      "change_classification": "Reported authorized redesign; execution/preservation not proved by order"
+    },
+    {
+      "id": "HB13",
+      "title": "The July resource audit exposes duplication rather than neuron-count blame",
+      "refs": [
+        {
+          "source_id": "HWB08-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB08-01--GUALA_WHOLE_BRAIN_RESOURCE_BOUND_AUDIT_2026-07-28.md",
+          "sha256": "0c6b0c0ced4c6c77c094277aee787d4fc80f06ddc7d930f58b411102bcce8c2a",
+          "line": 13,
+          "anchor": "  Reflection history previously copied every monitored owner snapshot into"
+        },
+        {
+          "source_id": "HWB08-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB08-01--GUALA_WHOLE_BRAIN_RESOURCE_BOUND_AUDIT_2026-07-28.md",
+          "sha256": "0c6b0c0ced4c6c77c094277aee787d4fc80f06ddc7d930f58b411102bcce8c2a",
+          "line": 37,
+          "anchor": "- the authenticated persisted bytes become and remain byte-identical; and"
+        },
+        {
+          "source_id": "HWB08-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB08-01--GUALA_WHOLE_BRAIN_RESOURCE_BOUND_AUDIT_2026-07-28.md",
+          "sha256": "0c6b0c0ced4c6c77c094277aee787d4fc80f06ddc7d930f58b411102bcce8c2a",
+          "line": 72,
+          "anchor": "whole-organism and passive-learning subtotal **500 MiB**. These are refusal"
+        }
+      ],
+      "requirement": "Measure distinct physics separately from redundant representation.",
+      "historical_disposition": "The audit reports fixed topology under repeated identical input and replacement of copied reflection bodies with hashes/byte counts. It lists500MiBsubtotal and larger protocol ceilings as refusals, not allocation targets.",
+      "current_reconciliation": "This is a useful documented design improvement, not evidence that all memory reinforcement worked or current production is bounded.",
+      "lawful_remedy": "Preserve bounded causal state and cheap observation references; measure current peak work/RAM/durable bytes across mature recurrence and restore.",
+      "acceptance_falsifier": "No physical change may allocate new cognition merely for a repeated observation; hashes cannot stand in for missing retained causal state.",
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A13",
+        "A14",
+        "A16"
+      ],
+      "change_classification": "Reported lean correction; executable/live binding still required"
+    },
+    {
+      "id": "HB14",
+      "title": "July storage claims were explicitly candidate-only",
+      "refs": [
+        {
+          "source_id": "HWB08-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB08-01--GUALA_WHOLE_BRAIN_RESOURCE_BOUND_AUDIT_2026-07-28.md",
+          "sha256": "0c6b0c0ced4c6c77c094277aee787d4fc80f06ddc7d930f58b411102bcce8c2a",
+          "line": 3,
+          "anchor": "This is a source-and-test audit of the production candidate. It is not a live"
+        },
+        {
+          "source_id": "HWB08-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB08-01--GUALA_WHOLE_BRAIN_RESOURCE_BOUND_AUDIT_2026-07-28.md",
+          "sha256": "0c6b0c0ced4c6c77c094277aee787d4fc80f06ddc7d930f58b411102bcce8c2a",
+          "line": 127,
+          "anchor": "the old producer. This candidate has not been deployed as part of this audit,"
+        },
+        {
+          "source_id": "HWB08-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB08-01--GUALA_WHOLE_BRAIN_RESOURCE_BOUND_AUDIT_2026-07-28.md",
+          "sha256": "0c6b0c0ced4c6c77c094277aee787d4fc80f06ddc7d930f58b411102bcce8c2a",
+          "line": 95,
+          "anchor": "exactly 5 GiB."
+        }
+      ],
+      "requirement": "Bind storage law to actual writer, mount, generation and artifact.",
+      "historical_disposition": "The document describes authenticated content addressing, generation limits and deploy checks while admitting the live task still used the old producer.",
+      "current_reconciliation": "These named safeguards cannot be inherited as present enforcement from a report or test count.",
+      "lawful_remedy": "Trace the exact active writer and canonical current-only transaction through crash/restore, including all physical byte authorities.",
+      "acceptance_falsifier": "A readiness label or passing writer test without actual production invocation fails; wrong mounts/old producers must refuse cutover.",
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A14",
+        "A17"
+      ],
+      "change_classification": "Honest historical candidate boundary"
+    },
+    {
+      "id": "HB15",
+      "title": "D3 cognitive capital separated three axes but introduced persistent evidence storage",
+      "refs": [
+        {
+          "source_id": "HWB07-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB07-01--GUALA_D3_COGNITIVE_CAPITAL_LEDGER_LAW_2026-08-03.md",
+          "sha256": "39718ca0c648a32d3dcaceac8d5c534adc54848c343b9a8b677d8063bfc1ef3b",
+          "line": 30,
+          "anchor": "## Three orthogonal axes"
+        },
+        {
+          "source_id": "HWB07-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB07-01--GUALA_D3_COGNITIVE_CAPITAL_LEDGER_LAW_2026-08-03.md",
+          "sha256": "39718ca0c648a32d3dcaceac8d5c534adc54848c343b9a8b677d8063bfc1ef3b",
+          "line": 118,
+          "anchor": "refer to it. Exact lineage membership uses immutable path-compressed Patricia"
+        },
+        {
+          "source_id": "HWB07-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB07-01--GUALA_D3_COGNITIVE_CAPITAL_LEDGER_LAW_2026-08-03.md",
+          "sha256": "39718ca0c648a32d3dcaceac8d5c534adc54848c343b9a8b677d8063bfc1ef3b",
+          "line": 175,
+          "anchor": "Passing these tests proves the ledger law, not live cognitive growth. D3 becomes"
+        }
+      ],
+      "requirement": "Keep capability, participating physical path and evidence dimension distinct without making observation cognition.",
+      "historical_disposition": "August3D3specified39×40×10sparse addressed evidence, private causal admission and incompatiblev3storage. It explicitly withheld live-growth claims.",
+      "current_reconciliation": "LaterC024rejects that persistent archive. Orthogonal evidence requirements survive; the superseded storage must not be restored merely because D3called it ratified.",
+      "lawful_remedy": "Retain sparse causal evidence references at the truthful observation boundary and resolve exact retirement/migration authority.",
+      "acceptance_falsifier": "A mechanism label cannot infer capability; no absent axis or raw document can become a cognitive credit.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A13",
+        "A18"
+      ],
+      "change_classification": "Valid non-flattening intent; superseded storage design"
+    },
+    {
+      "id": "HB16",
+      "title": "C024 removed false inference and persistent capital authority",
+      "refs": [
+        {
+          "source_id": "HWB06-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-01--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+          "sha256": "cab4b2b7cdbf0d7100b643a398a5a85557075da30d2daabfd6872e74092d9cfd",
+          "line": 115,
+          "anchor": "- Rejected: mount `physical_cognitive_capital.rs`. It labels all complete"
+        },
+        {
+          "source_id": "HWB06-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-01--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+          "sha256": "cab4b2b7cdbf0d7100b643a398a5a85557075da30d2daabfd6872e74092d9cfd",
+          "line": 79,
+          "anchor": "| Cold-restored | current retained formation state and the exact restored CURRENT reference support durability without a startup scan, history, body copy, or persistent ledger |"
+        },
+        {
+          "source_id": "HWB06-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-01--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+          "sha256": "cab4b2b7cdbf0d7100b643a398a5a85557075da30d2daabfd6872e74092d9cfd",
+          "line": 50,
+          "anchor": "| Native current body | retained formation counts/references, exact identity, tick, state digest, resource state | read once through `_native_record`; no body scan added | compact current-state references |"
+        }
+      ],
+      "requirement": "Observe actual native evidence without inferring vision/recognition from population counts.",
+      "historical_disposition": "The sprint rejects mapping every neuron to vision, formation creation to recognition, and a detached persistent capital archive; it uses current bounded referenced evidence.",
+      "current_reconciliation": "This is a substantive correction consistent with the current contract. Merely retaining39×10labels would not preserve its truthful producer/consumer chain.",
+      "lawful_remedy": "Retain explicit availability/participation/retention/etc. with provenance and missing cells; restore the lawful observation function without resurrecting archive cognition.",
+      "acceptance_falsifier": "New formation without later recognition must leave recognition blank; empty native evidence must produce no invented credit.",
+      "repair_actions": [
+        "A01",
+        "A13",
+        "A16",
+        "A18"
+      ],
+      "change_classification": "Reported architectural correction worth preserving"
+    },
+    {
+      "id": "HB17",
+      "title": "C024 release success and task completion were correctly separated",
+      "refs": [
+        {
+          "source_id": "HWB06-02",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-02--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+          "sha256": "9c88b73e7d7de54b1f62ac0f649ef7e44795028dc550b092d524caf815ea645e",
+          "line": 158,
+          "anchor": "- First live cutover attempt: task definition `dsf-ai-task:1049`, commit"
+        },
+        {
+          "source_id": "HWB06-03",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-03--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+          "sha256": "68041a2c27cab2bf799cb7a4d00bf82f51780cc73a8284a6fd80192be41fa95a",
+          "line": 165,
+          "anchor": "- Corrected live cutover: task definition `dsf-ai-task:1050`, commit"
+        },
+        {
+          "source_id": "HWB06-03",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-03--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+          "sha256": "68041a2c27cab2bf799cb7a4d00bf82f51780cc73a8284a6fd80192be41fa95a",
+          "line": 170,
+          "anchor": "  to-sensed-return witness. The catalog contained 79 unique sparse cells and"
+        }
+      ],
+      "requirement": "A deployed process can still fail the capability acceptance condition.",
+      "historical_disposition": "Task1049deployed but autonomy evidence stayed blank due to stale intake-name mapping.1050report records corrected39capabilities/10dimensions,79cells/87references and explicit uncredited families.",
+      "current_reconciliation": "Source-reported live receipts must be recovered independently; these counts do not establish total cognition or current continuity.",
+      "lawful_remedy": "Bind exact native witness through each transport field into UI; keep unavailable capabilities blank and stale terminology mismatches visible.",
+      "acceptance_falsifier": "A serving endpoint with the causal witness dropped at translation must fail observer acceptance.",
+      "repair_actions": [
+        "A02",
+        "A13",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "change_classification": "Documented localized correction, not whole-brain completion"
+    },
+    {
+      "id": "HB18",
+      "title": "August reconciliation reopened overbroad cognitive-capital completion",
+      "refs": [
+        {
+          "source_id": "HWB06-04",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-04--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+          "sha256": "a9e54aa69c8c133a7288d2d208567bb2992f2f304c5929d6400b66d95c8698a4",
+          "line": 192,
+          "anchor": "sentence as `RECONCILED PARTIAL`: task 1050 truthfully left language,"
+        },
+        {
+          "source_id": "HWB06-05",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-05--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+          "sha256": "81a94c72876504156fdedaba1e83ad59a5cdb56a5bb44aa40d5a4e4fc9f6092e",
+          "line": 223,
+          "anchor": "corrected function produced 83 unique sparse cells instead of 48. The 35 newly"
+        },
+        {
+          "source_id": "HWB06-05",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-05--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+          "sha256": "81a94c72876504156fdedaba1e83ad59a5cdb56a5bb44aa40d5a4e4fc9f6092e",
+          "line": 264,
+          "anchor": "production defect: task 1173 required about 20 minutes from process start to"
+        }
+      ],
+      "requirement": "A narrow repaired boundary does not close unimplemented capability families.",
+      "historical_disposition": "August22reopensC024top-levelscope, fixes prior_causal_cross_context_use translation, reports83cells, and records20minute inaccessible restore despite successful cutover.",
+      "current_reconciliation": "This is proper scope correction and a separate availability defect; product-independent proof remains pending in this family review.",
+      "lawful_remedy": "Preserve the exact repaired translation and still-missing capabilities; account startup downtime separately from cognitive evidence and refusal correctness.",
+      "acceptance_falsifier": "One fixed field must not close language/social/creativity; healthy finalHTTP cannot erase earlier downtime.",
+      "repair_actions": [
+        "A02",
+        "A13",
+        "A14",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "change_classification": "Valid partial-status correction and explicit deployment failure"
+    },
+    {
+      "id": "HB19",
+      "title": "Observer cache loss after restart is not necessarily memory loss",
+      "refs": [
+        {
+          "source_id": "HWB06-06",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-06--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+          "sha256": "5ad6054d6424a5c3345ac848f0b5c46d96bd2a429f65e70373ed407f32052a42",
+          "line": 292,
+          "anchor": "witness and therefore exposed only eight current availability credits. The"
+        },
+        {
+          "source_id": "HWB06-06",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-06--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+          "sha256": "5ad6054d6424a5c3345ac848f0b5c46d96bd2a429f65e70373ed407f32052a42",
+          "line": 290,
+          "anchor": "After that process restart, the bounded public observer truthfully reported"
+        }
+      ],
+      "requirement": "Distinguish persisted cognition, current process witnesses and historical proof.",
+      "historical_disposition": "Task1175restart reportedly leaves8availabilitycredits rather than earlier83cells; the record explicitly refuses to call them the same witness.",
+      "current_reconciliation": "A smaller observation count alone does not prove lost physical memory, just as stable count/identity cannot prove preservation.",
+      "lawful_remedy": "Bind durable state and exact historical receipts separately; keep current witness absence visible without inventing replayed success or storing a second brain.",
+      "acceptance_falsifier": "Cold restart must independently test retained causal behavior; observation provenance must disclose whether a witness is current, historical or unavailable.",
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A13",
+        "A16",
+        "A18"
+      ],
+      "change_classification": "Important evidence distinction; continuity still needs direct proof"
+    },
+    {
+      "id": "HB20",
+      "title": "August segmentation defined geography rather than separate cognitive owners",
+      "refs": [
+        {
+          "source_id": "HWB09-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB09-01--GUALA_WHOLE_BRAIN_SEGMENTATION_AND_MOUNT_SPRINT_2026-08-11.md",
+          "sha256": "29316194fafc16e0b85445ee784fed894ce5817e38bde7ccce0de9d6911e4cad",
+          "line": 29,
+          "anchor": "A **segment** is developmental geography and physical anatomy.  It is not a"
+        },
+        {
+          "source_id": "HWB09-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB09-01--GUALA_WHOLE_BRAIN_SEGMENTATION_AND_MOUNT_SPRINT_2026-08-11.md",
+          "sha256": "29316194fafc16e0b85445ee784fed894ce5817e38bde7ccce0de9d6911e4cad",
+          "line": 33,
+          "anchor": "effector physics.  A mechanism is mounted only when its authentic ingress,"
+        },
+        {
+          "source_id": "HWB09-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB09-01--GUALA_WHOLE_BRAIN_SEGMENTATION_AND_MOUNT_SPRINT_2026-08-11.md",
+          "sha256": "29316194fafc16e0b85445ee784fed894ce5817e38bde7ccce0de9d6911e4cad",
+          "line": 121,
+          "anchor": "One organism interval never computes the transitive closure of the sparse"
+        }
+      ],
+      "requirement": "One organism has sparse specialized participants and one causal clock.",
+      "historical_disposition": "Fourteenterritories are declared geography; mounting requires ingress, transition, consequence and egress. One-hop reached-frontier propagation rejects whole-graph polling.",
+      "current_reconciliation": "These responsibilities should inform current64-column verification without mandating obsolete14layerindices or separate owners.",
+      "lawful_remedy": "Map each required role to actual current participants, bounded local propagation and independent effectors; do not materialize dormant anatomy just to fill a chart.",
+      "acceptance_falsifier": "Declared layers/counts without causal paths fail mounting; work must scale with reached state rather than total potential population.",
+      "repair_actions": [
+        "A01",
+        "A06",
+        "A11",
+        "A14",
+        "A16"
+      ],
+      "change_classification": "Preserve integrated sparse design requirement"
+    },
+    {
+      "id": "HB21",
+      "title": "Guided sensory and body reach was not claimed as autonomous cognition",
+      "refs": [
+        {
+          "source_id": "HWB09-02",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB09-02--GUALA_WHOLE_BRAIN_SEGMENTATION_AND_MOUNT_SPRINT_2026-08-11.md",
+          "sha256": "3ef075331c139b5cdec45c579a891768ea6836e413741178675ccb42533d5ef3",
+          "line": 17,
+          "anchor": "53 corrected local integrators plus one association cell.  The following quiet"
+        },
+        {
+          "source_id": "HWB09-03",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB09-03--GUALA_WHOLE_BRAIN_SEGMENTATION_AND_MOUNT_SPRINT_2026-08-11.md",
+          "sha256": "d0a2ee0601dbbd6d536ef3e97742aed76eb21d8d750fb16b30668aca2d9f9661",
+          "line": 22,
+          "anchor": "body/balance route.  A live guided 90-degree turn advanced 250 vestibular ticks"
+        },
+        {
+          "source_id": "HWB09-03",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB09-03--GUALA_WHOLE_BRAIN_SEGMENTATION_AND_MOUNT_SPRINT_2026-08-11.md",
+          "sha256": "d0a2ee0601dbbd6d536ef3e97742aed76eb21d8d750fb16b30668aca2d9f9661",
+          "line": 71,
+          "anchor": "| 8 | Body and fluid regulation | Local body afferents plus non-neural fluid/metabolic compartments | Couple conserved body/fluid condition to neural reach, recovery, and action capacity | Sparse contacts into layers 5, 10, 11, and 12; local fluid passoff back to neurons | Local body/balance route live on task 958; fluid-contact coupling remains absent |"
+        }
+      ],
+      "requirement": "Identify what actually caused an action and what the measured path proves.",
+      "historical_disposition": "Task957reported receptor/associationgrowth;958reported a guided90°turn and body-regulationreach. Fluid coupling and laterlayers remained absent/unmounted.",
+      "current_reconciliation": "The records intentionally do not equate cell growth with word learning or a guided turn with autonomy. Their historical source/live binding is still required here.",
+      "lawful_remedy": "Preserve those narrow claims and require endogenous action/consequence plus local fluid proof separately in current64scope.",
+      "acceptance_falsifier": "Caretaker/test-issued movement cannot satisfy an autonomous-action claim; a local vestibular route cannot satisfy all fluid regulation.",
+      "repair_actions": [
+        "A06",
+        "A08",
+        "A11",
+        "A12",
+        "A16",
+        "A18"
+      ],
+      "change_classification": "Valid incremental evidence distinctions"
+    },
+    {
+      "id": "HB22",
+      "title": "The cognitive-chain law directly supports Joe’s memory terminology",
+      "refs": [
+        {
+          "source_id": "HWB15-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB15-01--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+          "sha256": "6ad32eea3addc93d414eb9ed64e495d9e79fae656a402902374dcf137cd9c101",
+          "line": 63,
+          "anchor": "difference between its pre-experience quiescence and its next post-experience"
+        },
+        {
+          "source_id": "HWB15-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB15-01--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+          "sha256": "6ad32eea3addc93d414eb9ed64e495d9e79fae656a402902374dcf137cd9c101",
+          "line": 87,
+          "anchor": "mosaic is possible. Three is a structural floor, not an admission trigger."
+        },
+        {
+          "source_id": "HWB15-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB15-01--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+          "sha256": "6ad32eea3addc93d414eb9ed64e495d9e79fae656a402902374dcf137cd9c101",
+          "line": 147,
+          "anchor": "through its consequence. There is no weave generator."
+        }
+      ],
+      "requirement": "Retained physical changes and later recurrent causal use govern memory claims.",
+      "historical_disposition": "Augustdefines fractal as whole-neuron retaineddelta, mosaic as connected relations, tapestry as ordered reassembly and weave as integrated generative enactment. Threeparticipants is a floor, not proof or promotion rule.",
+      "current_reconciliation": "This agrees with the current user clarification and invalidates treating metaphors as fixed software tiers. DSFdelivery itself is not a memory.",
+      "lawful_remedy": "Keep exact retained state/relations, authentic partial-cue reassembly, effectors and sensed return; no new semantic object hierarchy.",
+      "acceptance_falsifier": "Counts/co-occurrence/noveltopology alone must fail recognition/planning/creativity acceptance; evidence must survive cold continuation.",
+      "repair_actions": [
+        "A01",
+        "A06",
+        "A09",
+        "A16"
+      ],
+      "change_classification": "Retain current architectural authority and its strict evidence meaning"
+    },
+    {
+      "id": "HB23",
+      "title": "Sleep, imagination and actual experience need distinct provenance",
+      "refs": [
+        {
+          "source_id": "HWB15-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB15-01--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+          "sha256": "6ad32eea3addc93d414eb9ed64e495d9e79fae656a402902374dcf137cd9c101",
+          "line": 196,
+          "anchor": "recalled, imagined, dreamed, simulated, or tutor-provided provenance must remain"
+        },
+        {
+          "source_id": "HWB15-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB15-01--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+          "sha256": "6ad32eea3addc93d414eb9ed64e495d9e79fae656a402902374dcf137cd9c101",
+          "line": 209,
+          "anchor": "Autonomy uses the same chain. Controlled internal imbalance, unequal local"
+        },
+        {
+          "source_id": "HWB15-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB15-01--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+          "sha256": "6ad32eea3addc93d414eb9ed64e495d9e79fae656a402902374dcf137cd9c101",
+          "line": 241,
+          "anchor": "single scalar is not cognitive capital."
+        }
+      ],
+      "requirement": "Internal recurrence can change the organism without being falsely recorded as external experience.",
+      "historical_disposition": "The cognitivechain separates recalled, imagined, dreamed, simulated and tutor-provided causes and independent evidence dimensions.",
+      "current_reconciliation": "Current needs/curiosity/fluid operators remain unqualified where no direct law is supplied; the document does not authorize score or scheduler substitution.",
+      "lawful_remedy": "Map internal physical sources and local recovery to retained relations in the same organism; maintain provenance and bounded work.",
+      "acceptance_falsifier": "A sleepflag, replayed dictionary, room label or score cannot establish consolidation, curiosity or sensed experience.",
+      "repair_actions": [
+        "A06",
+        "A09",
+        "A11",
+        "A12",
+        "A16"
+      ],
+      "change_classification": "Preserve provenance and non-flattening requirements"
+    },
+    {
+      "id": "HB24",
+      "title": "Asset1salience scoring overstates its physical derivation",
+      "refs": [
+        {
+          "source_id": "HWB02-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+          "line": 42,
+          "anchor": "An environmental event is etched into long-term phase space if and only if it produces an acute change in the organism's internal somatic integrity ($\\Gamma_{\\text{salience}}$). The physical variables present during the transition are bound into a unified 4D coordinate manifold."
+        },
+        {
+          "source_id": "HWB02-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+          "line": 42,
+          "anchor": "An environmental event is etched into long-term phase space if and only if it produces an acute change in the organism's internal somatic integrity ($\\Gamma_{\\text{salience}}$). The physical variables present during the transition are bound into a unified 4D coordinate manifold."
+        },
+        {
+          "source_id": "HWB02-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+          "line": 47,
+          "anchor": "- Stored trajectories are queried prior to actuation; if anticipated somatic delta is negative, candidate actions are inhibited."
+        }
+      ],
+      "requirement": "Valence and anticipatory influence must arise from retained causal body/experience relations.",
+      "historical_disposition": "Asset1sums weighted reserve/shock/boundary/sleeprates, thresholds an episodic frame and inhibits candidates based on anticipated somatic delta. It also excludes durable memory absent acute somatic change.",
+      "current_reconciliation": "This is an authored scalar decision/retention specification, not proof of a physical law. Ordinary neutral experience must not be categorically denied memory without authority.",
+      "lawful_remedy": "Replace the proxy with ratified local body/neuronal effects and retained trajectory reassembly; preserve actual context and lawful inhibition.",
+      "acceptance_falsifier": "Hold actual participating state fixed while changing semantic shock/boundary labels; no episodic admission or action veto may arise from labels alone.",
+      "repair_actions": [
+        "A04",
+        "A05",
+        "A06",
+        "A09",
+        "A11",
+        "A16"
+      ],
+      "change_classification": "Reject scalar salience authority; preserve episodic/anticipation goals"
+    },
+    {
+      "id": "HB25",
+      "title": "Asset2describes a solution recipe rather than learned planning",
+      "refs": [
+        {
+          "source_id": "HWB02-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+          "line": 57,
+          "anchor": "3. Causal Graph Search: $\\text{MoveTo}(O_{\\text{tool}}) \\to \\text{Translate}(O_{\\text{tool}}, X_{\\text{target}}) \\to \\text{StepOnto}(O_{\\text{tool}}) \\to \\text{Grasp}(O_{\\text{target}})$."
+        },
+        {
+          "source_id": "HWB02-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+          "line": 18,
+          "anchor": "   *(Derivation: The Refrigerator Climbing Principle)*  "
+        }
+      ],
+      "requirement": "Planning must causally reuse lived relationships in the same physical architecture.",
+      "historical_disposition": "A move-tool→place→step→graspchain is installed as an inverse affordance graph prescription.",
+      "current_reconciliation": "The refrigerator/ladderexample is an acceptance scenario, not permission for a preinstalled recipe or hidden target.",
+      "lawful_remedy": "Derive bounded preparation/recombination from authentic observed tool/body/food experience; expose the missing operator if not yet implemented.",
+      "acceptance_falsifier": "Move the target/tool, change nonphysicalhandles, omit prior experience and sever relevant retainedrelations on copies; no scripted recipe can pass.",
+      "repair_actions": [
+        "A05",
+        "A07",
+        "A08",
+        "A09",
+        "A16"
+      ],
+      "change_classification": "Preserve requested capability; reject procedural answer injection"
+    },
+    {
+      "id": "HB26",
+      "title": "Asset3self-hearing is valuable but similarity is not language proof",
+      "refs": [
+        {
+          "source_id": "HWB02-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+          "line": 23,
+          "anchor": "   Continuous acoustic-motor mapping via 32-channel basilar membrane spectral cosine similarity ($\\rho \\ge 0.65$), purging static vowel tables in favor of dynamic acoustic resonance between hearing and vocal tract actuation."
+        },
+        {
+          "source_id": "HWB02-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+          "line": 62,
+          "anchor": "*(Status: Production Complete & Verified 2026-09-18)*"
+        }
+      ],
+      "requirement": "Separate physical vocalization/self-hearing, imitation, learning, grounding and speech.",
+      "historical_disposition": "The spec declares32channelcosinesimilarity≥0.65productioncomplete and names it autonomous babbling convergence.",
+      "current_reconciliation": "The broader audit preserves self-hearing as a useful change while rejecting unproved semantic/learning claims from similarity thresholds.",
+      "lawful_remedy": "Trace physical pressure through actual ear/body and retained contact change; prove later causal vocal use without dictionary/reward/similarity answer selection.",
+      "acceptance_falsifier": "A matching spectrum without experience-linked retained change must not pass learned speech; current channel counts require effective anatomy binding.",
+      "repair_actions": [
+        "A06",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "change_classification": "Useful sensory closure separated from unsupported cognitive qualification"
+    },
+    {
+      "id": "HB27",
+      "title": "Asset4world persistence is not pupil object permanence",
+      "refs": [
+        {
+          "source_id": "HWB02-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+          "line": 72,
+          "anchor": "- Conserves physical mass coordinates when line-of-sight is broken ($V_{\\text{retina}} = 0$, $M_{\\text{conserved}} > 0$)."
+        },
+        {
+          "source_id": "HWB01-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB01-01--WHOLE_BRAIN_SPECIFICATION.md",
+          "sha256": "706e88be11e21ad559eb6a50f42c7648f4f9f2d879581a5da23e94912a53e211",
+          "line": 38,
+          "anchor": "| • Cochlear ERB     | • Object Permanence Attractor    | • 3-5 Step Temporal Syntax | • Rigid Stop |"
+        }
+      ],
+      "requirement": "The world preserving an occluded object and the organism remembering it are distinct.",
+      "historical_disposition": "The documents mix mass/coordinateconservation with a claimed circulating attractor duringblindout.",
+      "current_reconciliation": "World state may be correct while the pupil has no retained spatial memory.",
+      "lawful_remedy": "Preserve actual world material/custody; independently prove endogenous prediction/search from earlier sensed relations after occlusion without privileged world reads.",
+      "acceptance_falsifier": "Hide an object and remove directretinalaccess; only retained physical experience may support the claimed expectation.",
+      "repair_actions": [
+        "A06",
+        "A08",
+        "A09",
+        "A16"
+      ],
+      "change_classification": "Boundary clarification preventing false memory proof"
+    },
+    {
+      "id": "HB28",
+      "title": "Asset5and laminar sequence demonstrations do not establish compositional language",
+      "refs": [
+        {
+          "source_id": "HWB02-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+          "line": 80,
+          "anchor": "- Couples successor links in the meaning topology into sequential phonetic chains."
+        },
+        {
+          "source_id": "HWB01-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB01-01--WHOLE_BRAIN_SPECIFICATION.md",
+          "sha256": "706e88be11e21ad559eb6a50f42c7648f4f9f2d879581a5da23e94912a53e211",
+          "line": 154,
+          "anchor": "- Couple Column 2 to 3-step combinatorial syntax chaining."
+        },
+        {
+          "source_id": "HWB01-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB01-01--WHOLE_BRAIN_SPECIFICATION.md",
+          "sha256": "706e88be11e21ad559eb6a50f42c7648f4f9f2d879581a5da23e94912a53e211",
+          "line": 61,
+          "anchor": "   - Drives multi-step motor execution and combinatorial vocal phonemic chaining (`[syl1, syl2, syl3]`)."
+        }
+      ],
+      "requirement": "Learned ordered relations must cause context-appropriate speech or action.",
+      "historical_disposition": "Asset5promises demands; wholebrainspec prescribes3steps and requests syllablechains as live receipts.",
+      "current_reconciliation": "A fixed sequence, namedtoken successor or seededchain can satisfy that appearance without learned syntax.",
+      "lawful_remedy": "Require actual sensedmeaning/ordering relations and native articulation with provenance, transfer and self-heard consequence.",
+      "acceptance_falsifier": "Untaught reordered combinations and changed contexts must distinguish genuine integration from a known prerecorded chain.",
+      "repair_actions": [
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "change_classification": "Retain syntax goal; strengthen mechanism-distinguishing acceptance"
+    },
+    {
+      "id": "HB29",
+      "title": "Asset6semantic sensory translation conflicts with its containment promise",
+      "refs": [
+        {
+          "source_id": "HWB02-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+          "line": 111,
+          "anchor": "|  * Semantic Nouns/Adjectives -> Physical Invariant Affordance Vectors:   |"
+        },
+        {
+          "source_id": "HWB02-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+          "line": 131,
+          "anchor": "1. **Strict Sensory Containment**: The transducer functions strictly as an **environmental sensory interface** (analogous to the cornea, cochlea, or olfactory epithelium). It does **not** make cognitive decisions, dictate motor policies, or shortcut Guala's internal basin dynamics."
+        },
+        {
+          "source_id": "HWB02-WORK",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-WORK--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "f281291714949f1f3654717579d03f79223ee203f4c90939fe3ef01f45589c54",
+          "line": 1,
+          "anchor": "Historical specification and claims — reconciliation notice, 2026-10-09."
+        }
+      ],
+      "requirement": "Written glyphs and external audio are stimuli; word meaning must not fabricate bodily sensations.",
+      "historical_disposition": "The spec promises cornea-like containment while converting nouns/adjectives into material/taste/smell invariants. The working notice withdraws automatic canonical approval.",
+      "current_reconciliation": "OT01–OT07already document actual adapter boundaries and pronunciation/template defects. Direct live somatic injection is not inferred from the spec.",
+      "lawful_remedy": "Apply the existing orthographic remedy: authentic complete bounded glyph/media input, actual physical contact and no hidden semantic templates.",
+      "acceptance_falsifier": "Seeing writtenapplewithoutoralcontact cannot count as tastingapple; dictionary constants and validator-satisfyingpixels cannot qualify grounding.",
+      "repair_actions": [
+        "A06",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "change_classification": "Explicit specification contradiction; prior scoped implementation findings retained"
+    },
+    {
+      "id": "HB30",
+      "title": "The four-column specification remains a historical design, not current64configuration",
+      "refs": [
+        {
+          "source_id": "HWB01-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB01-01--WHOLE_BRAIN_SPECIFICATION.md",
+          "sha256": "706e88be11e21ad559eb6a50f42c7648f4f9f2d879581a5da23e94912a53e211",
+          "line": 26,
+          "anchor": "Rather than packing all modalities into a single flat associative sheet, the substrate factors physical reality into four orthogonal, specialized cortical columns:"
+        },
+        {
+          "source_id": "HWB01-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB01-01--WHOLE_BRAIN_SPECIFICATION.md",
+          "sha256": "706e88be11e21ad559eb6a50f42c7648f4f9f2d879581a5da23e94912a53e211",
+          "line": 152,
+          "anchor": "- Wire `ModularSubstrate4D` into `dsf_ai_service/guala_functional_organism.py`."
+        },
+        {
+          "source_id": "HWB01-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB01-01--WHOLE_BRAIN_SPECIFICATION.md",
+          "sha256": "706e88be11e21ad559eb6a50f42c7648f4f9f2d879581a5da23e94912a53e211",
+          "line": 157,
+          "anchor": "- Execute zero-drain cutover on ECS."
+        }
+      ],
+      "requirement": "Canonical configuration must describe actual current serving anatomy and ownership.",
+      "historical_disposition": "The document calls itself formalwholebrain but assigns4columns and integrates the now-rejected functionalcontroller; it also proposes zero-drain cutover.",
+      "current_reconciliation": "Current64-columnscope andsingle-writerpreservation rules prohibit blindly executing that plan. Its column3materialrole also differs from other historicalepisodic/somatic descriptions.",
+      "lawful_remedy": "Preserve responsibilities, reconcile actual current wiring and publish a single evidence-bound configuration; retire controller and conflicting packaging/restore routes.",
+      "acceptance_falsifier": "A four-column document, class name or protocol success cannot certify the64-column organism or safe writer handoff.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A11",
+        "A17",
+        "A18"
+      ],
+      "change_classification": "Obsolete architecture/configuration route requiring explicit retirement"
+    },
+    {
+      "id": "HB31",
+      "title": "Named continuum plasticity still needs a constitutive derivation",
+      "refs": [
+        {
+          "source_id": "HWB01-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB01-01--WHOLE_BRAIN_SPECIFICATION.md",
+          "sha256": "706e88be11e21ad559eb6a50f42c7648f4f9f2d879581a5da23e94912a53e211",
+          "line": 129,
+          "anchor": "$$\\sigma_{ij}(t) = T_i(t) \\cdot T_j(t) - g_{ij}(t)$$"
+        },
+        {
+          "source_id": "HWB01-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB01-01--WHOLE_BRAIN_SPECIFICATION.md",
+          "sha256": "706e88be11e21ad559eb6a50f42c7648f4f9f2d879581a5da23e94912a53e211",
+          "line": 12,
+          "anchor": "This document establishes the formal physical, mathematical, and structural specification for transitioning the **GualaLoom cognitive substrate** from a single flat 2D associative crossbar ($1,024 \\times 1,024$) to a **4-Column 3D Modular Neuromorphic Substrate** with vertical laminar microcircuit depth."
+        },
+        {
+          "source_id": "HWB01-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB01-01--WHOLE_BRAIN_SPECIFICATION.md",
+          "sha256": "706e88be11e21ad559eb6a50f42c7648f4f9f2d879581a5da23e94912a53e211",
+          "line": 132,
+          "anchor": "Where $Y \\in [0.4, 0.8]$ is the material yield limit and $\\eta \\in [0.01, 0.05]$ is the plastic hardening rate."
+        }
+      ],
+      "requirement": "Plastic state changes require consistent units, trial/returned stress and ratified evolution.",
+      "historical_disposition": "The document defines stress=Ti*Tj−g with Y0.4–0.8andeta0.01–0.05, adds complementarity notation and calls this continuum yield.",
+      "current_reconciliation": "That notation alone does not establish stress/conductanceunits, workbalance or a physical return law. Current source is changing underG1; no candidate qualification follows from these historical formulas.",
+      "lawful_remedy": "Require the actual constitutive map, parameter authority and resource/work balance before extending the update; retain exact failures rather than dimensional multipliers.",
+      "acceptance_falsifier": "Prove trial-to-admissible returned stress, complementarity, zero below-yield plasticwork and retained update under actual callers.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A11",
+        "A16"
+      ],
+      "change_classification": "Physical-model qualification missing; no invented replacement coefficient"
+    },
+    {
+      "id": "HB32",
+      "title": "Decay-and-prune is not sleep consolidation evidence",
+      "refs": [
+        {
+          "source_id": "HWB01-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB01-01--WHOLE_BRAIN_SPECIFICATION.md",
+          "sha256": "706e88be11e21ad559eb6a50f42c7648f4f9f2d879581a5da23e94912a53e211",
+          "line": 137,
+          "anchor": "g_{ij}(t) \\cdot (1 - \\gamma_{\\text{decay}}), & \\text{if } |g_{ij}(t)| \\ge \\theta_{\\text{prune}} \\\\"
+        },
+        {
+          "source_id": "HWB01-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB01-01--WHOLE_BRAIN_SPECIFICATION.md",
+          "sha256": "706e88be11e21ad559eb6a50f42c7648f4f9f2d879581a5da23e94912a53e211",
+          "line": 137,
+          "anchor": "g_{ij}(t) \\cdot (1 - \\gamma_{\\text{decay}}), & \\text{if } |g_{ij}(t)| \\ge \\theta_{\\text{prune}} \\\\"
+        },
+        {
+          "source_id": "HWB15-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB15-01--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+          "sha256": "6ad32eea3addc93d414eb9ed64e495d9e79fae656a402902374dcf137cd9c101",
+          "line": 237,
+          "anchor": "9. durability through time, sleep where applicable, and cold restart; and"
+        }
+      ],
+      "requirement": "Sleep must lawfully change retained experience and improve or preserve later causal use where claimed.",
+      "historical_disposition": "The four-columnspec globally scales and prunes conductances during lowM_kand calls it dream consolidation.",
+      "current_reconciliation": "Global decay can remove memory and a lowmotionfield does not itself establish sleep or dreaming.",
+      "lawful_remedy": "Map actual internal rest/recovery and bounded recurrence through retained physicalrelations, with measured before/after causal use and continuity.",
+      "acceptance_falsifier": "A sleepcallthatonlyshrinksweightsorcounts must fail consolidation; repeatedcoldrestoredcycles must preserve proven experience distinctions.",
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A11",
+        "A16"
+      ],
+      "change_classification": "Reject decay-only consolidation claim; preserve bounded recovery goal"
+    },
+    {
+      "id": "HB33",
+      "title": "Historical good tests remain narrow evidence",
+      "refs": [
+        {
+          "source_id": "HWB01-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB01-01--WHOLE_BRAIN_SPECIFICATION.md",
+          "sha256": "706e88be11e21ad559eb6a50f42c7648f4f9f2d879581a5da23e94912a53e211",
+          "line": 149,
+          "anchor": "- Unit test suite: Verify $0.00\\%$ bit error rate under cross-talk and verify efference copy self-cancellation."
+        },
+        {
+          "source_id": "HWB06-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-01--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+          "sha256": "cab4b2b7cdbf0d7100b643a398a5a85557075da30d2daabfd6872e74092d9cfd",
+          "line": 140,
+          "anchor": "- The full native crate passes 569 tests with zero failures (416 library,"
+        },
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 464,
+          "anchor": "Do not paper over T7-style findings if they recur. The instinct that \"this looks too perfect\" is reliable signal. T3/T4 1.00 in -99 was the same kind of paper-over (decoded mosaic names, not words). Read the code, not the report headlines."
+        }
+      ],
+      "requirement": "Acceptance measures the requested causal mechanism and explicitly includes failures.",
+      "historical_disposition": "Documents contain0%cross-talk targets,569nativepasses/11ignored and a prior1.00recallfigure that decoded mosaic names rather than words.",
+      "current_reconciliation": "Neither spectacular scores nor large suites establish all53currentresponsibilities. Highaccuracyis cause for inspection, not automatic proof of cheating.",
+      "lawful_remedy": "Audit fixtures and full call paths, source/binarybinding, mature state, transfer, coldrestart and actual publicconsequences; retain narrow valid assertions.",
+      "acceptance_falsifier": "A fixture supplying labels/routes/outputs must fail cognitiveacceptance even ifeveryassertionpasses; ignored/missingtestsnever countasreleaseproof.",
+      "repair_actions": [
+        "A02",
+        "A15",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "change_classification": "Test-claim reconciliation, independent of intent"
+    }
+  ],
+  "status_authority": "collaborative_todo.md"
+}

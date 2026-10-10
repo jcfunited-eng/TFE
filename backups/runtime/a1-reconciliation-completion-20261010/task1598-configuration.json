@@ -1,0 +1,71 @@
+{
+  "at_utc": "2026-10-10T00:19:08.648287+00:00",
+  "scope": "Read-only task-definition configuration, no secret values",
+  "taskDefinitionArn": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1598",
+  "cpu": "2048",
+  "memory": "8192",
+  "networkMode": "awsvpc",
+  "containers": [
+    {
+      "name": "dsf-ai",
+      "image": "418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:fa39dad6277cf849a8952bd8e8f43f0f1d39e22eba68bf2fe114679ae0594fe1",
+      "entryPoint": null,
+      "command": [
+        "uvicorn",
+        "dsf_ai_service.lean_production_app:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8080",
+        "--workers",
+        "1",
+        "--no-access-log"
+      ],
+      "cpu": 0,
+      "memory": null,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "gualaloom-state",
+          "containerPath": "/app/guala",
+          "readOnly": false
+        }
+      ],
+      "environment": [
+        {
+          "name": "GUALA_ALLOW_ANONYMOUS_MUTATION",
+          "value": "1"
+        },
+        {
+          "name": "PYTHONUNBUFFERED",
+          "value": "1"
+        },
+        {
+          "name": "GUALA_PAIRED_ROOT",
+          "value": "/app/guala/paired-current-gen2"
+        },
+        {
+          "name": "GUALA_MAX_WORLD_BYTES",
+          "value": "16777216"
+        }
+      ],
+      "secretNames": []
+    }
+  ],
+  "volumes": [
+    {
+      "name": "gualaloom-state",
+      "efsVolumeConfiguration": {
+        "fileSystemId": "fs-0abb85854a3251b3c",
+        "rootDirectory": "/",
+        "transitEncryption": "ENABLED"
+      }
+    }
+  ]
+}

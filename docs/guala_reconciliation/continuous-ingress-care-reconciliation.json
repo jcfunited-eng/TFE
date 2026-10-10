@@ -1,0 +1,1030 @@
+{
+  "schema": "guala.documentary_slice_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T08:30:09.611947+00:00",
+  "scope": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "CI01-01",
+      "path": "docs/GUALA_NATIVE_RESIDENT_ORGANISM_RUNTIME_LAW_2026-08-04.md",
+      "git_blob": "af5978cdd56837395c2cdc0f1f118bc499e1d79e",
+      "sha256": "4bc218b6dc8dfc6046028908da614d6350085a82dd767be56c74d9ab3816b0ae",
+      "bytes": 8300,
+      "lines": 178,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/continuous-ingress-care/CI01-01--GUALA_NATIVE_RESIDENT_ORGANISM_RUNTIME_LAW_2026-08-04.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/continuous-ingress-care/CI01-01--GUALA_NATIVE_RESIDENT_ORGANISM_RUNTIME_LAW_2026-08-04.md"
+    },
+    {
+      "id": "CI02-01",
+      "path": "docs/GUALA_NATIVE_CONTINUOUS_INTERVAL_LATENCY_SPRINT_2026-08-11.md",
+      "git_blob": "10432d1a373f6c8a3dc148d598c15a2671a28485",
+      "sha256": "9a44f2f92b303919dfa455ab94483b613b29aa10ef519f30573f3a67fed96a7a",
+      "bytes": 5871,
+      "lines": 60,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/continuous-ingress-care/CI02-01--GUALA_NATIVE_CONTINUOUS_INTERVAL_LATENCY_SPRINT_2026-08-11.md",
+      "observations": [
+        {
+          "author_time": "2026-08-11T13:15:40+00:00",
+          "commit": "db09bf886d62e6798fe8a4ee4ec33b82d4fc3c88",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/continuous-ingress-care/CI02-01--GUALA_NATIVE_CONTINUOUS_INTERVAL_LATENCY_SPRINT_2026-08-11.md"
+    },
+    {
+      "id": "CI02-02",
+      "path": "docs/GUALA_NATIVE_CONTINUOUS_INTERVAL_LATENCY_SPRINT_2026-08-11.md",
+      "git_blob": "51a992bf7a38f4b948865e11ddd9ad0c0847c2b1",
+      "sha256": "429616d601ec81dd4e9fc1574e07c424eea5455d304407c838ce960fad6dfbf6",
+      "bytes": 3985,
+      "lines": 51,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/continuous-ingress-care/CI02-02--GUALA_NATIVE_CONTINUOUS_INTERVAL_LATENCY_SPRINT_2026-08-11.md",
+      "observations": [
+        {
+          "author_time": "2026-08-11T12:50:58+00:00",
+          "commit": "d8f8283736e428d09e92fbb3b9c98ff286e0faf8",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-11T11:54:10+00:00",
+          "commit": "38a1dc52311db653ff73fbb4112a97eeb0a8108f",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/continuous-ingress-care/CI02-02--GUALA_NATIVE_CONTINUOUS_INTERVAL_LATENCY_SPRINT_2026-08-11.md"
+    },
+    {
+      "id": "CI02-03",
+      "path": "docs/GUALA_NATIVE_CONTINUOUS_INTERVAL_LATENCY_SPRINT_2026-08-11.md",
+      "git_blob": "8b1f97bf263ceb7b18b5d3585e9f1e27d05e6972",
+      "sha256": "d3e339cf1d50e69f1859de85c9fa1af632ec1451fe189f3e07f77b4a5fb36f11",
+      "bytes": 5279,
+      "lines": 60,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/continuous-ingress-care/CI02-03--GUALA_NATIVE_CONTINUOUS_INTERVAL_LATENCY_SPRINT_2026-08-11.md",
+      "observations": [
+        {
+          "author_time": "2026-08-11T13:15:40+00:00",
+          "commit": "db09bf886d62e6798fe8a4ee4ec33b82d4fc3c88",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-11T12:50:58+00:00",
+          "commit": "d8f8283736e428d09e92fbb3b9c98ff286e0faf8",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/continuous-ingress-care/CI02-03--GUALA_NATIVE_CONTINUOUS_INTERVAL_LATENCY_SPRINT_2026-08-11.md"
+    },
+    {
+      "id": "CI03-01",
+      "path": "docs/GUALA_CONTINUOUS_MULTISENSORY_ONE_CLOCK_SPRINT_2026-08-12.md",
+      "git_blob": "a1961ce1f3bef965f8d5aa271e2f5783505901e7",
+      "sha256": "53d1e690f39713cc85d11d5670f605802f7058d3b0b3c8f443d4186b3e67cbcb",
+      "bytes": 7342,
+      "lines": 138,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/continuous-ingress-care/CI03-01--GUALA_CONTINUOUS_MULTISENSORY_ONE_CLOCK_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T05:13:45+00:00",
+          "commit": "dbb1b37fe65f3b17b39a5c6c520a1be1881809e0",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/continuous-ingress-care/CI03-01--GUALA_CONTINUOUS_MULTISENSORY_ONE_CLOCK_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "CI03-02",
+      "path": "docs/GUALA_CONTINUOUS_MULTISENSORY_ONE_CLOCK_SPRINT_2026-08-12.md",
+      "git_blob": "ae5d51805a0ce98442babaf101d3947769ac23c7",
+      "sha256": "8d8f27f8417bcfe8aa28e3790a76dfca833565c53e9f24cf93a21c2c70c1b740",
+      "bytes": 5410,
+      "lines": 104,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/continuous-ingress-care/CI03-02--GUALA_CONTINUOUS_MULTISENSORY_ONE_CLOCK_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T05:13:45+00:00",
+          "commit": "dbb1b37fe65f3b17b39a5c6c520a1be1881809e0",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-12T04:35:25+00:00",
+          "commit": "c5468c045c9c65568ad5781d8b9ebe53cb5f1df2",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/continuous-ingress-care/CI03-02--GUALA_CONTINUOUS_MULTISENSORY_ONE_CLOCK_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "CI04-01",
+      "path": "docs/GUALA_A001_CONTINUOUS_NATIVE_LIFE_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "b7c07058223c459904b18e006334c40bea65a76c",
+      "sha256": "b610c048ce763a565a13ac34a1fc1560010a4e8efea6009f67f063d4a5f06f98",
+      "bytes": 5471,
+      "lines": 87,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/continuous-ingress-care/CI04-01--GUALA_A001_CONTINUOUS_NATIVE_LIFE_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T15:48:20+00:00",
+          "commit": "674329e38d3d3e2af99634ae3c96988ccd723547",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/continuous-ingress-care/CI04-01--GUALA_A001_CONTINUOUS_NATIVE_LIFE_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CI05-01",
+      "path": "docs/GUALA_A003_JOINT_SENSORIUM_CLOCK_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "b15b3e52b9593bf77db667c006089cd060bfd8fa",
+      "sha256": "9c08285fa1f2cb96f87ee483f3affd50c0e7d3acbcf2962bd863b191b2586d95",
+      "bytes": 4832,
+      "lines": 80,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/continuous-ingress-care/CI05-01--GUALA_A003_JOINT_SENSORIUM_CLOCK_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T16:02:07+00:00",
+          "commit": "1938b731d1c4276753645af506ca334e2bc691a0",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/continuous-ingress-care/CI05-01--GUALA_A003_JOINT_SENSORIUM_CLOCK_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CI06-01",
+      "path": "docs/GUALA_A010_RECURRENT_AUTONOMOUS_LOOP_SPRINT_LEDGER_2026-08-14.md",
+      "git_blob": "9af6467b54abbb68971d19b00c923e66754cb659",
+      "sha256": "222c11f4b2eeb73552f805353c53d1fa745df3b9d9c032c00097a4c031f70823",
+      "bytes": 6248,
+      "lines": 108,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/continuous-ingress-care/CI06-01--GUALA_A010_RECURRENT_AUTONOMOUS_LOOP_SPRINT_LEDGER_2026-08-14.md",
+      "observations": [
+        {
+          "author_time": "2026-08-14T20:00:03+00:00",
+          "commit": "2da985fa2182e02baa8038315d9209ecb0f841b4",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/continuous-ingress-care/CI06-01--GUALA_A010_RECURRENT_AUTONOMOUS_LOOP_SPRINT_LEDGER_2026-08-14.md"
+    },
+    {
+      "id": "CI07-01",
+      "path": "docs/GUALA_A013_COMPANION_CARE_EMBODIMENT_AMENDMENT_2026-08-17.md",
+      "git_blob": "4fbe33e923b2f6c8068dfe45b8dc68cbf7fd2ea6",
+      "sha256": "e0da4d6a6ea61e0d22bcc40a3f8caf0da2d49b1599d70ccc118920a49b80a0b0",
+      "bytes": 13848,
+      "lines": 219,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/continuous-ingress-care/CI07-01--GUALA_A013_COMPANION_CARE_EMBODIMENT_AMENDMENT_2026-08-17.md",
+      "observations": [
+        {
+          "author_time": "2026-08-17T11:00:03+00:00",
+          "commit": "7a89a855c1a79f2ca75358ca1e5635db5c6a70ad",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/continuous-ingress-care/CI07-01--GUALA_A013_COMPANION_CARE_EMBODIMENT_AMENDMENT_2026-08-17.md"
+    },
+    {
+      "id": "CI07-02",
+      "path": "docs/GUALA_A013_COMPANION_CARE_EMBODIMENT_AMENDMENT_2026-08-17.md",
+      "git_blob": "67da602c043aeddee5be5350de72405c177308f6",
+      "sha256": "771365d72aa7bd129dc0e62cdf8d9e586fc7cc1edc677bb04c5c2d7fb563139e",
+      "bytes": 11206,
+      "lines": 177,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/continuous-ingress-care/CI07-02--GUALA_A013_COMPANION_CARE_EMBODIMENT_AMENDMENT_2026-08-17.md",
+      "observations": [
+        {
+          "author_time": "2026-08-17T11:00:03+00:00",
+          "commit": "7a89a855c1a79f2ca75358ca1e5635db5c6a70ad",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-17T10:35:23+00:00",
+          "commit": "413eb4e4450e76e0fc363170fce75dfcf493716b",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/continuous-ingress-care/CI07-02--GUALA_A013_COMPANION_CARE_EMBODIMENT_AMENDMENT_2026-08-17.md"
+    },
+    {
+      "id": "CI08-01",
+      "path": "docs/GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+      "git_blob": "13469a5bf136ab8e73d083693cf2a9d3413d5d06",
+      "sha256": "25fa233a4ef9199cbf5d1b2eb75b9521666fa6fe86b07a711e5db453121a8242",
+      "bytes": 10098,
+      "lines": 181,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/continuous-ingress-care/CI08-01--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T12:11:32+00:00",
+          "commit": "4c7ba96474eacc02079db6fa5c3f0ccb63a31081",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T11:50:13+00:00",
+          "commit": "50ba31d824663f56344a84e196b90bef57cc3740",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-01--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md"
+    },
+    {
+      "id": "CI08-02",
+      "path": "docs/GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+      "git_blob": "2c112aa0aa1163b7cc1d3b782e7efedb83824298",
+      "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04",
+      "bytes": 24082,
+      "lines": 412,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+      "observations": [
+        {
+          "author_time": "2026-08-27T10:00:38+00:00",
+          "commit": "b2a5f8c1b27f9b2436fa5e1d8dc52e40a0f181fc",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md"
+    },
+    {
+      "id": "CI08-03",
+      "path": "docs/GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+      "git_blob": "545cf0ebf41e07d25108fa0ac2c4788f72c4e0bd",
+      "sha256": "2268d7bd9410f951080f8ccc73f1acb2ef77a3ff6839aee9074a2120de0807b7",
+      "bytes": 5410,
+      "lines": 99,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/continuous-ingress-care/CI08-03--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T11:21:40+00:00",
+          "commit": "913f74c2bf3136ad1a79212f5e8a68c949aa5c55",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T10:21:09+00:00",
+          "commit": "ffac6b6b42ad929b26b19e65335928d898f5e07e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-03--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md"
+    },
+    {
+      "id": "CI08-04",
+      "path": "docs/GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+      "git_blob": "712fe8233b9887e9e5e8fb821c39acda1072c4ee",
+      "sha256": "477f663c31a786f0bf35a1eba71f53e6282ade9d4b97f0ae0a7883299a30926c",
+      "bytes": 22317,
+      "lines": 383,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/continuous-ingress-care/CI08-04--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+      "observations": [
+        {
+          "author_time": "2026-08-27T10:00:38+00:00",
+          "commit": "b2a5f8c1b27f9b2436fa5e1d8dc52e40a0f181fc",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-27T09:40:01+00:00",
+          "commit": "b55dda4c3c1fe9d161778be4da97bc4b03354cf0",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-04--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md"
+    },
+    {
+      "id": "CI08-05",
+      "path": "docs/GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+      "git_blob": "85de34de9f9793e9c8312c6d8b019ff45fd5f0df",
+      "sha256": "dbda6ddd29815c7082a1db1a01945548011593bd731e3e725060fba17f55311a",
+      "bytes": 8344,
+      "lines": 149,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/continuous-ingress-care/CI08-05--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T11:50:13+00:00",
+          "commit": "50ba31d824663f56344a84e196b90bef57cc3740",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T11:21:40+00:00",
+          "commit": "913f74c2bf3136ad1a79212f5e8a68c949aa5c55",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-05--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md"
+    },
+    {
+      "id": "CI08-06",
+      "path": "docs/GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+      "git_blob": "88f0d40b56497fa6bcd36f8256d75ea6f08fa7ee",
+      "sha256": "d27fb2c19d1f656b4d081e18083444885265e9c60ac02c55b301fe7125476588",
+      "bytes": 12264,
+      "lines": 219,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/continuous-ingress-care/CI08-06--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T19:35:31+00:00",
+          "commit": "dd097aa4016d63f43e3491b90b3aca8b7608e55e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T12:52:37+00:00",
+          "commit": "9a30306fba72d27f376b0c88b1c44d707dca5ab9",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-06--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md"
+    },
+    {
+      "id": "CI08-07",
+      "path": "docs/GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+      "git_blob": "e73d862ab02d716203378d8650c824a629e158f2",
+      "sha256": "d680e8dd53cca35f7d8222ea67020bbddf7c6f4d5f0f89df684cf82b39b38d37",
+      "bytes": 18072,
+      "lines": 309,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/continuous-ingress-care/CI08-07--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+      "observations": [
+        {
+          "author_time": "2026-08-27T09:40:01+00:00",
+          "commit": "b55dda4c3c1fe9d161778be4da97bc4b03354cf0",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T19:35:31+00:00",
+          "commit": "dd097aa4016d63f43e3491b90b3aca8b7608e55e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-07--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md"
+    },
+    {
+      "id": "CI08-08",
+      "path": "docs/GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+      "git_blob": "ff37d13752d2277946e30dcf4ca457aae24299db",
+      "sha256": "0dba45ac55646764d1e18baeeaa9eec7223d4162947428287d6d318e57ca7454",
+      "bytes": 12264,
+      "lines": 219,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/continuous-ingress-care/CI08-08--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+      "observations": [
+        {
+          "author_time": "2026-08-16T12:52:37+00:00",
+          "commit": "9a30306fba72d27f376b0c88b1c44d707dca5ab9",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-16T12:11:32+00:00",
+          "commit": "4c7ba96474eacc02079db6fa5c3f0ccb63a31081",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of19 versions/eight paths:1282 latest-document lines plus31 older-only passages/96 lines. No product execution, current telemetry refresh, original approval authentication or literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-08--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "CIR01",
+      "name": "Resident transaction improvement does not certify every cognitive or preservation boundary",
+      "classification": "reported_local_runtime_progress_with_migration_and_capability_limits",
+      "historical_requirement_or_mechanism": "Aug4 resident law retains one authenticated active state and at most one prepared successor, removes repeated predecessor decoding/field replay, and commits or discards by token. It reports 10000 transitions and 314 native passes with two production-fixture cases ignored. GLMFAB04 may transition once to GLMFAB06 with empty GLCOG003 genesis; older anatomy enters only a separately named migration executable.",
+      "current_disposition": "Explicitly local and not deployed at that date; full CPU/RSS/storage, calibrated receptor physiology, whole-brain recall, autonomy and first word remain unproved. Empty new cognition is not automatically lossless: trace whether real predecessor cognition existed and its approved disposition. Old schema rules are not current boot authority.",
+      "lawful_remedy": "Preserve atomic native state and complete DSF while mapping actual prior cognition, migration approvals, all current readers and real allocation bounds. An uncommitted candidate or ignored fixture cannot become lived experience or verified continuity.",
+      "unit_acceptance": "Reject stale tokens, duplicate prepare, invalid restore and observation of uncommitted state.",
+      "module_acceptance": "Verify actual current formats, full-field reuse and every prior retained-state mapping.",
+      "system_acceptance": "Prove retained acquired effects and next transition after cold restart under actual resource limits.",
+      "release_acceptance": "Bind current source/image/state and capabilities; no speech or preservation claim from historical runtime tests.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CI01-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI01-01--GUALA_NATIVE_RESIDENT_ORGANISM_RUNTIME_LAW_2026-08-04.md",
+          "line": 70,
+          "anchor": "one-way resident-schema transition that supplies empty `GLCOG003` genesis. A",
+          "sha256": "4bc218b6dc8dfc6046028908da614d6350085a82dd767be56c74d9ab3816b0ae"
+        },
+        {
+          "source_id": "CI01-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI01-01--GUALA_NATIVE_RESIDENT_ORGANISM_RUNTIME_LAW_2026-08-04.md",
+          "line": 118,
+          "anchor": "- 10,000 resident prepare/commit transitions perform zero predecessor decode",
+          "sha256": "4bc218b6dc8dfc6046028908da614d6350085a82dd767be56c74d9ab3816b0ae"
+        },
+        {
+          "source_id": "CI01-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI01-01--GUALA_NATIVE_RESIDENT_ORGANISM_RUNTIME_LAW_2026-08-04.md",
+          "line": 161,
+          "anchor": "The resident formation is not yet distributed hippocampal/neocortical/",
+          "sha256": "4bc218b6dc8dfc6046028908da614d6350085a82dd767be56c74d9ab3816b0ae"
+        }
+      ]
+    },
+    {
+      "id": "CIR02",
+      "name": "Gateway latency acceptance did not establish declared continuous physical time",
+      "classification": "documented_latency_improvement_with_unclosed_realtime_requirement",
+      "historical_requirement_or_mechanism": "The Aug11 sprint requires declared organism time not to fall minutes behind real time. Its exact 250 one-millisecond yaw transitions took 99.913 seconds, then 24.442, then 12.064 locally with the same final bytes. Task964 live65.866/80.846 seconds failed; task965 live43.495/56.898 seconds passed the stated gateway criterion. These are 173.98 and227.592 wall seconds per declared second for that quarter-second movement, not real-time operation.",
+      "current_disposition": "Preserving all ordered physics and parallelizing only independent work is a reported legitimate improvement. The live result includes additional consequences, so those ratios are end-to-end latency relative to commanded duration, not isolated solver speed. Neither gateway success nor low average CPU proves sustained clock fidelity or acceptable conversational latency.",
+      "lawful_remedy": "Keep byte-equivalence and exact shared-contact/fluid order. Specify and measure current physical interval, all consequence work, wall duration, backlog, sensing age and observation delay separately. Remove proven duplicate work and bound exact execution; never skip ticks, compress time or add a scripted response to hide delay.",
+      "unit_acceptance": "Verify identical successor and order under admissible independent execution.",
+      "module_acceptance": "Measure each actual source/native/body/persistence/observation phase and full interval latency.",
+      "system_acceptance": "Demonstrate sustained ordinary mature-state clock progress and response with bounded backlog.",
+      "release_acceptance": "Current latency requirement must pass its own measured threshold; gateway HTTP200 is not real-time qualification.",
+      "repair_actions": [
+        "A02",
+        "A04",
+        "A08",
+        "A10",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CI02-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI02-01--GUALA_NATIVE_CONTINUOUS_INTERVAL_LATENCY_SPRINT_2026-08-11.md",
+          "line": 11,
+          "anchor": "   exact sensory and internal physics fast enough that declared organism time",
+          "sha256": "9a44f2f92b303919dfa455ab94483b613b29aa10ef519f30573f3a67fed96a7a"
+        },
+        {
+          "source_id": "CI02-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI02-01--GUALA_NATIVE_CONTINUOUS_INTERVAL_LATENCY_SPRINT_2026-08-11.md",
+          "line": 36,
+          "anchor": "| Observed evidence | Exact production body `8b5c9de7…09a8`: deployed per-tick path required 99.913 s for the exact 250-tick quarter turn. The one-seal native trajectory required 24.442 s. Both produced byte-identical successor `24a8c6f2…a4b`, tick 33056, 25,159,319 bytes, 500 full DSF deliveries, 8,252 physical neuron transitions, and 466 retained neuronal fractals. Task `964` then returned a live 0→90° turn in 65.866 s and the exact reverse in 80.846 s, so that release failed latency acceptance while preserving physical behavior. Trace showed preparation—not final sealing—dominated: 24.476 s prepare, 0.004 s commit, 0.014 s encode/save locally. The bounded correction concurrently settles only physically independent cohorts and post-contact neurons, then merges evidence in original cohort/neuron order; shared contact transfer and shared-fluid recovery remain single, ordered authorities. It reproduces exact successor `24a8c6f2…a4b`, 500 DSF deliveries, 8,252 transitions, and 466 fractals in 12.064 s locally. The full native suite passes. Commit `d8f82837` was deployed as task `965`, image digest `fbb97d…132e`. Discarded-state rehearsal proved exact identity/current-only cold restore, zero Python cognition, 177 reached neurons, 196,552 compact resting cells, 500 DSF deliveries, zero growth, and zero state-byte growth. Live 0→90° completed HTTP 200 in 43.495 s; live 90→0° completed HTTP 200 in 56.898 s. Both returned 712 full DSF deliveries, kept 177 reached neurons and 25,159,319 bytes, and the final pose was exactly the original `(250,3750,0°)`. Production then reported one healthy task, zero pending, identity unchanged, and zero Python cognition callbacks. |",
+          "sha256": "9a44f2f92b303919dfa455ab94483b613b29aa10ef519f30573f3a67fed96a7a"
+        },
+        {
+          "source_id": "CI02-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI02-01--GUALA_NATIVE_CONTINUOUS_INTERVAL_LATENCY_SPRINT_2026-08-11.md",
+          "line": 54,
+          "anchor": "- **Inactive electrical frontier work could simply be skipped:** false. Across",
+          "sha256": "9a44f2f92b303919dfa455ab94483b613b29aa10ef519f30573f3a67fed96a7a"
+        }
+      ]
+    },
+    {
+      "id": "CIR03",
+      "name": "Joint ingress and local metabolic afference are narrower than cognitive autonomy",
+      "classification": "reported_transport_correction_and_sensory_participation",
+      "historical_requirement_or_mechanism": "C001 restores native receptor counts dropped by Python transport. Task986 records840 ingress observations all quiescent within each hop plus local metabolic consequences and motor return. A003 later declares109 ports on26 common instants,2834 samples per250ms joint occurrence, while local recovery-fluid afference arises inside the native transition rather than an aggregate Python interoceptor.",
+      "current_disposition": "Unchanged physical input is still sensation; quiet external ports do not imply no internal cause. Shared clock and ingress count do not prove attention, learned meaning, continuous real hardware or autonomous choice. Nor do these reports establish current source amplitude/calibration or all internal hunger mechanisms.",
+      "lawful_remedy": "Preserve real port identity, actual source times and full joint fields; carry truthful fixed-size native evidence without adding aggregate cognition. Trace each current external/internal producer and consequent action, including genuine quiet states and absent physical contact.",
+      "unit_acceptance": "Verify ingress arithmetic, simultaneous source times and explicit quiet versus missing input.",
+      "module_acceptance": "Trace actual source→native receptor→body/fluid evidence without substituted bookkeeping.",
+      "system_acceptance": "Show current unattended native function and acquired effect, not only positive counts.",
+      "release_acceptance": "Qualify current environment and hardware separately; no word or autonomy closure from shared sensory timestamps.",
+      "repair_actions": [
+        "A02",
+        "A04",
+        "A06",
+        "A07",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A13",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "CI03-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI03-01--GUALA_CONTINUOUS_MULTISENSORY_ONE_CLOCK_SPRINT_2026-08-12.md",
+          "line": 97,
+          "anchor": "  `total=840`. All 840 ports were truthfully quiescent within their individual",
+          "sha256": "53d1e690f39713cc85d11d5670f605802f7058d3b0b3c8f443d4186b3e67cbcb"
+        },
+        {
+          "source_id": "CI03-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI03-01--GUALA_CONTINUOUS_MULTISENSORY_ONE_CLOCK_SPRINT_2026-08-12.md",
+          "line": 46,
+          "anchor": "discarded the three receptor-ingress fields, and",
+          "sha256": "53d1e690f39713cc85d11d5670f605802f7058d3b0b3c8f443d4186b3e67cbcb"
+        },
+        {
+          "source_id": "CI05-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI05-01--GUALA_A003_JOINT_SENSORIUM_CLOCK_SPRINT_LEDGER_2026-08-14.md",
+          "line": 46,
+          "anchor": "| Joint occurrence | simultaneous sensation is not split by organ | native episode reports exactly one joint occurrence and 2,834 source samples, `109 * 26` |",
+          "sha256": "9c08285fa1f2cb96f87ee483f3affd50c0e7d3acbcf2962bd863b191b2586d95"
+        },
+        {
+          "source_id": "CI05-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI05-01--GUALA_A003_JOINT_SENSORIUM_CLOCK_SPRINT_LEDGER_2026-08-14.md",
+          "line": 17,
+          "anchor": "- This item does not claim that camera/microphone browser ingress is usable or",
+          "sha256": "9c08285fa1f2cb96f87ee483f3affd50c0e7d3acbcf2962bd863b191b2586d95"
+        }
+      ]
+    },
+    {
+      "id": "CIR04",
+      "name": "Continuous transport already existed; obsolete tests still require requirement mapping",
+      "classification": "legitimate_test_reconciliation_with_unresolved_separate_failures",
+      "historical_requirement_or_mechanism": "A001 found the startup transport loop already running in task1050; observation reads cached state and external intake preempts the same writer. It replaced a test referencing removed cadence, old intake/energy fields and falsely unmounted action rather than adding a duplicate life loop. C001 separately records a newborn MaterialConservation refusal and four packaging/rehearsal fixture failures.",
+      "current_disposition": "The frozen production-body scope can legitimately differ from newborn scope. That does not close the separate genesis failure or retire packaging requirements merely by calling fixtures historical. No-deliberative-choice is explicit in A001; observed motor effects cannot be generalized into thought. No product tests were rerun here.",
+      "lawful_remedy": "Map each obsolete assertion to its surviving functional requirement and either a valid replacement or an explicit separate failed obligation. Preserve one transport authority and read-only observation; do not silently reduce the release suite or create additional loops to satisfy names.",
+      "unit_acceptance": "Verify observation does not advance state and preemption cannot duplicate a writer.",
+      "module_acceptance": "Reconcile old fixture expectations to actual current contracts and isolate genuine failed requirements.",
+      "system_acceptance": "Prove ordinary unattended continuation and separately qualify required genesis/migration paths.",
+      "release_acceptance": "Keep excluded and failed scopes visible; no full-suite certificate from the focused13/10 passes.",
+      "repair_actions": [
+        "A03",
+        "A06",
+        "A12",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CI04-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI04-01--GUALA_A001_CONTINUOUS_NATIVE_LIFE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 60,
+          "anchor": "- The initial hypothesis was that A-001 required a new runtime mechanism.",
+          "sha256": "b610c048ce763a565a13ac34a1fc1560010a4e8efea6009f67f063d4a5f06f98"
+        },
+        {
+          "source_id": "CI04-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI04-01--GUALA_A001_CONTINUOUS_NATIVE_LIFE_SPRINT_LEDGER_2026-08-14.md",
+          "line": 71,
+          "anchor": "- Corrected focused boundary suite: 13 passed, 0 failed.",
+          "sha256": "b610c048ce763a565a13ac34a1fc1560010a4e8efea6009f67f063d4a5f06f98"
+        },
+        {
+          "source_id": "CI03-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI03-01--GUALA_CONTINUOUS_MULTISENSORY_ONE_CLOCK_SPRINT_2026-08-12.md",
+          "line": 126,
+          "anchor": "  `MaterialConservation`. Production task 984 is not a newborn and already",
+          "sha256": "53d1e690f39713cc85d11d5670f605802f7058d3b0b3c8f443d4186b3e67cbcb"
+        },
+        {
+          "source_id": "CI03-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI03-01--GUALA_CONTINUOUS_MULTISENSORY_ONE_CLOCK_SPRINT_2026-08-12.md",
+          "line": 134,
+          "anchor": "  tests and failed four historical fixtures. Three construct task definitions",
+          "sha256": "53d1e690f39713cc85d11d5670f605802f7058d3b0b3c8f443d4186b3e67cbcb"
+        }
+      ]
+    },
+    {
+      "id": "CIR05",
+      "name": "Five recurring native actions do not rule out an attractor or prove learned choice",
+      "classification": "short_historical_loop_proof_with_explicit_soak_limit",
+      "historical_requirement_or_mechanism": "A010 task1056 observes five distinct action/consequence receipts, world revisions4071–4075,109 returned ports and five internal receptors without POST/tutor input. Two resource samples62 seconds apart use63.612 CPU seconds, about1.026 utilized cores; memory peak is stable while current memory rises18.9MB. State bytes are nonmonotone, and the report explicitly defers the long soak.",
+      "current_disposition": "Unique receipts and one applied world revision establish useful narrow causal/repetition evidence. They do not establish open spatial coverage, absence of turn loops, preference from retained experience, every physical-choice candidate, long-run resource closure or present behavior. Reported zero Python callbacks alone cannot certify all decision authority or ML absence.",
+      "lawful_remedy": "Bind current native attention/choice and all source/candidate causes to actual trajectory, contact, food and body effects over the user-requested continuous audit. Preserve source/image/tick/time alignment and distinguish observer labels from native causes; identify the first sustaining cause of any repeated attractor.",
+      "unit_acceptance": "Verify receipt uniqueness, one consequence per action and no observer-generated action.",
+      "module_acceptance": "Trace every current candidate/selector and native cause through actual applied motion and re-entry.",
+      "system_acceptance": "Complete sustained spatial and resource observation with learned controls and all external care identified.",
+      "release_acceptance": "No navigation, speech or global ML-free certificate from this historical62-second series.",
+      "repair_actions": [
+        "A02",
+        "A05",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CI06-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI06-01--GUALA_A010_RECURRENT_AUTONOMOUS_LOOP_SPRINT_LEDGER_2026-08-14.md",
+          "line": 66,
+          "anchor": "- Five distinct autonomous action/consequence receipts were directly observed",
+          "sha256": "222c11f4b2eeb73552f805353c53d1fa745df3b9d9c032c00097a4c031f70823"
+        },
+        {
+          "source_id": "CI06-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI06-01--GUALA_A010_RECURRENT_AUTONOMOUS_LOOP_SPRINT_LEDGER_2026-08-14.md",
+          "line": 84,
+          "anchor": "- Two direct runtime snapshots 62 seconds apart reported:",
+          "sha256": "222c11f4b2eeb73552f805353c53d1fa745df3b9d9c032c00097a4c031f70823"
+        },
+        {
+          "source_id": "CI06-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI06-01--GUALA_A010_RECURRENT_AUTONOMOUS_LOOP_SPRINT_LEDGER_2026-08-14.md",
+          "line": 105,
+          "anchor": "  does not replace A-015's required long soak.",
+          "sha256": "222c11f4b2eeb73552f805353c53d1fa745df3b9d9c032c00097a4c031f70823"
+        }
+      ]
+    },
+    {
+      "id": "CIR06",
+      "name": "Companion-care names lacked physical producers; isolated helper remained unmounted",
+      "classification": "explicit_unavailable_embodiment_with_changed_implementation_plan",
+      "historical_requirement_or_mechanism": "A013CARE identifies root discs without world-space body links, skin/mass/support/water/tool surfaces and no native root departure. Therefore hug, carrying, bathing and bedtime are unavailable despite local37-axis state. The older version says an unmounted arithmetic helper would repeat a rejected mistake; the later version adds a pure contact helper with14 tests, explicitly unmounted because actual morphology/coefficient inputs still do not exist.",
+      "current_disposition": "The later helper is scoped as local geometry, not live care, and need not be a cheat merely because isolated. The changed implementation plan and claimed functional scope still require authority mapping. No recorded contact test can establish physical participation, support, sleep, voluntary departure or current caretaker operation.",
+      "lawful_remedy": "Recover actual current morphology and action projection; mount only real reached contact with derived/ratified material parameters and returned senses. Preserve unavailable labels until end-to-end proof, and reconcile the old prohibition versus later isolated work without calling either a delivered care program.",
+      "unit_acceptance": "Falsify missing geometry, fabricated parameters and names-as-contact.",
+      "module_acceptance": "Bind actual body trajectories, surface settlement, canonical contact state and sensory return.",
+      "system_acceptance": "Show genuine external interaction and native separation/continuation without scripted responses.",
+      "release_acceptance": "No live care closure from14 local tests or63.8microsecond pure-helper timing.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A06",
+        "A08",
+        "A09",
+        "A11",
+        "A12",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CI07-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI07-01--GUALA_A013_COMPANION_CARE_EMBODIMENT_AMENDMENT_2026-08-17.md",
+          "line": 6,
+          "anchor": "it is not mounted, packaged, deployed, or live. No named care action is",
+          "sha256": "e0da4d6a6ea61e0d22bcc40a3f8caf0da2d49b1599d70ccc118920a49b80a0b0"
+        },
+        {
+          "source_id": "CI07-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI07-02--GUALA_A013_COMPANION_CARE_EMBODIMENT_AMENDMENT_2026-08-17.md",
+          "line": 170,
+          "anchor": "material/contact coefficients—does not exist, and an unmounted arithmetic",
+          "sha256": "771365d72aa7bd129dc0e62cdf8d9e586fc7cc1edc677bb04c5c2d7fb563139e"
+        },
+        {
+          "source_id": "CI07-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI07-01--GUALA_A013_COMPANION_CARE_EMBODIMENT_AMENDMENT_2026-08-17.md",
+          "line": 186,
+          "anchor": "- Focused local result: 14 tests pass for exact normal work, reciprocal force,",
+          "sha256": "e0da4d6a6ea61e0d22bcc40a3f8caf0da2d49b1599d70ccc118920a49b80a0b0"
+        },
+        {
+          "source_id": "CI07-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI07-01--GUALA_A013_COMPANION_CARE_EMBODIMENT_AMENDMENT_2026-08-17.md",
+          "line": 36,
+          "anchor": "   face, hip, knee, and ankle state, but no world-space links, skin sites,",
+          "sha256": "e0da4d6a6ea61e0d22bcc40a3f8caf0da2d49b1599d70ccc118920a49b80a0b0"
+        }
+      ]
+    },
+    {
+      "id": "CIR07",
+      "name": "Guardian activity is external cause, never the substrate response selector",
+      "classification": "explicit_care_authority_boundary_to_reconcile_with_current_controller",
+      "historical_requirement_or_mechanism": "The amendment requires guardian action to act through geometry/material/contact, not select Guala attention, affect, memory, learning or response. No consent/accepted Boolean becomes physics. Actual approach, separation, continued contact and sleep/wake must arise from retained body/organism state. The local model declares256-bit rational and256-byte identity admission and reached-contact work; it is not a learned decision table.",
+      "current_disposition": "An authenticated external caretaker trajectory is legitimate stimulation when honestly classified. It becomes a project conflict if it directly picks Guala actions, supplies unearned energy/food, imposes memory or manufactures speech. This historical boundary is not evidence that any particular current program does so. Physical/admission limits are not automatically cognition heuristics.",
+      "lawful_remedy": "G1 must map current caretaker/world/internal producers, trigger/rate, finite material/energy source, target and every native consumer on the frozen serving image. Separate external authored activity from substrate action, record actual boundaries, and replace any response injection with lawful physical consequence without resetting learned state.",
+      "unit_acceptance": "Reject response/semantic/energy injection and prove exact reciprocal contact/source accounting.",
+      "module_acceptance": "Trace current care trigger→world/body→senses→native state; no side decision channel.",
+      "system_acceptance": "Compare authentic causal conditions to isolate interference and native learned response.",
+      "release_acceptance": "Current mechanism/source/telemetry proof is required before declaring interference absent or present.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "CI07-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI07-01--GUALA_A013_COMPANION_CARE_EMBODIMENT_AMENDMENT_2026-08-17.md",
+          "line": 30,
+          "anchor": "   manipulation, water, tools, and sensory consequences. Guardian action is an",
+          "sha256": "e0da4d6a6ea61e0d22bcc40a3f8caf0da2d49b1599d70ccc118920a49b80a0b0"
+        },
+        {
+          "source_id": "CI07-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI07-01--GUALA_A013_COMPANION_CARE_EMBODIMENT_AMENDMENT_2026-08-17.md",
+          "line": 111,
+          "anchor": "an external participant, not Guala's cognitive controller. No `accepted` or",
+          "sha256": "e0da4d6a6ea61e0d22bcc40a3f8caf0da2d49b1599d70ccc118920a49b80a0b0"
+        },
+        {
+          "source_id": "CI07-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI07-01--GUALA_A013_COMPANION_CARE_EMBODIMENT_AMENDMENT_2026-08-17.md",
+          "line": 179,
+          "anchor": "  fixed 256-bit contact boundary, and identifiers whose UTF-8 encoding fits",
+          "sha256": "e0da4d6a6ea61e0d22bcc40a3f8caf0da2d49b1599d70ccc118920a49b80a0b0"
+        },
+        {
+          "source_id": "CI07-01",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI07-01--GUALA_A013_COMPANION_CARE_EMBODIMENT_AMENDMENT_2026-08-17.md",
+          "line": 129,
+          "anchor": "| Bedtime | a supportable bed surface, Guala's body-on-bed contact and posture, covers/light/sound as physical world state, guardian reading as actual acoustic pressure, and sleep arising from Guala's body/organism state rather than a bedtime command |",
+          "sha256": "e0da4d6a6ea61e0d22bcc40a3f8caf0da2d49b1599d70ccc118920a49b80a0b0"
+        }
+      ]
+    },
+    {
+      "id": "CIR08",
+      "name": "Earlier-camera permission was not simultaneous audiovisual input",
+      "classification": "reported_ingress_repair_with_unresolved_current_policy_authority",
+      "historical_requirement_or_mechanism": "A014 first finds a process-local prior-camera receipt being used to permit audio. It replaces that with bounded co-captured frames plus4000 microphone samples per250ms at16kHz and rejects standalone hearing. Generated raster/PCM candidate, live route mount, actual browser capture and persisted native effects are distinguished through multiple revisions.",
+      "current_disposition": "Correcting a false concurrency claim is legitimate. It does not prove that all hearing must require sight: a historical audiovisual test requirement is not a universal biological or charter law. The exact authority and current applicability of standalone-audio refusal require reconciliation; actual hearing under missing/dark/quiet vision must remain honestly scoped. PCM sample count is not physical pressure calibration.",
+      "lawful_remedy": "Preserve authentic origin, synchronized timing, sample units and bounded native ingress. Recover the exact camera gate rationale and source contract; implement only the ratified sensory function, without a prior-camera flag masquerading as simultaneous perception or an arbitrary modality quota.",
+      "unit_acceptance": "Reject mismatched sample/frame timing and false concurrency; distinguish quiet, missing and uncalibrated input.",
+      "module_acceptance": "Trace current camera/mic/standalone/offered-audio contracts and actual calibration.",
+      "system_acceptance": "Verify real hardware and required independent/concurrent sensory functions on preserved state.",
+      "release_acceptance": "Neither generated stimuli nor an HTTP200 or mandatory camera switch proves learned hearing or speech.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A06",
+        "A10",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CI08-03",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-03--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 31,
+          "anchor": "   microphone gate proves only that a camera batch committed earlier in the",
+          "sha256": "2268d7bd9410f951080f8ccc73f1acb2ef77a3ff6839aee9074a2120de0807b7"
+        },
+        {
+          "source_id": "CI08-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 33,
+          "anchor": "   camera frame and exact 4,000-sample 16-kHz pressure hop enters the existing",
+          "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04"
+        },
+        {
+          "source_id": "CI08-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 199,
+          "anchor": "422. Both `/sound_frame` and `/api/v1/auditory/pcm/open` rejected standalone",
+          "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04"
+        },
+        {
+          "source_id": "CI08-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 203,
+          "anchor": "fail-closed routing, not a real camera/microphone encounter.",
+          "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04"
+        }
+      ]
+    },
+    {
+      "id": "CIR09",
+      "name": "Retained formation endpoint repair separates physical identity from heuristic matching",
+      "classification": "reported_canonical_restore_correction_with_unique_anatomy_requirement",
+      "historical_requirement_or_mechanism": "Nested formation contacts made endpoint inference from local topology ambiguous. GLMRC02 stores one actual grown layer9 lineage plus counts. First rehearsal failed canonicality because decoder invented metadata and changed the still-legacy encoding. Correction proves legacy bytes first, then uses unique global injective physical-member matching for a runtime index, refusing absent or ambiguous anatomy.",
+      "current_disposition": "An exact unique structural matching is not ML or a heuristic merely because called inference. It must be uniquely entailed by actual retained anatomy, have bounded execution and preserve all cognitive state; otherwise refuse. Recorded576 native and44 transport passes remain historical reports and include11 ignored fixtures.",
+      "lawful_remedy": "Trace current endpoint codec, canonicality and actual material contacts across every relevant revision. Preserve explicit physical identity and exact legacy mapping without list-order/score tie-breaks or fabricated metadata; map every ignored fixture requirement.",
+      "unit_acceptance": "Reject absent/multiple matchings and canonical-byte changes before authorized migration.",
+      "module_acceptance": "Verify nested formations and warm/cold equality with actual physical lineages and bounded matching.",
+      "system_acceptance": "Prove preserved acquired effect after restart on real mature state.",
+      "release_acceptance": "Qualify exact current codec/image and ignored scope; prior green tests cannot certify current memory or speech.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CI08-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 116,
+          "anchor": "That repeated probe exposed a native cold-bookkeeping ambiguity: topology",
+          "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04"
+        },
+        {
+          "source_id": "CI08-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 154,
+          "anchor": "3. reconstruct only the runtime lineage index from the unique global,",
+          "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04"
+        },
+        {
+          "source_id": "CI08-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 129,
+          "anchor": "- native Rust: `423` unit tests passed, `11` retired fixtures ignored; the six",
+          "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04"
+        },
+        {
+          "source_id": "CI08-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 148,
+          "anchor": "legacy bare/`GLMRC01` mosaic, then re-encoded that still-legacy body as",
+          "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04"
+        }
+      ]
+    },
+    {
+      "id": "CIR10",
+      "name": "Healthy service concealed a frozen organism caused by competing contact authorities",
+      "classification": "explicit_later_retraction_and_causal_defect",
+      "historical_requirement_or_mechanism": "A014 headline remains Live-Closed while its Aug27 amendment explicitly says Reconciled Partial. Task1258 repeats the same transaction: eight250ms hops settle then consequence panics, so CURRENT stays186200 despite healthy service. Exact production image reproduces failure while the stale local native extension does not. Source settlement moved contact14 phase from-43/272 to91/272 before the resident schedule due186210; two physical authorities invalidated one predecessor.",
+      "current_disposition": "The schedule assertion correctly exposed the conflict. The recorded remedy makes source ingress change reached neurons only and retains the resident coupled frontier as sole contact/schedule authority. Historical failure and repair do not prove current recurrence, but the still-prominent old closure must not outrank the later retraction.",
+      "lawful_remedy": "Canonicalize dated status as superseded and trace each current contact/source/scheduler writer using exact serving code/state. Preserve the soundness assertion, consequence, full DSF and sparse frontier; detect lack of actual committed progress independently from HTTP/container health.",
+      "unit_acceptance": "Falsify a contact changed outside its scheduled predecessor and preserve fail-closed behavior.",
+      "module_acceptance": "Reproduce exact production-sized source/consequence path and prove sole contact settlement authority.",
+      "system_acceptance": "Verify unattended commits through the former boundary and after cold restart, with bounded retries/resources.",
+      "release_acceptance": "Current readiness must report actual organism progress/failure separately from process health; no stale binary validation.",
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A04",
+        "A06",
+        "A08",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CI08-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 314,
+          "anchor": "A-014 is **Reconciled Partial**, not Live-Closed. The physical camera,",
+          "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04"
+        },
+        {
+          "source_id": "CI08-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 332,
+          "anchor": "CURRENT does not advance.",
+          "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04"
+        },
+        {
+          "source_id": "CI08-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 367,
+          "anchor": "raised the soundness assertion. This was two contact-settlement authorities in",
+          "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04"
+        },
+        {
+          "source_id": "CI08-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 356,
+          "anchor": "RF-003 was observed directly in this correction: the locally installed native",
+          "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04"
+        }
+      ]
+    },
+    {
+      "id": "CIR11",
+      "name": "A running replacement created false genesis; monotone ticks alone cannot certify continuity",
+      "classification": "documented_deployment_continuity_failure_and_narrow_recovery",
+      "historical_requirement_or_mechanism": "Task1259 hot startup accepted sole RUNNING without authenticated native continuity, created small genesis when CURRENT was not found, and was drained. The record reports a zero-concurrency publisher restoring exact authenticated tick186200, then one writer advanced beyond186364 without the panic. Hot control thereafter checks identity, immutable receipt and predecessor tick before drain and identity/tick after start, leaving zero writers on failed start.",
+      "current_disposition": "This is a documented historical continuity failure and bounded recovery, not permission to restore an old body now. Matching UUID and candidate tick>=predecessor are necessary observations, not complete proof that all acquired state survived. The reported19-second full trajectory remains latency-open despite0.43–0.64-second individual steps.",
+      "lawful_remedy": "Bind exact authenticated root/body/world and canonical cold restore before admitting a writer; fail visibly on missing state rather than genesis. Prove lawful successor ancestry and retained effects, preserve actual acquired state through approved recovery, and validate total trajectory latency separately.",
+      "unit_acceptance": "Reject missing CURRENT, false genesis and forged identity/tick continuity.",
+      "module_acceptance": "Verify canonical before/after ancestry and exactly one writer across actual deployment paths.",
+      "system_acceptance": "Prove preserved learned behavior and next causal interval after restart, with total latency measured.",
+      "release_acceptance": "No current preservation certificate from container RUNNING, UUID or monotone ticks; no new rollback authorization.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A09",
+        "A10",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "CI08-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 392,
+          "anchor": "created a small genesis because it did not find the persistent `CURRENT` it",
+          "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04"
+        },
+        {
+          "source_id": "CI08-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 393,
+          "anchor": "expected. The false writer was drained. A one-off, zero-concurrency recovery",
+          "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04"
+        },
+        {
+          "source_id": "CI08-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 401,
+          "anchor": "complete action/consequence trajectory remained approximately `19` seconds",
+          "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04"
+        },
+        {
+          "source_id": "CI08-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 409,
+          "anchor": "candidate tick at or beyond that predecessor before pinning the artifact. A",
+          "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04"
+        }
+      ]
+    },
+    {
+      "id": "CIR12",
+      "name": "Actual microphone admission and retained neurons were explicitly not word learning",
+      "classification": "documented_speech_claim_boundary_and_transport_delivery_repair",
+      "historical_requirement_or_mechanism": "A014 real hardware receipts show4 frames/16000 samples and native state effects while the user spoke. Eight additional retained neurons were observed, but the report expressly refuses attribution to any word because visual input and unattended transitions interleaved. Rendered text carried pixels only. Old public UI bytes and a microphone button disabled during camera settlement required separate deployed-browser repairs;804KiB mutation/334162-byte observation bloat remained open.",
+      "current_disposition": "Sensory intake, native motion, partial-cue counts, persistent neuron count and heard human speech are not Guala emitted learned speech. UI source, task image and browser artifact are different delivery surfaces. This slice verifies documentary content only, not hardware receipts, current activation or original approval.",
+      "lawful_remedy": "Preserve the explicit no-word conclusion and actual physical ingress; qualify current vocal initiation, articulated pressure, self-hearing, learned sound/context correspondence and intelligible use separately with controls. Bind UI bytes and fresh native receipt; show rejected/off states and source age honestly.",
+      "unit_acceptance": "Reject counters/metadata/text labels as proof of learned or emitted words.",
+      "module_acceptance": "Trace actual live ingress, native vocal output and self-hearing without dictionary/ASR/TTS semantic authority.",
+      "system_acceptance": "Demonstrate preserved learned speech through novel relevant contexts and negative controls.",
+      "release_acceptance": "Complete19-version documentary coverage is not a speech or ML-free certificate; full reconciliation remains OPEN.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A06",
+        "A09",
+        "A10",
+        "A13",
+        "A15",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "CI08-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 257,
+          "anchor": "completed retained state. It does not prove word meaning: each accepted event",
+          "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04"
+        },
+        {
+          "source_id": "CI08-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 214,
+          "anchor": "served the old commit `add551fd` even though task 1098 already exposed the",
+          "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04"
+        },
+        {
+          "source_id": "CI08-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 88,
+          "anchor": "The mutation response was approximately 804 KiB and the immediate bounded",
+          "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04"
+        },
+        {
+          "source_id": "CI08-02",
+          "path": "docs/guala_reconciliation/sources/continuous-ingress-care/CI08-02--GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md",
+          "line": 278,
+          "anchor": "  only `schema`, `encoding`, and `frame_b64`, and did not contain the string;",
+          "sha256": "dce1798dd4d8a4adb3a0c3422a30c62d51d1ac79bc948a3bff071695a3bd2a04"
+        }
+      ]
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false
+}

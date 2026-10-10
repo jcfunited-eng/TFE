@@ -1,0 +1,16 @@
+{
+  "commits": 5844,
+  "path_changes": 31834,
+  "distinct_paths": 11380,
+  "distinct_nonzero_blobs": 24620,
+  "months_by_author": {
+    "2026-04": 199,
+    "2026-05": 184,
+    "2026-06": 732,
+    "2026-07": 1349,
+    "2026-08": 1301,
+    "2026-09": 1935,
+    "2026-10": 144
+  },
+  "scope": "All locally reachable refs, April 1 onward by Git commit-date filtering; filenames and object IDs are an inventory, not semantic review or approval."
+}

@@ -1,0 +1,617 @@
+[
+  {
+    "id": "S01",
+    "source_path": "UF_Spec_v1_4_0_skeleton.pdf",
+    "git_blob": null,
+    "sha256": "01a4499fc0cf3014b49b9b4f7b067c1deae33f96a8dd20e9d059752f0d4bc7a2",
+    "bytes": 410623,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S01--UF_Spec_v1_4_0_skeleton.pdf",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S02",
+    "source_path": "docs/ArcLoom_Master_Specification_v5_0.tex",
+    "git_blob": null,
+    "sha256": "d8c33af74dc81937b5954b28fb1f678773e600c39f30240b233f9e01ba734a5a",
+    "bytes": 56240,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S02--ArcLoom_Master_Specification_v5_0.tex",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S03",
+    "source_path": "docs/ArcLoom_Spec_v1_3_Ternary_Attractor_Loom.txt",
+    "git_blob": null,
+    "sha256": "626b030968fba71e48f8a3517d96903bbf37ca7114ff543515415dc23c8d5c22",
+    "bytes": 19801,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S03--ArcLoom_Spec_v1_3_Ternary_Attractor_Loom.txt",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S04",
+    "source_path": "docs/ArcLoom_MathLoom_Addendum_v1_4_d0_1.txt",
+    "git_blob": null,
+    "sha256": "8cb0fa1d8d13360872defc4f3341712e20d22cda7359e46b0a4c01897cb59912",
+    "bytes": 4921,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S04--ArcLoom_MathLoom_Addendum_v1_4_d0_1.txt",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S05",
+    "source_path": "DSF_PRIMITIVE_LAW_SKETCH.md",
+    "git_blob": null,
+    "sha256": "00af514ff6aae93ac84bbb314abbccfb565ef4ebce12408e62625d152bdf9892",
+    "bytes": 18279,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S05--DSF_PRIMITIVE_LAW_SKETCH.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S06",
+    "source_path": "docs/GL-SPEC-substrate-wC-20260608-005.md",
+    "git_blob": "51e607fdddf409851ce09116fdb24f6b046b0164",
+    "sha256": "e1a0ebcd2ccb2b28fd0e7d5bdb890a915c291525ab78a906302640badefe9cf8",
+    "bytes": 6848,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S06--GL-SPEC-substrate-wC-20260608-005.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S07",
+    "source_path": "docs/GL-SPEC-cognition-wC-20260608-007.md",
+    "git_blob": "d55942a81e8305e4a7fe70703768230b323d3ae9",
+    "sha256": "ceec06d92426d46304e0f6f543a405f4d066a2fdee8a94d62c29ddab9e23a3bf",
+    "bytes": 27023,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S07--GL-SPEC-cognition-wC-20260608-007.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S08",
+    "source_path": "docs/GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+    "git_blob": "faf0dbae28cb0997d86e3043ef96d75848f4820c",
+    "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+    "bytes": 32118,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S08--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S09",
+    "source_path": "docs/GL-SPC-COGNITION-PATH-EVE-20260622-124.md",
+    "git_blob": "0eec7c55b6863ceae437744f5b2f2531acb3e31a",
+    "sha256": "d1e9715a80a55a71c11de00ac1df55e3e49310672e0525066f1bdc8275a6e425",
+    "bytes": 15939,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S09--GL-SPC-COGNITION-PATH-EVE-20260622-124.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S10",
+    "source_path": "docs/GL-DESIGN-DSF-J-WEIGHTING-EVE-20260626.md",
+    "git_blob": "32be474e8d8c5201a8ecce1836161d0084fddcb8",
+    "sha256": "ce478b0b42747e996bcf8b55b6742d889b2b7eef27a959b680edb91622d62b34",
+    "bytes": 9035,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S10--GL-DESIGN-DSF-J-WEIGHTING-EVE-20260626.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S11",
+    "source_path": "docs/GL-SPC-EXPERIENCE-FIRST-20260702-v2.md",
+    "git_blob": "49d32cb356e6e0ee8c40127bc795e33209c93e91",
+    "sha256": "1b142234586b5bba8b4870423fa7ba1bbabbe42481b5bd5239a0e3de7d79395d",
+    "bytes": 21321,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S11--GL-SPC-EXPERIENCE-FIRST-20260702-v2.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S12",
+    "source_path": "docs/GL-SPC-MEMORY-RECALL-STATE-EVE-20260704-v1.md",
+    "git_blob": null,
+    "sha256": "e06f5e256d830bd5b4e4f49892d7207485dba17934984a4275d19ec8a170dba2",
+    "bytes": 4144,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S12--GL-SPC-MEMORY-RECALL-STATE-EVE-20260704-v1.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S13",
+    "source_path": "docs/GL-SPEC-SUBSTRATE-FOUNDATION-EVE-20260706-v1.md",
+    "git_blob": null,
+    "sha256": "bffebf6f75bcad7ca7ef3645b0281f4acdf81055a526b1fab3d7ba89168dfbfa",
+    "bytes": 84952,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S13--GL-SPEC-SUBSTRATE-FOUNDATION-EVE-20260706-v1.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S14",
+    "source_path": "docs/GL-SPEC-TEST-HARNESS-EVE-20260706-v1.md",
+    "git_blob": null,
+    "sha256": "5746d02618495c5665a64be932def242b7eb05be7fa6b5fdc71f7042dd8b361c",
+    "bytes": 23379,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S14--GL-SPEC-TEST-HARNESS-EVE-20260706-v1.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S15",
+    "source_path": "docs/GL-DESIGN-SLEEP-WINS-BY-PHYSICS-C1-20260704-v1.md",
+    "git_blob": null,
+    "sha256": "55b86fb3dbc1f695ef057a338266eb64143a5d0ebd0c50f05111278477b8492d",
+    "bytes": 12799,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S15--GL-DESIGN-SLEEP-WINS-BY-PHYSICS-C1-20260704-v1.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S16",
+    "source_path": "docs/GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3.tex",
+    "git_blob": "d6f9e923a9b85748c1dcb31062038c581283d89a",
+    "sha256": "2c3f13525bd4327194803aaa98fded5da2d9d7c00ebc82f71795f0684fd4d94c",
+    "bytes": 36903,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S16--GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3.tex",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S17",
+    "source_path": "docs/GL-SPC-DRIVE-PHYSICS-SUBSTRATE-TRUE-20260718-v1.md",
+    "git_blob": "029706a288cfcc60dbe9960bd6631bfd89666420",
+    "sha256": "97c773fd0e68c25bfb1c06c03a680253b5897f3291f0c0c3dda8fc6dd14822f3",
+    "bytes": 6056,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S17--GL-SPC-DRIVE-PHYSICS-SUBSTRATE-TRUE-20260718-v1.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S18",
+    "source_path": "docs/NEUROCHEMICAL_FLOW_FIELD_ARCHITECTURE_2026-07-28.md",
+    "git_blob": "830a4b56b9baf40fdc6271b86378f76e53ad7638",
+    "sha256": "42756eda6f9fc5cbb09dcbcfb3a81862209ce232a63fc1a67bb7a0f14b980016",
+    "bytes": 19062,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S18--NEUROCHEMICAL_FLOW_FIELD_ARCHITECTURE_2026-07-28.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S19",
+    "source_path": "docs/GUALA_WHOLE_BRAIN_RESOURCE_BOUND_AUDIT_2026-07-28.md",
+    "git_blob": "d061849723c15737ac9ecbee23515a43ca7d00cd",
+    "sha256": "0c6b0c0ced4c6c77c094277aee787d4fc80f06ddc7d930f58b411102bcce8c2a",
+    "bytes": 7105,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S19--GUALA_WHOLE_BRAIN_RESOURCE_BOUND_AUDIT_2026-07-28.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S20",
+    "source_path": "docs/GUALA_STORAGE_RUNAWAY_INCIDENT_2026-07-27.md",
+    "git_blob": "e367d0d70a6a630f8ac68b481fe10b0cdda5b878",
+    "sha256": "c2c7e114401d4417c5f5f588a316b3dcc90d9337b2eea8c3439a75e5ea473979",
+    "bytes": 6387,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S20--GUALA_STORAGE_RUNAWAY_INCIDENT_2026-07-27.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S21",
+    "source_path": "docs/GUALA_UF_V1_4_JOINT_LIFT_RATIFICATION_PROPOSAL_2026-08-04.md",
+    "git_blob": "99b881547b3a9c43dcb38163b9550ced59c5e360",
+    "sha256": "05954981a771b96d22a4b263c79cfda0fe18f44ffb7458d026927b1723b22937",
+    "bytes": 7709,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S21--GUALA_UF_V1_4_JOINT_LIFT_RATIFICATION_PROPOSAL_2026-08-04.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S22",
+    "source_path": "docs/GUALA_D3_KRIMELACK_BIOPHYSICAL_COUPLING_RATIFICATION_2026-08-03.md",
+    "git_blob": "fabbbfd873d5bb881d70ccf5ec9b60ba9c0e69fa",
+    "sha256": "447627469151f9f18febab839f2a113de08f4afddb261c4aeb11c2da402501a8",
+    "bytes": 4494,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S22--GUALA_D3_KRIMELACK_BIOPHYSICAL_COUPLING_RATIFICATION_2026-08-03.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S23",
+    "source_path": "docs/GUALA_D3_CURRENT_ARCHITECTURE_CORRECTION_2026-08-04.md",
+    "git_blob": "0dce6a55389960db681a0d729b0c0d92c87678fb",
+    "sha256": "8832bf43b49e00cf882b6d50bc1429dbe56517aa331bdb8788a2012ad886af62",
+    "bytes": 8136,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S23--GUALA_D3_CURRENT_ARCHITECTURE_CORRECTION_2026-08-04.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S24",
+    "source_path": "docs/GUALA_D3_DISTRIBUTED_REASSEMBLY_LAW_2026-08-03.md",
+    "git_blob": "7f630a484418083e8913928f5df677e17d514753",
+    "sha256": "28b7e00fa5657a5d0bc2ed9cf91f2bedfba3a01e9900be42c6e804fa380f884d",
+    "bytes": 12268,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S24--GUALA_D3_DISTRIBUTED_REASSEMBLY_LAW_2026-08-03.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S25",
+    "source_path": "docs/GUALA_D3_HIPPOCAMPAL_PAGED_INDEX_LAW_2026-08-03.md",
+    "git_blob": "183e5a7cece22c7748bf29b8e611f96a8a89c6b3",
+    "sha256": "7d360e73089f0ec8ba2a1af113a6164e28c89fb7d53af173a6b5281d0ded249e",
+    "bytes": 8547,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S25--GUALA_D3_HIPPOCAMPAL_PAGED_INDEX_LAW_2026-08-03.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S26",
+    "source_path": "docs/GUALA_D3_COGNITIVE_CAPITAL_LEDGER_LAW_2026-08-03.md",
+    "git_blob": "a268fdfe728a4cebb4792c270ae54602842c940e",
+    "sha256": "39718ca0c648a32d3dcaceac8d5c534adc54848c343b9a8b677d8063bfc1ef3b",
+    "bytes": 6920,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S26--GUALA_D3_COGNITIVE_CAPITAL_LEDGER_LAW_2026-08-03.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S27",
+    "source_path": "docs/GUALA_QUANTIZED_OPTICAL_TRANSDUCTION_RATIFICATION_2026-08-05.md",
+    "git_blob": "972df55456d9aad7f1e26933daecdcc8a4db68f6",
+    "sha256": "047c427adf1456cc4803b0a0d822618ec52a626a905c6e507bffa9ff959109f9",
+    "bytes": 2618,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S27--GUALA_QUANTIZED_OPTICAL_TRANSDUCTION_RATIFICATION_2026-08-05.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S28",
+    "source_path": "docs/GUALA_ENERGY_DESCENT_CHARGE_TRANSFER_RATIFICATION_2026-08-05.md",
+    "git_blob": "40b2a6dd1c3b043f6b26a0c32145947bc7ed3a8e",
+    "sha256": "992f409a88fbe24fbe93153a09bb6cc4405477af0ea08adf55478208403d84de",
+    "bytes": 2443,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S28--GUALA_ENERGY_DESCENT_CHARGE_TRANSFER_RATIFICATION_2026-08-05.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S29",
+    "source_path": "docs/GUALA_STIMULUS_BOUNDARY_RETENTION_RATIFICATION_2026-08-05.md",
+    "git_blob": "81145f5a11c902479222c0cf78993a2e9e1e77e9",
+    "sha256": "0cb34eb991b4b3fa706cd87af53f6da84c32a268d0914bfe651938ce5d721f16",
+    "bytes": 2429,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S29--GUALA_STIMULUS_BOUNDARY_RETENTION_RATIFICATION_2026-08-05.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S30",
+    "source_path": "docs/GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+    "git_blob": "402b7e5d709ded46c932e558496d23bae26771cc",
+    "sha256": "30ecc20777e8f4203c51887c32d923b6995c74f50d791674cc24c43a6170101e",
+    "bytes": 5199,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S30--GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S31",
+    "source_path": "docs/GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+    "git_blob": "f4827f4de9e514ae1bfc94aaa2330c22d6fca3ba",
+    "sha256": "de642b233d3b62a48a87dd71d19288136b91fa86c4e179f161214c46420f5184",
+    "bytes": 15417,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S31--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S32",
+    "source_path": "/root/.codex/skills/guala-neuron-physics/references/definitive-neuron-model.md",
+    "git_blob": null,
+    "sha256": "173cba3a6c7487139ce9c8d170db3decf7bfb192f3f1fe0ec7ad219457ebbcb5",
+    "bytes": 23501,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S32--definitive-neuron-model.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S33",
+    "source_path": "/root/.codex/skills/guala-cognitive-development/references/cognitive-mechanism-catalog.md",
+    "git_blob": null,
+    "sha256": "12d67759adbbb7bce7e81679f52bbba018cd18d3d3c98a5b4a3e398013b24581",
+    "bytes": 16004,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S33--cognitive-mechanism-catalog.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S34",
+    "source_path": "docs/GUALA_R1_DEPLETION_AND_EATING_DESIGN_20260902.md",
+    "git_blob": "1843ed9323ac6007eb648cf464e686bd8e8d8ffc",
+    "sha256": "e581e741f45ba11a90fc4222558d5722f9fcb21f53f1cf3805793a8e4c79fc53",
+    "bytes": 6897,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S34--GUALA_R1_DEPLETION_AND_EATING_DESIGN_20260902.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S35",
+    "source_path": "docs/GUALA_CAUSAL_EQUIVALENCE_AND_COMPUTATIONAL_PARSIMONY_LAW_2026-09-05.md",
+    "git_blob": "54125032c0816d3fd7e91ef36bd78ab7ccbc8b32",
+    "sha256": "13579f643462c299dc08a43c3025fe4421d1a7ffb4142e0cc42174a119a2012f",
+    "bytes": 6383,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S35--GUALA_CAUSAL_EQUIVALENCE_AND_COMPUTATIONAL_PARSIMONY_LAW_2026-09-05.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S36",
+    "source_path": "docs/GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md",
+    "git_blob": "ced897f153ea392a83a35257a3ef8385c02d4e39",
+    "sha256": "91631e5428894877af6ca768570612ac6d9cab5dc54a624ad1355a6302b0c06b",
+    "bytes": 8891,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S36--GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S37",
+    "source_path": "docs/GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md",
+    "git_blob": "fa999ca46b105d1c587986c41aeef60034925d4b",
+    "sha256": "8b24f86ead6242fc68c707e304599a5e8432f07b2a5ee74b226a9010411d3e54",
+    "bytes": 9206,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S37--GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S38",
+    "source_path": "docs/GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+    "git_blob": "ad756acb706dea2c1a05172710a445e3bde8757f",
+    "sha256": "520128cd93d64c3519a5ee6d59a95c56494f30469d5f15d2dad3da52fd1675b2",
+    "bytes": 11969,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S38--GL-SPC-EYE-FIGURE-C1-20260915-v1.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S39",
+    "source_path": "docs/GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+    "git_blob": "38324d1a33242e62483b408bee60d446b5090464",
+    "sha256": "cb6a310f38b1ae6d8951deaa1b18032a7de2c69a88e32bf6186c8283e10a7a5b",
+    "bytes": 15833,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S39--GL-SPC-WORLD-LIGHT-C1-20260916-v1.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S40",
+    "source_path": "docs/COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+    "git_blob": null,
+    "sha256": "f281291714949f1f3654717579d03f79223ee203f4c90939fe3ef01f45589c54",
+    "bytes": 11180,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S40--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S41",
+    "source_path": "docs/GUALA_P0_BIOFUNCTIONAL_CAUSAL_CONTRACT_2026-09-27.md",
+    "git_blob": "065d34cdeb4c2bc180857ec1ccc65702f3a9ae8f",
+    "sha256": "9430d8d70f08429a9100f8f9c6ca539f39151656651df30d4fcc9171f93497c6",
+    "bytes": 21963,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S41--GUALA_P0_BIOFUNCTIONAL_CAUSAL_CONTRACT_2026-09-27.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S42",
+    "source_path": "docs/GUALA_P0_LOCAL_LEARNING_A1_CORRECTED_2026-09-27.md",
+    "git_blob": null,
+    "sha256": "aa21fac2b2b4059d6971a63211516a72f1205b38548a955346e0cab38773e865",
+    "bytes": 29222,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S42--GUALA_P0_LOCAL_LEARNING_A1_CORRECTED_2026-09-27.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S43",
+    "source_path": "docs/GUALA_ONE_NEURON_PHYSICAL_TRANSITION_CONTRACT_2026-10-01.md",
+    "git_blob": "ee1cda1844b6415b057e8450aef0d6e7bb4b2376",
+    "sha256": "b94602c76ee21f66f26360a84bb4c0810fe73525ed82d13d0959f95e5721da29",
+    "bytes": 23292,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S43--GUALA_ONE_NEURON_PHYSICAL_TRANSITION_CONTRACT_2026-10-01.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S44",
+    "source_path": "docs/GUALA_LEARNING_DECISION_MECHANISM_CONTRACT_2026-10-08.md",
+    "git_blob": null,
+    "sha256": "15ca8ce53cab440680b1c246ac9530d7967d4f46b41f7d7173195b8bad35f38b",
+    "bytes": 19732,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S44--GUALA_LEARNING_DECISION_MECHANISM_CONTRACT_2026-10-08.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S45",
+    "source_path": "docs/GUALA_NOURISHMENT_PHYSICS_SPECIFICATION_2026-10-09.md",
+    "git_blob": null,
+    "sha256": "382664b99f068435b9cd05a977fddd59c7d74dcf26e492355f5b2a2d48b6599d",
+    "bytes": 5404,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S45--GUALA_NOURISHMENT_PHYSICS_SPECIFICATION_2026-10-09.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S46",
+    "source_path": "docs/GUALA_FORCE_WORK_LIMIT_AUDIT_2026-10-09.md",
+    "git_blob": null,
+    "sha256": "8aaf997fa187d8e9605a80eeee690f93049186d372c62a86e22e39cef6820ae2",
+    "bytes": 7053,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S46--GUALA_FORCE_WORK_LIMIT_AUDIT_2026-10-09.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S47",
+    "source_path": "docs/GUALA_TASK1597_SPATIAL_CARETAKER_AUDIT_2026-10-09.md",
+    "git_blob": null,
+    "sha256": "34e7d479b091a54b82ce4f5b2ce3ed594adb6d9f04fa5ee6c460f65496933ca9",
+    "bytes": 13477,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S47--GUALA_TASK1597_SPATIAL_CARETAKER_AUDIT_2026-10-09.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S48",
+    "source_path": "docs/GUALA_TASK1598_OPTION1_DELIVERY_AUDIT_2026-10-09.md",
+    "git_blob": null,
+    "sha256": "1774efb3f39b450ed77f99cc579b7255f94344b9b844062cdb007453846e55d8",
+    "bytes": 9514,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S48--GUALA_TASK1598_OPTION1_DELIVERY_AUDIT_2026-10-09.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S49",
+    "source_path": "docs/GL-RPT-BRAIN-IMAGINATION-REFLECTION-DESIGN-C1-20260711-v1.md",
+    "git_blob": null,
+    "sha256": "06b2626e5cb9f09c3a4bcef06a0c8cce6547e745bcbfe65252000c1ed6885dfe",
+    "bytes": 23147,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S49--GL-RPT-BRAIN-IMAGINATION-REFLECTION-DESIGN-C1-20260711-v1.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S50",
+    "source_path": "docs/guala_reconciliation/sources/714cd6b9feff--WHOLE_ORGANISM_CONTIGUITY_LAW.md",
+    "git_blob": null,
+    "sha256": "8b699a973e4827b12afc82be56c98fb10705fa1ff6f015fdbb93b02e6068c5af",
+    "bytes": 12749,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S50--714cd6b9feff--WHOLE_ORGANISM_CONTIGUITY_LAW.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S51",
+    "source_path": "docs/guala_reconciliation/sources/714cd6b9feff--MOSAIC_TAPESTRY_WEAVE_PROGRESSION_LAW.md",
+    "git_blob": null,
+    "sha256": "71722804d2d6254b3b57e6dc0d78ccb7298df60f767f2c625b436ac3e910236a",
+    "bytes": 21789,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S51--714cd6b9feff--MOSAIC_TAPESTRY_WEAVE_PROGRESSION_LAW.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S52",
+    "source_path": "docs/guala_reconciliation/sources/714cd6b9feff--PLAY_DREAM_WAKE_GROWTH_LAW.md",
+    "git_blob": null,
+    "sha256": "ad6c52b6856997f99586df90b6bd966f3cd8dc5b2a20f5dc8baeff46f62d8649",
+    "bytes": 8997,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S52--714cd6b9feff--PLAY_DREAM_WAKE_GROWTH_LAW.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S53",
+    "source_path": "docs/guala_reconciliation/sources/714cd6b9feff--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+    "git_blob": null,
+    "sha256": "6b55dfc86fc793851ddc656cc7907eb4e9cee0d64a3984a0639cf067c825c09f",
+    "bytes": 19123,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S53--714cd6b9feff--GUALA_WHOLE_ORGANISM_FLUID_FORMATION_CONTINUITY_LAW_2026-08-02.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S54",
+    "source_path": "/root/.codex/skills/guala-cognitive-development/references/cognitive-law.md",
+    "git_blob": null,
+    "sha256": "5e146491014ce8eb78dad316d8f0d188a0d3a60252150336ac27e0d91e68bc8b",
+    "bytes": 5315,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S54--cognitive-law.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S55",
+    "source_path": "arcloom/docs/PYNQ_DEPLOYMENT_LESSONS.md",
+    "git_blob": null,
+    "sha256": "f95480c6c72ec331971a6062a75c5c95f4ca47efa20906c5f689f7b40a856bdb",
+    "bytes": 17399,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S55--PYNQ_DEPLOYMENT_LESSONS.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S56",
+    "source_path": "AGENTS.md",
+    "git_blob": null,
+    "sha256": "03055a888c43eb349b62e1edacf532f68d1526e363f6f21361fb2d13bca7b5e0",
+    "bytes": 21887,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S56--AGENTS.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S57",
+    "source_path": "/root/.codex/skills/guala-dsf-math/SKILL.md",
+    "git_blob": null,
+    "sha256": "aa733d1ce9c33e441262e6ab866c1d9d1e28934f7b3db2738535608981e2f787",
+    "bytes": 3619,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S57--SKILL.md",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S58",
+    "source_path": "docs/UF_Spec_v1_4_0_skeleton 2026.pdf",
+    "git_blob": null,
+    "sha256": "f1c55e6fd114d6933dc2ffa9269d5dc8f612f88fc924f0449adcd93c3f397fcd",
+    "bytes": 278043,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S58--UF_Spec_v1_4_0_skeleton 2026.pdf",
+    "review_scope": "Only the passages named in the specification crosswalk and design reconciliation are semantically reconciled; copying is not whole-file clearance."
+  },
+  {
+    "id": "S59",
+    "source_path": "docs/GL-MDL-WORLD-WC-20260612-02.md",
+    "git_blob": "2118e5164a5005161f01862e158b7431deccf248",
+    "sha256": "e6605117ae7ab8de4799e9ec1a64e9a14628a85ad400c9f40d7f391577494ccb",
+    "bytes": 8442,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S59--GL-MDL-WORLD-WC-20260612-02.md",
+    "review_scope": "Named passages and reconciled responsibilities only; preserved source is not automatic architectural or deployment approval."
+  },
+  {
+    "id": "S60",
+    "source_path": "docs/GL_SPC_MULTIMEDIA_WC_20260606_01_multimedia.md",
+    "git_blob": "c1d42696ac556b0b499146a0674188b4046e88cd",
+    "sha256": "c5358c6ba54bd6bda9acb5d77a100e33921da2e807c964a7316e791930c4baf2",
+    "bytes": 8888,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S60--GL_SPC_MULTIMEDIA_WC_20260606_01_multimedia.md",
+    "review_scope": "Named passages and reconciled responsibilities only; preserved source is not automatic architectural or deployment approval."
+  },
+  {
+    "id": "S61",
+    "source_path": "docs/GUALA_LIVE_HEARING_OBSERVATION_AUTHORITY_2026-07-28.md",
+    "git_blob": "938f9bf0f86b43be446345be66e9e39fde20e852",
+    "sha256": "436f0e20bd687c24e111ea4bab4ee65d3f4907e700716da1a60b3b20886812b6",
+    "bytes": 4256,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S61--GUALA_LIVE_HEARING_OBSERVATION_AUTHORITY_2026-07-28.md",
+    "review_scope": "Named passages and reconciled responsibilities only; preserved source is not automatic architectural or deployment approval."
+  },
+  {
+    "id": "S62",
+    "source_path": "docs/AUTONOMOUS_PLAY_CURRICULUM_LIVE_TRUTH_AUDIT_2026-07-27.md",
+    "git_blob": "b5bfc221aa0ca57a590417f3e8012200113dc559",
+    "sha256": "055db47df8409c3b81a91a12fff2f287b8426fa24355a003325a16b57a206fda",
+    "bytes": 5325,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S62--AUTONOMOUS_PLAY_CURRICULUM_LIVE_TRUTH_AUDIT_2026-07-27.md",
+    "review_scope": "Named passages and reconciled responsibilities only; preserved source is not automatic architectural or deployment approval."
+  },
+  {
+    "id": "S63",
+    "source_path": "docs/GL-PLAN-FULLWIRE-WC-20260611-042.md",
+    "git_blob": "04ce73fcaef5a771b15bff0c56ff6b8c23f5b1cc",
+    "sha256": "403b1927d058048fc4a1a371885b2635da3e55585ed83c41401b837ec9c9ea71",
+    "bytes": 9585,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S63--GL-PLAN-FULLWIRE-WC-20260611-042.md",
+    "review_scope": "Named passages and reconciled responsibilities only; preserved source is not automatic architectural or deployment approval."
+  },
+  {
+    "id": "S64",
+    "source_path": "/root/.codex/skills/guala-embodiment-ui/references/world-environment-catalog.md",
+    "git_blob": null,
+    "sha256": "6a38d297cce0c76220f8dcac73f44f5838958232cacb66eb0d1fe23e9f410af5",
+    "bytes": 8737,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S64--world-environment-catalog.md",
+    "review_scope": "Named passages and reconciled responsibilities only; preserved source is not automatic architectural or deployment approval."
+  },
+  {
+    "id": "S65",
+    "source_path": "/root/.codex/skills/guala-autonomy-curriculum/references/autonomy-curriculum-law.md",
+    "git_blob": null,
+    "sha256": "315607f69f88e4b4ac5e43ebb511898dc959d44b8ebb25613337be06bf4a83d1",
+    "bytes": 4142,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S65--autonomy-curriculum-law.md",
+    "review_scope": "Named passages and reconciled responsibilities only; preserved source is not automatic architectural or deployment approval."
+  },
+  {
+    "id": "S66",
+    "source_path": "/workspaces/Tao_Financial_Engine/.claude/skills/guala-development/SKILL.md",
+    "git_blob": null,
+    "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8",
+    "bytes": 43384,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S66--guala-development--SKILL.md",
+    "review_scope": "Complete pre-reconciliation working document read. Preserved as dated evidence, not current instructions, approval, runtime proof or an additional fully read Git corpus pair.",
+    "captured_at_utc": "2026-10-10T04:22:22.852189+00:00"
+  },
+  {
+    "id": "S67",
+    "source_path": "/root/.codex/skills/guala-project-truth/SKILL.md",
+    "git_blob": null,
+    "sha256": "7db536f0ea4ed8ad622d7c7b754f1963fcac8f990c9ac0d492436880fe79eeb3",
+    "bytes": 23804,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S67--guala-project-truth--SKILL.md",
+    "review_scope": "Complete pre-reconciliation working document read. Preserved as dated evidence, not current instructions, approval, runtime proof or an additional fully read Git corpus pair.",
+    "captured_at_utc": "2026-10-10T04:22:22.852189+00:00"
+  },
+  {
+    "id": "S68",
+    "source_path": "/workspaces/Tao_Financial_Engine/docs/GUALA_LEARNING_DECISION_MECHANISM_CONTRACT_2026-10-08.md",
+    "git_blob": null,
+    "sha256": "15ca8ce53cab440680b1c246ac9530d7967d4f46b41f7d7173195b8bad35f38b",
+    "bytes": 19732,
+    "preserved_copy": "docs/guala_reconciliation/sources/documentation/S68--docs--GUALA_LEARNING_DECISION_MECHANISM_CONTRACT_2026-10-08.md",
+    "review_scope": "Complete pre-reconciliation working document read. Preserved as dated evidence, not current instructions, approval, runtime proof or an additional fully read Git corpus pair.",
+    "captured_at_utc": "2026-10-10T04:22:22.852189+00:00"
+  }
+]

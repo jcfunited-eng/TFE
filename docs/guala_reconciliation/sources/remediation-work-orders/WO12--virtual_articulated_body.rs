@@ -1,0 +1,2429 @@
+//! Fixed-capacity local articulated-body state.
+//!
+//! The authenticated embodiment world remains the sole authority for root
+//! position, root heading, collision, reach, and held-object state. This record
+//! persists only causative configuration inside the body: posture, gaze, eyes,
+//! eyelids, face, mouth, airway, limbs, and hands. It contains no action names,
+//! motor-cell lookup table, learned meaning, history, owner, lock, digest, or
+//! observation cache.
+
+use core::mem::size_of;
+
+pub(crate) const BODY_MAGIC: &[u8; 8] = b"GLBODY01";
+const LEGACY_BODY_VERSION: u16 = 1;
+const PREVIOUS_BODY_VERSION: u16 = 2;
+pub(crate) const PREVIOUS_PROPRIOCEPTIVE_BODY_VERSION: u16 = 3;
+pub(crate) const PREVIOUS_ACOUSTIC_BODY_VERSION: u16 = 4;
+pub(crate) const PREVIOUS_PHONATORY_BODY_VERSION: u16 = 5;
+pub(crate) const PREVIOUS_SPECTRAL_BODY_VERSION: u16 = 6;
+pub(crate) const PREVIOUS_DAMPINGLESS_BODY_VERSION: u16 = 7;
+const BODY_VERSION: u16 = 8;
+const COMMISSIONED_BODY_VERSION: u16 = 9;
+pub(crate) const LEGACY_BODY_AXIS_COUNT: usize = 37;
+pub(crate) const BODY_AXIS_COUNT: usize = 45;
+pub(crate) const LEGACY_BODY_EFFECTOR_TERMINAL_COUNT: usize = LEGACY_BODY_AXIS_COUNT * 2;
+pub(crate) const BODY_EFFECTOR_TERMINAL_COUNT: usize = BODY_AXIS_COUNT * 2;
+/// Body-layer neuronal places 0..9 are the already-live four displacement,
+/// four articulatory-body, and two thermal receptors. The local articulated
+/// proprioceptors are a distinct organ and therefore begin at the next
+/// declared place. This is fixed anatomy, not a runtime offset or an action
+/// selector; the original terminal ordinals remain 0..73.
+pub(crate) const BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET: usize = 10;
+/// Load endings are distinct from antagonist-length endings.  They occupy the
+/// next fixed body territory, preserving both physical quantities without
+/// flattening either one into a combined proprioceptive score.
+pub(crate) const BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET: usize =
+    BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET + LEGACY_BODY_EFFECTOR_TERMINAL_COUNT;
+/// The six already-persisted root-yaw/root-translation endings occupy body
+/// topology 158..163. New tract endings append after them; the original 37
+/// axes and every root ending therefore retain their exact resident address.
+const LEGACY_ROOT_EFFECTOR_TERMINAL_COUNT: usize = 6;
+pub(crate) const ADDED_BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET: usize =
+    BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET
+        + LEGACY_BODY_EFFECTOR_TERMINAL_COUNT
+        + LEGACY_ROOT_EFFECTOR_TERMINAL_COUNT;
+pub(crate) const ADDED_BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET: usize =
+    ADDED_BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET
+        + (BODY_EFFECTOR_TERMINAL_COUNT - LEGACY_BODY_EFFECTOR_TERMINAL_COUNT);
+pub(crate) const VOCAL_TRACT_SECTION_COUNT: usize = 8;
+pub(crate) const ACOUSTIC_TRANSDUCER_SURFACE_COUNT: usize = 3;
+const LEGACY_LARYNGEAL_CYCLE_SAMPLES: u16 = 160;
+const LEGACY_PHONATORY_EXHALATION_SAMPLES: u32 = 16_000;
+const PREVIOUS_ARTICULATORY_ACOUSTIC_STATE_BYTES: usize =
+    2 * VOCAL_TRACT_SECTION_COUNT * size_of::<i32>()
+        + size_of::<i32>()
+        + size_of::<u16>();
+const PREVIOUS_PHONATORY_ARTICULATORY_ACOUSTIC_STATE_BYTES: usize =
+    PREVIOUS_ARTICULATORY_ACOUSTIC_STATE_BYTES + size_of::<u8>() + size_of::<u32>();
+const PREVIOUS_SPECTRAL_ARTICULATORY_ACOUSTIC_STATE_BYTES: usize =
+    2 * VOCAL_TRACT_SECTION_COUNT * size_of::<i32>()
+        + 2 * ACOUSTIC_TRANSDUCER_SURFACE_COUNT * size_of::<i32>();
+pub(crate) const SPECTRAL_MODE_COUNT: usize = 5;
+pub(crate) const SPECTRAL_FLUID_CELL_COUNT: usize = VOCAL_TRACT_SECTION_COUNT;
+pub(crate) const MAX_SPECTRAL_RESPIRATORY_WORK: i64 = 8_192_000;
+const SPECTRAL_ARTICULATORY_ACOUSTIC_PAYLOAD_BYTES: usize = 31 * size_of::<i32>();
+const ARTICULATORY_ACOUSTIC_STATE_BYTES: usize =
+    size_of::<u8>() + SPECTRAL_ARTICULATORY_ACOUSTIC_PAYLOAD_BYTES;
+pub(crate) const HEADER_BYTES: usize = BODY_MAGIC.len() + size_of::<u16>();
+pub(crate) const PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES: usize = HEADER_BYTES
+    + BODY_AXIS_COUNT * size_of::<i32>()
+    + size_of::<u32>()
+    + size_of::<u8>();
+pub(crate) const PREVIOUS_ACOUSTIC_ARTICULATED_BODY_STATE_BYTES: usize =
+    PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES + PREVIOUS_ARTICULATORY_ACOUSTIC_STATE_BYTES;
+pub(crate) const PREVIOUS_PHONATORY_ARTICULATED_BODY_STATE_BYTES: usize =
+    PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES
+        + PREVIOUS_PHONATORY_ARTICULATORY_ACOUSTIC_STATE_BYTES;
+pub(crate) const PREVIOUS_SPECTRAL_ARTICULATED_BODY_STATE_BYTES: usize =
+    PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES
+        + PREVIOUS_SPECTRAL_ARTICULATORY_ACOUSTIC_STATE_BYTES;
+pub(crate) const PREVIOUS_DAMPINGLESS_ARTICULATED_BODY_STATE_BYTES: usize =
+    PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES + ARTICULATORY_ACOUSTIC_STATE_BYTES;
+const ANTAGONIST_TISSUE_ACTIVATION_BYTES: usize = BODY_EFFECTOR_TERMINAL_COUNT * size_of::<u32>();
+pub(crate) const ARTICULATED_BODY_STATE_BYTES: usize =
+    PREVIOUS_DAMPINGLESS_ARTICULATED_BODY_STATE_BYTES + ANTAGONIST_TISSUE_ACTIVATION_BYTES;
+
+pub(crate) const BODY_SETTLEMENT_CLOCK_MICROSECONDS: u64 = 1_000;
+const MAX_BODY_SETTLEMENT_MILLISECONDS: u64 = 250;
+const ANTAGONIST_ACTIVATION_LIFETIME_MILLISECONDS: u32 = 32;
+const ANTAGONIST_RESPONSE_MILLISECONDS: u32 = 32;
+
+pub(crate) const MIN_LUNG_AIR_MICROLITRES: u32 = 500_000;
+pub(crate) const NEUTRAL_LUNG_AIR_MICROLITRES: u32 = 2_000_000;
+pub(crate) const MAX_LUNG_AIR_MICROLITRES: u32 = 4_000_000;
+pub(crate) const MIN_TRACT_AREA_SQUARE_MILLIMETRES: i32 = 20;
+pub(crate) const MAX_TRACT_AREA_SQUARE_MILLIMETRES: i32 = 1_000;
+pub(crate) const NEUTRAL_TRACT_AREAS_SQUARE_MILLIMETRES: [i32; VOCAL_TRACT_SECTION_COUNT] =
+    [125, 145, 165, 185, 205, 225, 245, 265];
+
+fn take_body_i32(encoded: &[u8], cursor: &mut usize) -> i32 {
+    let value = i32::from_be_bytes(
+        encoded[*cursor..*cursor + size_of::<i32>()]
+            .try_into()
+            .expect("fixed articulated-body coordinate width"),
+    );
+    *cursor += size_of::<i32>();
+    value
+}
+
+/// Exact task-1408 acoustic state retained during the non-erasing transition.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct LegacyV6AcousticState {
+    pub(crate) right_traveling_pressure: [i32; VOCAL_TRACT_SECTION_COUNT],
+    pub(crate) left_traveling_pressure: [i32; VOCAL_TRACT_SECTION_COUNT],
+    pub(crate) surface_displacement: [i32; ACOUSTIC_TRANSDUCER_SURFACE_COUNT],
+    pub(crate) surface_previous_displacement: [i32; ACOUSTIC_TRANSDUCER_SURFACE_COUNT],
+}
+
+impl LegacyV6AcousticState {
+    pub(crate) const fn at_rest() -> Self {
+        Self {
+            right_traveling_pressure: [0; VOCAL_TRACT_SECTION_COUNT],
+            left_traveling_pressure: [0; VOCAL_TRACT_SECTION_COUNT],
+            surface_displacement: [0; ACOUSTIC_TRANSDUCER_SURFACE_COUNT],
+            surface_previous_displacement: [0; ACOUSTIC_TRANSDUCER_SURFACE_COUNT],
+        }
+    }
+
+    pub(crate) fn is_quiescent(self) -> bool {
+        self.right_traveling_pressure.iter().all(|value| *value == 0)
+            && self.left_traveling_pressure.iter().all(|value| *value == 0)
+            && self.surface_displacement.iter().all(|value| *value == 0)
+            && self
+                .surface_previous_displacement
+                .iter()
+                .all(|value| *value == 0)
+    }
+}
+
+/// The fixed present state of the bounded spectral organ. These are mechanical
+/// and fluid coordinates only: no phase clock, waveform, sound label, or
+/// gesture duration is retained.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct SpectralAcousticState {
+    pub(crate) fold_displacement: [i32; 2],
+    pub(crate) fold_previous_displacement: [i32; 2],
+    pub(crate) respiratory_work_remaining: i64,
+    /// Exact signed airway volume already moved but not yet reflected by the
+    /// integer lung coordinate. Positive is exhaust and negative is intake;
+    /// one count is one sixteenth microlitre, derived from one
+    /// millilitre/second sampled at 16 kHz.
+    pub(crate) expiratory_volume_remainder_sixteenths_microlitre: i32,
+    pub(crate) source_loss: [i32; 2],
+    pub(crate) mode_displacement: [i32; SPECTRAL_MODE_COUNT],
+    pub(crate) mode_previous_displacement: [i32; SPECTRAL_MODE_COUNT],
+    pub(crate) fluid_cells: [i32; SPECTRAL_FLUID_CELL_COUNT],
+    pub(crate) lip_low_pass: [i32; 2],
+    pub(crate) band_limit: [i32; 2],
+}
+
+impl SpectralAcousticState {
+    pub(crate) const fn at_rest() -> Self {
+        Self {
+            fold_displacement: [0; 2],
+            fold_previous_displacement: [0; 2],
+            respiratory_work_remaining: 0,
+            expiratory_volume_remainder_sixteenths_microlitre: 0,
+            source_loss: [0; 2],
+            mode_displacement: [0; SPECTRAL_MODE_COUNT],
+            mode_previous_displacement: [0; SPECTRAL_MODE_COUNT],
+            fluid_cells: [0; SPECTRAL_FLUID_CELL_COUNT],
+            lip_low_pass: [0; 2],
+            band_limit: [0; 2],
+        }
+    }
+
+    pub(crate) fn is_quiescent(self) -> bool {
+        self.fold_displacement.iter().all(|value| *value == 0)
+            && self
+                .fold_previous_displacement
+                .iter()
+                .all(|value| *value == 0)
+            && self.respiratory_work_remaining == 0
+            && self.expiratory_volume_remainder_sixteenths_microlitre == 0
+            && self.source_loss.iter().all(|value| *value == 0)
+            && self.mode_displacement.iter().all(|value| *value == 0)
+            && self
+                .mode_previous_displacement
+                .iter()
+                .all(|value| *value == 0)
+            && self.fluid_cells.iter().all(|value| *value == 0)
+            && self.lip_low_pass.iter().all(|value| *value == 0)
+            && self.band_limit.iter().all(|value| *value == 0)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum ArticulatoryAcousticState {
+    LegacyV6(LegacyV6AcousticState),
+    Spectral(SpectralAcousticState),
+}
+
+impl ArticulatoryAcousticState {
+    pub(crate) const fn at_rest() -> Self {
+        Self::Spectral(SpectralAcousticState::at_rest())
+    }
+
+    pub(crate) fn is_quiescent(self) -> bool {
+        match self {
+            Self::LegacyV6(state) => state.is_quiescent(),
+            Self::Spectral(state) => state.is_quiescent(),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[repr(u8)]
+pub(crate) enum BodyAxis {
+    TorsoPitch = 0,
+    TorsoRoll,
+    NeckYaw,
+    NeckPitch,
+    LeftEyeYaw,
+    LeftEyePitch,
+    RightEyeYaw,
+    RightEyePitch,
+    LeftEyelidAperture,
+    RightEyelidAperture,
+    LeftBrowHeight,
+    RightBrowHeight,
+    LeftCheekRaise,
+    RightCheekRaise,
+    JawOpening,
+    LipAperture,
+    LipWidth,
+    PerioralDisplacement,
+    GlottalAperture,
+    LeftShoulderPitch,
+    LeftShoulderRoll,
+    LeftElbowFlexion,
+    LeftWristYaw,
+    LeftGripAperture,
+    RightShoulderPitch,
+    RightShoulderRoll,
+    RightElbowFlexion,
+    RightWristYaw,
+    RightGripAperture,
+    LeftHipPitch,
+    LeftHipRoll,
+    LeftKneeFlexion,
+    LeftAnklePitch,
+    RightHipPitch,
+    RightHipRoll,
+    RightKneeFlexion,
+    RightAnklePitch,
+    VocalTractSection0Area,
+    VocalTractSection1Area,
+    VocalTractSection2Area,
+    VocalTractSection3Area,
+    VocalTractSection4Area,
+    VocalTractSection5Area,
+    VocalTractSection6Area,
+    VocalTractSection7Area,
+}
+
+pub(crate) const BODY_AXES: [BodyAxis; BODY_AXIS_COUNT] = [
+    BodyAxis::TorsoPitch,
+    BodyAxis::TorsoRoll,
+    BodyAxis::NeckYaw,
+    BodyAxis::NeckPitch,
+    BodyAxis::LeftEyeYaw,
+    BodyAxis::LeftEyePitch,
+    BodyAxis::RightEyeYaw,
+    BodyAxis::RightEyePitch,
+    BodyAxis::LeftEyelidAperture,
+    BodyAxis::RightEyelidAperture,
+    BodyAxis::LeftBrowHeight,
+    BodyAxis::RightBrowHeight,
+    BodyAxis::LeftCheekRaise,
+    BodyAxis::RightCheekRaise,
+    BodyAxis::JawOpening,
+    BodyAxis::LipAperture,
+    BodyAxis::LipWidth,
+    BodyAxis::PerioralDisplacement,
+    BodyAxis::GlottalAperture,
+    BodyAxis::LeftShoulderPitch,
+    BodyAxis::LeftShoulderRoll,
+    BodyAxis::LeftElbowFlexion,
+    BodyAxis::LeftWristYaw,
+    BodyAxis::LeftGripAperture,
+    BodyAxis::RightShoulderPitch,
+    BodyAxis::RightShoulderRoll,
+    BodyAxis::RightElbowFlexion,
+    BodyAxis::RightWristYaw,
+    BodyAxis::RightGripAperture,
+    BodyAxis::LeftHipPitch,
+    BodyAxis::LeftHipRoll,
+    BodyAxis::LeftKneeFlexion,
+    BodyAxis::LeftAnklePitch,
+    BodyAxis::RightHipPitch,
+    BodyAxis::RightHipRoll,
+    BodyAxis::RightKneeFlexion,
+    BodyAxis::RightAnklePitch,
+    BodyAxis::VocalTractSection0Area,
+    BodyAxis::VocalTractSection1Area,
+    BodyAxis::VocalTractSection2Area,
+    BodyAxis::VocalTractSection3Area,
+    BodyAxis::VocalTractSection4Area,
+    BodyAxis::VocalTractSection5Area,
+    BodyAxis::VocalTractSection6Area,
+    BodyAxis::VocalTractSection7Area,
+];
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum BodyAxisUnit {
+    Millidegree,
+    Micrometre,
+    SquareMillimetre,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[repr(u8)]
+pub(crate) enum BodyEffectorDirection {
+    TowardMinimum = 0,
+    TowardMaximum = 1,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub(crate) struct BodyEffectorTerminal {
+    axis: BodyAxis,
+    direction: BodyEffectorDirection,
+}
+
+/// One fixed proprioceptive ending paired with an antagonist body direction.
+/// This is afferent anatomy.  Its paired effector occupies the same axis and
+/// direction, but the two terminals are deliberately different types so a
+/// receptor can never become motor authority merely by being reached.
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub(crate) struct BodyProprioceptorTerminal {
+    axis: BodyAxis,
+    direction: BodyEffectorDirection,
+}
+
+impl BodyEffectorTerminal {
+    pub(crate) fn new(axis: BodyAxis, direction: BodyEffectorDirection) -> Self {
+        Self { axis, direction }
+    }
+
+    pub(crate) fn axis(self) -> BodyAxis {
+        self.axis
+    }
+
+    pub(crate) fn direction(self) -> BodyEffectorDirection {
+        self.direction
+    }
+
+    pub(crate) fn ordinal(self) -> usize {
+        self.axis.index() * 2 + self.direction as usize
+    }
+
+    pub(crate) fn from_ordinals(axis: u8, direction: u8) -> Option<Self> {
+        let axis = BODY_AXES.get(usize::from(axis)).copied()?;
+        let direction = match direction {
+            0 => BodyEffectorDirection::TowardMinimum,
+            1 => BodyEffectorDirection::TowardMaximum,
+            _ => return None,
+        };
+        Some(Self::new(axis, direction))
+    }
+}
+
+impl BodyProprioceptorTerminal {
+    pub(crate) fn new(axis: BodyAxis, direction: BodyEffectorDirection) -> Self {
+        Self { axis, direction }
+    }
+
+    pub(crate) fn axis(self) -> BodyAxis {
+        self.axis
+    }
+
+    pub(crate) fn direction(self) -> BodyEffectorDirection {
+        self.direction
+    }
+
+    pub(crate) fn ordinal(self) -> usize {
+        self.axis.index() * 2 + self.direction as usize
+    }
+
+    pub(crate) fn from_ordinals(axis: u8, direction: u8) -> Option<Self> {
+        let axis = BODY_AXES.get(usize::from(axis)).copied()?;
+        let direction = match direction {
+            0 => BodyEffectorDirection::TowardMinimum,
+            1 => BodyEffectorDirection::TowardMaximum,
+            _ => return None,
+        };
+        Some(Self::new(axis, direction))
+    }
+
+    pub(crate) fn paired_effector(self) -> BodyEffectorTerminal {
+        BodyEffectorTerminal::new(self.axis, self.direction)
+    }
+
+    pub(crate) fn proprioceptor_topology_index(self) -> usize {
+        if self.ordinal() < LEGACY_BODY_EFFECTOR_TERMINAL_COUNT {
+            BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET + self.ordinal()
+        } else {
+            ADDED_BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET
+                + self.ordinal() - LEGACY_BODY_EFFECTOR_TERMINAL_COUNT
+        }
+    }
+
+    pub(crate) fn load_topology_index(self) -> usize {
+        if self.ordinal() < LEGACY_BODY_EFFECTOR_TERMINAL_COUNT {
+            BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET + self.ordinal()
+        } else {
+            ADDED_BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET
+                + self.ordinal() - LEGACY_BODY_EFFECTOR_TERMINAL_COUNT
+        }
+    }
+
+    /// The antagonist effector on the same articulated axis. A reacted-load
+    /// ending uses this terminal for local negative force feedback: load from
+    /// a motor pushing toward one stop reaches the motor that can unload it.
+    pub(crate) fn opposing_effector(self) -> BodyEffectorTerminal {
+        let direction = match self.direction {
+            BodyEffectorDirection::TowardMinimum => BodyEffectorDirection::TowardMaximum,
+            BodyEffectorDirection::TowardMaximum => BodyEffectorDirection::TowardMinimum,
+        };
+        BodyEffectorTerminal::new(self.axis, direction)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct BodyEffectorDrive {
+    pub(crate) terminal: BodyEffectorTerminal,
+    pub(crate) outward_elementary_carriers: u128,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct AdmittedBodyEffectorDrives {
+    drives: Box<[BodyEffectorDrive]>,
+}
+
+impl AdmittedBodyEffectorDrives {
+    pub(crate) fn admit(mut drives: Vec<BodyEffectorDrive>) -> Result<Self, ArticulatedBodyError> {
+        if drives.len() > BODY_EFFECTOR_TERMINAL_COUNT
+            || drives
+                .iter()
+                .any(|drive| drive.outward_elementary_carriers == 0)
+        {
+            return Err(ArticulatedBodyError::InvalidEffectorDrives);
+        }
+        drives.sort_unstable_by_key(|drive| drive.terminal);
+        if drives
+            .windows(2)
+            .any(|pair| pair[0].terminal == pair[1].terminal)
+        {
+            return Err(ArticulatedBodyError::InvalidEffectorDrives);
+        }
+        Ok(Self {
+            drives: drives.into_boxed_slice(),
+        })
+    }
+
+    pub(crate) fn quiescent() -> Self {
+        Self {
+            drives: Box::new([]),
+        }
+    }
+
+    pub(crate) fn drives(&self) -> &[BodyEffectorDrive] {
+        &self.drives
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct BodyProprioceptiveConsequence {
+    pub(crate) axis: BodyAxis,
+    pub(crate) unit: BodyAxisUnit,
+    pub(crate) predecessor_position: i32,
+    pub(crate) successor_position: i32,
+    pub(crate) signed_displacement: i32,
+    pub(crate) toward_minimum_carriers: u128,
+    pub(crate) toward_maximum_carriers: u128,
+    pub(crate) opposed_carriers_per_terminal: u128,
+    pub(crate) applied_displacement_quanta: u128,
+    pub(crate) stalled_carriers: u128,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct ArticulatedBodyTransition {
+    pub(crate) successor: ArticulatedBodyState,
+    pub(crate) proprioceptive_consequences: Vec<BodyProprioceptiveConsequence>,
+    pub(crate) reached_terminal_count: usize,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct BodyAxisAnatomy {
+    pub(crate) axis: BodyAxis,
+    pub(crate) unit: BodyAxisUnit,
+    pub(crate) minimum: i32,
+    pub(crate) neutral: i32,
+    pub(crate) maximum: i32,
+}
+
+/// Anatomy identity is encoded in the existing GLBODY01 version field.
+/// V9 is explicitly commissioned material, never an implicit V8 migration.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum BodyAnatomyProfile {
+    V8,
+    V9,
+}
+
+impl BodyAnatomyProfile {
+    pub(crate) fn from_version(version: u16) -> Result<Self, ArticulatedBodyError> {
+        match version {
+            BODY_VERSION => Ok(Self::V8),
+            COMMISSIONED_BODY_VERSION => Ok(Self::V9),
+            _ => Err(ArticulatedBodyError::UnsupportedVersion(version)),
+        }
+    }
+
+    pub(crate) fn version(self) -> u16 {
+        match self {
+            Self::V8 => BODY_VERSION,
+            Self::V9 => COMMISSIONED_BODY_VERSION,
+        }
+    }
+
+    pub(crate) fn anatomy(self, axis: BodyAxis) -> BodyAxisAnatomy {
+        let mut anatomy = BODY_AXIS_ANATOMY[axis.index()];
+        if self == Self::V9 {
+            match axis {
+                BodyAxis::NeckPitch => {
+                    anatomy.minimum = -70_000;
+                    anatomy.maximum = 70_000;
+                }
+                BodyAxis::LeftEyeYaw | BodyAxis::LeftEyePitch
+                | BodyAxis::RightEyeYaw | BodyAxis::RightEyePitch => {
+                    anatomy.minimum = -45_000;
+                    anatomy.maximum = 45_000;
+                }
+                _ => {}
+            }
+        }
+        anatomy
+    }
+}
+
+impl BodyAxis {
+    pub(crate) fn index(self) -> usize {
+        self as usize
+    }
+
+    pub(crate) fn anatomy(self) -> BodyAxisAnatomy {
+        BODY_AXIS_ANATOMY[self.index()]
+    }
+
+    /// True only for axes that physically shape or gate the vocal tract.
+    /// This is fixed body anatomy, not a phoneme, word, action label, or
+    /// learned meaning.  Facial expression and every non-vocal limb axis are
+    /// deliberately excluded.
+    pub(crate) fn is_vocal_articulator(self) -> bool {
+        matches!(
+            self,
+            Self::JawOpening
+                | Self::LipAperture
+                | Self::LipWidth
+                | Self::PerioralDisplacement
+                | Self::GlottalAperture
+                | Self::VocalTractSection0Area
+                | Self::VocalTractSection1Area
+                | Self::VocalTractSection2Area
+                | Self::VocalTractSection3Area
+                | Self::VocalTractSection4Area
+                | Self::VocalTractSection5Area
+                | Self::VocalTractSection6Area
+                | Self::VocalTractSection7Area
+        )
+    }
+
+    /// Axes a caregiver can physically move from outside — hand-over-hand
+    /// teaching of the trunk, head, jaw and limbs — plus the acoustic
+    /// controls the guided-vocal lesson already drives. Eyes, eyelids,
+    /// brows, cheeks and lips are excluded: nobody moves those by hand.
+    /// Anatomical identity only; no target, gesture, meaning or reward.
+    pub(crate) fn is_caregiver_guidable(self) -> bool {
+        self.is_acoustic_control()
+            || matches!(
+                self,
+                Self::TorsoPitch
+                    | Self::TorsoRoll
+                    | Self::NeckYaw
+                    | Self::NeckPitch
+                    | Self::JawOpening
+                    | Self::LeftShoulderPitch
+                    | Self::LeftShoulderRoll
+                    | Self::LeftElbowFlexion
+                    | Self::LeftWristYaw
+                    | Self::LeftGripAperture
+                    | Self::RightShoulderPitch
+                    | Self::RightShoulderRoll
+                    | Self::RightElbowFlexion
+                    | Self::RightWristYaw
+                    | Self::RightGripAperture
+                    | Self::LeftHipPitch
+                    | Self::LeftHipRoll
+                    | Self::LeftKneeFlexion
+                    | Self::LeftAnklePitch
+                    | Self::RightHipPitch
+                    | Self::RightHipRoll
+                    | Self::RightKneeFlexion
+                    | Self::RightAnklePitch
+            )
+    }
+
+    /// The direct acoustic instrument uses these existing area coordinates.
+    /// This is a same-unit view, not new anatomy. Keep is_vocal_articulator
+    /// broad: historical route membership and completion also use that law.
+    pub(crate) fn is_acoustic_control(self) -> bool {
+        self == Self::GlottalAperture || self.is_vocal_tract_section()
+    }
+
+    /// True only for the eight independently movable airway sections added
+    /// after the original articulated-body axes. This is anatomical identity,
+    /// not a sound, phoneme, word, or learned target.
+    pub(crate) fn is_vocal_tract_section(self) -> bool {
+        matches!(
+            self,
+            Self::VocalTractSection0Area
+                | Self::VocalTractSection1Area
+                | Self::VocalTractSection2Area
+                | Self::VocalTractSection3Area
+                | Self::VocalTractSection4Area
+                | Self::VocalTractSection5Area
+                | Self::VocalTractSection6Area
+                | Self::VocalTractSection7Area
+        )
+    }
+
+    pub(crate) fn anatomical_name(self) -> &'static str {
+        match self {
+            Self::TorsoPitch => "torso_pitch",
+            Self::TorsoRoll => "torso_roll",
+            Self::NeckYaw => "neck_yaw",
+            Self::NeckPitch => "neck_pitch",
+            Self::LeftEyeYaw => "left_eye_yaw",
+            Self::LeftEyePitch => "left_eye_pitch",
+            Self::RightEyeYaw => "right_eye_yaw",
+            Self::RightEyePitch => "right_eye_pitch",
+            Self::LeftEyelidAperture => "left_eyelid_aperture",
+            Self::RightEyelidAperture => "right_eyelid_aperture",
+            Self::LeftBrowHeight => "left_brow_height",
+            Self::RightBrowHeight => "right_brow_height",
+            Self::LeftCheekRaise => "left_cheek_raise",
+            Self::RightCheekRaise => "right_cheek_raise",
+            Self::JawOpening => "jaw_opening",
+            Self::LipAperture => "lip_aperture",
+            Self::LipWidth => "lip_width",
+            Self::PerioralDisplacement => "perioral_displacement",
+            Self::GlottalAperture => "glottal_aperture",
+            Self::LeftShoulderPitch => "left_shoulder_pitch",
+            Self::LeftShoulderRoll => "left_shoulder_roll",
+            Self::LeftElbowFlexion => "left_elbow_flexion",
+            Self::LeftWristYaw => "left_wrist_yaw",
+            Self::LeftGripAperture => "left_grip_aperture",
+            Self::RightShoulderPitch => "right_shoulder_pitch",
+            Self::RightShoulderRoll => "right_shoulder_roll",
+            Self::RightElbowFlexion => "right_elbow_flexion",
+            Self::RightWristYaw => "right_wrist_yaw",
+            Self::RightGripAperture => "right_grip_aperture",
+            Self::LeftHipPitch => "left_hip_pitch",
+            Self::LeftHipRoll => "left_hip_roll",
+            Self::LeftKneeFlexion => "left_knee_flexion",
+            Self::LeftAnklePitch => "left_ankle_pitch",
+            Self::RightHipPitch => "right_hip_pitch",
+            Self::RightHipRoll => "right_hip_roll",
+            Self::RightKneeFlexion => "right_knee_flexion",
+            Self::RightAnklePitch => "right_ankle_pitch",
+            Self::VocalTractSection0Area => "vocal_tract_section_0_area",
+            Self::VocalTractSection1Area => "vocal_tract_section_1_area",
+            Self::VocalTractSection2Area => "vocal_tract_section_2_area",
+            Self::VocalTractSection3Area => "vocal_tract_section_3_area",
+            Self::VocalTractSection4Area => "vocal_tract_section_4_area",
+            Self::VocalTractSection5Area => "vocal_tract_section_5_area",
+            Self::VocalTractSection6Area => "vocal_tract_section_6_area",
+            Self::VocalTractSection7Area => "vocal_tract_section_7_area",
+        }
+    }
+}
+
+impl BodyAxisUnit {
+    pub(crate) fn physical_name(self) -> &'static str {
+        match self {
+            Self::Millidegree => "millidegree",
+            Self::Micrometre => "micrometre",
+            Self::SquareMillimetre => "square_millimetre",
+        }
+    }
+}
+
+const fn anatomy(
+    axis: BodyAxis,
+    unit: BodyAxisUnit,
+    minimum: i32,
+    neutral: i32,
+    maximum: i32,
+) -> BodyAxisAnatomy {
+    BodyAxisAnatomy {
+        axis,
+        unit,
+        minimum,
+        neutral,
+        maximum,
+    }
+}
+
+pub(crate) const BODY_AXIS_ANATOMY: [BodyAxisAnatomy; BODY_AXIS_COUNT] = [
+    anatomy(
+        BodyAxis::TorsoPitch,
+        BodyAxisUnit::Millidegree,
+        -30_000,
+        0,
+        45_000,
+    ),
+    anatomy(
+        BodyAxis::TorsoRoll,
+        BodyAxisUnit::Millidegree,
+        -25_000,
+        0,
+        25_000,
+    ),
+    anatomy(
+        BodyAxis::NeckYaw,
+        BodyAxisUnit::Millidegree,
+        -75_000,
+        0,
+        75_000,
+    ),
+    anatomy(
+        BodyAxis::NeckPitch,
+        BodyAxisUnit::Millidegree,
+        -35_000,
+        0,
+        45_000,
+    ),
+    anatomy(
+        BodyAxis::LeftEyeYaw,
+        BodyAxisUnit::Millidegree,
+        -35_000,
+        0,
+        35_000,
+    ),
+    anatomy(
+        BodyAxis::LeftEyePitch,
+        BodyAxisUnit::Millidegree,
+        -25_000,
+        0,
+        25_000,
+    ),
+    anatomy(
+        BodyAxis::RightEyeYaw,
+        BodyAxisUnit::Millidegree,
+        -35_000,
+        0,
+        35_000,
+    ),
+    anatomy(
+        BodyAxis::RightEyePitch,
+        BodyAxisUnit::Millidegree,
+        -25_000,
+        0,
+        25_000,
+    ),
+    anatomy(
+        BodyAxis::LeftEyelidAperture,
+        BodyAxisUnit::Micrometre,
+        0,
+        10_000,
+        12_000,
+    ),
+    anatomy(
+        BodyAxis::RightEyelidAperture,
+        BodyAxisUnit::Micrometre,
+        0,
+        10_000,
+        12_000,
+    ),
+    anatomy(
+        BodyAxis::LeftBrowHeight,
+        BodyAxisUnit::Micrometre,
+        -5_000,
+        0,
+        5_000,
+    ),
+    anatomy(
+        BodyAxis::RightBrowHeight,
+        BodyAxisUnit::Micrometre,
+        -5_000,
+        0,
+        5_000,
+    ),
+    anatomy(
+        BodyAxis::LeftCheekRaise,
+        BodyAxisUnit::Micrometre,
+        0,
+        0,
+        8_000,
+    ),
+    anatomy(
+        BodyAxis::RightCheekRaise,
+        BodyAxisUnit::Micrometre,
+        0,
+        0,
+        8_000,
+    ),
+    anatomy(BodyAxis::JawOpening, BodyAxisUnit::Micrometre, 0, 0, 35_000),
+    anatomy(
+        BodyAxis::LipAperture,
+        BodyAxisUnit::Micrometre,
+        0,
+        0,
+        20_000,
+    ),
+    anatomy(
+        BodyAxis::LipWidth,
+        BodyAxisUnit::Micrometre,
+        25_000,
+        45_000,
+        60_000,
+    ),
+    anatomy(
+        BodyAxis::PerioralDisplacement,
+        BodyAxisUnit::Micrometre,
+        -10_000,
+        0,
+        10_000,
+    ),
+    anatomy(
+        BodyAxis::GlottalAperture,
+        BodyAxisUnit::SquareMillimetre,
+        20,
+        80,
+        400,
+    ),
+    anatomy(
+        BodyAxis::LeftShoulderPitch,
+        BodyAxisUnit::Millidegree,
+        -180_000,
+        0,
+        180_000,
+    ),
+    anatomy(
+        BodyAxis::LeftShoulderRoll,
+        BodyAxisUnit::Millidegree,
+        -90_000,
+        0,
+        90_000,
+    ),
+    anatomy(
+        BodyAxis::LeftElbowFlexion,
+        BodyAxisUnit::Millidegree,
+        0,
+        0,
+        150_000,
+    ),
+    anatomy(
+        BodyAxis::LeftWristYaw,
+        BodyAxisUnit::Millidegree,
+        -90_000,
+        0,
+        90_000,
+    ),
+    anatomy(
+        BodyAxis::LeftGripAperture,
+        BodyAxisUnit::Micrometre,
+        0,
+        60_000,
+        60_000,
+    ),
+    anatomy(
+        BodyAxis::RightShoulderPitch,
+        BodyAxisUnit::Millidegree,
+        -180_000,
+        0,
+        180_000,
+    ),
+    anatomy(
+        BodyAxis::RightShoulderRoll,
+        BodyAxisUnit::Millidegree,
+        -90_000,
+        0,
+        90_000,
+    ),
+    anatomy(
+        BodyAxis::RightElbowFlexion,
+        BodyAxisUnit::Millidegree,
+        0,
+        0,
+        150_000,
+    ),
+    anatomy(
+        BodyAxis::RightWristYaw,
+        BodyAxisUnit::Millidegree,
+        -90_000,
+        0,
+        90_000,
+    ),
+    anatomy(
+        BodyAxis::RightGripAperture,
+        BodyAxisUnit::Micrometre,
+        0,
+        60_000,
+        60_000,
+    ),
+    anatomy(
+        BodyAxis::LeftHipPitch,
+        BodyAxisUnit::Millidegree,
+        -120_000,
+        0,
+        45_000,
+    ),
+    anatomy(
+        BodyAxis::LeftHipRoll,
+        BodyAxisUnit::Millidegree,
+        -45_000,
+        0,
+        45_000,
+    ),
+    anatomy(
+        BodyAxis::LeftKneeFlexion,
+        BodyAxisUnit::Millidegree,
+        0,
+        0,
+        150_000,
+    ),
+    anatomy(
+        BodyAxis::LeftAnklePitch,
+        BodyAxisUnit::Millidegree,
+        -45_000,
+        0,
+        45_000,
+    ),
+    anatomy(
+        BodyAxis::RightHipPitch,
+        BodyAxisUnit::Millidegree,
+        -120_000,
+        0,
+        45_000,
+    ),
+    anatomy(
+        BodyAxis::RightHipRoll,
+        BodyAxisUnit::Millidegree,
+        -45_000,
+        0,
+        45_000,
+    ),
+    anatomy(
+        BodyAxis::RightKneeFlexion,
+        BodyAxisUnit::Millidegree,
+        0,
+        0,
+        150_000,
+    ),
+    anatomy(
+        BodyAxis::RightAnklePitch,
+        BodyAxisUnit::Millidegree,
+        -45_000,
+        0,
+        45_000,
+    ),
+    anatomy(
+        BodyAxis::VocalTractSection0Area,
+        BodyAxisUnit::SquareMillimetre,
+        MIN_TRACT_AREA_SQUARE_MILLIMETRES,
+        NEUTRAL_TRACT_AREAS_SQUARE_MILLIMETRES[0],
+        MAX_TRACT_AREA_SQUARE_MILLIMETRES,
+    ),
+    anatomy(
+        BodyAxis::VocalTractSection1Area,
+        BodyAxisUnit::SquareMillimetre,
+        MIN_TRACT_AREA_SQUARE_MILLIMETRES,
+        NEUTRAL_TRACT_AREAS_SQUARE_MILLIMETRES[1],
+        MAX_TRACT_AREA_SQUARE_MILLIMETRES,
+    ),
+    anatomy(
+        BodyAxis::VocalTractSection2Area,
+        BodyAxisUnit::SquareMillimetre,
+        MIN_TRACT_AREA_SQUARE_MILLIMETRES,
+        NEUTRAL_TRACT_AREAS_SQUARE_MILLIMETRES[2],
+        MAX_TRACT_AREA_SQUARE_MILLIMETRES,
+    ),
+    anatomy(
+        BodyAxis::VocalTractSection3Area,
+        BodyAxisUnit::SquareMillimetre,
+        MIN_TRACT_AREA_SQUARE_MILLIMETRES,
+        NEUTRAL_TRACT_AREAS_SQUARE_MILLIMETRES[3],
+        MAX_TRACT_AREA_SQUARE_MILLIMETRES,
+    ),
+    anatomy(
+        BodyAxis::VocalTractSection4Area,
+        BodyAxisUnit::SquareMillimetre,
+        MIN_TRACT_AREA_SQUARE_MILLIMETRES,
+        NEUTRAL_TRACT_AREAS_SQUARE_MILLIMETRES[4],
+        MAX_TRACT_AREA_SQUARE_MILLIMETRES,
+    ),
+    anatomy(
+        BodyAxis::VocalTractSection5Area,
+        BodyAxisUnit::SquareMillimetre,
+        MIN_TRACT_AREA_SQUARE_MILLIMETRES,
+        NEUTRAL_TRACT_AREAS_SQUARE_MILLIMETRES[5],
+        MAX_TRACT_AREA_SQUARE_MILLIMETRES,
+    ),
+    anatomy(
+        BodyAxis::VocalTractSection6Area,
+        BodyAxisUnit::SquareMillimetre,
+        MIN_TRACT_AREA_SQUARE_MILLIMETRES,
+        NEUTRAL_TRACT_AREAS_SQUARE_MILLIMETRES[6],
+        MAX_TRACT_AREA_SQUARE_MILLIMETRES,
+    ),
+    anatomy(
+        BodyAxis::VocalTractSection7Area,
+        BodyAxisUnit::SquareMillimetre,
+        MIN_TRACT_AREA_SQUARE_MILLIMETRES,
+        NEUTRAL_TRACT_AREAS_SQUARE_MILLIMETRES[7],
+        MAX_TRACT_AREA_SQUARE_MILLIMETRES,
+    ),
+];
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum ArticulatedBodyError {
+    InvalidLength,
+    InvalidMagic,
+    UnsupportedVersion(u16),
+    InvalidAcousticVariant,
+    InvalidAcousticPadding,
+    RespiratoryWorkOutsideAnatomy,
+    AxisOutsideAnatomy(BodyAxis),
+    LungAirOutsideAnatomy,
+    VocalTractOutsideAnatomy(usize),
+    InvalidEffectorDrives,
+    InvalidSettlementDuration,
+    ActivationOutsideAnatomy(BodyEffectorTerminal),
+    EffectorArithmeticWidth,
+    TrailingBytes,
+}
+
+/// Settle one already-admitted sparse terminal frontier into the body's fixed
+/// antagonist tissue. One carrier admits one 32-unit activation preparation;
+/// activation and position then relax on the exact 1-ms body clock. Opposed
+/// new carriers meet locally. Capacity-exceeding carriers are reacted load.
+/// The fixed 45-axis scan has no history, neuron scan, target pose, or control
+/// surface outside the persisted body.
+pub(crate) fn settle_body_effector_drives(
+    predecessor: &ArticulatedBodyState,
+    admitted: &AdmittedBodyEffectorDrives,
+    elapsed_microseconds: u64,
+) -> Result<ArticulatedBodyTransition, ArticulatedBodyError> {
+    if elapsed_microseconds == 0
+        || elapsed_microseconds % BODY_SETTLEMENT_CLOCK_MICROSECONDS != 0
+        || elapsed_microseconds / BODY_SETTLEMENT_CLOCK_MICROSECONDS
+            > MAX_BODY_SETTLEMENT_MILLISECONDS
+    {
+        return Err(ArticulatedBodyError::InvalidSettlementDuration);
+    }
+    let elapsed_milliseconds =
+        usize::try_from(elapsed_microseconds / BODY_SETTLEMENT_CLOCK_MICROSECONDS)
+            .map_err(|_| ArticulatedBodyError::EffectorArithmeticWidth)?;
+    let mut successor = predecessor.clone();
+    let mut toward_minimum_by_axis = [0_u128; BODY_AXIS_COUNT];
+    let mut toward_maximum_by_axis = [0_u128; BODY_AXIS_COUNT];
+    for drive in admitted.drives() {
+        let destination = match drive.terminal.direction() {
+            BodyEffectorDirection::TowardMinimum => {
+                &mut toward_minimum_by_axis[drive.terminal.axis().index()]
+            }
+            BodyEffectorDirection::TowardMaximum => {
+                &mut toward_maximum_by_axis[drive.terminal.axis().index()]
+            }
+        };
+        *destination = drive.outward_elementary_carriers;
+    }
+    let mut stalled_by_axis = [0_u128; BODY_AXIS_COUNT];
+    for axis in BODY_AXES {
+        let toward_minimum = toward_minimum_by_axis[axis.index()];
+        let toward_maximum = toward_maximum_by_axis[axis.index()];
+        let (direction, unopposed) = if toward_minimum > toward_maximum {
+            (
+                BodyEffectorDirection::TowardMinimum,
+                toward_minimum - toward_maximum,
+            )
+        } else {
+            (
+                BodyEffectorDirection::TowardMaximum,
+                toward_maximum - toward_minimum,
+            )
+        };
+        if unopposed == 0 {
+            continue;
+        }
+        let terminal = BodyEffectorTerminal::new(axis, direction);
+        let capacity = u128::from(activation_capacity(successor.profile, terminal));
+        let present = u128::from(successor.antagonist_activation[terminal.ordinal()]);
+        let available = capacity
+            .checked_sub(present)
+            .ok_or(ArticulatedBodyError::ActivationOutsideAnatomy(terminal))?;
+        let admitted_carriers =
+            unopposed.min(available / u128::from(ANTAGONIST_ACTIVATION_LIFETIME_MILLISECONDS));
+        let added_activation = admitted_carriers
+            .checked_mul(u128::from(ANTAGONIST_ACTIVATION_LIFETIME_MILLISECONDS))
+            .ok_or(ArticulatedBodyError::EffectorArithmeticWidth)?;
+        successor.antagonist_activation[terminal.ordinal()] = u32::try_from(
+            present
+                .checked_add(added_activation)
+                .ok_or(ArticulatedBodyError::EffectorArithmeticWidth)?,
+        )
+        .map_err(|_| ArticulatedBodyError::EffectorArithmeticWidth)?;
+        stalled_by_axis[axis.index()] = unopposed - admitted_carriers;
+    }
+
+    let predecessor_positions = predecessor.axes;
+    for _ in 0..elapsed_milliseconds {
+        for axis in BODY_AXES {
+            let minimum_terminal =
+                BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMinimum);
+            let maximum_terminal =
+                BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMaximum);
+            let minimum_activation =
+                whole_activation(successor.antagonist_activation[minimum_terminal.ordinal()]);
+            let maximum_activation =
+                whole_activation(successor.antagonist_activation[maximum_terminal.ordinal()]);
+            let anatomy = successor.anatomy(axis);
+            let equilibrium = i64::from(anatomy.neutral)
+                .checked_add(i64::from(maximum_activation))
+                .and_then(|value| value.checked_sub(i64::from(minimum_activation)))
+                .ok_or(ArticulatedBodyError::EffectorArithmeticWidth)?
+                .clamp(i64::from(anatomy.minimum), i64::from(anatomy.maximum));
+            let position = i64::from(successor.axes[axis.index()]);
+            let gap = equilibrium - position;
+            if gap != 0 {
+                let step = ceil_div_u64(
+                    gap.unsigned_abs(),
+                    u64::from(ANTAGONIST_RESPONSE_MILLISECONDS),
+                );
+                let signed_step = i64::try_from(step)
+                    .map_err(|_| ArticulatedBodyError::EffectorArithmeticWidth)?
+                    * if gap < 0 { -1 } else { 1 };
+                successor.axes[axis.index()] = i32::try_from(position + signed_step)
+                    .map_err(|_| ArticulatedBodyError::EffectorArithmeticWidth)?;
+            }
+            for terminal in [minimum_terminal, maximum_terminal] {
+                let activation = successor.antagonist_activation[terminal.ordinal()];
+                let decay = whole_activation(activation);
+                successor.antagonist_activation[terminal.ordinal()] =
+                    activation.saturating_sub(decay);
+            }
+        }
+    }
+
+    let mut consequences = Vec::new();
+    consequences
+        .try_reserve_exact(BODY_AXIS_COUNT)
+        .map_err(|_| ArticulatedBodyError::EffectorArithmeticWidth)?;
+    for axis in BODY_AXES {
+        let toward_minimum = toward_minimum_by_axis[axis.index()];
+        let toward_maximum = toward_maximum_by_axis[axis.index()];
+        let opposed = toward_minimum.min(toward_maximum);
+        let anatomy = successor.anatomy(axis);
+        let predecessor_position = predecessor_positions[axis.index()];
+        let successor_position = successor.axes[axis.index()];
+        let signed_displacement = successor_position
+            .checked_sub(predecessor_position)
+            .ok_or(ArticulatedBodyError::EffectorArithmeticWidth)?;
+        if signed_displacement == 0 && toward_minimum == 0 && toward_maximum == 0 {
+            continue;
+        }
+        consequences.push(BodyProprioceptiveConsequence {
+            axis,
+            unit: anatomy.unit,
+            predecessor_position,
+            successor_position,
+            signed_displacement,
+            toward_minimum_carriers: toward_minimum,
+            toward_maximum_carriers: toward_maximum,
+            opposed_carriers_per_terminal: opposed,
+            applied_displacement_quanta: u128::from(signed_displacement.unsigned_abs()),
+            stalled_carriers: stalled_by_axis[axis.index()],
+        });
+    }
+    successor.validate()?;
+    Ok(ArticulatedBodyTransition {
+        successor,
+        proprioceptive_consequences: consequences,
+        reached_terminal_count: admitted.drives.len(),
+    })
+}
+
+fn whole_activation(activation: u32) -> u32 {
+    if activation == 0 {
+        0
+    } else {
+        1 + (activation - 1) / ANTAGONIST_ACTIVATION_LIFETIME_MILLISECONDS
+    }
+}
+
+fn ceil_div_u64(numerator: u64, denominator: u64) -> u64 {
+    if numerator == 0 {
+        0
+    } else {
+        1 + (numerator - 1) / denominator
+    }
+}
+
+fn activation_capacity(profile: BodyAnatomyProfile, terminal: BodyEffectorTerminal) -> u32 {
+    let anatomy = profile.anatomy(terminal.axis());
+    let span = match terminal.direction() {
+        BodyEffectorDirection::TowardMinimum => anatomy.neutral - anatomy.minimum,
+        BodyEffectorDirection::TowardMaximum => anatomy.maximum - anatomy.neutral,
+    };
+    u32::try_from(span)
+        .expect("validated body span is nonnegative")
+        .checked_mul(ANTAGONIST_ACTIVATION_LIFETIME_MILLISECONDS)
+        .expect("declared body activation capacity fits u32")
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct ArticulatedBodyState {
+    profile: BodyAnatomyProfile,
+    axes: [i32; BODY_AXIS_COUNT],
+    lung_air_microlitres: u32,
+    proprioception_initialized: bool,
+    articulatory_acoustic: ArticulatoryAcousticState,
+    antagonist_activation: [u32; BODY_EFFECTOR_TERMINAL_COUNT],
+}
+
+impl ArticulatedBodyState {
+    pub(crate) fn at_neutral() -> Self {
+        let mut axes = [0_i32; BODY_AXIS_COUNT];
+        for axis in BODY_AXES {
+            axes[axis.index()] = axis.anatomy().neutral;
+        }
+        Self {
+            profile: BodyAnatomyProfile::V8,
+            axes,
+            lung_air_microlitres: NEUTRAL_LUNG_AIR_MICROLITRES,
+            proprioception_initialized: false,
+            articulatory_acoustic: ArticulatoryAcousticState::at_rest(),
+            antagonist_activation: [0; BODY_EFFECTOR_TERMINAL_COUNT],
+        }
+    }
+
+    pub(crate) fn from_physical_state(
+        axes: [i32; BODY_AXIS_COUNT],
+        lung_air_microlitres: u32,
+        proprioception_initialized: bool,
+    ) -> Result<Self, ArticulatedBodyError> {
+        let state = Self {
+            profile: BodyAnatomyProfile::V8,
+            axes,
+            lung_air_microlitres,
+            proprioception_initialized,
+            articulatory_acoustic: ArticulatoryAcousticState::at_rest(),
+            antagonist_activation: [0; BODY_EFFECTOR_TERMINAL_COUNT],
+        };
+        state.validate()?;
+        Ok(state)
+    }
+
+    /// Commission V9 with the eight actual neck/eye/lid positions at axes
+    /// 2..9. Every other coordinate and the tissue/pressure organ are new
+    /// neutral material; this does not reconstruct a mature body or its work.
+    pub(crate) fn commission_v9(known_positions: [i32; 8]) -> Result<Self, ArticulatedBodyError> {
+        let mut state = Self::at_neutral();
+        state.profile = BodyAnatomyProfile::V9;
+        state.axes[2..10].copy_from_slice(&known_positions);
+        state.validate()?;
+        Ok(state)
+    }
+
+    pub(crate) fn profile(&self) -> BodyAnatomyProfile {
+        self.profile
+    }
+
+    pub(crate) fn anatomy(&self, axis: BodyAxis) -> BodyAxisAnatomy {
+        self.profile.anatomy(axis)
+    }
+
+    pub(crate) fn axis(&self, axis: BodyAxis) -> i32 {
+        self.axes[axis.index()]
+    }
+
+    pub(crate) fn axes(&self) -> &[i32; BODY_AXIS_COUNT] {
+        &self.axes
+    }
+
+    pub(crate) fn lung_air_microlitres(&self) -> u32 {
+        self.lung_air_microlitres
+    }
+
+    pub(crate) fn vocal_tract_areas_square_millimetres(
+        &self,
+    ) -> [i32; VOCAL_TRACT_SECTION_COUNT] {
+        self.axes[LEGACY_BODY_AXIS_COUNT..BODY_AXIS_COUNT]
+            .try_into()
+            .expect("the eight tract axes are contiguous")
+    }
+
+    pub(crate) fn proprioception_initialized(&self) -> bool {
+        self.proprioception_initialized
+    }
+
+    pub(crate) fn articulatory_acoustic_state(&self) -> ArticulatoryAcousticState {
+        self.articulatory_acoustic
+    }
+
+    /// The acoustic body is at rest only after its pressure coordinates have
+    /// settled and a below-equilibrium lung has taken its displaced ambient
+    /// air back in.  This keeps respiration on the native body clock instead
+    /// of making a shell timer or observer responsible for refilling it.
+    pub(crate) fn articulatory_system_is_quiescent(&self) -> bool {
+        self.articulatory_acoustic.is_quiescent()
+            && self.lung_air_microlitres == NEUTRAL_LUNG_AIR_MICROLITRES
+    }
+
+    pub(crate) fn antagonist_activation(&self, terminal: BodyEffectorTerminal) -> u32 {
+        self.antagonist_activation[terminal.ordinal()]
+    }
+
+    pub(crate) fn with_articulatory_acoustic_state(
+        mut self,
+        state: ArticulatoryAcousticState,
+    ) -> Result<Self, ArticulatedBodyError> {
+        self.articulatory_acoustic = state;
+        self.validate()?;
+        Ok(self)
+    }
+
+    /// Commit the inseparable acoustic and pulmonary successor of one
+    /// respiratory interval. Air volume is body matter, not observer state;
+    /// the same local transition that moved the air owns both successors.
+    pub(crate) fn with_respiratory_successor(
+        mut self,
+        state: ArticulatoryAcousticState,
+        lung_air_microlitres: u32,
+    ) -> Result<Self, ArticulatedBodyError> {
+        self.articulatory_acoustic = state;
+        self.lung_air_microlitres = lung_air_microlitres;
+        self.validate()?;
+        Ok(self)
+    }
+
+    pub(crate) fn initialize_proprioception(&mut self) {
+        self.proprioception_initialized = true;
+    }
+
+    /// Preserve the exact physical body while requiring its complete current
+    /// configuration to enter proprioception on the next lived interval.
+    /// Used only by an explicit one-way migration when newly mounted innate
+    /// sensorimotor anatomy must receive the body it now serves.
+    pub(crate) fn requiring_proprioceptive_observation(mut self) -> Self {
+        self.proprioception_initialized = false;
+        self
+    }
+
+    pub(crate) fn resident_bytes() -> usize {
+        ARTICULATED_BODY_STATE_BYTES
+    }
+
+    /// Return the exact encoded width declared by the body's own header.
+    ///
+    /// The resident-organism envelope calls this before slicing the body out
+    /// of a larger fabric. Keeping the version-to-width mapping here prevents
+    /// an outer format migration from mistaking a lawful predecessor body for
+    /// the current wider body and consuming bytes that belong to the next
+    /// field.
+    pub(crate) fn encoded_length_from_prefix(
+        encoded: &[u8],
+    ) -> Result<usize, ArticulatedBodyError> {
+        if encoded.len() < HEADER_BYTES {
+            return Err(ArticulatedBodyError::InvalidLength);
+        }
+        if &encoded[..BODY_MAGIC.len()] != BODY_MAGIC {
+            return Err(ArticulatedBodyError::InvalidMagic);
+        }
+        let version = u16::from_be_bytes(
+            encoded[BODY_MAGIC.len()..HEADER_BYTES]
+                .try_into()
+                .expect("fixed version width"),
+        );
+        match version {
+            LEGACY_BODY_VERSION
+            | PREVIOUS_BODY_VERSION
+            | PREVIOUS_PROPRIOCEPTIVE_BODY_VERSION => {
+                Ok(PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES)
+            }
+            PREVIOUS_ACOUSTIC_BODY_VERSION => {
+                Ok(PREVIOUS_ACOUSTIC_ARTICULATED_BODY_STATE_BYTES)
+            }
+            PREVIOUS_PHONATORY_BODY_VERSION => {
+                Ok(PREVIOUS_PHONATORY_ARTICULATED_BODY_STATE_BYTES)
+            }
+            PREVIOUS_SPECTRAL_BODY_VERSION => {
+                Ok(PREVIOUS_SPECTRAL_ARTICULATED_BODY_STATE_BYTES)
+            }
+            PREVIOUS_DAMPINGLESS_BODY_VERSION => {
+                Ok(PREVIOUS_DAMPINGLESS_ARTICULATED_BODY_STATE_BYTES)
+            }
+            BODY_VERSION | COMMISSIONED_BODY_VERSION => Ok(ARTICULATED_BODY_STATE_BYTES),
+            _ => Err(ArticulatedBodyError::UnsupportedVersion(version)),
+        }
+    }
+
+    pub(crate) fn encode(
+        &self,
+    ) -> Result<[u8; ARTICULATED_BODY_STATE_BYTES], ArticulatedBodyError> {
+        self.validate()?;
+        let mut encoded = [0_u8; ARTICULATED_BODY_STATE_BYTES];
+        let mut cursor = 0usize;
+        encoded[cursor..cursor + BODY_MAGIC.len()].copy_from_slice(BODY_MAGIC);
+        cursor += BODY_MAGIC.len();
+        encoded[cursor..cursor + size_of::<u16>()].copy_from_slice(&self.profile.version().to_be_bytes());
+        cursor += size_of::<u16>();
+        for value in self.axes {
+            encoded[cursor..cursor + size_of::<i32>()].copy_from_slice(&value.to_be_bytes());
+            cursor += size_of::<i32>();
+        }
+        encoded[cursor..cursor + size_of::<u32>()]
+            .copy_from_slice(&self.lung_air_microlitres.to_be_bytes());
+        cursor += size_of::<u32>();
+        encoded[cursor] = u8::from(self.proprioception_initialized);
+        cursor += size_of::<u8>();
+        match self.articulatory_acoustic {
+            ArticulatoryAcousticState::LegacyV6(state) => {
+                encoded[cursor] = 0;
+                cursor += size_of::<u8>();
+                for value in state
+                    .right_traveling_pressure
+                    .into_iter()
+                    .chain(state.left_traveling_pressure)
+                    .chain(state.surface_displacement)
+                    .chain(state.surface_previous_displacement)
+                {
+                    encoded[cursor..cursor + size_of::<i32>()]
+                        .copy_from_slice(&value.to_be_bytes());
+                    cursor += size_of::<i32>();
+                }
+                cursor += SPECTRAL_ARTICULATORY_ACOUSTIC_PAYLOAD_BYTES
+                    - PREVIOUS_SPECTRAL_ARTICULATORY_ACOUSTIC_STATE_BYTES;
+            }
+            ArticulatoryAcousticState::Spectral(state) => {
+                encoded[cursor] = 1;
+                cursor += size_of::<u8>();
+                for value in state
+                    .fold_displacement
+                    .into_iter()
+                    .chain(state.fold_previous_displacement)
+                {
+                    encoded[cursor..cursor + size_of::<i32>()]
+                        .copy_from_slice(&value.to_be_bytes());
+                    cursor += size_of::<i32>();
+                }
+                encoded[cursor..cursor + size_of::<i64>()]
+                    .copy_from_slice(&state.respiratory_work_remaining.to_be_bytes());
+                cursor += size_of::<i64>();
+                for value in [state.expiratory_volume_remainder_sixteenths_microlitre]
+                    .into_iter()
+                    .chain(state.source_loss)
+                    .chain(state.mode_displacement)
+                    .chain(state.mode_previous_displacement)
+                    .chain(state.fluid_cells)
+                    .chain(state.lip_low_pass)
+                    .chain(state.band_limit)
+                {
+                    encoded[cursor..cursor + size_of::<i32>()]
+                        .copy_from_slice(&value.to_be_bytes());
+                    cursor += size_of::<i32>();
+                }
+            }
+        }
+        for activation in self.antagonist_activation {
+            encoded[cursor..cursor + size_of::<u32>()].copy_from_slice(&activation.to_be_bytes());
+            cursor += size_of::<u32>();
+        }
+        debug_assert_eq!(cursor, ARTICULATED_BODY_STATE_BYTES);
+        Ok(encoded)
+    }
+
+    pub(crate) fn decode(encoded: &[u8]) -> Result<Self, ArticulatedBodyError> {
+        if encoded.len() != Self::encoded_length_from_prefix(encoded)? {
+            return Err(ArticulatedBodyError::InvalidLength);
+        }
+        let mut cursor = 0usize;
+        if &encoded[cursor..cursor + BODY_MAGIC.len()] != BODY_MAGIC {
+            return Err(ArticulatedBodyError::InvalidMagic);
+        }
+        cursor += BODY_MAGIC.len();
+        let version = u16::from_be_bytes(
+            encoded[cursor..cursor + size_of::<u16>()]
+                .try_into()
+                .expect("fixed version width"),
+        );
+        cursor += size_of::<u16>();
+        if (matches!(version, BODY_VERSION | COMMISSIONED_BODY_VERSION)
+            && encoded.len() != ARTICULATED_BODY_STATE_BYTES)
+            || (version == PREVIOUS_DAMPINGLESS_BODY_VERSION
+                && encoded.len() != PREVIOUS_DAMPINGLESS_ARTICULATED_BODY_STATE_BYTES)
+            || (version == PREVIOUS_SPECTRAL_BODY_VERSION
+                && encoded.len() != PREVIOUS_SPECTRAL_ARTICULATED_BODY_STATE_BYTES)
+            || (version == PREVIOUS_PHONATORY_BODY_VERSION
+                && encoded.len() != PREVIOUS_PHONATORY_ARTICULATED_BODY_STATE_BYTES)
+            || (version == PREVIOUS_ACOUSTIC_BODY_VERSION
+                && encoded.len() != PREVIOUS_ACOUSTIC_ARTICULATED_BODY_STATE_BYTES)
+            || (version < PREVIOUS_ACOUSTIC_BODY_VERSION
+                && encoded.len() != PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES)
+        {
+            return Err(ArticulatedBodyError::InvalidLength);
+        }
+        let mut axes = [0_i32; BODY_AXIS_COUNT];
+        let encoded_axis_count = match version {
+            LEGACY_BODY_VERSION => LEGACY_BODY_AXIS_COUNT,
+            PREVIOUS_BODY_VERSION
+            | PREVIOUS_PROPRIOCEPTIVE_BODY_VERSION
+            | PREVIOUS_ACOUSTIC_BODY_VERSION
+            | PREVIOUS_PHONATORY_BODY_VERSION
+            | PREVIOUS_SPECTRAL_BODY_VERSION
+            | PREVIOUS_DAMPINGLESS_BODY_VERSION
+            | BODY_VERSION | COMMISSIONED_BODY_VERSION => BODY_AXIS_COUNT,
+            _ => return Err(ArticulatedBodyError::UnsupportedVersion(version)),
+        };
+        for value in axes.iter_mut().take(encoded_axis_count) {
+            *value = i32::from_be_bytes(
+                encoded[cursor..cursor + size_of::<i32>()]
+                    .try_into()
+                    .expect("fixed axis width"),
+            );
+            cursor += size_of::<i32>();
+        }
+        let lung_air_microlitres = u32::from_be_bytes(
+            encoded[cursor..cursor + size_of::<u32>()]
+                .try_into()
+                .expect("fixed lung-air width"),
+        );
+        cursor += size_of::<u32>();
+        if version == LEGACY_BODY_VERSION {
+            for value in axes
+                .iter_mut()
+                .skip(LEGACY_BODY_AXIS_COUNT)
+                .take(VOCAL_TRACT_SECTION_COUNT)
+            {
+                *value = i32::from_be_bytes(
+                    encoded[cursor..cursor + size_of::<i32>()]
+                        .try_into()
+                        .expect("fixed legacy tract-area width"),
+                );
+                cursor += size_of::<i32>();
+            }
+        }
+        let persisted_proprioception_initialized = match encoded[cursor] {
+            0 => false,
+            1 => true,
+            _ => return Err(ArticulatedBodyError::TrailingBytes),
+        };
+        cursor += size_of::<u8>();
+        let articulatory_acoustic =
+            if matches!(version, PREVIOUS_DAMPINGLESS_BODY_VERSION | BODY_VERSION | COMMISSIONED_BODY_VERSION) {
+                let variant = encoded[cursor];
+                cursor += size_of::<u8>();
+                if variant == 0 {
+                    let mut right_traveling_pressure = [0_i32; VOCAL_TRACT_SECTION_COUNT];
+                    for value in &mut right_traveling_pressure {
+                        *value = take_body_i32(encoded, &mut cursor);
+                    }
+                    let mut left_traveling_pressure = [0_i32; VOCAL_TRACT_SECTION_COUNT];
+                    for value in &mut left_traveling_pressure {
+                        *value = take_body_i32(encoded, &mut cursor);
+                    }
+                    let mut surface_displacement = [0_i32; ACOUSTIC_TRANSDUCER_SURFACE_COUNT];
+                    for value in &mut surface_displacement {
+                        *value = take_body_i32(encoded, &mut cursor);
+                    }
+                    let mut surface_previous_displacement =
+                        [0_i32; ACOUSTIC_TRANSDUCER_SURFACE_COUNT];
+                    for value in &mut surface_previous_displacement {
+                        *value = take_body_i32(encoded, &mut cursor);
+                    }
+                    let padding = SPECTRAL_ARTICULATORY_ACOUSTIC_PAYLOAD_BYTES
+                        - PREVIOUS_SPECTRAL_ARTICULATORY_ACOUSTIC_STATE_BYTES;
+                    if encoded[cursor..cursor + padding]
+                        .iter()
+                        .any(|value| *value != 0)
+                    {
+                        return Err(ArticulatedBodyError::InvalidAcousticPadding);
+                    }
+                    cursor += padding;
+                    ArticulatoryAcousticState::LegacyV6(LegacyV6AcousticState {
+                        right_traveling_pressure,
+                        left_traveling_pressure,
+                        surface_displacement,
+                        surface_previous_displacement,
+                    })
+                } else if variant == 1 {
+                    let mut fold_displacement = [0_i32; 2];
+                    for value in &mut fold_displacement {
+                        *value = take_body_i32(encoded, &mut cursor);
+                    }
+                    let mut fold_previous_displacement = [0_i32; 2];
+                    for value in &mut fold_previous_displacement {
+                        *value = take_body_i32(encoded, &mut cursor);
+                    }
+                    let respiratory_work_remaining = i64::from_be_bytes(
+                        encoded[cursor..cursor + size_of::<i64>()]
+                            .try_into()
+                            .expect("fixed respiratory-work width"),
+                    );
+                    cursor += size_of::<i64>();
+                    let expiratory_volume_remainder_sixteenths_microlitre =
+                        take_body_i32(encoded, &mut cursor);
+                    let mut source_loss = [0_i32; 2];
+                    for value in &mut source_loss {
+                        *value = take_body_i32(encoded, &mut cursor);
+                    }
+                    let mut mode_displacement = [0_i32; SPECTRAL_MODE_COUNT];
+                    for value in &mut mode_displacement {
+                        *value = take_body_i32(encoded, &mut cursor);
+                    }
+                    let mut mode_previous_displacement = [0_i32; SPECTRAL_MODE_COUNT];
+                    for value in &mut mode_previous_displacement {
+                        *value = take_body_i32(encoded, &mut cursor);
+                    }
+                    let mut fluid_cells = [0_i32; SPECTRAL_FLUID_CELL_COUNT];
+                    for value in &mut fluid_cells {
+                        *value = take_body_i32(encoded, &mut cursor);
+                    }
+                    let mut lip_low_pass = [0_i32; 2];
+                    for value in &mut lip_low_pass {
+                        *value = take_body_i32(encoded, &mut cursor);
+                    }
+                    let mut band_limit = [0_i32; 2];
+                    for value in &mut band_limit {
+                        *value = take_body_i32(encoded, &mut cursor);
+                    }
+                    ArticulatoryAcousticState::Spectral(SpectralAcousticState {
+                        fold_displacement,
+                        fold_previous_displacement,
+                        respiratory_work_remaining,
+                        expiratory_volume_remainder_sixteenths_microlitre,
+                        source_loss,
+                        mode_displacement,
+                        mode_previous_displacement,
+                        fluid_cells,
+                        lip_low_pass,
+                        band_limit,
+                    })
+                } else {
+                    return Err(ArticulatedBodyError::InvalidAcousticVariant);
+                }
+            } else if version == PREVIOUS_SPECTRAL_BODY_VERSION {
+                let mut right_traveling_pressure = [0_i32; VOCAL_TRACT_SECTION_COUNT];
+                for value in &mut right_traveling_pressure {
+                    *value = take_body_i32(encoded, &mut cursor);
+                }
+                let mut left_traveling_pressure = [0_i32; VOCAL_TRACT_SECTION_COUNT];
+                for value in &mut left_traveling_pressure {
+                    *value = take_body_i32(encoded, &mut cursor);
+                }
+                let mut surface_displacement =
+                    [0_i32; ACOUSTIC_TRANSDUCER_SURFACE_COUNT];
+                for value in &mut surface_displacement {
+                    *value = take_body_i32(encoded, &mut cursor);
+                }
+                let mut surface_previous_displacement =
+                    [0_i32; ACOUSTIC_TRANSDUCER_SURFACE_COUNT];
+                for value in &mut surface_previous_displacement {
+                    *value = take_body_i32(encoded, &mut cursor);
+                }
+                ArticulatoryAcousticState::LegacyV6(LegacyV6AcousticState {
+                    right_traveling_pressure,
+                    left_traveling_pressure,
+                    surface_displacement,
+                    surface_previous_displacement,
+                })
+            } else if version >= PREVIOUS_ACOUSTIC_BODY_VERSION {
+                // V4/V5 persisted the rejected fixed-phase/fixed-countdown source.
+                // Validate and consume that exact legacy body before retiring the
+                // invalid source at rest. Any pressure that had already left the
+                // body remains in the outer in-flight acoustic owner untouched.
+                for _ in 0..2 * VOCAL_TRACT_SECTION_COUNT {
+                    let _traveling_pressure = i32::from_be_bytes(
+                        encoded[cursor..cursor + size_of::<i32>()]
+                            .try_into()
+                            .expect("fixed legacy traveling-pressure width"),
+                    );
+                    cursor += size_of::<i32>();
+                }
+                let _previous_breath_flow = i32::from_be_bytes(
+                    encoded[cursor..cursor + size_of::<i32>()]
+                        .try_into()
+                        .expect("fixed legacy breath-flow width"),
+                );
+                cursor += size_of::<i32>();
+                let legacy_phase = u16::from_be_bytes(
+                    encoded[cursor..cursor + size_of::<u16>()]
+                        .try_into()
+                        .expect("fixed legacy phase width"),
+                );
+                cursor += size_of::<u16>();
+                if legacy_phase >= LEGACY_LARYNGEAL_CYCLE_SAMPLES {
+                    return Err(ArticulatedBodyError::TrailingBytes);
+                }
+                if version == PREVIOUS_PHONATORY_BODY_VERSION {
+                    let legacy_drive = encoded[cursor];
+                    cursor += size_of::<u8>();
+                    let legacy_remaining = u32::from_be_bytes(
+                        encoded[cursor..cursor + size_of::<u32>()]
+                            .try_into()
+                            .expect("fixed legacy countdown width"),
+                    );
+                    cursor += size_of::<u32>();
+                    if legacy_drive > 8
+                        || legacy_remaining > LEGACY_PHONATORY_EXHALATION_SAMPLES
+                        || (legacy_drive == 0) != (legacy_remaining == 0)
+                    {
+                        return Err(ArticulatedBodyError::TrailingBytes);
+                    }
+                }
+                ArticulatoryAcousticState::at_rest()
+            } else {
+                ArticulatoryAcousticState::at_rest()
+            };
+        let mut antagonist_activation = [0_u32; BODY_EFFECTOR_TERMINAL_COUNT];
+        if matches!(version, BODY_VERSION | COMMISSIONED_BODY_VERSION) {
+            for activation in &mut antagonist_activation {
+                *activation = u32::from_be_bytes(
+                    encoded[cursor..cursor + size_of::<u32>()]
+                        .try_into()
+                        .expect("fixed antagonist-activation width"),
+                );
+                cursor += size_of::<u32>();
+            }
+        }
+        if cursor != encoded.len() {
+            return Err(ArticulatedBodyError::TrailingBytes);
+        }
+        let state = Self {
+            profile: if version == COMMISSIONED_BODY_VERSION {
+                BodyAnatomyProfile::V9
+            } else {
+                BodyAnatomyProfile::V8
+            },
+            axes,
+            lung_air_microlitres,
+            // Historical V3 re-opens the original proprioceptive boundary;
+            // current V8/V9 retain its actual persisted flag unchanged.
+            proprioception_initialized: version >= PREVIOUS_PROPRIOCEPTIVE_BODY_VERSION
+                && persisted_proprioception_initialized,
+            articulatory_acoustic,
+            antagonist_activation,
+        };
+        state.validate()?;
+        Ok(state)
+    }
+
+    fn validate(&self) -> Result<(), ArticulatedBodyError> {
+        for axis in BODY_AXES {
+            let anatomy = self.anatomy(axis);
+            let value = self.axis(axis);
+            if !(anatomy.minimum..=anatomy.maximum).contains(&value) {
+                return Err(ArticulatedBodyError::AxisOutsideAnatomy(axis));
+            }
+        }
+        for axis in BODY_AXES {
+            for direction in [
+                BodyEffectorDirection::TowardMinimum,
+                BodyEffectorDirection::TowardMaximum,
+            ] {
+                let terminal = BodyEffectorTerminal::new(axis, direction);
+                if self.antagonist_activation[terminal.ordinal()]
+                    > activation_capacity(self.profile, terminal) {
+                    return Err(ArticulatedBodyError::ActivationOutsideAnatomy(terminal));
+                }
+            }
+        }
+        if !(MIN_LUNG_AIR_MICROLITRES..=MAX_LUNG_AIR_MICROLITRES)
+            .contains(&self.lung_air_microlitres)
+        {
+            return Err(ArticulatedBodyError::LungAirOutsideAnatomy);
+        }
+        if let ArticulatoryAcousticState::Spectral(state) = self.articulatory_acoustic {
+            if !(0..=MAX_SPECTRAL_RESPIRATORY_WORK)
+                .contains(&state.respiratory_work_remaining)
+                || !(-15..=15).contains(
+                    &state.expiratory_volume_remainder_sixteenths_microlitre,
+                )
+            {
+                return Err(ArticulatedBodyError::RespiratoryWorkOutsideAnatomy);
+            }
+        }
+        for (index, area) in self
+            .vocal_tract_areas_square_millimetres()
+            .into_iter()
+            .enumerate()
+        {
+            if !(MIN_TRACT_AREA_SQUARE_MILLIMETRES..=MAX_TRACT_AREA_SQUARE_MILLIMETRES)
+                .contains(&area)
+            {
+                return Err(ArticulatedBodyError::VocalTractOutsideAnatomy(index));
+            }
+        }
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn neutral_state_is_canonical_and_cold_exact() {
+        let state = ArticulatedBodyState::at_neutral();
+        let encoded = state.encode().expect("neutral body encodes");
+        assert_eq!(encoded.len(), ARTICULATED_BODY_STATE_BYTES);
+        assert_eq!(ArticulatedBodyState::resident_bytes(), encoded.len());
+        assert_eq!(ArticulatedBodyState::decode(&encoded), Ok(state));
+    }
+
+    #[test]
+    fn legacy_body_migrates_its_same_tract_geometry_without_growing() {
+        let mut legacy = [0_u8; PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES];
+        let mut legacy_tract = NEUTRAL_TRACT_AREAS_SQUARE_MILLIMETRES;
+        for (index, area) in legacy_tract.iter_mut().enumerate() {
+            *area += i32::try_from(index + 1).unwrap();
+        }
+        let mut cursor = 0usize;
+        legacy[cursor..cursor + BODY_MAGIC.len()].copy_from_slice(BODY_MAGIC);
+        cursor += BODY_MAGIC.len();
+        legacy[cursor..cursor + size_of::<u16>()]
+            .copy_from_slice(&LEGACY_BODY_VERSION.to_be_bytes());
+        cursor += size_of::<u16>();
+        for axis in BODY_AXES.iter().copied().take(LEGACY_BODY_AXIS_COUNT) {
+            legacy[cursor..cursor + size_of::<i32>()]
+                .copy_from_slice(&axis.anatomy().neutral.to_be_bytes());
+            cursor += size_of::<i32>();
+        }
+        legacy[cursor..cursor + size_of::<u32>()]
+            .copy_from_slice(&NEUTRAL_LUNG_AIR_MICROLITRES.to_be_bytes());
+        cursor += size_of::<u32>();
+        for area in legacy_tract {
+            legacy[cursor..cursor + size_of::<i32>()].copy_from_slice(&area.to_be_bytes());
+            cursor += size_of::<i32>();
+        }
+        legacy[cursor] = 1;
+        cursor += 1;
+        assert_eq!(cursor, PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES);
+
+        let migrated = ArticulatedBodyState::decode(&legacy).unwrap();
+        assert_eq!(
+            migrated.vocal_tract_areas_square_millimetres(),
+            legacy_tract
+        );
+        assert!(!migrated.proprioception_initialized());
+        let current = migrated.encode().unwrap();
+        assert_eq!(current.len(), ARTICULATED_BODY_STATE_BYTES);
+        assert_eq!(
+            u16::from_be_bytes(current[BODY_MAGIC.len()..HEADER_BYTES].try_into().unwrap()),
+            BODY_VERSION
+        );
+    }
+
+    #[test]
+    fn previous_body_reopens_proprioception_once_and_current_body_does_not() {
+        let mut previous = ArticulatedBodyState::at_neutral();
+        previous.initialize_proprioception();
+        let mut encoded = previous.encode().unwrap().to_vec();
+        encoded[BODY_MAGIC.len()..HEADER_BYTES]
+            .copy_from_slice(&PREVIOUS_BODY_VERSION.to_be_bytes());
+        encoded.truncate(PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES);
+
+        let reopened = ArticulatedBodyState::decode(&encoded).unwrap();
+        assert!(!reopened.proprioception_initialized());
+
+        let mut current = reopened;
+        current.initialize_proprioception();
+        assert!(
+            ArticulatedBodyState::decode(&current.encode().unwrap())
+                .unwrap()
+                .proprioception_initialized()
+        );
+    }
+
+    #[test]
+    fn pre_phonatory_body_migrates_with_acoustic_state_at_rest() {
+        let mut previous = ArticulatedBodyState::at_neutral();
+        previous.initialize_proprioception();
+        let mut encoded = previous.encode().unwrap().to_vec();
+        encoded[BODY_MAGIC.len()..HEADER_BYTES]
+            .copy_from_slice(&PREVIOUS_PROPRIOCEPTIVE_BODY_VERSION.to_be_bytes());
+        encoded.truncate(PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES);
+
+        let migrated = ArticulatedBodyState::decode(&encoded).unwrap();
+        assert!(migrated.proprioception_initialized());
+        assert_eq!(
+            migrated.articulatory_acoustic_state(),
+            ArticulatoryAcousticState::at_rest()
+        );
+        assert_eq!(migrated.encode().unwrap().len(), ARTICULATED_BODY_STATE_BYTES);
+    }
+
+    #[test]
+    fn previous_acoustic_body_migrates_without_inventing_phonatory_activation() {
+        let previous = ArticulatedBodyState::at_neutral();
+        let mut encoded = previous.encode().unwrap().to_vec();
+        encoded[BODY_MAGIC.len()..HEADER_BYTES]
+            .copy_from_slice(&PREVIOUS_ACOUSTIC_BODY_VERSION.to_be_bytes());
+        encoded.truncate(PREVIOUS_ACOUSTIC_ARTICULATED_BODY_STATE_BYTES);
+
+        let migrated = ArticulatedBodyState::decode(&encoded).unwrap();
+        assert_eq!(
+            migrated.articulatory_acoustic_state(),
+            ArticulatoryAcousticState::at_rest()
+        );
+        assert_eq!(migrated.encode().unwrap().len(), ARTICULATED_BODY_STATE_BYTES);
+    }
+
+    #[test]
+    fn previous_phonatory_body_retires_the_valid_fixed_source_exactly_once() {
+        let previous = ArticulatedBodyState::at_neutral();
+        let mut encoded = previous.encode().unwrap().to_vec();
+        encoded[BODY_MAGIC.len()..HEADER_BYTES]
+            .copy_from_slice(&PREVIOUS_PHONATORY_BODY_VERSION.to_be_bytes());
+        encoded.truncate(PREVIOUS_PHONATORY_ARTICULATED_BODY_STATE_BYTES);
+
+        let migrated = ArticulatedBodyState::decode(&encoded).unwrap();
+        assert_eq!(
+            migrated.articulatory_acoustic_state(),
+            ArticulatoryAcousticState::at_rest()
+        );
+        let current = migrated.encode().unwrap();
+        assert_eq!(current.len(), ARTICULATED_BODY_STATE_BYTES);
+        assert_eq!(ArticulatedBodyState::decode(&current), Ok(migrated));
+    }
+
+    #[test]
+    fn task_1408_v6_nonrest_acoustic_tail_is_preserved_without_reinterpretation() {
+        let coordinates: [i32; 22] = [
+            -45, -166, 9, 17, 28, 39, 137, 139, 20, 186, 45, 42, 41, 26, -80, -99,
+            0, 56, 0, 0, 101, 0,
+        ];
+        let current = ArticulatedBodyState::at_neutral().encode().unwrap();
+        let mut v6 = current[..PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES].to_vec();
+        v6[BODY_MAGIC.len()..HEADER_BYTES]
+            .copy_from_slice(&PREVIOUS_SPECTRAL_BODY_VERSION.to_be_bytes());
+        for coordinate in coordinates {
+            v6.extend_from_slice(&coordinate.to_be_bytes());
+        }
+        assert_eq!(v6.len(), PREVIOUS_SPECTRAL_ARTICULATED_BODY_STATE_BYTES);
+
+        let decoded = ArticulatedBodyState::decode(&v6).unwrap();
+        let ArticulatoryAcousticState::LegacyV6(legacy) =
+            decoded.articulatory_acoustic_state()
+        else {
+            panic!("a non-rest task-1408 tail was reinterpreted")
+        };
+        assert_eq!(legacy.right_traveling_pressure, coordinates[0..8]);
+        assert_eq!(legacy.left_traveling_pressure, coordinates[8..16]);
+        assert_eq!(legacy.surface_displacement, coordinates[16..19]);
+        assert_eq!(legacy.surface_previous_displacement, coordinates[19..22]);
+
+        let migrated = decoded.encode().unwrap();
+        assert_eq!(migrated.len(), ARTICULATED_BODY_STATE_BYTES);
+        let acoustic = &migrated[PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES..];
+        assert_eq!(acoustic[0], 0);
+        let retained = acoustic[1..1 + PREVIOUS_SPECTRAL_ARTICULATORY_ACOUSTIC_STATE_BYTES]
+            .chunks_exact(size_of::<i32>())
+            .map(|bytes| i32::from_be_bytes(bytes.try_into().unwrap()))
+            .collect::<Vec<_>>();
+        assert_eq!(retained, coordinates);
+        assert!(acoustic[1 + PREVIOUS_SPECTRAL_ARTICULATORY_ACOUSTIC_STATE_BYTES..]
+            .iter()
+            .all(|byte| *byte == 0));
+        assert_eq!(ArticulatedBodyState::decode(&migrated), Ok(decoded));
+    }
+
+    #[test]
+    fn current_acoustic_union_refuses_unknown_tag_padding_and_excess_work() {
+        let neutral = ArticulatedBodyState::at_neutral().encode().unwrap();
+        let acoustic_offset = PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES;
+
+        let mut unknown = neutral.clone();
+        unknown[acoustic_offset] = 2;
+        assert_eq!(
+            ArticulatedBodyState::decode(&unknown),
+            Err(ArticulatedBodyError::InvalidAcousticVariant)
+        );
+
+        let legacy = ArticulatedBodyState::at_neutral()
+            .with_articulatory_acoustic_state(ArticulatoryAcousticState::LegacyV6(
+                LegacyV6AcousticState::at_rest(),
+            ))
+            .unwrap()
+            .encode()
+            .unwrap();
+        let mut padded = legacy;
+        let final_padding_byte = PREVIOUS_DAMPINGLESS_ARTICULATED_BODY_STATE_BYTES - 1;
+        padded[final_padding_byte] = 1;
+        assert_eq!(
+            ArticulatedBodyState::decode(&padded),
+            Err(ArticulatedBodyError::InvalidAcousticPadding)
+        );
+
+        let mut excess = SpectralAcousticState::at_rest();
+        excess.respiratory_work_remaining = MAX_SPECTRAL_RESPIRATORY_WORK + 1;
+        assert_eq!(
+            ArticulatedBodyState::at_neutral()
+                .with_articulatory_acoustic_state(ArticulatoryAcousticState::Spectral(excess)),
+            Err(ArticulatedBodyError::RespiratoryWorkOutsideAnatomy)
+        );
+    }
+
+    #[test]
+    fn axes_are_complete_ordered_and_neutral_inside_anatomy() {
+        assert_eq!(BODY_AXES.len(), BODY_AXIS_COUNT);
+        for (index, axis) in BODY_AXES.iter().copied().enumerate() {
+            assert_eq!(axis.index(), index);
+            let anatomy = axis.anatomy();
+            assert_eq!(anatomy.axis, axis);
+            assert!(anatomy.minimum <= anatomy.neutral);
+            assert!(anatomy.neutral <= anatomy.maximum);
+            assert_eq!(
+                ArticulatedBodyState::at_neutral().axis(axis),
+                anatomy.neutral
+            );
+        }
+    }
+
+    #[test]
+    fn codec_refuses_noncanonical_or_out_of_body_state() {
+        let state = ArticulatedBodyState::at_neutral();
+        let mut encoded = state.encode().expect("neutral body encodes");
+        encoded[0] ^= 1;
+        assert_eq!(
+            ArticulatedBodyState::decode(&encoded),
+            Err(ArticulatedBodyError::InvalidMagic)
+        );
+
+        let mut axes = state.axes;
+        axes[BodyAxis::NeckYaw.index()] = BodyAxis::NeckYaw.anatomy().maximum + 1;
+        assert_eq!(
+            ArticulatedBodyState::from_physical_state(
+                axes,
+                state.lung_air_microlitres,
+                state.proprioception_initialized,
+            ),
+            Err(ArticulatedBodyError::AxisOutsideAnatomy(BodyAxis::NeckYaw)),
+        );
+    }
+
+    #[test]
+    fn encoded_size_is_fixed_not_history_dependent() {
+        let neutral = ArticulatedBodyState::at_neutral();
+        let mut axes = neutral.axes;
+        for axis in BODY_AXES {
+            axes[axis.index()] = axis.anatomy().maximum;
+        }
+        let maximum = ArticulatedBodyState::from_physical_state(
+            axes,
+            MAX_LUNG_AIR_MICROLITRES,
+            true,
+        )
+        .expect("bounded maximum body");
+        assert_eq!(
+            neutral.encode().expect("neutral").len(),
+            maximum.encode().expect("maximum").len()
+        );
+    }
+
+    #[test]
+    fn every_axis_has_one_exact_antagonist_terminal_pair() {
+        let ordinals = BODY_AXES
+            .iter()
+            .copied()
+            .flat_map(|axis| {
+                [
+                    BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMinimum),
+                    BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMaximum),
+                ]
+            })
+            .map(BodyEffectorTerminal::ordinal)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            ordinals,
+            (0..BODY_EFFECTOR_TERMINAL_COUNT).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn tract_endings_append_without_moving_legacy_body_territory() {
+        let legacy_last = BodyProprioceptorTerminal::new(
+            BodyAxis::RightAnklePitch,
+            BodyEffectorDirection::TowardMaximum,
+        );
+        assert_eq!(legacy_last.ordinal(), 73);
+        assert_eq!(legacy_last.proprioceptor_topology_index(), 83);
+        assert_eq!(legacy_last.load_topology_index(), 157);
+
+        let tract_first = BodyProprioceptorTerminal::new(
+            BodyAxis::VocalTractSection0Area,
+            BodyEffectorDirection::TowardMinimum,
+        );
+        let tract_last = BodyProprioceptorTerminal::new(
+            BodyAxis::VocalTractSection7Area,
+            BodyEffectorDirection::TowardMaximum,
+        );
+        assert_eq!(tract_first.proprioceptor_topology_index(), 164);
+        assert_eq!(tract_last.proprioceptor_topology_index(), 179);
+        assert_eq!(tract_first.load_topology_index(), 180);
+        assert_eq!(tract_last.load_topology_index(), 195);
+    }
+
+    #[test]
+    fn quiescence_touches_no_axis_and_allocates_no_false_consequence() {
+        let predecessor = ArticulatedBodyState::at_neutral();
+        let transition = settle_body_effector_drives(
+            &predecessor,
+            &AdmittedBodyEffectorDrives::quiescent(),
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+        )
+        .unwrap();
+        assert_eq!(transition.successor, predecessor);
+        assert_eq!(transition.reached_terminal_count, 0);
+        assert!(transition.proprioceptive_consequences.is_empty());
+    }
+
+    #[test]
+    fn v7_migration_preserves_body_and_adds_only_zero_tissue_activation() {
+        let mut axes = ArticulatedBodyState::at_neutral().axes;
+        axes[BodyAxis::GlottalAperture.index()] = BodyAxis::GlottalAperture.anatomy().minimum;
+        axes[BodyAxis::LeftGripAperture.index()] = BodyAxis::LeftGripAperture.anatomy().maximum;
+        let predecessor = ArticulatedBodyState::from_physical_state(
+            axes,
+            NEUTRAL_LUNG_AIR_MICROLITRES + 17,
+            true,
+        )
+        .unwrap();
+        let mut v7 = predecessor.encode().unwrap().to_vec();
+        v7[BODY_MAGIC.len()..HEADER_BYTES]
+            .copy_from_slice(&PREVIOUS_DAMPINGLESS_BODY_VERSION.to_be_bytes());
+        v7.truncate(PREVIOUS_DAMPINGLESS_ARTICULATED_BODY_STATE_BYTES);
+
+        let migrated = ArticulatedBodyState::decode(&v7).unwrap();
+        assert_eq!(migrated.axes, predecessor.axes);
+        assert_eq!(
+            migrated.lung_air_microlitres,
+            predecessor.lung_air_microlitres
+        );
+        assert_eq!(
+            migrated.proprioception_initialized,
+            predecessor.proprioception_initialized
+        );
+        assert_eq!(
+            migrated.articulatory_acoustic,
+            predecessor.articulatory_acoustic
+        );
+        assert!(migrated
+            .antagonist_activation
+            .iter()
+            .all(|value| *value == 0));
+        assert_eq!(
+            ArticulatedBodyState::decode(&migrated.encode().unwrap()),
+            Ok(migrated)
+        );
+    }
+
+    #[test]
+    fn sparse_terminal_drive_moves_only_its_axis_and_returns_exact_proprioception() {
+        let predecessor = ArticulatedBodyState::at_neutral();
+        let admitted = AdmittedBodyEffectorDrives::admit(vec![BodyEffectorDrive {
+            terminal: BodyEffectorTerminal::new(
+                BodyAxis::LeftEyeYaw,
+                BodyEffectorDirection::TowardMaximum,
+            ),
+            outward_elementary_carriers: 127,
+        }])
+        .unwrap();
+        let transition = settle_body_effector_drives(
+            &predecessor,
+            &admitted,
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+        )
+        .unwrap();
+        assert_eq!(transition.reached_terminal_count, 1);
+        assert_eq!(transition.proprioceptive_consequences.len(), 1);
+        assert_eq!(
+            transition.successor.axis(BodyAxis::LeftEyeYaw),
+            predecessor.axis(BodyAxis::LeftEyeYaw) + 4,
+        );
+        for axis in BODY_AXES {
+            if axis != BodyAxis::LeftEyeYaw {
+                assert_eq!(transition.successor.axis(axis), predecessor.axis(axis));
+            }
+        }
+        assert_eq!(
+            transition.proprioceptive_consequences[0],
+            BodyProprioceptiveConsequence {
+                axis: BodyAxis::LeftEyeYaw,
+                unit: BodyAxisUnit::Millidegree,
+                predecessor_position: 0,
+                successor_position: 4,
+                signed_displacement: 4,
+                toward_minimum_carriers: 0,
+                toward_maximum_carriers: 127,
+                opposed_carriers_per_terminal: 0,
+                applied_displacement_quanta: 4,
+                stalled_carriers: 0,
+            },
+        );
+        let terminal =
+            BodyEffectorTerminal::new(BodyAxis::LeftEyeYaw, BodyEffectorDirection::TowardMaximum);
+        assert_eq!(transition.successor.antagonist_activation(terminal), 3_937);
+        assert_eq!(
+            ArticulatedBodyState::decode(&transition.successor.encode().unwrap()),
+            Ok(transition.successor)
+        );
+    }
+
+    #[test]
+    fn sparse_tract_terminal_drive_moves_one_persisted_airway_section() {
+        let predecessor = ArticulatedBodyState::at_neutral();
+        let axis = BodyAxis::VocalTractSection3Area;
+        let admitted = AdmittedBodyEffectorDrives::admit(vec![BodyEffectorDrive {
+            terminal: BodyEffectorTerminal::new(
+                axis,
+                BodyEffectorDirection::TowardMaximum,
+            ),
+            outward_elementary_carriers: 7,
+        }])
+        .unwrap();
+        let transition = settle_body_effector_drives(
+            &predecessor,
+            &admitted,
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+        )
+        .unwrap();
+
+        assert_eq!(transition.successor.axis(axis), predecessor.axis(axis) + 1);
+        assert_eq!(
+            transition.successor.vocal_tract_areas_square_millimetres()[3],
+            predecessor.vocal_tract_areas_square_millimetres()[3] + 1,
+        );
+        for other in BODY_AXES {
+            if other != axis {
+                assert_eq!(transition.successor.axis(other), predecessor.axis(other));
+            }
+        }
+        assert_eq!(transition.proprioceptive_consequences.len(), 1);
+        assert_eq!(
+            transition.proprioceptive_consequences[0].unit,
+            BodyAxisUnit::SquareMillimetre,
+        );
+    }
+
+    #[test]
+    fn opposed_drive_cancels_locally_and_anatomical_stop_reports_stall() {
+        let predecessor = ArticulatedBodyState::at_neutral();
+        let opposed = AdmittedBodyEffectorDrives::admit(vec![
+            BodyEffectorDrive {
+                terminal: BodyEffectorTerminal::new(
+                    BodyAxis::NeckYaw,
+                    BodyEffectorDirection::TowardMinimum,
+                ),
+                outward_elementary_carriers: 30,
+            },
+            BodyEffectorDrive {
+                terminal: BodyEffectorTerminal::new(
+                    BodyAxis::NeckYaw,
+                    BodyEffectorDirection::TowardMaximum,
+                ),
+                outward_elementary_carriers: 30,
+            },
+        ])
+        .unwrap();
+        let transition =
+            settle_body_effector_drives(&predecessor, &opposed, BODY_SETTLEMENT_CLOCK_MICROSECONDS)
+                .unwrap();
+        assert_eq!(transition.successor, predecessor);
+        assert_eq!(
+            transition.proprioceptive_consequences[0].opposed_carriers_per_terminal,
+            30,
+        );
+
+        let beyond_stop = AdmittedBodyEffectorDrives::admit(vec![BodyEffectorDrive {
+            terminal: BodyEffectorTerminal::new(
+                BodyAxis::NeckYaw,
+                BodyEffectorDirection::TowardMaximum,
+            ),
+            outward_elementary_carriers: 100_000,
+        }])
+        .unwrap();
+        let transition = settle_body_effector_drives(
+            &predecessor,
+            &beyond_stop,
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+        )
+        .unwrap();
+        assert!(transition.successor.axis(BodyAxis::NeckYaw) < BodyAxis::NeckYaw.anatomy().maximum);
+        assert_eq!(
+            transition.proprioceptive_consequences[0].stalled_carriers,
+            25_000,
+        );
+    }
+
+    #[test]
+    fn off_neutral_unpowered_body_releases_and_passive_return_is_exact() {
+        let axis = BodyAxis::GlottalAperture;
+        let anatomy = axis.anatomy();
+        let mut axes = ArticulatedBodyState::at_neutral().axes;
+        axes[axis.index()] = anatomy.minimum;
+        let predecessor =
+            ArticulatedBodyState::from_physical_state(axes, NEUTRAL_LUNG_AIR_MICROLITRES, true)
+                .unwrap();
+        let transition = settle_body_effector_drives(
+            &predecessor,
+            &AdmittedBodyEffectorDrives::quiescent(),
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+        )
+        .unwrap();
+        assert!(transition.successor.axis(axis) > anatomy.minimum);
+        assert_eq!(transition.reached_terminal_count, 0);
+        assert_eq!(transition.proprioceptive_consequences.len(), 1);
+        let consequence = transition.proprioceptive_consequences[0];
+        assert_eq!(consequence.toward_minimum_carriers, 0);
+        assert_eq!(consequence.toward_maximum_carriers, 0);
+        assert_eq!(consequence.stalled_carriers, 0);
+        assert_eq!(
+            consequence.applied_displacement_quanta,
+            u128::from(consequence.signed_displacement.unsigned_abs())
+        );
+    }
+
+    #[test]
+    fn duration_composes_and_invalid_body_clock_is_refused_without_mutation() {
+        let predecessor = ArticulatedBodyState::at_neutral();
+        let terminal = BodyEffectorTerminal::new(
+            BodyAxis::VocalTractSection0Area,
+            BodyEffectorDirection::TowardMaximum,
+        );
+        let drive = AdmittedBodyEffectorDrives::admit(vec![BodyEffectorDrive {
+            terminal,
+            outward_elementary_carriers: 1,
+        }])
+        .unwrap();
+        let whole = settle_body_effector_drives(&predecessor, &drive, 250_000)
+            .unwrap()
+            .successor;
+        let first = settle_body_effector_drives(&predecessor, &drive, 64_000)
+            .unwrap()
+            .successor;
+        let split =
+            settle_body_effector_drives(&first, &AdmittedBodyEffectorDrives::quiescent(), 186_000)
+                .unwrap()
+                .successor;
+        assert_eq!(split, whole);
+        assert_eq!(
+            whole.axis(terminal.axis()),
+            terminal.axis().anatomy().neutral
+        );
+        assert_eq!(whole.antagonist_activation(terminal), 0);
+        assert_eq!(
+            settle_body_effector_drives(
+                &predecessor,
+                &AdmittedBodyEffectorDrives::quiescent(),
+                999,
+            ),
+            Err(ArticulatedBodyError::InvalidSettlementDuration)
+        );
+        assert_eq!(
+            settle_body_effector_drives(
+                &predecessor,
+                &AdmittedBodyEffectorDrives::quiescent(),
+                251_000,
+            ),
+            Err(ArticulatedBodyError::InvalidSettlementDuration)
+        );
+        assert_eq!(predecessor, ArticulatedBodyState::at_neutral());
+    }
+
+    #[test]
+    fn activation_capacity_is_fixed_and_codec_refuses_excess() {
+        let terminal = BodyEffectorTerminal::new(
+            BodyAxis::RightGripAperture,
+            BodyEffectorDirection::TowardMaximum,
+        );
+        let mut state = ArticulatedBodyState::at_neutral();
+        state.antagonist_activation[terminal.ordinal()] =
+            activation_capacity(BodyAnatomyProfile::V8, terminal) + 1;
+        assert_eq!(
+            state.encode(),
+            Err(ArticulatedBodyError::ActivationOutsideAnatomy(terminal))
+        );
+    }
+
+    #[test]
+    fn drive_admission_refuses_duplicate_or_zero_terminal_work() {
+        let terminal =
+            BodyEffectorTerminal::new(BodyAxis::JawOpening, BodyEffectorDirection::TowardMaximum);
+        assert_eq!(
+            AdmittedBodyEffectorDrives::admit(vec![BodyEffectorDrive {
+                terminal,
+                outward_elementary_carriers: 0,
+            }]),
+            Err(ArticulatedBodyError::InvalidEffectorDrives),
+        );
+        assert_eq!(
+            AdmittedBodyEffectorDrives::admit(vec![
+                BodyEffectorDrive {
+                    terminal,
+                    outward_elementary_carriers: 1,
+                },
+                BodyEffectorDrive {
+                    terminal,
+                    outward_elementary_carriers: 2,
+                },
+            ]),
+            Err(ArticulatedBodyError::InvalidEffectorDrives),
+        );
+    }
+}
+
+#[cfg(test)]
+#[path = "body_anatomy_profile_tests.rs"]
+mod profile_tests;

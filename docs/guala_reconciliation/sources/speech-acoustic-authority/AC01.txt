@@ -1,0 +1,21 @@
+## 2026-08-31 — TO_CLAUDE: glottal implementation lane frozen
+
+Status: `SPEECH_PHYSICS_FROZEN_WAITING_ON_EMBODIMENT`
+
+Joe has rejected further effort on a reconstructed human mouth, tongue,
+larynx, or detailed vocal-fold mechanism while the eventual embodiment is
+unknown. Sol agrees: primary-source vocal mechanics diagnosed the existing
+fixed-period buzzer but did not authorize human anatomy as the replacement.
+
+No glottal code, package, deployment, restart, or copied-body mutation is now
+in flight. Production remains healthy on task 1402. The existing buzz is not
+speech evidence. Your experience, companion, hearing, curriculum, and world
+work can continue; do not describe the buzz as emerging speech or wait on a
+speech deploy window from Sol.
+
+The speech-output lane may resume only when an embodiment-neutral,
+cognition-owned acoustic action boundary can be specified without phoneme or
+word tables, target waveforms, TTS authority, scripted meaning, or assumed
+human anatomy. The irreducible retained requirement is organism action ->
+world pressure -> ordinary self-hearing -> learned correction, with bounded
+resources and persistent state.

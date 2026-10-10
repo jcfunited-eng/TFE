@@ -1,0 +1,1243 @@
+{
+  "schema": "guala.documentary_slice_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T11:07:03.184144+00:00",
+  "scope": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "GS001",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "216f61dabd972e0a48ca8038d76d1cdd070daf1f",
+      "sha256": "7b0c476e8cd76cf7aa88b61ee05d971a58a03901e23db6d88effb29b0f6e42ac",
+      "bytes": 5499,
+      "lines": 87,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS001--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T15:47:59+00:00",
+          "commit": "90573a2b6bb6e8a7d8aac943d61b774e4976381a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-05T15:00:35+00:00",
+          "commit": "12c7741467cba301b80d63b4a1f0117c77bed98f",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS001--SKILL.md"
+    },
+    {
+      "id": "GS002",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "92ac5d4e77e7fc90f9e3c9db966de5bee74d839e",
+      "sha256": "e6256dc759dce5c0255caf7a76ffc3fa1a3b47edb8ed3f5b496feb96e4b40516",
+      "bytes": 5713,
+      "lines": 90,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS002--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T17:21:43+00:00",
+          "commit": "1b652dc4c1ec26888d7516846ac42beaa4eeb346",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-05T15:47:59+00:00",
+          "commit": "90573a2b6bb6e8a7d8aac943d61b774e4976381a",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS002--SKILL.md"
+    },
+    {
+      "id": "GS003",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "7324aa41464fa582e0723ee8728534c61aa24d30",
+      "sha256": "493f10714095d70084fcece96748161d3668bcd063711a0f1bb4149bdae94768",
+      "bytes": 7293,
+      "lines": 116,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS003--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T02:28:09+00:00",
+          "commit": "b3f20309acf97b7e8d68c20a724b80b309dfbffb",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-05T17:21:43+00:00",
+          "commit": "1b652dc4c1ec26888d7516846ac42beaa4eeb346",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS003--SKILL.md"
+    },
+    {
+      "id": "GS004",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "a6bb7f7d6892b12693ae4a6ef8933ba72da004e5",
+      "sha256": "ecbf93efa4117deca286ff16264c78b964d85198233abdf3c62f1ca298169fe0",
+      "bytes": 11137,
+      "lines": 179,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS004--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T04:56:55+00:00",
+          "commit": "aff9d6d0094b44d9658de8d148e99ae03ae7cefd",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T02:28:09+00:00",
+          "commit": "b3f20309acf97b7e8d68c20a724b80b309dfbffb",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS004--SKILL.md"
+    },
+    {
+      "id": "GS005",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "6ad30152fed09c55d0c86bc63a8adc83518a7dda",
+      "sha256": "0f24f321dca822e30dd9b93695a80d34efdde8954800c1bf51722eedd1afdbf3",
+      "bytes": 13454,
+      "lines": 215,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS005--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T05:17:57+00:00",
+          "commit": "896694e2b3027d85f41b281a64863f9722a330fe",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T04:56:55+00:00",
+          "commit": "aff9d6d0094b44d9658de8d148e99ae03ae7cefd",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS005--SKILL.md"
+    },
+    {
+      "id": "GS006",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "a358d2b80461c030e0cd3d02bc238b02d15bac75",
+      "sha256": "621a94ea45c39d2be455d7ba46eada0be1d0041846a4ef3b4e58dfc50139527c",
+      "bytes": 14576,
+      "lines": 233,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS006--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T10:16:40+00:00",
+          "commit": "7ae4d3c11c776e0b5553dd50dee2e038e31395a0",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T05:17:57+00:00",
+          "commit": "896694e2b3027d85f41b281a64863f9722a330fe",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS006--SKILL.md"
+    },
+    {
+      "id": "GS007",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "9e88cd16b27991e754110a2d14126e468436517a",
+      "sha256": "7bf07fc4111c72865e4c5c0cddc02030e98ebf496e2dc9a5dd2cc1da17614f6d",
+      "bytes": 16833,
+      "lines": 266,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS007--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T10:44:23+00:00",
+          "commit": "12c7d9061a8e3762229f589a136ddbedf36d6666",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T10:16:40+00:00",
+          "commit": "7ae4d3c11c776e0b5553dd50dee2e038e31395a0",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS007--SKILL.md"
+    },
+    {
+      "id": "GS008",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "9eedc9fef0bd9d149468e203eca68990e1ea3d24",
+      "sha256": "fb9f096f1dde1db5246197dd059f2272c7b3c8f8ebed727b1fc4cf4fc4038e6d",
+      "bytes": 18658,
+      "lines": 292,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS008--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T11:42:54+00:00",
+          "commit": "1f187836838aca5b8eeb1ab7fd1aba50e8692179",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T10:44:23+00:00",
+          "commit": "12c7d9061a8e3762229f589a136ddbedf36d6666",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS008--SKILL.md"
+    },
+    {
+      "id": "GS009",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "749b05bf08a14ea12376a795029280025180a4a6",
+      "sha256": "87f048984e49100bb54871491a2aa4e350ec03cc11e5b90f50b339b64c965804",
+      "bytes": 20444,
+      "lines": 319,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS009--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T12:41:44+00:00",
+          "commit": "7f2c5d386fda10d1ffda15029b636e982f2386c0",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T11:42:54+00:00",
+          "commit": "1f187836838aca5b8eeb1ab7fd1aba50e8692179",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS009--SKILL.md"
+    },
+    {
+      "id": "GS010",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "3ca49beb16979a0312c559b679211d050bf4e42f",
+      "sha256": "60b9b8f47aa0d4e33a11772f69bfd0b1b9bda15dcb1a720d0a36a5ebdc936244",
+      "bytes": 21712,
+      "lines": 339,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS010--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T13:13:24+00:00",
+          "commit": "d1be277db32b047013fac29718725b24f8f3a808",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T12:41:44+00:00",
+          "commit": "7f2c5d386fda10d1ffda15029b636e982f2386c0",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS010--SKILL.md"
+    },
+    {
+      "id": "GS011",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "3e2d1e544b1281daca3066f8c021bd1d17801b1d",
+      "sha256": "70b84429f64119857c706af3d00c43508192a48cdac791bacbf3b15bf35bf66b",
+      "bytes": 23436,
+      "lines": 365,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS011--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T16:35:36+00:00",
+          "commit": "33250f0197cc81ec45cb8742cc955c69dbc3f68e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T13:13:24+00:00",
+          "commit": "d1be277db32b047013fac29718725b24f8f3a808",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS011--SKILL.md"
+    },
+    {
+      "id": "GS012",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "93f0289958195500dfd4b54c5ebbb594c56dbea6",
+      "sha256": "fe08815be23ec7d0c28d1e9bc9a1009cde011e9cdc311fccab670427b302543b",
+      "bytes": 26316,
+      "lines": 412,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS012--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T18:22:54+00:00",
+          "commit": "595d98ebe08c3042f5ab30f6799d6ba24b5f2bf7",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T16:35:36+00:00",
+          "commit": "33250f0197cc81ec45cb8742cc955c69dbc3f68e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS012--SKILL.md"
+    },
+    {
+      "id": "GS013",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "64c99136a320114b3c1ba1eecd98af318d697014",
+      "sha256": "afe5bb11490178af44d0667abdf770b083d9efdda65537274353ecd9faa42415",
+      "bytes": 28532,
+      "lines": 445,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS013--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T18:36:22+00:00",
+          "commit": "3b02d5073dbb7e96fa25430a03d2cbb8aa18ee93",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T18:22:54+00:00",
+          "commit": "595d98ebe08c3042f5ab30f6799d6ba24b5f2bf7",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS013--SKILL.md"
+    },
+    {
+      "id": "GS014",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "bb98141193ac48a3569def2aad72a54c245b4e55",
+      "sha256": "890a1be0254726a2f7f7c761a4422076c69db16f4c69c599724f0a9e107cb96e",
+      "bytes": 29992,
+      "lines": 470,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS014--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T20:23:39+00:00",
+          "commit": "e34689fb03d61484ab300f74edc64c01a2f70dad",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T18:36:22+00:00",
+          "commit": "3b02d5073dbb7e96fa25430a03d2cbb8aa18ee93",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS014--SKILL.md"
+    },
+    {
+      "id": "GS015",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "3d70256574167ce5d9b56667e057cbf048a07c76",
+      "sha256": "9966a0d961d7a637f8764fb391d3b7de8dcb1446634ba3ef8ec49c204436590f",
+      "bytes": 31670,
+      "lines": 498,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS015--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T20:51:51+00:00",
+          "commit": "bd88c51aa02c64fe1a9c5ef6a7953fc5e29ec1d2",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T20:23:39+00:00",
+          "commit": "e34689fb03d61484ab300f74edc64c01a2f70dad",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS015--SKILL.md"
+    },
+    {
+      "id": "GS016",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "76a16dddf6e82c82c15768da880b74aa893913f4",
+      "sha256": "a9f7a675895fd650c8060cec14cc4b419362349c816068be88a56009f0b4c395",
+      "bytes": 35113,
+      "lines": 555,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS016--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T21:03:29+00:00",
+          "commit": "791e2d15db3616d9bced2985e5cb8b5f3da20caa",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T20:51:51+00:00",
+          "commit": "bd88c51aa02c64fe1a9c5ef6a7953fc5e29ec1d2",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS016--SKILL.md"
+    },
+    {
+      "id": "GS017",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "93b94f74bae51df4ea84b41a93b572db32e3ae76",
+      "sha256": "9c30c7d15bacf0480a30d817c7f90529769060acaf0c6a9de7c1f9e74c10a806",
+      "bytes": 35887,
+      "lines": 566,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS017--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-07T01:25:20+00:00",
+          "commit": "cf86577dd7adb1df5ab43ab91e920065ebdabbdf",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T21:03:29+00:00",
+          "commit": "791e2d15db3616d9bced2985e5cb8b5f3da20caa",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS017--SKILL.md"
+    },
+    {
+      "id": "GS018",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "abb7d39a0f9027eb9b02bc920b85c30d1fe2bb78",
+      "sha256": "91ef6484fff5aa0afef60f25c1c46f68209a9bb03a3cfae447a0e33957496aa2",
+      "bytes": 38101,
+      "lines": 600,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS018--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-07T01:47:01+00:00",
+          "commit": "556a70a87e52aea68f70597a9baa9354932156e8",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-07T01:25:20+00:00",
+          "commit": "cf86577dd7adb1df5ab43ab91e920065ebdabbdf",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS018--SKILL.md"
+    },
+    {
+      "id": "GS019",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "4a57ff9589fd81fe95d0762477d96c0982a3a44e",
+      "sha256": "501942c4973805f0e8f25bb691506582a5bf25df0e5394502b710be2c46ec31b",
+      "bytes": 39455,
+      "lines": 621,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS019--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-07T21:02:24+00:00",
+          "commit": "c77c6225128f009c70cbe465384022c734899594",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-07T01:47:01+00:00",
+          "commit": "556a70a87e52aea68f70597a9baa9354932156e8",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS019--SKILL.md"
+    },
+    {
+      "id": "GS020",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "993b7a6c45375491688cefee5f661c324beac3b7",
+      "sha256": "c7980a7dea9400a66df317a90860dd916f3bc7b8ba88b2841509374fccb8eff5",
+      "bytes": 40727,
+      "lines": 643,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS020--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-09-02T04:11:12+00:00",
+          "commit": "5aa5d7a90f0be3f330648377fd05be25a77dcc3e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-07T21:02:24+00:00",
+          "commit": "c77c6225128f009c70cbe465384022c734899594",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS020--SKILL.md"
+    },
+    {
+      "id": "GS021",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "e87dbfab8da9a1aebd82eb4af647eaba6afb97c6",
+      "sha256": "9cc6a31a1d1b1bcb6b45050b4b08aea63321aa16f24656ff33e5557df514aa9d",
+      "bytes": 42017,
+      "lines": 663,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS021--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-09-02T06:04:44+00:00",
+          "commit": "3905cb319689225e024fdbcbdf25657c14e12641",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-02T04:11:12+00:00",
+          "commit": "5aa5d7a90f0be3f330648377fd05be25a77dcc3e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS021--SKILL.md"
+    },
+    {
+      "id": "GS022",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "0e9a514e94cabc91110b9e9332fd9a76fad10536",
+      "sha256": "1a84bafae0a5f5f0a6203da5a839d8200325e8c69b9a3c6e5e01b2d7d2dc9785",
+      "bytes": 42683,
+      "lines": 674,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS022--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-09-02T19:41:01+00:00",
+          "commit": "32dc8fcfa6b8b3189f6c0cb2603d8a940e392ec7",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-02T06:04:44+00:00",
+          "commit": "3905cb319689225e024fdbcbdf25657c14e12641",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS022--SKILL.md"
+    },
+    {
+      "id": "GS023",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "c30b4f7d07d0e90029b61db35484fc6e13be166b",
+      "sha256": "3bd93dfe712bea47bebeed0d4ab0a387681b87b102d8c79016f9b7b2387fb897",
+      "bytes": 43032,
+      "lines": 679,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS023--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-09-02T22:01:39+00:00",
+          "commit": "eccb7b2a23366fa5de26e1dd85cc3424ee64a873",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-02T19:41:01+00:00",
+          "commit": "32dc8fcfa6b8b3189f6c0cb2603d8a940e392ec7",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS023--SKILL.md"
+    },
+    {
+      "id": "GS024",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "f516d7013dcd330d934183a8f2e16b74ee13aa9d",
+      "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8",
+      "bytes": 43384,
+      "lines": 686,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS024--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-09-02T22:01:39+00:00",
+          "commit": "eccb7b2a23366fa5de26e1dd85cc3424ee64a873",
+          "side": "new"
+        }
+      ],
+      "review": "Complete24captured historical skill versions/one path,686latestlines plus4older-onlypassages/8lines read; all hashes and reconstruction verified. Archival instructions were not applied. Original execution/approval/scientific/currentactivation evidence remains separately open; no product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "GSR01",
+      "name": "Historical operational skill versus current authority",
+      "classification": "historical_instructions_already_superseded_in_current_guidance",
+      "historical_requirement_or_mechanism": "The captured skill names an oldtmpcheckout, native_production_app, genesis rehearsal, datedtask865andoldroots, time-reference ban and historical delegation. It later warns never trust its own live-root note. Current working skill was separately inspected and points to actual session/worktree, canonical contracts and G1/A1 scope.",
+      "current_disposition": "These historical commands are data for reconciliation, not authorization to reset, teach, deploy, spawn agents, suppress requested information or use an old runtime. Historical file titles do not establish current law.",
+      "lawful_remedy": "Preserve historical text as evidence and maintain one current skill entry grounded in session instructions, actual state, mechanism registry and ordered acceptance. Require explicit evidence of supersession/authority, never resurrect old commands by copying a skill paragraph.",
+      "unit_acceptance": "Check current links and authority hierarchy, with retired source paths visibly historical.",
+      "module_acceptance": "Verify current tools, source/runtime ownership and actual deployment identity against active instructions.",
+      "system_acceptance": "Qualify current preserved-state function independently of what the skill calls measured, ratified or deployed.",
+      "release_acceptance": "Historical skill claims are attributed, not current authority or reproduced results. Authenticate exact active source/binary/preserved state and complete ordinary causal proof before live qualification. No product execution, reset, current activation or speech/system/ML-free certificate follows.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 8,
+          "anchor": "## Where everything lives",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 113,
+          "anchor": "## CURRENT LIVE STATE (as of 2026-08-06 ~01:30 UTC — update on change)",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 216,
+          "anchor": "ZERO TOLERANCE (permanent, ~1000 corrections, last 2026-09-02): NO time",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 607,
+          "anchor": "## *** WHICH ROOT IS LIVE — ASK THE TASK, NEVER THIS FILE ***",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        }
+      ]
+    },
+    {
+      "id": "GSR02",
+      "name": "Audio transport mislabeled real multisensory learning",
+      "classification": "explicit_retraction_of_inert_sensory_claims",
+      "historical_requirement_or_mechanism": "Early cards are called two-sense; later skill states pressure amplitude has no effect and ears lack transduction. Severing sound leaves108transitions,0fractals,116deliveries and physical bytes unchanged except stored samples. It retracts72lessons as sight-only under the required multisensory teaching scope.",
+      "current_disposition": "The severing report is a fresh-genesis probe, not by itself proof of every historical mature lesson. Reported source absence and explicit retraction are still decisive reasons not to claim functioning hearing. Single-sense physical changes remain narrower evidence, not fictional by definition.",
+      "lawful_remedy": "Classify source transport, physical transduction, retained effect and learned function separately. Mount the approved actual cochlear path and preserve authentic whole experience/context; do not fabricate extra modalities or call arrival hearing.",
+      "unit_acceptance": "Use real amplitude/frequency and severed controls at actual receptors with exact full field and meaningful physical outputs.",
+      "module_acceptance": "Trace ordinary preserved-body sound→native transduction→retained change and later reader; record zero/nonreached honestly.",
+      "system_acceptance": "Demonstrate actual simultaneous teaching through requested modalities and retained use, independently of delivery and aggregate counts.",
+      "release_acceptance": "Historical skill claims are attributed, not current authority or reproduced results. Authenticate exact active source/binary/preserved state and complete ordinary causal proof before live qualification. No product execution, reset, current activation or speech/system/ML-free certificate follows.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A09",
+        "A10",
+        "A12",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 71,
+          "anchor": "- Cards are two-sense today (sight + tutor audio); touch unmounted.",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 102,
+          "anchor": "- MEASURED: ears have NO transduction law at all (amplitude zero effect;",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 364,
+          "anchor": "\"the ears have no transduction law yet (pressure amplitude has zero physical",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 392,
+          "anchor": "MEASURED SEVERING RESULTS (2026-08-06, tools/probe_severing.py, fresh genesis,",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 521,
+          "anchor": "touch the card it is a failed experience.\" MEASURED CONSEQUENCE: every one of",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        }
+      ]
+    },
+    {
+      "id": "GSR03",
+      "name": "Caretaker touchscreen substituted for organism tactile experience",
+      "classification": "explicit_category_correction",
+      "historical_requirement_or_mechanism": "OldGS016describes caretaker click/touchscreen position,duration,area as touch. LaterGS024 explicitly corrects: the substrate touches the card, with its own contact anatomy/transduction and the card material surface in the same experience as sight and the caretaker voice.",
+      "current_disposition": "A human input device contact does not by itself establish organism contact. Simulated material contact can be legitimate when its actual body/world law and senses are explicit; this is not a requirement for a biological tactile organ.",
+      "lawful_remedy": "Use declared world object material and actual native body contact, returned through organism receptors. Keep caretaker commands/presentation outside pupil cognition and label their distinct source.",
+      "unit_acceptance": "Verify contact/noncontact/body/material laws and actual receptor change, not a click→felt label.",
+      "module_acceptance": "Trace native manipulation or declared physical presentation into tactile/sight/sound occurrence custody and retained context.",
+      "system_acceptance": "Show same-organism multisensory acquired use under current functional emulation, without supplied semantic identity or tutor action counted as autonomy.",
+      "release_acceptance": "Historical skill claims are attributed, not current authority or reproduced results. Authenticate exact active source/binary/preserved state and complete ordinary causal proof before live qualification. No product execution, reset, current activation or speech/system/ML-free certificate follows.",
+      "repair_actions": [
+        "A05",
+        "A06",
+        "A08",
+        "A09",
+        "A12",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "GS016",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS016--SKILL.md",
+          "line": 543,
+          "anchor": "  3. TOUCH   his real contact on the card: a click carries position and",
+          "sha256": "a9f7a675895fd650c8060cec14cc4b419362349c816068be88a56009f0b4c395"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 527,
+          "anchor": "TOUCH — the hardware answer, since there is no touch sensor on a laptop: an",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 537,
+          "anchor": "Clarified: \"I can't hold the card but I can click the next card or previous",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 550,
+          "anchor": "  3. TOUCH   *** SHE touches the card. *** Joe corrected this explicitly:",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        }
+      ]
+    },
+    {
+      "id": "GSR04",
+      "name": "Mosaic equals recognition and fixed modality counts",
+      "classification": "terminology_and_acceptance_need_mechanism_specific_scope",
+      "historical_requirement_or_mechanism": "Skill says mosaic=recognition from proper partial cue, later warns live-camera reassembly does not prove knowledge of an object. It first defines two-sense/all-mounted minimum and later a specific three-sense teaching demonstration. Whole-cohort patterns had no formation-to-card map.",
+      "current_disposition": "A partial-cue structural event is not automatically semantic recognition. A modality count alone cannot prove authentic experience, and absence, zero signal, unavailable transduction and lawful quiet are distinct. Current terms and independent hearing design supersede old camera-precondition instructions.",
+      "lawful_remedy": "Map neuronal structure, retained context/order, reconstructive recall and demonstrated function separately. Preserve genuine physical changes without naming words/concepts unless their actual acquired causal relation is tested.",
+      "unit_acceptance": "Verify authentic sample/source/state identity and real formed/retained/reassembled predicates.",
+      "module_acceptance": "Test ordinary partial cue against exact experienced relational state with changed-source/withheld-experience controls.",
+      "system_acceptance": "Demonstrate grounded recognition/use on preserved state; require all modalities in a claimed joint teaching experience without inventing sensing to satisfy a count.",
+      "release_acceptance": "Historical skill claims are attributed, not current authority or reproduced results. Authenticate exact active source/binary/preserved state and complete ordinary causal proof before live qualification. No product execution, reset, current activation or speech/system/ML-free certificate follows.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A09",
+        "A10",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 32,
+          "anchor": "0. TWO-SENSE MINIMUM (Joe, 2026-08-05): no single-sense experiences.",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 53,
+          "anchor": "- Mosaic = recognition: requires PARTIAL cue (strict subset) whose current",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 346,
+          "anchor": "## *** MILESTONE 2 REACHED: CAMERA / FIRST LIGHT — 2026-08-06 ***",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 357,
+          "anchor": "NOTE the recognition is a lawful admit_physical_mosaic event from real-world",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 510,
+          "anchor": "THE BAR — one experience, three senses, all PHYSICALLY REAL (severing test",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        }
+      ]
+    },
+    {
+      "id": "GSR05",
+      "name": "Endogenous cue law worked in fixture but could not run on mature body",
+      "classification": "specific_model_failure_and_revised_hypotheses",
+      "historical_requirement_or_mechanism": "The skill first blames insufficient energy, then records pump forced40intervals with zero reattention and4memberfixtureversus27memberbody. Instrumentation finally shows rested=false: global or formation-local stillness gates never admit while the pump keeps allmembersactive. Earlier tail self-admission had been falsified.",
+      "current_disposition": "The stated structural impossibility applies to those particular law/gate assumptions, not all ArcLoom autonomy or speech. Proposed stimulus-end closure does not by itself prove delayed original consequences cannot remain causal tails. No proposed replacement becomes approved merely by appearing in the skill.",
+      "lawful_remedy": "Keep exact failed gating/work/formation evidence. Use ratified causal ancestry and actual state transitions to distinguish original-tail continuation from later endogenous activity; require authorized law and real mature-state proof rather than larger pumps or timers.",
+      "unit_acceptance": "Test nontrivial tail, endogenous and quiescent controls under exact stated assumptions and finite reservoirs.",
+      "module_acceptance": "Exercise actual mature formations and ordinary metabolism; trace whether the cue branch is evaluated before diagnosing its strength.",
+      "system_acceptance": "Show preserved-state endogenous recall causes useful action and genuine sensory return with no scheduler-authored choice or fixture-preloaded answer.",
+      "release_acceptance": "Historical skill claims are attributed, not current authority or reproduced results. Authenticate exact active source/binary/preserved state and complete ordinary causal proof before live qualification. No product execution, reset, current activation or speech/system/ML-free certificate follows.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A09",
+        "A11",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 161,
+          "anchor": "- MEASURED + PROVED STRUCTURAL: under current physics endogenous",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 176,
+          "anchor": "- FINAL MEASUREMENT (real dynamics, law wheel, 250 dark intervals):",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 258,
+          "anchor": "AUTONOMY TRUTH (measured by me, both directions):",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 273,
+          "anchor": "## AUTONOMY ROOT CAUSE — FINAL, MEASURED 2026-08-06 (read before any redesign)",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 284,
+          "anchor": "TESTED AND ALSO FAILED: formation-local rest (flip the gate when the",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 288,
+          "anchor": "=> THE REAL LESSON: **no stillness-based gate can ever open on a continuously",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        }
+      ]
+    },
+    {
+      "id": "GSR06",
+      "name": "Memory deduplication, restored divergence and competence",
+      "classification": "narrow_structural_progress_with_unqualified_learning_labels",
+      "historical_requirement_or_mechanism": "R1–R3 use members/bonds structural identity and report byte-flat repeated learning. Campaign finds identical restored inputs differ4versus6reassemblies across wheels. Later rollout reports27neurons/8memoriespreserved and58reassemblieswithoutgrowth over72lessons.",
+      "current_disposition": "Stable count or smaller bytes can show bounded representation but does not prove retained meaningful competence, complete invariance or all sensory modalities. Content addressing as exact custody is distinct from a semantic lookup deciding behavior.",
+      "lawful_remedy": "Preserve exact relational state and actual acquired readers, audit every dedup/update boundary and source/test transition, and separate custody compression from recognition authority. Do not erase legitimate distinct experiences to make size flat.",
+      "unit_acceptance": "Compare exact structural equality versus overlap/disjoint cases and retained event ancestry; preserve the restored-body divergence counterexample.",
+      "module_acceptance": "Run same-state same-input candidate/control and cold next-step checks plus actual recall readers.",
+      "system_acceptance": "Demonstrate acquired function before/after repeated exposure and migration, including context differences and genuine sensory participation.",
+      "release_acceptance": "Historical skill claims are attributed, not current authority or reproduced results. Authenticate exact active source/binary/preserved state and complete ordinary causal proof before live qualification. No product execution, reset, current activation or speech/system/ML-free certificate follows.",
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A09",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 140,
+          "anchor": "- Memory rulings (mine, under delegation): update-vs-new boundary is",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 241,
+          "anchor": "SHIPPED+VERIFIED (work branch 182fca61, cargo 505/0/3, python green):",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 251,
+          "anchor": "CAMPAIGN: 5 streams x 3 adversarial verifiers; 13/15 REFUTED at high",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 299,
+          "anchor": "## DEPLOYED 2026-08-06 11:37 UTC — taskdef dsf-ai-task:868, git f8bf6197",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 326,
+          "anchor": "## FULL CURRICULUM TAUGHT LIVE 2026-08-06 (on taskdef 868, post-deploy)",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        }
+      ]
+    },
+    {
+      "id": "GSR07",
+      "name": "Unbounded episode archive and unenforced resource declaration",
+      "classification": "measured_resource_failure_and_unauthorized_state_dependency",
+      "historical_requirement_or_mechanism": "Skill reports230396objects after72lessons, about2900perlesson against declared16384filebound not enforced. Episode archive/count reinforcement became load-bearing under physics delegation; later clarification excludes adding persistent structures without disclosure and growth accounting.",
+      "current_disposition": "A configured cap is not enforcement. The slogan that biology has no index/log is not a substitute for reviewing a concrete native indexing mechanism; current contracts permit qualified distributed retained-state indexing and bounded external custody.",
+      "lawful_remedy": "Retire archive-as-cognitive-authority where unapproved and keep memory in actual ratified retained dynamics. Separate minimal recovery/audit custody from cognitive state; derive/enforce per-event and lifetime bounds with explicit refusal and preservation.",
+      "unit_acceptance": "Measure actual objects/bytes/work per event and all bound-admission/refusal paths.",
+      "module_acceptance": "Trace every archive/count consumer and prove current native recall/use does not secretly depend on an unbounded record chain.",
+      "system_acceptance": "Verify bounded sustained ordinary sensing/learning and active memory continuity under exact current resource envelope, without destructive pruning to hide failures.",
+      "release_acceptance": "Historical skill claims are attributed, not current authority or reproduced results. Authenticate exact active source/binary/preserved state and complete ordinary causal proof before live qualification. No product execution, reset, current activation or speech/system/ML-free certificate follows.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A09",
+        "A14",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 61,
+          "anchor": "- Body ~7.23MB is ~95% duplication (27 identical anatomy blobs 49%,",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 140,
+          "anchor": "- Memory rulings (mine, under delegation): update-vs-new boundary is",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 597,
+          "anchor": "* Her cold archive had 230,396 objects from 72 lessons (~2,900 per lesson).",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 633,
+          "anchor": "BEFORE adding ANY structure to the organism, answer in writing:",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 644,
+          "anchor": "STRUCTURE IS NOT A PHYSICS CALL. Joe's delegation covers \"what would nature",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        }
+      ]
+    },
+    {
+      "id": "GSR08",
+      "name": "Stale root note, destructive cleanup and identity-preserving genesis",
+      "classification": "documented_state_loss_and_operational_authority_failure",
+      "historical_requirement_or_mechanism": "A stale skill namedgen4live whilegen5wasactive. Cleanup deletedgen3/gen4/gen5 includingCURRENT,generations andlocalmirror;one staged body was republished. Skill says restart could have silently genesised a blank body with the same identity, later refused.",
+      "current_disposition": "The deletion instruction was based on a wrong premise; user approval did not make that premise true. Historical stage recovery is not permission to restore from stages now. State-root labels and UUID do not prove preserved active history.",
+      "lawful_remedy": "Resolve actual current task/runtime root and authenticated custody immediately before any storage operation. Preserve active/current and failure evidence; fail closed on damaged root, no silent genesis or predecessor restore. Require exact retained-state/approval mapping for any recovery.",
+      "unit_acceptance": "Reject absent/damagedCURRENT genesis and stale-path deletion targets; prove backup identity and integrity independently.",
+      "module_acceptance": "Verify actual mount/root/owner and complete latest paired successor before approved cleanup, with exact cold continuation.",
+      "system_acceptance": "Demonstrate useful learned state remains active after approved recovery/migration and current one-writer release; no archive-only preservation claim.",
+      "release_acceptance": "Historical skill claims are attributed, not current authority or reproduced results. Authenticate exact active source/binary/preserved state and complete ordinary causal proof before live qualification. No product execution, reset, current activation or speech/system/ML-free certificate follows.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 573,
+          "anchor": "## *** OUTAGE 2026-08-06/07: orphaned .stage- files wedge her permanently ***",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 592,
+          "anchor": "FIX: delete every `.stage-*` and `.nfs*` entry from hippocampal-cold, THEN",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 607,
+          "anchor": "## *** WHICH ROOT IS LIVE — ASK THE TASK, NEVER THIS FILE ***",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 622,
+          "anchor": "A destroy ruling put to Joe must NAME the live root and prove the target is",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 624,
+          "anchor": "NOTE ALSO: no remote object store is configured, so the local mirror lives",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        }
+      ]
+    },
+    {
+      "id": "GSR09",
+      "name": "Rebirth and anatomy growth authorizations",
+      "classification": "historical_scope_superseded_by_preserved_state_contract",
+      "historical_requirement_or_mechanism": "The skill describes task865rebirth keeping identity while creating a fresh differentiated body. Ears initially said to need rebirth, later explicitly allowed deliberate growth onto the living body. Delegations were dated and excluded identity/irreversible acts; later structure/adaptation restrictions narrowed their scope.",
+      "current_disposition": "Fresh body with retained UUID is not memory continuity. Historical design delegation and an agent-written ratified label cannot establish original authorization or authorize reset/current gate changes. No new subagents or actions are authorized by this archival passage.",
+      "lawful_remedy": "Recover exact original approval and map every valid predecessor dynamic into the lawful current successor. Prefer approved additive specialization preserving acquired state; expose unmapped capabilities and loss before conversion.",
+      "unit_acceptance": "Verify actual nonreset constructor/migration dispatch, all state fields and deliberate anatomy admission.",
+      "module_acceptance": "Compare active retained relations/readers and cold next-step behavior on exact mature predecessor/successor.",
+      "system_acceptance": "Require current acquired-function preservation and independent release proof; same identity and retained old root alone fail.",
+      "release_acceptance": "Historical skill claims are attributed, not current authority or reproduced results. Authenticate exact active source/binary/preserved state and complete ordinary causal proof before live qualification. No product execution, reset, current activation or speech/system/ML-free certificate follows.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A09",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 87,
+          "anchor": "## Ratifications + delegation record (2026-08-05)",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 114,
+          "anchor": "- REBIRTH #2 DEPLOYED AND ALIVE: taskdef dsf-ai-task:865, identity kept,",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 149,
+          "anchor": "- Auditory design (docs/GUALA_AUDITORY_TRANSDUCTION_DESIGN_2026-08-06.md):",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 222,
+          "anchor": "## DELEGATION 2026-08-06 (overnight) + rulings made under it",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 267,
+          "anchor": "EARS: strongest stream (work/ears-20260806, cargo 519/0/3, sight byte-identical,",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 644,
+          "anchor": "STRUCTURE IS NOT A PHYSICS CALL. Joe's delegation covers \"what would nature",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        }
+      ]
+    },
+    {
+      "id": "GSR10",
+      "name": "State versus step facts, receipt authority and severing tests",
+      "classification": "truth_surface_corrections_with_remaining_evidence_limits",
+      "historical_requirement_or_mechanism": "Skill corrects retained-fractal count versus last-step zero, mounted audio versus physical sensing, route availability versus actual camera arrival. It also declares the live ledger cannot drift because it reads the organism, and teaches judging landed by tick advance; both need actual semantic/occurrence proof. Its mandatory real-body doctrine coexists with fresh-genesis severing evidence.",
+      "current_disposition": "Native-derived output can still mislabel state or read the wrong mechanism. A global tick can advance for unrelated activity. One severed case with no measured effect does not establish universal incapability without valid excitation, actual branch reach and relevant outputs.",
+      "lawful_remedy": "Expose state, transition, delivery, physical participation and acquired function separately. Bind each event to exact occurrence/successor, not global cadence. Use meaningful matched severing and component controls on the preserved state appropriate to each claim.",
+      "unit_acceptance": "Verify label/source semantics, exact event identity, zero-effect controls and no forced nonzero display.",
+      "module_acceptance": "Trace complete actual ordinary sensory/retained-state/consumer chain and distinguish fixture versus mature evidence.",
+      "system_acceptance": "Independently verify current public behavior and claims against exact runtime/state, including unavailable/refused/not-run cases and actual user acceptance at its scope.",
+      "release_acceptance": "Historical skill claims are attributed, not current authority or reproduced results. Authenticate exact active source/binary/preserved state and complete ordinary causal proof before live qualification. No product execution, reset, current activation or speech/system/ML-free certificate follows.",
+      "repair_actions": [
+        "A03",
+        "A06",
+        "A09",
+        "A10",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 337,
+          "anchor": "SAFE TEACHING METHOD (use this, NOT tools/guala_school.py — that runner has a",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 378,
+          "anchor": "A capability is DELIVERED only when ALL FOUR are true:",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 392,
+          "anchor": "MEASURED SEVERING RESULTS (2026-08-06, tools/probe_severing.py, fresh genesis,",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 403,
+          "anchor": "THE LIVE LEDGER: https://dsf-ai.com/ledger.html (source",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 477,
+          "anchor": "## STEP FACT vs STATE — the defect class that keeps recurring",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 681,
+          "anchor": "## *** JOE'S LAW OF DONE — 2026-09-02, BINDING ***",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        }
+      ]
+    },
+    {
+      "id": "GSR11",
+      "name": "Feeding and law ratification versus physiological assertion",
+      "classification": "historical_parameter_and_scope_claims_require_original_authority",
+      "historical_requirement_or_mechanism": "Skill reports fuel-to-spent/heat ratchet, force-feed diagnostics, heat vents fully on feed, slow membrane return and tonotopic-ear assertions. It records a one-day physics delegation and later bans graph-walk-authored contact growth in favor of actual moved terminal evidence.",
+      "current_disposition": "An attributed ratification or biological analogy is not current physical-law proof. Whole heat removal, direct feeding endpoints, broad co-action wording and identical-ear impossibility claims require exact authorized laws/assumptions and original approval; do not generalize to current architecture.",
+      "lawful_remedy": "Classify actual nutrition/heat/recovery and contact update laws with units, reservoirs, causal inputs, persistence and readers. Preserve valid functional emulation and real body/world nourishment; no silent heat deletion, timer feed or coincidence-based learning.",
+      "unit_acceptance": "Verify exact finite transfers and event-specific authoring conditions, including zero input and false-coincidence negatives.",
+      "module_acceptance": "Trace actual current food/material→internal sense→retained contextual use and approved contact change, independently of curriculum transport.",
+      "system_acceptance": "Demonstrate bounded foraging/intake/recovery and acquired useful action under the current charter; resolve unsupported law claims before certification.",
+      "release_acceptance": "Historical skill claims are attributed, not current authority or reproduced results. Authenticate exact active source/binary/preserved state and complete ordinary causal proof before live qualification. No product execution, reset, current activation or speech/system/ML-free certificate follows.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A07",
+        "A09",
+        "A11",
+        "A12",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 55,
+          "anchor": "- Metabolism: fuel->spent+heat ratchet exists with NO recovery reaction,",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 90,
+          "anchor": "- By DELEGATION (Joe, migraine day, standing rule \"what would nature do\";",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 146,
+          "anchor": "- Feeding judgment calls: nutrition in body's own fuel quantum; waste =",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 258,
+          "anchor": "AUTONOMY TRUTH (measured by me, both directions):",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 650,
+          "anchor": "## *** GUALA-TRUE MECHANISM CHECK — Joe, 2026-09-02, after the walk-grown contact ***",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        }
+      ]
+    },
+    {
+      "id": "GSR12",
+      "name": "Complete skill history and remaining project reconciliation",
+      "classification": "documentary_scope_not_automatic_runtime_truth",
+      "historical_requirement_or_mechanism": "All24historicalskillversionscoveredby686latestlinesplus4olderpassages/8lines. They preserve explicit retractions, genuine narrow progress, wrong premises and changing directives. Current working skill already directs agents to canonical contracts and separates archival instructions.",
+      "current_disposition": "This review neither independently reproduces historical experiments nor authenticates all original conversations/scientific claims. Full April-to-current reconciliation and exact current preserved-state qualification remain open.",
+      "lawful_remedy": "Keep mechanism classification/specification/remedy/testing requirements in current durable guidance and continue original authority, code and execution reconciliation. Do not promise speech success or pronounce permanent impossibility from these histories.",
+      "unit_acceptance": "Verify hashes, exact all-version reconstruction and active guidance links.",
+      "module_acceptance": "Map all actual learning/decision mechanisms and alternate paths to the current approved law and evidence.",
+      "system_acceptance": "Require complete independent exact-release causal/dependency/state/resource qualification before any speech/system/ML-free certificate.",
+      "release_acceptance": "Historical skill claims are attributed, not current authority or reproduced results. Authenticate exact active source/binary/preserved state and complete ordinary causal proof before live qualification. No product execution, reset, current activation or speech/system/ML-free certificate follows.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A10",
+        "A15",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 3,
+          "anchor": "description: Operate and develop the live Guala native organism — tree locations, verification discipline, deploy gates, measured substrate facts, doctrine rules. Load at session start for ANY Guala work.",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 372,
+          "anchor": "## *** THE DELIVERY DOCTRINE — ratified by Joe 2026-08-06, NON-NEGOTIABLE ***",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        },
+        {
+          "source_id": "GS024",
+          "path": "docs/guala_reconciliation/sources/skill-history/GS024--SKILL.md",
+          "line": 681,
+          "anchor": "## *** JOE'S LAW OF DONE — 2026-09-02, BINDING ***",
+          "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8"
+        }
+      ]
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false
+}

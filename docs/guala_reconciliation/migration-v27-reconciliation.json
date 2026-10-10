@@ -1,0 +1,537 @@
+{
+  "schema": "guala.documentary_slice_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T07:23:04.223619+00:00",
+  "scope": "Selected historical source/authority audit: full 800-line parent/child diff; named boundaries in three large native captures; complete 506-line test module; complete 31-message selected public/user extract. Three native files and the original conversation thread are not fully semantically read. No product execution, live refresh or qualification.",
+  "source_read_complete": false,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "MG01",
+      "commit": "9bd0611151ed2895b5500455ff68113d74c21774",
+      "path": "native/guala_core/src/resident_cognitive_formation.rs",
+      "git_blob": "f3ae4046255902c9ebd23625d930920d8088a059",
+      "sha256": "fdc3e987196ac392295f0d42e8ea78056075467bfecbc4d793de224bafb9259c",
+      "bytes": 832053,
+      "lines": 19609,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/migration-v27/MG01--resident_cognitive_formation.rs",
+      "review": {
+        "full_file_read": false,
+        "read": "Complete800-line parent/child diff including old-side changes; no full-file/transitive audit"
+      },
+      "review_scope": {
+        "full_file_read": false,
+        "read": "Complete800-line parent/child diff including old-side changes; no full-file/transitive audit"
+      },
+      "source_read_complete": false,
+      "canonical_copy": "docs/guala_reconciliation/sources/migration-v27/MG01--resident_cognitive_formation.rs"
+    },
+    {
+      "id": "MG02",
+      "commit": "33163727a5b9edf2e998b4f91c7b5e6619af57f4",
+      "path": "native/guala_core/src/resident_cognitive_formation.rs",
+      "git_blob": "0285b99bf886d3898b84ba60bde754741ff5f2dd",
+      "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d",
+      "bytes": 838964,
+      "lines": 19758,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/migration-v27/MG02--resident_cognitive_formation.rs",
+      "review": {
+        "full_file_read": false,
+        "read": "Complete800-line diff; additionally8140–8290 migration/decode boundary,13415–13485 causal-lineage construction,14922–14942 test registration"
+      },
+      "review_scope": {
+        "full_file_read": false,
+        "read": "Complete800-line diff; additionally8140–8290 migration/decode boundary,13415–13485 causal-lineage construction,14922–14942 test registration"
+      },
+      "source_read_complete": false,
+      "canonical_copy": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs"
+    },
+    {
+      "id": "MG03",
+      "commit": "33163727a5b9edf2e998b4f91c7b5e6619af57f4",
+      "path": "native/guala_core/src/organism_runtime.rs",
+      "git_blob": "ec3f4e78bbcfed88577edae51c851f462109cf7c",
+      "sha256": "c32e2758850d1dcd7b072a61216e34e7a5e14f135fe6ca49fcb328af2e0e4ba1",
+      "bytes": 339550,
+      "lines": 8676,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/migration-v27/MG03--organism_runtime.rs",
+      "review": {
+        "full_file_read": false,
+        "read": "4690–4785,4780–4825,4860–4950,6788–6848 selected outer migration/genesis/test boundaries; other runtime code not fully read"
+      },
+      "review_scope": {
+        "full_file_read": false,
+        "read": "4690–4785,4780–4825,4860–4950,6788–6848 selected outer migration/genesis/test boundaries; other runtime code not fully read"
+      },
+      "source_read_complete": false,
+      "canonical_copy": "docs/guala_reconciliation/sources/migration-v27/MG03--organism_runtime.rs"
+    },
+    {
+      "id": "MG04",
+      "commit": "33163727a5b9edf2e998b4f91c7b5e6619af57f4",
+      "path": "native/guala_core/src/resident_cognitive_formation/real_body_migration_probe.rs",
+      "git_blob": "03e0e7c714fc55a08c123abd3747757bf3cbd386",
+      "sha256": "937053d67ec18f319eed4837c6d6c87e83e0db01d4b61308069df9ebcb461429",
+      "bytes": 20253,
+      "lines": 506,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/migration-v27/MG04--real_body_migration_probe.rs",
+      "review": {
+        "full_file_read": true,
+        "read": "Complete506-line historical test/probe file; no tests or product imports executed"
+      },
+      "review_scope": {
+        "full_file_read": true,
+        "read": "Complete506-line historical test/probe file; no tests or product imports executed"
+      },
+      "source_read_complete": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/migration-v27/MG04--real_body_migration_probe.rs"
+    },
+    {
+      "id": "MG05",
+      "path": "backups/runtime/a1-speech-reconciliation-20261010/migration-v27/selected-authority-context.json",
+      "git_blob": null,
+      "sha256": "6d200930867e08b73ee3243dea63bd40333e8f3439cfd42994e32e08632e83ec",
+      "bytes": 37394,
+      "lines": 506,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/migration-v27/selected-authority-context.json",
+      "source_read_complete": true,
+      "review_scope": {
+        "captured_extract_read_complete": true,
+        "original_thread_semantic_review_complete": false,
+        "read": "All31 selected original user/user-facing assistant messages read with exact per-record custody; not all original-thread content."
+      },
+      "canonical_copy": "docs/guala_reconciliation/sources/migration-v27/selected-authority-context.json",
+      "review": {
+        "captured_extract_read_complete": true,
+        "original_thread_semantic_review_complete": false,
+        "read": "All31 selected original user/user-facing assistant messages read with exact per-record custody; not all original-thread content."
+      }
+    }
+  ],
+  "requirements": [
+    {
+      "id": "MGR01",
+      "name": "V27 performs blanket experience-custody retirement alongside topology removal",
+      "classification": "source_confirmed_loss_beyond_identity_continuity",
+      "historical_requirement_or_mechanism": "Commit33163727 adds retire_background_authorized_development. It removes non-source cells at layers9/10/11/13, releases their places and removes incident contacts. For every surviving cohort it sets pending_experience, retained_experience and pending_recurrence to None. It clears all three active frontiers, the complete mosaics collection and hippocampal index. has_cognitive_custody can trigger this clearing even when the retired-lineage set is empty. Generation and next-lineage ordinal survive.",
+      "current_disposition": "The exact source confirms broader custody clearing than merely deleting graph edges. It does not prove that every cleared experience in preserved sensory/body cohorts depended on invalid contacts. It preserves those cohorts’ physical state values, so “all neuronal learning was erased” would also exceed this evidence. Historical report/source evidence does not establish current activation.",
+      "lawful_remedy": "Bind the disclosed, authorized topology cleanup to an exact per-owner preservation/loss account. Separate preserved physical plastic state from removed experience/formation/recall custody and resulting lost capabilities. Recover usable causative history only through an authorized direct physical mapping, never invented memories or current-state reset.",
+      "unit_acceptance": "Enumerate every kept/removed physical and cognitive owner, with exact source and before/after state identities.",
+      "module_acceptance": "Prove the actual migration’s complete loss/preservation contract, including surviving cohorts and all dependent relations.",
+      "system_acceptance": "Compare authentic pre/post learned causal effects, distinguishing surviving plastic state from lost recall indexing and new acquisition.",
+      "release_acceptance": "No preservation certificate from UUID/generation/format validity; disclose every sanctioned loss and independently qualify retained effects on the exact release.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A09",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 3776,
+          "anchor": "    fn retire_background_authorized_development(&self) -> Result<Option<Self>, FormationError> {",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        },
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 3804,
+          "anchor": "        if retired.is_empty() && !has_cognitive_custody {",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        },
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 3820,
+          "anchor": "                preserved.pending_experience = None;",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        },
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 3821,
+          "anchor": "                preserved.retained_experience = None;",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        },
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 3822,
+          "anchor": "                preserved.pending_recurrence = None;",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        }
+      ]
+    },
+    {
+      "id": "MGR02",
+      "name": "Outer current-envelope guard limits the migration’s actual reach",
+      "classification": "genuine_guard_and_narrow_migration_identity_checks",
+      "historical_requirement_or_mechanism": "The historical outer migrate_resident_organism_exact_energy_envelope returns the original bytes when the cognitive segment has the current marker, current decode succeeds, and both vestibular and articulated body state are present. Otherwise it calls the cognitive migration, supplies genesis/neutral body state where absent, re-encodes and checks identity, organism tick and fabric generation. V27 deliberately retains the V26 payload layout while changing format identity for the authority boundary.",
+      "current_disposition": "This is concrete counterevidence to a blanket claim that every restart clears memory. The three post-migration identity checks do not test preservation of formations or learned behavior. Format validity and a migration-gate claim are distinct from per-state historical authenticity. Actual startup/deployment configuration and original envelope execution are not independently replayed here.",
+      "lawful_remedy": "Preserve the valid-current no-op guard and qualify every actual external migration/restore entry. Versioned body commissioning must be explicit and authorized, with exact missing/preserved-state accounting. No ordinary recovery may quietly choose a destructive repair for unrecognized state.",
+      "unit_acceptance": "Verify valid learned current envelopes return byte-identically and invalid/legacy inputs take only their authorized explicit paths.",
+      "module_acceptance": "Trace wrapper, native entry, decode, body initialization and final publication using exact artifacts and configuration.",
+      "system_acceptance": "Demonstrate learned-state persistence across cold restart and repeated deployment without rerunning retirement.",
+      "release_acceptance": "Bind format/source/migration identity and actual serving entry; do not certify preservation from the three identity counters alone.",
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A09",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "MG03",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG03--organism_runtime.rs",
+          "line": 4729,
+          "anchor": "    if already_current {",
+          "sha256": "c32e2758850d1dcd7b072a61216e34e7a5e14f135fe6ca49fcb328af2e0e4ba1"
+        },
+        {
+          "source_id": "MG03",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG03--organism_runtime.rs",
+          "line": 4730,
+          "anchor": "        return Ok(current_envelope);",
+          "sha256": "c32e2758850d1dcd7b072a61216e34e7a5e14f135fe6ca49fcb328af2e0e4ba1"
+        },
+        {
+          "source_id": "MG03",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG03--organism_runtime.rs",
+          "line": 4727,
+          "anchor": "            && parsed.articulated_body.is_some()",
+          "sha256": "c32e2758850d1dcd7b072a61216e34e7a5e14f135fe6ca49fcb328af2e0e4ba1"
+        },
+        {
+          "source_id": "MG03",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG03--organism_runtime.rs",
+          "line": 4777,
+          "anchor": "        return Err(RuntimeError::MigrationInvariantChanged);",
+          "sha256": "c32e2758850d1dcd7b072a61216e34e7a5e14f135fe6ca49fcb328af2e0e4ba1"
+        },
+        {
+          "source_id": "MG03",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG03--organism_runtime.rs",
+          "line": 5176,
+          "anchor": "        return Err(RuntimeError::MigrationInvariantChanged);",
+          "sha256": "c32e2758850d1dcd7b072a61216e34e7a5e14f135fe6ca49fcb328af2e0e4ba1"
+        },
+        {
+          "source_id": "MG03",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG03--organism_runtime.rs",
+          "line": 5194,
+          "anchor": "        return Err(RuntimeError::MigrationInvariantChanged);",
+          "sha256": "c32e2758850d1dcd7b072a61216e34e7a5e14f135fe6ca49fcb328af2e0e4ba1"
+        },
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 7697,
+          "anchor": "            // V27 deliberately keeps the compact V26 byte layout. Its new",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        }
+      ]
+    },
+    {
+      "id": "MGR03",
+      "name": "Immediate empty-state idempotence does not test later learned state",
+      "classification": "idempotence_acceptance_scope_gap",
+      "historical_requirement_or_mechanism": "The modified synthetic migration test asserts empty mosaics/frontier and compares an immediate repeat migration with that just-cleared body. The lower cognitive migrate_to_current_format accepts V27 for geometry provisioning and still invokes the retirement helper without an already-current early return. A later current body containing new cognitive custody therefore needs the outer no-op guard or an explicit lower-entry contract; the empty immediate fixture does not exercise that case.",
+      "current_disposition": "The public outer guard is present, and a complete current envelope ordinarily avoids the lower helper. No repeated production wipe has been observed or inferred. The source observation identifies a test/entry-boundary obligation, not proof that normal restart is broken.",
+      "lawful_remedy": "Qualify idempotence after genuine post-migration learning through every admitted entry, not only on empty freshly migrated state. Keep low-level destructive operations narrowly scoped and make unsupported direct calls fail explicitly. Do not create fake learned state solely to claim a system preservation pass.",
+      "unit_acceptance": "Exercise authentic nonempty current custody at the relevant entry and require exact preservation or an explicit refusal according to its ratified contract.",
+      "module_acceptance": "Verify all production callers honor the current-envelope guard and cannot accidentally route learned current state through retirement.",
+      "system_acceptance": "Cold-restart the preserved post-learning organism and prove the same later causal effects survive.",
+      "release_acceptance": "No broad idempotence claim from an immediately repeated empty fixture; bind actual caller and artifact evidence.",
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A09",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 8212,
+          "anchor": "    pub(crate) fn migrate_to_current_format(",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        },
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 8236,
+          "anchor": "        let state = match state.retire_background_authorized_development()? {",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        },
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 18565,
+          "anchor": "    fn historical_background_growth_migrates_once_and_cannot_restore() {",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        },
+        {
+          "source_id": "MG03",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG03--organism_runtime.rs",
+          "line": 4729,
+          "anchor": "    if already_current {",
+          "sha256": "c32e2758850d1dcd7b072a61216e34e7a5e14f135fe6ca49fcb328af2e0e4ba1"
+        }
+      ]
+    },
+    {
+      "id": "MGR04",
+      "name": "Artifact-dependent migration tests can pass without testing the artifact",
+      "classification": "false_acceptance_route_and_stale_fixture_contract",
+      "historical_requirement_or_mechanism": "MG04 contains six #[test] functions that return immediately when their required GUALA_* artifact paths are absent; MG02 registers the module under cfg(test). real_production_body_migrates_losslessly also expects NoncanonicalState from ordinary decoding of retired energy bytes, while this commit’s ordinary decode first returns RetiredCognitiveState for any non-V27 marker. Its32MB fixture allowance and old omitted-material/mosaic-equality assertions do not qualify the documented113MB destructive migration.",
+      "current_disposition": "No test ran in this audit. Missing environment yields a successful no-op path in source; whether a particular historical suite set those variables is not established. The documented472-pass suite cannot by itself prove these artifact assertions ran. The synthetic MAX_BYTES1.6billion constant is a byte budget, not evidence of an energy multiplier; quantities must be classified by units and consumer.",
+      "lawful_remedy": "Make missing required artifacts explicit unavailable/ignored-with-reason or failing gates, with separate executed-capability accounting. Replace stale assertions only through a ratified preservation/loss contract and exact source/candidate fixture. Preserve the original failed predicate and loss evidence; never soften a test to hide unsupported retirement.",
+      "unit_acceptance": "Missing/corrupt/wrong-version artifacts must not report a qualified capability pass; verify actual assertion execution.",
+      "module_acceptance": "Bind source, rebuilt native artifact, required envelope/world and exact configuration to each migration proof.",
+      "system_acceptance": "Require complete preserved-state or explicitly authorized-loss behavior and real post-restore causal use, not suite totals.",
+      "release_acceptance": "Release receipts must distinguish executed/pass/fail/ignored/unavailable and cannot turn a no-op fixture into lossless-migration evidence.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "MG04",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG04--real_body_migration_probe.rs",
+          "line": 6,
+          "anchor": "//! migrated bytes. No-op when the env var is absent.",
+          "sha256": "937053d67ec18f319eed4837c6d6c87e83e0db01d4b61308069df9ebcb461429"
+        },
+        {
+          "source_id": "MG04",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG04--real_body_migration_probe.rs",
+          "line": 21,
+          "anchor": "fn real_production_body_migrates_losslessly() {",
+          "sha256": "937053d67ec18f319eed4837c6d6c87e83e0db01d4b61308069df9ebcb461429"
+        },
+        {
+          "source_id": "MG04",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG04--real_body_migration_probe.rs",
+          "line": 30,
+          "anchor": "        Err(super::FormationError::NoncanonicalState),",
+          "sha256": "937053d67ec18f319eed4837c6d6c87e83e0db01d4b61308069df9ebcb461429"
+        },
+        {
+          "source_id": "MG04",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG04--real_body_migration_probe.rs",
+          "line": 27,
+          "anchor": "    let budget = 32_000_000usize;",
+          "sha256": "937053d67ec18f319eed4837c6d6c87e83e0db01d4b61308069df9ebcb461429"
+        },
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 4361,
+          "anchor": "                        return Err(FormationError::RetiredCognitiveState)",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        },
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 6693,
+          "anchor": "                    return Err(FormationError::RetiredCognitiveState);",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        },
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 6943,
+          "anchor": "                        return Err(FormationError::RetiredCognitiveState);",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        },
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 7669,
+          "anchor": "            return Err(FormationError::RetiredCognitiveState);",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        },
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 7732,
+          "anchor": "            return Err(FormationError::RetiredCognitiveState);",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        },
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 8066,
+          "anchor": "                return Err(FormationError::RetiredCognitiveState);",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        },
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 8366,
+          "anchor": "            return Err(FormationError::RetiredCognitiveState);",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        },
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 8444,
+          "anchor": "            } => return Err(FormationError::RetiredCognitiveState),",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        },
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 10342,
+          "anchor": "                return Err(FormationError::RetiredCognitiveState);",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        },
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 14937,
+          "anchor": "mod real_body_migration_probe;",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        }
+      ]
+    },
+    {
+      "id": "MGR05",
+      "name": "Retinal diagnostic probes are narrower than acquired language",
+      "classification": "diagnostic_proxy_not_native_language_proof",
+      "historical_requirement_or_mechanism": "The historical test module reports retinal state/delta/capacity and asserts that A and K leave at least one distinct retained delta. Another diagnostic constructs an abstract contact coordinate1+abs(gate-population fraction difference), runs a compatibility plastic-support calculation and prints counts of changed/refused results; it does not assert successful recurrence or learned behavior. The underlying snapshot decode and input identity are still required.",
+      "current_disposition": "These are test/probe computations, not demonstrated active cognitive controllers. Distinct retained retinal states are potentially useful component evidence but do not establish recognition, meaningful words, speech, syntax or lawful actual contact evolution. No probe was executed here and no current serving use is inferred.",
+      "lawful_remedy": "Classify each probe as diagnostic observation, component predicate or actual behavioral acceptance. Derive physical coordinates/units from authorized source laws if used for qualification; require actual native contact/formation lineage and later causal use rather than a compatibility-coordinate prediction.",
+      "unit_acceptance": "Verify measurement identity, coordinate units and exact predicates; printed counts are not assertions of capability.",
+      "module_acceptance": "Bind retained native changes and actual physical contact effects to authentic sensory occurrences.",
+      "system_acceptance": "Test later contextual recognition/action/articulation independently of mere A/K state separation, with matched negative controls.",
+      "release_acceptance": "Speech/language claims require exact release and causal/intelligibility evidence; do not promote diagnostic proxy output into native success.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "MG04",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG04--real_body_migration_probe.rs",
+          "line": 312,
+          "anchor": "fn real_a_and_k_lessons_leave_distinct_retained_retinal_states() {",
+          "sha256": "937053d67ec18f319eed4837c6d6c87e83e0db01d4b61308069df9ebcb461429"
+        },
+        {
+          "source_id": "MG04",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG04--real_body_migration_probe.rs",
+          "line": 352,
+          "anchor": "        distinct_retained > 0,",
+          "sha256": "937053d67ec18f319eed4837c6d6c87e83e0db01d4b61308069df9ebcb461429"
+        },
+        {
+          "source_id": "MG04",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG04--real_body_migration_probe.rs",
+          "line": 363,
+          "anchor": "fn repeated_a_and_k_recurrence_coordinate_probe() {",
+          "sha256": "937053d67ec18f319eed4837c6d6c87e83e0db01d4b61308069df9ebcb461429"
+        },
+        {
+          "source_id": "MG04",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG04--real_body_migration_probe.rs",
+          "line": 415,
+          "anchor": "    let support_coordinate = |cohort: &ResidentReachedCohort,",
+          "sha256": "937053d67ec18f319eed4837c6d6c87e83e0db01d4b61308069df9ebcb461429"
+        },
+        {
+          "source_id": "MG04",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG04--real_body_migration_probe.rs",
+          "line": 495,
+          "anchor": "        \"RECURRENCE_POPULATIONS predecessor={:?} a={:?} k={:?} contact_yield original={} repeated={} novel={} actual_retained={} refused_repeated={} refused_novel={}\",",
+          "sha256": "937053d67ec18f319eed4837c6d6c87e83e0db01d4b61308069df9ebcb461429"
+        }
+      ]
+    },
+    {
+      "id": "MGR06",
+      "name": "Original user exchange authorizes disclosed cleanup but not unsupported preservation claims",
+      "classification": "recovered_contextual_authorization_with_scope_limits",
+      "historical_requirement_or_mechanism": "The original public conversation is recovered with record hashes/offsets. At01:28 on Aug23 Joe accepted a recommendation to remove contaminated formations and duplicate cells while preserving unrelated state. At22:50 the agent proposed removing44666 contacts and1554 developmental neurons, preserving2104 supporting contacts and74 motor terminals, and clearing dependent formations/frontiers. At22:51 Joe directed proceeding. At00:10 Aug24 he accepted1.45s for now and restated preservation of neurons/learned sensory state and prohibition of ML/heuristics. The agent then explicitly reported loss of the old play/laughter witness after cleanup.",
+      "current_disposition": "This corrects the earlier unresolved-authorization disposition: the disclosed cleanup was contextually authorized. The agent’s own22:47 statement says all26956 motor-fan contacts had structurally possible ancestry and valid/invalid contacts could not be separated individually. Authorization does not prove every removed structure invalid, justify unaccounted surviving-cohort custody loss, or establish complete retained-history preservation. Original user messages must be distinguished from tool results, generated goal continuations and environment records.",
+      "lawful_remedy": "Preserve the exact proposal→user direction→implementation→reported effects chain. Reconcile the earlier22-formation proposal with the later200→175 report by actual state identities, rather than assuming counts must match across all corrections. Keep the current no-reset directive intact. Require evidence for all invalidity/preservation assertions and map any legitimate lost capability into current remediation.",
+      "unit_acceptance": "Authenticate original role/phase/text/record identity and contextual scope; automated user-role messages cannot serve as approval.",
+      "module_acceptance": "Compare the approved loss/preservation contract with actual migration code and per-state losses.",
+      "system_acceptance": "Demonstrate retained or reacquired capabilities with authentic causal evidence and explicit history discontinuities.",
+      "release_acceptance": "No reapproval is needed for this historical finding; no historical authorization permits a new current reset or unsupported speech/ML-free certificate.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A09",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 3764,
+          "anchor": "    /// layers 9--13. Those historical contacts do not retain enough provenance",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        },
+        {
+          "source_id": "MG02",
+          "path": "docs/guala_reconciliation/sources/migration-v27/MG02--resident_cognitive_formation.rs",
+          "line": 3821,
+          "anchor": "                preserved.retained_experience = None;",
+          "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d"
+        },
+        {
+          "source_id": "MG05",
+          "path": "docs/guala_reconciliation/sources/migration-v27/selected-authority-context.json",
+          "line": 63,
+          "anchor": "      \"timestamp\": \"2026-08-23T01:28:15.429Z\",",
+          "sha256": "6d200930867e08b73ee3243dea63bd40333e8f3439cfd42994e32e08632e83ec"
+        },
+        {
+          "source_id": "MG05",
+          "path": "docs/guala_reconciliation/sources/migration-v27/selected-authority-context.json",
+          "line": 223,
+          "anchor": "      \"timestamp\": \"2026-08-23T22:50:07.092Z\",",
+          "sha256": "6d200930867e08b73ee3243dea63bd40333e8f3439cfd42994e32e08632e83ec"
+        },
+        {
+          "source_id": "MG05",
+          "path": "docs/guala_reconciliation/sources/migration-v27/selected-authority-context.json",
+          "line": 239,
+          "anchor": "      \"timestamp\": \"2026-08-23T22:51:52.866Z\",",
+          "sha256": "6d200930867e08b73ee3243dea63bd40333e8f3439cfd42994e32e08632e83ec"
+        },
+        {
+          "source_id": "MG05",
+          "path": "docs/guala_reconciliation/sources/migration-v27/selected-authority-context.json",
+          "line": 463,
+          "anchor": "      \"timestamp\": \"2026-08-24T00:10:31.635Z\",",
+          "sha256": "6d200930867e08b73ee3243dea63bd40333e8f3439cfd42994e32e08632e83ec"
+        },
+        {
+          "source_id": "MG05",
+          "path": "docs/guala_reconciliation/sources/migration-v27/selected-authority-context.json",
+          "line": 495,
+          "anchor": "      \"timestamp\": \"2026-08-24T00:17:19.107Z\",",
+          "sha256": "6d200930867e08b73ee3243dea63bd40333e8f3439cfd42994e32e08632e83ec"
+        }
+      ]
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false
+}

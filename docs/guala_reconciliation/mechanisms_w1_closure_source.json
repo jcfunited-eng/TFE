@@ -1,0 +1,457 @@
+{
+  "schema": "guala.documentary_mechanisms.v1",
+  "at_utc": "2026-10-10T11:34:02.966522+00:00",
+  "scope": "Complete captured working sources WC01/WC02,1143 lines/two paths, fully read without product imports or execution. Read-only container file hashes confirm both are packaged in Task1606; invocation is unproved. This source review adds zero Git-document corpus pairs and is not an atomic candidate or product qualification.",
+  "mechanisms": [
+    {
+      "id": "VWC01",
+      "name": "Object-labeled sign-pair frequency learning is a supervised pattern classifier",
+      "classification": "deterministic_supervised_feature_classifier_not_material_yield_plasticity",
+      "finding": "WCR01",
+      "observed_mechanism": "WC01 stores occurrences and relation counts under caller-supplied thing_id. Each relation contains source/target lane and signs. Learning increments one count per observed relation, requires at least two occurrences, applies L6 count thresholds and subtracts relations shared by multiple object classes. Query thresholds the surviving matches and returns resolved/ambiguous/unknown object identities.",
+      "evidence_limits": "This is software pattern learning with labeled classes and frequency-based feature selection. It is not implemented contact-yield plasticity, native acquired vocal control or a no-learning algorithm. Determinism, hashes and absence of an ML library do not change that classification. No present invocation is established.",
+      "replacement": "Remove this classifier from pupil cognitive authority and any no-ML/full-physics capability claim. Preserve forensic evidence; qualify the approved actual native local adaptation and later retained-state consumer instead. Do not port these tables/counters into Rust and rename them physical memory.",
+      "acceptance": {
+        "unit": "Identify exact state/update/decision laws; distinguish legitimate physical conductance change from class-indexed sign-pair counts and supplied answers.",
+        "module": "Trace the actual native experienced-state change into ordinary recognition and motor consumers with matched acquired/unacquired controls.",
+        "system": "Demonstrate experience-dependent grounded recognition and intelligible ordered articulation without supplied pupil object answers or classifier lookup authority.",
+        "release": "Bind actual current source/native binary/image/configuration and complete active predecessor. Verify real mounted consumers and ordinary live retained behavior independently. Packaged source is not invocation proof; no product tests ran here and no speech/system/ML-free certificate is issued."
+      },
+      "refs": [
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 398,
+          "anchor": "        self._occurrences: dict[str, list[tuple[str, str]]] = {}",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 497,
+          "anchor": "                        relations.add(AuthenticatedPulseRelation(",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 521,
+          "anchor": "    def _recompute_locked(self) -> None:",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 555,
+          "anchor": "    def learn(",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VWC02",
+      "name": "The status explicitly denies a reduction used by its decision",
+      "classification": "source_confirmed_false_full_field_status",
+      "finding": "WCR02",
+      "observed_mechanism": "WC01 status emits full_field_authority_retained=True and reduced_approximation=False. Actual relation formation and query use sign of integer windings and sets/counts of adjacent-frame matches; query never evaluates the explicit seven rational fields.",
+      "evidence_limits": "Provenance may retain original trajectories elsewhere, but does not make this decision full-field. Conditional on admitted inputs, changes preserving event zero/sign patterns cannot affect these decision features. Subthreshold information, winding magnitude and temporal structure beyond accumulated local matches are lost. This is a concrete inaccurate status claim, not proof of personal intent.",
+      "replacement": "Correct every exposed claim to identify the reduced classifier and lost structure, then retire it from prohibited pupil authority. The actual approved native mechanism must preserve complete DSF at its declared boundary and identify any lawful receptor reduction explicitly.",
+      "acceptance": {
+        "unit": "Verify presence/zero, sign-preserving magnitude changes, positional values and declared loss against the actual consumer rather than a receipt flag.",
+        "module": "Trace full field from producer through actual physical decision consumers; source receipts cannot substitute for consumed state.",
+        "system": "Qualify the requested retained cognitive/speech behavior with independent evidence of the actual field path and current release.",
+        "release": "Bind actual current source/native binary/image/configuration and complete active predecessor. Verify real mounted consumers and ordinary live retained behavior independently. Packaged source is not invocation proof; no product tests ran here and no speech/system/ML-free certificate is issued."
+      },
+      "refs": [
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 9,
+          "anchor": "Full rational sensory trajectories remain authoritative in the source W1",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 500,
+          "anchor": "                            source_sign=_sign(",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 695,
+          "anchor": "                target_sign = _sign(sequences[target][frame_index])",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 903,
+          "anchor": "                \"full_field_authority_retained\": True,",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A04",
+        "A05",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VWC03",
+      "name": "Dynamic firing does not propagate neuronal state or the declared recurrent graph",
+      "classification": "source_specification_mismatch_and_missing_native_effect",
+      "finding": "WCR03",
+      "observed_mechanism": "_dynamic_firing reads external winding signs at successive frames and unions matching relations; it has no retained a_i(t) transition or brain/membrane/synapse mutation. _allowed_edges includes ring neighbors but is not called by learn, settle or relation population. Actual relation population uses shared-neuron lanes and homologous lanes. The whole file has no motor/pressure output.",
+      "evidence_limits": "The historical proposal’s recurrent neuronal language and ring-edge law are not implemented by this matching routine. A union of fired features is not persistent neuronal propagation or learned articulation. This does not prove the current64-column native mechanism lacks every such function.",
+      "replacement": "Do not repair the prohibited classifier into a larger surrogate. Bind the current approved native receptor→persistent target→retained relation→ordinary motor chain and identify the exact first missing transition. Require actual local causal interaction rather than co-activation naming.",
+      "acceptance": {
+        "unit": "Falsify independently driven endpoints and verify actual persistent target change under controlled local interaction; preserve typed coordinates and complete state.",
+        "module": "Prove actual mounted topology/target state, retained later contribution and ordered motor pressure with matched interruption controls.",
+        "system": "Demonstrate acquired hearing and learned speech separately through ordinary current paths; feature matching cannot stand in for a physical endpoint.",
+        "release": "Bind actual current source/native binary/image/configuration and complete active predecessor. Verify real mounted consumers and ordinary live retained behavior independently. Packaged source is not invocation proof; no product tests ran here and no speech/system/ML-free certificate is issued."
+      },
+      "refs": [
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 415,
+          "anchor": "    def _neuron_neighbors(self) -> dict[str, frozenset[str]]:",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 433,
+          "anchor": "    def _allowed_edges(",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 461,
+          "anchor": "    def _relation_population(",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 672,
+          "anchor": "    def _dynamic_firing(",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VWC04",
+      "name": "Exact L6 arithmetic is not proof that feature counts are physical dimensions",
+      "classification": "correctly_scoped_exact_arithmetic_with_unqualified_physical_interpretation",
+      "finding": "WCR04",
+      "observed_mechanism": "WC02 computes ceil(N/e) with exact alternating-factorial bounds and sets effective=N-nonnull-quiescent, locked=effective<knee. WC01 supplies occurrence counts or numbers of pattern relations/matches and always zero quiescent count at its learning/query sites.",
+      "evidence_limits": "No numerical approximation is needed to obtain this threshold. The unresolved issue is whether those counted matches represent independent physical constraints or actual structural collapse; the code does not establish that equivalence. An exact threshold applied to a classifier remains a classifier.",
+      "replacement": "Preserve the exact arithmetic at its legitimately approved scope. Reject unproved dimensional-rank/physical-learning interpretations; establish actual physical constraint independence and approved L6 usage before any cognitive authority. Do not tune the knee to force recognition.",
+      "acceptance": {
+        "unit": "Verify the integer inequality independently from the provenance/independence of caller-supplied dimensions.",
+        "module": "Trace actual counted entities and dependencies; repeated or shared pattern matches must not masquerade as independent physical dimensions.",
+        "system": "Demonstrate the actual requested retained function through approved physical state rather than a count crossing.",
+        "release": "Bind actual current source/native binary/image/configuration and complete active predecessor. Verify real mounted consumers and ordinary live retained behavior independently. Packaged source is not invocation proof; no product tests ran here and no speech/system/ML-free certificate is issued."
+      },
+      "refs": [
+        {
+          "source_id": "WC02",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC02--canonical_l6.py",
+          "line": 24,
+          "anchor": "def _ceil_dimensions_over_e(dimensions: int) -> int:",
+          "sha256": "7c99adaaf47daa6c6038afa0aaa438d37970e30c3689f7433b46e2b030b46240"
+        },
+        {
+          "source_id": "WC02",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC02--canonical_l6.py",
+          "line": 79,
+          "anchor": "def canonical_l6_direction(",
+          "sha256": "7c99adaaf47daa6c6038afa0aaa438d37970e30c3689f7433b46e2b030b46240"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 530,
+          "anchor": "                if canonical_l6_direction(",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 737,
+          "anchor": "                    direction = canonical_l6_direction(",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A05",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VWC05",
+      "name": "Grounding digest shape and source-hash deduplication do not prove causal authority",
+      "classification": "boundary_authority_not_established_by_local_shape_checks",
+      "finding": "WCR05",
+      "observed_mechanism": "learn checks thing_id and grounding receipt only for lowercaseSHA shape, calls occurrence.verify and rejects exact repeated source receipt hashes. It then issues its own HMAC learning receipt. The file does not verify that a held physical object caused the supplied grounding or that differently hashed occurrences have independent physical ancestry.",
+      "evidence_limits": "An upstream trusted caller could supply valid authority; this file alone does not prove it. Authenticating an output does not retrospectively establish grounding. Hash inequality is not independent experience. Current callers and full ancestor closure remain unverified.",
+      "replacement": "Keep actual grounding/ancestry admission at the canonical boundary and trace it into the lawful native experience, without labels selecting pupil recognition. Require semantic/physical relation proof and causal source independence distinct from integrity.",
+      "acceptance": {
+        "unit": "Reject shape-valid but ungrounded or shared-ancestry evidence at the actual admission boundary; preserve complete unchanged state on refusal.",
+        "module": "Verify the real physical source→held/body context→admission→native retained-state chain and exact downstream consumers.",
+        "system": "Demonstrate held-out grounded later use with unrelated and wrong-grounding controls; no self-signed success or duplicate ancestry can pass.",
+        "release": "Bind actual current source/native binary/image/configuration and complete active predecessor. Verify real mounted consumers and ordinary live retained behavior independently. Packaged source is not invocation proof; no product tests ran here and no speech/system/ML-free certificate is issued."
+      },
+      "refs": [
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 59,
+          "anchor": "def _sha(value: object, label: str) -> str:",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 562,
+          "anchor": "        _sha(thing_id, \"THING id\")",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 577,
+          "anchor": "            if any(",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 632,
+          "anchor": "            signature = hmac.new(",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A06",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VWC06",
+      "name": "Capacity and duplicate refusals can leave changed state",
+      "classification": "source_confirmed_nonatomic_refusal_paths",
+      "finding": "WCR06",
+      "observed_mechanism": "learn creates empty object state before duplicate/occurrence/relation checks, then appends occurrences and updates counts/locks before _encoded enforces byte capacity. settle increments its sequence and stores a receipt before the same byte-cap check. These paths have no rollback in the file.",
+      "evidence_limits": "This is a source-established possible state change on refusal, not an executed live corruption claim. A new object with an already-used source can consume empty class state before rejection. A failed final encoding can retain larger mutated state.",
+      "replacement": "Retire the prohibited classifier from pupil authority. In the approved replacement and canonical admission, compute and validate the complete successor within bounds before the single atomic commit; preserve predecessor exactly on every refusal. Do not soften caps or add a rollback facade around wrong cognition.",
+      "acceptance": {
+        "unit": "Exercise duplicate, per-object, total-relation, receipt and byte-cap refusal at each mutation point and compare all predecessor state, identity and future continuation.",
+        "module": "Verify actual owner/boundary atomicity and coherent canonical publication under admitted failure paths.",
+        "system": "Cold-continue the same organism after refusal and demonstrate unchanged acquired behavior and bounded resources.",
+        "release": "Bind actual current source/native binary/image/configuration and complete active predecessor. Verify real mounted consumers and ordinary live retained behavior independently. Packaged source is not invocation proof; no product tests ran here and no speech/system/ML-free certificate is issued."
+      },
+      "refs": [
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 571,
+          "anchor": "            if thing_id not in self._occurrences:",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 608,
+          "anchor": "            self._occurrences[thing_id].append((",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 777,
+          "anchor": "            self._settlement_sequence += 1",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 804,
+          "anchor": "            self._settlement_receipts[signature] = False",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A05",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VWC07",
+      "name": "Whole-history work and consumed-receipt accumulation oppose reached-frontier bounds",
+      "classification": "bounded_capacity_does_not_establish_bounded_physical_transition_cost",
+      "finding": "WCR07",
+      "observed_mechanism": "Relation population constructs all homologous lane pairs; learning scans retained sources and recomputes all object classes. Discriminative filtering repeatedly compares relations across all classes. Encoding serializes/HMACs the whole state during learning, settling and status. Every settlement stores a receipt; consuming marks it but never removes it, so the finite receipt cap eventually refuses further settlements unless another unproved lifecycle intervenes.",
+      "evidence_limits": "Caps make stored capacity finite, but work still grows with retained classes/history rather than the current reached physical frontier. The unused _allowed_edges all-lane loop is not charged as an executed learn/settle path. No measured live latency is attributed to this unproved-active file.",
+      "replacement": "Retire this cognitive owner. Give the lawful native transition measured reached-frontier work and move bounded replay/custody handling outside cognition with an explicit lifecycle. Keep required history in lawful custody without rescanning it for every physical step or increasing ceilings to mask exhaustion.",
+      "acceptance": {
+        "unit": "Measure actual calls/allocations and distinguish invoked from unused code; verify receipt lifecycle/refusal and exact state preservation.",
+        "module": "Demonstrate native work bounded by the admitted reached frontier plus separately bounded boundary costs, under accumulated history and observation load.",
+        "system": "Prove ordinary unattended progress, sensory latency and canonical cold continuation on the exact release; a huge budget is not a performance result.",
+        "release": "Bind actual current source/native binary/image/configuration and complete active predecessor. Verify real mounted consumers and ordinary live retained behavior independently. Packaged source is not invocation proof; no product tests ran here and no speech/system/ML-free certificate is issued."
+      },
+      "refs": [
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 476,
+          "anchor": "        homologous = tuple(",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 537,
+          "anchor": "    def _discriminative(",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 769,
+          "anchor": "        with self._lock:",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 833,
+          "anchor": "    def _body(self) -> dict[str, object]:",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        }
+      ],
+      "repair_actions": [
+        "A05",
+        "A09",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VWC08",
+      "name": "A separate authenticated Python memory owner is not native physical continuity",
+      "classification": "custody_and_classifier_state_conflated_with_neuronal_memory",
+      "finding": "WCR08",
+      "observed_mechanism": "The owner keeps RLock, object occurrence history, counts and receipts; learn/settle perform validation, JSON encoding, hashes/HMACs and state transitions together. Separate restore rebuilds that JSON/HMAC state and compares exact bytes. No native canonical checkpoint or operative material-state mapping occurs in this file.",
+      "evidence_limits": "Byte identity can establish integrity of the represented classifier, not physical correctness, full-field evaluation or preservation of current native acquired memory. Complete current persistence integration was not audited here; the old separate-envelope proposal is not present authorization.",
+      "replacement": "Keep custody/authentication at the actual organism boundary and approved causative state in the canonical native checkpoint. Preserve source evidence and any genuinely acquired state through explicit approved mapping; do not confuse archive retention or restoring this classifier with active learning continuity.",
+      "acceptance": {
+        "unit": "Verify exact complete canonical state and physical successor invariants; keep integrity tests scoped to their actual representation.",
+        "module": "Trace real native checkpoint ownership, coherent body/world publication and active state consumers through cold continuation.",
+        "system": "Demonstrate retained ordinary behavior after current restore without legacy-owner resurrection or reset.",
+        "release": "Bind actual current source/native binary/image/configuration and complete active predecessor. Verify real mounted consumers and ordinary live retained behavior independently. Packaged source is not invocation proof; no product tests ran here and no speech/system/ML-free certificate is issued."
+      },
+      "refs": [
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 387,
+          "anchor": "        self._brain = brain",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 409,
+          "anchor": "        self._lock = threading.RLock()",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 877,
+          "anchor": "    def _encoded(self) -> bytes:",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        },
+        {
+          "source_id": "WC01",
+          "path": "docs/guala_reconciliation/sources/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+          "line": 933,
+          "anchor": "def restore_authenticated_bilateral_l6_pulse_closure(",
+          "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A09",
+        "A14",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

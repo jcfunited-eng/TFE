@@ -1,0 +1,1847 @@
+{
+  "schema": "guala.historical_family_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T01:26:56.435703+00:00",
+  "scope": "26exact documentary versions across25paths; complete bases plus the sole complete delta read. Seven code artifacts captured with explicit whole-file/selected/no-review scope.",
+  "source_read_complete": true,
+  "implementation_closure": false,
+  "sources": [
+    {
+      "id": "HSL01-01",
+      "path": "docs/GL-BRIEF-DREAM-PROTECTION-FIX-20260617.md",
+      "git_blob": "13426e7c9c9f879707961b2db65fe499a4836d28",
+      "sha256": "661d6bb75f719a582cbd259a3d1bb549585f1e5cbad03c65dfa30f112c292775",
+      "bytes": 4750,
+      "lines": 69,
+      "observations": [
+        {
+          "author_time": "2026-06-23T05:06:21+00:00",
+          "commit": "1bacf25a10cbb3f29be6c3dc2805ed7d8ce2ed69",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL01-01--GL-BRIEF-DREAM-PROTECTION-FIX-20260617.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL01-01--GL-BRIEF-DREAM-PROTECTION-FIX-20260617.md"
+    },
+    {
+      "id": "HSL02-01",
+      "path": "docs/GL-BRIEF-SLEEP-DECAY-PERMANENT-WC-20260615-01.md",
+      "git_blob": "93b078bcc3bfe31c545197908ec77fb6883ea335",
+      "sha256": "77491af1a70cf9990f24126b7e66f7b9c311516c2138dbf4a2e8ebb3bdc0da13",
+      "bytes": 5931,
+      "lines": 166,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-16T16:35:51+00:00",
+          "commit": "49966afed331d0cfbc542f9603d5f9db3a8a852a",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL02-01--GL-BRIEF-SLEEP-DECAY-PERMANENT-WC-20260615-01.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL02-01--GL-BRIEF-SLEEP-DECAY-PERMANENT-WC-20260615-01.md"
+    },
+    {
+      "id": "HSL03-01",
+      "path": "docs/GL-BRIEF-SLEEP-DURING-DEPLOY-WC-20260614-01.md",
+      "git_blob": "31ffee579c0940d47f2dfb4d6077e51e531cb920",
+      "sha256": "56f2c49328ba39eba57d1e7a3ac2122836927647978a0e635ef0bfff202979c7",
+      "bytes": 9407,
+      "lines": 129,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-15T00:56:24+00:00",
+          "commit": "c2d8a343ef1d940bfb5d3f5935259f3e014e7cd1",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL03-01--GL-BRIEF-SLEEP-DURING-DEPLOY-WC-20260614-01.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL03-01--GL-BRIEF-SLEEP-DURING-DEPLOY-WC-20260614-01.md"
+    },
+    {
+      "id": "HSL04-01",
+      "path": "docs/GL-BRIEF-dream-consolidation-wC-20260609-025.md",
+      "git_blob": "e4aeacae16b716af324174ba331dffc9a542b4c4",
+      "sha256": "f2e904df029257e1b9ee6e082ac3ac18953e7633bf0af098a0c13668da751b45",
+      "bytes": 12060,
+      "lines": 202,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-10T15:53:55+00:00",
+          "commit": "57d0fd221cd77ffedb52efeb077eee1c3f68c426",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL04-01--GL-BRIEF-dream-consolidation-wC-20260609-025.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL04-01--GL-BRIEF-dream-consolidation-wC-20260609-025.md"
+    },
+    {
+      "id": "HSL05-01",
+      "path": "docs/GL-CMD-C4-SLEEP-CHOICE-EVE-20260627-29.md",
+      "git_blob": "9f2bfad1fd750ea9143ab5113d71f6391c54095f",
+      "sha256": "e3c5e51a0b4b0ce3cc00e64df8717344bf80d52578030bf9fea764580a8c159f",
+      "bytes": 7586,
+      "lines": 187,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-28T06:15:04+00:00",
+          "commit": "3969ccd9bf7563e9634ca471c8d78841980e9446",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL05-01--GL-CMD-C4-SLEEP-CHOICE-EVE-20260627-29.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL05-01--GL-CMD-C4-SLEEP-CHOICE-EVE-20260627-29.md"
+    },
+    {
+      "id": "HSL06-01",
+      "path": "docs/GL-CMD-DAYDREAM-PARALLEL-EVE-20260629-42.md",
+      "git_blob": "efec98d147da410e28522a19ac77dfd29dc8198e",
+      "sha256": "c4758542986ea3f8cf2d0731a01fd3b6c7645c4430a9a80ab4af83fe45bd140e",
+      "bytes": 22470,
+      "lines": 407,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-29T21:16:06+00:00",
+          "commit": "af9c628734c4435d25ef2f0c0823b88d784776b9",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL06-01--GL-CMD-DAYDREAM-PARALLEL-EVE-20260629-42.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL06-01--GL-CMD-DAYDREAM-PARALLEL-EVE-20260629-42.md"
+    },
+    {
+      "id": "HSL07-01",
+      "path": "docs/GL-CMD-DAYDREAMING-EVE-20260627-09.md",
+      "git_blob": "79752b4cc22ed1d778a9444e33d0e83c44f64754",
+      "sha256": "a0363766abba1fc8e9ef00acd30a443002b55682c76d74d09781e9ebe46d8ad3",
+      "bytes": 6194,
+      "lines": 154,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-27T09:17:08+00:00",
+          "commit": "9df3d725269f33dbec8f54aa62845b7ea675054b",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL07-01--GL-CMD-DAYDREAMING-EVE-20260627-09.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL07-01--GL-CMD-DAYDREAMING-EVE-20260627-09.md"
+    },
+    {
+      "id": "HSL08-01",
+      "path": "docs/GL-CMD-DREAM-CYCLE-PHASING-EVE-20260630-56v1.md",
+      "git_blob": "db5429f02a23f3a9c569687cd458a1484d0a4e84",
+      "sha256": "69694a186986ea951553c7926ac58b0b615121a384c0cd05678bc21020e15cff",
+      "bytes": 14591,
+      "lines": 288,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-02T14:54:03+00:00",
+          "commit": "5fa25dc8fb00b3cc981dd0fadb8f1c6a4729b9c2",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL08-01--GL-CMD-DREAM-CYCLE-PHASING-EVE-20260630-56v1.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL08-01--GL-CMD-DREAM-CYCLE-PHASING-EVE-20260630-56v1.md"
+    },
+    {
+      "id": "HSL09-01",
+      "path": "docs/GL-CMD-SLEEP-BUDGET-RESCALE-EVE-20260627-01.md",
+      "git_blob": "84a05b6e6b44b17ec2037294618c7448f0448299",
+      "sha256": "fdda30350e22543615747af4c1974500690f2b02cecc064bef92b42cb2022141",
+      "bytes": 5387,
+      "lines": 135,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-27T04:53:22+00:00",
+          "commit": "7dde7c87d4123a1fe7f089fcfa4ef0e1ddc007c4",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL09-01--GL-CMD-SLEEP-BUDGET-RESCALE-EVE-20260627-01.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL09-01--GL-CMD-SLEEP-BUDGET-RESCALE-EVE-20260627-01.md"
+    },
+    {
+      "id": "HSL10-01",
+      "path": "docs/GL-CMD-SLEEP-RATE-CALIBRATION-EVE-20260704-173-v1.md",
+      "git_blob": "db24bbbb847189bd52e7f4edf5ad205e9f18f0ae",
+      "sha256": "0de2bab42348c19b0d33fc01010273053f8781176a6bb9cbfd10ffed0fe8a66f",
+      "bytes": 2476,
+      "lines": 50,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-04T14:23:46+00:00",
+          "commit": "873aec87f361443e8ccebe87b88063f10523a2f8",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL10-01--GL-CMD-SLEEP-RATE-CALIBRATION-EVE-20260704-173-v1.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL10-01--GL-CMD-SLEEP-RATE-CALIBRATION-EVE-20260704-173-v1.md"
+    },
+    {
+      "id": "HSL11-01",
+      "path": "docs/GL-DESIGN-SLEEP-WINS-BY-PHYSICS-C1-20260704-v1.md",
+      "git_blob": "4a9ace7a5a3e521d778ae8d6e064750e7636b3c1",
+      "sha256": "55b86fb3dbc1f695ef057a338266eb64143a5d0ebd0c50f05111278477b8492d",
+      "bytes": 12799,
+      "lines": 246,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-04T03:21:14+00:00",
+          "commit": "eecd6f9cae455c3f893004779ac84a686495769f",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL11-01--GL-DESIGN-SLEEP-WINS-BY-PHYSICS-C1-20260704-v1.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL11-01--GL-DESIGN-SLEEP-WINS-BY-PHYSICS-C1-20260704-v1.md"
+    },
+    {
+      "id": "HSL12-01",
+      "path": "docs/GL-NOTE-RATIFICATION-SLEEP-CEILING-EVE-20260704-v1.md",
+      "git_blob": "9a2d58821fb255e00f09513347c11b8fbeec910e",
+      "sha256": "81be3ce713745f4fa479990f735932e1dee454f30d19e1b90c4291839c79c397",
+      "bytes": 762,
+      "lines": 14,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-04T13:46:41+00:00",
+          "commit": "c7eb879787bfd5cdc778f1f94608139551971366",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL12-01--GL-NOTE-RATIFICATION-SLEEP-CEILING-EVE-20260704-v1.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL12-01--GL-NOTE-RATIFICATION-SLEEP-CEILING-EVE-20260704-v1.md"
+    },
+    {
+      "id": "HSL13-01",
+      "path": "docs/GL-RPT-C4-SLEEP-CHOICE-C1-20260628-29.md",
+      "git_blob": "c3514774635d3bdea342e344290a1612359d15c8",
+      "sha256": "029fc180ca25a005d18f9a336f5550bb49abe56d1f0f81ce5987833c62beb0b2",
+      "bytes": 4364,
+      "lines": 104,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-28T06:27:01+00:00",
+          "commit": "9e41a2c26d86369e876f3da78f6e5e2bfbac15fd",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL13-01--GL-RPT-C4-SLEEP-CHOICE-C1-20260628-29.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL13-01--GL-RPT-C4-SLEEP-CHOICE-C1-20260628-29.md"
+    },
+    {
+      "id": "HSL14-01",
+      "path": "docs/GL-RPT-DAYDREAM-PARALLEL-C1-20260629-42.md",
+      "git_blob": "1fa49117623e620f109d95b50c422c2c8fe04f97",
+      "sha256": "c97e83df475e0f129d2429add0a0d7b91441676549ebf6ead37e89a0290878bb",
+      "bytes": 6909,
+      "lines": 141,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-29T23:46:13+00:00",
+          "commit": "fd00f26820ca25afc84802be7772677fca629572",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL14-01--GL-RPT-DAYDREAM-PARALLEL-C1-20260629-42.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL14-01--GL-RPT-DAYDREAM-PARALLEL-C1-20260629-42.md"
+    },
+    {
+      "id": "HSL15-01",
+      "path": "docs/GL-RPT-DREAM-AUTO-WAKE-C1-20260627-12.md",
+      "git_blob": "a0a3cb75a4132271df89b7f216d2eb284a2f4d93",
+      "sha256": "44c647be2672adadeadf42ca58d572ac0d8d5f34ccc9f1a74add4aa7eeccdc01",
+      "bytes": 4949,
+      "lines": 143,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-27T09:09:47+00:00",
+          "commit": "9626f451c98a2175ebb39ea1a7b55076ccb95e8e",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL15-01--GL-RPT-DREAM-AUTO-WAKE-C1-20260627-12.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL15-01--GL-RPT-DREAM-AUTO-WAKE-C1-20260627-12.md"
+    },
+    {
+      "id": "HSL16-01",
+      "path": "docs/GL-RPT-DREAM-CYCLE-PHASING-C1-20260630-56v1.md",
+      "git_blob": "05ba7e615402a9b2bc7e11e220f66c590333d061",
+      "sha256": "c0fae1a0cd1c5e3c1d6eb488f2781f85b3385d7b8a7cadb593674de4ecc34c1d",
+      "bytes": 9232,
+      "lines": 196,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-30T16:18:09+00:00",
+          "commit": "ce7311136269338fd06ea2e6bb977de520d22a50",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL16-01--GL-RPT-DREAM-CYCLE-PHASING-C1-20260630-56v1.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL16-01--GL-RPT-DREAM-CYCLE-PHASING-C1-20260630-56v1.md"
+    },
+    {
+      "id": "HSL17-01",
+      "path": "docs/GL-RPT-RECALL-FREQ-DEPLOY-AND-SLEEP-C1B-20260704-v1.md",
+      "git_blob": "3ec1b25d7713fb2fe70cf4a37a764c0af2135b0f",
+      "sha256": "4e726747affcce33309427dfc81ec50cafbf6fd42354b8f80dac455a35c15438",
+      "bytes": 3645,
+      "lines": 74,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-04T20:08:18+00:00",
+          "commit": "edcf6fa014f2575c1bf24730a54e5257f18ef31e",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-04T20:08:18+00:00",
+          "commit": "294a728e439826c3dff259faaed0dd7e113e9edf",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL17-01--GL-RPT-RECALL-FREQ-DEPLOY-AND-SLEEP-C1B-20260704-v1.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL17-01--GL-RPT-RECALL-FREQ-DEPLOY-AND-SLEEP-C1B-20260704-v1.md"
+    },
+    {
+      "id": "HSL18-01",
+      "path": "docs/GL-RPT-SLEEP-BACKTEST-C1-20260704-167-v1.md",
+      "git_blob": "42e26f78e47666bba3d42cc5dee1c1463c7bbcb0",
+      "sha256": "54df4bf07d0935367b8b561a6bbf19c27188586918cb2fb9ca305438efb5e259",
+      "bytes": 12969,
+      "lines": 232,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-04T03:43:26+00:00",
+          "commit": "20341827ac5791e3a6fa044cf6d3cf5e7663dcb9",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL18-01--GL-RPT-SLEEP-BACKTEST-C1-20260704-167-v1.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL18-01--GL-RPT-SLEEP-BACKTEST-C1-20260704-167-v1.md"
+    },
+    {
+      "id": "HSL19-01",
+      "path": "docs/GL-RPT-SLEEP-CALIBRATION-C1-20260704-v1.md",
+      "git_blob": "07f9721dd6771d98449e1003c9c6346c9dd54985",
+      "sha256": "d11e5ced599ec3c498b7bb2697252e5579be7b2fb96dc63d36ae3bfe92ced51e",
+      "bytes": 5231,
+      "lines": 121,
+      "observations": [
+        {
+          "author_time": "2026-07-04T07:34:12+00:00",
+          "commit": "0a6dc148ec392cff2ddb9577b9ca16ce258188eb",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-07-04T07:15:51+00:00",
+          "commit": "d813c32eccda1755c98117c063a28c9b7a796a1b",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL19-01--GL-RPT-SLEEP-CALIBRATION-C1-20260704-v1.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL19-01--GL-RPT-SLEEP-CALIBRATION-C1-20260704-v1.md"
+    },
+    {
+      "id": "HSL19-02",
+      "path": "docs/GL-RPT-SLEEP-CALIBRATION-C1-20260704-v1.md",
+      "git_blob": "9b56abfbaf03dac9c6b0105a984a9cb16aa2ad3d",
+      "sha256": "936396f0aff1b0ea7759ebcfd6d7fd5afc1b67382ee042dd063491f773631ea6",
+      "bytes": 8628,
+      "lines": 168,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-04T07:34:12+00:00",
+          "commit": "0a6dc148ec392cff2ddb9577b9ca16ce258188eb",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL19-02--GL-RPT-SLEEP-CALIBRATION-C1-20260704-v1.md",
+      "delta": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL19-02--GL-RPT-SLEEP-CALIBRATION-C1-20260704-v1.md.diff",
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL19-02--GL-RPT-SLEEP-CALIBRATION-C1-20260704-v1.md"
+    },
+    {
+      "id": "HSL20-01",
+      "path": "docs/GL-RPT-SLEEP-PURPOSE-C1-20260914-v1.md",
+      "git_blob": "427c3f99525f2016e7677a8fa08275212d3af9ab",
+      "sha256": "51a03c0b6c13c4d281caa851afc2942a9774d113b00eb5329bb0999672e92c3e",
+      "bytes": 9502,
+      "lines": 60,
+      "observations": [
+        {
+          "author_time": "2026-09-14T17:38:07+00:00",
+          "commit": "36d6eeb6d4db6b8a7fb40346dfd9f5e563e40108",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL20-01--GL-RPT-SLEEP-PURPOSE-C1-20260914-v1.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL20-01--GL-RPT-SLEEP-PURPOSE-C1-20260914-v1.md"
+    },
+    {
+      "id": "HSL21-01",
+      "path": "docs/GL-RPT-SLEEP-RATE-CALIBRATION-C1-20260704-173-v1.md",
+      "git_blob": "e75a193ee955db700be0674babf4f20147506d13",
+      "sha256": "3500b285f5e45365386689af1d3e2cb47771af9b1396a18833c5986272a272e7",
+      "bytes": 5780,
+      "lines": 126,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-04T15:32:04+00:00",
+          "commit": "e6c2ca2fdcce792a546db76a0ad6688921c9ae0e",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL21-01--GL-RPT-SLEEP-RATE-CALIBRATION-C1-20260704-173-v1.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL21-01--GL-RPT-SLEEP-RATE-CALIBRATION-C1-20260704-173-v1.md"
+    },
+    {
+      "id": "HSL22-01",
+      "path": "docs/GL-RPT-SLEEP-RATE-FIX-C1-20260702-68.md",
+      "git_blob": "5cadb2c172abe631f234ad2e181e20aaa99c7cf8",
+      "sha256": "d136aaf66d931178b4f378e8e3605b8e71bb75347926a3fa9466c4b8de83374e",
+      "bytes": 3515,
+      "lines": 108,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-01T14:37:48+00:00",
+          "commit": "c1cd78e08583888290b4912906e5b06c5e11afab",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL22-01--GL-RPT-SLEEP-RATE-FIX-C1-20260702-68.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL22-01--GL-RPT-SLEEP-RATE-FIX-C1-20260702-68.md"
+    },
+    {
+      "id": "HSL23-01",
+      "path": "docs/GL-RPT-WINDOW9-AND-FORCED-SLEEP-C1B-20260705-v1.md",
+      "git_blob": "fde60bd18f0f6a15f93be1c270c1d9a77b053a3b",
+      "sha256": "0432b66c61bf945bff203d576a51468690ccd2c30900f5c6d51c285902b2f003",
+      "bytes": 4033,
+      "lines": 86,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-05T04:19:18+00:00",
+          "commit": "907564246fdce88095310b380c44d73f2bdd72ec",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL23-01--GL-RPT-WINDOW9-AND-FORCED-SLEEP-C1B-20260705-v1.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL23-01--GL-RPT-WINDOW9-AND-FORCED-SLEEP-C1B-20260705-v1.md"
+    },
+    {
+      "id": "HSL24-01",
+      "path": "docs/PLAY_DREAM_WAKE_GROWTH_LAW.md",
+      "git_blob": "97fed4ccf503cab909e3cefea9caf3001bf283e2",
+      "sha256": "ad6c52b6856997f99586df90b6bd966f3cd8dc5b2a20f5dc8baeff46f62d8649",
+      "bytes": 8997,
+      "lines": 202,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-29T00:52:55+00:00",
+          "commit": "30f2cf9ecde2eeda2bdd8d2e37d0061655ac2f9c",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL24-01--PLAY_DREAM_WAKE_GROWTH_LAW.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL24-01--PLAY_DREAM_WAKE_GROWTH_LAW.md"
+    },
+    {
+      "id": "HSL25-01",
+      "path": "docs/c1-sleep-scaling-fix.md",
+      "git_blob": "2e5d39b8ee9e9ef1052380a688a3356157f5f794",
+      "sha256": "bf06d06c6e05b2c6da9cb9b86814bfc1ea5af01a2f97f41c18d28f97563f26c6",
+      "bytes": 4622,
+      "lines": 111,
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-06-03T22:34:14+00:00",
+          "commit": "da2c8092ee6af72b4305b8a96027ba330a8d5238",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/HSL25-01--c1-sleep-scaling-fix.md",
+      "delta": null,
+      "review": "Complete content read; HSL19-02 through complete base plus complete delta. Source-reported execution and ratification are not independently authenticated by document reading.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/HSL25-01--c1-sleep-scaling-fix.md"
+    }
+  ],
+  "code_sources": [
+    {
+      "id": "SHC01",
+      "path": "dsf_ai_service/substrate/deep_atlas.py",
+      "commit": "cc4b8bfbd373d9a90ebcecf07c04effe0856aa7c",
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/implementation/SHC01--deep_atlas.py",
+      "bytes": 15246,
+      "sha256": "37514bf52533fcdf3dfc2ee4942e6b2e22c4a71b02f1e5bf497de403526748cd",
+      "functions": [
+        [
+          "dream_promotion_gate",
+          207,
+          270
+        ]
+      ],
+      "review": "Entire328-line DeepAtlas source read.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/SHC01--deep_atlas.py"
+    },
+    {
+      "id": "SHC02",
+      "path": "dsf_ai_service/v4/gualaloom_v5_engine.py",
+      "commit": "3e59ecaaa24a5f2222a0d2114b8e98d1ee2aa985",
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/implementation/SHC02--gualaloom_v5_engine.py",
+      "bytes": 322571,
+      "sha256": "168f20098511a5dc6a2600ecf4f8cd922a861fd9a443dffd4db62cb3ea700ef7",
+      "functions": [
+        [
+          "check_sleep_marker",
+          1213,
+          1226
+        ],
+        [
+          "is_asleep",
+          1347,
+          1353
+        ],
+        [
+          "start_daydream_loop",
+          3621,
+          3638
+        ],
+        [
+          "_daydream_tick",
+          3640,
+          3775
+        ],
+        [
+          "_autonomy_tick",
+          3791,
+          3897
+        ],
+        [
+          "_action_salience",
+          3928,
+          4017
+        ],
+        [
+          "_atick_sleeping",
+          4096,
+          4112
+        ],
+        [
+          "_atick_dreaming",
+          4114,
+          4119
+        ],
+        [
+          "_run_dream_cycle",
+          4121,
+          4200
+        ],
+        [
+          "_run_dream_cycle_phased",
+          4202,
+          4312
+        ],
+        [
+          "_autonomy_tick_phased",
+          4663,
+          4762
+        ],
+        [
+          "manual_sleep",
+          5416,
+          5442
+        ],
+        [
+          "wake_from_sleep",
+          5444,
+          5462
+        ]
+      ],
+      "review": "Complete start_daydream_loop, _daydream_tick, _autonomy_tick, _atick_sleeping, _atick_dreaming, both _run_dream_cycle variants and _autonomy_tick_phased read; not whole6765-line source.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/SHC02--gualaloom_v5_engine.py"
+    },
+    {
+      "id": "SHC03",
+      "path": "dsf_ai_service/v4/gualaloom_v5_engine.py",
+      "commit": "3969ccd9bf7563e9634ca471c8d78841980e9446",
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/implementation/SHC03--gualaloom_v5_engine.py",
+      "bytes": 278544,
+      "sha256": "9b063e39728cff5f468d4a0853043c4998b818304d13c460c660874fb3e3a32f",
+      "functions": [
+        [
+          "check_sleep_marker",
+          1136,
+          1149
+        ],
+        [
+          "is_asleep",
+          1261,
+          1267
+        ],
+        [
+          "_autonomy_tick",
+          3311,
+          3411
+        ],
+        [
+          "_action_salience",
+          3442,
+          3531
+        ],
+        [
+          "_atick_sleeping",
+          3610,
+          3626
+        ],
+        [
+          "_atick_dreaming",
+          3628,
+          3633
+        ],
+        [
+          "_run_dream_cycle",
+          3635,
+          3711
+        ],
+        [
+          "_atick_daydreaming",
+          3713,
+          3730
+        ],
+        [
+          "manual_sleep",
+          4555,
+          4581
+        ],
+        [
+          "wake_from_sleep",
+          4583,
+          4601
+        ]
+      ],
+      "review": "Complete _action_salience and selected _autonomy_tick excerpt read; not whole source.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/SHC03--gualaloom_v5_engine.py"
+    },
+    {
+      "id": "SHC04",
+      "path": "dsf_ai_service/v4/gualaloom_v5_engine.py",
+      "commit": "e250466182c826926aaf81fe8f23c4d34d8c2484",
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/implementation/SHC04--gualaloom_v5_engine.py",
+      "bytes": 270174,
+      "sha256": "1a9735d148e4987d31195422a58997456d9acaf3d00a18e77c5b98789e5098be",
+      "functions": [
+        [
+          "check_sleep_marker",
+          1102,
+          1115
+        ],
+        [
+          "is_asleep",
+          1225,
+          1231
+        ],
+        [
+          "_autonomy_tick",
+          3238,
+          3327
+        ],
+        [
+          "_action_salience",
+          3356,
+          3427
+        ],
+        [
+          "_atick_sleeping",
+          3506,
+          3518
+        ],
+        [
+          "_atick_dreaming",
+          3520,
+          3615
+        ],
+        [
+          "manual_sleep",
+          4423,
+          4449
+        ],
+        [
+          "wake_from_sleep",
+          4451,
+          4469
+        ]
+      ],
+      "review": "Captured source only; no complete function review claimed for this engine version.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/SHC04--gualaloom_v5_engine.py"
+    },
+    {
+      "id": "SHC05",
+      "path": "dsf_ai_service/v4/gualaloom_v5_engine.py",
+      "commit": "a00b36fd5567c09dd506a9ff138e551bc5106a58",
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/implementation/SHC05--gualaloom_v5_engine.py",
+      "bytes": 342454,
+      "sha256": "8b960e9fe3d8387beea28b06a7495168fcf9a71f086c7f323f3a6e45975c539f",
+      "functions": [
+        [
+          "check_sleep_marker",
+          1238,
+          1251
+        ],
+        [
+          "is_asleep",
+          1453,
+          1459
+        ],
+        [
+          "start_daydream_loop",
+          3840,
+          3857
+        ],
+        [
+          "_daydream_tick",
+          3859,
+          3994
+        ],
+        [
+          "_autonomy_tick",
+          4015,
+          4157
+        ],
+        [
+          "_action_salience",
+          4188,
+          4277
+        ],
+        [
+          "_atick_sleeping",
+          4363,
+          4379
+        ],
+        [
+          "_atick_dreaming",
+          4381,
+          4397
+        ],
+        [
+          "_run_dream_cycle",
+          4399,
+          4478
+        ],
+        [
+          "_run_dream_cycle_phased",
+          4480,
+          4590
+        ],
+        [
+          "_autonomy_tick_phased",
+          4944,
+          5054
+        ],
+        [
+          "manual_sleep",
+          5714,
+          5740
+        ],
+        [
+          "wake_from_sleep",
+          5742,
+          5760
+        ]
+      ],
+      "review": "Selected complete accumulation branch and adjacent telemetry read; not whole source.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/SHC05--gualaloom_v5_engine.py"
+    },
+    {
+      "id": "SHC06",
+      "path": "dsf_ai_service/v4/gualaloom_v5_engine.py",
+      "commit": "d813c32eccda1755c98117c063a28c9b7a796a1b",
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/implementation/SHC06--gualaloom_v5_engine.py",
+      "bytes": 385941,
+      "sha256": "4cd0323874e24af9ad9b9cdf00e6485541a6343ffff8036709368a8a1568d733",
+      "functions": [
+        [
+          "check_sleep_marker",
+          1295,
+          1308
+        ],
+        [
+          "is_asleep",
+          1515,
+          1521
+        ],
+        [
+          "start_daydream_loop",
+          3950,
+          3967
+        ],
+        [
+          "_daydream_tick",
+          3969,
+          4104
+        ],
+        [
+          "_autonomy_tick",
+          4125,
+          4292
+        ],
+        [
+          "_action_salience",
+          4332,
+          4446
+        ],
+        [
+          "_atick_sleeping",
+          4588,
+          4612
+        ],
+        [
+          "_atick_dreaming",
+          4614,
+          4633
+        ],
+        [
+          "_run_dream_cycle",
+          4635,
+          4724
+        ],
+        [
+          "_run_dream_cycle_phased",
+          4726,
+          4836
+        ],
+        [
+          "_autonomy_tick_phased",
+          5215,
+          5333
+        ],
+        [
+          "manual_sleep",
+          6013,
+          6045
+        ],
+        [
+          "wake_from_sleep",
+          6047,
+          6065
+        ]
+      ],
+      "review": "Complete _action_salience, _atick_sleeping and _atick_dreaming read; not whole source.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/SHC06--gualaloom_v5_engine.py"
+    },
+    {
+      "id": "SHC07",
+      "path": "dsf_ai_service/substrate_runner.py",
+      "commit": "e250466182c826926aaf81fe8f23c4d34d8c2484",
+      "copy": "backups/runtime/a1-reconciliation-completion-20261010/sleep-history/implementation/SHC07--substrate_runner.py",
+      "sha256": "544a25733a633874874e827d73600c627aa81fe516eafbf7420a96943a76d791",
+      "bytes": 124212,
+      "review": "Complete _cmd_listen, _synthesize_voice and _cmd_converse read; not whole runner.",
+      "canonical_copy": "docs/guala_reconciliation/sources/sleep-history/SHC07--substrate_runner.py"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "HS01",
+      "name": "Random atlas replay called consolidation",
+      "classification": "unsupported physical equivalence",
+      "historical_requirement_or_mechanism": "June9 specifies three random chi keys every200ticks, fixed-strength reinforcement and upward atlas-strength bands as acceptance; it explicitly calls this an approximation and defers sequence replay.",
+      "current_disposition": "Retire random/key-selected cognitive replay and strength-band success as neuronal consolidation. Preserve the requirement that sleep has a durable effect on learned relations.",
+      "lawful_remedy": "Use internally sourced re-entry of actual retained physical relations under the same declared transition law. Record the causal change and later waking use; retain internal/external provenance.",
+      "acceptance_falsifier": "Remove the retained relation or sever its participating path: the corresponding later effect must disappear. A reinforcement counter or larger weight cannot pass.",
+      "repair_actions": [
+        "A09",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL04-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL04-01--GL-BRIEF-dream-consolidation-wC-20260609-025.md",
+          "sha256": "f2e904df029257e1b9ee6e082ac3ac18953e7633bf0af098a0c13668da751b45",
+          "line": 30,
+          "anchor": "## The Simplest Sufficient Approximation"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS02",
+      "name": "Decay repair mixes a real duplicate-call defect with cadence-dependent clipping",
+      "classification": "mixed correction and unsupported preservation claim",
+      "historical_requirement_or_mechanism": "June15 reports47%working and66%cortex strength loss, duplicate decay and accumulated time. It removes duplicate calls but caps elapsed decay at500ticks and calls paused strength bit-identical while timestamps advance.",
+      "current_disposition": "Removing duplicate work is valid in scope. Capped elapsed time changes the result with call cadence; unchanged strength is not unchanged complete state, and neither proves cognitive preservation.",
+      "lawful_remedy": "Specify the physical recovery/retention law and exact clock once. Eliminate duplicate application; do not discard elapsed dynamics through a cap. State separately which paused quantities may advance and which remain fixed.",
+      "acceptance_falsifier": "One1000tick interval versus two500tick intervals must agree wherever partition invariance is claimed. Compare complete state and later effect, not total strength alone.",
+      "repair_actions": [
+        "A09",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL02-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL02-01--GL-BRIEF-SLEEP-DECAY-PERMANENT-WC-20260615-01.md",
+          "sha256": "77491af1a70cf9990f24126b7e66f7b9c311516c2138dbf4a2e8ebb3bdc0da13",
+          "line": 47,
+          "anchor": "            dt = min(dt, 500)"
+        },
+        {
+          "source_id": "SHC01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC01--deep_atlas.py",
+          "sha256": "37514bf52533fcdf3dfc2ee4942e6b2e22c4a71b02f1e5bf497de403526748cd",
+          "line": 169,
+          "anchor": "                dt = min(max_dt, max(0, current_tick - e[\"last_tick\"]))"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS03",
+      "name": "Dream replay credited fabricated attention dwell",
+      "classification": "verified authored evidence substitution",
+      "historical_requirement_or_mechanism": "June17 directs dream replay to set dwell_ticks to DWELL_GATE_META so it qualifies for protection and deep promotion; the source later writes that value with fixed salience/arousal.",
+      "current_disposition": "A replay is not an observed attention dwell. Naming it biologically grounded does not establish the modeled physical relation.",
+      "lawful_remedy": "Preserve genuine waking attention and internal recurrence as different causes. Derive retention from actual physical change; never synthesize the evidence consumed by an admission gate.",
+      "acceptance_falsifier": "Replay without waking dwell must not produce a waking-dwell receipt. Durable benefit must remain demonstrable without assigning a qualifying counter.",
+      "repair_actions": [
+        "A06",
+        "A09",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL01-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL01-01--GL-BRIEF-DREAM-PROTECTION-FIX-20260617.md",
+          "sha256": "661d6bb75f719a582cbd259a3d1bb549585f1e5cbad03c65dfa30f112c292775",
+          "line": 36,
+          "anchor": "                  salience=0.3, dwell_ticks=DWELL_GATE_META,"
+        },
+        {
+          "source_id": "SHC02",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC02--gualaloom_v5_engine.py",
+          "sha256": "168f20098511a5dc6a2600ecf4f8cd922a861fd9a443dffd4db62cb3ea700ef7",
+          "line": 4146,
+          "anchor": "                                      salience=0.3, dwell_ticks=DWELL_GATE_META,"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS04",
+      "name": "Deployment pause represented as biological sleep and ownership protection",
+      "classification": "unsupported equivalence with a later valid naming correction",
+      "historical_requirement_or_mechanism": "June14 proposes a sleep flag/save/marker flow, removes locks, and permits boot without a marker while asserting no concurrent writers. Its ordering instructions also conflict on when lock removal may ship.",
+      "current_disposition": "A process pause and a marker do not prove executed sleep or exclusive state ownership. Preserve explicit save/restore custody and the later pause naming correction.",
+      "lawful_remedy": "Use a verified single mutation owner and atomic authoritative checkpoint handoff. Distinguish process pause from actual internal sleep transitions. Demonstrate crashed/overlapping deployment behavior before qualifying the release path.",
+      "acceptance_falsifier": "A second process must not publish a conflicting successor; absent/stale markers cannot silently establish clean custody. A zero-transition pause must yield zero consolidation evidence.",
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL03-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL03-01--GL-BRIEF-SLEEP-DURING-DEPLOY-WC-20260614-01.md",
+          "sha256": "56f2c49328ba39eba57d1e7a3ac2122836927647978a0e635ef0bfff202979c7",
+          "line": 44,
+          "anchor": "The `.sleeping` marker is the new safety primitive. If the new task starts and the marker is missing OR the tick is stale (> 5 min), it logs a warning (\"loading state without clean sleep marker — previous task may have crashed\") and proceeds anyway. Informational, not blocking — she should boot either way."
+        },
+        {
+          "source_id": "HSL11-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL11-01--GL-DESIGN-SLEEP-WINS-BY-PHYSICS-C1-20260704-v1.md",
+          "sha256": "55b86fb3dbc1f695ef057a338266eb64143a5d0ebd0c50f05111278477b8492d",
+          "line": 182,
+          "anchor": "**Deploy-triggered sleep must stop being called sleep, anywhere it is"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS05",
+      "name": "Sleep budgets and payoff tables tuned for desired activity ratios",
+      "classification": "verified authored policy design",
+      "historical_requirement_or_mechanism": "June27 rescales5000to2000ticks and payoff0.5to0.2, then proposes0.1if sleep still dominates. A separate brief adds DAYDREAMING with0.4novelty/0.2stability payoffs and a below30%sleep target.",
+      "current_disposition": "These are behavior policies and output targets, not unchanged full-field physical autonomy. A measured activity ratio does not derive the constants.",
+      "lawful_remedy": "Retire the action/payoff table as pupil authority. Derive wake/rest/action competition from the ratified local body and neuronal dynamics; measure trajectories without tuning toward a preferred label distribution.",
+      "acceptance_falsifier": "Changing an activity name/table entry must not choose the pupil action. Same complete physical state and input must determine the same bounded transition.",
+      "repair_actions": [
+        "A08",
+        "A09",
+        "A11",
+        "A15"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL09-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL09-01--GL-CMD-SLEEP-BUDGET-RESCALE-EVE-20260627-01.md",
+          "sha256": "fdda30350e22543615747af4c1974500690f2b02cecc064bef92b42cb2022141",
+          "line": 113,
+          "anchor": "If V1 fails (sleep still dominant): drop SLEEPING stability payoff further to 0.1"
+        },
+        {
+          "source_id": "HSL07-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL07-01--GL-CMD-DAYDREAMING-EVE-20260627-09.md",
+          "sha256": "a0363766abba1fc8e9ef00acd30a443002b55682c76d74d09781e9ebe46d8ad3",
+          "line": 50,
+          "anchor": "**Line ~361 — ACTIVITY_STABILITY_PAYOFF:**"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS06",
+      "name": "REST choice and sleep reset claims contradicted by their own implementation report",
+      "classification": "verified requirement and reporting mismatch",
+      "historical_requirement_or_mechanism": "C4requires REST selection, end-of-sleep pressure reset and a high-pressure sleep winner. Its report admits REST loses and natural REST is pending, then calls reset on the first sleep tick equivalent to reset at the end. Source uses scalar payoff and extra pressure/presence terms.",
+      "current_disposition": "Beginning and completing an interruptible process are not equivalent. A candidate in a list or a score calculation is not demonstrated agency.",
+      "lawful_remedy": "Define rest, sleep onset, executed recovery and interrupted sleep independently. Credit only performed physical recovery; keep every unobserved choice explicitly unqualified.",
+      "acceptance_falsifier": "Interrupt immediately after onset: no completed-sleep recovery may be credited. Test mature ordinary selection rather than only forcing the REST branch.",
+      "repair_actions": [
+        "A09",
+        "A11",
+        "A13",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL05-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL05-01--GL-CMD-C4-SLEEP-CHOICE-EVE-20260627-29.md",
+          "sha256": "e3c5e51a0b4b0ce3cc00e64df8717344bf80d52578030bf9fea764580a8c159f",
+          "line": 59,
+          "anchor": "- **Reset:** drops to `0.0` at the end of every SLEEPING activity"
+        },
+        {
+          "source_id": "HSL13-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL13-01--GL-RPT-C4-SLEEP-CHOICE-C1-20260628-29.md",
+          "sha256": "029fc180ca25a005d18f9a336f5550bb49abe56d1f0f81ce5987833c62beb0b2",
+          "line": 102,
+          "anchor": "at END would require listening to activity_ended events. Instead reset at START"
+        },
+        {
+          "source_id": "SHC03",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC03--gualaloom_v5_engine.py",
+          "sha256": "9b063e39728cff5f468d4a0853043c4998b818304d13c460c660874fb3e3a32f",
+          "line": 3442,
+          "anchor": "    def _action_salience(self, kind, target):"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS07",
+      "name": "Parallel daydream has a valid functional goal but an authored/random implementation",
+      "classification": "mixed improvement and rejected cognitive mechanism",
+      "historical_requirement_or_mechanism": "The June29brief separates awake background thought from sleep and foreground scheduling. The source then walks chi neighborhoods, chooses largest affect-weighted co-occurrence, samples random distant keys, and writes surprise0.5.",
+      "current_disposition": "Preserve nonblocking internal activity and distinct provenance. Reject random selection, score authority and manufactured surprise as physical imagination or affect regulation.",
+      "lawful_remedy": "Let retained structures and current local state determine reached internal participation. Bound work and preserve one mutation authority; record actual internal transitions without a secondary policy thread.",
+      "acceptance_falsifier": "A constant surprise assignment, random generator, table ranking or timer selecting content must fail the pupil-mechanism gate. Internal activity must cold-continue exactly.",
+      "repair_actions": [
+        "A09",
+        "A11",
+        "A14",
+        "A15"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL06-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL06-01--GL-CMD-DAYDREAM-PARALLEL-EVE-20260629-42.md",
+          "sha256": "c4758542986ea3f8cf2d0731a01fd3b6c7645c4430a9a80ab4af83fe45bd140e",
+          "line": 18,
+          "anchor": "Daydreaming is not sleep. It is parallel distracted thinking — chi-geometric associative activation that runs WHILE other activities continue. Sensory input or recent activation propagates through chi neighborhoods, surfacing related motifs as a parallel thought stream. It doesn't block voice. It doesn't replace foreground activity. It runs continuously in the background."
+        },
+        {
+          "source_id": "SHC02",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC02--gualaloom_v5_engine.py",
+          "sha256": "168f20098511a5dc6a2600ecf4f8cd922a861fd9a443dffd4db62cb3ea700ef7",
+          "line": 3708,
+          "anchor": "        if _random.random() < 1.0 / max(2, snap_band):"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS08",
+      "name": "Removing fixed smoothing constants did not establish physical adaptation",
+      "classification": "source-verified associative parameter update",
+      "historical_requirement_or_mechanism": "June29replaces0.92/0.08averaging by w_new=w_old*(1-strength)+strength², removes a0.05floor and labels the result substrate-physical.",
+      "current_disposition": "This is still a designed update of associative parameters. Reusing a changing strength as a coefficient is not a physical derivation. Correct arithmetic fixtures qualify only that formula.",
+      "lawful_remedy": "Classify the actual update and its causal consumers. Replace it with the ratified local retained-state law, including units and conservation, while preserving any authentic source experience with a proved migration.",
+      "acceptance_falsifier": "Each retained adjustment must trace to physical perturbation/yield/recovery. Merely matching0.46and0.74fixtures cannot qualify learning.",
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL14-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL14-01--GL-RPT-DAYDREAM-PARALLEL-C1-20260629-42.md",
+          "sha256": "c97e83df475e0f129d2429add0a0d7b91441676549ebf6ead37e89a0290878bb",
+          "line": 60,
+          "anchor": "sec_dict[mid] = old_w * (1.0 - strength) + strength * strength"
+        },
+        {
+          "source_id": "SHC01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC01--deep_atlas.py",
+          "sha256": "37514bf52533fcdf3dfc2ee4942e6b2e22c4a71b02f1e5bf497de403526748cd",
+          "line": 149,
+          "anchor": "                sec_dict[mid] = old_w * (1.0 - strength) + strength * strength"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS09",
+      "name": "Dream phasing failed because the caller retained the lock",
+      "classification": "verified source cause; historical timings remain report-scoped",
+      "historical_requirement_or_mechanism": "June30report logs0/10under3seconds, about25seconds per call and3/5concurrent timeouts. The captured source holds the outer RLock through DREAMING in both autonomy variants; inner phase exits do not free it.",
+      "current_disposition": "Keep the explicit FAIL and rollback. A phase comment is not a release of ownership. The report also says no dream events occurred, so assigning every measured delay exclusively to dream execution needs original timing evidence.",
+      "lawful_remedy": "Trace complete callers and ownership. Remove unnecessary global work, preserve one atomic physical transition, and measure actual lock/queue/compute time separately. Do not solve this by weakening consistency or accepting stale cognition.",
+      "acceptance_falsifier": "The claimed free phase must permit an independent bounded observation without changing the physical successor. Exact loaded flags/caller path and interval timing must be recorded.",
+      "repair_actions": [
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL16-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL16-01--GL-RPT-DREAM-CYCLE-PHASING-C1-20260630-56v1.md",
+          "sha256": "c0fae1a0cd1c5e3c1d6eb488f2781f85b3385d7b8a7cadb593674de4ecc34c1d",
+          "line": 111,
+          "anchor": "**T2 FAIL.** All 10 responses returned valid JSON but at ~25s. Gate not met."
+        },
+        {
+          "source_id": "SHC02",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC02--gualaloom_v5_engine.py",
+          "sha256": "168f20098511a5dc6a2600ecf4f8cd922a861fd9a443dffd4db62cb3ea700ef7",
+          "line": 4663,
+          "anchor": "    def _autonomy_tick_phased(self):"
+        },
+        {
+          "source_id": "SHC02",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC02--gualaloom_v5_engine.py",
+          "sha256": "168f20098511a5dc6a2600ecf4f8cd922a861fd9a443dffd4db62cb3ea700ef7",
+          "line": 4202,
+          "anchor": "    def _run_dream_cycle_phased(self, caller_kind=\"DREAMING\"):"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS10",
+      "name": "Approximate snapshot tolerances were substituted for exact preservation",
+      "classification": "explicit historical test weakening",
+      "historical_requirement_or_mechanism": "The phasing command accepts±0.01entry strength and±10%promotion counts as snapshot noise. Source shallow-copies dictionaries but retains nested co-occurrence references in daydream reads; the background loop silently catches all exceptions.",
+      "current_disposition": "Approximate count agreement cannot prove identical retained dynamics. Shared nested mutation and swallowed exceptions need explicit treatment; a race occurrence is not asserted from source alone.",
+      "lawful_remedy": "Use bounded immutable inputs or prepared transitions with exact predecessor validation and atomic commit. Surface failure. Prove unchanged physical successors for a scheduling-only optimization.",
+      "acceptance_falsifier": "Inject concurrent publication and failed preparation: no partial/stale update may commit and no exception may disappear. Compare exact causative state, not tolerance bands.",
+      "repair_actions": [
+        "A03",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL08-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL08-01--GL-CMD-DREAM-CYCLE-PHASING-EVE-20260630-56v1.md",
+          "sha256": "69694a186986ea951553c7926ac58b0b615121a384c0cd05678bc21020e15cff",
+          "line": 223,
+          "anchor": "After 5 dream cycle invocations with `DREAM_CYCLE_PHASED=1`: verify `_deep_survival_history` size and contents are consistent with what the unphased path would produce. Allow per-entry strength values to differ by up to ±0.01 (acceptable Phase 2 snapshot staleness). Length per key should be equivalent."
+        },
+        {
+          "source_id": "HSL08-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL08-01--GL-CMD-DREAM-CYCLE-PHASING-EVE-20260630-56v1.md",
+          "sha256": "69694a186986ea951553c7926ac58b0b615121a384c0cd05678bc21020e15cff",
+          "line": 227,
+          "anchor": "Compare deep_atlas promotion count over 10 dream cycles between phased and unphased. Within ±10% (substrate noise from snapshot staleness is acceptable; gross divergence indicates a bug)."
+        },
+        {
+          "source_id": "SHC02",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC02--gualaloom_v5_engine.py",
+          "sha256": "168f20098511a5dc6a2600ecf4f8cd922a861fd9a443dffd4db62cb3ea700ef7",
+          "line": 3670,
+          "anchor": "                    neighbor_snap.append(dict(de))  # shallow copy — safe to read outside lock"
+        },
+        {
+          "source_id": "SHC02",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC02--gualaloom_v5_engine.py",
+          "sha256": "168f20098511a5dc6a2600ecf4f8cd922a861fd9a443dffd4db62cb3ea700ef7",
+          "line": 992,
+          "anchor": "                except Exception:"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS11",
+      "name": "Deployment flags and measured evidence distinguish code from delivered behavior",
+      "classification": "preserve valid operational lesson; release claim remains scoped",
+      "historical_requirement_or_mechanism": "The phasing report says CONVERSE_PHASED was dropped in tasks379–384, restored in385; dream phase was rolled back and remained OFF. Several live tests were NOT RUN.",
+      "current_disposition": "Preserve exact configuration and failure visibility. Pre-staged source is not an active fix, and future predicted success is not acceptance.",
+      "lawful_remedy": "Bind complete environment/admission values to each immutable release and executable branch. Retire conflicting fallbacks after qualification; explicitly report all deferred/failed tests.",
+      "acceptance_falsifier": "Changing or omitting a required flag must invalidate the associated result. A passing build cannot mark an OFF branch delivered.",
+      "repair_actions": [
+        "A02",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL16-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL16-01--GL-RPT-DREAM-CYCLE-PHASING-C1-20260630-56v1.md",
+          "sha256": "c0fae1a0cd1c5e3c1d6eb488f2781f85b3385d7b8a7cadb593674de4ecc34c1d",
+          "line": 170,
+          "anchor": "## Additional finding: CONVERSE_PHASED dropped since task :379"
+        },
+        {
+          "source_id": "HSL16-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL16-01--GL-RPT-DREAM-CYCLE-PHASING-C1-20260630-56v1.md",
+          "sha256": "c0fae1a0cd1c5e3c1d6eb488f2781f85b3385d7b8a7cadb593674de4ecc34c1d",
+          "line": 186,
+          "anchor": "`DREAM_CYCLE_PHASED` at deploy end: **0 (OFF)**"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS12",
+      "name": "Sleep-rate report claimed compounded modifiers that code cannot apply together",
+      "classification": "verified source/report contradiction",
+      "historical_requirement_or_mechanism": "July2reports pair-bond×0.3and learning×0.5compound to×0.15and25.9hours. At commit a00b36f, the source uses if pair_bond followed by elif learning, so both true apply×0.3only.",
+      "current_disposition": "The compound-rate pass is false for that source. Removing duplicate accumulation can be valid, but changing the base rate tenfold is still policy tuning, not physical derivation.",
+      "lawful_remedy": "Correct the historical calculation and require source-bound truth tables for all conditions. The current remedy is the ratified local regulation law, not restoring either arbitrary multiplier scheme.",
+      "acceptance_falsifier": "Both conditions true must produce the declared equation. The documented0.15claim fails against the exact branch; do not change test expectations merely to certify it.",
+      "repair_actions": [
+        "A11",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL22-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL22-01--GL-RPT-SLEEP-RATE-FIX-C1-20260702-68.md",
+          "sha256": "d136aaf66d931178b4f378e8e3605b8e71bb75347926a3fa9466c4b8de83374e",
+          "line": 23,
+          "anchor": "- Push-through modifiers: pair-bond active × 0.3, learning × 0.5 (compound: × 0.15)"
+        },
+        {
+          "source_id": "SHC05",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC05--gualaloom_v5_engine.py",
+          "sha256": "8b960e9fe3d8387beea28b06a7495168fcf9a71f086c7f323f3a6e45975c539f",
+          "line": 4092,
+          "anchor": "                elif _learning_active:"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS13",
+      "name": "Sleep-wins proposal recognized the policy problem but did not replace it with a derived law",
+      "classification": "mixed valid diagnosis and unsupported physical mechanism",
+      "historical_requirement_or_mechanism": "July4explicitly says earlier agents changed numbers until behavior stopped. It proposes symmetric scores, load proxies, gradual discharge and an override through _force_next_activity.",
+      "current_disposition": "Preserve actual-load accounting, completed-work discharge and honest naming as requirements. A counter, saturation ceiling or reused force hook does not by itself constitute physical sleep.",
+      "lawful_remedy": "Connect actual body/local work/recovery state to declared neuronal dynamics within the existing64columns. Leave missing operators explicit instead of implementing another score or forced activity under physical names.",
+      "acceptance_falsifier": "A threshold/force hook alone cannot pass. Show causal body change, internal transition, retained effect, waking use and interrupted-state continuation.",
+      "repair_actions": [
+        "A09",
+        "A11",
+        "A15",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL11-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL11-01--GL-DESIGN-SLEEP-WINS-BY-PHYSICS-C1-20260704-v1.md",
+          "sha256": "55b86fb3dbc1f695ef057a338266eb64143a5d0ebd0c50f05111278477b8492d",
+          "line": 26,
+          "anchor": "was never given its own physics. It was given a *dial*. Turn the dial"
+        },
+        {
+          "source_id": "HSL11-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL11-01--GL-DESIGN-SLEEP-WINS-BY-PHYSICS-C1-20260704-v1.md",
+          "sha256": "55b86fb3dbc1f695ef057a338266eb64143a5d0ebd0c50f05111278477b8492d",
+          "line": 141,
+          "anchor": "`_force_next_activity`, checked *before* candidates are even scored"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS14",
+      "name": "Backtest preserved missing data honestly but overstates the ceiling derivation",
+      "classification": "evidence correction and unresolved derivation",
+      "historical_requirement_or_mechanism": "The partial backtest records empty/insufficient event buffers, CloudWatch and persisted history. It reuses saturation1.0and reasons qualitatively about two symptom windows without the actual load histories.",
+      "current_disposition": "Preserve explicit missing-data disclosure. An existing constant is not physically derived merely because it is reused; symptom consistency is not a completed historical backtest.",
+      "lawful_remedy": "Recover original observations where available and bind every claimed operator to its approved derivation. Keep calibration/model choice separate from ratified physical equivalence and report unavailable history.",
+      "acceptance_falsifier": "A derivation must account units and causal state; a test without original inputs/results cannot be labeled an executed historical backtest.",
+      "repair_actions": [
+        "A01",
+        "A11",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL18-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL18-01--GL-RPT-SLEEP-BACKTEST-C1-20260704-167-v1.md",
+          "sha256": "54df4bf07d0935367b8b561a6bbf19c27188586918cb2fb9ca305438efb5e259",
+          "line": 27,
+          "anchor": "## Why this report is a partial backtest, stated first"
+        },
+        {
+          "source_id": "HSL18-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL18-01--GL-RPT-SLEEP-BACKTEST-C1-20260704-167-v1.md",
+          "sha256": "54df4bf07d0935367b8b561a6bbf19c27188586918cb2fb9ca305438efb5e259",
+          "line": 108,
+          "anchor": "1. **It requires no new magic number.** Every other constant in this"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS15",
+      "name": "Ratification note is secondary authority with a specific scope",
+      "classification": "original approval recovery required",
+      "historical_requirement_or_mechanism": "A14-line Eve note says Joe approved hard ceiling1.0and openly tuned live validation of a single rate. The later dispatch invokes that note to calibrate toward five-to-six hours.",
+      "current_disposition": "Preserve this reported approval and its scope. Do not call it original Joe evidence or a blanket exemption for heuristics, future controllers or the current no-ML contract.",
+      "lawful_remedy": "Recover the direct decision and surrounding proposal; map its exact wording and informed scope. Keep superseded approved experiments distinct from current permitted architecture.",
+      "acceptance_falsifier": "A claimed exception must link to the actual authorized mechanism and date. An agent statement that Joe approved cannot silently approve other policies.",
+      "repair_actions": [
+        "A01",
+        "A15",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL12-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL12-01--GL-NOTE-RATIFICATION-SLEEP-CEILING-EVE-20260704-v1.md",
+          "sha256": "81be3ce713745f4fa479990f735932e1dee454f30d19e1b90c4291839c79c397",
+          "line": 5,
+          "anchor": "Joe has ratified, 2026-07-04: (1) the hard override ceiling at"
+        },
+        {
+          "source_id": "HSL10-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL10-01--GL-CMD-SLEEP-RATE-CALIBRATION-EVE-20260704-173-v1.md",
+          "sha256": "0de2bab42348c19b0d33fc01010273053f8781176a6bb9cbfd10ffed0fe8a66f",
+          "line": 10,
+          "anchor": "that calibration — no new ratification required."
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS16",
+      "name": "Novelty-floor calibration breaks one trap without qualifying autonomous attention",
+      "classification": "source-verified policy patch and bounded historical observation",
+      "historical_requirement_or_mechanism": "July4sets the novelty contribution floor to0.04because observed sleep score was0.038. The second report version observes attending again, but the same most-attended picture is selected and natural sleep remains unobserved.",
+      "current_disposition": "Preserve the distinction between inherited activity and a fresh decision. A repaired label ratio is not varied exploration; the floor is an explicit authored decision intervention.",
+      "lawful_remedy": "Retire the score floor as pupil authority. Diagnose recurrence and participation from actual retained/body/world dynamics; verify attention, disengagement, return and sleep across changed contexts.",
+      "acceptance_falsifier": "One completed attending block or repeated target cannot pass flexible attention or sleep reachability. Source must not choose outcomes by adjusting a margin above a competing score.",
+      "repair_actions": [
+        "A08",
+        "A11",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL19-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL19-01--GL-RPT-SLEEP-CALIBRATION-C1-20260704-v1.md",
+          "sha256": "d11e5ced599ec3c498b7bb2697252e5579be7b2fb96dc63d36ae3bfe92ced51e",
+          "line": 77,
+          "anchor": "NOVELTY_TERM_FLOOR = 0.04"
+        },
+        {
+          "source_id": "HSL19-02",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL19-02--GL-RPT-SLEEP-CALIBRATION-C1-20260704-v1.md",
+          "sha256": "936396f0aff1b0ea7759ebcfd6d7fd5afc1b67382ee042dd063491f773631ea6",
+          "line": 123,
+          "anchor": "  502` — the *most*-attended one in her set, not the least-attended"
+        },
+        {
+          "source_id": "SHC06",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC06--gualaloom_v5_engine.py",
+          "sha256": "4cd0323874e24af9ad9b9cdf00e6485541a6343ffff8036709368a8a1568d733",
+          "line": 4411,
+          "anchor": "        NOVELTY_TERM_FLOOR = 0.04"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS17",
+      "name": "Ninefold rate calibration has arithmetic but not a physical derivation",
+      "classification": "reported empirical tuning with incomplete regime coverage",
+      "historical_requirement_or_mechanism": "July4uses a zero-write repeated-picture window, estimates3.949ticks/sec and multiplies the rate by9to reach0.7in5.5hours. Five matched readings contain four matched adjacent deltas, not the reported five. Higher future load would accelerate accumulation further.",
+      "current_disposition": "The calculation is a target-cadence calibration. Calling the low-load sample conservative against oversleep is unsupported; the post-deploy natural-sleep gate was still pending.",
+      "lawful_remedy": "Preserve raw measurements and accurate interval counts. Establish the actual law and bounded regimes across active, quiet, high-load, exhausted and restored states; do not infer safety from one low-load trajectory.",
+      "acceptance_falsifier": "Validate the full admitted load range and timing representation. A target-derived multiplier or a staging report cannot establish physical derivation or live natural sleep.",
+      "repair_actions": [
+        "A11",
+        "A14",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL21-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL21-01--GL-RPT-SLEEP-RATE-CALIBRATION-C1-20260704-173-v1.md",
+          "sha256": "3500b285f5e45365386689af1d3e2cb47771af9b1396a18833c5986272a272e7",
+          "line": 33,
+          "anchor": "new atlas entries) and give **5 consecutive identical deltas of"
+        },
+        {
+          "source_id": "HSL21-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL21-01--GL-RPT-SLEEP-RATE-CALIBRATION-C1-20260704-173-v1.md",
+          "sha256": "3500b285f5e45365386689af1d3e2cb47771af9b1396a18833c5986272a272e7",
+          "line": 66,
+          "anchor": "measured here. So 9× is, if anything, mildly conservative against"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS18",
+      "name": "Forced pause, executed dream and natural sleep are different evidence",
+      "classification": "preserve truthful historical distinctions",
+      "historical_requirement_or_mechanism": "OneJuly4deploy-originated pause later reached reported dream execution; July5forced sleep was cut short by concurrent deployment, and natural pressure-triggered sleep remained open.",
+      "current_disposition": "Keep the origin and completion distinctions. Atlas growth may evidence that old update code ran, but not lawful physical consolidation.",
+      "lawful_remedy": "Bind initiator, onset, actual executed internal work, interrupt/resume and later waking effect. External force and caretaker actions must not be counted as endogenous sleep or pupil autonomy.",
+      "acceptance_falsifier": "An interrupted zero-dream interval must not claim completed consolidation; a forced transition must never satisfy the natural-onset criterion.",
+      "repair_actions": [
+        "A09",
+        "A12",
+        "A13",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL17-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL17-01--GL-RPT-RECALL-FREQ-DEPLOY-AND-SLEEP-C1B-20260704-v1.md",
+          "sha256": "4e726747affcce33309427dfc81ec50cafbf6fd42354b8f80dac455a35c15438",
+          "line": 33,
+          "anchor": "**What it is not:** the natural sleep under the 9x dial (G-2 of"
+        },
+        {
+          "source_id": "HSL23-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL23-01--GL-RPT-WINDOW9-AND-FORCED-SLEEP-C1B-20260705-v1.md",
+          "sha256": "0432b66c61bf945bff203d576a51468690ccd2c30900f5c6d51c285902b2f003",
+          "line": 33,
+          "anchor": "concurrent deploy, not a completed dream.** Noting this precisely"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS19",
+      "name": "Bigram fallback was accepted as a real emission during sleep tests",
+      "classification": "source-verified fallback boundary; historical output report-scoped",
+      "historical_requirement_or_mechanism": "June27auto-wake report treats bigram_fallback_v5_failed output as a real emission. Captured runner returns the fallback response when dynamics lacks qualifying commits; text-listen directly reads sentences, and an espeak helper also exists.",
+      "current_disposition": "Transport wake success must not qualify learned body-owned speech. The helper existence alone does not prove synthesis ran in that test.",
+      "lawful_remedy": "Separate wake/control response from pupil expression. Retire fallback linguistic authority; require retained physical articulation, acoustic output, self-hearing and contextual reuse. Keep text/teacher media provenance explicit.",
+      "acceptance_falsifier": "When native expression fails, no fallback sentence may appear as learned pupil speech. A response-source label or HTTP200 cannot satisfy articulation/learning.",
+      "repair_actions": [
+        "A10",
+        "A13",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL15-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL15-01--GL-RPT-DREAM-AUTO-WAKE-C1-20260627-12.md",
+          "sha256": "44c647be2672adadeadf42ca58d572ac0d8d5f34ccc9f1a74add4aa7eeccdc01",
+          "line": 88,
+          "anchor": "        response_source: bigram_fallback_v5_failed"
+        },
+        {
+          "source_id": "SHC07",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC07--substrate_runner.py",
+          "sha256": "544a25733a633874874e827d73600c627aa81fe516eafbf7420a96943a76d791",
+          "line": 1901,
+          "anchor": "            response_source = \"bigram_fallback_v5_failed\""
+        },
+        {
+          "source_id": "SHC07",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC07--substrate_runner.py",
+          "sha256": "544a25733a633874874e827d73600c627aa81fe516eafbf7420a96943a76d791",
+          "line": 1837,
+          "anchor": "def _synthesize_voice(text):"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS20",
+      "name": "Play–Dream–Wake law establishes useful causal and provenance requirements",
+      "classification": "preserve requirements; not proof of implemented function",
+      "historical_requirement_or_mechanism": "July28law separates external, remembered, simulated, counterfactual and unresolved origins; bounds internal branches/time/resources; requires waking causal tests and cold-restored replay.",
+      "current_disposition": "Preserve these distinctions without forcing Mosaic/Tapestry/Weave into software tiers. The law states functions and constraints; it does not prove the current runtime implements them.",
+      "lawful_remedy": "Carry immutable origin outside dream content, preserve actual internal transition/time accounting and require waking validation before external knowledge claims. Use mounted AE senses only; unavailable stays unavailable.",
+      "acceptance_falsifier": "Dream content must not modify external world truth, claim unexecuted elapsed time, consume external receptor authority or change its own origin. Cold replay must match.",
+      "repair_actions": [
+        "A06",
+        "A09",
+        "A13",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL24-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL24-01--PLAY_DREAM_WAKE_GROWTH_LAW.md",
+          "sha256": "ad6c52b6856997f99586df90b6bd966f3cd8dc5b2a20f5dc8baeff46f62d8649",
+          "line": 54,
+          "anchor": "## Root provenance boundary"
+        },
+        {
+          "source_id": "HSL24-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL24-01--PLAY_DREAM_WAKE_GROWTH_LAW.md",
+          "sha256": "ad6c52b6856997f99586df90b6bd966f3cd8dc5b2a20f5dc8baeff46f62d8649",
+          "line": 117,
+          "anchor": "2. `compressed_narrative_depth`: a tapestry carries retained or constructed"
+        },
+        {
+          "source_id": "HSL24-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL24-01--PLAY_DREAM_WAKE_GROWTH_LAW.md",
+          "sha256": "ad6c52b6856997f99586df90b6bd966f3cd8dc5b2a20f5dc8baeff46f62d8649",
+          "line": 184,
+          "anchor": "## Production proof"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS21",
+      "name": "September night design explicitly prescribes Dyna-style value learning",
+      "classification": "historical prohibited learning-policy proposal; current activation requires separate binding",
+      "historical_requirement_or_mechanism": "September14describes task1480memory as situation-keyed sums of which actions paid, then prescribes fixed sweeps carrying value backward through recorded transitions, explicitly calling it Dyna at rest and assigning work to A1/C1.",
+      "current_disposition": "Deterministic value propagation is still a learning-policy mechanism, not physical retained-field planning. This is stronger historical evidence than merely an ML library name; the document does not prove the proposal was implemented.",
+      "lawful_remedy": "Retire action-return tables and Bellman/Dyna-style propagation as pupil authority. Implement any offline planning through lawful retained physical re-entry and candidate consequences, preserving original lived history without score translation.",
+      "acceptance_falsifier": "Reject target reward/return updates and action-value readers, including native rewrites. Show later planning depends on retained causal physical relations and survives cold restore without a value table.",
+      "repair_actions": [
+        "A05",
+        "A09",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL20-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL20-01--GL-RPT-SLEEP-PURPOSE-C1-20260914-v1.md",
+          "sha256": "51a03c0b6c13c4d281caa851afc2942a9774d113b00eb5329bb0999672e92c3e",
+          "line": 33,
+          "anchor": "**N2. Offline value propagation (replay, planning at rest).** Once the record keeps successors (A1's prediction item), the night runs a declared number of sweeps over the recorded (structure, act, next structure) tuples in a fixed order, carrying value back one step per sweep, so an act that pays nothing itself but leads to the structure where food came gains value; the same for the structure where an answer came. This is Dyna at rest, deterministic, over her own record, no world model beyond her successors. Test: a synthetic record where the only path to food is two acts long; after the night the first act carries value; restore byte-exact; bytes stated. Owner: A1 with the prediction item, or C1 after it lands. This is where the night stops being bookkeeping."
+        },
+        {
+          "source_id": "HSL20-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL20-01--GL-RPT-SLEEP-PURPOSE-C1-20260914-v1.md",
+          "sha256": "51a03c0b6c13c4d281caa851afc2942a9774d113b00eb5329bb0999672e92c3e",
+          "line": 24,
+          "anchor": "- Consolidation, one scale: each sleeping beat moves one of the day's 256 fine structures into the memory keyed by her situation (four streams' regimes), summing which acts paid; the day's record is emptied. About two minutes of the night."
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS22",
+      "name": "Nighttime sequence counts and coarser situation keys were called syntax and generalization",
+      "classification": "unsupported cognitive equivalence",
+      "historical_requirement_or_mechanism": "The September plan merges syllable sequences when response counts agree and calls it non-adjacent dependency extraction; coarser situation keys are described as the generalization function of noise.",
+      "current_disposition": "Answer counts, grouping and key coarsening do not establish acquired syntax or full-field abstraction. They can discard context and reward speech toward replies.",
+      "lawful_remedy": "Preserve ordered sensory/articulatory/context relations and verify new contextual combinations through the existing neuronal architecture. Keep source roles and explicit fields; do not substitute a compressed key or merge rule.",
+      "acceptance_falsifier": "Test changed context/order, withheld combinations and independent later expression with no answer-count dictionary. A key collision or two matching strings cannot pass syntax.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A09",
+        "A10",
+        "A15"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL20-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL20-01--GL-RPT-SLEEP-PURPOSE-C1-20260914-v1.md",
+          "sha256": "51a03c0b6c13c4d281caa851afc2942a9774d113b00eb5329bb0999672e92c3e",
+          "line": 35,
+          "anchor": "**N3. Sequence abstraction (rule extraction, the grammar seed).** With A1's speech item, the day's syllable sequences and whether each was answered are compacted at night by situation, and sequences that share structure (the same next syllable regardless of the one before, when the counts agree) are merged into one entry. That is non-adjacent dependency extraction in her own terms: the first syntax. Test: two sequences differing only in the first syllable, both answered; after the night one entry stands for both. Owner: A1 with the speech item."
+        },
+        {
+          "source_id": "HSL20-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL20-01--GL-RPT-SLEEP-PURPOSE-C1-20260914-v1.md",
+          "sha256": "51a03c0b6c13c4d281caa851afc2942a9774d113b00eb5329bb0999672e92c3e",
+          "line": 39,
+          "anchor": "**N5. Generalization by coarser keys (overfitting).** Already partly in place: the situation key is coarser than the day key. Extend when N2 exists: chains recorded at the situation level are the generalized form; no noise injection."
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS23",
+      "name": "Offline kernel replay proposal needs explicit occurrence and time semantics",
+      "classification": "unresolved direct mapping; no kernel change authorized",
+      "historical_requirement_or_mechanism": "September proposes replaying day stream windows as one long record so longer structures appear and chaining recorded paths.",
+      "current_disposition": "Reordering or concatenating windows can change temporal/source structure. No full-field or preserved-context equivalence follows from calling the operation kernel replay.",
+      "lawful_remedy": "Specify internal re-entry with original timing, sources and full DSF relationships under unchanged kernel authority. If a proposed joint occurrence cannot be mapped directly, leave it unimplemented instead of fabricating continuity.",
+      "acceptance_falsifier": "Replay must preserve claimed causal order and never pose internally constructed sequence as external experience. Any lost field/context must be explicit and cannot become decision authority.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A09",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL20-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL20-01--GL-RPT-SLEEP-PURPOSE-C1-20260914-v1.md",
+          "sha256": "51a03c0b6c13c4d281caa851afc2942a9774d113b00eb5329bb0999672e92c3e",
+          "line": 37,
+          "anchor": "**N4. Kernel replay across the day (restructuring, insight).** Keep the day's stream windows at gate boundaries (bounded) and let the kernel read them again at night as one long record, so structures that only show across hours appear; link chains end to start into longer paths. Larger; not before N1–N3 prove out. Owner: open."
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS24",
+      "name": "Chi bucketing is not a proved lossless or bounded sleep algorithm",
+      "classification": "unsupported equivalence and resource claim",
+      "historical_requirement_or_mechanism": "The sleep-scaling brief restricts pair comparisons to equal Euler-characteristic buckets, assumes cross-bucket pairs never merge and claims cheap operation indefinitely. It retains co-resonance/Hamming thresholds and weight increments.",
+      "current_disposition": "Equal chi is a coarse property; the brief supplies no proof that it preserves every old transition. Worst case all motifs share one bucket and pair work remains quadratic. No current activation is inferred.",
+      "lawful_remedy": "Prove any exact candidate-pruning predicate against the complete lawful interaction relation. Use a bounded reached causal frontier, not a population pair scan; do not promote a geometric summary into cognitive authority.",
+      "acceptance_falsifier": "Exercise single-bucket populations and cross-bucket lawful interactions. Any lost physical successor or unbounded quadratic work falsifies the optimization claim.",
+      "repair_actions": [
+        "A04",
+        "A09",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL25-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL25-01--c1-sleep-scaling-fix.md",
+          "sha256": "bf06d06c6e05b2c6da9cb9b86814bfc1ea5af01a2f97f41c18d28f97563f26c6",
+          "line": 35,
+          "anchor": "This turns O(n²) into roughly Σ(n_c²) over chi-classes c. With motifs"
+        },
+        {
+          "source_id": "HSL25-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL25-01--c1-sleep-scaling-fix.md",
+          "sha256": "bf06d06c6e05b2c6da9cb9b86814bfc1ea5af01a2f97f41c18d28f97563f26c6",
+          "line": 96,
+          "anchor": "- Behavior is otherwise identical (same merges happen — cross-chi pairs"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    },
+    {
+      "id": "HS25",
+      "name": "DeepAtlas defaults, provenance overwrites and grounding flags are independent conflicts",
+      "classification": "source-verified rejected memory representation",
+      "historical_requirement_or_mechanism": "Captured DeepAtlas uses max-valued affect, last-write-wins source, fixed polarity1, chi/motif priors and promotion on a non-null bundle_id. Unknown schema prints starting fresh and returns0.",
+      "current_disposition": "Those operations do not retain the full story or prove grounding; incompatible-state fallback can mask missing memory. Source-scoped finding, not a current serving-path claim.",
+      "lawful_remedy": "Preserve exact causal provenance and retained physical relations; make incompatible mandatory state a visible refusal. A transport bundle may link occurrence custody but may not grant learned grounding or overwrite source history.",
+      "acceptance_falsifier": "Contradictory affect/context and unknown schemas must remain distinguishable. A non-null identifier cannot admit a formation without actual physical participation and retained change.",
+      "repair_actions": [
+        "A03",
+        "A06",
+        "A09",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "SHC01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC01--deep_atlas.py",
+          "sha256": "37514bf52533fcdf3dfc2ee4942e6b2e22c4a71b02f1e5bf497de403526748cd",
+          "line": 248,
+          "anchor": "                grounded = e.get(\"bundle_id\") is not None"
+        },
+        {
+          "source_id": "SHC01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC01--deep_atlas.py",
+          "sha256": "37514bf52533fcdf3dfc2ee4942e6b2e22c4a71b02f1e5bf497de403526748cd",
+          "line": 319,
+          "anchor": "            print(\"[deep_atlas] Unknown schema — starting fresh\")"
+        },
+        {
+          "source_id": "SHC01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC01--deep_atlas.py",
+          "sha256": "37514bf52533fcdf3dfc2ee4942e6b2e22c4a71b02f1e5bf497de403526748cd",
+          "line": 75,
+          "anchor": "                # GL-METADATA-PIPELINE: propagate affect (max) + source (last-write-wins) + polarity"
+        }
+      ],
+      "evidence_level": "Complete named document versions plus explicitly named source-function scope; historical report is not independently bound live evidence"
+    }
+  ],
+  "expression_checks": "sleep-expression-counterexamples.json",
+  "status_authority": "collaborative_todo.md"
+}

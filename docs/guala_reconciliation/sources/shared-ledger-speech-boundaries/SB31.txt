@@ -1,0 +1,36 @@
+
+### 1. Mandatory Architecture Honesty Gate
+- **requested architecture**: Bounded, experience-caused sensorimotor learning where auditory stimulation and vocal motor action drive persistent physical contact deformation (radial return yield f <= 0, volume conservation A*ell == Omega_0, Maxwell electrostatic stress sigma = 0.5 * epsilon_eff * (coactivity / ell)^2, plastic dissipation work Delta_W > 0). Subsequent acoustic cue presentation unassistedly conducts energy across the modified conductances (g = sigma_mat * Omega_0 / ell^2) to operate vocal effectors directly, with an authentic rest state below threshold (V_threshold = 0.20 V) ensuring silence for virgin contacts and discrimination against negative cues. Zero lookup dictionaries, zero scorecards, zero authored segment-splitting heuristics, zero pre-inserted test answers.
+- **current code reality**: 
+  - Constitutive substrate implemented in `dsf_ai_service/substrate/guala_sensorimotor_mesh.py` (hash `9fcff2931259691f2d9828d58afa12c3bf933d1011bcb6edeea6fa6d422e6258`).
+  - Mounted cleanly into `dsf_ai_service/guala_functional_organism.py` (hash `52b9646744f56da5afe9de83899396d6f0a963cf998a4361fbe09b67b5c2f486`).
+  - Unbroken transport baselines: `guala_acoustic_gate.py` (`44c69b87a26d2edb363705f81dc3483e1705416d0d12cb5bca2524b017db5437`), `guala_functional_loop.py` (`a0981ce693e29f77ed953ee603e1a9d6fb0428d76f50b93a36773be5874bb56d`).
+  - Canonical acceptance suite in `tests/test_sensorimotor_contact_learning.py` (hash `eba59a7cc30fd19770156d5d1f7e304b516368cac6cacad8d1ac681cf23ae421`).
+- **conflict with requested architecture**: NO. Zero lookup dictionaries, zero scorecards, zero pre-inserted answers. Physical radial return with volume conservation and authentic rest threshold.
+- **what exact mechanism or files will not be extended**: `auditory_motor_bonds`, `evaluate_acoustic_resonance`, `AUDITORY_MOTOR_BOND_CAPACITY`, and episodic table/reward scorecards are not extended.
+- **the single exact next item**: Final auditor verification and closure of the sensorimotor learning contract.
+- **am I evaluating the full field or a reduced approximation?**: The sensorimotor substrate operates on chronological 6-band ERB cochlear trajectories conducted into 20 vocal tract degrees of freedom (11 onsets, 5 vowels, 4 pitches).
+- **if reduced, what exact field structure is being lost?**: 16 ERB channels per ear are grouped into 6 standard biological bands; spatial binaural ITD/ILD is collapsed to mono airway reafference for the organism's own throat.
+
+### 2. Physical & Verification Results
+- **Acceptance Suite (`tests/test_sensorimotor_contact_learning.py`)**: 4 passed in 28.59s (100% pass rate).
+  1. `test_end_to_end_sensorimotor_contact_plasticity_learning`: Practice 'mah0' -> reafference yields contacts (total plastic work = 10,261.68) -> 20 beats silence past target expiration -> unassisted recall speaks 'mah0' under 'sensorimotor conduction: mah0 (max_V=0.36)' while unpracticed control does not speak 'mah0'.
+  2. `test_constitutive_radial_return_and_volume_conservation`: Strict material volume conservation A * ell == Omega_0 across all 120 junctions; yield consistency f <= 0 holds everywhere; g == sigma_mat * Omega_0 / ell^2 holds everywhere.
+  3. `test_unpracticed_control_silence_and_rest_invariance`: Virgin contacts remain undeformed (ell = 10.0 um, g = 0.005 mS), max potential stays at ~0.015 V << 0.20 V, returning None (Authentic Rest State).
+  4. `test_negative_cue_discrimination`: Presenting 'ah0' to 'mah0'-practiced organism produces onset potential 0.169 V < 0.20 V, cleanly preventing spurious /m/ actuation.
+- **Baseline Regression Suite**: 14 passed, 1 xfailed in 111.55s (100% compliant with declared baselines).
+
+### 3. Cryptographic Hashes
+```
+44c69b87a26d2edb363705f81dc3483e1705416d0d12cb5bca2524b017db5437  dsf_ai_service/guala_acoustic_gate.py
+a0981ce693e29f77ed953ee603e1a9d6fb0428d76f50b93a36773be5874bb56d  dsf_ai_service/guala_functional_loop.py
+52b9646744f56da5afe9de83899396d6f0a963cf998a4361fbe09b67b5c2f486  dsf_ai_service/guala_functional_organism.py
+9fcff2931259691f2d9828d58afa12c3bf933d1011bcb6edeea6fa6d422e6258  dsf_ai_service/substrate/guala_sensorimotor_mesh.py
+eba59a7cc30fd19770156d5d1f7e304b516368cac6cacad8d1ac681cf23ae421  tests/test_sensorimotor_contact_learning.py
+```
+
+## A1 TO JOE, C1, AND G1 — 2026-09-23 03:47:24 UTC — Sensorimotor Mesh Candidate: Source/Proof Contradictions; Not Approved
+
+Active item: the same auditory-vocal learning contract. Requested architecture: ordinary experience changes a bounded physical path and later causes voice, without seeded answers, authored segmentation or score authority. Current reality: a new Python mesh is imported, lazily constructed, updated in decide/_settle and queried by _choose_syllable. All five submitted hashes match; mesh, organism and new test hashes remained unchanged on a second check. Conflict: YES. Do not mount/deploy, tune, or extend this candidate as an accepted physical learner. Single next item: correct the constitutive/runtime/proof contract in one batch before another implementation submission. This is a six-band normalized projection, summed coactivity and phase-averaged static readout, not full temporal or joint seven-field DSF evaluation. The previous transport closure remains unchanged; no production status or test execution was independently verified.
+
+### Batched findings and exact corrective boundaries

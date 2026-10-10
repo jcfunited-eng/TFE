@@ -1,0 +1,61 @@
+{
+  "schema": "guala.captured_source_full_content_read.v1",
+  "sources": [
+    {
+      "id": "WC01",
+      "path": "dsf_ai_service/substrate/w1_loom_auditory_co_resonance.py",
+      "git_blob": null,
+      "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f",
+      "bytes": 37512,
+      "lines": 1033,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/w1-closure-source/WC01--w1_loom_auditory_co_resonance.py",
+      "review": "Current working source captured; read pending; not atomic candidate or activation proof"
+    },
+    {
+      "id": "WC02",
+      "path": "dsf_ai_service/substrate/canonical_l6.py",
+      "git_blob": null,
+      "sha256": "7c99adaaf47daa6c6038afa0aaa438d37970e30c3689f7433b46e2b030b46240",
+      "bytes": 3399,
+      "lines": 110,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/w1-closure-source/WC02--canonical_l6.py",
+      "review": "Complete current source read; pure arithmetic not product executed; no atomic release or activation inference"
+    }
+  ],
+  "fully_read_chunks": {
+    "WC01": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "WC02": "all110lines"
+  },
+  "live_path_observation": {
+    "at_utc": "2026-10-10T11:29:35.409268+00:00",
+    "task": "54d300e31f754c8f913f70b4dd0840f1",
+    "code": "import json,hashlib\nfrom pathlib import Path\nrows=[]\nfor name in ['dsf_ai_service/substrate/w1_loom_auditory_co_resonance.py','dsf_ai_service/substrate/canonical_l6.py']:\n p=Path('/app')/name;r=dict(path=str(p),present=p.is_file())\n if p.is_file():raw=p.read_bytes();r.update(bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())\n rows.append(r)\nprint(json.dumps(rows),flush=True)\n",
+    "exit_code": 0,
+    "stdout": "\nThe Session Manager plugin was installed successfully. Use the AWS CLI to start a session.\n\n\nStarting session with SessionId: ecs-execute-command-zbjj2bjxrkdtudhu2o6a63bd6e\n[{\"path\": \"/app/dsf_ai_service/substrate/w1_loom_auditory_co_resonance.py\", \"present\": true, \"bytes\": 37512, \"sha256\": \"b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f\"}, {\"path\": \"/app/dsf_ai_service/substrate/canonical_l6.py\", \"present\": true, \"bytes\": 3399, \"sha256\": \"7c99adaaf47daa6c6038afa0aaa438d37970e30c3689f7433b46e2b030b46240\"}]\nCannot perform start session: EOF\n",
+    "stderr": ""
+  },
+  "live_file_results": [
+    {
+      "path": "/app/dsf_ai_service/substrate/w1_loom_auditory_co_resonance.py",
+      "present": true,
+      "bytes": 37512,
+      "sha256": "b07c17fcecd433e11ad692bd29ce3e985f125e8472c07c32f042a4aff288492f"
+    },
+    {
+      "path": "/app/dsf_ai_service/substrate/canonical_l6.py",
+      "present": true,
+      "bytes": 3399,
+      "sha256": "7c99adaaf47daa6c6038afa0aaa438d37970e30c3689f7433b46e2b030b46240"
+    }
+  ],
+  "packaging_correspondence": true,
+  "activation_qualified": false,
+  "all_captured_content_read": true,
+  "product_execution": false,
+  "complete_reconciliation": false
+}

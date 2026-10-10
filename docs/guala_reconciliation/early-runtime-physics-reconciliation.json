@@ -1,0 +1,1106 @@
+{
+  "schema": "guala.documentary_slice_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T08:20:32.948212+00:00",
+  "scope": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "EP01-01",
+      "path": "docs/GUALA_D3_CURRENT_JOINT_INSPECTION_RESIDENCY_AUDIT_2026-08-03.md",
+      "git_blob": "460141c8688508ec2b254d4b77dd6469b19b4ac0",
+      "sha256": "fd54bf6e91eb281b703fb8482d8d6b3179e0578ff9a8b9dd3982a9d736985f04",
+      "bytes": 5098,
+      "lines": 112,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP01-01--GUALA_D3_CURRENT_JOINT_INSPECTION_RESIDENCY_AUDIT_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP01-01--GUALA_D3_CURRENT_JOINT_INSPECTION_RESIDENCY_AUDIT_2026-08-03.md"
+    },
+    {
+      "id": "EP02-01",
+      "path": "docs/GUALA_D3_EXPLICITLY_POWERED_RECURRENCE_FALSIFICATION_2026-08-03.md",
+      "git_blob": "3ec30682f4f6605470bd5f17ac2a7ceb93d15271",
+      "sha256": "00e0bc70219655001e591a258bce94ae4641287bd1d038719d5e60f143c18e05",
+      "bytes": 5918,
+      "lines": 138,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP02-01--GUALA_D3_EXPLICITLY_POWERED_RECURRENCE_FALSIFICATION_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-03T08:54:04+00:00",
+          "commit": "572196db9a73b3c9f99d7a18c38c55c130b98719",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T08:44:17+00:00",
+          "commit": "b5c7858e1a56ae0214d7f9a418d09add180bc7a8",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP02-01--GUALA_D3_EXPLICITLY_POWERED_RECURRENCE_FALSIFICATION_2026-08-03.md"
+    },
+    {
+      "id": "EP03-01",
+      "path": "docs/GUALA_D3_INDEPENDENT_CAUSAL_CLOCK_AND_PUBLICATION_LAW_2026-08-03.md",
+      "git_blob": "9b45c9dbe5fc34d520e611fc0c3040c89471c6fd",
+      "sha256": "f6dbd7b6682ef519d62d5e74b3184409336525c5968359ef564ce3faaeafb5ef",
+      "bytes": 5380,
+      "lines": 121,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP03-01--GUALA_D3_INDEPENDENT_CAUSAL_CLOCK_AND_PUBLICATION_LAW_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP03-01--GUALA_D3_INDEPENDENT_CAUSAL_CLOCK_AND_PUBLICATION_LAW_2026-08-03.md"
+    },
+    {
+      "id": "EP04-01",
+      "path": "docs/GUALA_D3_LOCAL_COMPONENT_PHYSICS_FALSIFICATION_2026-08-03.md",
+      "git_blob": "2ca81bbf0a5f8bfc88bedca73d8eb50f383f5e36",
+      "sha256": "601ec1905a6b72e5868b4ef9ba50b7cbe58ee9b3209562f90bca85d7eff4e175",
+      "bytes": 4901,
+      "lines": 107,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP04-01--GUALA_D3_LOCAL_COMPONENT_PHYSICS_FALSIFICATION_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-03T08:37:23+00:00",
+          "commit": "761addb1660a8d012cde474956a3362a820b0ab2",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T08:25:20+00:00",
+          "commit": "a641f284d17bf454e913fc312c364c0e09d9fabb",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP04-01--GUALA_D3_LOCAL_COMPONENT_PHYSICS_FALSIFICATION_2026-08-03.md"
+    },
+    {
+      "id": "EP04-02",
+      "path": "docs/GUALA_D3_LOCAL_COMPONENT_PHYSICS_FALSIFICATION_2026-08-03.md",
+      "git_blob": "87ba62615565d7d9811b35c1256f0558f9dd85f0",
+      "sha256": "fb91d77f689ac19a9f973770022fe9ecb5349805b22d9dbeb5223d3ef4e72a46",
+      "bytes": 5548,
+      "lines": 119,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP04-02--GUALA_D3_LOCAL_COMPONENT_PHYSICS_FALSIFICATION_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-03T08:54:04+00:00",
+          "commit": "572196db9a73b3c9f99d7a18c38c55c130b98719",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T08:37:23+00:00",
+          "commit": "761addb1660a8d012cde474956a3362a820b0ab2",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP04-02--GUALA_D3_LOCAL_COMPONENT_PHYSICS_FALSIFICATION_2026-08-03.md"
+    },
+    {
+      "id": "EP04-03",
+      "path": "docs/GUALA_D3_LOCAL_COMPONENT_PHYSICS_FALSIFICATION_2026-08-03.md",
+      "git_blob": "afc4c733cc914ada7e3bdc66de5aa6ed245e6cb9",
+      "sha256": "61f017a966f5cd2d01dc9305785bebc4a1ce3d9e0ade8068f4eb0f03aad9dddf",
+      "bytes": 1311,
+      "lines": 32,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP04-03--GUALA_D3_LOCAL_COMPONENT_PHYSICS_FALSIFICATION_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP04-03--GUALA_D3_LOCAL_COMPONENT_PHYSICS_FALSIFICATION_2026-08-03.md"
+    },
+    {
+      "id": "EP04-04",
+      "path": "docs/GUALA_D3_LOCAL_COMPONENT_PHYSICS_FALSIFICATION_2026-08-03.md",
+      "git_blob": "bdc46f2df9a6afae0d4ca72deed4ac54c0454f06",
+      "sha256": "e9c5efaf8535f3742566ef5e76a0753ef1c07e00abb48bd432d0b53fcaecf624",
+      "bytes": 2888,
+      "lines": 62,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP04-04--GUALA_D3_LOCAL_COMPONENT_PHYSICS_FALSIFICATION_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T08:54:04+00:00",
+          "commit": "572196db9a73b3c9f99d7a18c38c55c130b98719",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP04-04--GUALA_D3_LOCAL_COMPONENT_PHYSICS_FALSIFICATION_2026-08-03.md"
+    },
+    {
+      "id": "EP05-01",
+      "path": "docs/GUALA_D3_LOCAL_CUPULA_BUNDLE_PATH_2026-08-04.md",
+      "git_blob": "4a8ef2fe16c9deab1a82b20007a6a37bcf9f67b2",
+      "sha256": "18d0933faa05a3e82a79349e12997dfe791c475a574556af74a7c6041a6a24bc",
+      "bytes": 4990,
+      "lines": 105,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP05-01--GUALA_D3_LOCAL_CUPULA_BUNDLE_PATH_2026-08-04.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP05-01--GUALA_D3_LOCAL_CUPULA_BUNDLE_PATH_2026-08-04.md"
+    },
+    {
+      "id": "EP06-01",
+      "path": "docs/GUALA_D3_LOCAL_RECEPTOR_CURRENT_LAW_2026-08-03.md",
+      "git_blob": "6a68ea7aaccd8d5c29ddcca044b9b47bf1e879a0",
+      "sha256": "6f2d9593968093f95dab08b80ebcdf35a353d9c046acc5802b96c1a04375b14c",
+      "bytes": 2701,
+      "lines": 59,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP06-01--GUALA_D3_LOCAL_RECEPTOR_CURRENT_LAW_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP06-01--GUALA_D3_LOCAL_RECEPTOR_CURRENT_LAW_2026-08-03.md"
+    },
+    {
+      "id": "EP06-02",
+      "path": "docs/GUALA_D3_LOCAL_RECEPTOR_CURRENT_LAW_2026-08-03.md",
+      "git_blob": "7ac0401715884da1b6adf50aaea5626489780a6f",
+      "sha256": "815d841869e27493c55f567480a2455653da526d407137d01431501fc862c6a5",
+      "bytes": 3391,
+      "lines": 77,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP06-02--GUALA_D3_LOCAL_RECEPTOR_CURRENT_LAW_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T08:58:26+00:00",
+          "commit": "e175bdde62ae0eed51354838009f120cf91fa8f5",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP06-02--GUALA_D3_LOCAL_RECEPTOR_CURRENT_LAW_2026-08-03.md"
+    },
+    {
+      "id": "EP07-01",
+      "path": "docs/GUALA_D3_LOCAL_SYNAPSE_PHYSICS_FALSIFICATION_2026-08-03.md",
+      "git_blob": "368a57c7591bec5ea4b562ff2eafce054be3c3d7",
+      "sha256": "b4609f5d4761594c7e52e5240f5d2e16a6a1fd332c56195a8c8114f46a6ceee2",
+      "bytes": 3334,
+      "lines": 70,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP07-01--GUALA_D3_LOCAL_SYNAPSE_PHYSICS_FALSIFICATION_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T08:54:04+00:00",
+          "commit": "572196db9a73b3c9f99d7a18c38c55c130b98719",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP07-01--GUALA_D3_LOCAL_SYNAPSE_PHYSICS_FALSIFICATION_2026-08-03.md"
+    },
+    {
+      "id": "EP07-02",
+      "path": "docs/GUALA_D3_LOCAL_SYNAPSE_PHYSICS_FALSIFICATION_2026-08-03.md",
+      "git_blob": "6a170328429d13f50831adfe4578cec83e2abba2",
+      "sha256": "7fd194f2d97978d2cdf8cd2739249d5fbd81106199c20552de726439320316b6",
+      "bytes": 1367,
+      "lines": 38,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP07-02--GUALA_D3_LOCAL_SYNAPSE_PHYSICS_FALSIFICATION_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP07-02--GUALA_D3_LOCAL_SYNAPSE_PHYSICS_FALSIFICATION_2026-08-03.md"
+    },
+    {
+      "id": "EP07-03",
+      "path": "docs/GUALA_D3_LOCAL_SYNAPSE_PHYSICS_FALSIFICATION_2026-08-03.md",
+      "git_blob": "b01913aa3ff9d7eaf456c637b51eff82d7ee97b4",
+      "sha256": "24dc93049e6be39210547fb49264a96b7d2138af223e7124f214aacac674b412",
+      "bytes": 4194,
+      "lines": 86,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP07-03--GUALA_D3_LOCAL_SYNAPSE_PHYSICS_FALSIFICATION_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-03T08:54:04+00:00",
+          "commit": "572196db9a73b3c9f99d7a18c38c55c130b98719",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T08:30:07+00:00",
+          "commit": "a6fa385a3ca312bab39be342a92e91fc46397557",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP07-03--GUALA_D3_LOCAL_SYNAPSE_PHYSICS_FALSIFICATION_2026-08-03.md"
+    },
+    {
+      "id": "EP08-01",
+      "path": "docs/GUALA_D3_ORGANISM_RUNTIME_RESIDENCY_LAW_2026-08-03.md",
+      "git_blob": "a62322c094fbc6400e0b221de1bdda9b2c01c2c0",
+      "sha256": "2ecd8f5ba7faaa3bf387821505f11569041a93687d407b678e018946d95a205a",
+      "bytes": 6485,
+      "lines": 136,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP08-01--GUALA_D3_ORGANISM_RUNTIME_RESIDENCY_LAW_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP08-01--GUALA_D3_ORGANISM_RUNTIME_RESIDENCY_LAW_2026-08-03.md"
+    },
+    {
+      "id": "EP09-01",
+      "path": "docs/GUALA_D3_REJECTED_SELECTED_LINEAR_HAIR_CELL_GATE_2026-08-04.md",
+      "git_blob": "b4e0e11f14565c9ed2e7378e82fd7a6a6b55b556",
+      "sha256": "e5adbd53e49e80bd1e26d17903f04baf76e7c00a027a3c5c05ead8771493ebf6",
+      "bytes": 3715,
+      "lines": 66,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP09-01--GUALA_D3_REJECTED_SELECTED_LINEAR_HAIR_CELL_GATE_2026-08-04.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP09-01--GUALA_D3_REJECTED_SELECTED_LINEAR_HAIR_CELL_GATE_2026-08-04.md"
+    },
+    {
+      "id": "EP10-01",
+      "path": "docs/GUALA_D3_REJECTED_THREE_BASIN_DIRECT_ION_MODEL_2026-08-04.md",
+      "git_blob": "0b67ee8bbbe3711dddc07cfdb43ba2ceb9b45af4",
+      "sha256": "e6462adbe011b29daa0ea4fe4115c2b2819aa6372aecc9a7bd1bcb4cb5c765bf",
+      "bytes": 2172,
+      "lines": 58,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP10-01--GUALA_D3_REJECTED_THREE_BASIN_DIRECT_ION_MODEL_2026-08-04.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP10-01--GUALA_D3_REJECTED_THREE_BASIN_DIRECT_ION_MODEL_2026-08-04.md"
+    },
+    {
+      "id": "EP11-01",
+      "path": "docs/GUALA_D3_SPARSE_COUPLING_FALSIFICATION_2026-08-03.md",
+      "git_blob": "01c4495c571f324572dc9fb5f85045e5bbc6894c",
+      "sha256": "afb554594ec5cbb6777a66f45445eb8ad2b700d5e28199084880e91eb0ae1e04",
+      "bytes": 10447,
+      "lines": 220,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP11-01--GUALA_D3_SPARSE_COUPLING_FALSIFICATION_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-03T07:52:30+00:00",
+          "commit": "32c0c67217d4a0e231be0666364e12543baf4088",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP11-01--GUALA_D3_SPARSE_COUPLING_FALSIFICATION_2026-08-03.md"
+    },
+    {
+      "id": "EP11-02",
+      "path": "docs/GUALA_D3_SPARSE_COUPLING_FALSIFICATION_2026-08-03.md",
+      "git_blob": "ead29d67584f67e8f046f529a495347a062959e1",
+      "sha256": "c1a186cadeaa4f49f85852121fed1ab23230cc2ff1e68577e687e76efef1ceae",
+      "bytes": 5815,
+      "lines": 113,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP11-02--GUALA_D3_SPARSE_COUPLING_FALSIFICATION_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-03T07:52:30+00:00",
+          "commit": "32c0c67217d4a0e231be0666364e12543baf4088",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T07:47:16+00:00",
+          "commit": "3cf861b28feb22e9323a5d7d7a15ce445f076c74",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP11-02--GUALA_D3_SPARSE_COUPLING_FALSIFICATION_2026-08-03.md"
+    },
+    {
+      "id": "EP12-01",
+      "path": "docs/GUALA_D3_SPARSE_CYCLE_PHYSICS_FALSIFICATION_2026-08-03.md",
+      "git_blob": "50f0bd18d2613a565495fd68d5d830a9db2be528",
+      "sha256": "01911b26cd6188efc25cbed6e58a5d73ca696a5500e22d1d29ca1faea2c7d88b",
+      "bytes": 4340,
+      "lines": 89,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP12-01--GUALA_D3_SPARSE_CYCLE_PHYSICS_FALSIFICATION_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-03T08:54:04+00:00",
+          "commit": "572196db9a73b3c9f99d7a18c38c55c130b98719",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T08:32:29+00:00",
+          "commit": "732e1e341dbd2ac5fe866baa0e680a380bc16abc",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP12-01--GUALA_D3_SPARSE_CYCLE_PHYSICS_FALSIFICATION_2026-08-03.md"
+    },
+    {
+      "id": "EP13-01",
+      "path": "docs/GUALA_D3_VIRTUAL_BODY_YAW_ACTUATION_LAW_2026-08-04.md",
+      "git_blob": "167b76b7ae959a3dc73f31cf660c4f9aba9cde72",
+      "sha256": "9fc3064dd763dd22b069df8cd036ea3bc5058d12c59022de8b23e06c9fcd6a1b",
+      "bytes": 3783,
+      "lines": 88,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP13-01--GUALA_D3_VIRTUAL_BODY_YAW_ACTUATION_LAW_2026-08-04.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP13-01--GUALA_D3_VIRTUAL_BODY_YAW_ACTUATION_LAW_2026-08-04.md"
+    },
+    {
+      "id": "EP14-01",
+      "path": "docs/GUALA_D3_VIRTUAL_VESTIBULAR_CANAL_LAW_2026-08-04.md",
+      "git_blob": "e5b2d3c49cdd53690a174df73c66241fd5d4df01",
+      "sha256": "459d959c5a137addee5550f93b634c2cbbd43744368338ffcfb33ab4d7aa1145",
+      "bytes": 6143,
+      "lines": 132,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP14-01--GUALA_D3_VIRTUAL_VESTIBULAR_CANAL_LAW_2026-08-04.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP14-01--GUALA_D3_VIRTUAL_VESTIBULAR_CANAL_LAW_2026-08-04.md"
+    },
+    {
+      "id": "EP15-01",
+      "path": "native/guala_core/docs/GUALA_D3_PHYSICAL_ANATOMY_GENESIS_LAW_2026-08-03.md",
+      "git_blob": "24d42a37d97a12751194982af43afaab88db1233",
+      "sha256": "77ca0a168e7fda60e714901c653089b9f749e81dda641a94ad8da07def8e90bf",
+      "bytes": 4487,
+      "lines": 72,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP15-01--GUALA_D3_PHYSICAL_ANATOMY_GENESIS_LAW_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP15-01--GUALA_D3_PHYSICAL_ANATOMY_GENESIS_LAW_2026-08-03.md"
+    },
+    {
+      "id": "EP16-01",
+      "path": "native/guala_core/docs/GUALA_D3_REACHED_FRONTIER_MEMBRANE_LAW_2026-08-03.md",
+      "git_blob": "4901684d9aa6dfbb76a6c62efc42b0785cad3038",
+      "sha256": "928253c726bc453ec7d154bb3220a54700ef34b1ca8f0c3fb541c774bec7c8da",
+      "bytes": 4094,
+      "lines": 88,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/early-runtime-physics/EP16-01--GUALA_D3_REACHED_FRONTIER_MEMBRANE_LAW_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of23 versions/16 paths:1554 latest-document lines plus50 older-only passages/447 lines. No product/model execution, current telemetry refresh, original approval authentication or full cited-literature review.",
+      "canonical_copy": "docs/guala_reconciliation/sources/early-runtime-physics/EP16-01--GUALA_D3_REACHED_FRONTIER_MEMBRANE_LAW_2026-08-03.md"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "EPR01",
+      "name": "Logical inspection accounting did not bound allocator peak",
+      "classification": "documented_resource_gap_and_partial_improvement",
+      "historical_requirement_or_mechanism": "The joint-inspection audit derives a body-bound logical plan before decoding and streams canonical comparison instead of allocating a second complete encoded joint body. It explicitly leaves Vec/String capacity, BigInt temporary limbs, tree nodes, full-field rebuild allocations, integer-emission buffers and allocator overlap outside an enforced peak. GeneralAllocatorRequired is a refusal reason, not proof of bounded allocation.",
+      "current_disposition": "Useful logical accounting and100000 stable preflights do not establish exact target memory safety. This is historical source-reported evidence, not a diagnosis of today’s latency or RAM. Frozen L0–L4 must remain unchanged while any surrounding resource implementation is corrected.",
+      "lawful_remedy": "Trace current actual allocations and overlapping phases, admit bounded surfaces before mutation, and bind the real peak to fresh finite cgroup headroom. Preserve full-field canonical verification and eliminate only proven duplicated work; no guessed multiplier or arbitrary allowance substitutes for the proof.",
+      "unit_acceptance": "Test exact count/size boundaries, substituted plans and allocation refusal before mutation.",
+      "module_acceptance": "Verify real capacities and private arithmetic/validation temporaries across current restore/transition/seal.",
+      "system_acceptance": "Measure mature-state peak, latency and refused exhaustion with preserved organism state.",
+      "release_acceptance": "No current resource certificate from logical bytes, one snapshot or fixture longevity.",
+      "repair_actions": [
+        "A02",
+        "A04",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "EP01-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP01-01--GUALA_D3_CURRENT_JOINT_INSPECTION_RESIDENCY_AUDIT_2026-08-03.md",
+          "line": 82,
+          "anchor": "`LogicalArenaStatus::GeneralAllocatorRequired`. That enum is a refusal reason,",
+          "sha256": "fd54bf6e91eb281b703fb8482d8d6b3179e0578ff9a8b9dd3982a9d736985f04"
+        },
+        {
+          "source_id": "EP01-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP01-01--GUALA_D3_CURRENT_JOINT_INSPECTION_RESIDENCY_AUDIT_2026-08-03.md",
+          "line": 79,
+          "anchor": "6. Allocator metadata and growth overlap are not represented.",
+          "sha256": "fd54bf6e91eb281b703fb8482d8d6b3179e0578ff9a8b9dd3982a9d736985f04"
+        },
+        {
+          "source_id": "EP01-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP01-01--GUALA_D3_CURRENT_JOINT_INSPECTION_RESIDENCY_AUDIT_2026-08-03.md",
+          "line": 16,
+          "anchor": "   comparison streams against the borrowed input without a second full encoded",
+          "sha256": "fd54bf6e91eb281b703fb8482d8d6b3179e0578ff9a8b9dd3982a9d736985f04"
+        }
+      ]
+    },
+    {
+      "id": "EPR02",
+      "name": "Current-only one-allocation custody is distinct from total lifecycle bounds",
+      "classification": "reported_storage_progress_with_explicit_supersession",
+      "historical_requirement_or_mechanism": "The earlier runtime law moves one owned envelope through restore/seal, charges actual vector capacity, borrows fabric/joint aliases without double-counting, and refuses invalid input rather than creating genesis. It separates current restore from migration schemas and states that its own allocator audit is superseded by the Aug4 resident-runtime law. Its logical peak formula still excludes uncontrolled allocator behavior.",
+      "current_disposition": "Pointer identity and one outer allocation do not prove all internal or future persistence work is bounded. The specified GLMFAB04 chain is historical; later GLMFAB06/GLCOG003 and current formats require their own source/state correspondence. Reusing this old table as current mount authority would be false.",
+      "lawful_remedy": "Preserve current-only authenticated identity and alias accounting while tracing every actual current codec, allocation and lifecycle phase. No legacy fallback, greatest-generation scan or fresh genesis may mask missing/bad current state.",
+      "unit_acceptance": "Reject malformed/current-schema mismatch and ensure borrowed aliases are counted only once.",
+      "module_acceptance": "Verify real current-only restore, migration boundaries and exact source/target state continuity.",
+      "system_acceptance": "Prove mature cold restart and next functional transition within actual resource bounds.",
+      "release_acceptance": "Bind qualification to current format/image and all lifecycle work, not superseded residency claims.",
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "EP08-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP08-01--GUALA_D3_ORGANISM_RUNTIME_RESIDENCY_LAW_2026-08-03.md",
+          "line": 5,
+          "anchor": "Status: superseded historical allocator audit. Its logical-plan findings remain",
+          "sha256": "2ecd8f5ba7faaa3bf387821505f11569041a93687d407b678e018946d95a205a"
+        },
+        {
+          "source_id": "EP08-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP08-01--GUALA_D3_ORGANISM_RUNTIME_RESIDENCY_LAW_2026-08-03.md",
+          "line": 76,
+          "anchor": "same allocation into its result. Actual vector capacity, including unused",
+          "sha256": "2ecd8f5ba7faaa3bf387821505f11569041a93687d407b678e018946d95a205a"
+        },
+        {
+          "source_id": "EP08-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP08-01--GUALA_D3_ORGANISM_RUNTIME_RESIDENCY_LAW_2026-08-03.md",
+          "line": 89,
+          "anchor": "inputs cannot create genesis.",
+          "sha256": "2ecd8f5ba7faaa3bf387821505f11569041a93687d407b678e018946d95a205a"
+        }
+      ]
+    },
+    {
+      "id": "EPR03",
+      "name": "Independent physical clocks and publication provenance must not authorize rollback",
+      "classification": "historical_custody_law_with_current_policy_conflict",
+      "historical_requirement_or_mechanism": "The clock law distinguishes membrane/channel/fluid/episode and publication ordinals; equal numbers do not prove shared cause. It publishes durable referenced content before conditional head replacement and rejects stale candidates. It also permits a new occurrence referencing selected prior content as a restore, while later current-only/no-reset constraints prohibit silently resurrecting retired cognitive state.",
+      "current_disposition": "Advancing publication height does not make a rollback of physical learning lossless. Immutable-root/addressed-history architecture and independent local clocks are dated design choices requiring exact current mapping. No old restore paragraph grants new permission to reset or bypass canonical checkpoints.",
+      "lawful_remedy": "Preserve typed causal time and actual cross-boundary physical binding; keep infrastructure ordering out of cognitive authority. Reconcile restore semantics against current retained-history constraints and require an explicit authorized preservation/loss account for any state conversion.",
+      "unit_acceptance": "Reject clock-equality causation, stale publication and numerically highest-generation state selection.",
+      "module_acceptance": "Trace actual physical time, source/transition evidence, atomic head and canonical checkpoint readers.",
+      "system_acceptance": "Prove restart continues the same acquired causal state and next function without relabeled rollback.",
+      "release_acceptance": "Current preservation policy governs; historical addressed restore is not authorization to replace today’s organism.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "EP03-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP03-01--GUALA_D3_INDEPENDENT_CAUSAL_CLOCK_AND_PUBLICATION_LAW_2026-08-03.md",
+          "line": 53,
+          "anchor": "Numeric equality between local clocks is never causal evidence.  Missing",
+          "sha256": "f6dbd7b6682ef519d62d5e74b3184409336525c5968359ef564ce3faaeafb5ef"
+        },
+        {
+          "source_id": "EP03-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP03-01--GUALA_D3_INDEPENDENT_CAUSAL_CLOCK_AND_PUBLICATION_LAW_2026-08-03.md",
+          "line": 80,
+          "anchor": "occurrence after the current head whose payload references the selected prior",
+          "sha256": "f6dbd7b6682ef519d62d5e74b3184409336525c5968359ef564ce3faaeafb5ef"
+        },
+        {
+          "source_id": "EP03-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP03-01--GUALA_D3_INDEPENDENT_CAUSAL_CLOCK_AND_PUBLICATION_LAW_2026-08-03.md",
+          "line": 73,
+          "anchor": "No stored global generation is an authority.  If an ordinal is useful for",
+          "sha256": "f6dbd7b6682ef519d62d5e74b3184409336525c5968359ef564ce3faaeafb5ef"
+        }
+      ]
+    },
+    {
+      "id": "EPR04",
+      "name": "Sparse physical state overrides are not automatically heuristic override tables",
+      "classification": "documented_native_storage_design_with_unverified_current_mount",
+      "historical_requirement_or_mechanism": "The reached-frontier membrane document reports explicit candidate contacts, exact charge/K/external-cause participation and Patricia-tree changes over an immutable base. These overrides store actual changed node state, not an authored answer table. It distinguishes a transfer-only endpoint from a successful full-DSF neuronal transition and requires later proper source delivery before mosaic eligibility. It calls its code a production path but supplies no live task/image proof in this record.",
+      "current_disposition": "Exact sparse persistence can be a legitimate improvement. Full cold inspection still traverses reachable override pages; hot frontier work, cold restore and retained historical-page growth need separate bounds. The filename is Aug3 and the captured blob is an Aug5 salvage root; neither establishes live activation or original design authority.",
+      "lawful_remedy": "Trace actual source, K-gating law, state consumers and deployment correspondence. Preserve truthful physical node deltas and causal participant categories; reject static decision exceptions while not condemning legitimate storage solely for the word override. Account all persistence and cold work.",
+      "unit_acceptance": "Verify changed/unreached identity and no fabricated DSF success from transfer-only endpoints.",
+      "module_acceptance": "Map actual candidate/contact/Patricia state and all read/write/restore authority.",
+      "system_acceptance": "Show preserved physical learning and equivalent next transitions with bounded current and durable resources.",
+      "release_acceptance": "No live or architecture qualification from a production-path heading; exact source/image/state proof is required.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "EP16-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP16-01--GUALA_D3_REACHED_FRONTIER_MEMBRANE_LAW_2026-08-03.md",
+          "line": 55,
+          "anchor": "- current Patricia override-root authority;",
+          "sha256": "928253c726bc453ec7d154bb3220a54700ef34b1ca8f0c3fb541c774bec7c8da"
+        },
+        {
+          "source_id": "EP16-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP16-01--GUALA_D3_REACHED_FRONTIER_MEMBRANE_LAW_2026-08-03.md",
+          "line": 36,
+          "anchor": "gate with zero transfer is not a reached participant. A transfer-only endpoint",
+          "sha256": "928253c726bc453ec7d154bb3220a54700ef34b1ca8f0c3fb541c774bec7c8da"
+        },
+        {
+          "source_id": "EP16-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP16-01--GUALA_D3_REACHED_FRONTIER_MEMBRANE_LAW_2026-08-03.md",
+          "line": 64,
+          "anchor": "topology and base objects, every Patricia page reachable from the override root,",
+          "sha256": "928253c726bc453ec7d154bb3220a54700ef34b1ca8f0c3fb541c774bec7c8da"
+        },
+        {
+          "source_id": "EP16-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP16-01--GUALA_D3_REACHED_FRONTIER_MEMBRANE_LAW_2026-08-03.md",
+          "line": 3,
+          "anchor": "Status: implemented native law. This document describes the production path in",
+          "sha256": "928253c726bc453ec7d154bb3220a54700ef34b1ca8f0c3fb541c774bec7c8da"
+        }
+      ]
+    },
+    {
+      "id": "EPR05",
+      "name": "Premature genesis wrappers and reconstructed port identities were rejected",
+      "classification": "documented_custody_and_initialization_boundary",
+      "historical_requirement_or_mechanism": "The genesis record deletes a duplicated anatomy schema and an always-failing composition gate because actual anatomy is missing. Task853 has96 actual lineages with GLJNFT02 four-field port keys; later GLJNFT03 coordinates/units/mapping fields cannot be attributed to that deployed body. It requires canonical native extraction from authenticated bytes, not regenerating lineage from counts or writing fixture anatomy into genesis.",
+      "current_disposition": "The document reports production metadata but says raw body bytes are absent from that checkout. A schema with valid units/provenance fields is not their physical source; an unavailable wrapper is not implementation progress. This is historical custody evidence, not proof of current state loss or a new authorization to migrate.",
+      "lawful_remedy": "Recover actual prior bytes and the owning canonical parser when needed, preserve exact lineages/port evidence and classify missing fields honestly. Do not duplicate child anatomy authority, seed current state from tests or pretend a new genesis is preservation.",
+      "unit_acceptance": "Reject count-generated identities, fabricated legacy fields and unknown/empty port keys.",
+      "module_acceptance": "Bind canonical extraction, actual old/new anatomy ownership and authorized migration mapping.",
+      "system_acceptance": "Demonstrate retained acquired effects across the actual state transition and restart.",
+      "release_acceptance": "No continuity claim from UUID/count/schema alone or from a newly synthesized specimen.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A06",
+        "A09",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "EP15-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP15-01--GUALA_D3_PHYSICAL_ANATOMY_GENESIS_LAW_2026-08-03.md",
+          "line": 9,
+          "anchor": "The proposed schema repeated units, coefficients, quantities, conservation, and provenance already owned by physical bodies. The reduced replacement still wrapped missing anatomy in a composition codec and an always-failing software gate. Neither is organism physics.",
+          "sha256": "77ca0a168e7fda60e714901c653089b9f749e81dda641a94ad8da07def8e90bf"
+        },
+        {
+          "source_id": "EP15-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP15-01--GUALA_D3_PHYSICAL_ANATOMY_GENESIS_LAW_2026-08-03.md",
+          "line": 21,
+          "anchor": "The exact task-853 deployed commit uses inner `GLJNFT02`, not `GLJNFT03`.",
+          "sha256": "77ca0a168e7fda60e714901c653089b9f749e81dda641a94ad8da07def8e90bf"
+        },
+        {
+          "source_id": "EP15-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP15-01--GUALA_D3_PHYSICAL_ANATOMY_GENESIS_LAW_2026-08-03.md",
+          "line": 32,
+          "anchor": "  authenticated body, never regenerated from the neuron count.",
+          "sha256": "77ca0a168e7fda60e714901c653089b9f749e81dda641a94ad8da07def8e90bf"
+        }
+      ]
+    },
+    {
+      "id": "EPR06",
+      "name": "Later rejection invalidated dependent cycle and powered-recurrence evidence",
+      "classification": "documented_supersession_not_compatible_positive_proofs",
+      "historical_requirement_or_mechanism": "Older component/terminal versions promote a three-step winding, Boolean channel/energy/release availability and endpoint-node difference→target sign. Intermediate records remove the sign equation and explicitly invalidate dependent fan-in/cycle/recovered results; final component and synapse records reject the remaining three-step and winding-to-release laws. EP02/EP12 still describe their earlier accounting/quiescence fixtures.",
+      "current_disposition": "The dependent results remain evidence of how that rejected model behaves, not supporting proof of present neuron physics. Small source size, no imports,100000 repetitions and exact state bounds did not derive its physical quantities. This is a concrete example where old successful-result documents must be linked to later invalidation.",
+      "lawful_remedy": "Mark each dependent claim superseded by the exact rejection and retain it as negative history. Trace current replacements from their own ratified laws; do not inherit a pass, a recovery cadence or a release trigger from rejected components.",
+      "unit_acceptance": "Verify rejection gates identify actual forbidden operators, not only old filenames.",
+      "module_acceptance": "Map all dependent tests/docs/source routes to resolved, superseded or still-open functional obligations.",
+      "system_acceptance": "Prove recurrence using actual finite physical sources and current constitutive laws.",
+      "release_acceptance": "No publication, skill or audit may cite31/40-test cycle/recovery results as qualified current physiology.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A11",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "EP04-04",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP04-04--GUALA_D3_LOCAL_COMPONENT_PHYSICS_FALSIFICATION_2026-08-03.md",
+          "line": 61,
+          "anchor": "and those dependent tests and result documents have been retired. Their counts",
+          "sha256": "e9c5efaf8535f3742566ef5e76a0753ef1c07e00abb48bd432d0b53fcaecf624"
+        },
+        {
+          "source_id": "EP04-03",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP04-03--GUALA_D3_LOCAL_COMPONENT_PHYSICS_FALSIFICATION_2026-08-03.md",
+          "line": 13,
+          "anchor": "three-step crossing, or shunt.",
+          "sha256": "61f017a966f5cd2d01dc9305785bebc4a1ce3d9e0ade8068f4eb0f03aad9dddf"
+        },
+        {
+          "source_id": "EP07-02",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP07-02--GUALA_D3_LOCAL_SYNAPSE_PHYSICS_FALSIFICATION_2026-08-03.md",
+          "line": 15,
+          "anchor": "The earlier endpoint-phase sign rule was already rejected. The remaining",
+          "sha256": "7fd194f2d97978d2cdf8cd2739249d5fbd81106199c20552de726439320316b6"
+        },
+        {
+          "source_id": "EP12-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP12-01--GUALA_D3_SPARSE_CYCLE_PHYSICS_FALSIFICATION_2026-08-03.md",
+          "line": 58,
+          "anchor": "The combined relevant suite passes 31/31 tests.",
+          "sha256": "01911b26cd6188efc25cbed6e58a5d73ca696a5500e22d1d29ca1faea2c7d88b"
+        }
+      ]
+    },
+    {
+      "id": "EPR07",
+      "name": "Externally supplied recovery can sustain activity but does not diagnose current interference",
+      "classification": "historical_model_accounting_and_current_causal_audit_requirement",
+      "historical_requirement_or_mechanism": "The powered fixture supplies recovery to reached depleted components/terminals:400 windings=4 genesis+396 recoveries and1200 releases=12 genesis+1188 recoveries. The unpowered fixture quiesces. It explicitly says no organism source/transport law earns recovery and continuous full recovery is a test condition. Its physical components were later rejected, so the result is not qualified Guala physiology.",
+      "current_disposition": "The accounting illustrates why source and cadence matter; it does not establish that a caretaker or environment program causes today’s latency or turn loop. Silence, depletion and learned-state loss must not be conflated. A proposed current intervention cannot reuse the rejected model as a controller.",
+      "lawful_remedy": "G1 should trace each actual current external/internal stimulation and recovery producer, units, cadence, source reservoir, reached targets and native consequence on the frozen candidate. Determine whether it sustains the measured loop with authorized controlled comparisons; preserve learned state and source provenance.",
+      "unit_acceptance": "Check actual recovery/stimulation cannot create unaccounted material/energy or duplicate an event.",
+      "module_acceptance": "Bind current caretaker/world/admission producers to native input/state/trace without semantic action authority.",
+      "system_acceptance": "Measure trajectory and timing under controlled authentic causes and show the actual first sustaining boundary.",
+      "release_acceptance": "No current interference verdict without exact current telemetry/source and causal evidence; historical fixtures only guide questions.",
+      "repair_actions": [
+        "A02",
+        "A04",
+        "A08",
+        "A11",
+        "A12",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "EP02-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP02-01--GUALA_D3_EXPLICITLY_POWERED_RECURRENCE_FALSIFICATION_2026-08-03.md",
+          "line": 77,
+          "anchor": "400   = 4  + 396",
+          "sha256": "00e0bc70219655001e591a258bce94ae4641287bd1d038719d5e60f143c18e05"
+        },
+        {
+          "source_id": "EP02-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP02-01--GUALA_D3_EXPLICITLY_POWERED_RECURRENCE_FALSIFICATION_2026-08-03.md",
+          "line": 129,
+          "anchor": "- Continuous full recovery is a test condition, not an approved cadence.",
+          "sha256": "00e0bc70219655001e591a258bce94ae4641287bd1d038719d5e60f143c18e05"
+        },
+        {
+          "source_id": "EP02-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP02-01--GUALA_D3_EXPLICITLY_POWERED_RECURRENCE_FALSIFICATION_2026-08-03.md",
+          "line": 123,
+          "anchor": "relaxation must not be implemented as blind decay of learned sensory state.",
+          "sha256": "00e0bc70219655001e591a258bce94ae4641287bd1d038719d5e60f143c18e05"
+        }
+      ]
+    },
+    {
+      "id": "EPR08",
+      "name": "Typed carry, inert coupled results and fabricated kernel vertices are separate failure modes",
+      "classification": "rejected_coupling_and_incomplete_routing_design",
+      "historical_requirement_or_mechanism": "The sparse-coupling model sums signed position-shifted words;1+1 creates a neighboring trit with unrelated field meaning, multiple causes can cancel, and the result never drives its next own operand. Its audit distinguishes participation from net perturbation and actual future influence. A typed-routing follow-up still lacks an operator and expressly forbids inserting post-neuronal arrivals as new JointFieldInput physical vertices or equating Ck geometry with neuronal Jij.",
+      "current_disposition": "An exact aggregate that is never consumed is not operative cognition; consuming it later requires a separately derived recurrent law. Edge/address carriers and estimated64/145-byte records exclude the unknown payload and full working envelope. Later physical-coupling ratification supersedes direct K arrival authority.",
+      "lawful_remedy": "Preserve typed full-field relations and actual conserved neighbor consequences, trace each retained value to its real future reader, and keep frozen L0–L4 input semantics intact. Reject unused cognitive facades, cross-type arithmetic and synthetic kernel vertices; prove full actual resource envelope.",
+      "unit_acceptance": "Falsify cross-field carry, cancellation-as-no-participation and unused-state capability claims.",
+      "module_acceptance": "Trace actual physical coupling and source/target law through later ratified architecture.",
+      "system_acceptance": "Show neighbor-caused retained state changes later settlement with real inputs and controls.",
+      "release_acceptance": "No coupling, memory or speech pass from routing metadata or abstract trit budgets.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "EP11-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP11-01--GUALA_D3_SPARSE_COUPLING_FALSIFICATION_2026-08-03.md",
+          "line": 64,
+          "anchor": "   coordinate. In the smallest counterexample, `1 + 1` becomes `(-1,+1)`;",
+          "sha256": "afb554594ec5cbb6777a66f45445eb8ad2b700d5e28199084880e91eb0ae1e04"
+        },
+        {
+          "source_id": "EP11-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP11-01--GUALA_D3_SPARSE_COUPLING_FALSIFICATION_2026-08-03.md",
+          "line": 78,
+          "anchor": "   epiphenomenal arithmetic. If later cognition consumes it, that recurrent",
+          "sha256": "afb554594ec5cbb6777a66f45445eb8ad2b700d5e28199084880e91eb0ae1e04"
+        },
+        {
+          "source_id": "EP11-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP11-01--GUALA_D3_SPARSE_COUPLING_FALSIFICATION_2026-08-03.md",
+          "line": 121,
+          "anchor": "Typed neuronal arrivals must not be inserted into `JointFieldInput` as extra",
+          "sha256": "afb554594ec5cbb6777a66f45445eb8ad2b700d5e28199084880e91eb0ae1e04"
+        },
+        {
+          "source_id": "EP11-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP11-01--GUALA_D3_SPARSE_COUPLING_FALSIFICATION_2026-08-03.md",
+          "line": 206,
+          "anchor": "typed arrival payload or persistent Krimelack state, so it is not a final D3",
+          "sha256": "afb554594ec5cbb6777a66f45445eb8ad2b700d5e28199084880e91eb0ae1e04"
+        }
+      ]
+    },
+    {
+      "id": "EPR09",
+      "name": "Signed body trajectory fixes real information loss but is not autonomous motor choice",
+      "classification": "isolated_declared_motor_model_with_scope_limits",
+      "historical_requirement_or_mechanism": "The yaw record identifies that wrapped target heading and duration lose direction, complete revolutions and path. Its candidate consumes signed displacement/duration and uses the endpoint-constrained polynomial10u³−15u⁴+6u⁵ on the existing1ms lattice, with summed integer samples equal to displacement and5000-sample capacity from the five-second action bound. It explicitly lacks mounted commands, actuator energy/muscle mechanics and autonomy.",
+      "current_disposition": "The declared boundary-conditioned motion function is not automatically a heuristic just because it produces a smooth path. Its use still needs exact ratification and cannot supply the substrate’s missing decision or physical work. Endpoint-only shortest-turn reconstruction cannot recover lost motion history.",
+      "lawful_remedy": "Preserve commanded or native-sourced signed physical motion and actual work, distinguish externally authored movement from native selection, and verify the actual current ratified actuator law. Feed genuine chronological body consequences into senses without receptor-generated motion.",
+      "unit_acceptance": "Verify displacement, cyclic heading, sign symmetry and actual sampled-path sum.",
+      "module_acceptance": "Bind action origin, physical actuator/work and exact sequential sensory return.",
+      "system_acceptance": "Demonstrate experience/internal-state-driven native action rather than a scripted supplied trajectory.",
+      "release_acceptance": "No autonomous or speech-motor certificate from a body interpolation candidate or externally commanded turn.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A08",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "EP13-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP13-01--GUALA_D3_VIRTUAL_BODY_YAW_ACTUATION_LAW_2026-08-04.md",
+          "line": 14,
+          "anchor": "   at the end of a duration. It retains neither signed displacement nor the",
+          "sha256": "9fc3064dd763dd22b069df8cd036ea3bc5058d12c59022de8b23e06c9fcd6a1b"
+        },
+        {
+          "source_id": "EP13-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP13-01--GUALA_D3_VIRTUAL_BODY_YAW_ACTUATION_LAW_2026-08-04.md",
+          "line": 36,
+          "anchor": "f(u) = 10u^3 - 15u^4 + 6u^5",
+          "sha256": "9fc3064dd763dd22b069df8cd036ea3bc5058d12c59022de8b23e06c9fcd6a1b"
+        },
+        {
+          "source_id": "EP13-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP13-01--GUALA_D3_VIRTUAL_BODY_YAW_ACTUATION_LAW_2026-08-04.md",
+          "line": 80,
+          "anchor": "This does not yet prove native world command mounting, actuator energy and",
+          "sha256": "9fc3064dd763dd22b069df8cd036ea3bc5058d12c59022de8b23e06c9fcd6a1b"
+        }
+      ]
+    },
+    {
+      "id": "EPR10",
+      "name": "Canal and local-bundle models need scoped parameter and discrete-law authority",
+      "classification": "isolated_sensory_mechanics_not_complete_transduction",
+      "historical_requirement_or_mechanism": "The canal uses two relaxation states with6ms/13.2s constants and25nm/(degree/second) gain selected from references, explicitly requiring preparation/genesis ratification. It refines earlier whole-degree velocity state to millidegrees/second to retain a1.2-degree lag, using a fixed-denominator remainder. The cupula extension adds declared local transfer and bundle height, carries each actual step and labels slope as rise/run rather than angle.",
+      "current_disposition": "Exact evaluation of an admitted discrete model is not a claim of exact continuous biological kinetics. Choosing a representation from body units still requires showing adequacy for the claimed function. A geometric slope, aggregate displacement or reference-selected parameter cannot supply a finite channel gate; the600nm clamped gate was explicitly rejected.",
+      "lawful_remedy": "Trace original approval, units, model scope, admitted sampling/precision and current source for each mechanical parameter. Preserve local sequential effects and explicit unavailable boundaries; use a ratified functional receptor equivalent without invented thresholds or molecular overreach.",
+      "unit_acceptance": "Verify sequential body/canal/bundle state, residual conservation and loss from overly coarse representation.",
+      "module_acceptance": "Bind actual anatomy, source motion and receptor successor through current native interfaces.",
+      "system_acceptance": "Show ordinary-size motion is sensed and influences retained behavior with preserved history.",
+      "release_acceptance": "No calibrated receptor/current/learning claim from an isolated reference model; scope science and runtime separately.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A06",
+        "A08",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "EP14-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP14-01--GUALA_D3_VIRTUAL_VESTIBULAR_CANAL_LAW_2026-08-04.md",
+          "line": 68,
+          "anchor": "- a 6 ms fast time constant;",
+          "sha256": "459d959c5a137addee5550f93b634c2cbbd43744368338ffcfb33ab4d7aa1145"
+        },
+        {
+          "source_id": "EP14-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP14-01--GUALA_D3_VIRTUAL_VESTIBULAR_CANAL_LAW_2026-08-04.md",
+          "line": 75,
+          "anchor": "preparation, measurement uncertainty, and virtual anatomy must be ratified as",
+          "sha256": "459d959c5a137addee5550f93b634c2cbbd43744368338ffcfb33ab4d7aa1145"
+        },
+        {
+          "source_id": "EP14-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP14-01--GUALA_D3_VIRTUAL_VESTIBULAR_CANAL_LAW_2026-08-04.md",
+          "line": 83,
+          "anchor": "from the already-admitted body units. The earlier whole-degree/second state was",
+          "sha256": "459d959c5a137addee5550f93b634c2cbbd43744368338ffcfb33ab4d7aa1145"
+        },
+        {
+          "source_id": "EP05-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP05-01--GUALA_D3_LOCAL_CUPULA_BUNDLE_PATH_2026-08-04.md",
+          "line": 59,
+          "anchor": "All operands and results are reduced signed rationals. The slope is the exact",
+          "sha256": "18d0933faa05a3e82a79349e12997dfe791c475a574556af74a7c6041a6a24bc"
+        },
+        {
+          "source_id": "EP09-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP09-01--GUALA_D3_REJECTED_SELECTED_LINEAR_HAIR_CELL_GATE_2026-08-04.md",
+          "line": 15,
+          "anchor": "   and clamped the resulting fraction to zero and one.",
+          "sha256": "e5adbd53e49e80bd1e26d17903f04baf76e7c00a027a3c5c05ead8771493ebf6"
+        }
+      ]
+    },
+    {
+      "id": "EPR11",
+      "name": "Body fluid, neurochemical influence and physical-current arithmetic are different functions",
+      "classification": "functional_and_terminology_requirements",
+      "historical_requirement_or_mechanism": "The receptor record supplies conductance/reversal arithmetic but explicitly no sensory gating. The canal distinguishes endolymph from fluid-brain modulation; neither assigns meaning or becomes a mosaic member. Rejected direct-ion and selected600nm gate records retain complete failures and deleted apparent design authorities. Current functional emulation permits needed ratified equivalents, not substituted labels or neuron counts.",
+      "current_disposition": "No old module name, bodily fluid or current equation proves nourishment, need-driven behavior, cognition or speech. Biological citations and fixture trajectories in this slice are not independently reviewed primary-science or current activation evidence.",
+      "lawful_remedy": "Canonicalize each source, compartment, material function, retained effect and decision role, then map the exact current senses/needs/voice chain. Preserve lawful physics and explicit failure where mapping is missing; no caretaker, observer or dictionary may become cognitive authority.",
+      "unit_acceptance": "Distinguish mechanical fluid, metabolic supply, sensing and learned response.",
+      "module_acceptance": "Trace all actual producer/consumer boundaries and their units without semantic substitution.",
+      "system_acceptance": "Demonstrate charter-required acquired behavior and speech through the preserved native organism.",
+      "release_acceptance": "Qualify the current functional scope independently; neither inherited gap nor old arithmetic success decides feasibility.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A07",
+        "A09",
+        "A10",
+        "A11",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "EP06-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP06-01--GUALA_D3_LOCAL_RECEPTOR_CURRENT_LAW_2026-08-03.md",
+          "line": 14,
+          "anchor": "   supplied conductance and reversal potential, but no measured receptor law",
+          "sha256": "6f2d9593968093f95dab08b80ebcdf35a353d9c046acc5802b96c1a04375b14c"
+        },
+        {
+          "source_id": "EP14-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP14-01--GUALA_D3_VIRTUAL_VESTIBULAR_CANAL_LAW_2026-08-04.md",
+          "line": 45,
+          "anchor": "body sensory-organ fluid, not Guala's fluid brain. The fluid brain may later",
+          "sha256": "459d959c5a137addee5550f93b634c2cbbd43744368338ffcfb33ab4d7aa1145"
+        },
+        {
+          "source_id": "EP10-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP10-01--GUALA_D3_REJECTED_THREE_BASIN_DIRECT_ION_MODEL_2026-08-04.md",
+          "line": 41,
+          "anchor": "The following candidate sources and apparent design authorities were deleted:",
+          "sha256": "e6462adbe011b29daa0ea4fe4115c2b2819aa6372aecc9a7bd1bcb4cb5c765bf"
+        }
+      ]
+    },
+    {
+      "id": "EPR12",
+      "name": "Complete early-runtime document coverage does not close execution or historical authority",
+      "classification": "complete_selected_content_with_explicit_remaining_work",
+      "historical_requirement_or_mechanism": "All1554 latest lines and50 older-only passages/447 lines are reconciled across23 versions/16 paths. The history preserves component/terminal partial acceptance→rejection, invalidated derived tests, logical allocator limits, signed mechanics and a native sparse-state document from the Aug5 salvage root. These are not mutually compatible active architectures merely because all files exist.",
+      "current_disposition": "No product/model execution, live refresh, full literature review or original approval authentication ran in this slice. Logical arithmetic and reported tests remain source claims at their exact scope. Full corpus, intermediate code, preservation and G1 current charter/speech qualification remain open.",
+      "lawful_remedy": "Keep source/version/authority dependencies explicit and bind every retired or live claim to actual current mechanism and staged evidence. Record original decisions and direct lawful remedies without labeling missing proof as intent or claiming exhaustive completion.",
+      "unit_acceptance": "Validate exact captures, hashes, anchors and supersession links.",
+      "module_acceptance": "Complete historical/current source and state-preservation mapping.",
+      "system_acceptance": "Verify the full preserved-state sensory→retention→action→consequence chain with meaningful controls.",
+      "release_acceptance": "Overall reconciliation remains OPEN; no speech/system/ML-free certificate and no inferred G1 acknowledgment.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "EP08-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP08-01--GUALA_D3_ORGANISM_RUNTIME_RESIDENCY_LAW_2026-08-03.md",
+          "line": 8,
+          "anchor": "govern the candidate. This document is not current mount or deployment authority.",
+          "sha256": "2ecd8f5ba7faaa3bf387821505f11569041a93687d407b678e018946d95a205a"
+        },
+        {
+          "source_id": "EP04-04",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP04-04--GUALA_D3_LOCAL_COMPONENT_PHYSICS_FALSIFICATION_2026-08-03.md",
+          "line": 57,
+          "anchor": "## Invalidated evidence",
+          "sha256": "e9c5efaf8535f3742566ef5e76a0753ef1c07e00abb48bd432d0b53fcaecf624"
+        },
+        {
+          "source_id": "EP16-01",
+          "path": "docs/guala_reconciliation/sources/early-runtime-physics/EP16-01--GUALA_D3_REACHED_FRONTIER_MEMBRANE_LAW_2026-08-03.md",
+          "line": 3,
+          "anchor": "Status: implemented native law. This document describes the production path in",
+          "sha256": "928253c726bc453ec7d154bb3220a54700ef34b1ca8f0c3fb541c774bec7c8da"
+        }
+      ]
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false
+}

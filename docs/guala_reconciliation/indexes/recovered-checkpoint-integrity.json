@@ -1,0 +1,50 @@
+[
+  {
+    "key": "guala/native-organism/4a96b9efdd1b296ab795e3646fd89f397f850445330c0af0be4d3969f3372033.glorun",
+    "stored_sha256": "bc006664d02bed52af44bb1405121fb51ce6712a48940535d81543577798f8b3",
+    "codec": "GLCMP001 v1 LZMA2 preset0",
+    "raw_bytes": 113124666,
+    "raw_sha256": "4a96b9efdd1b296ab795e3646fd89f397f850445330c0af0be4d3969f3372033",
+    "envelope_prefix_hex": "474c4f52554e3031010031636334653730612d663261302d343463352d613131312d66346135626339313563633161d20700000000000025be06474c4d46414231310b0061d20700",
+    "integrity": "PASS: payload length, lossless decode, eof, raw length, GLORUN01 magic, SHA256 and content-addressed key",
+    "scope": "Lossless bytes and envelope identity/tick validated against preserved encoding source. No product import, native execution or restore. Fabric contents, retained learning, deployment binding and final pre-conversion status unqualified.",
+    "envelope_version": 1,
+    "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+    "organism_tick": 512609,
+    "fabric_bytes": 113124608,
+    "fabric_magic": "GLMFAB11",
+    "envelope_layout_source": {
+      "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+      "path": "native/guala_core/src/organism_runtime.rs",
+      "sha256": "b140fd1e7116a55aa4991ed2d5cdadbdb80a465ae9d8d86d050967264d75b3cd",
+      "lines": [
+        6242,
+        6268
+      ]
+    }
+  },
+  {
+    "key": "guala/native-organism/f5e3cc8f428178fa969fd07214be1689ddafbd410d530cc01f9d3cb6da203135.glorun",
+    "stored_sha256": "4dd73ee962a4f9a6f116576b3f91939968c99c5c98724640341abd807a8f8e66",
+    "codec": "GLCMP001 v1 LZMA2 preset0",
+    "raw_bytes": 113132045,
+    "raw_sha256": "f5e3cc8f428178fa969fd07214be1689ddafbd410d530cc01f9d3cb6da203135",
+    "envelope_prefix_hex": "474c4f52554e3031010031636334653730612d663261302d343463352d613131312d6634613562633931356363315fd2070000000000d341be06474c4d46414231310b005fd20700",
+    "integrity": "PASS: payload length, lossless decode, eof, raw length, GLORUN01 magic, SHA256 and content-addressed key",
+    "scope": "Lossless bytes and envelope identity/tick validated against preserved encoding source. No product import, native execution or restore. Fabric contents, retained learning, deployment binding and final pre-conversion status unqualified.",
+    "envelope_version": 1,
+    "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+    "organism_tick": 512607,
+    "fabric_bytes": 113131987,
+    "fabric_magic": "GLMFAB11",
+    "envelope_layout_source": {
+      "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+      "path": "native/guala_core/src/organism_runtime.rs",
+      "sha256": "b140fd1e7116a55aa4991ed2d5cdadbdb80a465ae9d8d86d050967264d75b3cd",
+      "lines": [
+        6242,
+        6268
+      ]
+    }
+  }
+]

@@ -1,0 +1,129 @@
+{
+  "schema": "guala.selected_migration_read_scope.v1",
+  "sources": [
+    {
+      "id": "MG01",
+      "commit": "9bd0611151ed2895b5500455ff68113d74c21774",
+      "path": "native/guala_core/src/resident_cognitive_formation.rs",
+      "git_blob": "f3ae4046255902c9ebd23625d930920d8088a059",
+      "sha256": "fdc3e987196ac392295f0d42e8ea78056075467bfecbc4d793de224bafb9259c",
+      "bytes": 832053,
+      "lines": 19609,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/migration-v27/MG01--resident_cognitive_formation.rs",
+      "review": "Captured complete file; selected migration diff and named boundaries only, not full-file review",
+      "review_scope": {
+        "full_file_read": false,
+        "read": "Complete800-line parent/child diff including old-side changes; no full-file/transitive audit"
+      },
+      "source_read_complete": false
+    },
+    {
+      "id": "MG02",
+      "commit": "33163727a5b9edf2e998b4f91c7b5e6619af57f4",
+      "path": "native/guala_core/src/resident_cognitive_formation.rs",
+      "git_blob": "0285b99bf886d3898b84ba60bde754741ff5f2dd",
+      "sha256": "a78b90c0ca00a671ffb53adefd6cf7a20e368028f540085c06f2979e1a90db9d",
+      "bytes": 838964,
+      "lines": 19758,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/migration-v27/MG02--resident_cognitive_formation.rs",
+      "review": "Captured complete file; selected migration diff and named boundaries only, not full-file review",
+      "review_scope": {
+        "full_file_read": false,
+        "read": "Complete800-line diff; additionally8140–8290 migration/decode boundary,13415–13485 causal-lineage construction,14922–14942 test registration"
+      },
+      "source_read_complete": false
+    },
+    {
+      "id": "MG03",
+      "commit": "33163727a5b9edf2e998b4f91c7b5e6619af57f4",
+      "path": "native/guala_core/src/organism_runtime.rs",
+      "git_blob": "ec3f4e78bbcfed88577edae51c851f462109cf7c",
+      "sha256": "c32e2758850d1dcd7b072a61216e34e7a5e14f135fe6ca49fcb328af2e0e4ba1",
+      "bytes": 339550,
+      "lines": 8676,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/migration-v27/MG03--organism_runtime.rs",
+      "review": "Captured; named migration boundaries only unless explicitly recorded otherwise",
+      "review_scope": {
+        "full_file_read": false,
+        "read": "4690–4785,4780–4825,4860–4950,6788–6848 selected outer migration/genesis/test boundaries; other runtime code not fully read"
+      },
+      "source_read_complete": false
+    },
+    {
+      "id": "MG04",
+      "commit": "33163727a5b9edf2e998b4f91c7b5e6619af57f4",
+      "path": "native/guala_core/src/resident_cognitive_formation/real_body_migration_probe.rs",
+      "git_blob": "03e0e7c714fc55a08c123abd3747757bf3cbd386",
+      "sha256": "937053d67ec18f319eed4837c6d6c87e83e0db01d4b61308069df9ebcb461429",
+      "bytes": 20253,
+      "lines": 506,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/migration-v27/MG04--real_body_migration_probe.rs",
+      "review": "Captured; named migration boundaries only unless explicitly recorded otherwise",
+      "review_scope": {
+        "full_file_read": true,
+        "read": "Complete506-line historical test/probe file; no tests or product imports executed"
+      },
+      "source_read_complete": true
+    },
+    {
+      "id": "MG05",
+      "path": "backups/runtime/a1-speech-reconciliation-20261010/migration-v27/selected-authority-context.json",
+      "git_blob": null,
+      "sha256": "6d200930867e08b73ee3243dea63bd40333e8f3439cfd42994e32e08632e83ec",
+      "bytes": 37394,
+      "lines": 506,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/migration-v27/selected-authority-context.json",
+      "source_read_complete": true,
+      "review_scope": {
+        "captured_extract_read_complete": true,
+        "original_thread_semantic_review_complete": false,
+        "read": "All31 selected original user/user-facing assistant messages read with exact per-record custody; not all original-thread content."
+      }
+    }
+  ],
+  "supporting": [
+    {
+      "path": "migration.diff",
+      "sha256": "b7eb68f14b44e886b7032b9e56287096301cd8f08d0f807cb43603752e6d3b91",
+      "lines": 800,
+      "full_captured_diff_read": true
+    }
+  ],
+  "original_messages_verified": [
+    "MGA01",
+    "MGA02",
+    "MGA03",
+    "MGA04",
+    "MGA05",
+    "MGA06",
+    "MGA07",
+    "MGA08",
+    "MGA09",
+    "MGA10",
+    "MGA11",
+    "MGA12",
+    "MGA13",
+    "MGA14",
+    "MGA15",
+    "MGA16",
+    "MGA17",
+    "MGA18",
+    "MGA19",
+    "MGA20",
+    "MGA21",
+    "MGA22",
+    "MGA23",
+    "MGA24",
+    "MGA25",
+    "MGA26",
+    "MGA27",
+    "MGA28",
+    "MGA29",
+    "MGA30",
+    "MGA31"
+  ],
+  "selected_extract_read_complete": true,
+  "original_thread_read_complete": false,
+  "product_execution": false,
+  "qualification": false
+}

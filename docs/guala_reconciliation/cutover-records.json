@@ -1,0 +1,72 @@
+[
+  {
+    "source": "/root/.claude/projects/-workspaces-Tao-Financial-Engine/31887e43-e4d7-4bda-9b45-055ce99d3aa8.jsonl",
+    "timestamp": "2026-09-14T04:16:30.026Z",
+    "offset": 58503984,
+    "record_bytes": 2336,
+    "record_sha256": "4ba4423bc3c29a6494751142184b20589e0c8e31406456870d4cdf8017f25d53",
+    "text": "live True tick 711208 persisted 711188 blocked False errors None None\n{\"desired\":1,\"running\":1,\"td\":\"arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1466\"}\n301:def prior_cutover(path, image, image_revision, backup):\n317:    require(plan.get(\"image\") == image and plan.get(\"git_sha\") == image_revision\n362:    image_revision = local[0].get(\"Config\", {}).get(\"Labels\", {}).get(\n364:    require(re.fullmatch(r\"[0-9a-f]{40}\", image_revision), \"image revision is invalid\")\n365:    require(command(\"git\", \"rev-parse\", \"--verify\", image_revision + \"^{commit}\")\n366:            == image_revision, \"image source commit is unavailable\")\n367:    if image_revision != revision:\n369:                          image_revision, revision, \"--\").split(chr(0))",
+    "text_sha256": "b3c717ed988fe7cefb9d62f3f4cd1894314c123d8b0ad1f6e1ec4f46caf89cb6",
+    "classification": "historical tool result; verify internal scope, not user approval"
+  },
+  {
+    "source": "/root/.claude/projects/-workspaces-Tao-Financial-Engine/31887e43-e4d7-4bda-9b45-055ce99d3aa8.jsonl",
+    "timestamp": "2026-09-14T04:18:30.301Z",
+    "offset": 58602835,
+    "record_bytes": 4696,
+    "record_sha256": "a838b13036d46270a5e14ab0126a4bdc4f9d8163c433c9103332890e6dc3932b",
+    "text": "10:package exit 0\n13:docker build exit 0\n15:image exit 0\n17:functional-466775c0: digest: sha256:909aec4dab5ad2a7174bdca8d1cfb642626280b77182fb777f839e515653c250 size: 2577\n18:digest: sha256:909aec4dab5ad2a7174bdca8d1cfb642626280b77182fb777f839e515653c250\n20:push exit 0\n83:[exited with code 0]\nfeed_pass = True\ncold_restart_exact = True\nfirst_fed_tick = 711064\nfed_beats = 4\ntotal_intake_ug = 151449\ndeficit_first = 0.450068\ndeficit_min = 0.147918\ndeficit_last = 0.182462\nacts = {'attend': 180, 'babble': 47, 'bite': 4, 'imitate': 1, 'release': 1, 'rest': 19, 'turn': 19, 'wander': 129}\nworst_seconds = 2.043\nmean_seconds = 0.0748\nbody_bytes_max = 26574\nworld_bytes_max = 1904911\nnovel_structures = 181\ngates_total = 30324\nrestore_seconds = 2.561\ncold_restore_seconds = 1.882\npost_cold_acts = ['wander', 'attend', 'attend', 'babble', 'turn', 'wander', 'rest', 'rest', 'babble', 'turn', 'wander', 'wander', 'rest', 'rest', 'babble', 'attend', 'turn', 'attend', 'babble', 'turn', 'wander', 'wander', 'wander', 'rest', 'attend', 'babble', 'turn', 'wander', 'rest', 'rest', 'babble', 'turn', 'wander', 'wander', 'rest', 'rest', 'babble', 'turn', 'attend', 'turn']\npeak_kib = {'cold': 921976, 'warm': 921976}\nsaved {'body_bytes': 18044, 'body_sha': 'd5f0c17ab549ae0b4da4174077f621ab73aab8375be17d7e53858586e7136673', 'tick': 711460, 'world_bytes': 63683, 'world_sha': '7de72b4bbc81895d117c803e6241be277ef69ac9f1edbf0a5febbab9927592d2'}\nsuccessor {'body_bytes': 18178, 'body_sha': 'f2b1b64b1fe854be9d9faedb19d56d596744d023c00df8a1ae6bc273649880d1', 'tick': 711500, 'world_bytes': 178551, 'world_sha': 'fe4d5ee9811ff91433fde91494a1b1ff4d5e4d2a1a90c5aa250d3cb5a65b80eb'}\nworld_after {'apples': [['apple', None, 10], ['apple-2', None, 167400], ['apple-3', None, 33], ['apple-4', None, 10], ['apple-5', 'person-body-1', 15951]], 'bodies': [['guala-body-1', None, [15559, 7937, 205090]], ['person-body-1', 'apple-5', [15292, 7139, 168765]]], 'room': 'tv-room'}",
+    "text_sha256": "39913e910acc264400c3552541542ff296a8fde20ae95d347438acbb2481955d",
+    "classification": "historical tool result; verify internal scope, not user approval"
+  },
+  {
+    "source": "/root/.claude/projects/-workspaces-Tao-Financial-Engine/31887e43-e4d7-4bda-9b45-055ce99d3aa8.jsonl",
+    "timestamp": "2026-09-14T04:21:13.180Z",
+    "offset": 58734823,
+    "record_bytes": 3676,
+    "record_sha256": "6eadea8056006c797a6462df4b02684817a152b100b4c144af8fcccad09d6e05",
+    "text": "proof verdict: pass\ndry-run exit 0\n{\"backup\": {\"archive_sha256\": \"901bc9e14e3b5a50d4874bb6a17bff4a2838f63f6256cc1bdf429706d3291bd4\", \"body_bytes\": 411765026, \"body_sha256\": \"f6ad55d79c9cd4984c7f2f3a8535d7986b21e2629172fb68bce8f079dfeb2383\", \"identity\": \"1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1\", \"organism_tick\": 711060, \"world_bytes\": 63659, \"world_sha256\": \"2a93c1af663448074bc7857c1b78a530ee8240860509c48c9e5f70f1ab5b7da1\"}, \"cloud_wri\n---\n{\"backup\": {\"archive_sha256\": \"901bc9e14e3b5a50d4874bb6a17bff4a2838f63f6256cc1bdf429706d3291bd4\", \"body_bytes\": 411765026, \"body_sha256\": \"f6ad55d79c9cd4984c7f2f3a8535d7986b21e2629172fb68bce8f079dfeb2383\", \"identity\": \"1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1\", \"organism_tick\": 711060, \"world_bytes\": 63659, \"world_sha256\": \"2a93c1af663448074bc7857c1b78a530ee8240860509c48c9e5f70f1ab5b7da1\"}, \"cloud_wri\n\n[exited with code 0]\n--- log tail\n{\"backup\": {\"archive_sha256\": \"901bc9e14e3b5a50d4874bb6a17bff4a2838f63f6256cc1bdf429706d3291bd4\", \"body_bytes\": 411765026, \"body_sha256\": \"f6ad55d79c9cd4984c7f2f3a8535d7986b21e2629172fb68bce8f079dfeb2383\", \"identity\": \"1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1\", \"organism_tick\": 711060, \"world_bytes\": 63659, \"world_sha256\": \"2a93c1af663448074bc7857c1b78a530ee8240860509c48c9e5f70f1ab5b7da1\"}, \"cloud_writes\": false, \"controller_git_sha\": \"9d28a3d5191424a4980cad42bfc014e06a369107\", \"git_sha\": \"466775c08",
+    "text_sha256": "a8db50f869c3d47de030f042bf2e75d8e5063820b175fe498729602bf6f298d1",
+    "classification": "historical tool result; verify internal scope, not user approval"
+  },
+  {
+    "source": "/root/.claude/projects/-workspaces-Tao-Financial-Engine/31887e43-e4d7-4bda-9b45-055ce99d3aa8.jsonl",
+    "timestamp": "2026-09-14T04:21:41.658Z",
+    "offset": 58778524,
+    "record_bytes": 1304,
+    "record_sha256": "31a6f99efd3df536052739eb89d637d0f846fcbe4b430b3fb8a6f9424b14fceb",
+    "text": "\"schema\": \"guala.release_plan.v1\"\n946 /tmp/claude-0/-workspaces-Tao-Financial-Engine/31887e43-e4d7-4bda-9b45-055ce99d3aa8/scratchpad/controller-cutover-functional.log\n{\"desired\":0,\"running\":0,\"td\":\"arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1466\"}",
+    "text_sha256": "9d85b2dab51c7867d706818a278940ad9f8846f64e3a8854dd9593e91a9cebd6",
+    "classification": "historical tool result; verify internal scope, not user approval"
+  },
+  {
+    "source": "/root/.claude/projects/-workspaces-Tao-Financial-Engine/31887e43-e4d7-4bda-9b45-055ce99d3aa8.jsonl",
+    "timestamp": "2026-09-14T04:21:48.274Z",
+    "offset": 58789757,
+    "record_bytes": 2094,
+    "record_sha256": "a25215a3a16fc765c5c76acdd2a55a3066ef6eb20f1958e3ccad4be2e356db9d",
+    "text": "{\"desired\":0,\"running\":0,\"pending\":0,\"td\":\"arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1466\"}\n946 /tmp/claude-0/-workspaces-Tao-Financial-Engine/31887e43-e4d7-4bda-9b45-055ce99d3aa8/scratchpad/controller-cutover-functional.log\n8384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:909aec4dab5ad2a7174bdca8d1cfb642626280b77182fb777f839e515653c250\", \"live_tick\": 711275, \"mode\": \"--cutover\", \"schema\": \"guala.release_plan.v1\", \"source_definition\": \"arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1466\", \"source_task\": \"arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/6abeaa2ca0bb49018e4ff30bc9b4a4d4\"}",
+    "text_sha256": "147d6848f3228678f026878563a0d1a31dacb4c6daabbbd638dbdda5b4d904c8",
+    "classification": "historical tool result; verify internal scope, not user approval"
+  },
+  {
+    "source": "/root/.claude/projects/-workspaces-Tao-Financial-Engine/31887e43-e4d7-4bda-9b45-055ce99d3aa8.jsonl",
+    "timestamp": "2026-09-14T04:26:26.977Z",
+    "offset": 58805105,
+    "record_bytes": 2582,
+    "record_sha256": "b0a08f9783d3c8fb16e44ce7bfff4a1754127ba578609f0c249490d1f44dfed9",
+    "text": "1:cutover exit 0\n{'live_tick': 711275, 'mode': '--cutover', 'schema': 'guala.release_plan.v1'}\n{'native_tick': 711381, 'predecessor': {'body_bytes': 411890924, 'body_sha256': '2d4f7587e73fa349c014a37aaf5c39dcc7f40c3bdd62d4d8a5137f71ae8149c3', 'functional_conversion': True, 'identity': '1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1', 'organism_tick': 711295, 'schema': 'guala.paired_predecessor.v1', 'world_bytes': 63663, 'world_sha256': '86b3cf451f8ac8a1161f416d5626b38461d473ea0d9fb44ee01a8bb055539738'}, 'schema': 'guala.lean_deployment.v1', 'status': 'continuity_health_verified'}\n{\"desired\":1,\"running\":1,\"td\":\"arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1467\"}\nlive True tick 711418 persisted 711391 body sha 2452cab503a7 kind functional act babble | idle; trying a sound of her own | reserve 270444 counts {'bites': 0, 'strides': 24, 'syllables': 18, 'meals_micrograms': 0} seen ['apple-4']",
+    "text_sha256": "b07daa08ab407a56555b95ea354eda631c4d86d601c88cfcdd7675b602b42a39",
+    "classification": "historical tool result; verify internal scope, not user approval"
+  },
+  {
+    "source": "/root/.claude/projects/-workspaces-Tao-Financial-Engine/31887e43-e4d7-4bda-9b45-055ce99d3aa8.jsonl",
+    "timestamp": "2026-09-14T04:34:25.345Z",
+    "offset": 58995316,
+    "record_bytes": 1274,
+    "record_sha256": "0c9866463ce64bf5b0807d2098cabe47c76b952a6f5e2ad110657c3313643e47",
+    "text": "origin guala-live: 6dc5c083c local: 6dc5c083c\n14912:## C1 TO JOE AND A1 — 2026-09-14 ~04:35Z — THE FUNCTIONAL ORGANISM IS LIVE (dsf-ai-task:1467): she eats, walks, babbles and imitates in production; proof on the live copy passed (400 beats); A1 owns vision",
+    "text_sha256": "743dd821ed0436e3dd8a51c2ad85df66325d956c68823e7beb38812be637c31e",
+    "classification": "historical tool result; verify internal scope, not user approval"
+  }
+]

@@ -1,0 +1,1300 @@
+{
+  "schema": "guala.documentary_mechanisms.v1",
+  "at_utc": "2026-10-10T10:57:38.719340+00:00",
+  "scope": "Complete71captured versions/one path,615latest lines and58older-only passages/433lines fully read; source hashes and all-version reconstruction verified. Historical executions, original approvals and present activation remain separately scoped; no product execution or current live refresh.",
+  "mechanisms": [
+    {
+      "id": "VPF01",
+      "name": "Permanent-fix register contains superseded implementation authority",
+      "classification": "documentary_non_resurrection_gate_incomplete",
+      "finding": "PFR01",
+      "observed_mechanism": "The register requires actual source/live proof for every applicable row. Yet its latest top retains F012 motor-to-layer13 bridges beside later prohibition of all layer13 contacts, and F029/F030 closure despite earlier explicit retraction. R003 first-use calibration was later rejected by Sept6 attempt49 in the delivery history.",
+      "evidence_limits": "The title active authority and old closed labels cannot govern the current architecture. Narrow useful invariants can survive replacement of their implementation. F015 native_production_app and named switches are dated surfaces, not a mandate to resurrect that entrypoint.",
+      "replacement": "Make every non-resurrection gate versioned and mechanism-specific: surviving invariant, rejected implementation, superseding decision, exact active symbols and proof. Retain historical rows as evidence; use the current canonical contracts and source-bound qualification to resolve them.",
+      "acceptance": {
+        "unit": "Verify old closure and its explicit supersession travel together; no current pass from comments or fixture labels.",
+        "module": "Trace all alternative active import/configuration/native paths to the same enforced invariant.",
+        "system": "For each applicable release, authenticate actual source/binary/state and run the negative recurrence witness plus preserved positive behavior.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 11,
+          "anchor": "Before commit and again after live cutover, record for every applicable row:",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 18,
+          "anchor": "A row may not be called preserved from a source comment, ledger claim, or test",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 36,
+          "anchor": "| F-012 | Innate vocal anatomy is one fixed bridge from the ten antagonist terminals of the five physical vocal axes to one layer-13 excitation cell; learned meaning remains upstream and sparse. | Requiring a prior utterance before mounting the anatomy needed for the first utterance; restoring the broad layer-13 coincidence pool; connecting a limb, eye, or unrelated motor to speech. | Migrate an exact V33 body with no speech bridge to V34; require ten and only ten vocal-motor contacts converging on one layer-13 cell; refuse non-vocal motor routes; require V34 restart identity. | **Closed 2026-08-28 on production task 1285**, commit `89fff22a562ed25a4849c11addab838a03e882de`. Same identity, one writer, V34-only persisted CURRENT, ticks 211768 through at least 211840, and approximately 3,750 scheduled contacts. L-006 utterance evidence remains separate and open. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 251,
+          "anchor": "| No passive vocal hub | Current cognition has zero contacts incident to layer 13; any layer-11 -> 13 or layer-12 -> 13 contact is refused. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF059",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF059--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 622,
+          "anchor": "- **Correction reopening F-029/F-030:** executable source fixes the laryngeal",
+          "sha256": "0180f15b1e5d36563d1350a3cd23c50a7fd364cb735b9126efbf499035a0fb96"
+        },
+        {
+          "source_id": "PF061",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF061--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 525,
+          "anchor": "- F-030 was genuinely live-closed on task 1397, but commit `4aa3144d` later",
+          "sha256": "c84967e70cd0ab2fd8f6f679fb138ee8d4b9d8a52e6977cd0e23581877e09664"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A10",
+        "A15",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPF02",
+      "name": "Repeated motor contact fan-out and dependent false memories",
+      "classification": "architectural_violation_recurring_through_new_branches",
+      "finding": "PFR02",
+      "observed_mechanism": "About97000 coincidence contacts were retired; a root-yaw bootstrap restored unrelated preceding-ordering authority; V33 retired it again. V37 general whole-tract/self-hearing then authored26vocal contacts on two ordering cells. V38 removed26contacts and five dependent formations.",
+      "evidence_limits": "A bounded contact count is not causal legitimacy. Same failure class can return through a new sensory/bootstrapping branch after an earlier cleanup passes. Current activation is not established by these historical reports.",
+      "replacement": "Require exact source-local movement, reached regulation and retained causal association at every contact-authoring path. Remove unsupported authoring and explicitly retire its false dependent claims with approval/state-loss mapping; never fabricate replacement history edges.",
+      "acceptance": {
+        "unit": "Reject temporal coincidence, whole-tract ambiguity, static pose and unrelated motor identity while preserving genuinely caused routes.",
+        "module": "Audit every growth/migration/restore caller and positive sparse route, not just the original offending symbol.",
+        "system": "Show retained actual learned routes remain usable after approved correction and cold restart, with no fan-out on ordinary subsequent experience.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF001",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF001--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 28,
+          "anchor": "| F-004 | Coincidence-based layer-11 to motor/articulatory fan-out is deleted and the contaminated pool was removed one way. | Authoring every simultaneous ordering/motor pair; restart restoration of the approximately 97,000 removed contacts. | Check authorship requires the retained directed causal chain; restore census must keep contaminated-pool count zero. | Live cleanup cut over in the task-1248 lineage; successor task 1280 retained the corrected body. |",
+          "sha256": "bc3cd1a653e4b3b6bd77950b362d4d24a14d6e1b7a92ac37605760e64bc95b3e"
+        },
+        {
+          "source_id": "PF007",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF007--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 28,
+          "anchor": "| F-004 | **Reopened 2026-08-28.** Coincidence-based layer-11 to motor/articulatory fan-out was removed on task 1248, but the later root-yaw bootstrap again treated unrelated preceding layer-11 cells as motor-authoring evidence. The local V33 candidate removes that exception and re-runs the one-way cleanup on the same organism. | Authoring every simultaneous or merely preceding ordering/motor pair; guided movement as contact authority; restart restoration of the removed contacts. | Require the exact two-interval ordering -> affective -> regulation chain for every learned motor contact, including root yaw; migrate V32 -> V33; verify the layer-11/layer-12 and historical layer-13 pools stay absent across unattended live intervals and restart. | Local source and restart proofs pass; production task 1283 remains V32 and is **not yet corrected**. Do not cite the task-1248/1280 closure as current proof. |",
+          "sha256": "d6fb400848c9f9ef8f4ed17fd0333c2d3f8557d6208a2c9a7962c75a4120fd6b"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 28,
+          "anchor": "| F-004 | Coincidence-based layer-11 to motor/articulatory fan-out is removed. Root-guided movement is not contact-authoring evidence; every learned motor contact, including root yaw, requires the exact two-interval ordering -> affective -> regulation chain. General whole-tract or returned-sound evidence cannot name a vocal motor; only that axis's exact proprioceptive return may author its route. | Authoring every simultaneous or merely preceding ordering/motor pair; guided movement, self-hearing, or general tract consequence as motor-contact authority; restart restoration of removed contacts. | Require the exact causal-chain and ambiguous-whole-tract falsifiers; observe zero unproved layer-11 -> layer-12 contacts after migration and again after unattended successors; recheck after every later motor or articulatory change. | **Closed live again 2026-08-31 on production task 1398**, commit `fce1ae2c`. The exact task-1397 predecessor had 26 vocal fan-out contacts on only two ordering cells. V38 retired all 26 once and deleted their authorship branch. Custodied successors at ticks 345534 and 345558 both retained `11->12 = 0`, fixed `12->13 = 26`, 1,809 neurons and 7,353 total contacts. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 74,
+          "anchor": "| R-008 | **Closed live on task 1398, 2026-08-31.** Task 1397 at tick 344995 had all 26 vocal antagonist terminals attached to only two ordering cells, 23 plus 3. This was the same forbidden fan-out class as F-004, reintroduced by V37's general whole-tract returned-sound branch. | Letting general breath, glottis, mouth, perioral or self-hearing evidence identify every vocal motor that discharged nearby in time; preserving unprovable contacts or their dependent formations as learned truth; restoring them after restart. | Commit `fce1ae2c` deleted the ambiguous branch and V38 retired the 26 contacts plus five dependent false formations. Frozen migration was idempotent. Live custodied ticks 345534 and 345558 both report `11->12 = 0`, fixed `12->13 = 26`, 7,353 total contacts, 1,809 neurons, 160 formations and continued 12,000-sample native phonation; the latest current self-hearing counters were zero, so no new self-hearing event is inferred from those samples. One writer remained healthy; startup/settlement CPU averaged 39.6% and memory 7.26%. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 118,
+          "anchor": "- Attempt 6, exact post-learning body: the first V39 migration refused because",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPF03",
+      "name": "Root terminal discharge, physical scheduling and feedback loops",
+      "classification": "specific_physical_repairs_not_general_loop_diagnosis",
+      "finding": "PFR03",
+      "observed_mechanism": "Compact root regulation replaces recursive93824443pF mapping with37393pF. Own membrane carrier discharge is distinct from incoming contact flow or passive return20143intervals away. Task1282 lacked a terminal wake event; maximal-receptor copy masked it. F013 later fixes translation feedback/current-format migration bypass and2ms versus250ms consequence declaration.",
+      "evidence_limits": "These are reported genuine local failures and corrections, not evidence that they cause current turn-left loops. Contact arrival, passive return and a requested movement are not applied motor action.",
+      "replacement": "Preserve each terminal own-carrier/work law and due local event, exact active anatomy and actual returned source timing. Diagnose current loops by tracing repeated native cause/world consequence without heuristic escape actions.",
+      "acceptance": {
+        "unit": "Check zero/positive/negative preparation, carrier conservation, local scheduling and no direct feedback-as-command.",
+        "module": "Use ordinary reached-frontier input and real migration dispatch, not maximal census or helper-only fixtures.",
+        "system": "Observe sustained native navigation and actual multi-sensory return on preserved state; quantify trajectory and wall time without injecting chosen actions.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 33,
+          "anchor": "| F-009 | Native motor output is the neuron's exact local membrane whole-carrier discharge; contact transfer is preparation evidence only. | Relabeling incoming or net inter-neuron contact flow as efferent motor discharge. | Preserve positive/zero/negative/no-preparation falsifiers and inspect the runtime action payload source. | Commit `40a0222c`, focused proof passed, live task 1280. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 34,
+          "anchor": "| F-010 | Root-yaw proprioception uses compact disjoint layer-6/layer-8 anatomy; malformed historical root paths are retired one way. | Recursive Cantor projection into a 93,824,443 pF regulation cell, restoration of its contacts, or a second root route beside the corrected route. | Prove V32 retirement is one-way; after one real root movement require exactly receptor -> compact integration -> compact regulation -> paired motor, with the malformed regulation isolated. | Commit `c8f84bd1`, live task 1281. V32 left malformed lineage `...02ecfd` isolated and mounted compact regulation `...000ecf` at 37,393 pF between layer-6 `...002ae9` and paired motor `...00009b`. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 37,
+          "anchor": "| F-013 | Root translation returns through the same organism as sensory proprioception and cannot feed directly back into the translation motor. Explicit migration must traverse current-body structural corrections even when the format magic is already current. | The stale place-6/178-pF motor; any direct layer-8 -> translation-motor contact; counting returned feedback as another command; a current-format early return that skips the one-way repair; or declaring a padded 250 ms consequence occurrence with only the two-millisecond raw capture interval. | Restore and explicitly migrate a copied production CURRENT twice to identical bytes; require the fixed terminal at its exact declared place and no layer-8 motor contact; preserve the intake-hop causal gate for padded self-hearing; then complete one full returned translation consequence with zero repeated recruitment. Synthetic helper fixtures alone are forbidden closure evidence. | **Direct Live-Closed 2026-08-29.** Commit `118ed8526db20a4a60828a4a8267c190ab813ab7`, task 1314, moved x=6707 -> 6708 exactly once, accepted 29 consequence hops through tick 251426, persisted the successor, and continued unattended beyond tick 251476. The failed `de856a63` and `04429e17` attempts remain recorded. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 197,
+          "anchor": "- Rejected during development: using the passive-return event as the terminal",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 203,
+          "anchor": "- Live task 1282 restored the exact candidate and advanced unattended beyond",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A08",
+        "A09",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPF04",
+      "name": "Maintenance schedule promoted into cognition and false sleep scope",
+      "classification": "authority_leak_corrected_but_sleep_not_certified",
+      "finding": "PFR04",
+      "observed_mechanism": "R002 reports33recurrences. A downstream-only motor condition still recruited127motors because an upstream scheduled unseeded crossing had been promoted to ActiveElectricalFrontierEntry. The corrected path drained127→96→53 and allowed action-free recovery/internal recurrence before later action.",
+      "evidence_limits": "The ledger calls this a sleep/wake sequence, while later delivery reconciliation correctly limits it to recovery/reassembly/action. Physical maintenance may have effects without becoming an authored cognitive command.",
+      "replacement": "Keep physical scheduling, legitimate causal propagation and motor authority distinct at the actual producer. Preserve legitimate wake/incident-contact laws and separately implement/verify actual sleep-owned consolidation.",
+      "acceptance": {
+        "unit": "Reject unseeded schedule-as-cognitive-authority while preserving physically caused routes and prepared terminals.",
+        "module": "Trace the upstream frontier producer and all motor consumers, plus actual sleep/consolidation callers.",
+        "system": "Demonstrate autonomous recovery/action and genuine experience-dependent post-sleep retained use as separate capabilities.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF015",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF015--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 46,
+          "anchor": "| R-002 | **Open — the same defect has recurred 33 times; reproduced on production tasks 1317 through 1320.** Recovery is physical and native thought recurs, but every observed interval still recruits an action, so no action-free rest interval can occur. | Treating any layer-11 transfer in the wider compact electrical settlement as a motor command even when its sender is absent from the current causal seed. This resurrects the C-021 attempt-2 defect: background balancing current becomes motor preparation and keeps the organism continuously acting. | Ordinary body, root-yaw, and root-translation preparation must all require the exact sender in the current causal seed. Preserve the typed layer-8 reacted-load reflex and root-yaw's separately retained prepared terminal. Prove unseeded layer-11 transfer is refused on all three paths, seeded action remains possible, and live production shows recovery followed by action-free internal recurrence and a later physical action with returned consequence. |",
+          "sha256": "70344f11e8a43ffa4934010c0a37e361bedb6fed3a39f3d537b932b76d9339d3"
+        },
+        {
+          "source_id": "PF016",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF016--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 46,
+          "anchor": "| R-002 | **Open — the same defect has recurred 33 times; reproduced on production tasks 1317 through 1321.** Recovery is physical and native thought recurs, but every observed interval still recruits an action, so no action-free rest interval can occur. Task 1321 proved that a downstream motor predicate alone is insufficient: 127 motors still recruited. | Commit `9228fa81` promoted an unseeded scheduled carrier crossing into `ActiveElectricalFrontierEntry`. That gave the physical maintenance schedule cognitive/action authority and resurrected C-021 attempt 2: background balancing current becomes motor preparation and keeps the organism continuously acting. | Scheduled crossings must remain physical settlement only; changed endpoints continue through the independent incident-contact wake law, but an unseeded scheduled crossing must never enter the cognitive frontier. Ordinary body, root-yaw, and root-translation preparation must additionally require the exact causal frontier. Preserve the typed layer-8 reacted-load reflex and root-yaw's separately retained prepared terminal. Prove unseeded scheduled settlement creates no action authority, seeded action remains possible, and live production shows recovery followed by action-free internal recurrence and a later physical action with returned consequence. |",
+          "sha256": "773167e14849084444cb973a8e7afca60cbc39288d46150b4291507f6d7f9739"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 70,
+          "anchor": "| R-002 | **Closed live on task 1322 after 33 recurrences.** Task 1321 proved the downstream-only attempt insufficient at 127 motor recruitments. Commit `dc6673af` removed the upstream authority leak; live recruitment drained 127 -> 96 -> 53, then the exact sleep/wake sequence appeared. | Commit `9228fa81` promoted an unseeded scheduled carrier crossing into `ActiveElectricalFrontierEntry`. That gave the physical maintenance schedule cognitive/action authority and resurrected C-021 attempt 2: background balancing current becomes motor preparation and keeps the organism continuously acting. | Preserve the absence of `scheduled_contact_arrival_frontier`; a scheduler-selected crossing with neither endpoint causal must fail `causal_frontier_crossing`. Preserve the independent changed-endpoint incident-contact wake law, all three seeded motor paths, and the live sequence: tick 258821 action-free recovery/internal re-entry, tick 258822 wake/action, consequence returned by tick 258828 to identity `1cc4e70a...`. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A05",
+        "A09",
+        "A11",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPF05",
+      "name": "Persistence evolution from false off-lock claim to atomic adoption",
+      "classification": "real_custody_improvement_with_active_preservation_required",
+      "finding": "PFR05",
+      "observed_mechanism": "Initial F007 claimed outside-cognition custody. PF014 discloses fourth-interval synchronous sealing and no mounted custodian. Later task1382 introduces one external publisher with publish-before-adopt, trajectory epoch refusal and atomic resident recovery-predecessor adoption while retaining newer cognition.",
+      "evidence_limits": "The earlier independent publisher failure does not prohibit a correctly coordinated external custodian. Lower seal_ms and unchanged UUID still do not prove useful acquired-state continuity. Crash stages are not restore authority.",
+      "replacement": "Keep one authenticated CURRENT publisher and explicit native adoption/abort semantics, bounded state and real cold continuation. Retire only exact private stale stages after valid CURRENT; never use stages for restore/genesis or delete corruption evidence to force startup.",
+      "acceptance": {
+        "unit": "Check newer-life adoption, stale epoch rejection, atomic failure and exact raw readback.",
+        "module": "Verify actual mounted off-lock work and publish/adopt order, one writer, bounded resident borrowing and valid-current stage cleanup.",
+        "system": "Cold-start the exact latest committed successor, preserve active learned dynamics and demonstrate ordinary sensory progress during repeated checkpoints.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF001",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF001--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 31,
+          "anchor": "| F-007 | Persistence encoding/copying is outside the ordinary cognitive settlement critical section. | Whole-body seal or cloud copy pausing every physical interval. | Per-interval timing must show custody outside settlement and one bounded custodian. | Task-1248 lineage and later releases; A-006 runtime evidence. |",
+          "sha256": "bc3cd1a653e4b3b6bd77950b362d4d24a14d6e1b7a92ac37605760e64bc95b3e"
+        },
+        {
+          "source_id": "PF014",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF014--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 31,
+          "anchor": "| F-007 | Ordinary cognition is not sealed on every interval; the current cadence seals every fourth interval. | Calling the unused snapshot API a mounted custodian, claiming checkpoint work is off-lock, or restoring per-interval whole-body publication. | Inspect the production call graph, not comments: until a bounded custodian is actually called outside `_transition_lock`, record checkpoint sealing/stage/publish as synchronous lock-held work. | **Reconciled Partial 2026-08-29.** Three intervals defer persistence, but the fourth seals and publishes synchronously under `_transition_lock`; no background custodian thread is mounted. |",
+          "sha256": "a10f692ec153a8a321febfbc7b4424b776858a71cd10c48a6cb64e31967fbb26"
+        },
+        {
+          "source_id": "PF037",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF037--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 31,
+          "anchor": "| F-007 | Ordinary cognition never seals, encodes, stages, or uploads its body. One bounded external custodian prepares the exact resident checkpoint off the lived-time boundary, publishes as the sole `CURRENT` writer, then atomically adopts that same body as the resident recovery predecessor without replacing newer cognition. | Restoring the synchronous fourth-interval seal; mounting an independent checkpoint writer that advances `CURRENT` without native predecessor adoption; publishing a stale/abandoned trajectory; or encoding the snapshot twice. | Require the native newer-life/adopt/abort falsifier, exact raw-stage read-back, publish-before-adopt ordering, trajectory-epoch abandonment refusal, one custodian thread, and multiple live checkpoint cycles followed by uninterrupted sensory intake and cold restore. | **Local correction pending production cutover, 2026-08-30.** Native compilation and the focused recovery/adoption falsifier pass; 14 surrounding unattended/custody tests pass. Production task 1381 still carries the rejected synchronous fourth-moment seal until this candidate is deployed. |",
+          "sha256": "55717db986edf3ffd9e976a5cbcf2f91210b180e5b4a786c27bba46c700d3341"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 31,
+          "anchor": "| F-007 | Ordinary cognition never seals, encodes, stages, or uploads its body. One bounded external custodian prepares the exact resident checkpoint off the lived-time boundary, publishes as the sole `CURRENT` writer, then atomically adopts that same body as the resident recovery predecessor without replacing newer cognition. | Restoring the synchronous fourth-interval seal; mounting an independent checkpoint writer that advances `CURRENT` without native predecessor adoption; publishing a stale/abandoned trajectory; or encoding the snapshot twice. | Require the native newer-life/adopt/abort falsifier, exact raw-stage read-back, publish-before-adopt ordering, trajectory-epoch abandonment refusal, one custodian thread, and multiple live checkpoint cycles followed by uninterrupted sensory intake and cold restore. | **Closed live on task 1382, 2026-08-30**, commit `5a8d61f4`. Five consecutive checkpoints at ticks 340814, 340821, 340833, 340839, and 340851 published with every lived interval reporting `seal_ms=0`; each custody cycle retained one or two newer intervals while encoding/staging the older exact checkpoint. Warm resident snapshot borrow was 17.1-17.3 ms, off-lock encoding 3.91-4.15 s, off-lock staging 1.57-1.77 s, and the final publish/adopt borrow 0.74-1.06 s. No error, stale predecessor, 503, panic, or restart occurred. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 38,
+          "anchor": "| F-014 | Crash-left private persistence stages are retired only at cold start after a valid CURRENT establishes the authoritative life. | Accumulating raw `.stage-*.glorun` bodies; restoring from a stage; deleting damage evidence when CURRENT is absent; or allowing a stage to authorize genesis. | With valid CURRENT, cold boot retires only exact private regular stage files before the writer starts; with no CURRENT, stages remain and restore/genesis refuses. Recheck resident-root bytes after cutover. | **Direct Live-Closed 2026-08-29.** Commit `d0364541035da890f7ff65017bdd5327e97080cc`, task 1315, retired 10 stages / 180,580,001 bytes; no stage remained and the root measured about 14 MB. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPF06",
+      "name": "Typed body and per-interval causal boundaries",
+      "classification": "bridge_errors_and_flattened_temporal_validation",
+      "finding": "PFR06",
+      "observed_mechanism": "R006 records195→265byte body mismatch and nine omitted interval fields after native physics succeeded. Attempt26 then rejects lawful repeated lineage across distinct intervals because Python flattened events and required global uniqueness, rewinding the unsealed trajectory while the world had advanced. R001 confuses duration ceilings with real captured sound duration.",
+      "evidence_limits": "A startup health pass, codec helper or aggregate tuple check cannot qualify the connected physical path. Complete physical interval identity must survive transport and persistence.",
+      "replacement": "Use native version-directed schema authority and complete named records. Validate ownership within each interval and ordered concatenation across intervals; preserve paired organism/world commit semantics and exact finite source duration.",
+      "acceptance": {
+        "unit": "Exercise legacy/current embedded lengths, all fields, repeated-across-interval versus duplicate-within-interval and exact duration/refusal cases.",
+        "module": "Run ordinary mature-body input through native output, wrapper, world consequence, durable publication and restart without partial trajectory rollback.",
+        "system": "Verify real post-start action/hearing and continued paired-state advancement; reject a failed divergent-world copy as future candidate seed.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 69,
+          "anchor": "| R-001 | **Open — reproduced on the exact restored production body at tick 224721.** A lawful twelve-second sound completed all 48 auditory/neuronal intervals, then the articulation-to-self-hearing boundary refused with `ArithmeticWidth`. | Treating the 30-second intake refusal ceiling as every shorter recording's physical duration; imposing an unrelated five-second semantic ceiling on an exact finite vocal-pressure timeline; retrying, clipping, scaling, dropping discharges, suppressing the refusal, or buffering an organism's lifetime speech as one waveform. | Preserve the exact capture duration at admission; retain the exact interval timing and every native discharge; replace the five-second ceiling with checked exact allocation for the finite lived intake; preserve recurrent bounded causal intakes so total lifetime speech has no duration limit; prove the previously failing frozen body completes articulation and self-hearing without changing DSF, neuron, contact, carrier, work, heat, or body laws; then verify one non-retried varied sound live and recheck F-001 through F-012. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 71,
+          "anchor": "| R-003 | **Closed live 2026-08-29 on task 1330; current acoustic-state extension live on task 1389.** The eight persisted vocal-tract section areas are appended physical body axes with their own receptors, regulation cells, antagonist motors, one bounded first-use calibration, exact returned proprioception, and 70 bytes of resident acoustic pressure/flow/phase state. | Duplicating the areas beside the body axes; adding phonemes, word targets, stored waveforms or Python speech authority; moving any original terminal address; recurring tonic-pose motor drive; reopening first-use calibration after V3 has recorded it consumed; or restoring the retired fixed 195-byte bridge check after the body gained acoustic state. | Decode legacy 195-byte V1/V2/V3 bodies without moving old addresses, migrate once to the current 265-byte V4 body, and derive every Python/probe width check from the native body authority rather than another hard-coded size; admit the complete 45-axis position source only once; reject sparse consequences as calibration authority; preserve the consumed calibration flag and acoustic state across restart. Commits `88b05fe1`, `b10ccfa2`, and `e8478464`; task 1389, same identity. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 72,
+          "anchor": "| R-006 | **Closed live on task 1389 after two bridge refusals during the temporal-articulation cutover.** The first candidate migrated the native body to 265 bytes while Python still required 195. The recovery candidate then exposed that the Python causal-interval record omitted all nine newly returned vocal fields, causing unattended and audiovisual publication failures despite completed native physics. | Hard-coded duplicate native-body widths; extending a Rust/Python tuple or named record on only one side; accepting startup health without one real post-start interval; repeatedly treating a bridge mismatch as a physics defect. | The native core is the sole body-width authority; both readiness and causal-interval checks call it. The interval record explicitly carries and validates pressure, body trajectory, sample rate, four mechanical measures, applied work, and stalled work. Live closure requires one autonomous articulation, self-hearing, later unattended advancement, and successful real audiovisual POSTs on the exact production task. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 471,
+          "anchor": "- Native crossed the V41 migration and ran generations `354138-354148`, then",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 477,
+          "anchor": "- Cause: interval evidence retains lawful temporal boundaries and validates",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A06",
+        "A08",
+        "A10",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPF07",
+      "name": "Emitted pressure lost from active state, migration and hearing",
+      "classification": "concrete_custody_loss_and_false_self_hearing_claim",
+      "finding": "PFR07",
+      "observed_mechanism": "Attempt8 serialized sound but failed to retain its active owner. Attempt27 labeled residual pressure self-heard with zero hearing; migration dropped200012in-flight bytes by omitting the parsed field and encoding None despite unchanged UUID/tick. PF057 attempt28 preserves then consumes exact pressure once over five cochlear hops.",
+      "evidence_limits": "Archived/encoded bytes are not active sensory memory; pressure is not hearing. Restart with unchanged identity can still erase pending experience. The later reported repair is narrow custody evidence, not intelligible speech.",
+      "replacement": "Preserve active in-flight pressure/body/source time through every structural migration and current checkpoint. Consume it exactly once via ordinary cochlea; join emission and hearing by full hash with missing motor evidence left missing.",
+      "acceptance": {
+        "unit": "Verify byte-exact migration, no duplicate consumption and unchanged failed-admission state.",
+        "module": "Exercise actual resident owner, publication, cold restore and ordinary hearing consumer; record emitted/pending/consumed separately.",
+        "system": "Demonstrate preserved learned-state behavior after real self-hearing with complete pressure custody and resource limits; do not invent motor events from later hearing.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 131,
+          "anchor": "- Attempt 8, exact post-learning body: accepted locally for consequence",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 499,
+          "anchor": "- A public tick-`354158` record paired nonzero pressure and four moving body",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 521,
+          "anchor": "- Exact migration-isolation proof: real migration startup on a fresh",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF057",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF057--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 525,
+          "anchor": "- Commit `bdd7c001` preserves the decoded bounded in-flight owner through",
+          "sha256": "e6d72527eeef328c0065bd0c9da0a37e55e7d1553c7b1e46cea38047850b8a4d"
+        },
+        {
+          "source_id": "PF057",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF057--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 542,
+          "anchor": "- Permanent join rule: emitted pressure and later self-hearing are the same",
+          "sha256": "e6d72527eeef328c0065bd0c9da0a37e55e7d1553c7b1e46cea38047850b8a4d"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A06",
+        "A09",
+        "A10",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPF08",
+      "name": "Fixed-phase vocal program falsely called physical exhaustion",
+      "classification": "explicit_retraction_and_successor_separation",
+      "finding": "PFR08",
+      "observed_mechanism": "PF059/060 retract F029/F030:160-sample phase,16000-sample exhalation countdown and no subtraction of emitted air from lung volume. A20..400mm2glottal axis was mapped to a16..144/160duty cycle fabricating closure. PF061 says4aa3144d retires the V5 program to rest; successor finite struck surfaces vary pressure/self-hearing but do not establish phonemes.",
+      "evidence_limits": "Persistence, nonperiodic snippets, audible output and exact self-hearing do not turn a scripted source into the claimed body law. The historical retirement and later functional oscillator must not be collapsed into a blanket ban on all oscillators/cosine.",
+      "replacement": "Keep the retraction attached to every old closed claim. Use the approved sufficient native body law with finite work/airflow/retained dynamics and explicit allowed approximation; map retired acoustic state and authority. No fixed duty/word waveform as hidden physical source.",
+      "acceptance": {
+        "unit": "Verify source work, pressure/flow, material state and actual exhaustion under authorized law; distinguish an impulse from sustained body dynamics.",
+        "module": "Exercise ordinary motor/body/acoustic coupling and cold continuation with complete old-to-active state mapping.",
+        "system": "Qualify organ capacity separately from acquired native articulation and intelligibility; independently assess the current reduced organ under its actual approved scope.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 54,
+          "anchor": "| F-029 | One native layer-13 discharge drives one exact 1 ms articulatory motor event; the remaining physical interval is passive vocal-tube pressure settlement, and unresolved acoustic pressure/flow/phase persists in the resident body across intervals and restarts. The exact emitted PCM is both self-heard and exposed for user-controlled playback. | Stretching one discharge across the complete 250 ms sensory interval; resetting acoustic wave/flow/phase at every interval; browser-generated buzz, TTS, phonemes, scripted waveform, or separate self-hearing/playback audio. | Require current and legacy body-format restoration, exact acoustic-state persistence, quiescent no-allocation, a shared pressure/body/cochlear clock retaining the 1 ms event, nonperiodic live PCM, exact playback/self-hearing hash identity, and uninterrupted unattended plus audiovisual transitions after cutover. | **Closed live on task 1389, 2026-08-30.** Source commits `b10ccfa2` and `8310ee0c`; bridge corrections `e8478464` and `099cf40a`. The first autonomous production pressure returned 4,000 samples at 16 kHz, with 26 nonzero samples spanning indices 9-40, no 160-sample repetition, unequal first and second 160-sample windows, and exact PCM/observation SHA-256 `368b845f04f457375788bb6905614827229621066431447e6f951581fcbfb5ad`. Guala self-heard that same pressure; subsequent unattended ticks and real audiovisual requests completed. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 55,
+          "anchor": "| F-030 | One exact 1 ms layer-13 discharge changes a bounded resident respiratory/laryngeal activation once; the body then carries its own exhalation and glottal cycles across physical intervals and restart until that activation exhausts. | Re-stretching the neuronal discharge, returning to millisecond pressure clicks, using a sensory interval as motor duration, scripting pressure/phonemes/words, allowing body activation to grow without a fixed anatomical bound, or letting an outer envelope assume the newest body width before reading the embedded body version. | Restore the prior V4 body without inventing activation; require one discharge, nonzero pressure in every complete 160-sample glottal cycle of the bounded exhalation, zero additional applied motor quanta during continuation, exact cold persistence, and exact exhaustion without a timer or observer. Embed that exact V4 body in a current organism envelope and prove migration does not consume the following acoustic-length, joint, or cognitive fields. Live closure additionally requires the emitted/self-heard WAV and bounded CPU/RAM/state evidence. | **Closed live on task 1397, 2026-08-31.** Source commits `bd3f0ca4` and `a8ba50cf`; task 1396 failed before health on the exact predecessor-width defect and was recorded rather than hidden. The corrected task restored the same identity and advanced unattended. Live PCM changed from 22/22/27 nonzero samples per 4,000 to 1,646/1,647/1,724/1,725/1,748, persisted through 126 consecutive complete glottal cycles, then exhausted to exact zero. PCM SHA `3e04a2c0...` matched the report; 34 auditory consequences were transported and the next interval carried 442 sound ingresses. Immediate live bounds were one task, 41.9% CPU, 7.18% memory, and 93.8–94.0 MB resident state. This closes duration physics only; no learned-word or intelligibility claim is made. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF059",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF059--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 617,
+          "anchor": "- Architecture finding: the current phonatory body is a fixed-phase prescribed",
+          "sha256": "0180f15b1e5d36563d1350a3cd23c50a7fd364cb735b9126efbf499035a0fb96"
+        },
+        {
+          "source_id": "PF059",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF059--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 622,
+          "anchor": "- **Correction reopening F-029/F-030:** executable source fixes the laryngeal",
+          "sha256": "0180f15b1e5d36563d1350a3cd23c50a7fd364cb735b9126efbf499035a0fb96"
+        },
+        {
+          "source_id": "PF059",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF059--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 629,
+          "anchor": "- The `glottal_aperture` axis is 20..400 mm² with no zero-area closure. The",
+          "sha256": "0180f15b1e5d36563d1350a3cd23c50a7fd364cb735b9126efbf499035a0fb96"
+        },
+        {
+          "source_id": "PF061",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF061--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 525,
+          "anchor": "- F-030 was genuinely live-closed on task 1397, but commit `4aa3144d` later",
+          "sha256": "c84967e70cd0ab2fd8f6f679fb138ee8d4b9d8a52e6977cd0e23581877e09664"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A08",
+        "A10",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPF09",
+      "name": "Antagonist subtraction passed a test for a rejected physical law",
+      "classification": "false_repair_silenced_symptom_by_cancelling_distinct_work",
+      "finding": "PFR09",
+      "observed_mechanism": "Attempt30 subtracts opening-glottis drive from closing carriers to zero respiratory preparation. Its focused test passes; copied2closing/10opening becomes silent at maximum aperture. Attempt31 rejects the law because laryngeal opposition cannot cancel work in a distinct respiratory effector; open-glottis airflow is real even without voicing.",
+      "evidence_limits": "A symptom disappearing and a green conservation-named test did not establish the correct coupled physics. These are historical attempts, not a present diagnosis.",
+      "replacement": "Remove the rejected cross-effector cancellation and retire its passing test as an acceptance oracle. Preserve actual coupled body work/airflow and let the lawful organ distinguish unvoiced flow from voiced pressure.",
+      "acceptance": {
+        "unit": "Check independent work reservoirs, forces and energy transfer; no cancellation solely because audible closure fails.",
+        "module": "Exercise antagonistic body motion plus respiration and true fold/airflow consequence rather than a predicate returning silence.",
+        "system": "Show ordinary preserved-body behavior and actual self-hearing with no scripted periodicity; report absent speech honestly.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF059",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF059--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 561,
+          "anchor": "- Permanent force-conservation rule: an eligible closing-glottis motor",
+          "sha256": "0180f15b1e5d36563d1350a3cd23c50a7fd364cb735b9126efbf499035a0fb96"
+        },
+        {
+          "source_id": "PF059",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF059--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 594,
+          "anchor": "- Implementation invocation 3 passed its single focused native test with zero",
+          "sha256": "0180f15b1e5d36563d1350a3cd23c50a7fd364cb735b9126efbf499035a0fb96"
+        },
+        {
+          "source_id": "PF059",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF059--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 612,
+          "anchor": "- Copied-body invocation 3 closes the false-launch row but opens the deeper",
+          "sha256": "0180f15b1e5d36563d1350a3cd23c50a7fd364cb735b9126efbf499035a0fb96"
+        },
+        {
+          "source_id": "PF059",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF059--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 646,
+          "anchor": "- Attempt 30's antagonist subtraction must never be restored. Body-terminal",
+          "sha256": "0180f15b1e5d36563d1350a3cd23c50a7fd364cb735b9126efbf499035a0fb96"
+        },
+        {
+          "source_id": "PF059",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF059--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 651,
+          "anchor": "- A passing unit test for a rejected law is retained as failed-attempt history,",
+          "sha256": "0180f15b1e5d36563d1350a3cd23c50a7fd364cb735b9126efbf499035a0fb96"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A08",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPF10",
+      "name": "Dedicated vocal effector identity absent in mature state",
+      "classification": "exact_localized_failure_then_narrow_lawful_extension",
+      "finding": "PFR10",
+      "observed_mechanism": "Task1401 broadens admission to a prepared closing-glottis reflex but matureGLCOG040marker isNone with three uncontacted historical layer13cells. Exact lookup refuses lineage authority. V41 adds one dedicated isolated cell from unclaimed anatomy, leaves historical cells/state/contacts unchanged and persists identity idempotently.",
+      "evidence_limits": "Helper predicates bypassed the real missing authority. The reported551passes/16failures/11ignored versus549passes/16failures/11ignored proves no new measured test failures, not voice or a green suite.",
+      "replacement": "Preserve explicit unique anatomical authority and valid predecessor mapping. Do not arbitrarily choose an old cell or require learned speech before permitted prelinguistic physical sound; keep reflex versus learned causation distinct.",
+      "acceptance": {
+        "unit": "Test marker-absent/present/pre-embodied mature cases and exact idempotence with no old-state mutation.",
+        "module": "Run real ordinary glottal→dedicated effector→pressure→hearing on the authenticated mature predecessor.",
+        "system": "Require durable successor, cold next step, rest and independent learned-speech qualification beyond anatomical commissioning.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 413,
+          "anchor": "- The copied tick-`354137` raw body contains `GLCOG040` at raw offset `684` and",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 418,
+          "anchor": "- Task 1400 does not enter vocal-body co-recruitment because the body has no",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 428,
+          "anchor": "  field path changed. The tests missed the failure because they supplied the",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 441,
+          "anchor": "- V41 mounts exactly one new, electrically isolated intrinsic layer-13 cell",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 454,
+          "anchor": "- Full serial library comparison is exact: untouched `faff9e06` has",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 507,
+          "anchor": "- Scope rule: the immediate repair is deliberately reduced to prelinguistic",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A08",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPF11",
+      "name": "Copied-body tests that never reached the failed branch",
+      "classification": "test_input_authority_and_reproduction_failures",
+      "finding": "PFR11",
+      "observed_mechanism": "Task1401 failed22sampled intervals after helper tests passed. Maximal-external-receptor copies changed many neurons but recruited no motor and never entered the failing branch. Actual106external+3regulation cause reproduced; accepted image on the same state/world advanced, isolating the changeset before exact marker localization. Wrong Docker bind produced genesis.",
+      "evidence_limits": "A large stimulated census is not ordinary causal coverage. Receipt cannot reconstruct the aged-out exact failed raw body. A container exit or fresh-genesis run is not a preserved-body proof.",
+      "replacement": "Authenticate exact input state/world/configuration before execution and reproduce ordinary causal shape. Distinguish reproduction, changeset isolation and exact invariant localization; preserve original failed artifacts within declared bounded evidence custody.",
+      "acceptance": {
+        "unit": "Fail evidence admission on wrong identity/tick/hash/bytes, zero reached branch or missing report.",
+        "module": "Compare candidate/control from the same immutable predecessor and actual ordinary request/continuation path.",
+        "system": "Repeat complete current preserved-body sensory→action→hearing→durable cold next-step qualification with failed/not-run arms explicit.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 280,
+          "anchor": "- Commit `16313bc5e1a41c219d00a9cb90ca8ced9fa586c3` attempted to permit",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 307,
+          "anchor": "- Exact task-1401 source on exact copied task-1400 bodies at ticks `352577`,",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 318,
+          "anchor": "- The exact stalled tick-`353081` raw body has aged out of the intentionally",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 331,
+          "anchor": "- Causal-localization attempt 20 is rejected: a host-namespace `/tmp` bind was",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 337,
+          "anchor": "- Causal-localization attempt 21 reproduced task 1401 with the exact rejected",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 370,
+          "anchor": "- This is localization to the rejected change set, not yet localization to one",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A10",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPF12",
+      "name": "Developmental motor joins and founding relation identity",
+      "classification": "physical_reach_corrections_without_broad_pairing",
+      "finding": "PFR12",
+      "observed_mechanism": "R009 finds the exact-axis resolver ignored moved-axis input and exposed38–42terminals. Later sparse join required only actually reached load regulations and one unambiguous association in a coexisting interval. Founding pair must remain identity when later lawful experience widens an affective cell.",
+      "evidence_limits": "Joint movement does not guarantee load receptor threshold crossing. More frontiers cannot repair absent layer10anatomy; requiring exactly one neighbour forever also rejects lawful development.",
+      "replacement": "Use authenticated movement arithmetic and actual reached physical relations, stable founding provenance and same-interval coexistence. Do not guess a terminal, require an unreached receptor or restore Cartesian body-wide associations.",
+      "acceptance": {
+        "unit": "Reject static/body-only/ambiguous/unmoved cases; accept the exact sparse reached relation.",
+        "module": "Verify all ordinary anatomy/growth/recall callers preserve founding identity through later experience.",
+        "system": "Demonstrate actual acquired typed motor route and native consequence on mature state, then separately articulation and speech.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 75,
+          "anchor": "| R-009 | **Open — reproduced on task 1398 through exact raw tick 345645; two candidates rejected locally.** The corrected V38 body preserved zero ambiguous vocal contacts for more than one hundred unattended ticks, but produced no fresh self-hearing and formed no exact-axis layer-11 -> layer-12 route. Reopening the old calibration once was falsified: the exact production body moved and returned precise proprioception for twelve consecutive intervals but produced zero learned vocal routes and zero articulatory discharge, creating reflex motion rather than learning. That code was removed. A deeper diagnostic then proved the supposed exact-axis boundary ignored its moved-axis input: one movement exposed 38–42 transitioned vocal terminal candidates. The source-local correction now derives exactly one moved terminal from authenticated GLBPEV01 arithmetic and passes its focused falsifiers. Adding the already-retained third exact frontier also passed its unit falsifier, but exact production-body replay rejected it as the repair: over six returned-body intervals every exact moved regulation had zero layer-10 affective neighbours, so no frontier width could complete the join. The absence traces to the `6e6d220b` anti-fan-out guard: it requires newly mounted association/regulation cells to have already transferred carriers and restricts pairing to one source occurrence, although the exact body consequence and coexisting world source are separate occurrences in the same physical interval. | Restoring contaminated contacts; reopening calibration on restart; recurring tonic or reflexive body input; treating every transitioned regulation as a moved terminal; retaining more frontiers downstream of absent anatomy; restoring body-wide association/regulation Cartesian pairing; teacher-selected or random motor targets; TTS, phonemes, word tables, scripted pressure, or observer authority. | Preserve the exact-terminal, missing-older-frontier, directed-chain, and ambiguous whole-tract/sound falsifiers. Correct only the layer-10 developmental join: one unambiguous association physically derived in the shared interval may pair only with the exact GLBPEV01-moved terminal's regulation. Static pose, body-only input, ambiguous associations, and non-moved regulations must add zero. Then require one sparse route, fresh native articulation/self-hearing, and cold restore without fan-out or resurrection before R-009 can close. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 81,
+          "anchor": "- Attempt 1, restored production tick `345645`: rejected before commit. The",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 88,
+          "anchor": "- Attempt 2, same restored production generation: accepted locally. The rule",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 96,
+          "anchor": "- Attempt 3, same restored production generation: rejected locally after 64",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 101,
+          "anchor": "- Attempt 4, same restored production generation: accepted locally for the",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A08",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPF13",
+      "name": "Newly-mounted-only authoring and invalidated recurrence claims",
+      "classification": "lifecycle_omission_corrected_without_fabricated_history",
+      "finding": "PFR13",
+      "observed_mechanism": "After route retirement an existing ordering cell was excluded by a newly_mounted guard. Correcting it yields sparse11→12and11→13routes on mature copies but still no pressure. Removing a rejected hub also invalidated a retained recurrence witness, which was removed instead of inventing an edge.",
+      "evidence_limits": "A positive route-count repair does not complete downstream discharge. Preserving every historical false claim is not truthful preservation, but actual valid learned state must be mapped and retained.",
+      "replacement": "Apply authorized route law across first use and later active lifecycle with stable founding relation. Explicitly invalidate false disconnected evidence and preserve unrelated neuronal/acquired structure; do not reinstall the retired hub.",
+      "acceptance": {
+        "unit": "Check first-use/existing/retired/cold cases and inactive/ambiguous zero controls.",
+        "module": "Follow actual ordinary retained formation through contact preparation and own motor discharge with no fixture-generated hub.",
+        "system": "Qualify later native pressure/hearing and retained useful function on the accepted successor, independently of counts.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 118,
+          "anchor": "- Attempt 6, exact post-learning body: the first V39 migration refused because",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 155,
+          "anchor": "- Diagnostic attempt 10: the corrected probe at live tick `347243` found the",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 169,
+          "anchor": "- Candidate attempt 12 passed its exact one-test recurrence falsifier and the",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 251,
+          "anchor": "| No passive vocal hub | Current cognition has zero contacts incident to layer 13; any layer-11 -> 13 or layer-12 -> 13 contact is refused. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A09",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPF14",
+      "name": "Fixed motor magnitude, spent work and flattened Psi authority",
+      "classification": "authored_action_and_energy_shortcuts_explicitly_rejected",
+      "finding": "PFR14",
+      "observed_mechanism": "Attempt47 finds a literal one-carrier L11/L12motor action; physical descending range is1to64 but choosing another constant/max is rejected. Endpoint carrier overwrite breaks already-settled phase/current/work.47C tries spending dissipated transition bookkeeping;47D creates recovery material; corrected490positionalPsi reveals seven identical patterns hidden by three counts.",
+      "evidence_limits": "Conservation inequalities alone do not select a physical nonzero allocation. A count projection cannot become phoneme authority, and nonzero output cannot vindicate a wrong energy source.",
+      "replacement": "Replace the authored action magnitude and post-settlement overwrite with the actual authorized native constitutive transition. Preserve full positional state and finite source/material debit; reject word/route selection from identical projections.",
+      "acceptance": {
+        "unit": "Validate complete positional input, finite energy source, exact material/current/work successor and zero/severed controls.",
+        "module": "Trace ordinary retained contact strength into correct intrinsic gate/body without fabricated gain or double-spent work.",
+        "system": "Demonstrate acquired timed articulation at real source strength with cold continuation; isolated1,2,7,1outputs or2xdiagnostics do not close speech.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 569,
+          "anchor": "- The production task-1429 learned L11/L12 transducer assigns exactly one",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 578,
+          "anchor": "- The three-terminal substitute also edits endpoint carrier counts after the",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 588,
+          "anchor": "- Candidate 47C is rejected before implementation: the A-011.6 transition-work",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 592,
+          "anchor": "- Candidate 47D is rejected despite nonzero copied-body output: adding real",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 602,
+          "anchor": "- Amendment: the first ternary report flattened 490 positional Psi windings",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 609,
+          "anchor": "- Candidate 47F tested absolute source/load conductance rather than a relative",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A04",
+        "A05",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPF15",
+      "name": "Reusable respiratory heat export and supplied whole-word control",
+      "classification": "genuine_narrow_repairs_with_open_learned_coordination",
+      "finding": "PFR15",
+      "observed_mechanism": "Attempt45 isolated respiratory cell cannot export heat:0.320140zJact exceeds0.244260headroom, silently omitting act. Ordinary metabolic reach reportedly supports512hops,256recruitments,469pressure and468self-heard occurrences at identical vocal coordinates. Joe accepts suppliedMamaAin46as organ capacity only.",
+      "evidence_limits": "Reusable phonation and external trajectory intelligibility do not establish acquired posture ordering. Silence must remain visible rather than masked by pressure synthesis or inflated capacity.",
+      "replacement": "Ensure every co-recruited motor receives its lawful bounded metabolic settlement; retain the organ-range result and resolve native experience-dependent ordering without importing the supplied gesture.",
+      "acceptance": {
+        "unit": "Check heat/work/carrier conservation and exhaustion/recovery without reset or capacity inflation.",
+        "module": "Verify ordinary thermal reach and true motor/body/hearing across intervals and cold restart.",
+        "system": "Demonstrate independently intelligible acquired sequences, not repeated constant posture or replayed component-control trajectories.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 533,
+          "anchor": "- The attempt-44 voice organ is not reusable on the later mature task-1429",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 541,
+          "anchor": "- Permanent rule: every specially co-recruited motor cell must receive its",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 549,
+          "anchor": "- The candidate passed 512 exact copied-production whole-roster hops with 256",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 559,
+          "anchor": "- Joseph accepted every bounded native-organ candidate as recognizable",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPF16",
+      "name": "Sensory starvation, observer delay and browser loss",
+      "classification": "multiple_runtime_causes_require_current_attribution",
+      "finding": "PFR16",
+      "observed_mechanism": "F023–28 correct audio clock/actual PCM labeling, dispatch, epoch retry, observer waits, outer request arrival and one-hop lock scope. Hidden-tab attribution is corrected: browser next offer about0.4s; target processing29–102s. Async route dependency initially called closed is later insufficient before ASGI correction.",
+      "evidence_limits": "These are dated actual mechanisms, not proof of current Task1606cause or caretaker interference. A newest-four-hop window bounds memory but discards acquisition under overload; it is not sustained full hearing.",
+      "replacement": "Keep actual acquisition/arrival/native-start/completion/observation clocks and loss counts separate. Preserve atomic physical steps and sole ownership while giving arrived input its authorized boundary; observers must not gate sensation. Measure current native execution and interpreter scheduling separately.",
+      "acceptance": {
+        "unit": "Test PCM-before-active, epoch cleanup, one retry, actual captured counts and no awaited observation on lived paths.",
+        "module": "Exercise real request admission under ongoing native work, explicit loss/backpressure and one bounded physical hop per borrow.",
+        "system": "Measure sustained real-device sensory cadence, source age, lost intervals and resources on the actual release; no timeout inflation or frozen health bypass as repair.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF028",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF028--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 47,
+          "anchor": "| F-023 | Continuous browser audiovisual ingress is a microphone-clocked sequence of exact 250 ms pressure hops, each paired at capture time with its own camera frame; at most eight current hops may exist locally, and transport failure discards the failed window without closing either sense. “Microphone active” requires the browser audio clock to be running and real PCM samples to have arrived; permission alone is not activity. Both capture and window dispatch are driven by arrival of those audio-clock samples, never by a foreground page timer. Long native settlement remains owned by the production transport boundary rather than a shorter competing page timer. | Pairing independently timed camera and microphone queues; using the foreground-timer `ScriptProcessor` for continuous capture; dispatching audio-clocked windows from a normal page `setTimeout` loop that browsers throttle in hidden tabs; reporting permission as live samples; failing to resume or verify the audio clock; adding a page abort shorter than the organism's measured settlement; stopping senses on tab visibility or one failed request; retaining a stale backlog; retrying device permission denial; letting UI/observer state acquire cognition authority. | Require page syntax and focused audiovisual/lifecycle contracts; use the browser audio-thread worklet, dispatch directly when its PCM arrival completes a bounded current window, explicitly resume/verify its clock, and refuse the active-samples label until PCM arrives; permit a timer only as a one-time missing-clock watchdog; leave in-flight request lifetime to user/device/page abort plus the measured production load-balancer boundary; verify the exact committed public bytes; retain epoch/abort ownership, bounded queue eviction, exact native audiovisual cardinality, and one resident organism across cutover; sustained real-device/resource proof remains mandatory before claiming 24/7 closure. | **Deployed through the foreground-dispatch defect; event-driven correction locally proven and awaiting static publication, 2026-08-30 on task 1377.** Service commit `d08fd2dd`; prior UI corrections `f686ec0b` and `7c85d20b`. Live evidence before the final correction showed paired intake and bounded body size but 60–100+ second hidden-tab dispatch gaps. The same organism was not restarted. Prior local/public page SHA-256: `4cd51e39667a801c406c2dd5004ffba34fa0caa6227ebfb888100cfce41a3cee`. |",
+          "sha256": "bfa6704c88d322854045f427443011e9945ba0da8445e6f7186ca48d149ae595"
+        },
+        {
+          "source_id": "PF030",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF030--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 47,
+          "anchor": "| F-023 | Continuous browser audiovisual ingress is a microphone-clocked sequence of exact 250 ms pressure hops, each paired at capture time with its own camera frame; at most eight current hops may exist locally, and transport failure discards the failed window without closing either sense. “Microphone active” requires the browser audio clock to be running and real PCM samples to have arrived; permission alone is not activity. Both capture and window dispatch are driven by arrival of those audio-clock samples, never by a foreground page timer. Long native settlement remains owned by the production transport boundary rather than a shorter competing page timer. | Pairing independently timed camera and microphone queues; using the foreground-timer `ScriptProcessor` for continuous capture; dispatching audio-clocked windows from a normal page `setTimeout` loop that browsers may throttle; reporting permission as live samples; failing to resume or verify the audio clock; adding a page abort shorter than the organism's measured settlement; stopping senses on tab visibility or one failed request; retaining a stale backlog; retrying device permission denial; letting UI/observer state acquire cognition authority. | Require page syntax and focused audiovisual/lifecycle contracts; use the browser audio-thread worklet, dispatch directly when its PCM arrival completes a bounded current window, explicitly resume/verify its clock, and refuse the active-samples label until PCM arrives; permit a timer only as a one-time missing-clock watchdog; leave in-flight request lifetime to user/device/page abort plus the measured production load-balancer boundary; verify the exact committed public bytes; retain epoch/abort ownership, bounded queue eviction, exact native audiovisual cardinality, and one resident organism across cutover; sustained real-device/resource proof remains mandatory before claiming 24/7 closure. | **Event-driven correction live; sustained-device proof open, 2026-08-30 on task 1377.** Service commit `d08fd2dd`; UI commits `f686ec0b`, `7c85d20b`, and `a8d4bb4e`. Post-cutover ALB evidence corrected the preliminary diagnosis: the browser offered each next window about 0.4 seconds after the preceding response; 29–102 seconds were target processing, not hidden-tab dispatch. The page-only cutover did not restart or replace the organism. CloudFront invalidation `IBYNDX296ZRM6FO2X479CGP54F` completed; committed local and public SHA-256 are both `029dc48fa0849370bd6ee9624158274402903e245dede1863b502dd0746b75dc`. |",
+          "sha256": "f4ad6ded73d20d48440c7f8652051200ab95bf93ba2f0a6d3461a8f3dd44503f"
+        },
+        {
+          "source_id": "PF033",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF033--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 48,
+          "anchor": "| F-024 | An arriving external sensory request announces itself on the request loop before its synchronous native route waits for a worker; unattended life may finish the one atomic interval already in flight but cannot start more intervals ahead of the waiting experience. | Implementing the admission signal as a synchronous generator dependency that can itself wait in the worker pool while the unattended loop starts successive 15–22 second intervals; interrupting an already-started native interval; or letting transport select cognition or action. | Require the dependency to be an async generator and preserve the existing global waiter count, event, non-blocking unattended lock, and `finally` release; focused proof checks both immediate dependency shape and the already-established unattended-yield behavior; live ALB and interval logs must show no newly started unattended interval between request arrival and native sensory settlement. | **Closed live on task 1378, 2026-08-30**, commit `46054734`. The request-loop admission signal now precedes worker scheduling; clean four-hop audiovisual target work measured 25.499 seconds without the former several-unattended-interval preemption sequence. |",
+          "sha256": "91ac4810ac24c7e9d964cda1100281ef24233e6a5e92a4050068daa02fc40045"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 47,
+          "anchor": "| F-023 | Continuous browser audiovisual ingress is a microphone-clocked sequence of four exact 250 ms pressure hops, each paired at capture time with its own camera frame; only the newest complete one-second window may exist locally, and transport failure discards the failed window without closing either sense. “Microphone active” requires the browser audio clock to be running and real PCM samples to have arrived; permission alone is not activity. Both capture and window dispatch are driven by arrival of those audio-clock samples, never by a foreground page timer. Long native settlement remains owned by the production transport boundary rather than a shorter competing page timer. A failed upload may arm exactly one bounded transport-retry window for the same live sense epoch; audio-clock callbacks cannot create parallel or repeated retries during that window. Public frame totals count captured camera frames, never internal action/consequence hops. | Pairing independently timed camera and microphone queues; allowing a slow response to expand the next window from four to eight hops and double its native work; counting internal consequence hops as camera frames; using the foreground-timer `ScriptProcessor` for continuous capture; dispatching audio-clocked windows from a normal page `setTimeout` loop that browsers may throttle; reporting permission as live samples; failing to resume or verify the audio clock; adding a page abort shorter than the organism's measured settlement; stopping senses on tab visibility or one failed request; retaining a stale backlog; retrying device permission denial; allowing every audio callback to retry a failed upload during a target outage; letting UI/observer state acquire cognition authority. | Require page syntax and focused audiovisual/lifecycle contracts; use the browser audio-thread worklet, dispatch directly when its PCM arrival completes one exact four-hop current window, evict older captured hops, explicitly resume/verify its clock, and refuse the active-samples label until PCM arrives; permit timers only as a one-time missing-clock watchdog and one epoch-owned transport-retry window; leave in-flight request lifetime to user/device/page abort plus the measured production load-balancer boundary; verify the exact committed public bytes; retain epoch/abort ownership, exact native audiovisual cardinality, truthful captured-frame accounting, and one resident organism across cutover; sustained real-device/resource proof remains mandatory before claiming 24/7 closure. | **Event-driven correction live; sustained-device proof open, 2026-08-30 on task 1378.** Service commits `d08fd2dd` and `46054734`; UI commits `f686ec0b`, `7c85d20b`, and `a8d4bb4e`. Post-cutover ALB evidence corrected the preliminary diagnosis: the browser offered each next window about 0.4 seconds after the preceding response; 29–102 seconds were target processing, not hidden-tab dispatch. Clean task-1378 evidence then measured four-hop target work at 25.5 seconds while backlog-expanded eight-hop windows took 34.7–62.3 seconds. The task-1378 zero-target handoff also exposed a retry burst: rejected uploads never entered the organism, but audio callbacks retried after each fast rejection. The page correction now retains only the newest exact four-hop second, permits exactly one epoch-owned retry window, clears it when the sense closes, and reports actual captured frames rather than native consequence hops. The page-only cutover did not restart or replace the organism. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 48,
+          "anchor": "| F-024 | An arriving external sensory request announces itself at the outer ASGI request boundary before dependency solving or synchronous worker admission; unattended life may finish the one atomic interval already in flight but cannot start more intervals ahead of the waiting experience. | Relying only on a route dependency—even an async generator—when production proves the handler can remain queued while unattended transport reacquires the organism; interrupting an already-started native interval; or letting transport select cognition or action. | Preserve the global waiter count, event, non-blocking unattended lock, and `finally` release. Require an outer-boundary proof showing the signal is set before downstream routing, plus live ALB and interval logs showing no newly started unattended interval between request arrival and native sensory settlement. | **Closed again live on task 1383, 2026-08-30**, commit `de71074e`. The prior task-1378 async dependency was insufficient in production. The outer ASGI boundary now announces paired camera/microphone arrival before route queuing; the first measured post-cutover capture carried exactly four ordered audiovisual moments plus one action consequence, with no serial 16-19-moment expansion attributable to that capture. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 50,
+          "anchor": "| F-026 | An unattended transport borrow ends after one exact physical hop so waiting external sight, sound, or other experience enters at the next physical boundary. | Calling eight successive 250 ms physical moments one \"interval\" and holding the transition lock across the whole trajectory; interrupting a physical hop already settling; or allowing transport priority to select cognition. | Require the unattended transport unit and world advance to equal exactly one declared 250 ms hop; preserve non-blocking external-wait admission before each hop; prove the relationship is locked in source and measure live ALB target wait after cutover. | **Closed live on task 1380, 2026-08-30**, commit `77b90a5d`. Before cutover, real audiovisual target time was 19.8-42.0 seconds because an eight-hop unattended borrow could consume about 12 seconds before the waiting experience entered. The first post-cutover audiovisual request completed in 7.433 seconds, spanning exactly four temporal camera/microphone moments followed by one exact action-consequence interval. The same identity restored beyond tick 339551; L0-L4 and full occurrence-local DSF delivery are unchanged. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 53,
+          "anchor": "| F-028 | A read-only observation refresh is never awaited by camera, microphone, action, speech, autonomy, curriculum, or sensory dispatch. Observation may update independently after a committed transition but cannot hold a sense closed, delay the next capture or lesson, or acquire organism authority. | `await refreshObservation(...)` or any equivalent observer promise on a lived transport path; treating a report as the acknowledgement required to continue sensing, speaking, acting, or teaching. | Inspect every lived-path caller; the complete public page must contain zero awaited observation refreshes, and focused proof must reject an awaited refresh. Verify the exact public S3/CloudFront artifact, then measure consecutive real-device capture cadence. | **Systemic correction live on public page origin, 2026-08-30**, commits `e94bed62` and `bec0d1d4`; focused browser proof 9/9, zero awaited observation refreshes in the complete served page, S3/CloudFront SHA-256 `0fdeeb566979b553d1a4f5e71fb0c2162d22588747ecbb1d248c25c41cfcf574`, invalidation `I6L8WJZDJT0H7ARM1EERN9OQE8`. Task 1384 carries the microphone correction; the public origin carries the complete systemic closure. Sustained real-device cadence remains part of R-005. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 77,
+          "anchor": "| R-005 | **Corrected diagnosis; open only for sustained real-time cadence.** Task-1382 ALB windows of 49.580 and 44.347 seconds contained 19 and 16 total native moments, but 8 and 6 of those were separate unattended intakes that started while the audiovisual request waited. One capture itself carries four ordered 250 ms audiovisual moments, plus only physically caused action/self-hearing consequences. Task 1383 removed the server-side starvation; task 1384 and the live S3/CloudFront page removed the read-only observer wait from the browser sender. | Reintroducing route-only admission as sufficient; making camera/microphone transport await `refreshObservation`; counting unrelated unattended moments inside an HTTP wall window as capture expansion; serializing coexisting consequence sources; dropping sensory or consequence physics to improve a timing number. | Keep F-023 through F-026 and F-028 locked. After one hard refresh of the already-open browser, measure consecutive real-device requests: observer refresh must not delay the next bounded four-hop capture, no unattended intake may start after an arrived request, the page retains only the newest complete one-second window, and CPU/RAM/storage remain bounded. Native per-moment settlement remains a separate measured speed item until sustained real-time capture is achieved. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        }
+      ],
+      "repair_actions": [
+        "A06",
+        "A10",
+        "A12",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPF17",
+      "name": "Coexisting sensations versus temporal sequence",
+      "classification": "real_full_field_grouping_correction",
+      "finding": "PFR17",
+      "observed_mechanism": "F025 distinguishes multiple authenticated coexisting world/body sources in one physical interval from successive temporal occurrences. Separate47body consequences previously serialized into additional ticks; one shared settlement reduced reported2.44–2.49s versus5.9–8.2s without field loss.",
+      "evidence_limits": "Reducing duplicated time does not authorize dropping modalities or flattening their full fields. Unrelated unattended moments within an HTTP window are not all capture expansion.",
+      "replacement": "Preserve each source identity, duration, occurrence and full field while using the authorized simultaneous/temporal boundary and complete sensory story. Keep temporal order where actual events differ in time.",
+      "acceptance": {
+        "unit": "Prove simultaneous sources one tick, sequential sources two, and reject incompatible duration.",
+        "module": "Trace all body/world/sound returns and native shared settlement with exact source-local field custody.",
+        "system": "Verify the same preserved organism receives complete actual consequences without artificial extra life-time or source loss, then measure true latency.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 49,
+          "anchor": "| F-025 | The exact world, visual, auditory, tactile, chemical, thermal and sparse body consequences of one action coexist at their receptors in one physical interval and the shared resident fabric settles once. | Passing coexisting consequence sources through the ordered-trajectory helper so every source becomes another organism tick; dropping body consequences to save time; merging or flattening their distinct DSF occurrences; or giving an observer authority over the grouping. | Require each source to retain its own authenticated episode, occurrence admissions and full seven-field evaluation; refuse sources with unequal physical duration; prove two coexisting sources advance one organism tick and produce one causal-interval record while the same sources through the temporal API advance two; live action evidence must report one consequence interval under the same resident identity. | **Closed live on task 1379, 2026-08-30**, commit `d0c33af2`. Under identity `1cc4e70a...`, one real action returned six sparse body-source packets carrying 47 exact body consequences beside the complete world consequence and advanced exactly tick 338977 -> 338978. Live action-consequence settlement measured 2.44-2.49 seconds versus the prior approximately 5.9-8.2 seconds. L0-L4 and every source-local full seven-field DSF occurrence remain unchanged. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF038",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF038--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 61,
+          "anchor": "| R-005 | **Open — isolated live after F-007 closure on task 1382.** One exact one-second browser audiovisual window still expanded into 19 and then 16 native physical moments and took 49.580 and 44.347 seconds at the load balancer. All those moments reported `seal_ms=0`; checkpoint custody is no longer the cause. | Inserting action, body-consequence, vestibular, and self-hearing moments serially between already-captured consecutive world moments, thereby making one second of real sensory time create several seconds of additional organism time instead of letting the next exact world moment carry every consequence that physically coexists with it. | Preserve all four ordered 250 ms camera/microphone occurrences. Carry each action's exact applicable consequences into the immediately following physical interval beside that interval's real world/sensory sources, using the already-proven coexisting-source settlement; if no external moment is waiting, the next unattended world interval carries them. Drop no source, flatten no DSF field, pause no cognition, and prove one second admits exactly four organism moments with every consequence returned to the same identity. |",
+          "sha256": "a6fe85b4ece723c84ef277bd3bc9ef0496e7f5322eb405ea42e4f3b7b829810f"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 77,
+          "anchor": "| R-005 | **Corrected diagnosis; open only for sustained real-time cadence.** Task-1382 ALB windows of 49.580 and 44.347 seconds contained 19 and 16 total native moments, but 8 and 6 of those were separate unattended intakes that started while the audiovisual request waited. One capture itself carries four ordered 250 ms audiovisual moments, plus only physically caused action/self-hearing consequences. Task 1383 removed the server-side starvation; task 1384 and the live S3/CloudFront page removed the read-only observer wait from the browser sender. | Reintroducing route-only admission as sufficient; making camera/microphone transport await `refreshObservation`; counting unrelated unattended moments inside an HTTP wall window as capture expansion; serializing coexisting consequence sources; dropping sensory or consequence physics to improve a timing number. | Keep F-023 through F-026 and F-028 locked. After one hard refresh of the already-open browser, measure consecutive real-device requests: observer refresh must not delay the next bounded four-hop capture, no unattended intake may start after an arrived request, the page retains only the newest complete one-second window, and CPU/RAM/storage remain bounded. Native per-moment settlement remains a separate measured speed item until sustained real-time capture is achieved. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A08",
+        "A09",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPF18",
+      "name": "Exact physical optimizations and lawful numeric fallback",
+      "classification": "legitimate_evolution_not_heuristic_shortcut",
+      "finding": "PFR18",
+      "observed_mechanism": "F016–22 reuse exact released-work arithmetic, local return deltas, immutable shared full-field/anatomy preparation and post-recovery capacity quantization. Fixed-width exact ratios fall back to the same arbitrary-precision law on actual overflow. F018/F022/F027 explicitly do not claim material isolated speed benefit.",
+      "evidence_limits": "Exact representation overflow continuation is not a heuristic failure mask. Shared immutable law input is not shared mutable neuronal state. Correctness and faster execution are separate evidence.",
+      "replacement": "Preserve full joint field, own winding/capacity/carriers, original refusals and canonical arithmetic order. Retain justified exact improvements only with complete equivalence and report speed gains at measured scope.",
+      "acceptance": {
+        "unit": "Differential exact arithmetic and error-order tests across signs, widths, residues, capacities and ties.",
+        "module": "Verify complete same-input native/body/world successor and independent state retention with all approved physical work.",
+        "system": "Measure actual current full-load wall time and resource bounds; no stale profiling hypothesis or weakened physical computation.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 40,
+          "anchor": "| F-016 | Exact contact settlement integrates each already-derived scaled current once and computes released electrostatic work from the direct exact energy difference. | Repeated BigRational integration of the same current; constructing and normalizing separate predecessor/successor energy totals for one contact transition; or replacing exact arithmetic with floating point, a heuristic, or a reduced DSF field. | Preserve the contact-energy and connected-component falsifiers; require unchanged full seven-field evaluation and measure the live shared-field phases. | **Closed live 2026-08-30.** Commits `c719157a`, `d2d0c588`, and `df3693d4`; live released-work attachment fell from 23–32 ms to 5–8 ms and shared-field settlement fell from approximately 333–354 ms to approximately 108–143 ms. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 42,
+          "anchor": "| F-018 | Resident cohort settlement remains in its one owner after in-place application; no identical complete cohort successor is cloned and assigned back. | Restoring `let settlement_successor = cohort.state.clone()` or another full-cohort copy after the in-place transition. | Inspect the production path for one in-place owner and no post-settlement whole-state clone; retain the reached sparse settlement checks. | **Closed live 2026-08-30 on task 1365**, commit `32214758`. The copy was removed permanently; live timing showed it was visible bloat but not a material latency source. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 43,
+          "anchor": "| F-019 | One gate-owned full seven-field MathLoom delivery is converted once per mounted width and borrowed by every reached neuron on that same completed gate. | Rebuilding the identical `D_k`, `M_k`, `R_rev_k`, `U_star_k`, `C_k`, `P_k`, `B_k` exact-rational balanced-ternary delivery independently for every reached neuron; flattening or approximating any DSF field. | Require the shared-field/gate identity check, preserve each neuron-local Psi settlement, and compare live preparation and interval times. | **Closed live 2026-08-30 on task 1371**, commit `02cac523`. Input/Psi preparation fell from 322–335 ms aggregate CPU to 206–215 ms and cohort wall time from 176–187 ms to 140–149 ms on the same organism. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 44,
+          "anchor": "| F-020 | A Psi energy landscape is prepared once per shared heavy neuron anatomy and exact gate delivery; each neuron applies that immutable plan to its own retained winding, dissipation, and capacity. | Recomputing identical exact ring energy landscapes for every neuron; mirroring neuron state, capacity, carriers, or consequences; replacing exact descent with a lookup approximation. | Preserve exact tie refusal, reachability, dissipation quantization/capacity, full DSF/Psi and receptor-transition proofs; require live preparation reduction without state or identity reset. | **Closed live 2026-08-30 on task 1372**, commit `55dc2d67`. Input/Psi preparation fell again from 206–215 ms aggregate CPU to 29–36 ms; cohort wall time fell to 115–133 ms while the same organism advanced beyond tick 314403. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 45,
+          "anchor": "| F-021 | One exact gate population descent is prepared from the interval's unchanged structural inputs, used to derive required recovery, then re-quantized only against the actual post-recovery dissipation capacity. | Selecting the same gate destination twice around recovery; reusing a stale capacity result; flattening gate free energy, tie refusal, residue, carrier, or heat physics. | Compare prepared versus direct capacity-bounded settlement across gate populations, predecessor openings, residues, capacities, and signed work; preserve recovery conservation; require live reduction on the same organism. | **Closed live 2026-08-30 on task 1375**, commit `9af26bc9`. Gate-recovery work fell from 68–75 ms aggregate CPU to 2–4 ms; extended gate/membrane work fell from 200–207 ms to 106–111 ms; the same organism was live-verified at or beyond tick 332182. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 46,
+          "anchor": "| F-022 | Ordinary elementary carrier settlement uses exact cancellation-first fixed-width ratios and falls back to the existing arbitrary-precision law only on a real width overflow. | Rounding carrier counts or retained phase; accepting zero-duration settlement; treating fixed-width equivalence as proof of a speed gain; removing the exact fallback. | Differentially compare carrier count and retained phase with the arbitrary-precision law across both current directions, signed phases, boundary durations, and wide values; compile the native crate; require live production timing before claiming performance. | **Closed for physics equivalence, not credited as a speed improvement, 2026-08-30 on task 1376**, commit `44a38700`. Six elementary-transfer and six local-membrane tests passed, native compilation passed, and the same organism advanced beyond tick 332841. Live extended work remained 101–112 ms and whole physical intervals remained 0.56–0.89 s, so no further speed surgery is justified by this cut. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 51,
+          "anchor": "| F-027 | Whole-body terminal energy observation uses available CPU without changing settlement or arithmetic order. | Serially walking every cohort's reservoir and every neuronal dissipation lane after each unsealed native advance; parallel-reducing exact rationals in a different order; or letting the observation feed back into physics. | Compute each independent cohort subtotal in parallel, collect subtotals in canonical cohort order, then perform the original exact BigRational accumulation in that unchanged order; compare the parallel result with the retained serial reference and require live timing before crediting a speed gain. | **Exact correction live on task 1382, but no isolated speed credit claimed, 2026-08-30.** Commit `92187c03`; Rust compilation and the focused equality falsifier passed before inclusion in release `5a8d61f4`. No physics, persistence bytes, L0-L4 field, or neuronal state changed. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A04",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPF19",
+      "name": "Participant touch and emission observation truth",
+      "classification": "resident_durable_and_process_receipts_separated",
+      "finding": "PFR19",
+      "observed_mechanism": "PF060R010 actual shoulder touch reached topology9/twelvehops but grip-only observer said no contact. Initial fix mislabeled old sealed pointer as touch successor. Corrected one-slot watermark is resident-awaiting-checkpoint until sole custodian publishes covering tick; cold process clears observer while native successor persists.",
+      "evidence_limits": "No observer label may infer semantic contact meaning, drive cognition, claim durability early or reconstruct missing motor evidence. Empty new-process observation does not prove native memory loss.",
+      "replacement": "Use exact causal occurrence identity and separately expose resident, durable and process-local evidence. Keep bounded observer records outside native cognition and mark consumed hearing only after matched exact pressure and durable successor.",
+      "acceptance": {
+        "unit": "Check pending/committed transitions, full-hash matching, bounded replacement and no native observer authority.",
+        "module": "Exercise actual touch/emission→native intake→custodian publication→cold process with missing evidence left missing.",
+        "system": "Verify live UI claims track exact current receipts while sensing and cognition continue with observer absent.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF060",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF060--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 667,
+          "anchor": "- Claude's first-visit rehearsal on an exact tick-356896 production-body copy",
+          "sha256": "ec0c8dabe7deb499edb97fbda7ec54651e3e931018b5953ccb424d400b7d2435"
+        },
+        {
+          "source_id": "PF060",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF060--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 678,
+          "anchor": "- The first candidate wording incorrectly treated the endpoint's last sealed",
+          "sha256": "ec0c8dabe7deb499edb97fbda7ec54651e3e931018b5953ccb424d400b7d2435"
+        },
+        {
+          "source_id": "PF060",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF060--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 682,
+          "anchor": "- The accepted observation distinguishes resident from durable custody. Before",
+          "sha256": "ec0c8dabe7deb499edb97fbda7ec54651e3e931018b5953ccb424d400b7d2435"
+        },
+        {
+          "source_id": "PF060",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF060--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 699,
+          "anchor": "- A separate cold process restored identity",
+          "sha256": "ec0c8dabe7deb499edb97fbda7ec54651e3e931018b5953ccb424d400b7d2435"
+        },
+        {
+          "source_id": "PF057",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF057--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 542,
+          "anchor": "- Permanent join rule: emitted pressure and later self-hearing are the same",
+          "sha256": "e6d72527eeef328c0065bd0c9da0a37e55e7d1553c7b1e46cea38047850b8a4d"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A06",
+        "A09",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VPF20",
+      "name": "Zero-test passes, inherited failures and wrong release package",
+      "classification": "test_and_delivery_evidence_integrity_failures",
+      "finding": "PFR20",
+      "observed_mechanism": "Short-name Cargo exact filters twice ran zero tests; a shared target directory produced an apparent wrong-binary pass. The wrong TFE Dockerfile produced a missing-service import, not a voice failure. The historical280-file governed package, exact image identity and cold restore preceded real release. Inherited failures remain failures.",
+      "evidence_limits": "Test exit0 without execution, unchanged failure count or generic image success cannot certify a mechanism. Fixed historical file counts are not current release completeness; actual manifest closure governs.",
+      "replacement": "Require named executed cases/assertions and candidate/control binary provenance. Package only the current governed runtime with exact dependency/source closure; authenticate predecessor and post-start ordinary continuation before release claims.",
+      "acceptance": {
+        "unit": "Reject zero-case, wrong binary, collection failure and swallowed capability checks; preserve exact failing names.",
+        "module": "Verify extracted package/import roots/native digest and ordinary mature-body causal path, without code added solely for test green.",
+        "system": "Bind accepted full-path proof to exact served digest and active state, including real sensory/pressure continuity and current resource behavior.",
+        "release": "Map the surviving invariant to exact current source, binary, active preserved state and ordinary callers; independently verify real serving behavior, continuity and resources. Historical proof remains attributed. No product execution, present activation, speech completion or ML-free certificate is inferred."
+      },
+      "refs": [
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 56,
+          "anchor": "| F-031 | A Guala release artifact is built only from the governed 280-file release package and `dsf_ai_service/Dockerfile`; image identity, naming, or a successful generic Docker build is not provenance. | Building or rehearsing the unrelated TFE `web/Dockerfile`; copying generated TFE context files to make that image build; treating a missing `dsf_ai_service` import as an organism/voice failure; pushing or registering an image before proving its packaged entrypoint and candidate native module. | Run `tools/package_guala_release.py` package/context/archive verification first; require the receipt to name the clean candidate commit and `dsf_ai_service/Dockerfile`; inside the digest-pinned image import `dsf_ai_service` and the candidate `guala_core`, verify their paths/provenance, then cold-restore the authenticated predecessor before registration or cutover. | **Added 2026-09-04 after a local attempt-44 invocation exposed the error before production.** Image `sha256:c4c6f902...` was built from `web/Dockerfile`, failed immediately with `ModuleNotFoundError`, and was permanently rejected. The correct governed package for commit `63a2d7da` verified 280 files with receipt `7ee2365f...`; immutable image proof remains the next gate. |",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 58,
+          "anchor": "F-031 live closure: the later clean `a7398bc1` package again verified all 280",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 149,
+          "anchor": "- Diagnostic attempt 9: a copied-live-body reservoir probe produced no report",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 164,
+          "anchor": "- Diagnostic attempt 11 repeated the short-name-plus-`--exact` Cargo error on",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 451,
+          "anchor": "- Candidate/control compilation outputs were separated after a shared Cargo",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        },
+        {
+          "source_id": "PF071",
+          "path": "docs/guala_reconciliation/sources/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+          "line": 454,
+          "anchor": "- Full serial library comparison is exact: untouched `faff9e06` has",
+          "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100"
+        }
+      ],
+      "repair_actions": [
+        "A10",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

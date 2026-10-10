@@ -1,0 +1,2633 @@
+
+backups/runtime/a1-speech-reconciliation-20261010/task1606-readonly/image-guala_core.so:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+000000000012a150 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__>:
+  12a150:	55                   	push   %rbp
+  12a151:	41 57                	push   %r15
+  12a153:	41 56                	push   %r14
+  12a155:	41 55                	push   %r13
+  12a157:	41 54                	push   %r12
+  12a159:	53                   	push   %rbx
+  12a15a:	48 81 ec 00 10 00 00 	sub    $0x1000,%rsp
+  12a161:	48 c7 04 24 00 00 00 	movq   $0x0,(%rsp)
+  12a168:	00 
+  12a169:	48 81 ec d8 0e 00 00 	sub    $0xed8,%rsp
+  12a170:	48 89 fb             	mov    %rdi,%rbx
+  12a173:	48 c7 84 24 c0 00 00 	movq   $0x0,0xc0(%rsp)
+  12a17a:	00 00 00 00 00 
+  12a17f:	48 8d bc 24 20 03 00 	lea    0x320(%rsp),%rdi
+  12a186:	00 
+  12a187:	48 8d 94 24 c0 00 00 	lea    0xc0(%rsp),%rdx
+  12a18e:	00 
+  12a18f:	e8 2c 04 f4 ff       	call   6a5c0 <pyo3::impl_::extract_argument::extract_pyclass_ref_mut::<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>>
+  12a194:	4c 8b a4 24 28 03 00 	mov    0x328(%rsp),%r12
+  12a19b:	00 
+  12a19c:	83 bc 24 20 03 00 00 	cmpl   $0x1,0x320(%rsp)
+  12a1a3:	01 
+  12a1a4:	75 45                	jne    12a1eb <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x9b>
+  12a1a6:	0f 10 84 24 30 03 00 	movups 0x330(%rsp),%xmm0
+  12a1ad:	00 
+  12a1ae:	0f 10 8c 24 40 03 00 	movups 0x340(%rsp),%xmm1
+  12a1b5:	00 
+  12a1b6:	0f 10 94 24 50 03 00 	movups 0x350(%rsp),%xmm2
+  12a1bd:	00 
+  12a1be:	0f 11 53 30          	movups %xmm2,0x30(%rbx)
+  12a1c2:	0f 11 4b 20          	movups %xmm1,0x20(%rbx)
+  12a1c6:	0f 11 43 10          	movups %xmm0,0x10(%rbx)
+  12a1ca:	4c 89 63 08          	mov    %r12,0x8(%rbx)
+  12a1ce:	48 c7 03 01 00 00 00 	movq   $0x1,(%rbx)
+  12a1d5:	48 8b bc 24 c0 00 00 	mov    0xc0(%rsp),%rdi
+  12a1dc:	00 
+  12a1dd:	48 85 ff             	test   %rdi,%rdi
+  12a1e0:	0f 85 f3 06 00 00    	jne    12a8d9 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x789>
+  12a1e6:	e9 04 07 00 00       	jmp    12a8ef <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x79f>
+  12a1eb:	41 bf 07 00 00 00    	mov    $0x7,%r15d
+  12a1f1:	41 80 bc 24 60 19 00 	cmpb   $0x0,0x1960(%r12)
+  12a1f8:	00 00 
+  12a1fa:	74 12                	je     12a20e <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xbe>
+  12a1fc:	4c 8d 35 c4 d0 ef ff 	lea    -0x102f3c(%rip),%r14        # 272c7 <GCC_except_table0+0xd55b>
+  12a203:	41 bd 1e 00 00 00    	mov    $0x1e,%r13d
+  12a209:	e9 65 05 00 00       	jmp    12a773 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x623>
+  12a20e:	4c 8d 35 91 d0 ef ff 	lea    -0x102f6f(%rip),%r14        # 272a6 <GCC_except_table0+0xd53a>
+  12a215:	41 bd 21 00 00 00    	mov    $0x21,%r13d
+  12a21b:	41 83 bc 24 60 03 00 	cmpl   $0x2,0x360(%r12)
+  12a222:	00 02 
+  12a224:	0f 85 49 05 00 00    	jne    12a773 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x623>
+  12a22a:	49 8b 8c 24 38 10 00 	mov    0x1038(%r12),%rcx
+  12a231:	00 
+  12a232:	48 ba cd cc cc cc cc 	movabs $0xcccccccccccccccd,%rdx
+  12a239:	cc cc cc 
+  12a23c:	48 89 c8             	mov    %rcx,%rax
+  12a23f:	48 f7 e2             	mul    %rdx
+  12a242:	31 c0                	xor    %eax,%eax
+  12a244:	48 85 c9             	test   %rcx,%rcx
+  12a247:	74 1f                	je     12a268 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x118>
+  12a249:	48 c1 ea 02          	shr    $0x2,%rdx
+  12a24d:	48 83 e2 fe          	and    $0xfffffffffffffffe,%rdx
+  12a251:	48 8d 14 92          	lea    (%rdx,%rdx,4),%rdx
+  12a255:	48 89 ce             	mov    %rcx,%rsi
+  12a258:	48 29 d6             	sub    %rdx,%rsi
+  12a25b:	75 0b                	jne    12a268 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x118>
+  12a25d:	49 39 8c 24 40 10 00 	cmp    %rcx,0x1040(%r12)
+  12a264:	00 
+  12a265:	0f 95 c0             	setne  %al
+  12a268:	48 81 f9 f9 00 00 00 	cmp    $0xf9,%rcx
+  12a26f:	0f 87 fe 04 00 00    	ja     12a773 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x623>
+  12a275:	84 c0                	test   %al,%al
+  12a277:	0f 85 f6 04 00 00    	jne    12a773 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x623>
+  12a27d:	b8 05 00 00 00       	mov    $0x5,%eax
+  12a282:	49 f7 a4 24 50 10 00 	mulq   0x1050(%r12)
+  12a289:	00 
+  12a28a:	0f 80 60 07 00 00    	jo     12a9f0 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x8a0>
+  12a290:	49 8b ac 24 10 03 00 	mov    0x310(%r12),%rbp
+  12a297:	00 
+  12a298:	48 39 c5             	cmp    %rax,%rbp
+  12a29b:	73 18                	jae    12a2b5 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x165>
+  12a29d:	4c 8d 35 a9 ee ef ff 	lea    -0x101157(%rip),%r14        # 2914d <GCC_except_table0+0xf3e1>
+  12a2a4:	41 bd 29 00 00 00    	mov    $0x29,%r13d
+  12a2aa:	41 bf 03 00 00 00    	mov    $0x3,%r15d
+  12a2b0:	e9 ab 02 00 00       	jmp    12a560 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x410>
+  12a2b5:	48 89 44 24 30       	mov    %rax,0x30(%rsp)
+  12a2ba:	49 8b 84 24 10 19 00 	mov    0x1910(%r12),%rax
+  12a2c1:	00 
+  12a2c2:	48 89 44 24 58       	mov    %rax,0x58(%rsp)
+  12a2c7:	49 8d 94 24 18 19 00 	lea    0x1918(%r12),%rdx
+  12a2ce:	00 
+  12a2cf:	49 8d b4 24 98 12 00 	lea    0x1298(%r12),%rsi
+  12a2d6:	00 
+  12a2d7:	48 8d bc 24 20 03 00 	lea    0x320(%rsp),%rdi
+  12a2de:	00 
+  12a2df:	31 c9                	xor    %ecx,%ecx
+  12a2e1:	e8 fa ba fc ff       	call   f5de0 <<guala_core::joint_uf_vector::physical_source::SourceAssembly>::logical_size>
+  12a2e6:	4c 8b b4 24 28 03 00 	mov    0x328(%rsp),%r14
+  12a2ed:	00 
+  12a2ee:	83 bc 24 20 03 00 00 	cmpl   $0x1,0x320(%rsp)
+  12a2f5:	01 
+  12a2f6:	75 1b                	jne    12a313 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1c3>
+  12a2f8:	4c 8b ac 24 30 03 00 	mov    0x330(%rsp),%r13
+  12a2ff:	00 
+  12a300:	48 8b ac 24 38 03 00 	mov    0x338(%rsp),%rbp
+  12a307:	00 
+  12a308:	41 bf 0c 00 00 00    	mov    $0xc,%r15d
+  12a30e:	e9 4d 02 00 00       	jmp    12a560 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x410>
+  12a313:	49 8d b4 24 88 10 00 	lea    0x1088(%r12),%rsi
+  12a31a:	00 
+  12a31b:	4d 8b ac 24 48 10 00 	mov    0x1048(%r12),%r13
+  12a322:	00 
+  12a323:	48 8d bc 24 20 03 00 	lea    0x320(%rsp),%rdi
+  12a32a:	00 
+  12a32b:	e8 10 88 fc ff       	call   f2b40 <<guala_core::functional64_owner::Functional64Owner>::native_transport_payload>
+  12a330:	48 8b 84 24 20 03 00 	mov    0x320(%rsp),%rax
+  12a337:	00 
+  12a338:	48 8b b4 24 28 03 00 	mov    0x328(%rsp),%rsi
+  12a33f:	00 
+  12a340:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
+  12a344:	0f 84 ab 00 00 00    	je     12a3f5 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2a5>
+  12a34a:	4c 8b ac 24 30 03 00 	mov    0x330(%rsp),%r13
+  12a351:	00 
+  12a352:	48 8b ac 24 38 03 00 	mov    0x338(%rsp),%rbp
+  12a359:	00 
+  12a35a:	4c 8b a4 24 40 03 00 	mov    0x340(%rsp),%r12
+  12a361:	00 
+  12a362:	49 89 c7             	mov    %rax,%r15
+  12a365:	48 8b 84 24 48 03 00 	mov    0x348(%rsp),%rax
+  12a36c:	00 
+  12a36d:	48 89 44 24 30       	mov    %rax,0x30(%rsp)
+  12a372:	0f 10 84 24 50 03 00 	movups 0x350(%rsp),%xmm0
+  12a379:	00 
+  12a37a:	0f 29 84 24 10 03 00 	movaps %xmm0,0x310(%rsp)
+  12a381:	00 
+  12a382:	8b 84 24 60 03 00 00 	mov    0x360(%rsp),%eax
+  12a389:	89 44 24 10          	mov    %eax,0x10(%rsp)
+  12a38d:	8b 84 24 64 03 00 00 	mov    0x364(%rsp),%eax
+  12a394:	89 44 24 18          	mov    %eax,0x18(%rsp)
+  12a398:	0f 10 84 24 68 03 00 	movups 0x368(%rsp),%xmm0
+  12a39f:	00 
+  12a3a0:	0f 29 84 24 50 02 00 	movaps %xmm0,0x250(%rsp)
+  12a3a7:	00 
+  12a3a8:	0f 10 84 24 78 03 00 	movups 0x378(%rsp),%xmm0
+  12a3af:	00 
+  12a3b0:	0f 29 84 24 60 02 00 	movaps %xmm0,0x260(%rsp)
+  12a3b7:	00 
+  12a3b8:	0f 10 84 24 88 03 00 	movups 0x388(%rsp),%xmm0
+  12a3bf:	00 
+  12a3c0:	0f 29 84 24 70 02 00 	movaps %xmm0,0x270(%rsp)
+  12a3c7:	00 
+  12a3c8:	48 8b 84 24 98 03 00 	mov    0x398(%rsp),%rax
+  12a3cf:	00 
+  12a3d0:	48 89 84 24 80 02 00 	mov    %rax,0x280(%rsp)
+  12a3d7:	00 
+  12a3d8:	49 89 f6             	mov    %rsi,%r14
+  12a3db:	48 8d b4 24 a0 03 00 	lea    0x3a0(%rsp),%rsi
+  12a3e2:	00 
+  12a3e3:	48 8d bc 24 40 1c 00 	lea    0x1c40(%rsp),%rdi
+  12a3ea:	00 
+  12a3eb:	ba 98 02 00 00       	mov    $0x298,%edx
+  12a3f0:	e9 65 01 00 00       	jmp    12a55a <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x40a>
+  12a3f5:	4c 89 e8             	mov    %r13,%rax
+  12a3f8:	41 bd 15 00 00 00    	mov    $0x15,%r13d
+  12a3fe:	4c 01 f6             	add    %r14,%rsi
+  12a401:	4c 8d 35 5c 9a ef ff 	lea    -0x1065a4(%rip),%r14        # 23e64 <GCC_except_table0+0xa0f8>
+  12a408:	0f 82 21 07 00 00    	jb     12ab2f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x9df>
+  12a40e:	48 01 c6             	add    %rax,%rsi
+  12a411:	0f 82 18 07 00 00    	jb     12ab2f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x9df>
+  12a417:	48 b8 1f f2 fb ff ff 	movabs $0x3ffffffffffbf21f,%rax
+  12a41e:	ff ff 3f 
+  12a421:	49 8b 94 24 48 19 00 	mov    0x1948(%r12),%rdx
+  12a428:	00 
+  12a429:	48 8d 88 e0 0d 04 00 	lea    0x40de0(%rax),%rcx
+  12a430:	48 39 ca             	cmp    %rcx,%rdx
+  12a433:	0f 87 c7 0a 00 00    	ja     12af00 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xdb0>
+  12a439:	48 39 c2             	cmp    %rax,%rdx
+  12a43c:	0f 87 ed 06 00 00    	ja     12ab2f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x9df>
+  12a442:	48 8d 0c 95 80 37 10 	lea    0x103780(,%rdx,4),%rcx
+  12a449:	00 
+  12a44a:	48 8d 04 95 20 3a 10 	lea    0x103a20(,%rdx,4),%rax
+  12a451:	00 
+  12a452:	48 39 c8             	cmp    %rcx,%rax
+  12a455:	0f 82 d4 06 00 00    	jb     12ab2f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x9df>
+  12a45b:	48 c1 e2 02          	shl    $0x2,%rdx
+  12a45f:	48 81 c2 20 40 10 00 	add    $0x104020,%rdx
+  12a466:	48 39 c2             	cmp    %rax,%rdx
+  12a469:	0f 82 c0 06 00 00    	jb     12ab2f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x9df>
+  12a46f:	48 01 f2             	add    %rsi,%rdx
+  12a472:	48 89 54 24 10       	mov    %rdx,0x10(%rsp)
+  12a477:	0f 82 b2 06 00 00    	jb     12ab2f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x9df>
+  12a47d:	49 8d b4 24 00 03 00 	lea    0x300(%r12),%rsi
+  12a484:	00 
+  12a485:	48 8d bc 24 20 03 00 	lea    0x320(%rsp),%rdi
+  12a48c:	00 
+  12a48d:	49 8d 94 24 88 10 00 	lea    0x1088(%r12),%rdx
+  12a494:	00 
+  12a495:	e8 e6 90 00 00       	call   133580 <<guala_core::functional64_material::MaterialAllocationBasis>::source_payload_bound>
+  12a49a:	48 8b 84 24 20 03 00 	mov    0x320(%rsp),%rax
+  12a4a1:	00 
+  12a4a2:	48 8b 8c 24 28 03 00 	mov    0x328(%rsp),%rcx
+  12a4a9:	00 
+  12a4aa:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
+  12a4ae:	0f 84 29 01 00 00    	je     12a5dd <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x48d>
+  12a4b4:	4c 8b ac 24 30 03 00 	mov    0x330(%rsp),%r13
+  12a4bb:	00 
+  12a4bc:	48 8b ac 24 38 03 00 	mov    0x338(%rsp),%rbp
+  12a4c3:	00 
+  12a4c4:	4c 8b a4 24 40 03 00 	mov    0x340(%rsp),%r12
+  12a4cb:	00 
+  12a4cc:	49 89 c7             	mov    %rax,%r15
+  12a4cf:	48 8b 84 24 48 03 00 	mov    0x348(%rsp),%rax
+  12a4d6:	00 
+  12a4d7:	48 89 44 24 30       	mov    %rax,0x30(%rsp)
+  12a4dc:	0f 10 84 24 50 03 00 	movups 0x350(%rsp),%xmm0
+  12a4e3:	00 
+  12a4e4:	0f 29 84 24 10 03 00 	movaps %xmm0,0x310(%rsp)
+  12a4eb:	00 
+  12a4ec:	8b 84 24 60 03 00 00 	mov    0x360(%rsp),%eax
+  12a4f3:	89 44 24 10          	mov    %eax,0x10(%rsp)
+  12a4f7:	8b 84 24 64 03 00 00 	mov    0x364(%rsp),%eax
+  12a4fe:	89 44 24 18          	mov    %eax,0x18(%rsp)
+  12a502:	0f 10 84 24 68 03 00 	movups 0x368(%rsp),%xmm0
+  12a509:	00 
+  12a50a:	0f 29 84 24 50 02 00 	movaps %xmm0,0x250(%rsp)
+  12a511:	00 
+  12a512:	0f 10 84 24 78 03 00 	movups 0x378(%rsp),%xmm0
+  12a519:	00 
+  12a51a:	0f 29 84 24 60 02 00 	movaps %xmm0,0x260(%rsp)
+  12a521:	00 
+  12a522:	0f 10 84 24 88 03 00 	movups 0x388(%rsp),%xmm0
+  12a529:	00 
+  12a52a:	0f 29 84 24 70 02 00 	movaps %xmm0,0x270(%rsp)
+  12a531:	00 
+  12a532:	48 8b 84 24 98 03 00 	mov    0x398(%rsp),%rax
+  12a539:	00 
+  12a53a:	48 89 84 24 80 02 00 	mov    %rax,0x280(%rsp)
+  12a541:	00 
+  12a542:	48 8d b4 24 a0 03 00 	lea    0x3a0(%rsp),%rsi
+  12a549:	00 
+  12a54a:	48 8d bc 24 40 1c 00 	lea    0x1c40(%rsp),%rdi
+  12a551:	00 
+  12a552:	ba 98 02 00 00       	mov    $0x298,%edx
+  12a557:	49 89 ce             	mov    %rcx,%r14
+  12a55a:	ff 15 d0 c7 0b 00    	call   *0xbc7d0(%rip)        # 1e6d30 <memcpy@GLIBC_2.14>
+  12a560:	0f 28 84 24 10 03 00 	movaps 0x310(%rsp),%xmm0
+  12a567:	00 
+  12a568:	0f 29 84 24 60 01 00 	movaps %xmm0,0x160(%rsp)
+  12a56f:	00 
+  12a570:	0f 28 84 24 50 02 00 	movaps 0x250(%rsp),%xmm0
+  12a577:	00 
+  12a578:	0f 28 8c 24 60 02 00 	movaps 0x260(%rsp),%xmm1
+  12a57f:	00 
+  12a580:	0f 28 94 24 70 02 00 	movaps 0x270(%rsp),%xmm2
+  12a587:	00 
+  12a588:	0f 29 84 24 e0 00 00 	movaps %xmm0,0xe0(%rsp)
+  12a58f:	00 
+  12a590:	0f 29 8c 24 f0 00 00 	movaps %xmm1,0xf0(%rsp)
+  12a597:	00 
+  12a598:	0f 29 94 24 00 01 00 	movaps %xmm2,0x100(%rsp)
+  12a59f:	00 
+  12a5a0:	48 8b 84 24 80 02 00 	mov    0x280(%rsp),%rax
+  12a5a7:	00 
+  12a5a8:	48 89 84 24 10 01 00 	mov    %rax,0x110(%rsp)
+  12a5af:	00 
+  12a5b0:	48 8d bc 24 98 16 00 	lea    0x1698(%rsp),%rdi
+  12a5b7:	00 
+  12a5b8:	48 8d b4 24 40 1c 00 	lea    0x1c40(%rsp),%rsi
+  12a5bf:	00 
+  12a5c0:	ba 98 02 00 00       	mov    $0x298,%edx
+  12a5c5:	ff 15 65 c7 0b 00    	call   *0xbc765(%rip)        # 1e6d30 <memcpy@GLIBC_2.14>
+  12a5cb:	48 8b 4c 24 30       	mov    0x30(%rsp),%rcx
+  12a5d0:	8b 54 24 10          	mov    0x10(%rsp),%edx
+  12a5d4:	8b 74 24 18          	mov    0x18(%rsp),%esi
+  12a5d8:	e9 96 01 00 00       	jmp    12a773 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x623>
+  12a5dd:	49 8b 84 24 58 03 00 	mov    0x358(%r12),%rax
+  12a5e4:	00 
+  12a5e5:	48 89 44 24 50       	mov    %rax,0x50(%rsp)
+  12a5ea:	48 89 4c 24 70       	mov    %rcx,0x70(%rsp)
+  12a5ef:	48 01 c8             	add    %rcx,%rax
+  12a5f2:	48 89 44 24 18       	mov    %rax,0x18(%rsp)
+  12a5f7:	0f 82 32 05 00 00    	jb     12ab2f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x9df>
+  12a5fd:	49 83 bc 24 a8 12 00 	cmpq   $0x2e,0x12a8(%r12)
+  12a604:	00 2e 
+  12a606:	0f 85 db 00 00 00    	jne    12a6e7 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x597>
+  12a60c:	49 83 bc 24 e8 10 00 	cmpq   $0x1,0x10e8(%r12)
+  12a613:	00 01 
+  12a615:	0f 87 cc 00 00 00    	ja     12a6e7 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x597>
+  12a61b:	48 8d bc 24 20 03 00 	lea    0x320(%rsp),%rdi
+  12a622:	00 
+  12a623:	49 8d b4 24 98 12 00 	lea    0x1298(%r12),%rsi
+  12a62a:	00 
+  12a62b:	ba 01 00 00 00       	mov    $0x1,%edx
+  12a630:	49 8d 8c 24 18 19 00 	lea    0x1918(%r12),%rcx
+  12a637:	00 
+  12a638:	e8 83 79 fc ff       	call   f1fc0 <<guala_core::joint_uf_vector::physical_source::SourceAssembly>::actual_snapshot_size>
+  12a63d:	80 bc 24 20 03 00 00 	cmpb   $0x0,0x320(%rsp)
+  12a644:	00 
+  12a645:	74 0d                	je     12a654 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x504>
+  12a647:	4c 8b b4 24 28 03 00 	mov    0x328(%rsp),%r14
+  12a64e:	00 
+  12a64f:	e9 a4 fc ff ff       	jmp    12a2f8 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1a8>
+  12a654:	49 8b 84 24 88 15 00 	mov    0x1588(%r12),%rax
+  12a65b:	00 
+  12a65c:	48 83 f8 df          	cmp    $0xffffffffffffffdf,%rax
+  12a660:	0f 87 c9 04 00 00    	ja     12ab2f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x9df>
+  12a666:	48 83 c0 20          	add    $0x20,%rax
+  12a66a:	48 8b 8c 24 48 03 00 	mov    0x348(%rsp),%rcx
+  12a671:	00 
+  12a672:	48 01 c1             	add    %rax,%rcx
+  12a675:	48 8b 54 24 30       	mov    0x30(%rsp),%rdx
+  12a67a:	0f 82 af 04 00 00    	jb     12ab2f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x9df>
+  12a680:	48 03 4c 24 18       	add    0x18(%rsp),%rcx
+  12a685:	0f 82 a4 04 00 00    	jb     12ab2f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x9df>
+  12a68b:	48 8b 74 24 50       	mov    0x50(%rsp),%rsi
+  12a690:	48 29 ee             	sub    %rbp,%rsi
+  12a693:	73 18                	jae    12a6ad <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x55d>
+  12a695:	41 bf 04 00 00 00    	mov    $0x4,%r15d
+  12a69b:	4c 8d 35 d4 ea ef ff 	lea    -0x10152c(%rip),%r14        # 29176 <GCC_except_table0+0xf40a>
+  12a6a2:	41 bd 17 00 00 00    	mov    $0x17,%r13d
+  12a6a8:	e9 b3 fe ff ff       	jmp    12a560 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x410>
+  12a6ad:	48 01 d6             	add    %rdx,%rsi
+  12a6b0:	0f 82 75 15 00 00    	jb     12bc2b <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1adb>
+  12a6b6:	48 03 84 24 50 03 00 	add    0x350(%rsp),%rax
+  12a6bd:	00 
+  12a6be:	48 8b 54 24 70       	mov    0x70(%rsp),%rdx
+  12a6c3:	0f 82 66 04 00 00    	jb     12ab2f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x9df>
+  12a6c9:	48 01 d0             	add    %rdx,%rax
+  12a6cc:	0f 82 5d 04 00 00    	jb     12ab2f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x9df>
+  12a6d2:	48 01 f0             	add    %rsi,%rax
+  12a6d5:	0f 82 54 04 00 00    	jb     12ab2f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x9df>
+  12a6db:	48 39 c8             	cmp    %rcx,%rax
+  12a6de:	48 0f 47 c8          	cmova  %rax,%rcx
+  12a6e2:	48 89 4c 24 18       	mov    %rcx,0x18(%rsp)
+  12a6e7:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+  12a6ec:	48 03 44 24 10       	add    0x10(%rsp),%rax
+  12a6f1:	0f 82 38 04 00 00    	jb     12ab2f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x9df>
+  12a6f7:	4c 8b 6c 24 58       	mov    0x58(%rsp),%r13
+  12a6fc:	4c 39 e8             	cmp    %r13,%rax
+  12a6ff:	76 0e                	jbe    12a70f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x5bf>
+  12a701:	49 89 c6             	mov    %rax,%r14
+  12a704:	41 bf 0a 00 00 00    	mov    $0xa,%r15d
+  12a70a:	e9 51 fe ff ff       	jmp    12a560 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x410>
+  12a70f:	b8 e8 03 00 00       	mov    $0x3e8,%eax
+  12a714:	49 f7 ac 24 a8 11 00 	imulq  0x11a8(%r12)
+  12a71b:	00 
+  12a71c:	4d 8b ac 24 b0 11 00 	mov    0x11b0(%r12),%r13
+  12a723:	00 
+  12a724:	4d 85 ed             	test   %r13,%r13
+  12a727:	0f 84 9c 1e 00 00    	je     12c5c9 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2479>
+  12a72d:	49 89 c6             	mov    %rax,%r14
+  12a730:	48 89 d5             	mov    %rdx,%rbp
+  12a733:	48 89 c7             	mov    %rax,%rdi
+  12a736:	48 89 d6             	mov    %rdx,%rsi
+  12a739:	4c 89 ea             	mov    %r13,%rdx
+  12a73c:	31 c9                	xor    %ecx,%ecx
+  12a73e:	ff 15 a4 c7 0b 00    	call   *0xbc7a4(%rip)        # 1e6ee8 <_DYNAMIC+0x420>
+  12a744:	48 89 c7             	mov    %rax,%rdi
+  12a747:	48 89 d1             	mov    %rdx,%rcx
+  12a74a:	48 89 d6             	mov    %rdx,%rsi
+  12a74d:	49 f7 e5             	mul    %r13
+  12a750:	49 0f af f5          	imul   %r13,%rsi
+  12a754:	48 01 f2             	add    %rsi,%rdx
+  12a757:	49 29 c6             	sub    %rax,%r14
+  12a75a:	48 19 d5             	sbb    %rdx,%rbp
+  12a75d:	4c 09 f5             	or     %r14,%rbp
+  12a760:	0f 84 b2 01 00 00    	je     12a918 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x7c8>
+  12a766:	4c 8d 35 ab f0 ef ff 	lea    -0x100f55(%rip),%r14        # 29818 <GCC_except_table0+0xfaac>
+  12a76d:	41 bd 2b 00 00 00    	mov    $0x2b,%r13d
+  12a773:	4c 89 bc 24 20 03 00 	mov    %r15,0x320(%rsp)
+  12a77a:	00 
+  12a77b:	4c 89 b4 24 28 03 00 	mov    %r14,0x328(%rsp)
+  12a782:	00 
+  12a783:	4c 89 ac 24 30 03 00 	mov    %r13,0x330(%rsp)
+  12a78a:	00 
+  12a78b:	48 89 ac 24 38 03 00 	mov    %rbp,0x338(%rsp)
+  12a792:	00 
+  12a793:	4c 89 a4 24 40 03 00 	mov    %r12,0x340(%rsp)
+  12a79a:	00 
+  12a79b:	48 89 8c 24 48 03 00 	mov    %rcx,0x348(%rsp)
+  12a7a2:	00 
+  12a7a3:	0f 28 84 24 60 01 00 	movaps 0x160(%rsp),%xmm0
+  12a7aa:	00 
+  12a7ab:	0f 11 84 24 50 03 00 	movups %xmm0,0x350(%rsp)
+  12a7b2:	00 
+  12a7b3:	89 94 24 60 03 00 00 	mov    %edx,0x360(%rsp)
+  12a7ba:	89 b4 24 64 03 00 00 	mov    %esi,0x364(%rsp)
+  12a7c1:	0f 28 84 24 e0 00 00 	movaps 0xe0(%rsp),%xmm0
+  12a7c8:	00 
+  12a7c9:	0f 28 8c 24 f0 00 00 	movaps 0xf0(%rsp),%xmm1
+  12a7d0:	00 
+  12a7d1:	0f 28 94 24 00 01 00 	movaps 0x100(%rsp),%xmm2
+  12a7d8:	00 
+  12a7d9:	0f 11 84 24 68 03 00 	movups %xmm0,0x368(%rsp)
+  12a7e0:	00 
+  12a7e1:	0f 11 8c 24 78 03 00 	movups %xmm1,0x378(%rsp)
+  12a7e8:	00 
+  12a7e9:	0f 11 94 24 88 03 00 	movups %xmm2,0x388(%rsp)
+  12a7f0:	00 
+  12a7f1:	48 8b 84 24 10 01 00 	mov    0x110(%rsp),%rax
+  12a7f8:	00 
+  12a7f9:	48 89 84 24 98 03 00 	mov    %rax,0x398(%rsp)
+  12a800:	00 
+  12a801:	48 8d bc 24 a0 03 00 	lea    0x3a0(%rsp),%rdi
+  12a808:	00 
+  12a809:	48 8d b4 24 98 16 00 	lea    0x1698(%rsp),%rsi
+  12a810:	00 
+  12a811:	ba 98 02 00 00       	mov    $0x298,%edx
+  12a816:	ff 15 14 c5 0b 00    	call   *0xbc514(%rip)        # 1e6d30 <memcpy@GLIBC_2.14>
+  12a81c:	48 8d 84 24 20 03 00 	lea    0x320(%rsp),%rax
+  12a823:	00 
+  12a824:	48 89 84 24 f0 12 00 	mov    %rax,0x12f0(%rsp)
+  12a82b:	00 
+  12a82c:	48 8d 05 1d b7 05 00 	lea    0x5b71d(%rip),%rax        # 185f50 <<guala_core::functional64_owner::OwnerError as core::fmt::Debug>::fmt>
+  12a833:	48 89 84 24 f8 12 00 	mov    %rax,0x12f8(%rsp)
+  12a83a:	00 
+  12a83b:	48 8d 35 08 4f ef ff 	lea    -0x10b0f8(%rip),%rsi        # 1f74a <GCC_except_table0+0x59de>
+  12a842:	48 8d bc 24 c0 0d 00 	lea    0xdc0(%rsp),%rdi
+  12a849:	00 
+  12a84a:	48 8d 94 24 f0 12 00 	lea    0x12f0(%rsp),%rdx
+  12a851:	00 
+  12a852:	e8 29 0c 06 00       	call   18b480 <alloc::fmt::format::format_inner>
+  12a857:	4c 8b bc 24 c0 0d 00 	mov    0xdc0(%rsp),%r15
+  12a85e:	00 
+  12a85f:	4c 8b b4 24 c8 0d 00 	mov    0xdc8(%rsp),%r14
+  12a866:	00 
+  12a867:	4c 8b a4 24 d0 0d 00 	mov    0xdd0(%rsp),%r12
+  12a86e:	00 
+  12a86f:	bf 18 00 00 00       	mov    $0x18,%edi
+  12a874:	ff 15 5e c4 0b 00    	call   *0xbc45e(%rip)        # 1e6cd8 <malloc@GLIBC_2.2.5>
+  12a87a:	48 85 c0             	test   %rax,%rax
+  12a87d:	0f 84 81 00 00 00    	je     12a904 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x7b4>
+  12a883:	4c 89 38             	mov    %r15,(%rax)
+  12a886:	4c 89 70 08          	mov    %r14,0x8(%rax)
+  12a88a:	4c 89 60 10          	mov    %r12,0x10(%rax)
+  12a88e:	0f 57 c0             	xorps  %xmm0,%xmm0
+  12a891:	41 be 01 00 00 00    	mov    $0x1,%r14d
+  12a897:	41 bf 03 00 00 00    	mov    $0x3,%r15d
+  12a89d:	4c 8d 25 ac f9 0a 00 	lea    0xaf9ac(%rip),%r12        # 1da250 <__frame_dummy_init_array_entry+0x450>
+  12a8a4:	45 31 ed             	xor    %r13d,%r13d
+  12a8a7:	4c 89 73 08          	mov    %r14,0x8(%rbx)
+  12a8ab:	4c 89 6b 10          	mov    %r13,0x10(%rbx)
+  12a8af:	48 89 43 18          	mov    %rax,0x18(%rbx)
+  12a8b3:	4c 89 63 20          	mov    %r12,0x20(%rbx)
+  12a8b7:	0f 11 43 28          	movups %xmm0,0x28(%rbx)
+  12a8bb:	b8 01 00 00 00       	mov    $0x1,%eax
+  12a8c0:	b9 38 00 00 00       	mov    $0x38,%ecx
+  12a8c5:	4c 89 3c 0b          	mov    %r15,(%rbx,%rcx,1)
+  12a8c9:	48 89 03             	mov    %rax,(%rbx)
+  12a8cc:	48 8b bc 24 c0 00 00 	mov    0xc0(%rsp),%rdi
+  12a8d3:	00 
+  12a8d4:	48 85 ff             	test   %rdi,%rdi
+  12a8d7:	74 16                	je     12a8ef <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x79f>
+  12a8d9:	48 c7 87 80 19 00 00 	movq   $0x0,0x1980(%rdi)
+  12a8e0:	00 00 00 00 
+  12a8e4:	48 ff 0f             	decq   (%rdi)
+  12a8e7:	75 06                	jne    12a8ef <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x79f>
+  12a8e9:	ff 15 09 c4 0b 00    	call   *0xbc409(%rip)        # 1e6cf8 <_Py_Dealloc>
+  12a8ef:	48 89 d8             	mov    %rbx,%rax
+  12a8f2:	48 81 c4 d8 1e 00 00 	add    $0x1ed8,%rsp
+  12a8f9:	5b                   	pop    %rbx
+  12a8fa:	41 5c                	pop    %r12
+  12a8fc:	41 5d                	pop    %r13
+  12a8fe:	41 5e                	pop    %r14
+  12a900:	41 5f                	pop    %r15
+  12a902:	5d                   	pop    %rbp
+  12a903:	c3                   	ret
+  12a904:	bf 08 00 00 00       	mov    $0x8,%edi
+  12a909:	be 18 00 00 00       	mov    $0x18,%esi
+  12a90e:	e8 03 07 06 00       	call   18b016 <alloc::alloc::handle_alloc_error>
+  12a913:	e9 dd 1c 00 00       	jmp    12c5f5 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x24a5>
+  12a918:	48 b8 00 00 00 00 00 	movabs $0x8000000000000000,%rax
+  12a91f:	00 00 80 
+  12a922:	48 01 f8             	add    %rdi,%rax
+  12a925:	48 83 d1 ff          	adc    $0xffffffffffffffff,%rcx
+  12a929:	48 83 f9 ff          	cmp    $0xffffffffffffffff,%rcx
+  12a92d:	74 18                	je     12a947 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x7f7>
+  12a92f:	4c 8d 35 c8 ee ef ff 	lea    -0x101138(%rip),%r14        # 297fe <GCC_except_table0+0xfa92>
+  12a936:	41 bd 1a 00 00 00    	mov    $0x1a,%r13d
+  12a93c:	41 bf 09 00 00 00    	mov    $0x9,%r15d
+  12a942:	e9 2c fe ff ff       	jmp    12a773 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x623>
+  12a947:	48 89 7c 24 58       	mov    %rdi,0x58(%rsp)
+  12a94c:	48 ff c7             	inc    %rdi
+  12a94f:	0f 80 fb 13 00 00    	jo     12bd50 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1c00>
+  12a955:	49 8b 84 24 c0 15 00 	mov    0x15c0(%r12),%rax
+  12a95c:	00 
+  12a95d:	48 85 c0             	test   %rax,%rax
+  12a960:	74 7c                	je     12a9de <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x88e>
+  12a962:	48 89 44 24 30       	mov    %rax,0x30(%rsp)
+  12a967:	48 89 7c 24 50       	mov    %rdi,0x50(%rsp)
+  12a96c:	48 8b 74 24 58       	mov    0x58(%rsp),%rsi
+  12a971:	49 8b 84 24 c0 12 00 	mov    0x12c0(%r12),%rax
+  12a978:	00 
+  12a979:	48 89 44 24 10       	mov    %rax,0x10(%rsp)
+  12a97e:	4d 8b b4 24 c8 12 00 	mov    0x12c8(%r12),%r14
+  12a985:	00 
+  12a986:	48 89 f0             	mov    %rsi,%rax
+  12a989:	48 f7 d8             	neg    %rax
+  12a98c:	48 0f 48 c6          	cmovs  %rsi,%rax
+  12a990:	ba e8 03 00 00       	mov    $0x3e8,%edx
+  12a995:	48 89 84 24 90 00 00 	mov    %rax,0x90(%rsp)
+  12a99c:	00 
+  12a99d:	eb 0c                	jmp    12a9ab <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x85b>
+  12a99f:	31 d2                	xor    %edx,%edx
+  12a9a1:	f7 f1                	div    %ecx
+  12a9a3:	48 89 c8             	mov    %rcx,%rax
+  12a9a6:	48 85 d2             	test   %rdx,%rdx
+  12a9a9:	74 19                	je     12a9c4 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x874>
+  12a9ab:	48 89 d1             	mov    %rdx,%rcx
+  12a9ae:	48 89 c2             	mov    %rax,%rdx
+  12a9b1:	48 c1 ea 20          	shr    $0x20,%rdx
+  12a9b5:	74 e8                	je     12a99f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x84f>
+  12a9b7:	31 d2                	xor    %edx,%edx
+  12a9b9:	48 f7 f1             	div    %rcx
+  12a9bc:	48 89 c8             	mov    %rcx,%rax
+  12a9bf:	48 85 d2             	test   %rdx,%rdx
+  12a9c2:	75 e7                	jne    12a9ab <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x85b>
+  12a9c4:	48 c1 ee 20          	shr    $0x20,%rsi
+  12a9c8:	48 89 74 24 70       	mov    %rsi,0x70(%rsp)
+  12a9cd:	74 33                	je     12aa02 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x8b2>
+  12a9cf:	48 8b 44 24 58       	mov    0x58(%rsp),%rax
+  12a9d4:	48 99                	cqto
+  12a9d6:	48 f7 f9             	idiv   %rcx
+  12a9d9:	48 89 c6             	mov    %rax,%rsi
+  12a9dc:	eb 2f                	jmp    12aa0d <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x8bd>
+  12a9de:	4c 8d 35 00 c8 ef ff 	lea    -0x103800(%rip),%r14        # 271e5 <GCC_except_table0+0xd479>
+  12a9e5:	41 bd 26 00 00 00    	mov    $0x26,%r13d
+  12a9eb:	e9 83 fd ff ff       	jmp    12a773 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x623>
+  12a9f0:	4c 8d 35 64 89 ef ff 	lea    -0x10769c(%rip),%r14        # 2335b <GCC_except_table0+0x95ef>
+  12a9f7:	41 bd 1d 00 00 00    	mov    $0x1d,%r13d
+  12a9fd:	e9 a8 f8 ff ff       	jmp    12a2aa <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x15a>
+  12aa02:	48 8b 44 24 58       	mov    0x58(%rsp),%rax
+  12aa07:	31 d2                	xor    %edx,%edx
+  12aa09:	f7 f1                	div    %ecx
+  12aa0b:	89 c6                	mov    %eax,%esi
+  12aa0d:	b8 e8 03 00 00       	mov    $0x3e8,%eax
+  12aa12:	31 d2                	xor    %edx,%edx
+  12aa14:	f7 f1                	div    %ecx
+  12aa16:	31 d2                	xor    %edx,%edx
+  12aa18:	48 89 f5             	mov    %rsi,%rbp
+  12aa1b:	48 f7 dd             	neg    %rbp
+  12aa1e:	48 89 74 24 18       	mov    %rsi,0x18(%rsp)
+  12aa23:	48 0f 48 ee          	cmovs  %rsi,%rbp
+  12aa27:	49 89 c7             	mov    %rax,%r15
+  12aa2a:	45 31 ed             	xor    %r13d,%r13d
+  12aa2d:	4c 89 ee             	mov    %r13,%rsi
+  12aa30:	48 89 ef             	mov    %rbp,%rdi
+  12aa33:	49 89 d5             	mov    %rdx,%r13
+  12aa36:	48 89 c5             	mov    %rax,%rbp
+  12aa39:	48 89 c2             	mov    %rax,%rdx
+  12aa3c:	4c 89 e9             	mov    %r13,%rcx
+  12aa3f:	ff 15 73 c4 0b 00    	call   *0xbc473(%rip)        # 1e6eb8 <_DYNAMIC+0x3f0>
+  12aa45:	48 89 c1             	mov    %rax,%rcx
+  12aa48:	48 09 d1             	or     %rdx,%rcx
+  12aa4b:	75 e0                	jne    12aa2d <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x8dd>
+  12aa4d:	48 83 f5 01          	xor    $0x1,%rbp
+  12aa51:	4c 09 ed             	or     %r13,%rbp
+  12aa54:	0f 85 bb 00 00 00    	jne    12ab15 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x9c5>
+  12aa5a:	4b 8d 04 76          	lea    (%r14,%r14,2),%rax
+  12aa5e:	48 c1 e0 04          	shl    $0x4,%rax
+  12aa62:	4d 85 f6             	test   %r14,%r14
+  12aa65:	48 8b 4c 24 10       	mov    0x10(%rsp),%rcx
+  12aa6a:	48 8d 4c 01 d0       	lea    -0x30(%rcx,%rax,1),%rcx
+  12aa6f:	49 0f 44 ce          	cmove  %r14,%rcx
+  12aa73:	49 8d 94 24 d0 12 00 	lea    0x12d0(%r12),%rdx
+  12aa7a:	00 
+  12aa7b:	48 8b 74 24 30       	mov    0x30(%rsp),%rsi
+  12aa80:	48 83 c6 10          	add    $0x10,%rsi
+  12aa84:	49 8d bc 24 18 19 00 	lea    0x1918(%r12),%rdi
+  12aa8b:	00 
+  12aa8c:	48 8b 47 40          	mov    0x40(%rdi),%rax
+  12aa90:	48 89 84 24 60 03 00 	mov    %rax,0x360(%rsp)
+  12aa97:	00 
+  12aa98:	0f 10 07             	movups (%rdi),%xmm0
+  12aa9b:	0f 10 4f 10          	movups 0x10(%rdi),%xmm1
+  12aa9f:	0f 10 57 20          	movups 0x20(%rdi),%xmm2
+  12aaa3:	0f 10 5f 30          	movups 0x30(%rdi),%xmm3
+  12aaa7:	0f 29 9c 24 50 03 00 	movaps %xmm3,0x350(%rsp)
+  12aaae:	00 
+  12aaaf:	0f 29 94 24 40 03 00 	movaps %xmm2,0x340(%rsp)
+  12aab6:	00 
+  12aab7:	0f 29 8c 24 30 03 00 	movaps %xmm1,0x330(%rsp)
+  12aabe:	00 
+  12aabf:	0f 29 84 24 20 03 00 	movaps %xmm0,0x320(%rsp)
+  12aac6:	00 
+  12aac7:	48 8d 84 24 20 03 00 	lea    0x320(%rsp),%rax
+  12aace:	00 
+  12aacf:	48 89 04 24          	mov    %rax,(%rsp)
+  12aad3:	48 8d bc 24 08 0b 00 	lea    0xb08(%rsp),%rdi
+  12aada:	00 
+  12aadb:	4c 8b 44 24 18       	mov    0x18(%rsp),%r8
+  12aae0:	4d 89 f9             	mov    %r15,%r9
+  12aae3:	e8 d8 48 04 00       	call   16f3c0 <guala_core::joint_uf_vector::physical_source::power_for_next_millisecond>
+  12aae8:	4c 8b b4 24 10 0b 00 	mov    0xb10(%rsp),%r14
+  12aaef:	00 
+  12aaf0:	4c 8b ac 24 18 0b 00 	mov    0xb18(%rsp),%r13
+  12aaf7:	00 
+  12aaf8:	48 8b ac 24 20 0b 00 	mov    0xb20(%rsp),%rbp
+  12aaff:	00 
+  12ab00:	80 bc 24 08 0b 00 00 	cmpb   $0x0,0xb08(%rsp)
+  12ab07:	00 
+  12ab08:	74 30                	je     12ab3a <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x9ea>
+  12ab0a:	41 bf 0c 00 00 00    	mov    $0xc,%r15d
+  12ab10:	e9 5e fc ff ff       	jmp    12a773 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x623>
+  12ab15:	41 bf 0c 00 00 00    	mov    $0xc,%r15d
+  12ab1b:	4c 8d 2d 11 a5 ef ff 	lea    -0x105aef(%rip),%r13        # 25033 <GCC_except_table0+0xb2c7>
+  12ab22:	bd 2c 00 00 00       	mov    $0x2c,%ebp
+  12ab27:	45 31 f6             	xor    %r14d,%r14d
+  12ab2a:	e9 44 fc ff ff       	jmp    12a773 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x623>
+  12ab2f:	41 bf 08 00 00 00    	mov    $0x8,%r15d
+  12ab35:	e9 26 fa ff ff       	jmp    12a560 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x410>
+  12ab3a:	4c 89 b4 24 78 01 00 	mov    %r14,0x178(%rsp)
+  12ab41:	00 
+  12ab42:	4c 89 ac 24 80 01 00 	mov    %r13,0x180(%rsp)
+  12ab49:	00 
+  12ab4a:	48 89 ac 24 88 01 00 	mov    %rbp,0x188(%rsp)
+  12ab51:	00 
+  12ab52:	49 8b b4 24 d0 15 00 	mov    0x15d0(%r12),%rsi
+  12ab59:	00 
+  12ab5a:	48 85 f6             	test   %rsi,%rsi
+  12ab5d:	0f 84 d4 00 00 00    	je     12ac37 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xae7>
+  12ab63:	49 8b 94 24 c8 15 00 	mov    0x15c8(%r12),%rdx
+  12ab6a:	00 
+  12ab6b:	48 85 d2             	test   %rdx,%rdx
+  12ab6e:	74 64                	je     12abd4 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xa84>
+  12ab70:	48 83 c6 10          	add    $0x10,%rsi
+  12ab74:	48 83 c2 10          	add    $0x10,%rdx
+  12ab78:	49 8b 8c 24 18 19 00 	mov    0x1918(%r12),%rcx
+  12ab7f:	00 
+  12ab80:	4d 8b 84 24 48 19 00 	mov    0x1948(%r12),%r8
+  12ab87:	00 
+  12ab88:	b0 01                	mov    $0x1,%al
+  12ab8a:	89 44 24 08          	mov    %eax,0x8(%rsp)
+  12ab8e:	48 8d bc 24 20 03 00 	lea    0x320(%rsp),%rdi
+  12ab95:	00 
+  12ab96:	e8 35 40 04 00       	call   16ebd0 <guala_core::joint_uf_vector::physical_source::auditory_power_packets>
+  12ab9b:	48 8b 94 24 28 03 00 	mov    0x328(%rsp),%rdx
+  12aba2:	00 
+  12aba3:	48 8b 8c 24 30 03 00 	mov    0x330(%rsp),%rcx
+  12abaa:	00 
+  12abab:	48 8b 84 24 38 03 00 	mov    0x338(%rsp),%rax
+  12abb2:	00 
+  12abb3:	80 bc 24 20 03 00 00 	cmpb   $0x0,0x320(%rsp)
+  12abba:	00 
+  12abbb:	74 3e                	je     12abfb <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xaab>
+  12abbd:	48 89 54 24 28       	mov    %rdx,0x28(%rsp)
+  12abc2:	48 8d 54 24 60       	lea    0x60(%rsp),%rdx
+  12abc7:	48 8d 74 24 48       	lea    0x48(%rsp),%rsi
+  12abcc:	41 bf 0c 00 00 00    	mov    $0xc,%r15d
+  12abd2:	eb 1c                	jmp    12abf0 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xaa0>
+  12abd4:	b8 18 00 00 00       	mov    $0x18,%eax
+  12abd9:	48 8d 54 24 48       	lea    0x48(%rsp),%rdx
+  12abde:	48 8d 0d 26 c6 ef ff 	lea    -0x1039da(%rip),%rcx        # 2720b <GCC_except_table0+0xd49f>
+  12abe5:	48 8d 74 24 28       	lea    0x28(%rsp),%rsi
+  12abea:	41 bf 07 00 00 00    	mov    $0x7,%r15d
+  12abf0:	48 89 0e             	mov    %rcx,(%rsi)
+  12abf3:	48 89 02             	mov    %rax,(%rdx)
+  12abf6:	e9 80 06 00 00       	jmp    12b27b <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x112b>
+  12abfb:	48 c1 e0 07          	shl    $0x7,%rax
+  12abff:	48 01 c8             	add    %rcx,%rax
+  12ac02:	48 89 8c 24 20 03 00 	mov    %rcx,0x320(%rsp)
+  12ac09:	00 
+  12ac0a:	48 89 94 24 30 03 00 	mov    %rdx,0x330(%rsp)
+  12ac11:	00 
+  12ac12:	48 89 8c 24 28 03 00 	mov    %rcx,0x328(%rsp)
+  12ac19:	00 
+  12ac1a:	48 89 84 24 38 03 00 	mov    %rax,0x338(%rsp)
+  12ac21:	00 
+  12ac22:	48 8d bc 24 78 01 00 	lea    0x178(%rsp),%rdi
+  12ac29:	00 
+  12ac2a:	48 8d b4 24 20 03 00 	lea    0x320(%rsp),%rsi
+  12ac31:	00 
+  12ac32:	e8 29 0b 05 00       	call   17b760 <<alloc::vec::Vec<guala_core::functional64_material::PowerPacket> as alloc::vec::spec_extend::SpecExtend<guala_core::functional64_material::PowerPacket, alloc::vec::into_iter::IntoIter<guala_core::functional64_material::PowerPacket>>>::spec_extend>
+  12ac37:	b0 01                	mov    $0x1,%al
+  12ac39:	89 44 24 08          	mov    %eax,0x8(%rsp)
+  12ac3d:	48 8d bc 24 a0 00 00 	lea    0xa0(%rsp),%rdi
+  12ac44:	00 
+  12ac45:	49 8d b4 24 98 12 00 	lea    0x1298(%r12),%rsi
+  12ac4c:	00 
+  12ac4d:	e8 8e b8 05 00       	call   1864e0 <<guala_core::joint_uf_vector::physical_source::SourceAssembly as core::clone::Clone>::clone>
+  12ac52:	41 0f 10 84 24 88 12 	movups 0x1288(%r12),%xmm0
+  12ac59:	00 00 
+  12ac5b:	0f 29 84 24 00 03 00 	movaps %xmm0,0x300(%rsp)
+  12ac62:	00 
+  12ac63:	49 8b 84 24 70 12 00 	mov    0x1270(%r12),%rax
+  12ac6a:	00 
+  12ac6b:	48 89 84 24 30 01 00 	mov    %rax,0x130(%rsp)
+  12ac72:	00 
+  12ac73:	49 8b 84 24 78 12 00 	mov    0x1278(%r12),%rax
+  12ac7a:	00 
+  12ac7b:	48 89 84 24 20 01 00 	mov    %rax,0x120(%rsp)
+  12ac82:	00 
+  12ac83:	49 8b 84 24 80 12 00 	mov    0x1280(%r12),%rax
+  12ac8a:	00 
+  12ac8b:	48 89 84 24 28 01 00 	mov    %rax,0x128(%rsp)
+  12ac92:	00 
+  12ac93:	49 8b 84 24 58 12 00 	mov    0x1258(%r12),%rax
+  12ac9a:	00 
+  12ac9b:	48 89 84 24 88 00 00 	mov    %rax,0x88(%rsp)
+  12aca2:	00 
+  12aca3:	49 8b 84 24 60 12 00 	mov    0x1260(%r12),%rax
+  12acaa:	00 
+  12acab:	48 89 84 24 38 01 00 	mov    %rax,0x138(%rsp)
+  12acb2:	00 
+  12acb3:	49 8b 84 24 68 12 00 	mov    0x1268(%r12),%rax
+  12acba:	00 
+  12acbb:	48 89 84 24 40 01 00 	mov    %rax,0x140(%rsp)
+  12acc2:	00 
+  12acc3:	48 83 bc 24 b0 00 00 	cmpq   $0x2e,0xb0(%rsp)
+  12acca:	00 2e 
+  12accc:	0f 85 d2 01 00 00    	jne    12aea4 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xd54>
+  12acd2:	49 83 bc 24 e8 10 00 	cmpq   $0x1,0x10e8(%r12)
+  12acd9:	00 01 
+  12acdb:	0f 87 c3 01 00 00    	ja     12aea4 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xd54>
+  12ace1:	49 8d 8c 24 18 19 00 	lea    0x1918(%r12),%rcx
+  12ace8:	00 
+  12ace9:	48 8b 41 40          	mov    0x40(%rcx),%rax
+  12aced:	48 89 84 24 60 03 00 	mov    %rax,0x360(%rsp)
+  12acf4:	00 
+  12acf5:	0f 10 01             	movups (%rcx),%xmm0
+  12acf8:	0f 10 49 10          	movups 0x10(%rcx),%xmm1
+  12acfc:	0f 10 51 20          	movups 0x20(%rcx),%xmm2
+  12ad00:	0f 10 59 30          	movups 0x30(%rcx),%xmm3
+  12ad04:	0f 29 9c 24 50 03 00 	movaps %xmm3,0x350(%rsp)
+  12ad0b:	00 
+  12ad0c:	0f 29 94 24 40 03 00 	movaps %xmm2,0x340(%rsp)
+  12ad13:	00 
+  12ad14:	0f 29 8c 24 30 03 00 	movaps %xmm1,0x330(%rsp)
+  12ad1b:	00 
+  12ad1c:	0f 29 84 24 20 03 00 	movaps %xmm0,0x320(%rsp)
+  12ad23:	00 
+  12ad24:	48 8d bc 24 08 0b 00 	lea    0xb08(%rsp),%rdi
+  12ad2b:	00 
+  12ad2c:	48 8d b4 24 a0 00 00 	lea    0xa0(%rsp),%rsi
+  12ad33:	00 
+  12ad34:	48 8d 94 24 20 03 00 	lea    0x320(%rsp),%rdx
+  12ad3b:	00 
+  12ad3c:	e8 af 65 f9 ff       	call   c12f0 <<guala_core::joint_uf_vector::physical_source::SourceAssembly>::complete>
+  12ad41:	4c 8b ac 24 10 0b 00 	mov    0xb10(%rsp),%r13
+  12ad48:	00 
+  12ad49:	49 83 fd ff          	cmp    $0xffffffffffffffff,%r13
+  12ad4d:	0f 84 8a 02 00 00    	je     12afdd <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xe8d>
+  12ad53:	48 8b 84 24 08 0b 00 	mov    0xb08(%rsp),%rax
+  12ad5a:	00 
+  12ad5b:	48 8b ac 24 18 0b 00 	mov    0xb18(%rsp),%rbp
+  12ad62:	00 
+  12ad63:	4c 8b b4 24 20 0b 00 	mov    0xb20(%rsp),%r14
+  12ad6a:	00 
+  12ad6b:	48 8b 8c 24 28 0b 00 	mov    0xb28(%rsp),%rcx
+  12ad72:	00 
+  12ad73:	48 89 ac 24 10 0b 00 	mov    %rbp,0xb10(%rsp)
+  12ad7a:	00 
+  12ad7b:	4c 89 b4 24 18 0b 00 	mov    %r14,0xb18(%rsp)
+  12ad82:	00 
+  12ad83:	48 89 4c 24 30       	mov    %rcx,0x30(%rsp)
+  12ad88:	48 89 8c 24 20 0b 00 	mov    %rcx,0xb20(%rsp)
+  12ad8f:	00 
+  12ad90:	4c 89 ac 24 08 0b 00 	mov    %r13,0xb08(%rsp)
+  12ad97:	00 
+  12ad98:	48 89 44 24 20       	mov    %rax,0x20(%rsp)
+  12ad9d:	48 83 78 78 00       	cmpq   $0x0,0x78(%rax)
+  12ada2:	0f 84 89 04 00 00    	je     12b231 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x10e1>
+  12ada8:	48 8b 44 24 20       	mov    0x20(%rsp),%rax
+  12adad:	48 8b 40 70          	mov    0x70(%rax),%rax
+  12adb1:	48 8b 70 10          	mov    0x10(%rax),%rsi
+  12adb5:	48 8b 50 18          	mov    0x18(%rax),%rdx
+  12adb9:	48 8d bc 24 20 03 00 	lea    0x320(%rsp),%rdi
+  12adc0:	00 
+  12adc1:	e8 da 5b 02 00       	call   1509a0 <guala_core::functional64_owner::milliseconds>
+  12adc6:	4c 8b bc 24 20 03 00 	mov    0x320(%rsp),%r15
+  12adcd:	00 
+  12adce:	48 8b 84 24 28 03 00 	mov    0x328(%rsp),%rax
+  12add5:	00 
+  12add6:	48 89 44 24 68       	mov    %rax,0x68(%rsp)
+  12addb:	49 83 ff ff          	cmp    $0xffffffffffffffff,%r15
+  12addf:	0f 84 33 03 00 00    	je     12b118 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xfc8>
+  12ade5:	48 8b 84 24 30 03 00 	mov    0x330(%rsp),%rax
+  12adec:	00 
+  12aded:	48 8b 8c 24 38 03 00 	mov    0x338(%rsp),%rcx
+  12adf4:	00 
+  12adf5:	48 89 44 24 48       	mov    %rax,0x48(%rsp)
+  12adfa:	48 89 4c 24 60       	mov    %rcx,0x60(%rsp)
+  12adff:	4c 8b a4 24 40 03 00 	mov    0x340(%rsp),%r12
+  12ae06:	00 
+  12ae07:	48 8b 84 24 48 03 00 	mov    0x348(%rsp),%rax
+  12ae0e:	00 
+  12ae0f:	48 89 44 24 30       	mov    %rax,0x30(%rsp)
+  12ae14:	0f 10 84 24 50 03 00 	movups 0x350(%rsp),%xmm0
+  12ae1b:	00 
+  12ae1c:	0f 29 84 24 60 01 00 	movaps %xmm0,0x160(%rsp)
+  12ae23:	00 
+  12ae24:	8b 84 24 60 03 00 00 	mov    0x360(%rsp),%eax
+  12ae2b:	89 44 24 10          	mov    %eax,0x10(%rsp)
+  12ae2f:	8b 84 24 64 03 00 00 	mov    0x364(%rsp),%eax
+  12ae36:	89 44 24 18          	mov    %eax,0x18(%rsp)
+  12ae3a:	0f 10 84 24 68 03 00 	movups 0x368(%rsp),%xmm0
+  12ae41:	00 
+  12ae42:	0f 29 84 24 e0 00 00 	movaps %xmm0,0xe0(%rsp)
+  12ae49:	00 
+  12ae4a:	0f 10 84 24 78 03 00 	movups 0x378(%rsp),%xmm0
+  12ae51:	00 
+  12ae52:	0f 29 84 24 f0 00 00 	movaps %xmm0,0xf0(%rsp)
+  12ae59:	00 
+  12ae5a:	0f 10 84 24 88 03 00 	movups 0x388(%rsp),%xmm0
+  12ae61:	00 
+  12ae62:	0f 29 84 24 00 01 00 	movaps %xmm0,0x100(%rsp)
+  12ae69:	00 
+  12ae6a:	48 8b 84 24 98 03 00 	mov    0x398(%rsp),%rax
+  12ae71:	00 
+  12ae72:	48 89 84 24 10 01 00 	mov    %rax,0x110(%rsp)
+  12ae79:	00 
+  12ae7a:	48 8d b4 24 a0 03 00 	lea    0x3a0(%rsp),%rsi
+  12ae81:	00 
+  12ae82:	48 8d bc 24 98 16 00 	lea    0x1698(%rsp),%rdi
+  12ae89:	00 
+  12ae8a:	ba 98 02 00 00       	mov    $0x298,%edx
+  12ae8f:	ff 15 9b be 0b 00    	call   *0xbbe9b(%rip)        # 1e6d30 <memcpy@GLIBC_2.14>
+  12ae95:	48 8b 44 24 68       	mov    0x68(%rsp),%rax
+  12ae9a:	48 89 44 24 28       	mov    %rax,0x28(%rsp)
+  12ae9f:	e9 a8 03 00 00       	jmp    12b24c <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x10fc>
+  12aea4:	48 c7 84 24 08 02 00 	movq   $0x0,0x208(%rsp)
+  12aeab:	00 00 00 00 00 
+  12aeb0:	c7 44 24 08 00 00 00 	movl   $0x0,0x8(%rsp)
+  12aeb7:	00 
+  12aeb8:	ba e8 03 00 00       	mov    $0x3e8,%edx
+  12aebd:	48 8b 84 24 90 00 00 	mov    0x90(%rsp),%rax
+  12aec4:	00 
+  12aec5:	eb 0c                	jmp    12aed3 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xd83>
+  12aec7:	31 d2                	xor    %edx,%edx
+  12aec9:	f7 f1                	div    %ecx
+  12aecb:	48 89 c8             	mov    %rcx,%rax
+  12aece:	48 85 d2             	test   %rdx,%rdx
+  12aed1:	74 19                	je     12aeec <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xd9c>
+  12aed3:	48 89 d1             	mov    %rdx,%rcx
+  12aed6:	48 89 c2             	mov    %rax,%rdx
+  12aed9:	48 c1 ea 20          	shr    $0x20,%rdx
+  12aedd:	74 e8                	je     12aec7 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xd77>
+  12aedf:	31 d2                	xor    %edx,%edx
+  12aee1:	48 f7 f1             	div    %rcx
+  12aee4:	48 89 c8             	mov    %rcx,%rax
+  12aee7:	48 85 d2             	test   %rdx,%rdx
+  12aeea:	75 e7                	jne    12aed3 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xd83>
+  12aeec:	48 83 7c 24 70 00    	cmpq   $0x0,0x70(%rsp)
+  12aef2:	74 24                	je     12af18 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xdc8>
+  12aef4:	48 8b 44 24 58       	mov    0x58(%rsp),%rax
+  12aef9:	48 99                	cqto
+  12aefb:	48 f7 f9             	idiv   %rcx
+  12aefe:	eb 21                	jmp    12af21 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xdd1>
+  12af00:	4c 8d 35 04 d4 ef ff 	lea    -0x102bfc(%rip),%r14        # 2830b <GCC_except_table0+0xe59f>
+  12af07:	41 bd 17 00 00 00    	mov    $0x17,%r13d
+  12af0d:	41 bf 08 00 00 00    	mov    $0x8,%r15d
+  12af13:	e9 48 f6 ff ff       	jmp    12a560 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x410>
+  12af18:	48 8b 44 24 58       	mov    0x58(%rsp),%rax
+  12af1d:	31 d2                	xor    %edx,%edx
+  12af1f:	f7 f1                	div    %ecx
+  12af21:	48 89 44 24 30       	mov    %rax,0x30(%rsp)
+  12af26:	b8 e8 03 00 00       	mov    $0x3e8,%eax
+  12af2b:	31 d2                	xor    %edx,%edx
+  12af2d:	f7 f1                	div    %ecx
+  12af2f:	31 d2                	xor    %edx,%edx
+  12af31:	48 89 44 24 10       	mov    %rax,0x10(%rsp)
+  12af36:	48 8b 4c 24 30       	mov    0x30(%rsp),%rcx
+  12af3b:	49 89 cd             	mov    %rcx,%r13
+  12af3e:	49 f7 dd             	neg    %r13
+  12af41:	4c 0f 48 e9          	cmovs  %rcx,%r13
+  12af45:	31 ed                	xor    %ebp,%ebp
+  12af47:	4c 8b 35 6a bf 0b 00 	mov    0xbbf6a(%rip),%r14        # 1e6eb8 <_DYNAMIC+0x3f0>
+  12af4e:	48 89 ee             	mov    %rbp,%rsi
+  12af51:	4c 89 ef             	mov    %r13,%rdi
+  12af54:	48 89 d5             	mov    %rdx,%rbp
+  12af57:	49 89 c5             	mov    %rax,%r13
+  12af5a:	48 89 c2             	mov    %rax,%rdx
+  12af5d:	48 89 e9             	mov    %rbp,%rcx
+  12af60:	41 ff d6             	call   *%r14
+  12af63:	48 89 c1             	mov    %rax,%rcx
+  12af66:	48 09 d1             	or     %rdx,%rcx
+  12af69:	75 e3                	jne    12af4e <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xdfe>
+  12af6b:	49 83 f5 01          	xor    $0x1,%r13
+  12af6f:	49 09 ed             	or     %rbp,%r13
+  12af72:	0f 85 4c 01 00 00    	jne    12b0c4 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xf74>
+  12af78:	48 8b 44 24 50       	mov    0x50(%rsp),%rax
+  12af7d:	48 89 c1             	mov    %rax,%rcx
+  12af80:	48 f7 d9             	neg    %rcx
+  12af83:	48 0f 48 c8          	cmovs  %rax,%rcx
+  12af87:	ba e8 03 00 00       	mov    $0x3e8,%edx
+  12af8c:	48 89 4c 24 70       	mov    %rcx,0x70(%rsp)
+  12af91:	48 89 c8             	mov    %rcx,%rax
+  12af94:	eb 0c                	jmp    12afa2 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xe52>
+  12af96:	31 d2                	xor    %edx,%edx
+  12af98:	f7 f1                	div    %ecx
+  12af9a:	48 89 c8             	mov    %rcx,%rax
+  12af9d:	48 85 d2             	test   %rdx,%rdx
+  12afa0:	74 19                	je     12afbb <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xe6b>
+  12afa2:	48 89 d1             	mov    %rdx,%rcx
+  12afa5:	48 89 c2             	mov    %rax,%rdx
+  12afa8:	48 c1 ea 20          	shr    $0x20,%rdx
+  12afac:	74 e8                	je     12af96 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xe46>
+  12afae:	31 d2                	xor    %edx,%edx
+  12afb0:	48 f7 f1             	div    %rcx
+  12afb3:	48 89 c8             	mov    %rcx,%rax
+  12afb6:	48 85 d2             	test   %rdx,%rdx
+  12afb9:	75 e7                	jne    12afa2 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xe52>
+  12afbb:	48 8b 44 24 50       	mov    0x50(%rsp),%rax
+  12afc0:	48 c1 e8 20          	shr    $0x20,%rax
+  12afc4:	48 89 84 24 90 00 00 	mov    %rax,0x90(%rsp)
+  12afcb:	00 
+  12afcc:	74 41                	je     12b00f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xebf>
+  12afce:	48 8b 44 24 50       	mov    0x50(%rsp),%rax
+  12afd3:	48 99                	cqto
+  12afd5:	48 f7 f9             	idiv   %rcx
+  12afd8:	49 89 c6             	mov    %rax,%r14
+  12afdb:	eb 3e                	jmp    12b01b <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xecb>
+  12afdd:	48 8b 84 24 18 0b 00 	mov    0xb18(%rsp),%rax
+  12afe4:	00 
+  12afe5:	48 8b 8c 24 20 0b 00 	mov    0xb20(%rsp),%rcx
+  12afec:	00 
+  12afed:	48 8b 94 24 28 0b 00 	mov    0xb28(%rsp),%rdx
+  12aff4:	00 
+  12aff5:	48 89 44 24 28       	mov    %rax,0x28(%rsp)
+  12affa:	48 89 4c 24 48       	mov    %rcx,0x48(%rsp)
+  12afff:	48 89 54 24 60       	mov    %rdx,0x60(%rsp)
+  12b004:	41 bf 0c 00 00 00    	mov    $0xc,%r15d
+  12b00a:	e9 5f 02 00 00       	jmp    12b26e <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x111e>
+  12b00f:	48 8b 44 24 50       	mov    0x50(%rsp),%rax
+  12b014:	31 d2                	xor    %edx,%edx
+  12b016:	f7 f1                	div    %ecx
+  12b018:	41 89 c6             	mov    %eax,%r14d
+  12b01b:	b8 e8 03 00 00       	mov    $0x3e8,%eax
+  12b020:	31 d2                	xor    %edx,%edx
+  12b022:	f7 f1                	div    %ecx
+  12b024:	31 d2                	xor    %edx,%edx
+  12b026:	48 89 44 24 18       	mov    %rax,0x18(%rsp)
+  12b02b:	4c 89 f5             	mov    %r14,%rbp
+  12b02e:	48 f7 dd             	neg    %rbp
+  12b031:	49 0f 48 ee          	cmovs  %r14,%rbp
+  12b035:	45 31 ed             	xor    %r13d,%r13d
+  12b038:	4c 8b 3d 79 be 0b 00 	mov    0xbbe79(%rip),%r15        # 1e6eb8 <_DYNAMIC+0x3f0>
+  12b03f:	4c 89 ee             	mov    %r13,%rsi
+  12b042:	48 89 ef             	mov    %rbp,%rdi
+  12b045:	49 89 d5             	mov    %rdx,%r13
+  12b048:	48 89 c5             	mov    %rax,%rbp
+  12b04b:	48 89 c2             	mov    %rax,%rdx
+  12b04e:	4c 89 e9             	mov    %r13,%rcx
+  12b051:	41 ff d7             	call   *%r15
+  12b054:	48 89 c1             	mov    %rax,%rcx
+  12b057:	48 09 d1             	or     %rdx,%rcx
+  12b05a:	75 e3                	jne    12b03f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xeef>
+  12b05c:	48 83 f5 01          	xor    $0x1,%rbp
+  12b060:	4c 09 ed             	or     %r13,%rbp
+  12b063:	75 5f                	jne    12b0c4 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xf74>
+  12b065:	b8 05 00 00 00       	mov    $0x5,%eax
+  12b06a:	49 f7 a4 24 50 10 00 	mulq   0x1050(%r12)
+  12b071:	00 
+  12b072:	0f 80 40 15 00 00    	jo     12c5b8 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2468>
+  12b078:	49 8b 8c 24 10 03 00 	mov    0x310(%r12),%rcx
+  12b07f:	00 
+  12b080:	48 29 c1             	sub    %rax,%rcx
+  12b083:	0f 83 b0 04 00 00    	jae    12b539 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x13e9>
+  12b089:	48 8d 05 bd e0 ef ff 	lea    -0x101f43(%rip),%rax        # 2914d <GCC_except_table0+0xf3e1>
+  12b090:	b9 29 00 00 00       	mov    $0x29,%ecx
+  12b095:	48 89 44 24 28       	mov    %rax,0x28(%rsp)
+  12b09a:	48 89 4c 24 48       	mov    %rcx,0x48(%rsp)
+  12b09f:	48 8d bc 24 08 02 00 	lea    0x208(%rsp),%rdi
+  12b0a6:	00 
+  12b0a7:	e8 64 65 f3 ff       	call   61610 <core::ptr::drop_glue::<core::option::Option<(alloc::sync::Arc<guala_core::joint_uf_vector::SharedJointField>, alloc::sync::Arc<[u8]>, guala_core::joint_uf_vector::ExactTime)>>>
+  12b0ac:	48 8d bc 24 78 01 00 	lea    0x178(%rsp),%rdi
+  12b0b3:	00 
+  12b0b4:	e8 d7 6c f3 ff       	call   61d90 <core::ptr::drop_glue::<alloc::vec::Vec<guala_core::functional64_material::PowerPacket>>>
+  12b0b9:	41 bf 03 00 00 00    	mov    $0x3,%r15d
+  12b0bf:	e9 a5 06 00 00       	jmp    12b769 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1619>
+  12b0c4:	48 c7 44 24 28 00 00 	movq   $0x0,0x28(%rsp)
+  12b0cb:	00 00 
+  12b0cd:	48 8d 05 5f 9f ef ff 	lea    -0x1060a1(%rip),%rax        # 25033 <GCC_except_table0+0xb2c7>
+  12b0d4:	48 89 44 24 48       	mov    %rax,0x48(%rsp)
+  12b0d9:	48 c7 44 24 60 2c 00 	movq   $0x2c,0x60(%rsp)
+  12b0e0:	00 00 
+  12b0e2:	48 8d bc 24 08 02 00 	lea    0x208(%rsp),%rdi
+  12b0e9:	00 
+  12b0ea:	e8 21 65 f3 ff       	call   61610 <core::ptr::drop_glue::<core::option::Option<(alloc::sync::Arc<guala_core::joint_uf_vector::SharedJointField>, alloc::sync::Arc<[u8]>, guala_core::joint_uf_vector::ExactTime)>>>
+  12b0ef:	b0 01                	mov    $0x1,%al
+  12b0f1:	89 44 24 08          	mov    %eax,0x8(%rsp)
+  12b0f5:	41 bf 0c 00 00 00    	mov    $0xc,%r15d
+  12b0fb:	48 8d bc 24 a0 00 00 	lea    0xa0(%rsp),%rdi
+  12b102:	00 
+  12b103:	e8 e8 a1 f3 ff       	call   652f0 <core::ptr::drop_glue::<guala_core::joint_uf_vector::physical_source::SourceAssembly>>
+  12b108:	80 7c 24 08 00       	cmpb   $0x0,0x8(%rsp)
+  12b10d:	0f 84 75 01 00 00    	je     12b288 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1138>
+  12b113:	e9 63 01 00 00       	jmp    12b27b <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x112b>
+  12b118:	48 8b 44 24 20       	mov    0x20(%rsp),%rax
+  12b11d:	48 8b 40 78          	mov    0x78(%rax),%rax
+  12b121:	48 85 c0             	test   %rax,%rax
+  12b124:	0f 84 07 01 00 00    	je     12b231 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x10e1>
+  12b12a:	48 8b 4c 24 20       	mov    0x20(%rsp),%rcx
+  12b12f:	48 8b 49 70          	mov    0x70(%rcx),%rcx
+  12b133:	48 8d 04 40          	lea    (%rax,%rax,2),%rax
+  12b137:	48 c1 e0 04          	shl    $0x4,%rax
+  12b13b:	48 8b 74 01 e0       	mov    -0x20(%rcx,%rax,1),%rsi
+  12b140:	48 8b 54 01 e8       	mov    -0x18(%rcx,%rax,1),%rdx
+  12b145:	48 8d bc 24 20 03 00 	lea    0x320(%rsp),%rdi
+  12b14c:	00 
+  12b14d:	e8 4e 58 02 00       	call   1509a0 <guala_core::functional64_owner::milliseconds>
+  12b152:	4c 8b bc 24 20 03 00 	mov    0x320(%rsp),%r15
+  12b159:	00 
+  12b15a:	48 8b 84 24 28 03 00 	mov    0x328(%rsp),%rax
+  12b161:	00 
+  12b162:	48 89 84 24 80 00 00 	mov    %rax,0x80(%rsp)
+  12b169:	00 
+  12b16a:	49 83 ff ff          	cmp    $0xffffffffffffffff,%r15
+  12b16e:	0f 84 05 09 00 00    	je     12ba79 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1929>
+  12b174:	48 8b 84 24 30 03 00 	mov    0x330(%rsp),%rax
+  12b17b:	00 
+  12b17c:	48 8b 8c 24 38 03 00 	mov    0x338(%rsp),%rcx
+  12b183:	00 
+  12b184:	48 89 44 24 48       	mov    %rax,0x48(%rsp)
+  12b189:	48 89 4c 24 60       	mov    %rcx,0x60(%rsp)
+  12b18e:	4c 8b a4 24 40 03 00 	mov    0x340(%rsp),%r12
+  12b195:	00 
+  12b196:	48 8b 84 24 48 03 00 	mov    0x348(%rsp),%rax
+  12b19d:	00 
+  12b19e:	48 89 44 24 30       	mov    %rax,0x30(%rsp)
+  12b1a3:	0f 10 84 24 50 03 00 	movups 0x350(%rsp),%xmm0
+  12b1aa:	00 
+  12b1ab:	0f 29 84 24 60 01 00 	movaps %xmm0,0x160(%rsp)
+  12b1b2:	00 
+  12b1b3:	8b 84 24 60 03 00 00 	mov    0x360(%rsp),%eax
+  12b1ba:	89 44 24 10          	mov    %eax,0x10(%rsp)
+  12b1be:	8b 84 24 64 03 00 00 	mov    0x364(%rsp),%eax
+  12b1c5:	89 44 24 18          	mov    %eax,0x18(%rsp)
+  12b1c9:	0f 10 84 24 68 03 00 	movups 0x368(%rsp),%xmm0
+  12b1d0:	00 
+  12b1d1:	0f 29 84 24 e0 00 00 	movaps %xmm0,0xe0(%rsp)
+  12b1d8:	00 
+  12b1d9:	0f 10 84 24 78 03 00 	movups 0x378(%rsp),%xmm0
+  12b1e0:	00 
+  12b1e1:	0f 29 84 24 f0 00 00 	movaps %xmm0,0xf0(%rsp)
+  12b1e8:	00 
+  12b1e9:	0f 10 84 24 88 03 00 	movups 0x388(%rsp),%xmm0
+  12b1f0:	00 
+  12b1f1:	0f 29 84 24 00 01 00 	movaps %xmm0,0x100(%rsp)
+  12b1f8:	00 
+  12b1f9:	48 8b 84 24 98 03 00 	mov    0x398(%rsp),%rax
+  12b200:	00 
+  12b201:	48 89 84 24 10 01 00 	mov    %rax,0x110(%rsp)
+  12b208:	00 
+  12b209:	48 8d b4 24 a0 03 00 	lea    0x3a0(%rsp),%rsi
+  12b210:	00 
+  12b211:	48 8d bc 24 98 16 00 	lea    0x1698(%rsp),%rdi
+  12b218:	00 
+  12b219:	ba 98 02 00 00       	mov    $0x298,%edx
+  12b21e:	ff 15 0c bb 0b 00    	call   *0xbbb0c(%rip)        # 1e6d30 <memcpy@GLIBC_2.14>
+  12b224:	48 8b 84 24 80 00 00 	mov    0x80(%rsp),%rax
+  12b22b:	00 
+  12b22c:	e9 69 fc ff ff       	jmp    12ae9a <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xd4a>
+  12b231:	48 8d 05 eb bf ef ff 	lea    -0x104015(%rip),%rax        # 27223 <GCC_except_table0+0xd4b7>
+  12b238:	48 89 44 24 28       	mov    %rax,0x28(%rsp)
+  12b23d:	48 c7 44 24 48 15 00 	movq   $0x15,0x48(%rsp)
+  12b244:	00 00 
+  12b246:	41 bf 07 00 00 00    	mov    $0x7,%r15d
+  12b24c:	48 8d bc 24 08 0b 00 	lea    0xb08(%rsp),%rdi
+  12b253:	00 
+  12b254:	e8 97 a0 f3 ff       	call   652f0 <core::ptr::drop_glue::<guala_core::joint_uf_vector::physical_source::SourceAssembly>>
+  12b259:	48 8b 44 24 20       	mov    0x20(%rsp),%rax
+  12b25e:	f0 48 ff 08          	lock decq (%rax)
+  12b262:	75 0a                	jne    12b26e <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x111e>
+  12b264:	48 8b 7c 24 20       	mov    0x20(%rsp),%rdi
+  12b269:	e8 92 82 ff ff       	call   123500 <<alloc::sync::Arc<guala_core::joint_uf_vector::JointSource>>::drop_slow>
+  12b26e:	48 8d bc 24 a0 00 00 	lea    0xa0(%rsp),%rdi
+  12b275:	00 
+  12b276:	e8 75 a0 f3 ff       	call   652f0 <core::ptr::drop_glue::<guala_core::joint_uf_vector::physical_source::SourceAssembly>>
+  12b27b:	48 8d bc 24 78 01 00 	lea    0x178(%rsp),%rdi
+  12b282:	00 
+  12b283:	e8 08 6b f3 ff       	call   61d90 <core::ptr::drop_glue::<alloc::vec::Vec<guala_core::functional64_material::PowerPacket>>>
+  12b288:	4c 8b 74 24 28       	mov    0x28(%rsp),%r14
+  12b28d:	4c 8b 6c 24 48       	mov    0x48(%rsp),%r13
+  12b292:	48 8b 6c 24 60       	mov    0x60(%rsp),%rbp
+  12b297:	49 83 ff ff          	cmp    $0xffffffffffffffff,%r15
+  12b29b:	48 8b 4c 24 30       	mov    0x30(%rsp),%rcx
+  12b2a0:	8b 54 24 10          	mov    0x10(%rsp),%edx
+  12b2a4:	8b 74 24 18          	mov    0x18(%rsp),%esi
+  12b2a8:	0f 85 c5 f4 ff ff    	jne    12a773 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x623>
+  12b2ae:	0f 28 84 24 60 01 00 	movaps 0x160(%rsp),%xmm0
+  12b2b5:	00 
+  12b2b6:	0f 11 84 24 b0 02 00 	movups %xmm0,0x2b0(%rsp)
+  12b2bd:	00 
+  12b2be:	0f 28 84 24 e0 00 00 	movaps 0xe0(%rsp),%xmm0
+  12b2c5:	00 
+  12b2c6:	0f 28 8c 24 f0 00 00 	movaps 0xf0(%rsp),%xmm1
+  12b2cd:	00 
+  12b2ce:	0f 28 94 24 00 01 00 	movaps 0x100(%rsp),%xmm2
+  12b2d5:	00 
+  12b2d6:	0f 11 84 24 c8 02 00 	movups %xmm0,0x2c8(%rsp)
+  12b2dd:	00 
+  12b2de:	0f 11 8c 24 d8 02 00 	movups %xmm1,0x2d8(%rsp)
+  12b2e5:	00 
+  12b2e6:	0f 11 94 24 e8 02 00 	movups %xmm2,0x2e8(%rsp)
+  12b2ed:	00 
+  12b2ee:	48 8b 84 24 10 01 00 	mov    0x110(%rsp),%rax
+  12b2f5:	00 
+  12b2f6:	48 89 84 24 f8 02 00 	mov    %rax,0x2f8(%rsp)
+  12b2fd:	00 
+  12b2fe:	4c 89 b4 24 88 02 00 	mov    %r14,0x288(%rsp)
+  12b305:	00 
+  12b306:	4c 89 ac 24 90 02 00 	mov    %r13,0x290(%rsp)
+  12b30d:	00 
+  12b30e:	48 89 ac 24 98 02 00 	mov    %rbp,0x298(%rsp)
+  12b315:	00 
+  12b316:	4d 89 e7             	mov    %r12,%r15
+  12b319:	4c 89 a4 24 a0 02 00 	mov    %r12,0x2a0(%rsp)
+  12b320:	00 
+  12b321:	48 89 8c 24 a8 02 00 	mov    %rcx,0x2a8(%rsp)
+  12b328:	00 
+  12b329:	89 94 24 c0 02 00 00 	mov    %edx,0x2c0(%rsp)
+  12b330:	89 b4 24 c4 02 00 00 	mov    %esi,0x2c4(%rsp)
+  12b337:	44 8b a4 24 e8 02 00 	mov    0x2e8(%rsp),%r12d
+  12b33e:	00 
+  12b33f:	8b 84 24 ec 02 00 00 	mov    0x2ec(%rsp),%eax
+  12b346:	89 44 24 30          	mov    %eax,0x30(%rsp)
+  12b34a:	8b 84 24 f0 02 00 00 	mov    0x2f0(%rsp),%eax
+  12b351:	89 44 24 10          	mov    %eax,0x10(%rsp)
+  12b355:	8b 84 24 f4 02 00 00 	mov    0x2f4(%rsp),%eax
+  12b35c:	89 44 24 18          	mov    %eax,0x18(%rsp)
+  12b360:	8b 84 24 f8 02 00 00 	mov    0x2f8(%rsp),%eax
+  12b367:	89 44 24 58          	mov    %eax,0x58(%rsp)
+  12b36b:	8b 84 24 fc 02 00 00 	mov    0x2fc(%rsp),%eax
+  12b372:	89 44 24 50          	mov    %eax,0x50(%rsp)
+  12b376:	48 8d bc 24 20 03 00 	lea    0x320(%rsp),%rdi
+  12b37d:	00 
+  12b37e:	4c 89 ee             	mov    %r13,%rsi
+  12b381:	48 89 ea             	mov    %rbp,%rdx
+  12b384:	e8 67 52 03 00       	call   1605f0 <guala_core::functional64_owner_boundary::paid_rows>
+  12b389:	4c 8b b4 24 28 03 00 	mov    0x328(%rsp),%r14
+  12b390:	00 
+  12b391:	83 bc 24 20 03 00 00 	cmpl   $0x1,0x320(%rsp)
+  12b398:	01 
+  12b399:	75 47                	jne    12b3e2 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1292>
+  12b39b:	4c 8b ac 24 30 03 00 	mov    0x330(%rsp),%r13
+  12b3a2:	00 
+  12b3a3:	48 8b ac 24 38 03 00 	mov    0x338(%rsp),%rbp
+  12b3aa:	00 
+  12b3ab:	4c 8b a4 24 40 03 00 	mov    0x340(%rsp),%r12
+  12b3b2:	00 
+  12b3b3:	0f 10 84 24 48 03 00 	movups 0x348(%rsp),%xmm0
+  12b3ba:	00 
+  12b3bb:	0f 29 44 24 30       	movaps %xmm0,0x30(%rsp)
+  12b3c0:	4c 8b bc 24 58 03 00 	mov    0x358(%rsp),%r15
+  12b3c7:	00 
+  12b3c8:	48 8d bc 24 88 02 00 	lea    0x288(%rsp),%rdi
+  12b3cf:	00 
+  12b3d0:	e8 ab 6a f3 ff       	call   61e80 <core::ptr::drop_glue::<alloc::vec::Vec<guala_core::functional64_material::PaidThermalWork>>>
+  12b3d5:	0f 28 44 24 30       	movaps 0x30(%rsp),%xmm0
+  12b3da:	48 89 e8             	mov    %rbp,%rax
+  12b3dd:	e9 c5 f4 ff ff       	jmp    12a8a7 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x757>
+  12b3e2:	48 8d bc 24 a8 02 00 	lea    0x2a8(%rsp),%rdi
+  12b3e9:	00 
+  12b3ea:	be 20 00 00 00       	mov    $0x20,%esi
+  12b3ef:	e8 1c 17 07 00       	call   19cb10 <<pyo3::types::bytes::PyBytes>::new>
+  12b3f4:	48 89 44 24 70       	mov    %rax,0x70(%rsp)
+  12b3f9:	48 8d bc 24 c8 02 00 	lea    0x2c8(%rsp),%rdi
+  12b400:	00 
+  12b401:	be 20 00 00 00       	mov    $0x20,%esi
+  12b406:	e8 05 17 07 00       	call   19cb10 <<pyo3::types::bytes::PyBytes>::new>
+  12b40b:	48 89 84 24 90 00 00 	mov    %rax,0x90(%rsp)
+  12b412:	00 
+  12b413:	48 8d bc 24 88 02 00 	lea    0x288(%rsp),%rdi
+  12b41a:	00 
+  12b41b:	e8 60 6a f3 ff       	call   61e80 <core::ptr::drop_glue::<alloc::vec::Vec<guala_core::functional64_material::PaidThermalWork>>>
+  12b420:	4c 89 ff             	mov    %r15,%rdi
+  12b423:	e8 48 bd 07 00       	call   1a7170 <<i64 as pyo3::conversion::IntoPyObject>::into_pyobject>
+  12b428:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
+  12b42d:	44 89 e7             	mov    %r12d,%edi
+  12b430:	e8 bb ba 07 00       	call   1a6ef0 <<i32 as pyo3::conversion::IntoPyObject>::into_pyobject>
+  12b435:	48 89 44 24 20       	mov    %rax,0x20(%rsp)
+  12b43a:	8b 7c 24 30          	mov    0x30(%rsp),%edi
+  12b43e:	e8 ad ba 07 00       	call   1a6ef0 <<i32 as pyo3::conversion::IntoPyObject>::into_pyobject>
+  12b443:	49 89 c5             	mov    %rax,%r13
+  12b446:	8b 7c 24 10          	mov    0x10(%rsp),%edi
+  12b44a:	e8 a1 ba 07 00       	call   1a6ef0 <<i32 as pyo3::conversion::IntoPyObject>::into_pyobject>
+  12b44f:	49 89 c7             	mov    %rax,%r15
+  12b452:	8b 7c 24 18          	mov    0x18(%rsp),%edi
+  12b456:	e8 95 ba 07 00       	call   1a6ef0 <<i32 as pyo3::conversion::IntoPyObject>::into_pyobject>
+  12b45b:	49 89 c4             	mov    %rax,%r12
+  12b45e:	8b 7c 24 58          	mov    0x58(%rsp),%edi
+  12b462:	e8 89 ba 07 00       	call   1a6ef0 <<i32 as pyo3::conversion::IntoPyObject>::into_pyobject>
+  12b467:	48 89 c5             	mov    %rax,%rbp
+  12b46a:	8b 7c 24 50          	mov    0x50(%rsp),%edi
+  12b46e:	e8 7d ba 07 00       	call   1a6ef0 <<i32 as pyo3::conversion::IntoPyObject>::into_pyobject>
+  12b473:	48 8b 4c 24 08       	mov    0x8(%rsp),%rcx
+  12b478:	48 89 8c 24 20 03 00 	mov    %rcx,0x320(%rsp)
+  12b47f:	00 
+  12b480:	48 8b 4c 24 20       	mov    0x20(%rsp),%rcx
+  12b485:	48 89 8c 24 28 03 00 	mov    %rcx,0x328(%rsp)
+  12b48c:	00 
+  12b48d:	4c 89 ac 24 30 03 00 	mov    %r13,0x330(%rsp)
+  12b494:	00 
+  12b495:	4c 89 bc 24 38 03 00 	mov    %r15,0x338(%rsp)
+  12b49c:	00 
+  12b49d:	4c 89 a4 24 40 03 00 	mov    %r12,0x340(%rsp)
+  12b4a4:	00 
+  12b4a5:	48 89 ac 24 48 03 00 	mov    %rbp,0x348(%rsp)
+  12b4ac:	00 
+  12b4ad:	48 89 84 24 50 03 00 	mov    %rax,0x350(%rsp)
+  12b4b4:	00 
+  12b4b5:	4c 89 b4 24 58 03 00 	mov    %r14,0x358(%rsp)
+  12b4bc:	00 
+  12b4bd:	48 8b 44 24 70       	mov    0x70(%rsp),%rax
+  12b4c2:	48 89 84 24 60 03 00 	mov    %rax,0x360(%rsp)
+  12b4c9:	00 
+  12b4ca:	48 8b 84 24 90 00 00 	mov    0x90(%rsp),%rax
+  12b4d1:	00 
+  12b4d2:	48 89 84 24 68 03 00 	mov    %rax,0x368(%rsp)
+  12b4d9:	00 
+  12b4da:	bf 0a 00 00 00       	mov    $0xa,%edi
+  12b4df:	ff 15 03 b8 0b 00    	call   *0xbb803(%rip)        # 1e6ce8 <PyTuple_New>
+  12b4e5:	48 85 c0             	test   %rax,%rax
+  12b4e8:	0f 84 fb 10 00 00    	je     12c5e9 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2499>
+  12b4ee:	49 89 c7             	mov    %rax,%r15
+  12b4f1:	0f 10 84 24 60 03 00 	movups 0x360(%rsp),%xmm0
+  12b4f8:	00 
+  12b4f9:	0f 11 40 58          	movups %xmm0,0x58(%rax)
+  12b4fd:	0f 10 84 24 20 03 00 	movups 0x320(%rsp),%xmm0
+  12b504:	00 
+  12b505:	0f 10 8c 24 30 03 00 	movups 0x330(%rsp),%xmm1
+  12b50c:	00 
+  12b50d:	0f 10 94 24 40 03 00 	movups 0x340(%rsp),%xmm2
+  12b514:	00 
+  12b515:	0f 10 9c 24 50 03 00 	movups 0x350(%rsp),%xmm3
+  12b51c:	00 
+  12b51d:	0f 11 58 48          	movups %xmm3,0x48(%rax)
+  12b521:	0f 11 50 38          	movups %xmm2,0x38(%rax)
+  12b525:	0f 11 48 28          	movups %xmm1,0x28(%rax)
+  12b529:	0f 11 40 18          	movups %xmm0,0x18(%rax)
+  12b52d:	b9 08 00 00 00       	mov    $0x8,%ecx
+  12b532:	31 c0                	xor    %eax,%eax
+  12b534:	e9 8c f3 ff ff       	jmp    12a8c5 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x775>
+  12b539:	49 8b 84 24 b8 11 00 	mov    0x11b8(%r12),%rax
+  12b540:	00 
+  12b541:	49 8b 94 24 18 03 00 	mov    0x318(%r12),%rdx
+  12b548:	00 
+  12b549:	48 8b 74 24 30       	mov    0x30(%rsp),%rsi
+  12b54e:	48 89 b4 24 68 08 00 	mov    %rsi,0x868(%rsp)
+  12b555:	00 
+  12b556:	48 8b 74 24 10       	mov    0x10(%rsp),%rsi
+  12b55b:	48 89 b4 24 70 08 00 	mov    %rsi,0x870(%rsp)
+  12b562:	00 
+  12b563:	4c 89 b4 24 78 08 00 	mov    %r14,0x878(%rsp)
+  12b56a:	00 
+  12b56b:	48 8b 74 24 18       	mov    0x18(%rsp),%rsi
+  12b570:	48 89 b4 24 80 08 00 	mov    %rsi,0x880(%rsp)
+  12b577:	00 
+  12b578:	48 89 84 24 88 08 00 	mov    %rax,0x888(%rsp)
+  12b57f:	00 
+  12b580:	0f 10 84 24 78 01 00 	movups 0x178(%rsp),%xmm0
+  12b587:	00 
+  12b588:	0f 29 84 24 50 08 00 	movaps %xmm0,0x850(%rsp)
+  12b58f:	00 
+  12b590:	48 8b 84 24 88 01 00 	mov    0x188(%rsp),%rax
+  12b597:	00 
+  12b598:	48 89 84 24 60 08 00 	mov    %rax,0x860(%rsp)
+  12b59f:	00 
+  12b5a0:	0f 10 84 24 08 02 00 	movups 0x208(%rsp),%xmm0
+  12b5a7:	00 
+  12b5a8:	0f 10 8c 24 18 02 00 	movups 0x218(%rsp),%xmm1
+  12b5af:	00 
+  12b5b0:	0f 29 84 24 90 08 00 	movaps %xmm0,0x890(%rsp)
+  12b5b7:	00 
+  12b5b8:	0f 29 8c 24 a0 08 00 	movaps %xmm1,0x8a0(%rsp)
+  12b5bf:	00 
+  12b5c0:	48 8b 84 24 28 02 00 	mov    0x228(%rsp),%rax
+  12b5c7:	00 
+  12b5c8:	48 89 84 24 b0 08 00 	mov    %rax,0x8b0(%rsp)
+  12b5cf:	00 
+  12b5d0:	49 8d 84 24 00 03 00 	lea    0x300(%r12),%rax
+  12b5d7:	00 
+  12b5d8:	0f 28 00             	movaps (%rax),%xmm0
+  12b5db:	0f 11 84 24 b8 08 00 	movups %xmm0,0x8b8(%rsp)
+  12b5e2:	00 
+  12b5e3:	48 89 8c 24 c8 08 00 	mov    %rcx,0x8c8(%rsp)
+  12b5ea:	00 
+  12b5eb:	48 89 94 24 d0 08 00 	mov    %rdx,0x8d0(%rsp)
+  12b5f2:	00 
+  12b5f3:	48 8d bc 24 20 03 00 	lea    0x320(%rsp),%rdi
+  12b5fa:	00 
+  12b5fb:	48 8d 94 24 50 08 00 	lea    0x850(%rsp),%rdx
+  12b602:	00 
+  12b603:	49 8d b4 24 88 10 00 	lea    0x1088(%r12),%rsi
+  12b60a:	00 
+  12b60b:	e8 80 71 fe ff       	call   112790 <<guala_core::functional64_material::Functional64Material>::prepare_boundary>
+  12b610:	48 8b ac 24 20 03 00 	mov    0x320(%rsp),%rbp
+  12b617:	00 
+  12b618:	4c 8b bc 24 28 03 00 	mov    0x328(%rsp),%r15
+  12b61f:	00 
+  12b620:	4c 8b b4 24 30 03 00 	mov    0x330(%rsp),%r14
+  12b627:	00 
+  12b628:	4c 8b ac 24 38 03 00 	mov    0x338(%rsp),%r13
+  12b62f:	00 
+  12b630:	48 8b 84 24 40 03 00 	mov    0x340(%rsp),%rax
+  12b637:	00 
+  12b638:	48 89 44 24 68       	mov    %rax,0x68(%rsp)
+  12b63d:	48 8b 84 24 48 03 00 	mov    0x348(%rsp),%rax
+  12b644:	00 
+  12b645:	48 89 44 24 20       	mov    %rax,0x20(%rsp)
+  12b64a:	48 8b 84 24 50 03 00 	mov    0x350(%rsp),%rax
+  12b651:	00 
+  12b652:	48 89 44 24 30       	mov    %rax,0x30(%rsp)
+  12b657:	0f 10 84 24 58 03 00 	movups 0x358(%rsp),%xmm0
+  12b65e:	00 
+  12b65f:	0f 29 84 24 30 02 00 	movaps %xmm0,0x230(%rsp)
+  12b666:	00 
+  12b667:	8b 84 24 68 03 00 00 	mov    0x368(%rsp),%eax
+  12b66e:	89 44 24 10          	mov    %eax,0x10(%rsp)
+  12b672:	8b 84 24 6c 03 00 00 	mov    0x36c(%rsp),%eax
+  12b679:	89 44 24 18          	mov    %eax,0x18(%rsp)
+  12b67d:	0f 10 84 24 70 03 00 	movups 0x370(%rsp),%xmm0
+  12b684:	00 
+  12b685:	0f 29 84 24 90 01 00 	movaps %xmm0,0x190(%rsp)
+  12b68c:	00 
+  12b68d:	0f 10 84 24 80 03 00 	movups 0x380(%rsp),%xmm0
+  12b694:	00 
+  12b695:	0f 29 84 24 a0 01 00 	movaps %xmm0,0x1a0(%rsp)
+  12b69c:	00 
+  12b69d:	0f 10 84 24 90 03 00 	movups 0x390(%rsp),%xmm0
+  12b6a4:	00 
+  12b6a5:	0f 29 84 24 b0 01 00 	movaps %xmm0,0x1b0(%rsp)
+  12b6ac:	00 
+  12b6ad:	48 8b 84 24 a0 03 00 	mov    0x3a0(%rsp),%rax
+  12b6b4:	00 
+  12b6b5:	48 89 84 24 c0 01 00 	mov    %rax,0x1c0(%rsp)
+  12b6bc:	00 
+  12b6bd:	48 8d b4 24 a8 03 00 	lea    0x3a8(%rsp),%rsi
+  12b6c4:	00 
+  12b6c5:	48 8d bc 24 08 0b 00 	lea    0xb08(%rsp),%rdi
+  12b6cc:	00 
+  12b6cd:	ba 98 02 00 00       	mov    $0x298,%edx
+  12b6d2:	ff 15 58 b6 0b 00    	call   *0xbb658(%rip)        # 1e6d30 <memcpy@GLIBC_2.14>
+  12b6d8:	48 89 ac 24 80 00 00 	mov    %rbp,0x80(%rsp)
+  12b6df:	00 
+  12b6e0:	48 83 fd 02          	cmp    $0x2,%rbp
+  12b6e4:	0f 85 91 00 00 00    	jne    12b77b <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x162b>
+  12b6ea:	4c 89 74 24 28       	mov    %r14,0x28(%rsp)
+  12b6ef:	4c 89 6c 24 48       	mov    %r13,0x48(%rsp)
+  12b6f4:	48 8b 44 24 68       	mov    0x68(%rsp),%rax
+  12b6f9:	48 89 44 24 60       	mov    %rax,0x60(%rsp)
+  12b6fe:	0f 28 84 24 30 02 00 	movaps 0x230(%rsp),%xmm0
+  12b705:	00 
+  12b706:	0f 29 84 24 60 01 00 	movaps %xmm0,0x160(%rsp)
+  12b70d:	00 
+  12b70e:	0f 28 84 24 90 01 00 	movaps 0x190(%rsp),%xmm0
+  12b715:	00 
+  12b716:	0f 28 8c 24 a0 01 00 	movaps 0x1a0(%rsp),%xmm1
+  12b71d:	00 
+  12b71e:	0f 28 94 24 b0 01 00 	movaps 0x1b0(%rsp),%xmm2
+  12b725:	00 
+  12b726:	0f 29 84 24 e0 00 00 	movaps %xmm0,0xe0(%rsp)
+  12b72d:	00 
+  12b72e:	0f 29 8c 24 f0 00 00 	movaps %xmm1,0xf0(%rsp)
+  12b735:	00 
+  12b736:	0f 29 94 24 00 01 00 	movaps %xmm2,0x100(%rsp)
+  12b73d:	00 
+  12b73e:	48 8b 84 24 c0 01 00 	mov    0x1c0(%rsp),%rax
+  12b745:	00 
+  12b746:	48 89 84 24 10 01 00 	mov    %rax,0x110(%rsp)
+  12b74d:	00 
+  12b74e:	48 8d bc 24 98 16 00 	lea    0x1698(%rsp),%rdi
+  12b755:	00 
+  12b756:	48 8d b4 24 08 0b 00 	lea    0xb08(%rsp),%rsi
+  12b75d:	00 
+  12b75e:	ba 98 02 00 00       	mov    $0x298,%edx
+  12b763:	ff 15 c7 b5 0b 00    	call   *0xbb5c7(%rip)        # 1e6d30 <memcpy@GLIBC_2.14>
+  12b769:	c7 44 24 08 00 00 00 	movl   $0x0,0x8(%rsp)
+  12b770:	00 
+  12b771:	4c 8b 64 24 20       	mov    0x20(%rsp),%r12
+  12b776:	e9 80 f9 ff ff       	jmp    12b0fb <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xfab>
+  12b77b:	48 8d b4 24 40 06 00 	lea    0x640(%rsp),%rsi
+  12b782:	00 
+  12b783:	48 8d bc 24 e0 10 00 	lea    0x10e0(%rsp),%rdi
+  12b78a:	00 
+  12b78b:	48 8b 2d 9e b5 0b 00 	mov    0xbb59e(%rip),%rbp        # 1e6d30 <memcpy@GLIBC_2.14>
+  12b792:	ba 10 02 00 00       	mov    $0x210,%edx
+  12b797:	ff d5                	call   *%rbp
+  12b799:	4c 89 bc 24 c8 0d 00 	mov    %r15,0xdc8(%rsp)
+  12b7a0:	00 
+  12b7a1:	4c 89 b4 24 d0 0d 00 	mov    %r14,0xdd0(%rsp)
+  12b7a8:	00 
+  12b7a9:	4c 89 ac 24 d8 0d 00 	mov    %r13,0xdd8(%rsp)
+  12b7b0:	00 
+  12b7b1:	48 8b 44 24 68       	mov    0x68(%rsp),%rax
+  12b7b6:	48 89 84 24 e0 0d 00 	mov    %rax,0xde0(%rsp)
+  12b7bd:	00 
+  12b7be:	48 8b 44 24 20       	mov    0x20(%rsp),%rax
+  12b7c3:	48 89 84 24 e8 0d 00 	mov    %rax,0xde8(%rsp)
+  12b7ca:	00 
+  12b7cb:	48 8b 44 24 30       	mov    0x30(%rsp),%rax
+  12b7d0:	48 89 84 24 f0 0d 00 	mov    %rax,0xdf0(%rsp)
+  12b7d7:	00 
+  12b7d8:	0f 28 84 24 30 02 00 	movaps 0x230(%rsp),%xmm0
+  12b7df:	00 
+  12b7e0:	0f 11 84 24 f8 0d 00 	movups %xmm0,0xdf8(%rsp)
+  12b7e7:	00 
+  12b7e8:	8b 44 24 10          	mov    0x10(%rsp),%eax
+  12b7ec:	89 84 24 08 0e 00 00 	mov    %eax,0xe08(%rsp)
+  12b7f3:	8b 44 24 18          	mov    0x18(%rsp),%eax
+  12b7f7:	89 84 24 0c 0e 00 00 	mov    %eax,0xe0c(%rsp)
+  12b7fe:	0f 28 84 24 90 01 00 	movaps 0x190(%rsp),%xmm0
+  12b805:	00 
+  12b806:	0f 28 8c 24 a0 01 00 	movaps 0x1a0(%rsp),%xmm1
+  12b80d:	00 
+  12b80e:	0f 28 94 24 b0 01 00 	movaps 0x1b0(%rsp),%xmm2
+  12b815:	00 
+  12b816:	0f 29 84 24 10 0e 00 	movaps %xmm0,0xe10(%rsp)
+  12b81d:	00 
+  12b81e:	0f 29 8c 24 20 0e 00 	movaps %xmm1,0xe20(%rsp)
+  12b825:	00 
+  12b826:	0f 29 94 24 30 0e 00 	movaps %xmm2,0xe30(%rsp)
+  12b82d:	00 
+  12b82e:	48 8b 84 24 c0 01 00 	mov    0x1c0(%rsp),%rax
+  12b835:	00 
+  12b836:	48 89 84 24 40 0e 00 	mov    %rax,0xe40(%rsp)
+  12b83d:	00 
+  12b83e:	48 8d bc 24 48 0e 00 	lea    0xe48(%rsp),%rdi
+  12b845:	00 
+  12b846:	48 8d b4 24 08 0b 00 	lea    0xb08(%rsp),%rsi
+  12b84d:	00 
+  12b84e:	ba 98 02 00 00       	mov    $0x298,%edx
+  12b853:	ff d5                	call   *%rbp
+  12b855:	48 8b 84 24 80 00 00 	mov    0x80(%rsp),%rax
+  12b85c:	00 
+  12b85d:	48 89 84 24 c0 0d 00 	mov    %rax,0xdc0(%rsp)
+  12b864:	00 
+  12b865:	48 8d bc 24 30 19 00 	lea    0x1930(%rsp),%rdi
+  12b86c:	00 
+  12b86d:	ba 08 03 00 00       	mov    $0x308,%edx
+  12b872:	31 f6                	xor    %esi,%esi
+  12b874:	ff 15 ee b4 0b 00    	call   *0xbb4ee(%rip)        # 1e6d68 <memset@GLIBC_2.2.5>
+  12b87a:	48 8b 8c 24 a0 0f 00 	mov    0xfa0(%rsp),%rcx
+  12b881:	00 
+  12b882:	48 85 c9             	test   %rcx,%rcx
+  12b885:	0f 84 28 01 00 00    	je     12b9b3 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1863>
+  12b88b:	48 89 c8             	mov    %rcx,%rax
+  12b88e:	4c 8b bc 24 98 0f 00 	mov    0xf98(%rsp),%r15
+  12b895:	00 
+  12b896:	48 c1 e0 05          	shl    $0x5,%rax
+  12b89a:	4c 01 f8             	add    %r15,%rax
+  12b89d:	48 89 44 24 20       	mov    %rax,0x20(%rsp)
+  12b8a2:	45 0f b6 77 18       	movzbl 0x18(%r15),%r14d
+  12b8a7:	49 83 fe 60          	cmp    $0x60,%r14
+  12b8ab:	0f 87 5a 03 00 00    	ja     12bc0b <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1abb>
+  12b8b1:	49 8d 47 20          	lea    0x20(%r15),%rax
+  12b8b5:	48 89 44 24 18       	mov    %rax,0x18(%rsp)
+  12b8ba:	ba e8 03 00 00       	mov    $0x3e8,%edx
+  12b8bf:	48 8b 44 24 70       	mov    0x70(%rsp),%rax
+  12b8c4:	eb 0c                	jmp    12b8d2 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1782>
+  12b8c6:	31 d2                	xor    %edx,%edx
+  12b8c8:	f7 f1                	div    %ecx
+  12b8ca:	48 89 c8             	mov    %rcx,%rax
+  12b8cd:	48 85 d2             	test   %rdx,%rdx
+  12b8d0:	74 19                	je     12b8eb <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x179b>
+  12b8d2:	48 89 d1             	mov    %rdx,%rcx
+  12b8d5:	48 89 c2             	mov    %rax,%rdx
+  12b8d8:	48 c1 ea 20          	shr    $0x20,%rdx
+  12b8dc:	74 e8                	je     12b8c6 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1776>
+  12b8de:	31 d2                	xor    %edx,%edx
+  12b8e0:	48 f7 f1             	div    %rcx
+  12b8e3:	48 89 c8             	mov    %rcx,%rax
+  12b8e6:	48 85 d2             	test   %rdx,%rdx
+  12b8e9:	75 e7                	jne    12b8d2 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1782>
+  12b8eb:	48 83 bc 24 90 00 00 	cmpq   $0x0,0x90(%rsp)
+  12b8f2:	00 00 
+  12b8f4:	74 0c                	je     12b902 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x17b2>
+  12b8f6:	48 8b 44 24 50       	mov    0x50(%rsp),%rax
+  12b8fb:	48 99                	cqto
+  12b8fd:	48 f7 f9             	idiv   %rcx
+  12b900:	eb 09                	jmp    12b90b <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x17bb>
+  12b902:	48 8b 44 24 50       	mov    0x50(%rsp),%rax
+  12b907:	31 d2                	xor    %edx,%edx
+  12b909:	f7 f1                	div    %ecx
+  12b90b:	48 89 44 24 30       	mov    %rax,0x30(%rsp)
+  12b910:	b8 e8 03 00 00       	mov    $0x3e8,%eax
+  12b915:	31 d2                	xor    %edx,%edx
+  12b917:	f7 f1                	div    %ecx
+  12b919:	48 8b 4c 24 30       	mov    0x30(%rsp),%rcx
+  12b91e:	48 89 cd             	mov    %rcx,%rbp
+  12b921:	48 f7 dd             	neg    %rbp
+  12b924:	48 0f 48 e9          	cmovs  %rcx,%rbp
+  12b928:	48 89 44 24 10       	mov    %rax,0x10(%rsp)
+  12b92d:	31 d2                	xor    %edx,%edx
+  12b92f:	45 31 ed             	xor    %r13d,%r13d
+  12b932:	4c 89 ee             	mov    %r13,%rsi
+  12b935:	48 89 ef             	mov    %rbp,%rdi
+  12b938:	49 89 d5             	mov    %rdx,%r13
+  12b93b:	48 89 c5             	mov    %rax,%rbp
+  12b93e:	48 89 c2             	mov    %rax,%rdx
+  12b941:	4c 89 e9             	mov    %r13,%rcx
+  12b944:	ff 15 6e b5 0b 00    	call   *0xbb56e(%rip)        # 1e6eb8 <_DYNAMIC+0x3f0>
+  12b94a:	48 89 c1             	mov    %rax,%rcx
+  12b94d:	48 09 d1             	or     %rdx,%rcx
+  12b950:	75 e0                	jne    12b932 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x17e2>
+  12b952:	48 83 f5 01          	xor    $0x1,%rbp
+  12b956:	4c 09 ed             	or     %r13,%rbp
+  12b959:	0f 85 22 06 00 00    	jne    12bf81 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1e31>
+  12b95f:	48 8b 44 24 30       	mov    0x30(%rsp),%rax
+  12b964:	49 39 07             	cmp    %rax,(%r15)
+  12b967:	0f 85 9e 02 00 00    	jne    12bc0b <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1abb>
+  12b96d:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
+  12b972:	49 39 47 08          	cmp    %rax,0x8(%r15)
+  12b976:	0f 85 8f 02 00 00    	jne    12bc0b <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1abb>
+  12b97c:	49 8b 47 10          	mov    0x10(%r15),%rax
+  12b980:	48 85 c0             	test   %rax,%rax
+  12b983:	0f 84 82 02 00 00    	je     12bc0b <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1abb>
+  12b989:	4a 83 bc f4 30 19 00 	cmpq   $0x0,0x1930(%rsp,%r14,8)
+  12b990:	00 00 
+  12b992:	0f 85 73 02 00 00    	jne    12bc0b <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1abb>
+  12b998:	4a 89 84 f4 30 19 00 	mov    %rax,0x1930(%rsp,%r14,8)
+  12b99f:	00 
+  12b9a0:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+  12b9a5:	49 89 c7             	mov    %rax,%r15
+  12b9a8:	48 3b 44 24 20       	cmp    0x20(%rsp),%rax
+  12b9ad:	0f 85 ef fe ff ff    	jne    12b8a2 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1752>
+  12b9b3:	48 c7 84 24 48 01 00 	movq   $0x0,0x148(%rsp)
+  12b9ba:	00 00 00 00 00 
+  12b9bf:	48 c7 84 24 50 01 00 	movq   $0x10,0x150(%rsp)
+  12b9c6:	00 10 00 00 00 
+  12b9cb:	48 c7 84 24 58 01 00 	movq   $0x0,0x158(%rsp)
+  12b9d2:	00 00 00 00 00 
+  12b9d7:	bf 10 00 00 00       	mov    $0x10,%edi
+  12b9dc:	41 be d0 02 00 00    	mov    $0x2d0,%r14d
+  12b9e2:	45 31 ff             	xor    %r15d,%r15d
+  12b9e5:	45 31 ed             	xor    %r13d,%r13d
+  12b9e8:	eb 3e                	jmp    12ba28 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x18d8>
+  12b9ea:	44 89 e8             	mov    %r13d,%eax
+  12b9ed:	24 01                	and    $0x1,%al
+  12b9ef:	4c 89 f9             	mov    %r15,%rcx
+  12b9f2:	48 c1 e1 05          	shl    $0x5,%rcx
+  12b9f6:	48 89 2c 0f          	mov    %rbp,(%rdi,%rcx,1)
+  12b9fa:	48 c7 44 0f 08 00 00 	movq   $0x0,0x8(%rdi,%rcx,1)
+  12ba01:	00 00 
+  12ba03:	88 44 0f 10          	mov    %al,0x10(%rdi,%rcx,1)
+  12ba07:	0f b6 44 24 30       	movzbl 0x30(%rsp),%eax
+  12ba0c:	88 44 0f 11          	mov    %al,0x11(%rdi,%rcx,1)
+  12ba10:	49 ff c7             	inc    %r15
+  12ba13:	4c 89 bc 24 58 01 00 	mov    %r15,0x158(%rsp)
+  12ba1a:	00 
+  12ba1b:	49 ff c5             	inc    %r13
+  12ba1e:	49 83 c6 f8          	add    $0xfffffffffffffff8,%r14
+  12ba22:	0f 84 15 02 00 00    	je     12bc3d <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1aed>
+  12ba28:	4b 8b ac ec d8 15 00 	mov    0x15d8(%r12,%r13,8),%rbp
+  12ba2f:	00 
+  12ba30:	48 85 ed             	test   %rbp,%rbp
+  12ba33:	74 e6                	je     12ba1b <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x18cb>
+  12ba35:	4c 89 e8             	mov    %r13,%rax
+  12ba38:	48 d1 e8             	shr    %rax
+  12ba3b:	3c 2c                	cmp    $0x2c,%al
+  12ba3d:	0f 87 c7 02 00 00    	ja     12bd0a <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1bba>
+  12ba43:	83 e0 3f             	and    $0x3f,%eax
+  12ba46:	48 8d 0d 0b 8d ef ff 	lea    -0x1072f5(%rip),%rcx        # 24758 <GCC_except_table0+0xa9ec>
+  12ba4d:	0f b6 04 08          	movzbl (%rax,%rcx,1),%eax
+  12ba51:	88 44 24 30          	mov    %al,0x30(%rsp)
+  12ba55:	4c 3b bc 24 48 01 00 	cmp    0x148(%rsp),%r15
+  12ba5c:	00 
+  12ba5d:	75 8b                	jne    12b9ea <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x189a>
+  12ba5f:	48 8d bc 24 48 01 00 	lea    0x148(%rsp),%rdi
+  12ba66:	00 
+  12ba67:	e8 14 c7 f8 ff       	call   b8180 <<alloc::raw_vec::RawVec<guala_core::virtual_articulated_body::BodyEffectorDrive>>::grow_one>
+  12ba6c:	48 8b bc 24 50 01 00 	mov    0x150(%rsp),%rdi
+  12ba73:	00 
+  12ba74:	e9 71 ff ff ff       	jmp    12b9ea <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x189a>
+  12ba79:	48 c7 84 24 c8 00 00 	movq   $0x0,0xc8(%rsp)
+  12ba80:	00 00 00 00 00 
+  12ba85:	48 c7 84 24 d0 00 00 	movq   $0x1,0xd0(%rsp)
+  12ba8c:	00 01 00 00 00 
+  12ba91:	48 c7 84 24 d8 00 00 	movq   $0x0,0xd8(%rsp)
+  12ba98:	00 00 00 00 00 
+  12ba9d:	b0 01                	mov    $0x1,%al
+  12ba9f:	89 44 24 10          	mov    %eax,0x10(%rsp)
+  12baa3:	48 8d 35 36 ef ee ff 	lea    -0x1110ca(%rip),%rsi        # 1a9e0 <GCC_except_table0+0xc74>
+  12baaa:	48 8d bc 24 c8 00 00 	lea    0xc8(%rsp),%rdi
+  12bab1:	00 
+  12bab2:	ba 08 00 00 00       	mov    $0x8,%edx
+  12bab7:	41 b7 01             	mov    $0x1,%r15b
+  12baba:	e8 b1 6b fb ff       	call   e2670 <<alloc::vec::Vec<u8>>::append_elements>
+  12babf:	49 8b 84 24 88 15 00 	mov    0x1588(%r12),%rax
+  12bac6:	00 
+  12bac7:	48 89 84 24 20 03 00 	mov    %rax,0x320(%rsp)
+  12bace:	00 
+  12bacf:	48 8d bc 24 c8 00 00 	lea    0xc8(%rsp),%rdi
+  12bad6:	00 
+  12bad7:	48 8d b4 24 20 03 00 	lea    0x320(%rsp),%rsi
+  12bade:	00 
+  12badf:	ba 08 00 00 00       	mov    $0x8,%edx
+  12bae4:	41 b7 01             	mov    $0x1,%r15b
+  12bae7:	e8 84 6b fb ff       	call   e2670 <<alloc::vec::Vec<u8>>::append_elements>
+  12baec:	49 8b b4 24 80 15 00 	mov    0x1580(%r12),%rsi
+  12baf3:	00 
+  12baf4:	49 8b 94 24 88 15 00 	mov    0x1588(%r12),%rdx
+  12bafb:	00 
+  12bafc:	48 83 c6 10          	add    $0x10,%rsi
+  12bb00:	48 8d bc 24 c8 00 00 	lea    0xc8(%rsp),%rdi
+  12bb07:	00 
+  12bb08:	41 b7 01             	mov    $0x1,%r15b
+  12bb0b:	e8 60 6b fb ff       	call   e2670 <<alloc::vec::Vec<u8>>::append_elements>
+  12bb10:	48 8b 44 24 68       	mov    0x68(%rsp),%rax
+  12bb15:	48 89 84 24 20 03 00 	mov    %rax,0x320(%rsp)
+  12bb1c:	00 
+  12bb1d:	48 8d bc 24 c8 00 00 	lea    0xc8(%rsp),%rdi
+  12bb24:	00 
+  12bb25:	48 8d b4 24 20 03 00 	lea    0x320(%rsp),%rsi
+  12bb2c:	00 
+  12bb2d:	ba 08 00 00 00       	mov    $0x8,%edx
+  12bb32:	41 b7 01             	mov    $0x1,%r15b
+  12bb35:	e8 36 6b fb ff       	call   e2670 <<alloc::vec::Vec<u8>>::append_elements>
+  12bb3a:	48 8b 84 24 80 00 00 	mov    0x80(%rsp),%rax
+  12bb41:	00 
+  12bb42:	48 89 84 24 20 03 00 	mov    %rax,0x320(%rsp)
+  12bb49:	00 
+  12bb4a:	48 8d bc 24 c8 00 00 	lea    0xc8(%rsp),%rdi
+  12bb51:	00 
+  12bb52:	48 8d b4 24 20 03 00 	lea    0x320(%rsp),%rsi
+  12bb59:	00 
+  12bb5a:	ba 08 00 00 00       	mov    $0x8,%edx
+  12bb5f:	41 b7 01             	mov    $0x1,%r15b
+  12bb62:	e8 09 6b fb ff       	call   e2670 <<alloc::vec::Vec<u8>>::append_elements>
+  12bb67:	49 8d 84 24 18 19 00 	lea    0x1918(%r12),%rax
+  12bb6e:	00 
+  12bb6f:	0f 10 00             	movups (%rax),%xmm0
+  12bb72:	0f 10 48 10          	movups 0x10(%rax),%xmm1
+  12bb76:	0f 10 50 20          	movups 0x20(%rax),%xmm2
+  12bb7a:	0f 29 94 24 40 03 00 	movaps %xmm2,0x340(%rsp)
+  12bb81:	00 
+  12bb82:	0f 29 8c 24 30 03 00 	movaps %xmm1,0x330(%rsp)
+  12bb89:	00 
+  12bb8a:	0f 29 84 24 20 03 00 	movaps %xmm0,0x320(%rsp)
+  12bb91:	00 
+  12bb92:	45 31 ff             	xor    %r15d,%r15d
+  12bb95:	48 8d bc 24 50 08 00 	lea    0x850(%rsp),%rdi
+  12bb9c:	00 
+  12bb9d:	48 8d 94 24 20 03 00 	lea    0x320(%rsp),%rdx
+  12bba4:	00 
+  12bba5:	48 8b 74 24 20       	mov    0x20(%rsp),%rsi
+  12bbaa:	e8 d1 28 01 00       	call   13e480 <guala_core::joint_uf_vector::evaluate_joint_source>
+  12bbaf:	48 8b 84 24 50 08 00 	mov    0x850(%rsp),%rax
+  12bbb6:	00 
+  12bbb7:	4c 8b bc 24 58 08 00 	mov    0x858(%rsp),%r15
+  12bbbe:	00 
+  12bbbf:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
+  12bbc3:	0f 84 d0 00 00 00    	je     12bc99 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1b49>
+  12bbc9:	48 8b 8c 24 60 08 00 	mov    0x860(%rsp),%rcx
+  12bbd0:	00 
+  12bbd1:	48 89 44 24 28       	mov    %rax,0x28(%rsp)
+  12bbd6:	4c 89 7c 24 48       	mov    %r15,0x48(%rsp)
+  12bbdb:	48 89 4c 24 60       	mov    %rcx,0x60(%rsp)
+  12bbe0:	48 83 bc 24 c8 00 00 	cmpq   $0x0,0xc8(%rsp)
+  12bbe7:	00 00 
+  12bbe9:	74 0e                	je     12bbf9 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1aa9>
+  12bbeb:	48 8b bc 24 d0 00 00 	mov    0xd0(%rsp),%rdi
+  12bbf2:	00 
+  12bbf3:	ff 15 07 b1 0b 00    	call   *0xbb107(%rip)        # 1e6d00 <free@GLIBC_2.2.5>
+  12bbf9:	48 8d bc 24 08 0b 00 	lea    0xb08(%rsp),%rdi
+  12bc00:	00 
+  12bc01:	e8 ea 96 f3 ff       	call   652f0 <core::ptr::drop_glue::<guala_core::joint_uf_vector::physical_source::SourceAssembly>>
+  12bc06:	e9 f9 f3 ff ff       	jmp    12b004 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xeb4>
+  12bc0b:	48 8d 05 26 b6 ef ff 	lea    -0x1049da(%rip),%rax        # 27238 <GCC_except_table0+0xd4cc>
+  12bc12:	48 89 44 24 28       	mov    %rax,0x28(%rsp)
+  12bc17:	48 c7 44 24 48 1d 00 	movq   $0x1d,0x48(%rsp)
+  12bc1e:	00 00 
+  12bc20:	41 bf 07 00 00 00    	mov    $0x7,%r15d
+  12bc26:	e9 ac 05 00 00       	jmp    12c1d7 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2087>
+  12bc2b:	4c 8d 35 10 77 ef ff 	lea    -0x1088f0(%rip),%r14        # 23342 <GCC_except_table0+0x95d6>
+  12bc32:	41 bd 19 00 00 00    	mov    $0x19,%r13d
+  12bc38:	e9 6d e6 ff ff       	jmp    12a2aa <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x15a>
+  12bc3d:	48 8d bc 24 20 03 00 	lea    0x320(%rsp),%rdi
+  12bc44:	00 
+  12bc45:	48 8d b4 24 48 01 00 	lea    0x148(%rsp),%rsi
+  12bc4c:	00 
+  12bc4d:	e8 ee bc f8 ff       	call   b7940 <<guala_core::virtual_articulated_body::AdmittedBodyEffectorDrives>::admit>
+  12bc52:	48 8b 84 24 28 03 00 	mov    0x328(%rsp),%rax
+  12bc59:	00 
+  12bc5a:	48 89 44 24 50       	mov    %rax,0x50(%rsp)
+  12bc5f:	48 8b 84 24 30 03 00 	mov    0x330(%rsp),%rax
+  12bc66:	00 
+  12bc67:	48 89 44 24 18       	mov    %rax,0x18(%rsp)
+  12bc6c:	80 bc 24 20 03 00 00 	cmpb   $0x0,0x320(%rsp)
+  12bc73:	00 
+  12bc74:	0f 84 e8 00 00 00    	je     12bd62 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1c12>
+  12bc7a:	48 8b 44 24 50       	mov    0x50(%rsp),%rax
+  12bc7f:	48 89 44 24 28       	mov    %rax,0x28(%rsp)
+  12bc84:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+  12bc89:	48 89 44 24 48       	mov    %rax,0x48(%rsp)
+  12bc8e:	41 bf 0d 00 00 00    	mov    $0xd,%r15d
+  12bc94:	e9 3e 05 00 00       	jmp    12c1d7 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2087>
+  12bc99:	48 83 bc 24 88 00 00 	cmpq   $0x0,0x88(%rsp)
+  12bca0:	00 00 
+  12bca2:	0f 84 02 03 00 00    	je     12bfaa <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1e5a>
+  12bca8:	49 8b 84 24 90 15 00 	mov    0x1590(%r12),%rax
+  12bcaf:	00 
+  12bcb0:	f0 48 ff 00          	lock incq (%rax)
+  12bcb4:	0f 8e 3b 09 00 00    	jle    12c5f5 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x24a5>
+  12bcba:	49 8b 84 24 90 15 00 	mov    0x1590(%r12),%rax
+  12bcc1:	00 
+  12bcc2:	48 89 44 24 30       	mov    %rax,0x30(%rsp)
+  12bcc7:	b0 01                	mov    $0x1,%al
+  12bcc9:	89 44 24 10          	mov    %eax,0x10(%rsp)
+  12bccd:	b8 01 00 00 00       	mov    $0x1,%eax
+  12bcd2:	48 89 84 24 30 01 00 	mov    %rax,0x130(%rsp)
+  12bcd9:	00 
+  12bcda:	bd 08 00 00 00       	mov    $0x8,%ebp
+  12bcdf:	45 31 f6             	xor    %r14d,%r14d
+  12bce2:	45 31 ed             	xor    %r13d,%r13d
+  12bce5:	48 8b 84 24 40 01 00 	mov    0x140(%rsp),%rax
+  12bcec:	00 
+  12bced:	48 89 84 24 28 01 00 	mov    %rax,0x128(%rsp)
+  12bcf4:	00 
+  12bcf5:	48 8b 84 24 38 01 00 	mov    0x138(%rsp),%rax
+  12bcfc:	00 
+  12bcfd:	48 89 84 24 20 01 00 	mov    %rax,0x120(%rsp)
+  12bd04:	00 
+  12bd05:	e9 a8 02 00 00       	jmp    12bfb2 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1e62>
+  12bd0a:	48 8d 05 6a b5 ef ff 	lea    -0x104a96(%rip),%rax        # 2727b <GCC_except_table0+0xd50f>
+  12bd11:	48 89 c1             	mov    %rax,%rcx
+  12bd14:	48 c1 e9 10          	shr    $0x10,%rcx
+  12bd18:	88 44 24 28          	mov    %al,0x28(%rsp)
+  12bd1c:	88 64 24 29          	mov    %ah,0x29(%rsp)
+  12bd20:	48 c1 e8 30          	shr    $0x30,%rax
+  12bd24:	66 89 44 24 2e       	mov    %ax,0x2e(%rsp)
+  12bd29:	89 4c 24 2a          	mov    %ecx,0x2a(%rsp)
+  12bd2d:	48 c7 44 24 48 16 00 	movq   $0x16,0x48(%rsp)
+  12bd34:	00 00 
+  12bd36:	41 bf 07 00 00 00    	mov    $0x7,%r15d
+  12bd3c:	48 83 bc 24 48 01 00 	cmpq   $0x0,0x148(%rsp)
+  12bd43:	00 00 
+  12bd45:	0f 85 86 04 00 00    	jne    12c1d1 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2081>
+  12bd4b:	e9 87 04 00 00       	jmp    12c1d7 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2087>
+  12bd50:	4c 8d 35 3a b5 ef ff 	lea    -0x104ac6(%rip),%r14        # 27291 <GCC_except_table0+0xd525>
+  12bd57:	41 bd 15 00 00 00    	mov    $0x15,%r13d
+  12bd5d:	e9 da eb ff ff       	jmp    12a93c <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x7ec>
+  12bd62:	48 8d bc 24 20 03 00 	lea    0x320(%rsp),%rdi
+  12bd69:	00 
+  12bd6a:	41 b8 e8 03 00 00    	mov    $0x3e8,%r8d
+  12bd70:	49 8d b4 24 d0 12 00 	lea    0x12d0(%r12),%rsi
+  12bd77:	00 
+  12bd78:	48 8b 54 24 50       	mov    0x50(%rsp),%rdx
+  12bd7d:	48 8b 4c 24 18       	mov    0x18(%rsp),%rcx
+  12bd82:	e8 39 ad 02 00       	call   156ac0 <guala_core::virtual_articulated_body::settle_body_effector_drives>
+  12bd87:	4c 8b b4 24 20 03 00 	mov    0x320(%rsp),%r14
+  12bd8e:	00 
+  12bd8f:	48 8b 84 24 28 03 00 	mov    0x328(%rsp),%rax
+  12bd96:	00 
+  12bd97:	48 89 44 24 30       	mov    %rax,0x30(%rsp)
+  12bd9c:	48 8b 84 24 30 03 00 	mov    0x330(%rsp),%rax
+  12bda3:	00 
+  12bda4:	48 89 44 24 10       	mov    %rax,0x10(%rsp)
+  12bda9:	49 83 fe ff          	cmp    $0xffffffffffffffff,%r14
+  12bdad:	0f 84 b0 03 00 00    	je     12c163 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2013>
+  12bdb3:	48 8d b4 24 38 03 00 	lea    0x338(%rsp),%rsi
+  12bdba:	00 
+  12bdbb:	4c 8d ac 24 08 0b 00 	lea    0xb08(%rsp),%r13
+  12bdc2:	00 
+  12bdc3:	ba b8 02 00 00       	mov    $0x2b8,%edx
+  12bdc8:	4c 89 ef             	mov    %r13,%rdi
+  12bdcb:	4c 8b 3d 5e af 0b 00 	mov    0xbaf5e(%rip),%r15        # 1e6d30 <memcpy@GLIBC_2.14>
+  12bdd2:	41 ff d7             	call   *%r15
+  12bdd5:	48 8d ac 24 50 08 00 	lea    0x850(%rsp),%rbp
+  12bddc:	00 
+  12bddd:	ba b0 02 00 00       	mov    $0x2b0,%edx
+  12bde2:	48 89 ef             	mov    %rbp,%rdi
+  12bde5:	4c 89 ee             	mov    %r13,%rsi
+  12bde8:	41 ff d7             	call   *%r15
+  12bdeb:	4d 8b 84 24 d8 18 00 	mov    0x18d8(%r12),%r8
+  12bdf2:	00 
+  12bdf3:	48 c7 04 24 10 00 00 	movq   $0x10,(%rsp)
+  12bdfa:	00 
+  12bdfb:	48 8d bc 24 20 03 00 	lea    0x320(%rsp),%rdi
+  12be02:	00 
+  12be03:	48 89 ee             	mov    %rbp,%rsi
+  12be06:	48 8b 54 24 30       	mov    0x30(%rsp),%rdx
+  12be0b:	48 8b 4c 24 10       	mov    0x10(%rsp),%rcx
+  12be10:	45 31 c9             	xor    %r9d,%r9d
+  12be13:	e8 c8 10 03 00       	call   15cee0 <guala_core::virtual_articulatory_body::settle_native_articulatory_interval>
+  12be18:	4c 8b bc 24 20 03 00 	mov    0x320(%rsp),%r15
+  12be1f:	00 
+  12be20:	0f b6 ac 24 28 03 00 	movzbl 0x328(%rsp),%ebp
+  12be27:	00 
+  12be28:	49 83 ff ff          	cmp    $0xffffffffffffffff,%r15
+  12be2c:	0f 84 4d 03 00 00    	je     12c17f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x202f>
+  12be32:	48 8d b4 24 29 03 00 	lea    0x329(%rsp),%rsi
+  12be39:	00 
+  12be3a:	48 8d bc 24 f9 12 00 	lea    0x12f9(%rsp),%rdi
+  12be41:	00 
+  12be42:	ba 97 03 00 00       	mov    $0x397,%edx
+  12be47:	ff 15 e3 ae 0b 00    	call   *0xbaee3(%rip)        # 1e6d30 <memcpy@GLIBC_2.14>
+  12be4d:	4c 89 bc 24 f0 12 00 	mov    %r15,0x12f0(%rsp)
+  12be54:	00 
+  12be55:	40 88 ac 24 f8 12 00 	mov    %bpl,0x12f8(%rsp)
+  12be5c:	00 
+  12be5d:	48 83 bc 24 70 16 00 	cmpq   $0x10,0x1670(%rsp)
+  12be64:	00 10 
+  12be66:	0f 85 20 03 00 00    	jne    12c18c <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x203c>
+  12be6c:	49 8b bc 24 38 10 00 	mov    0x1038(%r12),%rdi
+  12be73:	00 
+  12be74:	49 8b 94 24 68 10 00 	mov    0x1068(%r12),%rdx
+  12be7b:	00 
+  12be7c:	48 c1 e7 05          	shl    $0x5,%rdi
+  12be80:	48 8d 47 1f          	lea    0x1f(%rdi),%rax
+  12be84:	48 39 d0             	cmp    %rdx,%rax
+  12be87:	0f 83 4a 07 00 00    	jae    12c5d7 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2487>
+  12be8d:	48 8b 84 24 68 16 00 	mov    0x1668(%rsp),%rax
+  12be94:	00 
+  12be95:	0f 10 00             	movups (%rax),%xmm0
+  12be98:	0f 29 44 24 70       	movaps %xmm0,0x70(%rsp)
+  12be9d:	0f 10 40 10          	movups 0x10(%rax),%xmm0
+  12bea1:	0f 29 84 24 90 00 00 	movaps %xmm0,0x90(%rsp)
+  12bea8:	00 
+  12bea9:	49 8b 84 24 60 10 00 	mov    0x1060(%r12),%rax
+  12beb0:	00 
+  12beb1:	0f 10 04 38          	movups (%rax,%rdi,1),%xmm0
+  12beb5:	0f 10 4c 38 10       	movups 0x10(%rax,%rdi,1),%xmm1
+  12beba:	0f 29 8c 24 40 02 00 	movaps %xmm1,0x240(%rsp)
+  12bec1:	00 
+  12bec2:	0f 29 84 24 30 02 00 	movaps %xmm0,0x230(%rsp)
+  12bec9:	00 
+  12beca:	4d 8b bc 24 c0 18 00 	mov    0x18c0(%r12),%r15
+  12bed1:	00 
+  12bed2:	31 c9                	xor    %ecx,%ecx
+  12bed4:	4d 2b bc 24 b8 18 00 	sub    0x18b8(%r12),%r15
+  12bedb:	00 
+  12bedc:	48 19 c9             	sbb    %rcx,%rcx
+  12bedf:	4c 89 fa             	mov    %r15,%rdx
+  12bee2:	48 81 c2 00 00 00 80 	add    $0xffffffff80000000,%rdx
+  12bee9:	48 83 d1 ff          	adc    $0xffffffffffffffff,%rcx
+  12beed:	48 b8 00 00 00 00 ff 	movabs $0xffffffff00000000,%rax
+  12bef4:	ff ff ff 
+  12bef7:	48 39 c2             	cmp    %rax,%rdx
+  12befa:	48 83 d9 ff          	sbb    $0xffffffffffffffff,%rcx
+  12befe:	72 61                	jb     12bf61 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1e11>
+  12bf00:	4d 8b ac 24 d0 18 00 	mov    0x18d0(%r12),%r13
+  12bf07:	00 
+  12bf08:	31 d2                	xor    %edx,%edx
+  12bf0a:	4d 2b ac 24 c8 18 00 	sub    0x18c8(%r12),%r13
+  12bf11:	00 
+  12bf12:	48 19 d2             	sbb    %rdx,%rdx
+  12bf15:	4c 89 ee             	mov    %r13,%rsi
+  12bf18:	48 81 c6 00 00 00 80 	add    $0xffffffff80000000,%rsi
+  12bf1f:	48 83 d2 ff          	adc    $0xffffffffffffffff,%rdx
+  12bf23:	48 c7 c1 ff ff ff ff 	mov    $0xffffffffffffffff,%rcx
+  12bf2a:	48 39 c6             	cmp    %rax,%rsi
+  12bf2d:	48 19 ca             	sbb    %rcx,%rdx
+  12bf30:	72 2f                	jb     12bf61 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1e11>
+  12bf32:	49 8b ac 24 b0 18 00 	mov    0x18b0(%r12),%rbp
+  12bf39:	00 
+  12bf3a:	31 d2                	xor    %edx,%edx
+  12bf3c:	49 2b ac 24 a8 18 00 	sub    0x18a8(%r12),%rbp
+  12bf43:	00 
+  12bf44:	48 19 d2             	sbb    %rdx,%rdx
+  12bf47:	48 89 ee             	mov    %rbp,%rsi
+  12bf4a:	48 81 c6 00 00 00 80 	add    $0xffffffff80000000,%rsi
+  12bf51:	48 83 d2 ff          	adc    $0xffffffffffffffff,%rdx
+  12bf55:	48 39 c6             	cmp    %rax,%rsi
+  12bf58:	48 19 ca             	sbb    %rcx,%rdx
+  12bf5b:	0f 83 90 02 00 00    	jae    12c1f1 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x20a1>
+  12bf61:	48 8d 05 05 7e ef ff 	lea    -0x1081fb(%rip),%rax        # 23d6d <GCC_except_table0+0xa001>
+  12bf68:	48 89 44 24 28       	mov    %rax,0x28(%rsp)
+  12bf6d:	48 c7 44 24 48 3c 00 	movq   $0x3c,0x48(%rsp)
+  12bf74:	00 00 
+  12bf76:	41 bf 09 00 00 00    	mov    $0x9,%r15d
+  12bf7c:	e9 26 02 00 00       	jmp    12c1a7 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2057>
+  12bf81:	48 c7 44 24 28 00 00 	movq   $0x0,0x28(%rsp)
+  12bf88:	00 00 
+  12bf8a:	48 8d 05 a2 90 ef ff 	lea    -0x106f5e(%rip),%rax        # 25033 <GCC_except_table0+0xb2c7>
+  12bf91:	48 89 44 24 48       	mov    %rax,0x48(%rsp)
+  12bf96:	48 c7 44 24 60 2c 00 	movq   $0x2c,0x60(%rsp)
+  12bf9d:	00 00 
+  12bf9f:	41 bf 0c 00 00 00    	mov    $0xc,%r15d
+  12bfa5:	e9 2d 02 00 00       	jmp    12c1d7 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2087>
+  12bfaa:	c7 44 24 10 00 00 00 	movl   $0x0,0x10(%rsp)
+  12bfb1:	00 
+  12bfb2:	48 8d bc 24 a0 00 00 	lea    0xa0(%rsp),%rdi
+  12bfb9:	00 
+  12bfba:	e8 31 93 f3 ff       	call   652f0 <core::ptr::drop_glue::<guala_core::joint_uf_vector::physical_source::SourceAssembly>>
+  12bfbf:	4c 89 ac 24 a0 00 00 	mov    %r13,0xa0(%rsp)
+  12bfc6:	00 
+  12bfc7:	48 89 ac 24 a8 00 00 	mov    %rbp,0xa8(%rsp)
+  12bfce:	00 
+  12bfcf:	4c 89 b4 24 b0 00 00 	mov    %r14,0xb0(%rsp)
+  12bfd6:	00 
+  12bfd7:	48 8b 44 24 30       	mov    0x30(%rsp),%rax
+  12bfdc:	48 89 84 24 b8 00 00 	mov    %rax,0xb8(%rsp)
+  12bfe3:	00 
+  12bfe4:	48 8d bc 24 c8 00 00 	lea    0xc8(%rsp),%rdi
+  12bfeb:	00 
+  12bfec:	e8 9f 32 05 00       	call   17f290 <<alloc::sync::Arc<[bool]> as core::convert::From<alloc::vec::Vec<bool>>>::from>
+  12bff1:	48 89 44 24 30       	mov    %rax,0x30(%rsp)
+  12bff6:	48 89 54 24 18       	mov    %rdx,0x18(%rsp)
+  12bffb:	ba e8 03 00 00       	mov    $0x3e8,%edx
+  12c000:	48 8b 84 24 90 00 00 	mov    0x90(%rsp),%rax
+  12c007:	00 
+  12c008:	eb 0c                	jmp    12c016 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1ec6>
+  12c00a:	31 d2                	xor    %edx,%edx
+  12c00c:	f7 f6                	div    %esi
+  12c00e:	48 89 f0             	mov    %rsi,%rax
+  12c011:	48 85 d2             	test   %rdx,%rdx
+  12c014:	74 19                	je     12c02f <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1edf>
+  12c016:	48 89 d6             	mov    %rdx,%rsi
+  12c019:	48 89 c1             	mov    %rax,%rcx
+  12c01c:	48 c1 e9 20          	shr    $0x20,%rcx
+  12c020:	74 e8                	je     12c00a <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1eba>
+  12c022:	31 d2                	xor    %edx,%edx
+  12c024:	48 f7 f6             	div    %rsi
+  12c027:	48 89 f0             	mov    %rsi,%rax
+  12c02a:	48 85 d2             	test   %rdx,%rdx
+  12c02d:	75 e7                	jne    12c016 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1ec6>
+  12c02f:	48 83 7c 24 70 00    	cmpq   $0x0,0x70(%rsp)
+  12c035:	74 0f                	je     12c046 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1ef6>
+  12c037:	48 8b 44 24 58       	mov    0x58(%rsp),%rax
+  12c03c:	48 99                	cqto
+  12c03e:	48 f7 fe             	idiv   %rsi
+  12c041:	49 89 c6             	mov    %rax,%r14
+  12c044:	eb 0c                	jmp    12c052 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1f02>
+  12c046:	48 8b 44 24 58       	mov    0x58(%rsp),%rax
+  12c04b:	31 d2                	xor    %edx,%edx
+  12c04d:	f7 f6                	div    %esi
+  12c04f:	41 89 c6             	mov    %eax,%r14d
+  12c052:	31 c9                	xor    %ecx,%ecx
+  12c054:	b8 e8 03 00 00       	mov    $0x3e8,%eax
+  12c059:	31 d2                	xor    %edx,%edx
+  12c05b:	f7 f6                	div    %esi
+  12c05d:	48 89 84 24 88 00 00 	mov    %rax,0x88(%rsp)
+  12c064:	00 
+  12c065:	4c 89 f5             	mov    %r14,%rbp
+  12c068:	48 f7 dd             	neg    %rbp
+  12c06b:	49 0f 48 ee          	cmovs  %r14,%rbp
+  12c06f:	45 31 ed             	xor    %r13d,%r13d
+  12c072:	4c 89 ee             	mov    %r13,%rsi
+  12c075:	48 89 ef             	mov    %rbp,%rdi
+  12c078:	49 89 cd             	mov    %rcx,%r13
+  12c07b:	48 89 c5             	mov    %rax,%rbp
+  12c07e:	48 89 c2             	mov    %rax,%rdx
+  12c081:	ff 15 31 ae 0b 00    	call   *0xbae31(%rip)        # 1e6eb8 <_DYNAMIC+0x3f0>
+  12c087:	48 89 d1             	mov    %rdx,%rcx
+  12c08a:	48 89 c2             	mov    %rax,%rdx
+  12c08d:	48 09 ca             	or     %rcx,%rdx
+  12c090:	75 e0                	jne    12c072 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1f22>
+  12c092:	48 83 f5 01          	xor    $0x1,%rbp
+  12c096:	4c 09 ed             	or     %r13,%rbp
+  12c099:	75 65                	jne    12c100 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1fb0>
+  12c09b:	4c 89 bc 24 08 02 00 	mov    %r15,0x208(%rsp)
+  12c0a2:	00 
+  12c0a3:	48 8b 44 24 30       	mov    0x30(%rsp),%rax
+  12c0a8:	48 89 84 24 10 02 00 	mov    %rax,0x210(%rsp)
+  12c0af:	00 
+  12c0b0:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+  12c0b5:	48 89 84 24 18 02 00 	mov    %rax,0x218(%rsp)
+  12c0bc:	00 
+  12c0bd:	4c 89 b4 24 20 02 00 	mov    %r14,0x220(%rsp)
+  12c0c4:	00 
+  12c0c5:	48 8b 84 24 88 00 00 	mov    0x88(%rsp),%rax
+  12c0cc:	00 
+  12c0cd:	48 89 84 24 28 02 00 	mov    %rax,0x228(%rsp)
+  12c0d4:	00 
+  12c0d5:	80 7c 24 10 00       	cmpb   $0x0,0x10(%rsp)
+  12c0da:	74 0d                	je     12c0e9 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1f99>
+  12c0dc:	48 8d bc 24 08 0b 00 	lea    0xb08(%rsp),%rdi
+  12c0e3:	00 
+  12c0e4:	e8 07 92 f3 ff       	call   652f0 <core::ptr::drop_glue::<guala_core::joint_uf_vector::physical_source::SourceAssembly>>
+  12c0e9:	b0 01                	mov    $0x1,%al
+  12c0eb:	89 44 24 08          	mov    %eax,0x8(%rsp)
+  12c0ef:	48 c7 84 24 88 00 00 	movq   $0x0,0x88(%rsp)
+  12c0f6:	00 00 00 00 00 
+  12c0fb:	e9 b8 ed ff ff       	jmp    12aeb8 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xd68>
+  12c100:	48 c7 44 24 28 00 00 	movq   $0x0,0x28(%rsp)
+  12c107:	00 00 
+  12c109:	48 8d 05 23 8f ef ff 	lea    -0x1070dd(%rip),%rax        # 25033 <GCC_except_table0+0xb2c7>
+  12c110:	48 89 44 24 48       	mov    %rax,0x48(%rsp)
+  12c115:	48 c7 44 24 60 2c 00 	movq   $0x2c,0x60(%rsp)
+  12c11c:	00 00 
+  12c11e:	48 8b 44 24 30       	mov    0x30(%rsp),%rax
+  12c123:	f0 48 ff 08          	lock decq (%rax)
+  12c127:	75 0f                	jne    12c138 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1fe8>
+  12c129:	48 8b 7c 24 30       	mov    0x30(%rsp),%rdi
+  12c12e:	48 8b 74 24 18       	mov    0x18(%rsp),%rsi
+  12c133:	e8 08 77 ff ff       	call   123840 <<alloc::sync::Arc<[bool]>>::drop_slow>
+  12c138:	f0 49 ff 0f          	lock decq (%r15)
+  12c13c:	75 08                	jne    12c146 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x1ff6>
+  12c13e:	4c 89 ff             	mov    %r15,%rdi
+  12c141:	e8 ea 73 ff ff       	call   123530 <<alloc::sync::Arc<guala_core::joint_uf_vector::SharedJointField>>::drop_slow>
+  12c146:	80 7c 24 10 00       	cmpb   $0x0,0x10(%rsp)
+  12c14b:	0f 84 b3 ee ff ff    	je     12b004 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xeb4>
+  12c151:	48 8d bc 24 08 0b 00 	lea    0xb08(%rsp),%rdi
+  12c158:	00 
+  12c159:	e8 92 91 f3 ff       	call   652f0 <core::ptr::drop_glue::<guala_core::joint_uf_vector::physical_source::SourceAssembly>>
+  12c15e:	e9 a1 ee ff ff       	jmp    12b004 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xeb4>
+  12c163:	48 8b 44 24 30       	mov    0x30(%rsp),%rax
+  12c168:	48 89 44 24 28       	mov    %rax,0x28(%rsp)
+  12c16d:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
+  12c172:	48 89 44 24 48       	mov    %rax,0x48(%rsp)
+  12c177:	41 bf 0d 00 00 00    	mov    $0xd,%r15d
+  12c17d:	eb 45                	jmp    12c1c4 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2074>
+  12c17f:	40 88 6c 24 28       	mov    %bpl,0x28(%rsp)
+  12c184:	41 bf 0e 00 00 00    	mov    $0xe,%r15d
+  12c18a:	eb 28                	jmp    12c1b4 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2064>
+  12c18c:	48 8d 05 c2 b0 ef ff 	lea    -0x104f3e(%rip),%rax        # 27255 <GCC_except_table0+0xd4e9>
+  12c193:	48 89 44 24 28       	mov    %rax,0x28(%rsp)
+  12c198:	48 c7 44 24 48 26 00 	movq   $0x26,0x48(%rsp)
+  12c19f:	00 00 
+  12c1a1:	41 bf 07 00 00 00    	mov    $0x7,%r15d
+  12c1a7:	48 8d bc 24 f0 12 00 	lea    0x12f0(%rsp),%rdi
+  12c1ae:	00 
+  12c1af:	e8 fc 8b f3 ff       	call   64db0 <core::ptr::drop_glue::<guala_core::virtual_articulatory_body::ArticulatoryBodyTransition>>
+  12c1b4:	4d 85 f6             	test   %r14,%r14
+  12c1b7:	74 0b                	je     12c1c4 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2074>
+  12c1b9:	48 8b 7c 24 30       	mov    0x30(%rsp),%rdi
+  12c1be:	ff 15 3c ab 0b 00    	call   *0xbab3c(%rip)        # 1e6d00 <free@GLIBC_2.2.5>
+  12c1c4:	48 83 7c 24 18 00    	cmpq   $0x0,0x18(%rsp)
+  12c1ca:	74 0b                	je     12c1d7 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2087>
+  12c1cc:	48 8b 7c 24 50       	mov    0x50(%rsp),%rdi
+  12c1d1:	ff 15 29 ab 0b 00    	call   *0xbab29(%rip)        # 1e6d00 <free@GLIBC_2.2.5>
+  12c1d7:	48 8d bc 24 c0 0d 00 	lea    0xdc0(%rsp),%rdi
+  12c1de:	00 
+  12c1df:	e8 3c 85 f3 ff       	call   64720 <core::ptr::drop_glue::<guala_core::functional64_material::PreparedMaterial>>
+  12c1e4:	c7 44 24 08 00 00 00 	movl   $0x0,0x8(%rsp)
+  12c1eb:	00 
+  12c1ec:	e9 0a ef ff ff       	jmp    12b0fb <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xfab>
+  12c1f1:	8b 84 24 b8 15 00 00 	mov    0x15b8(%rsp),%eax
+  12c1f8:	89 44 24 20          	mov    %eax,0x20(%rsp)
+  12c1fc:	8b 84 24 dc 15 00 00 	mov    0x15dc(%rsp),%eax
+  12c203:	89 44 24 68          	mov    %eax,0x68(%rsp)
+  12c207:	8b 84 24 f0 15 00 00 	mov    0x15f0(%rsp),%eax
+  12c20e:	89 84 24 80 00 00 00 	mov    %eax,0x80(%rsp)
+  12c215:	48 8b b4 24 b0 0f 00 	mov    0xfb0(%rsp),%rsi
+  12c21c:	00 
+  12c21d:	48 8b 94 24 b8 0f 00 	mov    0xfb8(%rsp),%rdx
+  12c224:	00 
+  12c225:	48 8d bc 24 20 03 00 	lea    0x320(%rsp),%rdi
+  12c22c:	00 
+  12c22d:	e8 6e 98 05 00       	call   185aa0 <<alloc::vec::Vec<guala_core::functional64_material::PaidThermalWork> as core::clone::Clone>::clone>
+  12c232:	48 8b 44 24 58       	mov    0x58(%rsp),%rax
+  12c237:	48 89 84 24 a8 01 00 	mov    %rax,0x1a8(%rsp)
+  12c23e:	00 
+  12c23f:	44 89 bc 24 f0 01 00 	mov    %r15d,0x1f0(%rsp)
+  12c246:	00 
+  12c247:	44 89 ac 24 f4 01 00 	mov    %r13d,0x1f4(%rsp)
+  12c24e:	00 
+  12c24f:	89 ac 24 f8 01 00 00 	mov    %ebp,0x1f8(%rsp)
+  12c256:	8b 44 24 68          	mov    0x68(%rsp),%eax
+  12c25a:	89 84 24 fc 01 00 00 	mov    %eax,0x1fc(%rsp)
+  12c261:	8b 84 24 80 00 00 00 	mov    0x80(%rsp),%eax
+  12c268:	89 84 24 00 02 00 00 	mov    %eax,0x200(%rsp)
+  12c26f:	8b 44 24 20          	mov    0x20(%rsp),%eax
+  12c273:	89 84 24 04 02 00 00 	mov    %eax,0x204(%rsp)
+  12c27a:	0f 10 84 24 20 03 00 	movups 0x320(%rsp),%xmm0
+  12c281:	00 
+  12c282:	0f 29 84 24 90 01 00 	movaps %xmm0,0x190(%rsp)
+  12c289:	00 
+  12c28a:	48 8b 84 24 30 03 00 	mov    0x330(%rsp),%rax
+  12c291:	00 
+  12c292:	48 89 84 24 a0 01 00 	mov    %rax,0x1a0(%rsp)
+  12c299:	00 
+  12c29a:	0f 28 84 24 30 02 00 	movaps 0x230(%rsp),%xmm0
+  12c2a1:	00 
+  12c2a2:	0f 28 8c 24 40 02 00 	movaps 0x240(%rsp),%xmm1
+  12c2a9:	00 
+  12c2aa:	0f 29 84 24 b0 01 00 	movaps %xmm0,0x1b0(%rsp)
+  12c2b1:	00 
+  12c2b2:	0f 29 8c 24 c0 01 00 	movaps %xmm1,0x1c0(%rsp)
+  12c2b9:	00 
+  12c2ba:	0f 28 44 24 70       	movaps 0x70(%rsp),%xmm0
+  12c2bf:	0f 29 84 24 d0 01 00 	movaps %xmm0,0x1d0(%rsp)
+  12c2c6:	00 
+  12c2c7:	0f 28 84 24 90 00 00 	movaps 0x90(%rsp),%xmm0
+  12c2ce:	00 
+  12c2cf:	0f 29 84 24 e0 01 00 	movaps %xmm0,0x1e0(%rsp)
+  12c2d6:	00 
+  12c2d7:	48 8d bc 24 20 03 00 	lea    0x320(%rsp),%rdi
+  12c2de:	00 
+  12c2df:	48 8d b4 24 90 01 00 	lea    0x190(%rsp),%rsi
+  12c2e6:	00 
+  12c2e7:	e8 f4 aa 05 00       	call   186de0 <<guala_core::functional64_owner::MillisecondTransport as core::clone::Clone>::clone>
+  12c2ec:	48 8b 84 24 90 03 00 	mov    0x390(%rsp),%rax
+  12c2f3:	00 
+  12c2f4:	48 89 84 24 c0 08 00 	mov    %rax,0x8c0(%rsp)
+  12c2fb:	00 
+  12c2fc:	0f 10 84 24 80 03 00 	movups 0x380(%rsp),%xmm0
+  12c303:	00 
+  12c304:	0f 29 84 24 b0 08 00 	movaps %xmm0,0x8b0(%rsp)
+  12c30b:	00 
+  12c30c:	0f 10 84 24 70 03 00 	movups 0x370(%rsp),%xmm0
+  12c313:	00 
+  12c314:	0f 29 84 24 a0 08 00 	movaps %xmm0,0x8a0(%rsp)
+  12c31b:	00 
+  12c31c:	0f 10 84 24 60 03 00 	movups 0x360(%rsp),%xmm0
+  12c323:	00 
+  12c324:	0f 29 84 24 90 08 00 	movaps %xmm0,0x890(%rsp)
+  12c32b:	00 
+  12c32c:	0f 10 84 24 20 03 00 	movups 0x320(%rsp),%xmm0
+  12c333:	00 
+  12c334:	0f 10 8c 24 30 03 00 	movups 0x330(%rsp),%xmm1
+  12c33b:	00 
+  12c33c:	0f 10 94 24 40 03 00 	movups 0x340(%rsp),%xmm2
+  12c343:	00 
+  12c344:	0f 10 9c 24 50 03 00 	movups 0x350(%rsp),%xmm3
+  12c34b:	00 
+  12c34c:	0f 29 9c 24 80 08 00 	movaps %xmm3,0x880(%rsp)
+  12c353:	00 
+  12c354:	0f 29 94 24 70 08 00 	movaps %xmm2,0x870(%rsp)
+  12c35b:	00 
+  12c35c:	0f 29 8c 24 60 08 00 	movaps %xmm1,0x860(%rsp)
+  12c363:	00 
+  12c364:	0f 29 84 24 50 08 00 	movaps %xmm0,0x850(%rsp)
+  12c36b:	00 
+  12c36c:	49 8d bc 24 60 03 00 	lea    0x360(%r12),%rdi
+  12c373:	00 
+  12c374:	e8 a7 50 f3 ff       	call   61420 <core::ptr::drop_glue::<core::option::Option<guala_core::functional64_owner::PendingMillisecond>>>
+  12c379:	48 8d b4 24 c0 0d 00 	lea    0xdc0(%rsp),%rsi
+  12c380:	00 
+  12c381:	ba 30 05 00 00       	mov    $0x530,%edx
+  12c386:	49 8d bc 24 60 03 00 	lea    0x360(%r12),%rdi
+  12c38d:	00 
+  12c38e:	4c 8b 3d 9b a9 0b 00 	mov    0xba99b(%rip),%r15        # 1e6d30 <memcpy@GLIBC_2.14>
+  12c395:	41 ff d7             	call   *%r15
+  12c398:	48 8b 84 24 88 00 00 	mov    0x88(%rsp),%rax
+  12c39f:	00 
+  12c3a0:	49 89 84 24 90 08 00 	mov    %rax,0x890(%r12)
+  12c3a7:	00 
+  12c3a8:	48 8b 84 24 38 01 00 	mov    0x138(%rsp),%rax
+  12c3af:	00 
+  12c3b0:	49 89 84 24 98 08 00 	mov    %rax,0x898(%r12)
+  12c3b7:	00 
+  12c3b8:	48 8b 84 24 40 01 00 	mov    0x140(%rsp),%rax
+  12c3bf:	00 
+  12c3c0:	49 89 84 24 a0 08 00 	mov    %rax,0x8a0(%r12)
+  12c3c7:	00 
+  12c3c8:	48 8b 84 24 30 01 00 	mov    0x130(%rsp),%rax
+  12c3cf:	00 
+  12c3d0:	49 89 84 24 a8 08 00 	mov    %rax,0x8a8(%r12)
+  12c3d7:	00 
+  12c3d8:	48 8b 84 24 20 01 00 	mov    0x120(%rsp),%rax
+  12c3df:	00 
+  12c3e0:	49 89 84 24 b0 08 00 	mov    %rax,0x8b0(%r12)
+  12c3e7:	00 
+  12c3e8:	48 8b 84 24 28 01 00 	mov    0x128(%rsp),%rax
+  12c3ef:	00 
+  12c3f0:	49 89 84 24 b8 08 00 	mov    %rax,0x8b8(%r12)
+  12c3f7:	00 
+  12c3f8:	0f 28 84 24 00 03 00 	movaps 0x300(%rsp),%xmm0
+  12c3ff:	00 
+  12c400:	41 0f 29 84 24 c0 08 	movaps %xmm0,0x8c0(%r12)
+  12c407:	00 00 
+  12c409:	49 8d bc 24 d0 08 00 	lea    0x8d0(%r12),%rdi
+  12c410:	00 
+  12c411:	48 8d b4 24 f0 12 00 	lea    0x12f0(%rsp),%rsi
+  12c418:	00 
+  12c419:	ba a0 03 00 00       	mov    $0x3a0,%edx
+  12c41e:	41 ff d7             	call   *%r15
+  12c421:	0f 28 84 24 a0 00 00 	movaps 0xa0(%rsp),%xmm0
+  12c428:	00 
+  12c429:	0f 28 8c 24 b0 00 00 	movaps 0xb0(%rsp),%xmm1
+  12c430:	00 
+  12c431:	41 0f 29 84 24 70 0c 	movaps %xmm0,0xc70(%r12)
+  12c438:	00 00 
+  12c43a:	41 0f 29 8c 24 80 0c 	movaps %xmm1,0xc80(%r12)
+  12c441:	00 00 
+  12c443:	4d 89 b4 24 90 0c 00 	mov    %r14,0xc90(%r12)
+  12c44a:	00 
+  12c44b:	48 8b 44 24 30       	mov    0x30(%rsp),%rax
+  12c450:	49 89 84 24 98 0c 00 	mov    %rax,0xc98(%r12)
+  12c457:	00 
+  12c458:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
+  12c45d:	49 89 84 24 a0 0c 00 	mov    %rax,0xca0(%r12)
+  12c464:	00 
+  12c465:	0f 28 84 24 50 08 00 	movaps 0x850(%rsp),%xmm0
+  12c46c:	00 
+  12c46d:	0f 28 8c 24 60 08 00 	movaps 0x860(%rsp),%xmm1
+  12c474:	00 
+  12c475:	0f 28 94 24 70 08 00 	movaps 0x870(%rsp),%xmm2
+  12c47c:	00 
+  12c47d:	0f 28 9c 24 80 08 00 	movaps 0x880(%rsp),%xmm3
+  12c484:	00 
+  12c485:	41 0f 11 84 24 a8 0c 	movups %xmm0,0xca8(%r12)
+  12c48c:	00 00 
+  12c48e:	41 0f 11 8c 24 b8 0c 	movups %xmm1,0xcb8(%r12)
+  12c495:	00 00 
+  12c497:	41 0f 11 94 24 c8 0c 	movups %xmm2,0xcc8(%r12)
+  12c49e:	00 00 
+  12c4a0:	41 0f 11 9c 24 d8 0c 	movups %xmm3,0xcd8(%r12)
+  12c4a7:	00 00 
+  12c4a9:	0f 28 84 24 90 08 00 	movaps 0x890(%rsp),%xmm0
+  12c4b0:	00 
+  12c4b1:	41 0f 11 84 24 e8 0c 	movups %xmm0,0xce8(%r12)
+  12c4b8:	00 00 
+  12c4ba:	0f 28 84 24 a0 08 00 	movaps 0x8a0(%rsp),%xmm0
+  12c4c1:	00 
+  12c4c2:	41 0f 11 84 24 f8 0c 	movups %xmm0,0xcf8(%r12)
+  12c4c9:	00 00 
+  12c4cb:	0f 28 84 24 b0 08 00 	movaps 0x8b0(%rsp),%xmm0
+  12c4d2:	00 
+  12c4d3:	41 0f 11 84 24 08 0d 	movups %xmm0,0xd08(%r12)
+  12c4da:	00 00 
+  12c4dc:	48 8b 84 24 c0 08 00 	mov    0x8c0(%rsp),%rax
+  12c4e3:	00 
+  12c4e4:	49 89 84 24 18 0d 00 	mov    %rax,0xd18(%r12)
+  12c4eb:	00 
+  12c4ec:	49 8d bc 24 20 0d 00 	lea    0xd20(%r12),%rdi
+  12c4f3:	00 
+  12c4f4:	48 8d b4 24 30 19 00 	lea    0x1930(%rsp),%rsi
+  12c4fb:	00 
+  12c4fc:	ba 08 03 00 00       	mov    $0x308,%edx
+  12c501:	41 ff d7             	call   *%r15
+  12c504:	8b 44 24 08          	mov    0x8(%rsp),%eax
+  12c508:	41 88 84 24 28 10 00 	mov    %al,0x1028(%r12)
+  12c50f:	00 
+  12c510:	4c 8b b4 24 90 01 00 	mov    0x190(%rsp),%r14
+  12c517:	00 
+  12c518:	4c 8b ac 24 98 01 00 	mov    0x198(%rsp),%r13
+  12c51f:	00 
+  12c520:	48 8b ac 24 a0 01 00 	mov    0x1a0(%rsp),%rbp
+  12c527:	00 
+  12c528:	48 8b 84 24 b0 01 00 	mov    0x1b0(%rsp),%rax
+  12c52f:	00 
+  12c530:	48 89 44 24 30       	mov    %rax,0x30(%rsp)
+  12c535:	0f 10 84 24 38 02 00 	movups 0x238(%rsp),%xmm0
+  12c53c:	00 
+  12c53d:	0f 29 84 24 60 01 00 	movaps %xmm0,0x160(%rsp)
+  12c544:	00 
+  12c545:	8b 84 24 c8 01 00 00 	mov    0x1c8(%rsp),%eax
+  12c54c:	89 44 24 10          	mov    %eax,0x10(%rsp)
+  12c550:	44 8b bc 24 cc 01 00 	mov    0x1cc(%rsp),%r15d
+  12c557:	00 
+  12c558:	48 8d 8c 24 d0 01 00 	lea    0x1d0(%rsp),%rcx
+  12c55f:	00 
+  12c560:	48 8b 41 30          	mov    0x30(%rcx),%rax
+  12c564:	48 89 84 24 10 01 00 	mov    %rax,0x110(%rsp)
+  12c56b:	00 
+  12c56c:	0f 10 01             	movups (%rcx),%xmm0
+  12c56f:	0f 10 49 10          	movups 0x10(%rcx),%xmm1
+  12c573:	0f 10 51 20          	movups 0x20(%rcx),%xmm2
+  12c577:	0f 29 94 24 00 01 00 	movaps %xmm2,0x100(%rsp)
+  12c57e:	00 
+  12c57f:	0f 29 8c 24 f0 00 00 	movaps %xmm1,0xf0(%rsp)
+  12c586:	00 
+  12c587:	0f 29 84 24 e0 00 00 	movaps %xmm0,0xe0(%rsp)
+  12c58e:	00 
+  12c58f:	48 83 7c 24 18 00    	cmpq   $0x0,0x18(%rsp)
+  12c595:	74 0b                	je     12c5a2 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2452>
+  12c597:	48 8b 7c 24 50       	mov    0x50(%rsp),%rdi
+  12c59c:	ff 15 5e a7 0b 00    	call   *0xba75e(%rip)        # 1e6d00 <free@GLIBC_2.2.5>
+  12c5a2:	4c 8b 64 24 58       	mov    0x58(%rsp),%r12
+  12c5a7:	48 8b 4c 24 30       	mov    0x30(%rsp),%rcx
+  12c5ac:	8b 54 24 10          	mov    0x10(%rsp),%edx
+  12c5b0:	44 89 fe             	mov    %r15d,%esi
+  12c5b3:	e9 f6 ec ff ff       	jmp    12b2ae <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x115e>
+  12c5b8:	48 8d 05 9c 6d ef ff 	lea    -0x109264(%rip),%rax        # 2335b <GCC_except_table0+0x95ef>
+  12c5bf:	b9 1d 00 00 00       	mov    $0x1d,%ecx
+  12c5c4:	e9 cc ea ff ff       	jmp    12b095 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0xf45>
+  12c5c9:	48 8d 3d 10 46 0b 00 	lea    0xb4610(%rip),%rdi        # 1e0be0 <__frame_dummy_init_array_entry+0x6de0>
+  12c5d0:	e8 2b 2e 06 00       	call   18f400 <core::panicking::panic_const::panic_const_rem_by_zero>
+  12c5d5:	eb 1e                	jmp    12c5f5 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x24a5>
+  12c5d7:	48 8d 77 20          	lea    0x20(%rdi),%rsi
+  12c5db:	48 8d 0d 96 12 0b 00 	lea    0xb1296(%rip),%rcx        # 1dd878 <__frame_dummy_init_array_entry+0x3a78>
+  12c5e2:	e8 59 0f 06 00       	call   18d540 <core::slice::index::slice_index_fail>
+  12c5e7:	eb 0c                	jmp    12c5f5 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x24a5>
+  12c5e9:	48 8d 3d 70 8d 0b 00 	lea    0xb8d70(%rip),%rdi        # 1e5360 <<pyo3::impl_::pyclass::PyClassImplCollector<guala_core::cortical_column::PyModularSubstrate8D> as pyo3::impl_::pyclass::PyMethods<guala_core::cortical_column::PyModularSubstrate8D>>::py_methods::ITEMS+0x1078>
+  12c5f0:	e8 eb d3 06 00       	call   1999e0 <pyo3::err::panic_after_error>
+  12c5f5:	0f 0b                	ud2
+  12c5f7:	48 89 c3             	mov    %rax,%rbx
+  12c5fa:	48 8d b4 24 c0 0d 00 	lea    0xdc0(%rsp),%rsi
+  12c601:	00 
+  12c602:	ba 30 05 00 00       	mov    $0x530,%edx
+  12c607:	49 8d bc 24 60 03 00 	lea    0x360(%r12),%rdi
+  12c60e:	00 
+  12c60f:	4c 8b 3d 1a a7 0b 00 	mov    0xba71a(%rip),%r15        # 1e6d30 <memcpy@GLIBC_2.14>
+  12c616:	41 ff d7             	call   *%r15
+  12c619:	48 8b 84 24 88 00 00 	mov    0x88(%rsp),%rax
+  12c620:	00 
+  12c621:	49 89 84 24 90 08 00 	mov    %rax,0x890(%r12)
+  12c628:	00 
+  12c629:	48 8b 84 24 38 01 00 	mov    0x138(%rsp),%rax
+  12c630:	00 
+  12c631:	49 89 84 24 98 08 00 	mov    %rax,0x898(%r12)
+  12c638:	00 
+  12c639:	48 8b 84 24 40 01 00 	mov    0x140(%rsp),%rax
+  12c640:	00 
+  12c641:	49 89 84 24 a0 08 00 	mov    %rax,0x8a0(%r12)
+  12c648:	00 
+  12c649:	48 8b 84 24 30 01 00 	mov    0x130(%rsp),%rax
+  12c650:	00 
+  12c651:	49 89 84 24 a8 08 00 	mov    %rax,0x8a8(%r12)
+  12c658:	00 
+  12c659:	48 8b 84 24 20 01 00 	mov    0x120(%rsp),%rax
+  12c660:	00 
+  12c661:	49 89 84 24 b0 08 00 	mov    %rax,0x8b0(%r12)
+  12c668:	00 
+  12c669:	48 8b 84 24 28 01 00 	mov    0x128(%rsp),%rax
+  12c670:	00 
+  12c671:	49 89 84 24 b8 08 00 	mov    %rax,0x8b8(%r12)
+  12c678:	00 
+  12c679:	0f 28 84 24 00 03 00 	movaps 0x300(%rsp),%xmm0
+  12c680:	00 
+  12c681:	41 0f 29 84 24 c0 08 	movaps %xmm0,0x8c0(%r12)
+  12c688:	00 00 
+  12c68a:	49 8d bc 24 d0 08 00 	lea    0x8d0(%r12),%rdi
+  12c691:	00 
+  12c692:	48 8d b4 24 f0 12 00 	lea    0x12f0(%rsp),%rsi
+  12c699:	00 
+  12c69a:	ba a0 03 00 00       	mov    $0x3a0,%edx
+  12c69f:	41 ff d7             	call   *%r15
+  12c6a2:	0f 28 84 24 a0 00 00 	movaps 0xa0(%rsp),%xmm0
+  12c6a9:	00 
+  12c6aa:	0f 28 8c 24 b0 00 00 	movaps 0xb0(%rsp),%xmm1
+  12c6b1:	00 
+  12c6b2:	41 0f 29 84 24 70 0c 	movaps %xmm0,0xc70(%r12)
+  12c6b9:	00 00 
+  12c6bb:	41 0f 29 8c 24 80 0c 	movaps %xmm1,0xc80(%r12)
+  12c6c2:	00 00 
+  12c6c4:	4d 89 b4 24 90 0c 00 	mov    %r14,0xc90(%r12)
+  12c6cb:	00 
+  12c6cc:	48 8b 44 24 30       	mov    0x30(%rsp),%rax
+  12c6d1:	49 89 84 24 98 0c 00 	mov    %rax,0xc98(%r12)
+  12c6d8:	00 
+  12c6d9:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
+  12c6de:	49 89 84 24 a0 0c 00 	mov    %rax,0xca0(%r12)
+  12c6e5:	00 
+  12c6e6:	0f 28 84 24 50 08 00 	movaps 0x850(%rsp),%xmm0
+  12c6ed:	00 
+  12c6ee:	0f 28 8c 24 60 08 00 	movaps 0x860(%rsp),%xmm1
+  12c6f5:	00 
+  12c6f6:	0f 28 94 24 70 08 00 	movaps 0x870(%rsp),%xmm2
+  12c6fd:	00 
+  12c6fe:	0f 28 9c 24 80 08 00 	movaps 0x880(%rsp),%xmm3
+  12c705:	00 
+  12c706:	41 0f 11 84 24 a8 0c 	movups %xmm0,0xca8(%r12)
+  12c70d:	00 00 
+  12c70f:	41 0f 11 8c 24 b8 0c 	movups %xmm1,0xcb8(%r12)
+  12c716:	00 00 
+  12c718:	41 0f 11 94 24 c8 0c 	movups %xmm2,0xcc8(%r12)
+  12c71f:	00 00 
+  12c721:	41 0f 11 9c 24 d8 0c 	movups %xmm3,0xcd8(%r12)
+  12c728:	00 00 
+  12c72a:	0f 28 84 24 90 08 00 	movaps 0x890(%rsp),%xmm0
+  12c731:	00 
+  12c732:	41 0f 11 84 24 e8 0c 	movups %xmm0,0xce8(%r12)
+  12c739:	00 00 
+  12c73b:	0f 28 84 24 a0 08 00 	movaps 0x8a0(%rsp),%xmm0
+  12c742:	00 
+  12c743:	41 0f 11 84 24 f8 0c 	movups %xmm0,0xcf8(%r12)
+  12c74a:	00 00 
+  12c74c:	0f 28 84 24 b0 08 00 	movaps 0x8b0(%rsp),%xmm0
+  12c753:	00 
+  12c754:	41 0f 11 84 24 08 0d 	movups %xmm0,0xd08(%r12)
+  12c75b:	00 00 
+  12c75d:	48 8b 84 24 c0 08 00 	mov    0x8c0(%rsp),%rax
+  12c764:	00 
+  12c765:	49 89 84 24 18 0d 00 	mov    %rax,0xd18(%r12)
+  12c76c:	00 
+  12c76d:	49 8d bc 24 20 0d 00 	lea    0xd20(%r12),%rdi
+  12c774:	00 
+  12c775:	48 8d b4 24 30 19 00 	lea    0x1930(%rsp),%rsi
+  12c77c:	00 
+  12c77d:	ba 08 03 00 00       	mov    $0x308,%edx
+  12c782:	41 ff d7             	call   *%r15
+  12c785:	8b 44 24 08          	mov    0x8(%rsp),%eax
+  12c789:	41 88 84 24 28 10 00 	mov    %al,0x1028(%r12)
+  12c790:	00 
+  12c791:	eb 3a                	jmp    12c7cd <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x267d>
+  12c793:	48 89 c3             	mov    %rax,%rbx
+  12c796:	48 8d bc 24 a0 00 00 	lea    0xa0(%rsp),%rdi
+  12c79d:	00 
+  12c79e:	e8 4d 8b f3 ff       	call   652f0 <core::ptr::drop_glue::<guala_core::joint_uf_vector::physical_source::SourceAssembly>>
+  12c7a3:	4d 85 f6             	test   %r14,%r14
+  12c7a6:	74 0b                	je     12c7b3 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2663>
+  12c7a8:	48 8b 7c 24 30       	mov    0x30(%rsp),%rdi
+  12c7ad:	ff 15 4d a5 0b 00    	call   *0xba54d(%rip)        # 1e6d00 <free@GLIBC_2.2.5>
+  12c7b3:	48 8d bc 24 f0 12 00 	lea    0x12f0(%rsp),%rdi
+  12c7ba:	00 
+  12c7bb:	e8 f0 85 f3 ff       	call   64db0 <core::ptr::drop_glue::<guala_core::virtual_articulatory_body::ArticulatoryBodyTransition>>
+  12c7c0:	48 8d bc 24 c0 0d 00 	lea    0xdc0(%rsp),%rdi
+  12c7c7:	00 
+  12c7c8:	e8 53 7f f3 ff       	call   64720 <core::ptr::drop_glue::<guala_core::functional64_material::PreparedMaterial>>
+  12c7cd:	48 8d bc 24 90 01 00 	lea    0x190(%rsp),%rdi
+  12c7d4:	00 
+  12c7d5:	e8 a6 56 f3 ff       	call   61e80 <core::ptr::drop_glue::<alloc::vec::Vec<guala_core::functional64_material::PaidThermalWork>>>
+  12c7da:	31 ed                	xor    %ebp,%ebp
+  12c7dc:	e9 fd 02 00 00       	jmp    12cade <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x298e>
+  12c7e1:	48 89 c3             	mov    %rax,%rbx
+  12c7e4:	45 31 ff             	xor    %r15d,%r15d
+  12c7e7:	e9 d2 00 00 00       	jmp    12c8be <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x276e>
+  12c7ec:	48 89 c3             	mov    %rax,%rbx
+  12c7ef:	e9 d7 02 00 00       	jmp    12cacb <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x297b>
+  12c7f4:	48 89 c3             	mov    %rax,%rbx
+  12c7f7:	40 b5 01             	mov    $0x1,%bpl
+  12c7fa:	e9 df 02 00 00       	jmp    12cade <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x298e>
+  12c7ff:	48 89 c3             	mov    %rax,%rbx
+  12c802:	f0 49 ff 0f          	lock decq (%r15)
+  12c806:	75 08                	jne    12c810 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x26c0>
+  12c808:	4c 89 ff             	mov    %r15,%rdi
+  12c80b:	e8 20 6d ff ff       	call   123530 <<alloc::sync::Arc<guala_core::joint_uf_vector::SharedJointField>>::drop_slow>
+  12c810:	45 31 ff             	xor    %r15d,%r15d
+  12c813:	e9 a6 00 00 00       	jmp    12c8be <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x276e>
+  12c818:	48 89 c3             	mov    %rax,%rbx
+  12c81b:	4c 89 ac 24 a0 00 00 	mov    %r13,0xa0(%rsp)
+  12c822:	00 
+  12c823:	48 89 ac 24 a8 00 00 	mov    %rbp,0xa8(%rsp)
+  12c82a:	00 
+  12c82b:	4c 89 b4 24 b0 00 00 	mov    %r14,0xb0(%rsp)
+  12c832:	00 
+  12c833:	48 8b 44 24 30       	mov    0x30(%rsp),%rax
+  12c838:	48 89 84 24 b8 00 00 	mov    %rax,0xb8(%rsp)
+  12c83f:	00 
+  12c840:	f0 49 ff 0f          	lock decq (%r15)
+  12c844:	75 08                	jne    12c84e <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x26fe>
+  12c846:	4c 89 ff             	mov    %r15,%rdi
+  12c849:	e8 e2 6c ff ff       	call   123530 <<alloc::sync::Arc<guala_core::joint_uf_vector::SharedJointField>>::drop_slow>
+  12c84e:	45 31 ff             	xor    %r15d,%r15d
+  12c851:	eb 52                	jmp    12c8a5 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2755>
+  12c853:	48 89 c3             	mov    %rax,%rbx
+  12c856:	e9 9b 02 00 00       	jmp    12caf6 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x29a6>
+  12c85b:	e9 ad 02 00 00       	jmp    12cb0d <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x29bd>
+  12c860:	48 89 c3             	mov    %rax,%rbx
+  12c863:	48 8d bc 24 78 01 00 	lea    0x178(%rsp),%rdi
+  12c86a:	00 
+  12c86b:	e8 20 55 f3 ff       	call   61d90 <core::ptr::drop_glue::<alloc::vec::Vec<guala_core::functional64_material::PowerPacket>>>
+  12c870:	e9 8e 02 00 00       	jmp    12cb03 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x29b3>
+  12c875:	48 89 c3             	mov    %rax,%rbx
+  12c878:	48 83 bc 24 48 01 00 	cmpq   $0x0,0x148(%rsp)
+  12c87f:	00 00 
+  12c881:	0f 84 6f 02 00 00    	je     12caf6 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x29a6>
+  12c887:	48 8b bc 24 50 01 00 	mov    0x150(%rsp),%rdi
+  12c88e:	00 
+  12c88f:	ff 15 6b a4 0b 00    	call   *0xba46b(%rip)        # 1e6d00 <free@GLIBC_2.2.5>
+  12c895:	e9 5c 02 00 00       	jmp    12caf6 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x29a6>
+  12c89a:	48 89 c3             	mov    %rax,%rbx
+  12c89d:	e9 61 02 00 00       	jmp    12cb03 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x29b3>
+  12c8a2:	48 89 c3             	mov    %rax,%rbx
+  12c8a5:	48 83 bc 24 c8 00 00 	cmpq   $0x0,0xc8(%rsp)
+  12c8ac:	00 00 
+  12c8ae:	74 0e                	je     12c8be <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x276e>
+  12c8b0:	48 8b bc 24 d0 00 00 	mov    0xd0(%rsp),%rdi
+  12c8b7:	00 
+  12c8b8:	ff 15 42 a4 0b 00    	call   *0xba442(%rip)        # 1e6d00 <free@GLIBC_2.2.5>
+  12c8be:	80 7c 24 10 00       	cmpb   $0x0,0x10(%rsp)
+  12c8c3:	75 08                	jne    12c8cd <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x277d>
+  12c8c5:	eb 13                	jmp    12c8da <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x278a>
+  12c8c7:	48 89 c3             	mov    %rax,%rbx
+  12c8ca:	41 b7 01             	mov    $0x1,%r15b
+  12c8cd:	48 8d bc 24 08 0b 00 	lea    0xb08(%rsp),%rdi
+  12c8d4:	00 
+  12c8d5:	e8 16 8a f3 ff       	call   652f0 <core::ptr::drop_glue::<guala_core::joint_uf_vector::physical_source::SourceAssembly>>
+  12c8da:	b0 01                	mov    $0x1,%al
+  12c8dc:	89 44 24 08          	mov    %eax,0x8(%rsp)
+  12c8e0:	45 84 ff             	test   %r15b,%r15b
+  12c8e3:	75 08                	jne    12c8ed <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x279d>
+  12c8e5:	e9 2c 02 00 00       	jmp    12cb16 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x29c6>
+  12c8ea:	48 89 c3             	mov    %rax,%rbx
+  12c8ed:	48 8b 44 24 20       	mov    0x20(%rsp),%rax
+  12c8f2:	f0 48 ff 08          	lock decq (%rax)
+  12c8f6:	b0 01                	mov    $0x1,%al
+  12c8f8:	89 44 24 08          	mov    %eax,0x8(%rsp)
+  12c8fc:	0f 85 14 02 00 00    	jne    12cb16 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x29c6>
+  12c902:	48 8b 7c 24 20       	mov    0x20(%rsp),%rdi
+  12c907:	e8 f4 6b ff ff       	call   123500 <<alloc::sync::Arc<guala_core::joint_uf_vector::JointSource>>::drop_slow>
+  12c90c:	e9 05 02 00 00       	jmp    12cb16 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x29c6>
+  12c911:	48 89 c3             	mov    %rax,%rbx
+  12c914:	48 8d bc 24 20 03 00 	lea    0x320(%rsp),%rdi
+  12c91b:	00 
+  12c91c:	e8 af 49 f3 ff       	call   612d0 <core::ptr::drop_glue::<[pyo3::instance::Bound<pyo3::types::any::PyAny>; 10]>>
+  12c921:	e9 33 02 00 00       	jmp    12cb59 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2a09>
+  12c926:	48 89 c3             	mov    %rax,%rbx
+  12c929:	48 ff 4d 00          	decq   0x0(%rbp)
+  12c92d:	75 11                	jne    12c940 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x27f0>
+  12c92f:	48 89 ef             	mov    %rbp,%rdi
+  12c932:	ff 15 c0 a3 0b 00    	call   *0xba3c0(%rip)        # 1e6cf8 <_Py_Dealloc>
+  12c938:	49 ff 0c 24          	decq   (%r12)
+  12c93c:	75 7a                	jne    12c9b8 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2868>
+  12c93e:	eb 06                	jmp    12c946 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x27f6>
+  12c940:	49 ff 0c 24          	decq   (%r12)
+  12c944:	75 72                	jne    12c9b8 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2868>
+  12c946:	4c 89 e7             	mov    %r12,%rdi
+  12c949:	ff 15 a9 a3 0b 00    	call   *0xba3a9(%rip)        # 1e6cf8 <_Py_Dealloc>
+  12c94f:	49 ff 0f             	decq   (%r15)
+  12c952:	74 69                	je     12c9bd <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x286d>
+  12c954:	49 ff 4d 00          	decq   0x0(%r13)
+  12c958:	75 72                	jne    12c9cc <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x287c>
+  12c95a:	4c 89 ef             	mov    %r13,%rdi
+  12c95d:	ff 15 95 a3 0b 00    	call   *0xba395(%rip)        # 1e6cf8 <_Py_Dealloc>
+  12c963:	48 8b 44 24 20       	mov    0x20(%rsp),%rax
+  12c968:	48 ff 08             	decq   (%rax)
+  12c96b:	74 69                	je     12c9d6 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2886>
+  12c96d:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
+  12c972:	48 ff 08             	decq   (%rax)
+  12c975:	75 74                	jne    12c9eb <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x289b>
+  12c977:	48 8b 7c 24 08       	mov    0x8(%rsp),%rdi
+  12c97c:	ff 15 76 a3 0b 00    	call   *0xba376(%rip)        # 1e6cf8 <_Py_Dealloc>
+  12c982:	49 ff 0e             	decq   (%r14)
+  12c985:	74 69                	je     12c9f0 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x28a0>
+  12c987:	48 8b 44 24 70       	mov    0x70(%rsp),%rax
+  12c98c:	48 ff 08             	decq   (%rax)
+  12c98f:	75 72                	jne    12ca03 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x28b3>
+  12c991:	48 8b 7c 24 70       	mov    0x70(%rsp),%rdi
+  12c996:	ff 15 5c a3 0b 00    	call   *0xba35c(%rip)        # 1e6cf8 <_Py_Dealloc>
+  12c99c:	48 8b 84 24 90 00 00 	mov    0x90(%rsp),%rax
+  12c9a3:	00 
+  12c9a4:	48 ff 08             	decq   (%rax)
+  12c9a7:	0f 85 ac 01 00 00    	jne    12cb59 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2a09>
+  12c9ad:	eb 65                	jmp    12ca14 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x28c4>
+  12c9af:	48 89 c3             	mov    %rax,%rbx
+  12c9b2:	49 ff 0c 24          	decq   (%r12)
+  12c9b6:	74 8e                	je     12c946 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x27f6>
+  12c9b8:	49 ff 0f             	decq   (%r15)
+  12c9bb:	75 97                	jne    12c954 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2804>
+  12c9bd:	4c 89 ff             	mov    %r15,%rdi
+  12c9c0:	ff 15 32 a3 0b 00    	call   *0xba332(%rip)        # 1e6cf8 <_Py_Dealloc>
+  12c9c6:	49 ff 4d 00          	decq   0x0(%r13)
+  12c9ca:	74 8e                	je     12c95a <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x280a>
+  12c9cc:	48 8b 44 24 20       	mov    0x20(%rsp),%rax
+  12c9d1:	48 ff 08             	decq   (%rax)
+  12c9d4:	75 97                	jne    12c96d <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x281d>
+  12c9d6:	48 8b 7c 24 20       	mov    0x20(%rsp),%rdi
+  12c9db:	ff 15 17 a3 0b 00    	call   *0xba317(%rip)        # 1e6cf8 <_Py_Dealloc>
+  12c9e1:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
+  12c9e6:	48 ff 08             	decq   (%rax)
+  12c9e9:	74 8c                	je     12c977 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2827>
+  12c9eb:	49 ff 0e             	decq   (%r14)
+  12c9ee:	75 97                	jne    12c987 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2837>
+  12c9f0:	4c 89 f7             	mov    %r14,%rdi
+  12c9f3:	ff 15 ff a2 0b 00    	call   *0xba2ff(%rip)        # 1e6cf8 <_Py_Dealloc>
+  12c9f9:	48 8b 44 24 70       	mov    0x70(%rsp),%rax
+  12c9fe:	48 ff 08             	decq   (%rax)
+  12ca01:	74 8e                	je     12c991 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2841>
+  12ca03:	48 8b 84 24 90 00 00 	mov    0x90(%rsp),%rax
+  12ca0a:	00 
+  12ca0b:	48 ff 08             	decq   (%rax)
+  12ca0e:	0f 85 45 01 00 00    	jne    12cb59 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2a09>
+  12ca14:	48 8b bc 24 90 00 00 	mov    0x90(%rsp),%rdi
+  12ca1b:	00 
+  12ca1c:	ff 15 d6 a2 0b 00    	call   *0xba2d6(%rip)        # 1e6cf8 <_Py_Dealloc>
+  12ca22:	e9 32 01 00 00       	jmp    12cb59 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2a09>
+  12ca27:	48 89 c3             	mov    %rax,%rbx
+  12ca2a:	49 ff 0f             	decq   (%r15)
+  12ca2d:	0f 85 21 ff ff ff    	jne    12c954 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2804>
+  12ca33:	eb 88                	jmp    12c9bd <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x286d>
+  12ca35:	48 89 c3             	mov    %rax,%rbx
+  12ca38:	49 ff 4d 00          	decq   0x0(%r13)
+  12ca3c:	75 8e                	jne    12c9cc <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x287c>
+  12ca3e:	e9 17 ff ff ff       	jmp    12c95a <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x280a>
+  12ca43:	48 89 c3             	mov    %rax,%rbx
+  12ca46:	48 8b 44 24 20       	mov    0x20(%rsp),%rax
+  12ca4b:	48 ff 08             	decq   (%rax)
+  12ca4e:	0f 85 19 ff ff ff    	jne    12c96d <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x281d>
+  12ca54:	eb 80                	jmp    12c9d6 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2886>
+  12ca56:	48 89 c3             	mov    %rax,%rbx
+  12ca59:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
+  12ca5e:	48 ff 08             	decq   (%rax)
+  12ca61:	75 88                	jne    12c9eb <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x289b>
+  12ca63:	e9 0f ff ff ff       	jmp    12c977 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2827>
+  12ca68:	48 89 c3             	mov    %rax,%rbx
+  12ca6b:	49 ff 0e             	decq   (%r14)
+  12ca6e:	0f 85 13 ff ff ff    	jne    12c987 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2837>
+  12ca74:	e9 77 ff ff ff       	jmp    12c9f0 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x28a0>
+  12ca79:	48 89 c3             	mov    %rax,%rbx
+  12ca7c:	48 8b 44 24 70       	mov    0x70(%rsp),%rax
+  12ca81:	48 ff 08             	decq   (%rax)
+  12ca84:	75 10                	jne    12ca96 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2946>
+  12ca86:	48 8b 7c 24 70       	mov    0x70(%rsp),%rdi
+  12ca8b:	ff 15 67 a2 0b 00    	call   *0xba267(%rip)        # 1e6cf8 <_Py_Dealloc>
+  12ca91:	eb 03                	jmp    12ca96 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2946>
+  12ca93:	48 89 c3             	mov    %rax,%rbx
+  12ca96:	49 ff 0e             	decq   (%r14)
+  12ca99:	75 0e                	jne    12caa9 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2959>
+  12ca9b:	4c 89 f7             	mov    %r14,%rdi
+  12ca9e:	ff 15 54 a2 0b 00    	call   *0xba254(%rip)        # 1e6cf8 <_Py_Dealloc>
+  12caa4:	eb 03                	jmp    12caa9 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2959>
+  12caa6:	48 89 c3             	mov    %rax,%rbx
+  12caa9:	48 8d bc 24 88 02 00 	lea    0x288(%rsp),%rdi
+  12cab0:	00 
+  12cab1:	e8 ca 53 f3 ff       	call   61e80 <core::ptr::drop_glue::<alloc::vec::Vec<guala_core::functional64_material::PaidThermalWork>>>
+  12cab6:	e9 9e 00 00 00       	jmp    12cb59 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2a09>
+  12cabb:	48 89 c3             	mov    %rax,%rbx
+  12cabe:	48 8d bc 24 f0 12 00 	lea    0x12f0(%rsp),%rdi
+  12cac5:	00 
+  12cac6:	e8 e5 82 f3 ff       	call   64db0 <core::ptr::drop_glue::<guala_core::virtual_articulatory_body::ArticulatoryBodyTransition>>
+  12cacb:	40 b5 01             	mov    $0x1,%bpl
+  12cace:	4d 85 f6             	test   %r14,%r14
+  12cad1:	74 0b                	je     12cade <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x298e>
+  12cad3:	48 8b 7c 24 30       	mov    0x30(%rsp),%rdi
+  12cad8:	ff 15 22 a2 0b 00    	call   *0xba222(%rip)        # 1e6d00 <free@GLIBC_2.2.5>
+  12cade:	48 83 7c 24 18 00    	cmpq   $0x0,0x18(%rsp)
+  12cae4:	74 0b                	je     12caf1 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x29a1>
+  12cae6:	48 8b 7c 24 50       	mov    0x50(%rsp),%rdi
+  12caeb:	ff 15 0f a2 0b 00    	call   *0xba20f(%rip)        # 1e6d00 <free@GLIBC_2.2.5>
+  12caf1:	40 84 ed             	test   %bpl,%bpl
+  12caf4:	74 63                	je     12cb59 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2a09>
+  12caf6:	48 8d bc 24 c0 0d 00 	lea    0xdc0(%rsp),%rdi
+  12cafd:	00 
+  12cafe:	e8 1d 7c f3 ff       	call   64720 <core::ptr::drop_glue::<guala_core::functional64_material::PreparedMaterial>>
+  12cb03:	c7 44 24 08 00 00 00 	movl   $0x0,0x8(%rsp)
+  12cb0a:	00 
+  12cb0b:	eb 09                	jmp    12cb16 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x29c6>
+  12cb0d:	48 89 c3             	mov    %rax,%rbx
+  12cb10:	b0 01                	mov    $0x1,%al
+  12cb12:	89 44 24 08          	mov    %eax,0x8(%rsp)
+  12cb16:	48 8d bc 24 a0 00 00 	lea    0xa0(%rsp),%rdi
+  12cb1d:	00 
+  12cb1e:	e8 cd 87 f3 ff       	call   652f0 <core::ptr::drop_glue::<guala_core::joint_uf_vector::physical_source::SourceAssembly>>
+  12cb23:	eb 08                	jmp    12cb2d <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x29dd>
+  12cb25:	e8 92 27 06 00       	call   18f2bc <core::panicking::panic_in_cleanup>
+  12cb2a:	48 89 c3             	mov    %rax,%rbx
+  12cb2d:	80 7c 24 08 00       	cmpb   $0x0,0x8(%rsp)
+  12cb32:	74 25                	je     12cb59 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2a09>
+  12cb34:	48 8d bc 24 78 01 00 	lea    0x178(%rsp),%rdi
+  12cb3b:	00 
+  12cb3c:	e8 4f 52 f3 ff       	call   61d90 <core::ptr::drop_glue::<alloc::vec::Vec<guala_core::functional64_material::PowerPacket>>>
+  12cb41:	eb 16                	jmp    12cb59 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2a09>
+  12cb43:	48 89 c3             	mov    %rax,%rbx
+  12cb46:	eb 11                	jmp    12cb59 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2a09>
+  12cb48:	48 89 c3             	mov    %rax,%rbx
+  12cb4b:	4d 85 ff             	test   %r15,%r15
+  12cb4e:	74 09                	je     12cb59 <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2a09>
+  12cb50:	4c 89 f7             	mov    %r14,%rdi
+  12cb53:	ff 15 a7 a1 0b 00    	call   *0xba1a7(%rip)        # 1e6d00 <free@GLIBC_2.2.5>
+  12cb59:	48 8b bc 24 c0 00 00 	mov    0xc0(%rsp),%rdi
+  12cb60:	00 
+  12cb61:	48 85 ff             	test   %rdi,%rdi
+  12cb64:	74 16                	je     12cb7c <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2a2c>
+  12cb66:	48 c7 87 80 19 00 00 	movq   $0x0,0x1980(%rdi)
+  12cb6d:	00 00 00 00 
+  12cb71:	48 ff 0f             	decq   (%rdi)
+  12cb74:	75 06                	jne    12cb7c <<guala_core::functional64_owner_boundary::PyFunctional64PreparedBeat>::__pymethod_prepare_millisecond__+0x2a2c>
+  12cb76:	ff 15 7c a1 0b 00    	call   *0xba17c(%rip)        # 1e6cf8 <_Py_Dealloc>
+  12cb7c:	48 89 df             	mov    %rbx,%rdi
+  12cb7f:	e8 3c c2 0a 00       	call   1d8dc0 <_Unwind_Resume@plt>

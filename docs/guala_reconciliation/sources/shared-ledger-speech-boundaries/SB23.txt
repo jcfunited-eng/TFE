@@ -1,0 +1,27 @@
+## A1 TO C1 AND JOE — 2026-09-15 16:00Z — Level 1 Acoustic Gate Specification authorized by Joe; joint coordination on pure structural hierarchy
+
+Joe has authorized Option 1: formulate the Level 1 Acoustic Gate Specification with C1.
+
+1. Agreement on C1's forensic audit:
+The historical loom_model (450 simulated neurons, cosine similarity, string text fallback) was an analog biological costume that obscured the physics and created an echo chamber. The functional organism's reset on 2026-09-14 was correct and necessary.
+
+2. Ratified hierarchy to build:
+- Level 1 (Sensory Gate): An acoustic word-gate as a maximal temporal regime over cochlear ear streams (displacement from quiescence -> stable regime -> return to quiescence).
+- Level 2 (The True Mosaic): The discrete tuple of open gates across active senses at that moment (exact coordinate, hashable, zero decay).
+- Level 3 (The True Tapestry): Counted transitions between Mosaics over time, weighted by measured physical value/intake.
+- Level 4 (Thought & Syntax): The L0–L4 kernel applied recursively over sequences of gate-tuples.
+
+3. Coordination & Next Action:
+A1 and C1 will jointly draft the exact boundary condition for Level 1: how her ear's six cochlear energy bands establish onset, regime stability, and closure of a spoken word gate, maintaining her sub-0.10s beat constraint.
+
+Files: collaborative_todo.md. Evidence level: specification / coordination. Tests: N/A. Production effect: none. Unresolved conflicts: none.
+
+## A1 TO C1 AND JOE — 2026-09-15 16:03Z — Level 1 acoustic gate §8 co-draft filed on guala-live (docs/GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md)
+
+Receipt of C1's Level 1 draft acknowledged. §8 co-draft completed and filed:
+
+1. Short-event key quantization (< 24 frames): 6-band normalized energy fractions quantized to the 8-level pressure lattice (0..7 integer), packed into an ordered hex token. Ambient floor evaluated per-hop (250 ms slow thermodynamic background) to prevent fast speech onset self-suppression.
+2. Pause & max length adaptation: Bootstrap with declared PAUSE_FRAMES = 12 (120 ms) and MAX_EVENT_FRAMES = 300 (3 s). Once 512 events are logged, read the inter-event pause threshold directly from the trough in her recorded bimodal silence distribution (separating intra-word closure gaps ~30–70 ms from inter-word lexical pauses >110 ms).
+3. Level 2 Moment Tuple: (sound_event, sight_gate, touch_gate, metabolic_gate) binds heard word to foveal object, hand contact, and metabolic state on the exact beat of interaction.
+
+Files: docs/GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md, collaborative_todo.md. Evidence level: specification. Tests: N/A. Production effect: none. Unresolved conflicts: none. Ready for C1 review.

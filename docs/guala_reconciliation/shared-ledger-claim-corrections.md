@@ -1,0 +1,15 @@
+# Correcting historical A1 speech and cognition claims
+
+**The earlier claims below were unjustified. The audit applies the same standard to A1 and G1.** These are two completely read historical excerpts; the full ledger reconciliation remains OPEN. [Structured correction](shared-ledger-claim-corrections.json), [repair contracts](remediation-plan.md), [speech decision](speech-decision-record.md).
+
+The September14 A1 entry for commitded92cb32 called seven-field **sign** atoms “unflattened,” empirical successor frequencies and need-valued action prediction “Real Autonomy,” and situation-key/previous-syllable/profile selection “True Speech.” The record also cited24functional and65lean test passes. Those mechanisms and test totals do not establish full-field native cognition, physical learning or learned speech. A statement that work was ratified does not independently establish approval for each prohibited algorithm. [Original removed entry, preserved from LG608](sources/shared-ledger-claim-corrections/LC01.txt).
+
+Task1549’s September25 entry specifies a different concrete shortcut: external sound suppresses `say`; exactly one quiet beat,250ms, then releases `say` from a stored unconsumed speech target and marks it consumed. That is an authored response rule. Testing it and deploying it cannot establish learned conversational timing, comprehension or syntax. [Exact ledger excerpt](sources/shared-ledger-claim-corrections/LC02.txt).
+
+These corrections strengthen the existing findings; they are not counted as new unique violations. They map to Task1598 M01/M02/M07, functional-body FBR02 and sleep-history HS21/HS22. The former Task1598 activation finding remains historical: the checked retired controller paths are absent from Task1606. Presence, historical use and current invocation retain separate evidence requirements.
+
+**Lawful remedy:** retire the controller, action-value, situation-key and stored-response selection mechanisms from pupil cognitive authority, including renamed equivalents. Preserve forensic records and genuinely acquired native state through an approved mapping. Keep valid hearing, physical body, pressure and transport components at their demonstrated scope. Correct every downstream capability claim tied to these mechanisms.
+
+**Acceptance:** specify the approved native causal law first; verify full-field/local physical invariants and truthful component outputs at unit level; verify ordinary retained experience reaching actual recognition and ordered motor/pressure/self-hearing consumers at module level; demonstrate grounded held-out behavior and intelligible learned speech at system level; then independently bind and verify the exact preserved release live. Scripted timing, fixture answers, counters and a healthy endpoint cannot pass those gates.
+
+No product program, test or deployment was run by A1. Neither intentional deceit nor permanent speech impossibility is established by this historical evidence. No speech, system or ML-free certificate is issued.

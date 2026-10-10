@@ -1,0 +1,810 @@
+{
+  "schema": "guala.current_native_mechanisms.v1",
+  "at_utc": "2026-10-10T05:51:23.059935+00:00",
+  "scope": "Inspected working mechanisms, not verified live serving behavior.",
+  "mechanisms": [
+    {
+      "id": "VCN01",
+      "name": "The64-column material does not inherit the standalone neuron’s acceptance",
+      "classification": "Verified implementation divergence; conservation qualification gap",
+      "finding": "CNA01",
+      "observed_mechanism": "The standalone ArcLoomTransitionOperator checks a first-law residual against numerical and carrier bounds before adopting state. Functional64Material imports material constants but executes its own phase/ring/gate/contact solver. It computes energy_residual_j and contact-energy enclosures; its adaptive acceptance uses continuous state error and discrete causal agreement, while caloric pairs explicitly remain observations. No energy-residual limit is enforced in the inspected material/owner chain.",
+      "evidence_limits": "This proves a difference in implemented admission, not an observed conservation violation, historical regression date, or impossibility of a legitimate functional specialization. No candidate was run.",
+      "replacement": "G1 must reconcile this specialization against the approved physical and numerical law, including the complete energy balance and an explicit error budget that actually gates adoption. Derive that budget; do not add a convenient threshold or reclassify residual as heat. Preserve exact work custody and genuine causal comparison improvements.",
+      "acceptance": {
+        "unit": "Independent bounded constitutive cases must account for phase, gate, capacitor, contact, plastic and boundary work with units; rejection must preserve the predecessor.",
+        "module": "Exercise the actual coupled solver at stops, yield, depletion and field changes; expose the residual and demonstrate the approved acceptance criterion rejects an out-of-contract result.",
+        "system": "Demonstrate bounded cumulative balance on preserved mature state together with retained learning, body action and all environmental transfers.",
+        "release": "Bind law approval, source/binary/configuration and original ordered-test receipts to the release; standalone-neuron passes cannot certify a different solver."
+      },
+      "refs": [
+        {
+          "source_id": "CA06",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA06--arcloom_neuron.rs",
+          "line": 625,
+          "anchor": "            if residual.abs()>numerical+carrier_bound {",
+          "sha256": "8824748466903ce11333007e3dfe3cd0201e7c88fa9da63abc6c4350f2db181d"
+        },
+        {
+          "source_id": "CA09",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+          "line": 1334,
+          "anchor": "                if comparison.accepted(){b.evidence.error_estimate=error;accepted=Some(b);}",
+          "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+        },
+        {
+          "source_id": "CA09",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+          "line": 1355,
+          "anchor": "struct AdaptiveComparison{state_error:f64,causal_mismatch:Option<&'static str>}",
+          "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+        },
+        {
+          "source_id": "CA09",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+          "line": 1221,
+          "anchor": "            evidence.energy_residual_j=finite(energy1-energy0+evidence.phase_heat_j+evidence.gate_heat_j+",
+          "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCN02",
+      "name": "Complete field storage is not complete neuronal participation",
+      "classification": "Verified consumer boundary; required local/global participation unqualified",
+      "finding": "CNA02",
+      "observed_mechanism": "The producer stores the joint source, local SEV vectors, sparse contact references and seven explicit DSF fields. It exposes local perspectives and separately measured global stability. In the inspected functional64 chain neither API has a caller. The material converts the seven gate fields into typed numerator/denominator trits and couples them through its fixed fact_node anatomy; local power arrives separately. The complete source archive is retained, but its presence alone does not establish the required neuron-local field/topology participation or measured global gate.",
+      "evidence_limits": "All seven DSF values are read; no single-score substitution is asserted. Existing source powers and retained material contacts do participate. Absence of these API calls alone is not a proof that no equivalent law exists; the correspondence has not been established.",
+      "replacement": "Bind every reached neuron’s physical locality, source component, complete shared field and incident relationships to its actual consumer, or document the exact missing approved mechanism. Supply authentic measured global components and their separately authorized consumer. Do not replace missing measurement with B−P or unlock a gate with defaults.",
+      "acceptance": {
+        "unit": "Verify every field family, numeric role, position, signed-zero custody, source clock and local incidence; changed locality must have its specified causal effect.",
+        "module": "Prove the union of reached perspectives covers the declared reached topology without per-neuron kernel reruns, invented local fields or hidden scalar authority.",
+        "system": "Use preserved-state causal interventions to distinguish full-field/local participation from merely storing an archive; separately verify global stability where claimed.",
+        "release": "Correct the producer’s stale unmounted description for the qualified mount and issue only claims bound to actual consumer evidence."
+      },
+      "refs": [
+        {
+          "source_id": "CN06",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN06--joint_uf_vector.rs",
+          "line": 415,
+          "anchor": "    pub(crate) fn perspective(&self, vertex: usize, gate: usize) -> UfResult<LocalPerspective<'_>> {",
+          "sha256": "3293663734f1a90a73c530324aad0452c29137892bdc98cbd4f5769e397614c9"
+        },
+        {
+          "source_id": "CN06",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN06--joint_uf_vector.rs",
+          "line": 407,
+          "anchor": "    pub(crate) fn global_stability(",
+          "sha256": "3293663734f1a90a73c530324aad0452c29137892bdc98cbd4f5769e397614c9"
+        },
+        {
+          "source_id": "CA09",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+          "line": 1401,
+          "anchor": "    fn facts_for(field:&SharedJointField,gate:usize)->Result<Arc<[Fact]>>{",
+          "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+        },
+        {
+          "source_id": "CA09",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+          "line": 252,
+          "anchor": "    fn fact_node(site:usize)->usize{let round=site/64;site%64*320+[0,32,160,224,288][round%5]+round/5}",
+          "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+        },
+        {
+          "source_id": "LAW01",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/LAW01--GUALA_ONE_NEURON_PHYSICAL_TRANSITION_CONTRACT_2026-10-01.md",
+          "line": 94,
+          "anchor": "Carry one complete shared UF result, the reached neuron's perspective and",
+          "sha256": "b94602c76ee21f66f26360a84bb4c0810fe73525ed82d13d0959f95e5721da29"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCN03",
+      "name": "Sensory dimensionalization has explicit losses before joint UF",
+      "classification": "Verified reduced sensor projections; authority and sufficiency unresolved",
+      "finding": "CNA03",
+      "observed_mechanism": "Root F contains only the final1ms sign of yaw/x/y, although ten exact displacement intervals are retained as evidence. Optical F and optical power use the combined two-lid transmission. The auditory power path uses adjacent RMS squared sums; phase remains in the joint source but does not enter that power calculation. Body-axis positions and material charge are normalized/projection values with raw custody retained. These are source/transducer choices, not evidence that every archived quantity drives cognition.",
+      "evidence_limits": "This is a description of lost magnitude, within-window order, separate-lid transmission and local power-phase dependence at named boundaries. It does not prove every reduction is forbidden, that a declared direction receptor must measure position, or that words cannot be learned. The seven DSF output fields themselves are not flattened here.",
+      "replacement": "Recover and bind each approved sensor quantity, geometry, calibration, dimensionalization and uncertainty to its consumer. For required information omitted by the mounted sensor, implement the direct approved sensing law rather than smuggling evidence bytes or semantic labels into decisions.",
+      "acceptance": {
+        "unit": "Use distinct physical inputs with identical projected values as declared falsifiers: +1 versus +100 displacement, motion in an earlier versus final millisecond, and swapped lid openings. Verify exactly which boundaries should distinguish them.",
+        "module": "Verify full joint-source construction, independent power custody and local field use against the same physical record; report each reduced representation honestly.",
+        "system": "Test required navigation, sensory association and articulation on authentic history without providing labels or selectors; do not infer adequacy from archive completeness.",
+        "release": "Publish the actual mounted sensor inventory and its limits in GualaLoom/configuration and qualification evidence."
+      },
+      "refs": [
+        {
+          "source_id": "CN02",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN02--functional64_source.rs",
+          "line": 565,
+          "anchor": "    pub(crate) fn presence(&self)->[f64;6]{",
+          "sha256": "0882fa96a85893adef4b834a204a06a4bff711c52e27cbd558e45e5c12027533"
+        },
+        {
+          "source_id": "CN02",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN02--functional64_source.rs",
+          "line": 221,
+          "anchor": "        values.extend_from_slice(&root.latest().presence());",
+          "sha256": "0882fa96a85893adef4b834a204a06a4bff711c52e27cbd558e45e5c12027533"
+        },
+        {
+          "source_id": "CN02",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN02--functional64_source.rs",
+          "line": 187,
+          "anchor": "fn shutter(body:&ArticulatedBodyState)->Result<(u128,u128)>{",
+          "sha256": "0882fa96a85893adef4b834a204a06a4bff711c52e27cbd558e45e5c12027533"
+        },
+        {
+          "source_id": "CN02",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN02--functional64_source.rs",
+          "line": 422,
+          "anchor": "        let work=outward_product(outward_sum(outward_product(p,p)?,outward_product(q,q)?)?,factor)?;",
+          "sha256": "0882fa96a85893adef4b834a204a06a4bff711c52e27cbd558e45e5c12027533"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A08",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCN04",
+      "name": "Physical latency and source gaps are explicit mechanisms requiring qualification",
+      "classification": "Verified scheduling and gap behavior; current wall latency not measured",
+      "finding": "CNA04",
+      "observed_mechanism": "The owner advances body/material at1ms, samples source rows at10ms, evaluates after46 real rows, and mounts a250ms field interval. Source completion retains21 rows of overlap. Two field slots bound delivery; a full source register records new rows as unacquired until delivery resumes, then starts a new cohort rather than inventing continuity. Native output drives the following millisecond; self-pressure enters the ear through a4000-sample/250ms FIFO.",
+      "evidence_limits": "These are simulated-time mechanics, not a measurement of current wall-clock delay or proof that a gap occurred live. Source gaps do not imply all optics/audio power stops. Missing samples are visibly counted; that honesty must remain.",
+      "replacement": "Bind these occurrence boundaries and delay laws to the approved sensory experience contract. Measure source-age, acquisition coverage, field residence, solver work and wall latency separately. Repair any unsupported delay or lost required experience at its cause; never fill gaps with zeros or shorten physics to pass.",
+      "acceptance": {
+        "unit": "Verify timestamps, overlap, first warm-up, full-register gap and FIFO causality with actual occurrence identities.",
+        "module": "Exercise backlog/brownout, resumed acquisition and restart while preserving pending field/audio state and reporting missing coverage.",
+        "system": "Measure the complete preserved-state loop and correlate true gaps/delays with learning and action failures; separate caretaker/environment interference from native cost.",
+        "release": "Verify the exact live candidate continuously under admitted resource bounds with source coverage exposed, not just task health."
+      },
+      "refs": [
+        {
+          "source_id": "CN02",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN02--functional64_source.rs",
+          "line": 286,
+          "anchor": "        let next=Self{anatomy:self.anatomy.clone(),rows:self.rows[25..].to_vec()};Ok((source,next))",
+          "sha256": "0882fa96a85893adef4b834a204a06a4bff711c52e27cbd558e45e5c12027533"
+        },
+        {
+          "source_id": "CA09",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+          "line": 411,
+          "anchor": "    pub(crate) fn can_accept_field(&self)->bool{self.delivery.len()<2}",
+          "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+        },
+        {
+          "source_id": "CA07",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA07--functional64_owner.rs",
+          "line": 348,
+          "anchor": "            coverage.miss(at)?;summary.source_rows_unacquired=count(summary.source_rows_unacquired,1)?;self.current.source.clone()",
+          "sha256": "8a32081253636874e282f6596d83755648877158e39bae8c4f51cf90e44e38a9"
+        },
+        {
+          "source_id": "CA07",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA07--functional64_owner.rs",
+          "line": 295,
+          "anchor": "        let own_ear_pcm=self.fifo[self.steps*32..(self.steps+1)*32].try_into().unwrap();",
+          "sha256": "8a32081253636874e282f6596d83755648877158e39bae8c4f51cf90e44e38a9"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A04",
+        "A06",
+        "A10",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCN05",
+      "name": "Vocal pressure has a real efferent route; learned speech remains unproved",
+      "classification": "Verified source path; physical-model and learned-use qualification open",
+      "finding": "CNA05",
+      "observed_mechanism": "Prior native terminal96 discharge supplies the existing vocal body;45 opposed body-axis pairs shape posture, and16 pressure samples are produced each millisecond. The same2156-line vocal-body source previously classified in SP08 is still used. Its implementation is a reduced-order spectral/valve organ, including finite work, constitutive coefficients, saturation and a phase accumulator. Joe’s historical approval of a minimal virtual oscillator must be preserved at its exact scope. The loop reports said:null, rather than translating pressure into an asserted word.",
+      "evidence_limits": "A phase accumulator, cosine or physical resonator is not automatically a heuristic or ML. This source path proves neither audible output in a run nor learned phonemes, words, syntax or conversation. Existing SP08/VO authority gaps are not closed by this caller.",
+      "replacement": "Retain the lawful efferent route. Resolve SP08’s organ-law/work/calibration correspondence, then qualify actual sensory experience causing persistent material change that later governs breath and articulation. Keep tutor TTS/recognition and semantic transcripts outside pupil decision authority.",
+      "acceptance": {
+        "unit": "Verify paid breath, posture, silence, saturation, residual air and exact cold continuation under the authorized organ law.",
+        "module": "Trace authentic native discharge through body pressure and the same organism’s ear, including all timing and work transfers.",
+        "system": "From matched preserved states, distinguish learned versus pre-exposure and severed-path controls; demonstrate held-out intelligibility and grounded recombination without target drives or answer labels.",
+        "release": "Bind intelligibility/learning claims to original emitted audio, source occurrence, mature state and independent assessment on the exact serving artifact."
+      },
+      "refs": [
+        {
+          "source_id": "CA07",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA07--functional64_owner.rs",
+          "line": 292,
+          "anchor": "        let voice=settle_native_articulatory_interval(motion.successor,&motion.proprioceptive_consequences,p[96] as u128,16)?;",
+          "sha256": "8a32081253636874e282f6596d83755648877158e39bae8c4f51cf90e44e38a9"
+        },
+        {
+          "source_id": "CN03",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN03--virtual_articulatory_body.rs",
+          "line": 79,
+          "anchor": "    valve_rate_floor_hz: 352,",
+          "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f"
+        },
+        {
+          "source_id": "CN03",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN03--virtual_articulatory_body.rs",
+          "line": 608,
+          "anchor": "        position %= VALVE_CYCLE_ONE;",
+          "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f"
+        },
+        {
+          "source_id": "CN01",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN01--guala_functional64_loop.py",
+          "line": 253,
+          "anchor": "                \"said\": None,",
+          "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A06",
+        "A09",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCN06",
+      "name": "The current caller is not complete multimodal embodiment",
+      "classification": "Verified mounted-input scope and asserted coverage boundary",
+      "finding": "CNA06",
+      "observed_mechanism": "External ingress currently admits one4000-sample mono microphone occurrence or unattended work; other sensory payloads and retained pending physical returns explicitly refuse. The same mixed audio block feeds both ears. Surface packing passes events:empty and both coverage flags:true on every10ms boundary. Thus the general event producer/consumer coverage is not established by this caller, even though current body axes, optics, temperature and intake have real paths.",
+      "evidence_limits": "An exclusive actor with no admitted surface-command events may legitimately have an empty interval; this reading does not prove an event was dropped. Command-event coverage is not skin occupancy. Duplicate input does not prove previously different ear states become equal.",
+      "replacement": "Bind the exclusive-caller no-event assertion to the actual admitted event stream, and mount required modalities/returns in chronological same-history order. Keep unavailable routes visibly unavailable; do not label empty event records as functioning touch or complete multisensory memory.",
+      "acceptance": {
+        "unit": "Verify event identity, actual empty versus unavailable intervals, independent-ear semantics and rejection before mutation.",
+        "module": "Use actual ingress and world/body producers to verify every claimed modality reaches its own declared consumer and persists across restart.",
+        "system": "Demonstrate multimodal associations and the story of experience with real internal/external source timing, including required physical returns.",
+        "release": "GualaLoom and certification scope must match mounted modalities and original production-device/browser evidence."
+      },
+      "refs": [
+        {
+          "source_id": "CN01",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN01--guala_functional64_loop.py",
+          "line": 193,
+          "anchor": "                    batch = ears.advance(mixed, mixed, start_sample=ears.sample_count)",
+          "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+        },
+        {
+          "source_id": "CN01",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN01--guala_functional64_loop.py",
+          "line": 207,
+          "anchor": "                        received_covered=True, own_covered=True, events=(),",
+          "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+        },
+        {
+          "source_id": "CN01",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN01--guala_functional64_loop.py",
+          "line": 108,
+          "anchor": "            raise NotImplementedError(\"this input requires the complete chronological external physical owner\")",
+          "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+        },
+        {
+          "source_id": "CN01",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN01--guala_functional64_loop.py",
+          "line": 127,
+          "anchor": "            raise NotImplementedError(\"retained physical return needs explicit same-history delivery\")",
+          "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A06",
+        "A10",
+        "A12",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCN07",
+      "name": "Contact aggregation can be a valid exact-topology optimization",
+      "classification": "Preserve potential improvement; execution and whole-law clearance separate",
+      "finding": "CNA07",
+      "observed_mechanism": "The contact operator aggregates positive moments over declared sparse baseline contacts, excludes retained overrides from the baseline, then evaluates overrides directly. It does not choose actions or fit a predictor. Its source includes bitwise comparisons with the predecessor query and operation-count checks. Directed interval arithmetic encloses portions of finite arithmetic, while trigonometric operands still use binary64 sin/cos; a full real-law error proof is not thereby supplied.",
+      "evidence_limits": "The complete436-line operator was read, but tests were not executed. Bitwise equality of a specified optimization does not certify its underlying physical law, all boundary cases or whole-system behavior.",
+      "replacement": "Preserve demonstrated computational equivalence without calling means or moments ML merely by name. Qualify the underlying contact law, all numerical error contributions and actual occupied resource behavior separately; reject any optimization that loses a causal term.",
+      "acceptance": {
+        "unit": "Run complete predecessor/equivalence tests plus independently derived sparse-topology cases, override cancellation, signed zero and outward-error boundaries.",
+        "module": "Show coupled force, energy, yield and accepted successor remain equivalent under actual reached frontiers and resource refusal.",
+        "system": "Measure performance on matched authentic states while keeping contacts, emitted carriers and retained learning effects intact.",
+        "release": "Record frozen before/after artifacts and bounded observed resource receipts; no speed claim from an unrelated fixture."
+      },
+      "refs": [
+        {
+          "source_id": "CA10",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA10--functional64_contact.rs",
+          "line": 371,
+          "anchor": "    fn compact_congruence_queries_preserve_every_summary_and_operator_bit(){",
+          "sha256": "f6a08256eb7d97e13637f7027c67a2f9fafeacc2fd625eed448d25ca1a79aef6"
+        },
+        {
+          "source_id": "CA10",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA10--functional64_contact.rs",
+          "line": 325,
+          "anchor": "            let value=0.5*l*(m.weight*difference*difference+baseline*baseline*m.m2);",
+          "sha256": "f6a08256eb7d97e13637f7027c67a2f9fafeacc2fd625eed448d25ca1a79aef6"
+        },
+        {
+          "source_id": "CA10",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA10--functional64_contact.rs",
+          "line": 303,
+          "anchor": "    for edge in &f.edges{if *s.weights.get(edge.contact.authentic_slot as usize)!=0.0{direct_force(s,f,a,b,edge.contact,&mut out,count,admission)?;}}",
+          "sha256": "f6a08256eb7d97e13637f7027c67a2f9fafeacc2fd625eed448d25ca1a79aef6"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCN08",
+      "name": "Large counters and exact storage are not cognitive gains",
+      "classification": "Verified representation/admission roles; resource qualification open",
+      "finding": "CNA08",
+      "observed_mechanism": "The work store uses19 limbs with quantum1/(125×2^1127) joules to retain admitted finite numerical work and a common52-bit event fraction. WorkCount separately limits actual force and yield queries. These quantities are storage/admission mechanics, not a billion-fold cognitive gain. The native payload accounting explicitly excludes allocator/process overhead; a host resource envelope is still required.",
+      "evidence_limits": "This does not authenticate historical tool task1434, approve a billion-operation budget or establish current latency/RSS. Exact custody of a binary64 result is not exact real-valued physics, as the work source explicitly states.",
+      "replacement": "Retain exact arithmetic where required, justify every bound by occupied work and deployment resources, and keep refusal diagnostics visible. Resolve the original task1434 receipt independently instead of treating a large integer as proof of ML or changing physics to fit a limit.",
+      "acceptance": {
+        "unit": "Verify exact unit conversion, depletion, overflow, common-grid division and atomic refusal at actual boundaries.",
+        "module": "Check aggregate payload/operation accounting against the real caller, including Python/world/cochlea and discarded numerical trials.",
+        "system": "Measure CPU, wall time, peak/resident memory and growth on preserved mature state with declared limits.",
+        "release": "Enforce and verify the actual container/resource envelope and failure visibility on the frozen serving artifact."
+      },
+      "refs": [
+        {
+          "source_id": "CN08",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN08--functional64_work.rs",
+          "line": 1,
+          "anchor": "//! Exact custody of admitted work. Sole store quantum: 1/(125*2^1127)J.",
+          "sha256": "c9f9765877a3aad56a9ee972a4a0b7dc9db185101c7920f24c3eb397dee41876"
+        },
+        {
+          "source_id": "CN08",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN08--functional64_work.rs",
+          "line": 57,
+          "anchor": "    /// The finite numerical packet's bits are exact; no claim is made that",
+          "sha256": "c9f9765877a3aad56a9ee972a4a0b7dc9db185101c7920f24c3eb397dee41876"
+        },
+        {
+          "source_id": "CA09",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+          "line": 308,
+          "anchor": "    fn preflight_force(&self,n:usize,a:Admission)->Result<()>{",
+          "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+        },
+        {
+          "source_id": "CA09",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+          "line": 1842,
+          "anchor": "/// Logical payload admission, not allocator RSS. Shared material anatomy,",
+          "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A04",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCN09",
+      "name": "Canonical current custody is an improvement, not restored cognitive continuity",
+      "classification": "Verified persistence structure; preservation qualification open",
+      "finding": "CNA09",
+      "observed_mechanism": "Material encoding retains actual phases, rings, raw contact bits, exact charge/work, pending packets and field cursors. Decode validates the constitution and recomputes occupied fields from their retained source. Owner custody also retains pending terminals, source gaps, gut and self-hearing FIFO. Separately, commissioning still creates new material coordinates while archiving original history; the archive cannot be equated with usable predecessor memory. The fully read body source now confirms commission_v9 copies only eight neck/eye/lid coordinates into newly neutral material; other body axes, acoustic/work state, lung and antagonist activations are newly initialized. Its profile tests explicitly exclude mature migration and cognition.",
+      "evidence_limits": "Reading codecs does not prove tested warm/cold equivalence, durable production ancestry or retention of earlier learned behavior. Existing CQ01/VO migration findings remain open.",
+      "replacement": "Keep canonical binary ownership and refusal behavior. Prove ordinary continuation for all causal state, then establish a lawful mapping or explicit missing mapping from authentic predecessor cognition to the successor. Do not reset, regenerate memories or reactivate the rejected chooser.",
+      "acceptance": {
+        "unit": "Verify every causal state component, signed-zero/raw bits, truncation/corruption and unchanged failure predecessor.",
+        "module": "Match warm versus new-process ordinary continuation with pending source, audio, yield and nourishment boundaries.",
+        "system": "Demonstrate retained pre64 learned effects on authentic preserved history with matched controls, not just identity/tick/contact counts.",
+        "release": "Bind exact durable ancestry and preservation receipts to the deployed paired body/world/native state."
+      },
+      "refs": [
+        {
+          "source_id": "CA09",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+          "line": 1617,
+          "anchor": "    pub(crate) fn encode(&self,limit:usize,source_bounds:AdmissionBounds)->Result<Vec<u8>>{",
+          "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+        },
+        {
+          "source_id": "CA09",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+          "line": 1733,
+          "anchor": "            let field=evaluate_joint_source(source,source_bounds).map_err(|_|MaterialError::Source(\"unchanged full joint re-evaluation\"))?;",
+          "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+        },
+        {
+          "source_id": "CA09",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+          "line": 354,
+          "anchor": "    /// Explicit new material commissioning; ordinary decode never calls this.",
+          "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+        },
+        {
+          "source_id": "CA07",
+          "path": "docs/guala_reconciliation/sources/charter-assessment/CA07--functional64_owner.rs",
+          "line": 368,
+          "anchor": "        next.cochlear_current=ear;next.pending_self_pcm_s16le=self.fifo.clone().into();next.validate_current()?;",
+          "sha256": "8a32081253636874e282f6596d83755648877158e39bae8c4f51cf90e44e38a9"
+        },
+        {
+          "source_id": "CN09",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN09--virtual_articulated_body.rs",
+          "line": 1271,
+          "anchor": "    pub(crate) fn commission_v9(known_positions: [i32; 8]) -> Result<Self, ArticulatedBodyError> {",
+          "sha256": "dbdd8d00e2934fe8e85ee122432e5858739131aca4ad6a586a93cd0a14e50a7d"
+        },
+        {
+          "source_id": "CN11",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN11--body_anatomy_profile_tests.rs",
+          "line": 1,
+          "anchor": "//! Anatomy and physical continuation fixtures, not mature migration or cognition.",
+          "sha256": "cb9162e16787283e4d34a8ef7431474f48426879a09258b68da8641b7b65a0f4"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A09",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCN10",
+      "name": "The copied-pose test does not demonstrate the closing movement it describes",
+      "classification": "Verified test/claim mismatch; legitimate static fixture must retain narrow scope",
+      "finding": "CNA11",
+      "observed_mechanism": "The copied-body test describes an exact published posture followed by one lawful closing movement. Its positive arm directly sets the glottal coordinate to80, builds a body from that pose and supplies eight respiratory carriers. It does not execute the closing transition from the wide-open predecessor. Unpublished axes are neutral and the complete historical acoustic/activation state is not supplied by this fixture. Its wide-open negative arm supplies zero respiratory carriers, whereas the opening comment claims silence under any drive.",
+      "evidence_limits": "A reconstructed static posture can legitimately test the organ. It is not the exact historical organism state, proof of one native closing action or a paid integrated wide-open test. Another test separately holds endpoint geometry fixed with paid work; an integrated body may passively leave that endpoint, as its comment correctly states. None of these tests was run by A1.",
+      "replacement": "Correct the claim and separate static-organ, physical-transition and learned-action evidence. For a movement claim, run the actual admitted closing transition from the same preserved predecessor with its work and complete state; for pupil learning, trace the native cause of that discharge. Do not change the organism to fit the manually assigned pose.",
+      "acceptance": {
+        "unit": "Verify static postures, paid endpoint cases and actual closing transitions as distinct predicates with full state/work custody.",
+        "module": "Trace the real motor/body/pressure caller without direct coordinate substitution; use the same predecessor for each claimed comparison.",
+        "system": "Demonstrate experience-dependent native closing/articulation under matched causal controls, not reconstructed poses alone.",
+        "release": "Name fixture versus authentic historical/current state and bind every result to its exact source/configuration."
+      },
+      "refs": [
+        {
+          "source_id": "CN03",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN03--virtual_articulatory_body.rs",
+          "line": 2005,
+          "anchor": "    /// her exact published tick-358454 pose — glottis at its 400 maximum,",
+          "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f"
+        },
+        {
+          "source_id": "CN03",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN03--virtual_articulatory_body.rs",
+          "line": 2007,
+          "anchor": "    /// must be SILENT under any drive (posture is the control), and the",
+          "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f"
+        },
+        {
+          "source_id": "CN03",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN03--virtual_articulatory_body.rs",
+          "line": 2066,
+          "anchor": "        voiced_axes[BodyAxis::GlottalAperture.index()] = 80;",
+          "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f"
+        },
+        {
+          "source_id": "CN03",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN03--virtual_articulatory_body.rs",
+          "line": 2073,
+          "anchor": "        let voiced = render_bounded_voice(voiced_pose, 8, 16_000);",
+          "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f"
+        },
+        {
+          "source_id": "CN03",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN03--virtual_articulatory_body.rs",
+          "line": 2036,
+          "anchor": "        // Fully-open control: body motion has no respiratory source. The",
+          "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A08",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCN11",
+      "name": "Parameter-region and waveform-difference tests do not qualify vowels or physical calibration",
+      "classification": "Verified predicate scope; preserve rejected diagnostics and disclose observer gain",
+      "finding": "CNA12",
+      "observed_mechanism": "The material scan tries36 combinations of work, rate and pressure divisor at an authored modal posture. Its predicate counts points within8000–16000 active samples,340–390Hz observed rate and raw peak64–32767, then requires more than one accepted point. Separate vowel-region tests set five target modal frequencies through inverse area interpolation and assert nonzero/different waveform arrays, including adjacent coordinates. The ignored listening exporter multiplies pressure by49 with overflow refusal and labels its three target regions REJECTED and diagnostic only.",
+      "evidence_limits": "Multiple accepted parameter points do not independently derive material units or calibration. Distinct arrays need not be perceptually distinct or recognizable vowels; a raw PCM peak alone is not calibrated audibility. Test-only authored targets/gain are disclosed fixtures, not proof they drive the runtime pupil. The rejected diagnostic labeling is an evidence improvement to retain. No test/audio replay or fitting was performed in this audit.",
+      "replacement": "Keep component sensitivity and bound tests at their actual scope. Authenticate organ-law/calibration authority independently of desired output and publish original unamplified pressure plus any observer gain. Qualify perceptual intelligibility independently and learned control separately. Never select production coefficients or semantic gestures solely to force a speech pass.",
+      "acceptance": {
+        "unit": "Derive units, work/pressure calibration and numerical bounds independently; label sensitivity, nonzero and perceptual predicates separately.",
+        "module": "Verify the ordinary native caller uses only lawful efferents; diagnostic target arrays, playback gain and exporters cannot supply pupil decisions.",
+        "system": "Use blinded independent assessment of original emitted sound with declared playback calibration and matched learned/pre-learning/severed controls.",
+        "release": "Keep rejected recordings, raw data, transforms and all result arms; do not relabel diagnostic capacity as learned speech."
+      },
+      "refs": [
+        {
+          "source_id": "CN03",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN03--virtual_articulatory_body.rs",
+          "line": 1735,
+          "anchor": "        for work_per_carrier in [512_000_i64, 1_024_000, 1_536_000, 2_048_000] {",
+          "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f"
+        },
+        {
+          "source_id": "CN03",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN03--virtual_articulatory_body.rs",
+          "line": 1777,
+          "anchor": "                    let pressure_is_audible_without_clipping = peak >= 64 && peak < 32_768;",
+          "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f"
+        },
+        {
+          "source_id": "CN03",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN03--virtual_articulatory_body.rs",
+          "line": 1789,
+          "anchor": "        assert!(accepted_region_count > 1, \"the material gate collapsed to one guessed point\");",
+          "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f"
+        },
+        {
+          "source_id": "CN03",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN03--virtual_articulatory_body.rs",
+          "line": 1866,
+          "anchor": "    fn three_vowel_regions_and_adjacent_controls_are_physically_distinct() {",
+          "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f"
+        },
+        {
+          "source_id": "CN03",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN03--virtual_articulatory_body.rs",
+          "line": 1955,
+          "anchor": "                    i16::try_from(i32::from(sample) * 49)",
+          "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f"
+        },
+        {
+          "source_id": "CN03",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN03--virtual_articulatory_body.rs",
+          "line": 1998,
+          "anchor": "        let html = r#\"<!doctype html><meta charset=utf-8><title>Guala spectral organ body proof</title><style>body{font:18px system-ui;max-width:760px;margin:40px auto;background:#10171c;color:#e8f2f2}button{font-size:20px;margin:8px;padding:12px 22px}</style><h1>Speech repair diagnostic control</h1><p>The first three are the rejected target-region record. The fourth is the exact task-1428 vocal posture supplied one ideal, isolated respiratory act. It is diagnostic only and cannot ship.</p><button onclick=\"new Audio('region-a.wav').play()\">Intended AH — REJECTED</button><button onclick=\"new Audio('region-b.wav').play()\">Intended EE — REJECTED</button><button onclick=\"new Audio('region-c.wav').play()\">Intended OO — REJECTED</button><button onclick=\"new Audio('task-1428-one-shot-control.wav').play()\">Task 1428 posture — one-shot diagnostic</button><p>These are exact deterministic 16-kHz pressures with observer-only x49 speaker gain. The labels belong only to this external test page; no sound name or target exists inside the organ.</p>\"#;",
+          "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A05",
+        "A10",
+        "A12",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCN12",
+      "name": "Direct acoustic controls and passive body custody have distinct physical meanings",
+      "classification": "Explicit functional emulation boundary; preserve useful mechanics and truthful display",
+      "finding": "CNA13",
+      "observed_mechanism": "The vocal module declares nine direct acoustic area controls; jaw/lip geometry no longer caps them. Its test expects the same pressure and acoustic state for extreme jaw/lip poses with identical instrument areas, while retaining different body feedback. Thus visible jaw/lip motion is not a direct measure of acoustic aperture in this model. PassiveBodyTrajectory separately records already-settled positions, bounds frames/bytes, requires a complete trajectory and refuses newly driven motor work; it is not an authored action sequence or learned memory.",
+      "evidence_limits": "A decoupled functional instrument is not automatically a forbidden heuristic under Joe’s functional-emulation scope. Its exact authorization, physical meaning and cognitive connections still require correspondence. These tests cannot prove facial expression, embodied speech or learning. The2429-line body dependency and138-line profile tests are now fully read; further transitive/authority/runtime closure remains open.",
+      "replacement": "Document and authenticate the chosen control geometry without claiming biological mouth equivalence. Keep GualaLoom body pose and instrument controls separately truthful. Preserve bounded trajectory custody and real passive returns; do not infer sound, movement or experience from endpoint equality, appearance or a named array. Qualify actual neural control of the declared instrument.",
+      "acceptance": {
+        "unit": "Verify actual control identity, body feedback, passive trajectory completeness, resource refusal and codec fidelity under the approved geometry.",
+        "module": "Trace independent native effectors into instrument and body senses, including chronological passive motion and real acoustic returns.",
+        "system": "Demonstrate learned articulation and embodied interaction through the actual controls, not visible mouth motion or direct test actuation.",
+        "release": "Publish the mounted geometry/units and display limitations; verify complete dependent body source and exact-artifact behavior."
+      },
+      "refs": [
+        {
+          "source_id": "CN03",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN03--virtual_articulatory_body.rs",
+          "line": 7,
+          "anchor": "//! lip geometry no longer caps those controls; their body senses remain real.",
+          "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f"
+        },
+        {
+          "source_id": "CN03",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN03--virtual_articulatory_body.rs",
+          "line": 1219,
+          "anchor": "    fn direct_acoustic_controls_preserve_identity_and_bypass_jaw_lip_caps() {",
+          "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f"
+        },
+        {
+          "source_id": "CN03",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN03--virtual_articulatory_body.rs",
+          "line": 1252,
+          "anchor": "        assert_eq!(voice.radiated_pressure_pcm, uncapped.radiated_pressure_pcm);",
+          "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f"
+        },
+        {
+          "source_id": "CN07",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN07--passive_body_source.rs",
+          "line": 111,
+          "anchor": "    /// Observe an existing no-drive settlement; never perform mechanics here.",
+          "sha256": "cca0a39cf1dd1574e24d9a70bdff720f61dc2404f49eaa2977209a38f749750c"
+        },
+        {
+          "source_id": "CN07",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN07--passive_body_source.rs",
+          "line": 130,
+          "anchor": "            return Err(PassiveBodySourceError::NewMotorWork);",
+          "sha256": "cca0a39cf1dd1574e24d9a70bdff720f61dc2404f49eaa2977209a38f749750c"
+        },
+        {
+          "source_id": "CN07",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN07--passive_body_source.rs",
+          "line": 165,
+          "anchor": "            return Err(PassiveBodySourceError::IncompleteTrajectory);",
+          "sha256": "cca0a39cf1dd1574e24d9a70bdff720f61dc2404f49eaa2977209a38f749750c"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A08",
+        "A10",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VCN13",
+      "name": "Older-body decoding retires acoustic state and must not be called ordinary preserved continuation",
+      "classification": "Verified version-dependent state transformation; activation and original authority remain separate",
+      "finding": "CNA14",
+      "observed_mechanism": "The same body decode entrypoint accepts V1–V9. For V4/V5 it reads traveling pressures and prior flow, validates fixed phase/countdown, then returns the current acoustic state at rest. Those coordinates are not retained in the decoded successor. V1/V2 reopen proprioception; V6 preserves its22 acoustic coordinates in a tagged LegacyV6 union; V7 adds zero tissue activation; current V8/V9 retain encoded state. The V4/V5 migration tests begin from neutral current bytes with a changed version/truncated length, so they do not test a non-rest historical tail. By contrast, the V6 test explicitly supplies22 nonzero/zero historical coordinates and checks preservation.",
+      "evidence_limits": "The source openly describes retiring the rejected fixed source. This does not establish that a current live restore invoked V4/V5, that outer in-flight pressure was lost, or that all historical migrations erased state. The narrow typed V6 preservation is a real source-level improvement; no tests were executed. The current-only restore caller boundary still requires complete route qualification.",
+      "replacement": "Separate lossless current decoding, historical evidence parsing and explicitly authorized migration. Preserve original bytes and inventory every transformed coordinate. Refuse current activation when a faithful approved mapping is unavailable; do not silently replace a non-rest predecessor with rest or resurrect the rejected oscillator. Verify outer in-flight pressure independently. Qualify legitimate V6/V7/V8/V9 transitions at their exact scope.",
+      "acceptance": {
+        "unit": "Use actual non-rest fixtures for each supported version; verify every retained/transformed coordinate and rejection before adoption. Neutral bytes alone cannot qualify a non-rest migration.",
+        "module": "Trace actual restore, commissioning and outer-envelope callers. Historical parsing cannot bypass current-only admission or clear live state as a decode side effect.",
+        "system": "Demonstrate same-history warm/cold continuation and preserved earlier causal effects under matched controls; keep any untranslatable legacy state explicitly unavailable.",
+        "release": "Bind original migration authority, predecessor bytes, transformation/loss inventory and exact serving-version admission to the release. An accepted inner codec or preserved archive is not complete cognitive continuity."
+      },
+      "refs": [
+        {
+          "source_id": "CN09",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN09--virtual_articulated_body.rs",
+          "line": 1682,
+          "anchor": "                // V4/V5 persisted the rejected fixed-phase/fixed-countdown source.",
+          "sha256": "dbdd8d00e2934fe8e85ee122432e5858739131aca4ad6a586a93cd0a14e50a7d"
+        },
+        {
+          "source_id": "CN09",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN09--virtual_articulated_body.rs",
+          "line": 1687,
+          "anchor": "                    let _traveling_pressure = i32::from_be_bytes(",
+          "sha256": "dbdd8d00e2934fe8e85ee122432e5858739131aca4ad6a586a93cd0a14e50a7d"
+        },
+        {
+          "source_id": "CN09",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN09--virtual_articulated_body.rs",
+          "line": 1694,
+          "anchor": "                let _previous_breath_flow = i32::from_be_bytes(",
+          "sha256": "dbdd8d00e2934fe8e85ee122432e5858739131aca4ad6a586a93cd0a14e50a7d"
+        },
+        {
+          "source_id": "CN09",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN09--virtual_articulated_body.rs",
+          "line": 1924,
+          "anchor": "    fn previous_phonatory_body_retires_the_valid_fixed_source_exactly_once() {",
+          "sha256": "dbdd8d00e2934fe8e85ee122432e5858739131aca4ad6a586a93cd0a14e50a7d"
+        },
+        {
+          "source_id": "CN09",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN09--virtual_articulated_body.rs",
+          "line": 1942,
+          "anchor": "    fn task_1408_v6_nonrest_acoustic_tail_is_preserved_without_reinterpretation() {",
+          "sha256": "dbdd8d00e2934fe8e85ee122432e5858739131aca4ad6a586a93cd0a14e50a7d"
+        },
+        {
+          "source_id": "CN09",
+          "path": "docs/guala_reconciliation/sources/current-native-speech/CN09--virtual_articulated_body.rs",
+          "line": 1753,
+          "anchor": "            proprioception_initialized: version >= PREVIOUS_PROPRIOCEPTIVE_BODY_VERSION",
+          "sha256": "dbdd8d00e2934fe8e85ee122432e5858739131aca4ad6a586a93cd0a14e50a7d"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A09",
+        "A10",
+        "A15",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

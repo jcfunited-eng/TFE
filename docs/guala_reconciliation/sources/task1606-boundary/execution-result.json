@@ -1,0 +1,126 @@
+{
+  "files": [
+    {
+      "bytes": 26532,
+      "path": "/app/dsf_ai_service/lean_actor.py",
+      "present": true,
+      "sha256": "a92a571a4e9276321273a907c630bf69a11947b52714f63effdef14da4ded6f8"
+    },
+    {
+      "bytes": 9613,
+      "path": "/app/dsf_ai_service/guala_functional64_runtime.py",
+      "present": true,
+      "sha256": "f4710a82da0fbaa1e45ebad2018c521a739ccd8555ca780ca9f8758e662181ca"
+    },
+    {
+      "bytes": 16496,
+      "path": "/app/dsf_ai_service/guala_functional64_loop.py",
+      "present": true,
+      "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+    },
+    {
+      "path": "/app/native/guala_core/src/functional64_owner_boundary.rs",
+      "present": false
+    },
+    {
+      "path": "/app/native/guala_core/src/functional64_owner.rs",
+      "present": false
+    },
+    {
+      "path": "/app/native/guala_core/src/functional64_material.rs",
+      "present": false
+    },
+    {
+      "path": "/app/BUILD_INFO.json",
+      "present": false
+    },
+    {
+      "path": "/app/build_info.json",
+      "present": false
+    },
+    {
+      "bytes": 2345592,
+      "path": "/usr/local/lib/python3.11/site-packages/guala_core/guala_core.cpython-311-x86_64-linux-gnu.so",
+      "present": true,
+      "sha256": "4c7c1811a389cb7acee89b77409672a5803d080801d3528fc9c596a9346b5244"
+    }
+  ],
+  "process_samples": [
+    {
+      "clock_ticks_per_second": 100,
+      "monotonic": 2198.709050285,
+      "threads": [
+        {
+          "comm": "uvicorn",
+          "state": "S",
+          "stime_ticks": 337,
+          "tid": 1,
+          "utime_ticks": 1066,
+          "wait_channel": "futex_wait_queue"
+        },
+        {
+          "comm": "uvicorn",
+          "state": "S",
+          "stime_ticks": 0,
+          "tid": 26,
+          "utime_ticks": 10,
+          "wait_channel": "futex_wait_queue"
+        },
+        {
+          "comm": "uvicorn",
+          "state": "S",
+          "stime_ticks": 0,
+          "tid": 39,
+          "utime_ticks": 0,
+          "wait_channel": "futex_wait_queue"
+        },
+        {
+          "comm": "uvicorn",
+          "state": "R",
+          "stime_ticks": 662,
+          "tid": 40,
+          "utime_ticks": 205647,
+          "wait_channel": "0"
+        }
+      ]
+    },
+    {
+      "clock_ticks_per_second": 100,
+      "monotonic": 2203.709944748,
+      "threads": [
+        {
+          "comm": "uvicorn",
+          "state": "S",
+          "stime_ticks": 338,
+          "tid": 1,
+          "utime_ticks": 1067,
+          "wait_channel": "futex_wait_queue"
+        },
+        {
+          "comm": "uvicorn",
+          "state": "S",
+          "stime_ticks": 0,
+          "tid": 26,
+          "utime_ticks": 10,
+          "wait_channel": "futex_wait_queue"
+        },
+        {
+          "comm": "uvicorn",
+          "state": "S",
+          "stime_ticks": 0,
+          "tid": 39,
+          "utime_ticks": 0,
+          "wait_channel": "futex_wait_queue"
+        },
+        {
+          "comm": "uvicorn",
+          "state": "R",
+          "stime_ticks": 662,
+          "tid": 40,
+          "utime_ticks": 206147,
+          "wait_channel": "0"
+        }
+      ]
+    }
+  ]
+}

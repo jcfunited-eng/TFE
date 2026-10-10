@@ -1,0 +1,81 @@
+{
+  "schema": "guala.hypothetical_speech_loop.v1",
+  "at_utc": "2026-10-10T15:28:28.515758+00:00",
+  "hypothetical": true,
+  "implemented_claim": false,
+  "qualified": false,
+  "kernel_changed": false,
+  "product_code_changed": false,
+  "sources": [
+    {
+      "path": "native/guala_core/src/functional64_owner.rs",
+      "sha256": "8a32081253636874e282f6596d83755648877158e39bae8c4f51cf90e44e38a9",
+      "bytes": 47874,
+      "copy": "docs/guala_reconciliation/sources/speech-complete-loop/SL01--functional64_owner.rs",
+      "scope": "Function/excerpt review, not a new complete-file historical review credit or execution proof."
+    },
+    {
+      "path": "native/guala_core/src/functional64_material.rs",
+      "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a",
+      "bytes": 156308,
+      "copy": "docs/guala_reconciliation/sources/speech-complete-loop/SL02--functional64_material.rs",
+      "scope": "Function/excerpt review, not a new complete-file historical review credit or execution proof."
+    },
+    {
+      "path": "native/guala_core/src/functional64_contact.rs",
+      "sha256": "f6a08256eb7d97e13637f7027c67a2f9fafeacc2fd625eed448d25ca1a79aef6",
+      "bytes": 31852,
+      "copy": "docs/guala_reconciliation/sources/speech-complete-loop/SL03--functional64_contact.rs",
+      "scope": "Function/excerpt review, not a new complete-file historical review credit or execution proof."
+    },
+    {
+      "path": "native/guala_core/src/functional64_geometry.rs",
+      "sha256": "32bfd98c38c444eeec2f2d62b46fe309067878444935d7a3fdcc3470aa3f270e",
+      "bytes": 9538,
+      "copy": "docs/guala_reconciliation/sources/speech-complete-loop/SL04--functional64_geometry.rs",
+      "scope": "Function/excerpt review, not a new complete-file historical review credit or execution proof."
+    },
+    {
+      "path": "native/guala_core/src/functional64_source.rs",
+      "sha256": "0882fa96a85893adef4b834a204a06a4bff711c52e27cbd558e45e5c12027533",
+      "bytes": 54472,
+      "copy": "docs/guala_reconciliation/sources/speech-complete-loop/SL05--functional64_source.rs",
+      "scope": "Function/excerpt review, not a new complete-file historical review credit or execution proof."
+    },
+    {
+      "path": "native/guala_core/src/joint_uf_vector.rs",
+      "sha256": "3293663734f1a90a73c530324aad0452c29137892bdc98cbd4f5769e397614c9",
+      "bytes": 40540,
+      "copy": "docs/guala_reconciliation/sources/speech-complete-loop/SL06--joint_uf_vector.rs",
+      "scope": "Function/excerpt review, not a new complete-file historical review credit or execution proof."
+    },
+    {
+      "path": "native/guala_core/src/virtual_articulated_body.rs",
+      "sha256": "dbdd8d00e2934fe8e85ee122432e5858739131aca4ad6a586a93cd0a14e50a7d",
+      "bytes": 92979,
+      "copy": "docs/guala_reconciliation/sources/speech-complete-loop/SL07--virtual_articulated_body.rs",
+      "scope": "Function/excerpt review, not a new complete-file historical review credit or execution proof."
+    },
+    {
+      "path": "native/guala_core/src/virtual_articulatory_body.rs",
+      "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f",
+      "bytes": 92948,
+      "copy": "docs/guala_reconciliation/sources/speech-complete-loop/SL08--virtual_articulatory_body.rs",
+      "scope": "Function/excerpt review, not a new complete-file historical review credit or execution proof."
+    },
+    {
+      "path": "dsf_ai_service/guala_functional64_loop.py",
+      "sha256": "78e16f5bb4d775d29572b8c219e1856b84af1476d479d482415b5f86153bfe34",
+      "bytes": 18405,
+      "copy": "docs/guala_reconciliation/sources/speech-complete-loop/SL09--guala_functional64_loop.py",
+      "scope": "Function/excerpt review, not a new complete-file historical review credit or execution proof."
+    },
+    {
+      "path": "dsf_ai_service/lean_production_app.py",
+      "sha256": "e0eae159c9aac1038cecb7effa10fca158a058f9e493b5b97a196abbfba5c9da",
+      "bytes": 22757,
+      "copy": "docs/guala_reconciliation/sources/speech-complete-loop/SL10--lean_production_app.py",
+      "scope": "Function/excerpt review, not a new complete-file historical review credit or execution proof."
+    }
+  ]
+}

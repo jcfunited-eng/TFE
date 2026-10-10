@@ -1,0 +1,318 @@
+{
+  "schema": "guala.reconciliation_mechanism_supplement.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "mechanisms": [
+    {
+      "id": "SM01",
+      "name": "Score-selected sleep/rest/attention",
+      "algorithm_classes": [
+        "hand_authored_policy"
+      ],
+      "observed_mechanism": "June27 rescales5000to2000ticks and payoff0.5to0.2, then proposes0.1if sleep still dominates. A separate brief adds DAYDREAMING with0.4novelty/0.2stability payoffs and a below30%sleep target.",
+      "architecture_disposition": "These are behavior policies and output targets, not unchanged full-field physical autonomy. A measured activity ratio does not derive the constants.",
+      "lawful_remedy": "Retire the action/payoff table as pupil authority. Derive wake/rest/action competition from the ratified local body and neuronal dynamics; measure trajectories without tuning toward a preferred label distribution.",
+      "acceptance_falsifier": "Changing an activity name/table entry must not choose the pupil action. Same complete physical state and input must determine the same bounded transition.",
+      "repair_actions": [
+        "A08",
+        "A09",
+        "A11",
+        "A15"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL09-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL09-01--GL-CMD-SLEEP-BUDGET-RESCALE-EVE-20260627-01.md",
+          "sha256": "fdda30350e22543615747af4c1974500690f2b02cecc064bef92b42cb2022141",
+          "line": 113,
+          "anchor": "If V1 fails (sleep still dominant): drop SLEEPING stability payoff further to 0.1"
+        },
+        {
+          "source_id": "HSL07-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL07-01--GL-CMD-DAYDREAMING-EVE-20260627-09.md",
+          "sha256": "a0363766abba1fc8e9ef00acd30a443002b55682c76d74d09781e9ebe46d8ad3",
+          "line": 50,
+          "anchor": "**Line ~361 — ACTIVITY_STABILITY_PAYOFF:**"
+        }
+      ],
+      "artifact_scope": "Historical source/design/report scope as stated; current activation not established",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "SM02",
+      "name": "Random and strongest-association daydream",
+      "algorithm_classes": [
+        "hand_authored_policy",
+        "random_cognitive_selection"
+      ],
+      "observed_mechanism": "The June29brief separates awake background thought from sleep and foreground scheduling. The source then walks chi neighborhoods, chooses largest affect-weighted co-occurrence, samples random distant keys, and writes surprise0.5.",
+      "architecture_disposition": "Preserve nonblocking internal activity and distinct provenance. Reject random selection, score authority and manufactured surprise as physical imagination or affect regulation.",
+      "lawful_remedy": "Let retained structures and current local state determine reached internal participation. Bound work and preserve one mutation authority; record actual internal transitions without a secondary policy thread.",
+      "acceptance_falsifier": "A constant surprise assignment, random generator, table ranking or timer selecting content must fail the pupil-mechanism gate. Internal activity must cold-continue exactly.",
+      "repair_actions": [
+        "A09",
+        "A11",
+        "A14",
+        "A15"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL06-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL06-01--GL-CMD-DAYDREAM-PARALLEL-EVE-20260629-42.md",
+          "sha256": "c4758542986ea3f8cf2d0731a01fd3b6c7645c4430a9a80ab4af83fe45bd140e",
+          "line": 18,
+          "anchor": "Daydreaming is not sleep. It is parallel distracted thinking — chi-geometric associative activation that runs WHILE other activities continue. Sensory input or recent activation propagates through chi neighborhoods, surfacing related motifs as a parallel thought stream. It doesn't block voice. It doesn't replace foreground activity. It runs continuously in the background."
+        },
+        {
+          "source_id": "SHC02",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC02--gualaloom_v5_engine.py",
+          "sha256": "168f20098511a5dc6a2600ecf4f8cd922a861fd9a443dffd4db62cb3ea700ef7",
+          "line": 3708,
+          "anchor": "        if _random.random() < 1.0 / max(2, snap_band):"
+        }
+      ],
+      "artifact_scope": "Historical source/design/report scope as stated; current activation not established",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "SM03",
+      "name": "Strength-weighted associative update",
+      "algorithm_classes": [
+        "associative_parameter_update",
+        "physical_model_unverified"
+      ],
+      "observed_mechanism": "June29replaces0.92/0.08averaging by w_new=w_old*(1-strength)+strength², removes a0.05floor and labels the result substrate-physical.",
+      "architecture_disposition": "This is still a designed update of associative parameters. Reusing a changing strength as a coefficient is not a physical derivation. Correct arithmetic fixtures qualify only that formula.",
+      "lawful_remedy": "Classify the actual update and its causal consumers. Replace it with the ratified local retained-state law, including units and conservation, while preserving any authentic source experience with a proved migration.",
+      "acceptance_falsifier": "Each retained adjustment must trace to physical perturbation/yield/recovery. Merely matching0.46and0.74fixtures cannot qualify learning.",
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL14-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL14-01--GL-RPT-DAYDREAM-PARALLEL-C1-20260629-42.md",
+          "sha256": "c97e83df475e0f129d2429add0a0d7b91441676549ebf6ead37e89a0290878bb",
+          "line": 60,
+          "anchor": "sec_dict[mid] = old_w * (1.0 - strength) + strength * strength"
+        },
+        {
+          "source_id": "SHC01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC01--deep_atlas.py",
+          "sha256": "37514bf52533fcdf3dfc2ee4942e6b2e22c4a71b02f1e5bf497de403526748cd",
+          "line": 149,
+          "anchor": "                sec_dict[mid] = old_w * (1.0 - strength) + strength * strength"
+        }
+      ],
+      "artifact_scope": "Historical source/design/report scope as stated; current activation not established",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "SM04",
+      "name": "Dyna-style offline action-value propagation",
+      "algorithm_classes": [
+        "reward_value_learning",
+        "historical_proposal"
+      ],
+      "observed_mechanism": "September14describes task1480memory as situation-keyed sums of which actions paid, then prescribes fixed sweeps carrying value backward through recorded transitions, explicitly calling it Dyna at rest and assigning work to A1/C1.",
+      "architecture_disposition": "Deterministic value propagation is still a learning-policy mechanism, not physical retained-field planning. This is stronger historical evidence than merely an ML library name; the document does not prove the proposal was implemented.",
+      "lawful_remedy": "Retire action-return tables and Bellman/Dyna-style propagation as pupil authority. Implement any offline planning through lawful retained physical re-entry and candidate consequences, preserving original lived history without score translation.",
+      "acceptance_falsifier": "Reject target reward/return updates and action-value readers, including native rewrites. Show later planning depends on retained causal physical relations and survives cold restore without a value table.",
+      "repair_actions": [
+        "A05",
+        "A09",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL20-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL20-01--GL-RPT-SLEEP-PURPOSE-C1-20260914-v1.md",
+          "sha256": "51a03c0b6c13c4d281caa851afc2942a9774d113b00eb5329bb0999672e92c3e",
+          "line": 33,
+          "anchor": "**N2. Offline value propagation (replay, planning at rest).** Once the record keeps successors (A1's prediction item), the night runs a declared number of sweeps over the recorded (structure, act, next structure) tuples in a fixed order, carrying value back one step per sweep, so an act that pays nothing itself but leads to the structure where food came gains value; the same for the structure where an answer came. This is Dyna at rest, deterministic, over her own record, no world model beyond her successors. Test: a synthetic record where the only path to food is two acts long; after the night the first act carries value; restore byte-exact; bytes stated. Owner: A1 with the prediction item, or C1 after it lands. This is where the night stops being bookkeeping."
+        },
+        {
+          "source_id": "HSL20-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL20-01--GL-RPT-SLEEP-PURPOSE-C1-20260914-v1.md",
+          "sha256": "51a03c0b6c13c4d281caa851afc2942a9774d113b00eb5329bb0999672e92c3e",
+          "line": 24,
+          "anchor": "- Consolidation, one scale: each sleeping beat moves one of the day's 256 fine structures into the memory keyed by her situation (four streams' regimes), summing which acts paid; the day's record is emptied. About two minutes of the night."
+        }
+      ],
+      "artifact_scope": "Historical source/design/report scope as stated; current activation not established",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "SM05",
+      "name": "Response-count sequence merging",
+      "algorithm_classes": [
+        "example_matching",
+        "hand_authored_policy"
+      ],
+      "observed_mechanism": "The September plan merges syllable sequences when response counts agree and calls it non-adjacent dependency extraction; coarser situation keys are described as the generalization function of noise.",
+      "architecture_disposition": "Answer counts, grouping and key coarsening do not establish acquired syntax or full-field abstraction. They can discard context and reward speech toward replies.",
+      "lawful_remedy": "Preserve ordered sensory/articulatory/context relations and verify new contextual combinations through the existing neuronal architecture. Keep source roles and explicit fields; do not substitute a compressed key or merge rule.",
+      "acceptance_falsifier": "Test changed context/order, withheld combinations and independent later expression with no answer-count dictionary. A key collision or two matching strings cannot pass syntax.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A09",
+        "A10",
+        "A15"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL20-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL20-01--GL-RPT-SLEEP-PURPOSE-C1-20260914-v1.md",
+          "sha256": "51a03c0b6c13c4d281caa851afc2942a9774d113b00eb5329bb0999672e92c3e",
+          "line": 35,
+          "anchor": "**N3. Sequence abstraction (rule extraction, the grammar seed).** With A1's speech item, the day's syllable sequences and whether each was answered are compacted at night by situation, and sequences that share structure (the same next syllable regardless of the one before, when the counts agree) are merged into one entry. That is non-adjacent dependency extraction in her own terms: the first syntax. Test: two sequences differing only in the first syllable, both answered; after the night one entry stands for both. Owner: A1 with the speech item."
+        },
+        {
+          "source_id": "HSL20-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL20-01--GL-RPT-SLEEP-PURPOSE-C1-20260914-v1.md",
+          "sha256": "51a03c0b6c13c4d281caa851afc2942a9774d113b00eb5329bb0999672e92c3e",
+          "line": 39,
+          "anchor": "**N5. Generalization by coarser keys (overfitting).** Already partly in place: the situation key is coarser than the day key. Extend when N2 exists: chains recorded at the situation level are the generalized form; no noise injection."
+        }
+      ],
+      "artifact_scope": "Historical source/design/report scope as stated; current activation not established",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "SM06",
+      "name": "DeepAtlas promotion and priors",
+      "algorithm_classes": [
+        "example_matching",
+        "hand_authored_policy"
+      ],
+      "observed_mechanism": "Captured DeepAtlas uses max-valued affect, last-write-wins source, fixed polarity1, chi/motif priors and promotion on a non-null bundle_id. Unknown schema prints starting fresh and returns0.",
+      "architecture_disposition": "Those operations do not retain the full story or prove grounding; incompatible-state fallback can mask missing memory. Source-scoped finding, not a current serving-path claim.",
+      "lawful_remedy": "Preserve exact causal provenance and retained physical relations; make incompatible mandatory state a visible refusal. A transport bundle may link occurrence custody but may not grant learned grounding or overwrite source history.",
+      "acceptance_falsifier": "Contradictory affect/context and unknown schemas must remain distinguishable. A non-null identifier cannot admit a formation without actual physical participation and retained change.",
+      "repair_actions": [
+        "A03",
+        "A06",
+        "A09",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "SHC01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC01--deep_atlas.py",
+          "sha256": "37514bf52533fcdf3dfc2ee4942e6b2e22c4a71b02f1e5bf497de403526748cd",
+          "line": 248,
+          "anchor": "                grounded = e.get(\"bundle_id\") is not None"
+        },
+        {
+          "source_id": "SHC01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC01--deep_atlas.py",
+          "sha256": "37514bf52533fcdf3dfc2ee4942e6b2e22c4a71b02f1e5bf497de403526748cd",
+          "line": 319,
+          "anchor": "            print(\"[deep_atlas] Unknown schema — starting fresh\")"
+        },
+        {
+          "source_id": "SHC01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC01--deep_atlas.py",
+          "sha256": "37514bf52533fcdf3dfc2ee4942e6b2e22c4a71b02f1e5bf497de403526748cd",
+          "line": 75,
+          "anchor": "                # GL-METADATA-PIPELINE: propagate affect (max) + source (last-write-wins) + polarity"
+        }
+      ],
+      "artifact_scope": "Historical source/design/report scope as stated; current activation not established",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "SM07",
+      "name": "Failed-dynamics fallback speech",
+      "algorithm_classes": [
+        "fallback_linguistic_authority"
+      ],
+      "observed_mechanism": "June27auto-wake report treats bigram_fallback_v5_failed output as a real emission. Captured runner returns the fallback response when dynamics lacks qualifying commits; text-listen directly reads sentences, and an espeak helper also exists.",
+      "architecture_disposition": "Transport wake success must not qualify learned body-owned speech. The helper existence alone does not prove synthesis ran in that test.",
+      "lawful_remedy": "Separate wake/control response from pupil expression. Retire fallback linguistic authority; require retained physical articulation, acoustic output, self-hearing and contextual reuse. Keep text/teacher media provenance explicit.",
+      "acceptance_falsifier": "When native expression fails, no fallback sentence may appear as learned pupil speech. A response-source label or HTTP200 cannot satisfy articulation/learning.",
+      "repair_actions": [
+        "A10",
+        "A13",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL15-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL15-01--GL-RPT-DREAM-AUTO-WAKE-C1-20260627-12.md",
+          "sha256": "44c647be2672adadeadf42ca58d572ac0d8d5f34ccc9f1a74add4aa7eeccdc01",
+          "line": 88,
+          "anchor": "        response_source: bigram_fallback_v5_failed"
+        },
+        {
+          "source_id": "SHC07",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC07--substrate_runner.py",
+          "sha256": "544a25733a633874874e827d73600c627aa81fe516eafbf7420a96943a76d791",
+          "line": 1901,
+          "anchor": "            response_source = \"bigram_fallback_v5_failed\""
+        },
+        {
+          "source_id": "SHC07",
+          "path": "docs/guala_reconciliation/sources/sleep-history/SHC07--substrate_runner.py",
+          "sha256": "544a25733a633874874e827d73600c627aa81fe516eafbf7420a96943a76d791",
+          "line": 1837,
+          "anchor": "def _synthesize_voice(text):"
+        }
+      ],
+      "artifact_scope": "Historical source/design/report scope as stated; current activation not established",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "SM08",
+      "name": "Immutable dream origin and waking test",
+      "algorithm_classes": [
+        "required_causal_provenance_not_implementation"
+      ],
+      "observed_mechanism": "July28law separates external, remembered, simulated, counterfactual and unresolved origins; bounds internal branches/time/resources; requires waking causal tests and cold-restored replay.",
+      "architecture_disposition": "Preserve these distinctions without forcing Mosaic/Tapestry/Weave into software tiers. The law states functions and constraints; it does not prove the current runtime implements them.",
+      "lawful_remedy": "Carry immutable origin outside dream content, preserve actual internal transition/time accounting and require waking validation before external knowledge claims. Use mounted AE senses only; unavailable stays unavailable.",
+      "acceptance_falsifier": "Dream content must not modify external world truth, claim unexecuted elapsed time, consume external receptor authority or change its own origin. Cold replay must match.",
+      "repair_actions": [
+        "A06",
+        "A09",
+        "A13",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "HSL24-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL24-01--PLAY_DREAM_WAKE_GROWTH_LAW.md",
+          "sha256": "ad6c52b6856997f99586df90b6bd966f3cd8dc5b2a20f5dc8baeff46f62d8649",
+          "line": 54,
+          "anchor": "## Root provenance boundary"
+        },
+        {
+          "source_id": "HSL24-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL24-01--PLAY_DREAM_WAKE_GROWTH_LAW.md",
+          "sha256": "ad6c52b6856997f99586df90b6bd966f3cd8dc5b2a20f5dc8baeff46f62d8649",
+          "line": 117,
+          "anchor": "2. `compressed_narrative_depth`: a tapestry carries retained or constructed"
+        },
+        {
+          "source_id": "HSL24-01",
+          "path": "docs/guala_reconciliation/sources/sleep-history/HSL24-01--PLAY_DREAM_WAKE_GROWTH_LAW.md",
+          "sha256": "ad6c52b6856997f99586df90b6bd966f3cd8dc5b2a20f5dc8baeff46f62d8649",
+          "line": 184,
+          "anchor": "## Production proof"
+        }
+      ],
+      "artifact_scope": "Historical source/design/report scope as stated; current activation not established",
+      "whole_system_ml_exclusion": false
+    }
+  ],
+  "source_registry": "sleep-history-reconciliation.json",
+  "status_authority": "collaborative_todo.md"
+}

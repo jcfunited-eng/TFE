@@ -1,0 +1,528 @@
+[
+  {
+    "commit": "355e5f44f32cfce6e7f570a2f82c01053fdb621b",
+    "parents": [
+      "1efadfd5e8aab5195333f20b9834794432416182"
+    ],
+    "author_time": "2026-04-08T23:54:56+00:00",
+    "commit_time": "2026-04-08T23:54:56+00:00",
+    "subject": "docs: correct ArcLoom description \u2014 ternary processor, next step not destination",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "9c80e8caa9d78d8fb5529cb896607509659dfbdf",
+    "parents": [
+      "9ea8ee94a9dc72fa25a79ee997c7573cb54f9810"
+    ],
+    "author_time": "2026-04-10T03:35:36+00:00",
+    "commit_time": "2026-04-10T03:35:36+00:00",
+    "subject": "docs: ArcLoom Master Specification v5.0 \u2014 unified master canon",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "72bcc00fc1b463cb50dc648611e7b64173336c03",
+    "parents": [
+      "94333b3a33b8e65070e965ddbd01bb4632fb9c3d"
+    ],
+    "author_time": "2026-04-22T05:17:57+00:00",
+    "commit_time": "2026-04-22T05:17:57+00:00",
+    "subject": "chore: add ArcLoom HDL, UFCP specs, docs, and artifacts to repo",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "c62aac537a21c02ef2074c80c9d908f6d1538723",
+    "parents": [
+      "c89629ce71b1f91f2ec75ac30efff76b364b17c8"
+    ],
+    "author_time": "2026-04-23T19:52:19+00:00",
+    "commit_time": "2026-04-23T19:52:19+00:00",
+    "subject": "docs: update lessons learned from April 23 ArcLoom session",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "5d95e5b3d486e53b6980ebbff4e9d1d8c3866001",
+    "parents": [
+      "724c7f71d87fa2a18e1f4af7b3579cf32c88ba1e"
+    ],
+    "author_time": "2026-04-23T20:34:47+00:00",
+    "commit_time": "2026-04-23T20:34:47+00:00",
+    "subject": "fix: XADC analog pins routed to E17/D18, lessons #33-34 updated",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "a588206398e82ec9c789d6281bebece97e147e5d",
+    "parents": [
+      "b85f7fd9a2dc6be5b85f198a1dd53fc4abbfce93"
+    ],
+    "author_time": "2026-04-23T20:51:59+00:00",
+    "commit_time": "2026-04-23T20:51:59+00:00",
+    "subject": "feat: XADC direct sensor path PROVEN \u2014 zero-CPU sensor-to-decision on silicon",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "eb11b76cbe69031a12811053d84a7666dd8cf78f",
+    "parents": [
+      "a588206398e82ec9c789d6281bebece97e147e5d"
+    ],
+    "author_time": "2026-04-23T20:58:54+00:00",
+    "commit_time": "2026-04-23T20:58:54+00:00",
+    "subject": "feat: motor drive from SPPU decision \u2014 pure hardware obstacle avoidance",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "2ac8f55c41f92ba2659007d160c7c687fb2f90bd",
+    "parents": [
+      "eb11b76cbe69031a12811053d84a7666dd8cf78f"
+    ],
+    "author_time": "2026-04-23T21:14:20+00:00",
+    "commit_time": "2026-04-23T21:14:20+00:00",
+    "subject": "milestone: full hardware sensor\u2192loom\u2192motor chain PROVEN on silicon",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "da7ef171d49c46d7f5a1d74649ebc20b9b42f7c1",
+    "parents": [
+      "e9b4cc5fcc2e8308ebef68d61e5b59594be393b9"
+    ],
+    "author_time": "2026-04-26T03:14:53+00:00",
+    "commit_time": "2026-04-26T03:14:53+00:00",
+    "subject": "milestone: folding division PROVEN ON SILICON \u2014 18/18 zero errors",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "0b8ce095764cfdcd1b3dac073218f091e922ae51",
+    "parents": [
+      "3c432151bdbaa4061b986e549f50ef76aa8633a3"
+    ],
+    "author_time": "2026-05-03T06:48:12+00:00",
+    "commit_time": "2026-05-03T06:48:12+00:00",
+    "subject": "feat: familiarity feedback \u2014 clockless habituation via krimelack dead-zone coupling",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "498c6b6465c6625635c3ebf91c9aac2684124446",
+    "parents": [
+      "0b8ce095764cfdcd1b3dac073218f091e922ae51"
+    ],
+    "author_time": "2026-05-03T06:53:01+00:00",
+    "commit_time": "2026-05-03T06:53:01+00:00",
+    "subject": "feat: ArcLoom Master Spec v5.1 \u2014 familiarity feedback chapter",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "036169e754fc0116b2ade61fd0bba9f40a5e9820",
+    "parents": [
+      "c682fb18ff4d7b094f49ae562123c9543d338832"
+    ],
+    "author_time": "2026-05-04T00:04:10+00:00",
+    "commit_time": "2026-05-04T00:04:10+00:00",
+    "subject": "feat: DSF-AI derived coupling weights \u2014 first real weight derivation",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "65dad8c964c014ef04023740f5fdbc295cbc5679",
+    "parents": [
+      "9ac9c3e17a034ae8d5382ad730f4d78de5c74c7b"
+    ],
+    "author_time": "2026-05-04T00:20:37+00:00",
+    "commit_time": "2026-05-04T00:20:37+00:00",
+    "subject": "fix: DSF-AI corrected \u2014 weights from full L4 DSF geometry, not cherry-picked layers",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "c7cfed02f1fc04ead4f4cb4257a64e6458353c66",
+    "parents": [
+      "5b65d5ad7d36ded912601370b20696202150004c"
+    ],
+    "author_time": "2026-05-04T05:18:48+00:00",
+    "commit_time": "2026-05-04T05:18:48+00:00",
+    "subject": "fix: DSF-AI context/momentum weights budgeted from actual headroom",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "81404e90dd936f5c69f1fb7a6a87f5958e3955cc",
+    "parents": [
+      "4c5d69bcb1a79dc04713cdcfab1006bb1925840c"
+    ],
+    "author_time": "2026-05-08T21:45:30+00:00",
+    "commit_time": "2026-05-08T21:45:30+00:00",
+    "subject": "feat: ArcLoom floor obstacle avoidance \u2014 WORKING",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "d2266b780628a9d5f09ea124f5feff99ebc9de89",
+    "parents": [
+      "eff8b9b0b3348a15d92a849c75bd6fc8745d051f"
+    ],
+    "author_time": "2026-05-11T00:48:18+00:00",
+    "commit_time": "2026-05-11T00:48:18+00:00",
+    "subject": "fix: camera clock was never trimmed \u2014 33-bit concatenation bug",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "3177f23513dd171a64013e487d68fbc145405e8b",
+    "parents": [
+      "2f78ffc41e5c9e70b7b0c5be3509c4c94f387902"
+    ],
+    "author_time": "2026-05-12T01:12:10+00:00",
+    "commit_time": "2026-05-12T01:12:10+00:00",
+    "subject": "fix: camera image quality \u2014 DVP divided by 1024 not 320, full OV5640 init",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "5152c7cd9b3d1d6e8acdd283ab374ad28e4990b4",
+    "parents": [
+      "a4717a3254e460b411aee6c2345c2154e6bd0cfd"
+    ],
+    "author_time": "2026-05-12T19:27:47+00:00",
+    "commit_time": "2026-05-12T19:27:47+00:00",
+    "subject": "fix: remove TFE/DSF-AI code from ArcLoom \u2014 clean razor",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "1287b0b436bdd8517f6915fb8068d25cf0a88852",
+    "parents": [
+      "245701ea2c4b0c0313bfd6049fddedfab4c3f83f"
+    ],
+    "author_time": "2026-05-12T22:02:23+00:00",
+    "commit_time": "2026-05-12T22:02:23+00:00",
+    "subject": "feat: camera wired into SPPU \u2014 3 vision strands in the loom",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "bdffe3d8c50ff8abbe9afffa48d36601e0c477d3",
+    "parents": [
+      "2107bd93b8d60adb057a8ea648ca215c1e7d71b4"
+    ],
+    "author_time": "2026-05-13T08:02:26+00:00",
+    "commit_time": "2026-05-13T08:02:26+00:00",
+    "subject": "docs: ArcLoom ASIC spec v1.2 \u2014 3^i coupling, camera, razor/blade",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "da45a8798eab868e1588f4c19ad103c58b81c2f5",
+    "parents": [
+      "44fc1df09f8e8c015bac6596b3f044e855d5d564"
+    ],
+    "author_time": "2026-05-28T20:49:12+00:00",
+    "commit_time": "2026-05-28T20:49:12+00:00",
+    "subject": "chore: delete g32_horse_race_mom_irf.py \u2014 dead ML artifact from Feb 2026",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "70f4b00c95c58fa9fdc4f6c5c9ada7d949d48529",
+    "parents": [
+      "eafc4788687b321695e3ff1a134b0fa2a377582e"
+    ],
+    "author_time": "2026-05-28T22:00:50+00:00",
+    "commit_time": "2026-05-28T22:00:50+00:00",
+    "subject": "refactor: rename tfe_g32_coordinator.py \u2192 tfe_epoch_mosaic_coordinator.py",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "c4097184bde173abf2ec12183beee5b25a9c12b9",
+    "parents": [
+      "70f4b00c95c58fa9fdc4f6c5c9ada7d949d48529"
+    ],
+    "author_time": "2026-05-28T22:13:54+00:00",
+    "commit_time": "2026-05-28T22:13:54+00:00",
+    "subject": "chore: delete all remaining g32_* files \u2014 banned ML artifacts",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "03a0320c3306bf9f907de5100b9f90cdeb8c179a",
+    "parents": [
+      "5f9a77c82551b83dc9bc403962ddc8e630b738db"
+    ],
+    "author_time": "2026-06-03T07:05:31+00:00",
+    "commit_time": "2026-06-03T07:05:31+00:00",
+    "subject": "Build GualaLoom v1 \u2014 substrate with persistence, generation, sleep, dreams",
+    "in_captured_head_ancestry": false,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "91d7bb37b7a15faea6e277a067062b26603a7d42",
+    "parents": [
+      "f6071f67a1b8c7464db48526fc239c3adba4d12d"
+    ],
+    "author_time": "2026-07-04T07:11:35+00:00",
+    "commit_time": "2026-07-04T07:11:35+00:00",
+    "subject": "step-0: GL-CMD-C2-WHOLE-BRAIN-EVE-20260704-168-v3 (verbatim -- Joe's correction, supersedes -168-v1 and -168-v2, both retained)",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "9cfeec425e518c15b3dbb295fb403b74d17371a1",
+    "parents": [
+      "eeab3bf909360e45675e101127d114495a6f7c0a"
+    ],
+    "author_time": "2026-07-06T21:47:49+00:00",
+    "commit_time": "2026-07-06T21:47:49+00:00",
+    "subject": "docs: file complete wipe-operation incident report",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "30f2cf9ecde2eeda2bdd8d2e37d0061655ac2f9c",
+    "parents": [
+      "ef8f121bb78691f66ee4ce01c8f55d86e18e2efe"
+    ],
+    "author_time": "2026-07-29T00:52:55+00:00",
+    "commit_time": "2026-07-29T00:52:55+00:00",
+    "subject": "Deploy unified Guala whole-organism substrate",
+    "in_captured_head_ancestry": false,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "df9975b2a87c2d3962db549dd7ccd45b44feb0fe",
+    "parents": [
+      "570d3b3a5368bdbcbdbbaa9151926e5583be5079"
+    ],
+    "author_time": "2026-08-02T22:29:55+00:00",
+    "commit_time": "2026-08-02T22:29:55+00:00",
+    "subject": "Deploy native joint-field neuron fractal spine",
+    "in_captured_head_ancestry": false,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+    "parents": [],
+    "author_time": "2026-08-05T04:09:05+00:00",
+    "commit_time": "2026-08-05T04:09:05+00:00",
+    "subject": "salvage snapshot: Codex D1-D3 working state as of 2026-08-05 (single commit)",
+    "in_captured_head_ancestry": false,
+    "in_aug29_baseline_ancestry": true
+  },
+  {
+    "commit": "7c4825e13e1ad61984f7151c06da4d78cafa69a3",
+    "parents": [
+      "21bf34fcab5e2ee2a3f6129c4feb83e351fa8978"
+    ],
+    "author_time": "2026-08-11T15:43:04+00:00",
+    "commit_time": "2026-08-11T15:43:04+00:00",
+    "subject": "Mount causal function-derived specialization",
+    "in_captured_head_ancestry": false,
+    "in_aug29_baseline_ancestry": true
+  },
+  {
+    "commit": "05f8f5c560e0aa19aa3f1e1358cea47c58e95b63",
+    "parents": [
+      "4c8d54075113138ec06f3a4c0a1a5e353f7171fc"
+    ],
+    "author_time": "2026-08-11T23:04:03+00:00",
+    "commit_time": "2026-08-11T23:04:03+00:00",
+    "subject": "docs(guala): persist cognitive chain authority",
+    "in_captured_head_ancestry": false,
+    "in_aug29_baseline_ancestry": true
+  },
+  {
+    "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+    "parents": [
+      "d0364541035da890f7ff65017bdd5327e97080cc"
+    ],
+    "author_time": "2026-08-29T03:54:55+00:00",
+    "commit_time": "2026-08-29T03:54:55+00:00",
+    "subject": "Publish current Guala architecture baseline",
+    "in_captured_head_ancestry": false,
+    "in_aug29_baseline_ancestry": true
+  },
+  {
+    "commit": "f0d6129c1e4684fa85e01c73983121bd58be9f28",
+    "parents": [
+      "d4eb2e1e1f6b7e2d14ed0435949c3c538039b158"
+    ],
+    "author_time": "2026-09-13T01:51:44+00:00",
+    "commit_time": "2026-09-13T01:51:44+00:00",
+    "subject": "ledger: C1 consolidated evidence \u2014 self-driven world behavior amputated at lean cutover; restoration must be native",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "7406b9ab35d47bb6f4f40ab1f27aecd3fa0fd8f7",
+    "parents": [
+      "c97820f3eb0f2a85aaba82060a25017013d49a80"
+    ],
+    "author_time": "2026-09-14T04:12:00+00:00",
+    "commit_time": "2026-09-14T04:12:00+00:00",
+    "subject": "The functional organism: declared act laws over her measured state, the kernel over her sensed streams, bounded memory; no neurons, charge or muscles in the acting path (Joe, 2026-09-14)",
+    "in_captured_head_ancestry": false,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "6795991bf8ec5cf998cbb7d119f6546f9842e49a",
+    "parents": [
+      "6a34dddb08704c528b9b9964c0757a898c05be02"
+    ],
+    "author_time": "2026-09-15T15:45:57+00:00",
+    "commit_time": "2026-09-15T15:45:57+00:00",
+    "subject": "Ledger: C1 \u2014 reconciliation of the mosaic/tapestry architecture with the running organism (read from code and history); the corrected order for words and sentences",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "264bf645f2ba1afdd38e12b7f84ca9d88ab2d43e",
+    "parents": [
+      "06ea159d4b95e32f295b836f887836e66ae7cb6e"
+    ],
+    "author_time": "2026-09-18T05:10:44+00:00",
+    "commit_time": "2026-09-18T05:10:44+00:00",
+    "subject": "feat(physics): integrate Cognitive Asset 1 Valence-Weighted Episodic Binding into functional organism",
+    "in_captured_head_ancestry": false,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "c4752d81903ff2d187debc77981223fdc558310d",
+    "parents": [
+      "b4d82c76f2ac6a16db13146878a377023006f6a0"
+    ],
+    "author_time": "2026-09-22T13:19:41+00:00",
+    "commit_time": "2026-09-22T13:19:41+00:00",
+    "subject": "checkpoint: preserve Guala runtime, caretaker, native acceleration and audits",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "95ece8a5db5d94bb6103a7239e59a76799dfb657",
+    "parents": [
+      "475b7b5a2dafef41b57e8ed0b354fdffdc925c54"
+    ],
+    "author_time": "2026-09-29T19:29:25+00:00",
+    "commit_time": "2026-09-29T19:29:25+00:00",
+    "subject": "feat(phase5): implement 4-Column 3D Modular Substrate and vertical laminar microcircuits in native Rust",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "d3e59063185ed33d6af98b3c7c4def3b0e730bf7",
+    "parents": [
+      "95ece8a5db5d94bb6103a7239e59a76799dfb657"
+    ],
+    "author_time": "2026-09-29T19:40:49+00:00",
+    "commit_time": "2026-09-29T19:40:49+00:00",
+    "subject": "feat(phase5): implement ModularColumnSubstrate Python adapter bridging camera, cochlea, skin, and vocal tracts",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "02d65cfd5de7cc0c640894b8f91790f80712948e",
+    "parents": [
+      "3754d7a21aa02bd15e3999a09180a68482deafd6"
+    ],
+    "author_time": "2026-09-29T20:56:03+00:00",
+    "commit_time": "2026-09-29T20:56:03+00:00",
+    "subject": "feat(phase5): wire 4-Column Modular Substrate into closed-loop organism, compact state serialization, and verify 82 tests",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "a1218d8ec2a8c6e82fdc9151832d876ea86eab2f",
+    "parents": [
+      "02d65cfd5de7cc0c640894b8f91790f80712948e"
+    ],
+    "author_time": "2026-09-29T21:01:59+00:00",
+    "commit_time": "2026-09-29T21:01:59+00:00",
+    "subject": "Deploy 4-Column Modular Neuromorphic Substrate: Task 1578 cutover script and phase 3 verification fix",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "be74d0a968db1773631d1c49b5489877840ad01f",
+    "parents": [
+      "b720c42e856d72497ccf2952066d213f2938fdea"
+    ],
+    "author_time": "2026-09-29T23:43:16+00:00",
+    "commit_time": "2026-09-29T23:43:16+00:00",
+    "subject": "feat(substrate): implement 8-column balanced octet ModularSubstrate8D in native Rust with comparative noise benchmark",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "91531ac762ccd238e49b1d367c8f3304c4ad22bf",
+    "parents": [
+      "be74d0a968db1773631d1c49b5489877840ad01f"
+    ],
+    "author_time": "2026-09-30T00:10:30+00:00",
+    "commit_time": "2026-09-30T00:10:30+00:00",
+    "subject": "feat(substrate): default ModularColumnSubstrate to 8-Column Balanced Octet (ModularSubstrate8D)",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "50ad18c60015b9c3a9cbd04b680b2d394d6f6e8e",
+    "parents": [
+      "2043f2e8269e422fba4e4fd4e1c3c0745f3bd6bd"
+    ],
+    "author_time": "2026-09-30T03:20:51+00:00",
+    "commit_time": "2026-09-30T03:20:51+00:00",
+    "subject": "feat(substrate): scale 64-column cortical array, update demonstrator package, and launch continuous physical hardening daemon",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "f57b0edca7c06f499904355802a43050caf5daf5",
+    "parents": [
+      "6ae3b9f88667234ce557fbcacf6b34bc1c624ef6"
+    ],
+    "author_time": "2026-09-30T03:49:30+00:00",
+    "commit_time": "2026-09-30T03:49:30+00:00",
+    "subject": "feat(deploy): deploy 64-column cortical array to production AWS ECS (Task Definition 1579)",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "d271deab177853c0b06c1b75536c00539a6b44ec",
+    "parents": [
+      "558f003b16b690b65adf39bdfed4d6b41c05a947"
+    ],
+    "author_time": "2026-10-06T04:51:01+00:00",
+    "commit_time": "2026-10-06T04:51:01+00:00",
+    "subject": "docs(arcloom): record Chief Architect alignment with A1 on 64-column satiety and speech",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "a404dbda7ff00bd598877278d0f308503396365c",
+    "parents": [
+      "c8aa0fdd34c5b8a41d28a602f50d84ce40333c3f"
+    ],
+    "author_time": "2026-10-06T15:16:59+00:00",
+    "commit_time": "2026-10-06T15:16:59+00:00",
+    "subject": "fix(arcloom): align 64-column substrate cognition, turn-taking quiet gap flow, and multi-beat displacement",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  },
+  {
+    "commit": "dd9ee1fb008ca7f0394a0d644af4a94ef54e5c43",
+    "parents": [
+      "b6f5860c0493f873933b3a10d6cbb019730d5c2c"
+    ],
+    "author_time": "2026-10-09T16:05:36+00:00",
+    "commit_time": "2026-10-09T16:05:36+00:00",
+    "subject": "docs: create canonical session handoff and update collaborative ledger for Task 1594",
+    "in_captured_head_ancestry": true,
+    "in_aug29_baseline_ancestry": false
+  }
+]

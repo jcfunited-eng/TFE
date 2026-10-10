@@ -1,0 +1,25 @@
+{
+  "at_utc": "2026-10-09T22:44:43.723730+00:00",
+  "status": "PASS",
+  "scope": "Documentation custody/coverage, byte integrity and guidance; not organism physics, behavior, deployment or ML-free qualification.",
+  "checks": {
+    "catalogued_source_hashes": 68,
+    "decisions.json": 19,
+    "decision-contexts.json": 14,
+    "cutover-records.json": 7,
+    "capability_rows": 53,
+    "independent_evidence_cells": 530,
+    "scoped_mechanisms": 7,
+    "local_document_links": 71,
+    "revisions.jsonl.gz": 5844,
+    "working-file-inventory.jsonl.gz": 8786,
+    "discussion-input-custody.jsonl.gz": 2958,
+    "guidance_preservation": 9,
+    "skill_validations": 3,
+    "root_guard_cases": 4,
+    "native_body_world_pairs": 2,
+    "older_native_envelopes": 2,
+    "post_conversion_archive": 1
+  },
+  "open_work": "Per-capability semantic reconciliation, original missing approvals, final predecessor custody and G1 product remediation remain open."
+}

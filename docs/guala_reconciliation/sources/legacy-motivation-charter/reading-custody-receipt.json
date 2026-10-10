@@ -1,0 +1,25 @@
+{
+  "schema": "guala.complete_legacy_motivation_charter_read_receipt.v1",
+  "sources": 11,
+  "paths": 11,
+  "latest_lines": 2133,
+  "historical_only_passages": 0,
+  "historical_only_lines": 0,
+  "source_hashes_validated": true,
+  "all_latest_and_old_content_read": true,
+  "duplicate_report_review": "LM05lines10–238 exactly equal fully readLM04lines1–229; its distinct9-line supersession notice was also read.",
+  "charter_review": "LM01/LM02already-read working bytes verified equal captured Git bytes.",
+  "independent_arithmetic": {
+    "classification_rows": 12,
+    "substrate_causal_rows": 7,
+    "scheduled_rows": 3,
+    "hybrid_rows": 2,
+    "reported_hybrid_count": 3,
+    "ticks_3600_at_20Hz_seconds": 180,
+    "ticks_for_30min_at_20Hz": 36000
+  },
+  "product_execution": false,
+  "product_qualification": false,
+  "primary_literature_review": false,
+  "original_authority_authenticated": false
+}

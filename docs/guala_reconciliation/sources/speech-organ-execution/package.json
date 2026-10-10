@@ -1,0 +1,10 @@
+{
+  "archive_path": "/tmp/guala-c123-final-package.bLHWtFHD/release.zip",
+  "archive_sha256": "5814c1be8550921d63a709bcf41bcf371913585c575c2adc80d2e6b0fbf3b3be",
+  "git_commit": "5e327afbdfa85c45ceed16f45c8f1264d4d1c153",
+  "receipt_sha256": "973f5571ad910fbfbcf5999af5ff1cf5e8ac1134785e8c3307b5c29cb9ac40bc",
+  "schema": "guala.release_packaging_result.v1",
+  "source_file_count": 215,
+  "stage_dir": "/tmp/guala-c123-final-package.bLHWtFHD/stage",
+  "status": "verified"
+}

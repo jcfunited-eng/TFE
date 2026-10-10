@@ -1,0 +1,612 @@
+{
+  "schema": "guala.historical_early_voice_mechanisms.v1",
+  "at_utc": "2026-10-10T05:09:23.722468+00:00",
+  "scope": "Historical documentary classification; exact source, authority, execution and current artifact closure remain open.",
+  "mechanisms": [
+    {
+      "id": "VEV01",
+      "name": "Quiet-window calibration was authored gating, not demonstrated emergent speech",
+      "classification": "Historical heuristic proposal and overextended interpretation",
+      "finding": "EVR01",
+      "observed_mechanism": "The June12 brief interpreted empty v7 bubbles as attempts to speak and proposed three causes. June13 reported drive≈0.19 passing0.05 while a context gate required quiet<0.10, with tracker decay0.55 per call; it prescribed quiet threshold0.45 and an autonomy-loop gate call. It simultaneously reported at least one fired gate and described the conversational quiet window as structurally never reached. The acceptance was a few fired/nonempty events, not learned-language causation.",
+      "evidence_limits": "These are dated briefs and reported measurements, not current activation or original Joe approval of each coefficient. A gate firing proves that gate can fire, not end-to-end cognitive correctness. The revised diagnosis is worth preserving without its stronger claims.",
+      "replacement": "Retire this authored voice-selection policy from pupil authority. Trace the physical origin of current vocal action and keep empty output honest. Any legitimate physiological threshold requires its own law and units, not tuning to obtain a nonempty sentence.",
+      "acceptance": {
+        "unit": "Classify every threshold/update/call-cadence law and prove failure visibility.",
+        "module": "Verify actual native action availability and input delivery before attributing silence to wanting, introspection or absent quiet.",
+        "system": "Demonstrate endogenous retained-experience-driven vocal action with matched causal controls.",
+        "release": "No fired-gate counter or cosmetic bubble can certify speech; require the qualified current artifact and native audio evidence."
+      },
+      "refs": [
+        {
+          "source_id": "EV03-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV03-01--GL-BRIEF-V7VOICE-WC-20260612-01.md",
+          "line": 5,
+          "anchor": "Every v7-layer exchange returns \"…\" with 0 commits, 0 gates (UI: `0 commits, 0 gates`). c1's deploy-report diagnosis: \"NMDA intro gate structurally blocked.\" The UI already has full display wiring for `nmda_events` (gate name, FIRED/blocked, reason) — it has simply never had a fired event to show. Status shows the intro section holds 1929 motifs against a 5000 cap: material exists behind the gate.",
+          "sha256": "50cd6abc286831604d881aafb72e49a269248d7ebfa0f6f76b1b797b4325f6de"
+        },
+        {
+          "source_id": "EV04-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV04-01--GL-BRIEF-V7VOICE-WC-20260613-02.md",
+          "line": 24,
+          "anchor": "### Change 1 — quiet_thresh: 0.10 → 0.45",
+          "sha256": "9262ebdfb356990b0aad51a76486f3cb026d769ff90e4472625e203307aa2b7e"
+        },
+        {
+          "source_id": "EV04-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV04-01--GL-BRIEF-V7VOICE-WC-20260613-02.md",
+          "line": 8,
+          "anchor": "- The gate **has fired** at least once during the smoke test (proof the path works end-to-end and there is no architectural break).",
+          "sha256": "9262ebdfb356990b0aad51a76486f3cb026d769ff90e4472625e203307aa2b7e"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A05",
+        "A10",
+        "A11",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VEV02",
+      "name": "Browser speech output was expressly external TTS",
+      "classification": "Disclosed surrogate output; narrative scope exceeds physical claim",
+      "finding": "EVR02",
+      "observed_mechanism": "The June16 brief proposed speaking response, autonomous-emission and dream text through browser speechSynthesis with authored voice/rate/pitch choices and silent exception handling. It explicitly stated that the substrate did not generate the audio, while describing two-way conversation as finally present.",
+      "evidence_limits": "The brief distinguishes its own surrogate mechanism; it is not itself evidence of a deployed implementation, native acoustic development or which browser voice model ran. External teaching/playback has a different role from pupil articulation.",
+      "replacement": "Preserve this as historical UI output only. Current pupil speech must come from its qualified efferent/body pressure route. Declare any external renderer or recognizer separately and trace all paths to prevent a text surface from impersonating native speech.",
+      "acceptance": {
+        "unit": "Verify output provenance and absence of hidden fallback renderers.",
+        "module": "Bind each emitted audio occurrence to the actual native body transition rather than response text.",
+        "system": "Demonstrate native pressure and same-organism hearing without browser/eSpeak generating the pupil’s answer.",
+        "release": "Use actual browser/audio capture and frozen configuration to substantiate the claimed output route."
+      },
+      "refs": [
+        {
+          "source_id": "EV02-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV02-01--GL-BRIEF-PHASE-C-VOICEOUT-WC-20260616-01.md",
+          "line": 120,
+          "anchor": "- Not TTS via her substrate. She doesn't generate audio; her substrate generates text and the browser speaks it. Fine for now — her actual cochlear analog is still on the perception side only.",
+          "sha256": "078535467701aea8021fd06e20afa356d29b851df67ef20a7bf340b29ffed7fd"
+        },
+        {
+          "source_id": "EV02-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV02-01--GL-BRIEF-PHASE-C-VOICEOUT-WC-20260616-01.md",
+          "line": 49,
+          "anchor": "    u.rate = 0.92;   // slightly slow — she's a child",
+          "sha256": "078535467701aea8021fd06e20afa356d29b851df67ef20a7bf340b29ffed7fd"
+        },
+        {
+          "source_id": "EV02-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV02-01--GL-BRIEF-PHASE-C-VOICEOUT-WC-20260616-01.md",
+          "line": 77,
+          "anchor": "if(ev.kind === 'dream_artifact' && ev.text){",
+          "sha256": "078535467701aea8021fd06e20afa356d29b851df67ef20a7bf340b29ffed7fd"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A05",
+        "A10",
+        "A13",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VEV03",
+      "name": "Committed-section routing retained bigram answers and split text from audio",
+      "classification": "Historical competing content authorities and weak acceptance",
+      "finding": "EVR03",
+      "observed_mechanism": "The June27 dispatch called v5 output real compositional cognition, selected it when committed_sections>=2 and n_commits>0, and retained bigram answers on other turns. Bigram continued separately for audio. It chose the latest event as final composition and proposed raising the section threshold if output was noisy. June29 reported the bigram/organ voice paths retired, but the frontend still had a separate STT caller.",
+      "evidence_limits": "Documented route evolution is real evidence of design intent. Section counts, structured-looking text and response_source labels do not prove semantic composition; this does not assert those old paths are currently active.",
+      "replacement": "Keep competing semantic composers and fallbacks retired, including all indirect callers. Preserve legitimate one-source UI consolidation without treating a count gate or latest-event rule as cognition. Current native silence must not be filled by another answer generator.",
+      "acceptance": {
+        "unit": "Enumerate every candidate/content source and refusal path, including empty output.",
+        "module": "Test all callers and simultaneous text/audio occurrences for one authentic source and correct identity.",
+        "system": "Prove grounded composition through retained causal state, with no bigram or section-count selector supplying content.",
+        "release": "Verify every shipped entry point and asset/configuration; do not infer retirement from one UI branch."
+      },
+      "refs": [
+        {
+          "source_id": "EV07-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV07-01--GL-CMD-V5-VOICE-STAGE1-EVE-20260627-10.md",
+          "line": 26,
+          "anchor": "When v5 produces an emission with `committed_sections >= 2 AND n_commits > 0`",
+          "sha256": "01b37836fcd238ff2121569709432cef496f2817940fd79e43392fc3347fc9ed"
+        },
+        {
+          "source_id": "EV07-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV07-01--GL-CMD-V5-VOICE-STAGE1-EVE-20260627-10.md",
+          "line": 30,
+          "anchor": "Stage 1 scope: response text only. Bigram still runs in parallel for the",
+          "sha256": "01b37836fcd238ff2121569709432cef496f2817940fd79e43392fc3347fc9ed"
+        },
+        {
+          "source_id": "EV17-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV17-01--GL-RPT-VOICE-PATH-CONSOLIDATION-C1-20260629-37.md",
+          "line": 42,
+          "anchor": "- STT handler line 445 — **retained** (still calls `/organ_voice` in brain-mode; out of scope per dispatch)",
+          "sha256": "bd25fa89815ed2d241cda2977b71330dde2280e919dcca4460ed46b4066c0419"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A05",
+        "A10",
+        "A13",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VEV04",
+      "name": "A withdrawn chi-word shortcut was replaced by an unqualified population-vote composer",
+      "classification": "Preserve explicit retraction; successor cognitive authority still requires classification",
+      "finding": "EVR04",
+      "observed_mechanism": "July5 explicitly withdrew a home-chi word-slot design because its16 homes/neuron would recreate a known vocabulary collision ceiling despite passing a28-word test. The proposed replacement used recall_fast population votes, excluded self-echo, selected top-voted words with section homes and weighted candidates by vote share. An unseen word returned a nearest-vote word. Persisting prev_word was meant to restore the autonomous starter query after restart.",
+      "evidence_limits": "The retraction correctly distinguishes a toy pass from scale validity. Population-vote accuracy reports72%@100,180/180 implementation parity and live8/10 recall are different measurements and are not independently authenticated here. Renaming the candidate source organism does not establish a lawful physical recall mechanism.",
+      "replacement": "Preserve the rejected-design lesson and original history. Reconcile the actual recall/update/decision law before reuse; no authored word slots, nearest-example answer fallback, vote-share composer or synthetic starter query may substitute for current substrate cognition.",
+      "acceptance": {
+        "unit": "Test collisions, unseen cues, abstention, candidate provenance and persisted causal state at required bounds.",
+        "module": "Separate representation/recall evidence from output selection, using actual consumers and adversarial content-source controls.",
+        "system": "Demonstrate retained physical recognition/recall driving later native articulation on authentic state.",
+        "release": "Do not promote toy success, vectorization parity or historical recall percentages into current language certification."
+      },
+      "refs": [
+        {
+          "source_id": "EV08-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV08-01--GL-CMD-VOICE-ORGANISM-CANDIDATES-EVE-20260705-195-v1.md",
+          "line": 20,
+          "anchor": "It tested clean at 28 words and would collapse at hers. Withdrawn.",
+          "sha256": "10a08bdea8acab1114596daa8898c3e4bea2097b1d9073aadef03402597c3586"
+        },
+        {
+          "source_id": "EV08-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV08-01--GL-CMD-VOICE-ORGANISM-CANDIDATES-EVE-20260705-195-v1.md",
+          "line": 40,
+          "anchor": "   recall_fast population vote -> top-voted words (self-echo",
+          "sha256": "10a08bdea8acab1114596daa8898c3e4bea2097b1d9073aadef03402597c3586"
+        },
+        {
+          "source_id": "EV08-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV08-01--GL-CMD-VOICE-ORGANISM-CANDIDATES-EVE-20260705-195-v1.md",
+          "line": 59,
+          "anchor": "honest empty (echo filter), never-seen word -> nearest-vote word",
+          "sha256": "10a08bdea8acab1114596daa8898c3e4bea2097b1d9073aadef03402597c3586"
+        },
+        {
+          "source_id": "EV08-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV08-01--GL-CMD-VOICE-ORGANISM-CANDIDATES-EVE-20260705-195-v1.md",
+          "line": 47,
+          "anchor": "   emission query source rides the tapestry pickle so deploys stop",
+          "sha256": "10a08bdea8acab1114596daa8898c3e4bea2097b1d9073aadef03402597c3586"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VEV05",
+      "name": "Build-time configuration changed cognitive authority despite a no-cognition-change claim",
+      "classification": "Historical hidden content path and incomplete cutoff evidence",
+      "finding": "EVR05",
+      "observed_mechanism": "July4 found199 candidates where a brain-only source should supply at most3. RICH_SENSORY_INPUT=1 was baked into Dockerfile despite being absent from task overrides; its Source A gathered working-atlas words directly from input chi and spread cofire candidates. Switching the image default to0 changed the supplier. The report nevertheless said no cognition-path logic was touched. A later one-candidate, zero-commit cross_modal_fallback response was described as honest brain output because its shape matched expectation. Within-pipeline argmax after a wall-clock commit timeout was also excused without qualifying that selector.",
+      "evidence_limits": "The reported hotfix/task463 and corrected flag preserve a concrete source-path repair. Candidate counts and response shape alone do not prove causal origin; missing candidate source metadata defaulted to corpus, weakening provenance. No present activation is inferred.",
+      "replacement": "Classify configuration and deadlines as part of cognitive authority whenever they switch content or decisions. Retire hidden alternative suppliers and timeout argmax fallbacks; verify actual dataflow and provenance instead of count-compatible output.",
+      "acceptance": {
+        "unit": "Enumerate build defaults, task overrides and runtime readers; force each branch in isolated qualification fixtures.",
+        "module": "Poison/sever each alternative content source and verify no output dependency remains, with truthful source attribution.",
+        "system": "Show current native output depends on retained sensory material, not a hidden candidate pool or wall-time fallback.",
+        "release": "Bind effective image/environment to independently inspected serving behavior and all producer/consumer routes."
+      },
+      "refs": [
+        {
+          "source_id": "EV15-03",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV15-03--GL-RPT-VOICE-CANDIDATE-LEAK-C1B-20260704-v1.md",
+          "line": 77,
+          "anchor": "One line, `dsf_ai_service/Dockerfile:41`: `RICH_SENSORY_INPUT=1` →",
+          "sha256": "d85ce212a4b04dd853789d3bfe3eae33e9c95d06428d4700ec66c1c24b3de1b0"
+        },
+        {
+          "source_id": "EV15-03",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV15-03--GL-RPT-VOICE-CANDIDATE-LEAK-C1B-20260704-v1.md",
+          "line": 97,
+          "anchor": "No cognition-path logic touched — this is a build-time env-var",
+          "sha256": "d85ce212a4b04dd853789d3bfe3eae33e9c95d06428d4700ec66c1c24b3de1b0"
+        },
+        {
+          "source_id": "EV15-03",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV15-03--GL-RPT-VOICE-CANDIDATE-LEAK-C1B-20260704-v1.md",
+          "line": 56,
+          "anchor": "within the wall-clock budget, it falls back to `sec.arcs()` argmax",
+          "sha256": "d85ce212a4b04dd853789d3bfe3eae33e9c95d06428d4700ec66c1c24b3de1b0"
+        },
+        {
+          "source_id": "EV15-03",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV15-03--GL-RPT-VOICE-CANDIDATE-LEAK-C1B-20260704-v1.md",
+          "line": 135,
+          "anchor": "a single honest word (\"soft\"), matches c1a's own predicted shape for",
+          "sha256": "d85ce212a4b04dd853789d3bfe3eae33e9c95d06428d4700ec66c1c24b3de1b0"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A10",
+        "A13",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VEV06",
+      "name": "Source labels directly altered salience, retention and relationship scores",
+      "classification": "Historical metadata-driven policy; provenance repair is not sensory recognition",
+      "finding": "EVR06",
+      "observed_mechanism": "The identity fix gave joe_voice the authored joe source weight1.6 instead of unknown0.7; nine identity/dwell/self-hearing gates assigned dwell8 rather than1, selecting a reported12× slower decay channel. An alias map merged voice and typed interaction histories into a shared pair-bond density/salience score. The before/after tests verify those policy effects, not perceptual voice recognition or a physical relationship mechanism.",
+      "evidence_limits": "Preserving channel provenance and avoiding duplicate transport identities can be legitimate. That does not authorize external names to set pupil learning priority, memory decay or bonding. The report discloses source-only status and a shared-tree commit collision, not a live deployment pass.",
+      "replacement": "Retain authentic source/occurrence custody outside pupil answer authority. Replace label-driven salience/retention/bond decisions with approved internal/external causal dynamics; preserve original historical records without regenerating a preferred score.",
+      "acceptance": {
+        "unit": "Verify metadata cannot change pupil physical response when actual sensed input and predecessor are identical, except explicitly authorized transport admission.",
+        "module": "Trace identity aliases separately from material learning and sensation-derived recognition.",
+        "system": "Demonstrate real learned voice/context distinction and retention on preserved state without teacher-name privileges.",
+        "release": "Freeze source/configuration and audit all label-driven readers; source parity tests do not certify learned recognition."
+      },
+      "refs": [
+        {
+          "source_id": "EV16-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV16-01--GL-RPT-VOICE-IDENTITY-FIX-C1-20260704-v1.md",
+          "line": 55,
+          "anchor": "fell through to the dict's default (`SOURCE_WEIGHTS.get(source, 0.7)`)",
+          "sha256": "a5520ec871648be3bfb632561bb9e7564c4a60ebbb50970bd809d8efc8b86104"
+        },
+        {
+          "source_id": "EV16-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV16-01--GL-RPT-VOICE-IDENTITY-FIX-C1-20260704-v1.md",
+          "line": 66,
+          "anchor": "operative instruction, not \"exactly the 7 previously counted.\" Fixed",
+          "sha256": "a5520ec871648be3bfb632561bb9e7564c4a60ebbb50970bd809d8efc8b86104"
+        },
+        {
+          "source_id": "EV16-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV16-01--GL-RPT-VOICE-IDENTITY-FIX-C1-20260704-v1.md",
+          "line": 86,
+          "anchor": "computed the 0.74→0.79 number Joe observed — now normalize",
+          "sha256": "a5520ec871648be3bfb632561bb9e7564c4a60ebbb50970bd809d8efc8b86104"
+        },
+        {
+          "source_id": "EV16-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV16-01--GL-RPT-VOICE-IDENTITY-FIX-C1-20260704-v1.md",
+          "line": 162,
+          "anchor": "carry list. No live gate to prove here beyond the code-level before/",
+          "sha256": "a5520ec871648be3bfb632561bb9e7564c4a60ebbb50970bd809d8efc8b86104"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VEV07",
+      "name": "Self-generated TTS was initially misattributed as microphone sensation",
+      "classification": "Documented provenance defect; preserve scoped tagging repair",
+      "finding": "EVR07",
+      "observed_mechanism": "The forensic report shows reply text rendered through eSpeak to one shared temporary WAV, injected by daemon thread into process_sound_frame with swallowed exceptions. Every source used a fixed mic_stream motif and mic:live tag; only winding modulo100 varied with audio. Eleven self-voice samples nearly became false live-microphone evidence. The later task457 report added voice:self tags and a separate audio toggle, leaving the fixed motif unchanged.",
+      "evidence_limits": "Reported source tagging improves evidence attribution and failure diagnosis. A tag does not give the substrate sensation-based self-recognition, and equal tick/duration patterns are not reliable occurrence identity. Concurrent use of a shared pathname warrants source/occurrence custody review; no race is claimed observed here.",
+      "replacement": "Keep actual source and unique occurrence provenance, isolate playback from pupil-generated sound, and expose failures. Native self-hearing must return actual body pressure with original timing and retained ear state, not synthesized response text or injected identity knowledge.",
+      "acceptance": {
+        "unit": "Verify self/external origin, unique occurrence, concurrency and visible failure without pathname or tag substitution.",
+        "module": "Trace actual pressure acquisition/rendering and consumption end to end, including same-content repeated events.",
+        "system": "Demonstrate self-produced motor/acoustic consequence and later retained use independently of observer labels.",
+        "release": "Independent mic/browser proof must use genuine captured input and original occurrence receipts, not successful internal playback."
+      },
+      "refs": [
+        {
+          "source_id": "EV13-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV13-01--GL-RPT-SELFVOICE-FORENSIC-C1-20260703-v1.md",
+          "line": 40,
+          "anchor": "        wav_path = \"/tmp/guala_self_voice.wav\"",
+          "sha256": "4e2ba8f135e6f78ad216a9de5f1e63c42608abef842e4ed6582f815e3c8a1fb9"
+        },
+        {
+          "source_id": "EV13-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV13-01--GL-RPT-SELFVOICE-FORENSIC-C1-20260703-v1.md",
+          "line": 103,
+          "anchor": "        chi = c[\"winding\"] % 100",
+          "sha256": "4e2ba8f135e6f78ad216a9de5f1e63c42608abef842e4ed6582f815e3c8a1fb9"
+        },
+        {
+          "source_id": "EV13-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV13-01--GL-RPT-SELFVOICE-FORENSIC-C1-20260703-v1.md",
+          "line": 22,
+          "anchor": "avoid misreporting her own voice as evidence that her mic worked.",
+          "sha256": "4e2ba8f135e6f78ad216a9de5f1e63c42608abef842e4ed6582f815e3c8a1fb9"
+        },
+        {
+          "source_id": "EV14-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV14-01--GL-RPT-SELFVOICE-TAGGING-C1-20260703-152-v1.md",
+          "line": 24,
+          "anchor": "leaving text self-hearing intact. Motif ID (`deterministic_motif_id(\"mic_stream\")`)",
+          "sha256": "48ab31bc91b28b2e77cd10efd5014334b82ca436c5272a3048badfd6069a963b"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A05",
+        "A06",
+        "A10",
+        "A12",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VEV08",
+      "name": "Voice-to-words explicitly used external recognition and authored sensory words",
+      "classification": "Historical semantic ingress/ML proposal; activation must remain scoped",
+      "finding": "EVR08",
+      "observed_mechanism": "July3 proposed routing FFT-derived sensory words through read_sentence alongside cochlear texture, browser STT text through converse, and Whisper recognition asynchronously behind default VOICE_WHISPER=0. The report says nonempty FFT output/co-window binding and Whisper cost were unmeasured; Whisper remained off. Browser recognition was reported visible, with a real mistranscription. This was a text extractor feeding a word lane, not proof that the pupil learned to recognize those words from sound.",
+      "evidence_limits": "Whisper is explicitly an ML recognition route in the design, but these records do not prove it executed. The exact browser recognizer/model was not inventoried. External learner/teacher/transport roles must be distinguished; no historical or current ML-free blanket claim follows.",
+      "replacement": "Keep external teaching media and observation separate from pupil word/decision authority. Audit every extractor, flag, source and dependency on the exact artifact. Do not inject recognized words or FFT descriptor names as if they emerged from retained acoustic experience.",
+      "acceptance": {
+        "unit": "Classify extractor update/decision law and all semantic payload fields; prove flag defaults and effective callers.",
+        "module": "Trace raw acoustics and any external transcript independently, with no hidden word-lane write into claimed native recognition.",
+        "system": "Demonstrate sound→retained relation→later recognition through the authorized substrate with unseen controls.",
+        "release": "Any exclusion claim must inventory packaged and effective recognizer assets and routes; off-by-report is not whole-system absence."
+      },
+      "refs": [
+        {
+          "source_id": "EV10-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV10-01--GL-CMD-VOICE-TO-WORDS-EVE-20260703-153-v1.md",
+          "line": 28,
+          "anchor": "Part A (cheap words, Deploy 4): in the embedded /sound_frame executor,",
+          "sha256": "e1af9fd12f323ff3316706bb5960ed9d18111cbbf105be3630e192789b996b5a"
+        },
+        {
+          "source_id": "EV10-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV10-01--GL-CMD-VOICE-TO-WORDS-EVE-20260703-153-v1.md",
+          "line": 34,
+          "anchor": "Part B (Whisper, flagged): process_sound_with_recognition wired behind",
+          "sha256": "e1af9fd12f323ff3316706bb5960ed9d18111cbbf105be3630e192789b996b5a"
+        },
+        {
+          "source_id": "EV18-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV18-01--GL-RPT-VOICE-TO-WORDS-C1-20260703-153-v1.md",
+          "line": 24,
+          "anchor": "**G-153-3 (Whisper cost line): NOT MEASURED.** `VOICE_WHISPER` stays `0` as specified —",
+          "sha256": "f3a4b038a9b8126dc5dfbc02f08fa98a304e5ceffbf4e27201969f3244a3d83d"
+        },
+        {
+          "source_id": "EV18-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV18-01--GL-RPT-VOICE-TO-WORDS-C1-20260703-153-v1.md",
+          "line": 59,
+          "anchor": "1. **Client-side STT fires and produces text**: Joe confirmed directly — the browser",
+          "sha256": "f3a4b038a9b8126dc5dfbc02f08fa98a304e5ceffbf4e27201969f3244a3d83d"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A12",
+        "A15",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VEV09",
+      "name": "Separate endpoint passes did not establish the claimed voice conversation",
+      "classification": "Historical false end-to-end inference; preserve later scoped UI repair",
+      "finding": "EVR09",
+      "observed_mechanism": "The first voice-to-words report passed its live gate by combining visible browser transcription with a separately hand-posted server test, while admitting the same utterance was not traced. The next report found browser fetch responses were discarded and an experience handler was a production no-op. It later reported a real spoken-input→visible-response repair, while audio output still failed. It also attributed an earlier co-window evidence gap to missing browser polling, although client reply rendering and server acoustic/word binding are different boundaries.",
+      "evidence_limits": "The later visible-response improvement should be preserved at its stated scope. It neither demonstrates native recognition/articulation nor proves the missing FFT co-window route; absence of polling does not alone establish failure of an already queued server computation.",
+      "replacement": "Verify one authentic occurrence through each required producer and consumer, separately recording input, settlement, rendering and audio. Keep still-unmeasured gates open instead of substituting endpoint tests or interpreting observer failure as internal learning failure.",
+      "acceptance": {
+        "unit": "Verify queue/result/occurrence contracts and no-op/refusal behavior.",
+        "module": "Use the real browser caller and server consumer with a common occurrence receipt; test actual co-window binding separately from reply polling.",
+        "system": "Demonstrate the claimed sensory/cognitive/audio behavior end to end, preserving failures in other scopes.",
+        "release": "Require actual browser/device and same-event serving evidence; task health or independent endpoint success cannot pass the integrated claim."
+      },
+      "refs": [
+        {
+          "source_id": "EV18-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV18-01--GL-RPT-VOICE-TO-WORDS-C1-20260703-153-v1.md",
+          "line": 55,
+          "anchor": "converging evidence rather than one clean trace.**",
+          "sha256": "f3a4b038a9b8126dc5dfbc02f08fa98a304e5ceffbf4e27201969f3244a3d83d"
+        },
+        {
+          "source_id": "EV19-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV19-01--GL-RPT-VOICE-TO-WORDS-COMPLETION-C1-20260704-v1.md",
+          "line": 37,
+          "anchor": "   was thrown away unread. This is why -153's own G-153-2 (\"could not",
+          "sha256": "81fbe9f0fb42dc663036eedec861c3393c294bdbb4a4a3ebde24c1d0d42d9875"
+        },
+        {
+          "source_id": "EV19-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV19-01--GL-RPT-VOICE-TO-WORDS-COMPLETION-C1-20260704-v1.md",
+          "line": 37,
+          "anchor": "   was thrown away unread. This is why -153's own G-153-2 (\"could not",
+          "sha256": "81fbe9f0fb42dc663036eedec861c3393c294bdbb4a4a3ebde24c1d0d42d9875"
+        },
+        {
+          "source_id": "EV19-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV19-01--GL-RPT-VOICE-TO-WORDS-COMPLETION-C1-20260704-v1.md",
+          "line": 164,
+          "anchor": "works; audible speech output did not fire within budget in that",
+          "sha256": "81fbe9f0fb42dc663036eedec861c3393c294bdbb4a4a3ebde24c1d0d42d9875"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A06",
+        "A10",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VEV10",
+      "name": "A historical audit equated implementation expense with physical cognition",
+      "classification": "Unsupported engineering doctrine and mechanism clearance",
+      "finding": "EVR10",
+      "observed_mechanism": "The profiling dispatch declared equivalent faster substrate operations a physics change and asserted that scaling with atlas size was intrinsically substrate-true. Its report classified chi-bucket reinforcement, capped strength redistribution, similarity scans, mode selection and periodic decay as unavoidable physics, concluding faster processing binds less thoroughly. Neither operation count nor a mechanism name proves the physical law or that every repeated computation is necessary.",
+      "evidence_limits": "The measured source costs are useful historical evidence, and the report appropriately revisited a sentence-length confound. Those facts do not ratify the legacy atlas/word-bank mechanisms or justify rejecting a proven exact optimization. Current64 contact aggregation must be assessed on actual equivalence and physical acceptance.",
+      "replacement": "Separate simulated physical work, cognitive causation and host computational cost. Recover each mechanism’s approved law and test its real conserved quantity; retire heuristics rather than optimize them into authority. Accept only demonstrated equivalence under the actual numerical/causal contract.",
+      "acceptance": {
+        "unit": "Use independently derived laws and complete equivalent-state/observable comparisons, not performance alone.",
+        "module": "Profile matched states with bounded overhead and attribute actual costs without declaring library calls inherently physical.",
+        "system": "Demonstrate unchanged retained cognition and physical effects after a lawful optimization.",
+        "release": "Publish matched source/binary/resource results and precise limits; do not present latency as a validated learning rate."
+      },
+      "refs": [
+        {
+          "source_id": "EV05-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV05-01--GL-CMD-READ-SENTENCE-PROFILE-EVE-20260620-76.md",
+          "line": 40,
+          "anchor": "| Does the brief introduce a cache, skip, or memoization of substrate operations? | **No, and explicitly forbidden.** Any apparent \"optimization\" of substrate ops that produces the same answer faster must be treated as a substrate-physics change and routed through Eve before shipping. The whole point of substrate-true is that meaning *is* the work; meaning preserved by skipping the work is not the same meaning. |",
+          "sha256": "f6e0c385b4322ed4bcad99b351fca0501b0904969c659bdcf325afb96ab6798b"
+        },
+        {
+          "source_id": "EV05-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV05-01--GL-CMD-READ-SENTENCE-PROFILE-EVE-20260620-76.md",
+          "line": 101,
+          "anchor": "If the dominant term is O(atlas) or O(vocab), document it. **A scaling-with-substrate-size cost is substrate-true in nature** — it reflects the genuine cost of binding into a larger atlas. But knowing the curve lets us project realistic capacity.",
+          "sha256": "f6e0c385b4322ed4bcad99b351fca0501b0904969c659bdcf325afb96ab6798b"
+        },
+        {
+          "source_id": "EV12-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV12-01--GL-RPT-READ-SENTENCE-PROFILE-C1-20260620-01.md",
+          "line": 258,
+          "anchor": "- **The 200ms/word constant is the substrate's current learning rate.** Faster processing would mean the substrate binds less thoroughly per word. This is a design parameter, not a bug. Joe should know: loading a Gutenberg novel (100K words) at current rate ≈ 20,000 seconds ≈ 5.6 hours of autonomy paused. The question of whether that is acceptable — or whether a slower, incremental background-reading architecture should replace bulk load — is Joe's call, not an engineering optimization.",
+          "sha256": "e4f504fb53c4245db1134732375886686fe7323537514aa325e07822eb257de4"
+        },
+        {
+          "source_id": "EV12-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV12-01--GL-RPT-READ-SENTENCE-PROFILE-C1-20260620-01.md",
+          "line": 246,
+          "anchor": "The core cost is substrate-true physics and cannot be removed without removing Guala.",
+          "sha256": "e4f504fb53c4245db1134732375886686fe7323537514aa325e07822eb257de4"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A05",
+        "A09",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VEV11",
+      "name": "Certified autonomous speech meant a narrower historical release mechanism",
+      "classification": "Historical certificate scope overstated relative to native learned speech",
+      "finding": "EVR12",
+      "observed_mechanism": "The July16 ship note labels one-mouth autonomous releases certified, describes organism-content seeding, excludes self-heard windows from future seeding, uses an8-release repeat window and250ms compose budget, and caps TTS length. It reports a context-routing repair but still leaves a later scripted deployment to prove the sealed chain. Archived voice reports separately carry a pre-July6 wipe disclaimer.",
+      "evidence_limits": "A content-release/poison-atlas gate and one-mouth routing can test their own declared properties. They do not certify native articulatory learning, all memory preservation or current speech. The archive’s dated wipe assertion is evidence to reconcile, not permission to reset or proof that all historical artifacts disappeared.",
+      "replacement": "Keep historical certificate vocabulary scoped to the actual predicate. Recover original release/state lineage and distinct semantics of speech, text release, TTS, self-hearing and learning. Current qualification must preserve history and use the native causal chain without repeat/seed recipes selecting speech.",
+      "acceptance": {
+        "unit": "Verify the exact historical/current certificate predicate, exclusions and stop reasons.",
+        "module": "Trace release-source and sealed-state custody separately from retained cognition and acoustic actuation.",
+        "system": "Demonstrate current autonomous learned vocal behavior and history continuity using the approved controls.",
+        "release": "Authenticate original receipts and independently qualify the current artifact; never inherit a certificate from a title or boot count."
+      },
+      "refs": [
+        {
+          "source_id": "EV20-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV20-01--GL-SHIP-CHANGE4-VOICE-ONE-MOUTH-20260716-v1.md",
+          "line": 6,
+          "anchor": "Assemblage releases gain voice + self-hearing (one mouth, labels distinct). Autonomous loop can produce certified releases seeded ONLY from organism-sourced lived content (poison-atlas-proven). Babble-loop guards: self-heard windows never seed autonomous speech (remain memory), repeat window (8), 250ms compose budget, conversation-barrier re-check mid-compose. Teach→cite ROOT FIX: the 2026-07-15 context-binding theft that closed every conversation window with zero entries. TTS length cap. Rides with: seal pack fix (hardlinked sources accepted — the copy is the sealed artifact; stage saves skip generation publishing).",
+          "sha256": "86c1f4097b46dc9a7c0f05656fc615c4337d193cf3b8b38915e9acc12e217231"
+        },
+        {
+          "source_id": "EV20-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV20-01--GL-SHIP-CHANGE4-VOICE-ONE-MOUTH-20260716-v1.md",
+          "line": 18,
+          "anchor": "Boot clean w/ full state (DONE: vocab 1447, integrity OK, reading resumed); autonomous emissions produce labeled releases or explained silence with logged stop reasons; no repeat-babble across cycles; conversation turns preempt autonomous speech; next scripted deploy proves the sealed chain end-to-end (all three seal blockers fixed: save race → park; backlog → settle; pack → hardlink acceptance).",
+          "sha256": "86c1f4097b46dc9a7c0f05656fc615c4337d193cf3b8b38915e9acc12e217231"
+        },
+        {
+          "source_id": "EV21-01",
+          "path": "docs/guala_reconciliation/sources/early-voice-history/EV21-01--GL-RPT-READ-SENTENCE-PROFILE-C1-20260620-01.md",
+          "line": 1,
+          "anchor": "> **SUPERSEDED — DO NOT TREAT AS CURRENT TRUTH.**",
+          "sha256": "a4f16790775d0cb01fe492255604cdcd17120198a37354bebc75d334215a2b0a"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A05",
+        "A09",
+        "A10",
+        "A13",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

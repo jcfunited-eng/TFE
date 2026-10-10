@@ -1,0 +1,297 @@
+[
+  {
+    "at_utc": "2026-10-09T22:39:27.566621+00:00",
+    "bucket": "guala-incident-bench-20260831",
+    "prefix": "drive-organ-20260914/",
+    "result": {
+      "IsTruncated": false,
+      "Contents": [
+        {
+          "Key": "drive-organ-20260914/feeding-release/current-710377-stall.zip",
+          "LastModified": "2026-09-14T02:33:31+00:00",
+          "ETag": "\"d961c0d097860da38f360c7f5aac8d6e\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 7888288,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "drive-organ-20260914/feeding-release/current-post1464.zip",
+          "LastModified": "2026-09-14T02:02:13+00:00",
+          "ETag": "\"a722c1bac561c409756f087770702220\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 6942049,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "drive-organ-20260914/feeding-release/evidence-20260914T014115Z.tar.gz",
+          "LastModified": "2026-09-14T01:41:17+00:00",
+          "ETag": "\"6782f181a0a61fbd98e2c94b9eb10bc9-2\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 10815961,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "drive-organ-20260914/feeding-release/post-release-evidence-20260914T021640Z.tar.gz",
+          "LastModified": "2026-09-14T02:16:42+00:00",
+          "ETag": "\"4237ad0dec09f1d900b7f02e4c4c7712-2\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 10774537,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "drive-organ-20260914/reflex-baseline/current.zip",
+          "LastModified": "2026-09-14T00:35:59+00:00",
+          "ETag": "\"de821d578297d5a989ae8d3cb45e0bdf\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 6964649,
+          "StorageClass": "STANDARD"
+        }
+      ],
+      "Name": "guala-incident-bench-20260831",
+      "Prefix": "drive-organ-20260914/",
+      "MaxKeys": 1000,
+      "EncodingType": "url",
+      "KeyCount": 5
+    }
+  },
+  {
+    "at_utc": "2026-10-09T22:39:28.522096+00:00",
+    "bucket": "guala-incident-bench-20260831",
+    "prefix": "drive-organ-stage2-20260914/",
+    "result": {
+      "IsTruncated": false,
+      "Contents": [
+        {
+          "Key": "drive-organ-stage2-20260914/sRoZQa/release-evidence.tar.gz",
+          "LastModified": "2026-09-13T23:18:04+00:00",
+          "ETag": "\"c0db7c1178262bcb65b9436d33752385-14\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 114606006,
+          "StorageClass": "STANDARD"
+        }
+      ],
+      "Name": "guala-incident-bench-20260831",
+      "Prefix": "drive-organ-stage2-20260914/",
+      "MaxKeys": 1000,
+      "EncodingType": "url",
+      "KeyCount": 1
+    }
+  },
+  {
+    "at_utc": "2026-10-09T22:39:29.482002+00:00",
+    "bucket": "guala-incident-bench-20260831",
+    "prefix": "vision-world-20260914/",
+    "result": {
+      "IsTruncated": false,
+      "Contents": [
+        {
+          "Key": "vision-world-20260914/dvq-release/current.zip",
+          "LastModified": "2026-09-14T01:29:03+00:00",
+          "ETag": "\"2664a006c85c11372b10633e2d0dd383\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 6960139,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "vision-world-20260914/dvq-release/gualaloom-before.html",
+          "LastModified": "2026-09-14T01:49:09+00:00",
+          "ETag": "\"0f97fffa72db019fc68e457373f2ad55\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 40106,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "vision-world-20260914/dvq-release/post-release-evidence.tar.gz",
+          "LastModified": "2026-09-14T01:58:34+00:00",
+          "ETag": "\"4a410795635a0d753c544b12f609620c\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 473770,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "vision-world-20260914/dvq-release/pre-cutover.zip",
+          "LastModified": "2026-09-14T01:43:41+00:00",
+          "ETag": "\"0b93016edc8d93b9b4e2e1a4ef2cb923\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 6960035,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "vision-world-20260914/dvq-release/pre-release-evidence.tar.gz",
+          "LastModified": "2026-09-14T01:45:26+00:00",
+          "ETag": "\"962102807b14c90207e273393baf800d-14\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 115104713,
+          "StorageClass": "STANDARD"
+        }
+      ],
+      "Name": "guala-incident-bench-20260831",
+      "Prefix": "vision-world-20260914/",
+      "MaxKeys": 1000,
+      "EncodingType": "url",
+      "KeyCount": 5
+    }
+  },
+  {
+    "at_utc": "2026-10-09T22:39:30.571913+00:00",
+    "bucket": "guala-incident-bench-20260831",
+    "prefix": "captures/0914d/",
+    "result": {
+      "IsTruncated": false,
+      "Contents": [
+        {
+          "Key": "captures/0914d/current.zip",
+          "LastModified": "2026-09-14T04:07:54+00:00",
+          "ETag": "\"a41efd284ed4f13f30e9ef05111ecab5\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 6943403,
+          "StorageClass": "STANDARD"
+        }
+      ],
+      "Name": "guala-incident-bench-20260831",
+      "Prefix": "captures/0914d/",
+      "MaxKeys": 1000,
+      "EncodingType": "url",
+      "KeyCount": 1
+    }
+  },
+  {
+    "at_utc": "2026-10-09T22:39:31.565481+00:00",
+    "bucket": "guala-incident-bench-20260831",
+    "prefix": "guala/",
+    "result": {
+      "IsTruncated": false,
+      "Contents": [
+        {
+          "Key": "guala/candidate118/20260911T181319Z-runtime-current.zip",
+          "LastModified": "2026-09-11T18:13:37+00:00",
+          "ETag": "\"fafd874b1e645970ba1837aae1cab370\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 3243034,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/candidate123/20260912T010700Z-release-current.zip",
+          "LastModified": "2026-09-12T01:06:28+00:00",
+          "ETag": "\"81335b9022553bf8fcebe90f4e32ce15\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 3239840,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/candidate123/20260912T023800Z-pre-cutover-backup.zip",
+          "LastModified": "2026-09-12T02:38:42+00:00",
+          "ETag": "\"99a3ff77ae4ba6ed3999448801ccb188\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 3244715,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/candidate123/20260912T041800Z-live-root-current.zip",
+          "LastModified": "2026-09-12T04:18:20+00:00",
+          "ETag": "\"13c02e14e717a60b3baa4a0c48d82314\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 3253286,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/candidate123/20260912T043400Z-live-first-edge-current.zip",
+          "LastModified": "2026-09-12T04:34:13+00:00",
+          "ETag": "\"05d739351423687f30886f9284f273a2\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 3258481,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/candidate123/20260912T044100Z-live-second-edge-current.zip",
+          "LastModified": "2026-09-12T04:41:04+00:00",
+          "ETag": "\"a88cdfc0d9f4c0601703ea3259dff3a9\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 3258630,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/candidate129/20260912T102900Z-current-Hn94ff.zip",
+          "LastModified": "2026-09-12T10:27:13+00:00",
+          "ETag": "\"50c64e700a254e942a771fcf2a7e15d5\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 3260521,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/candidate129/final-backup-ide9O9.zip",
+          "LastModified": "2026-09-12T10:47:20+00:00",
+          "ETag": "\"c25f74a1d987ffee334b55f487bae4a3\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 3263097,
+          "StorageClass": "STANDARD"
+        }
+      ],
+      "Name": "guala-incident-bench-20260831",
+      "Prefix": "guala/",
+      "MaxKeys": 1000,
+      "EncodingType": "url",
+      "KeyCount": 8
+    }
+  }
+]

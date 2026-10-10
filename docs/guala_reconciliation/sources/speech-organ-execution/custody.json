@@ -1,0 +1,87 @@
+{
+  "archive": "/mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-immutable-image-proofs.tar.gz",
+  "archive_sha256": "a30c66b729d13abaffa860f34604f5b6b037fd9978c97954de2210c100b50889",
+  "members": [
+    {
+      "member": "guala-c123-image-recall.py",
+      "path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/image/guala-c123-image-recall.py",
+      "bytes": 11922,
+      "sha256": "a44abc3823f6b9fa57317866b3eb45ef6d44c378de64a4dab54c542ab3d2cee1"
+    },
+    {
+      "member": "guala-c123-image-recall.log",
+      "path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/image/guala-c123-image-recall.log",
+      "bytes": 120037,
+      "sha256": "5f5c845a103058aecc65b8b0c14fb0ee6d9731c145e81e36bb942381f4743c72"
+    },
+    {
+      "member": "guala-c123-image-recall-successor/paired/body-generations/4607b92a7d5c76b2ad49de7c852082da6d6f71c4f0eb917432c68b579b87b982.glorun.gz",
+      "bytes": 3240264,
+      "sha256": "a3809f75a3d89d1d2fbbd80674c4580629fe01e21511fdec2ba621d28162bb42",
+      "raw_bytes": 165085440,
+      "raw_sha256": "4607b92a7d5c76b2ad49de7c852082da6d6f71c4f0eb917432c68b579b87b982",
+      "raw_hash_matches_filename": true
+    },
+    {
+      "member": "guala-c123-image-recall-successor/paired/body-generations/5784c4b217efc6abf9ccf67c3781231f2cf13509c9ceeb4f9ea49138dcf1c1c8.glorun.gz",
+      "bytes": 3277348,
+      "sha256": "3ed0ac1ace03542adda349a5341302953e2d9b0dc4b7723d16b8846bb01ba3cf",
+      "raw_bytes": 165468914,
+      "raw_sha256": "5784c4b217efc6abf9ccf67c3781231f2cf13509c9ceeb4f9ea49138dcf1c1c8",
+      "raw_hash_matches_filename": true
+    },
+    {
+      "member": "guala-c123-image-startup.py",
+      "path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/image/guala-c123-image-startup.py",
+      "bytes": 6698,
+      "sha256": "2b0820bbf728cb3d25b55fb3435b2ee4003d9c83672085b9b2847fbc0d9d4cfa"
+    },
+    {
+      "member": "guala-c123-image-startup.log",
+      "path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/image/guala-c123-image-startup.log",
+      "bytes": 46130,
+      "sha256": "a4b7e23ba08012991935b7bb90845a41eed9c348ab55541ae1436dded82a0dd1"
+    },
+    {
+      "member": "guala-c123-image-startup-successor/paired/body-generations/8c5ecdf6eef4b5958d32d002500f197ec4a90904f6ad19a7fd50ed147397a980.glorun.gz",
+      "bytes": 3258012,
+      "sha256": "1cc7c53670c3670ed5ea53ea0fbb25fd5decc94ba71b885af68a6d2c8270d417",
+      "raw_bytes": 164715698,
+      "raw_sha256": "8c5ecdf6eef4b5958d32d002500f197ec4a90904f6ad19a7fd50ed147397a980",
+      "raw_hash_matches_filename": true
+    },
+    {
+      "member": "guala-c123-image-startup-successor/paired/body-generations/3e3cd43a0e3e40d808e2596523bb8c3bb14750bfd39c217ddbe06a4ad9f5b8a9.glorun.gz",
+      "bytes": 3217546,
+      "sha256": "af94763614182324b8c4291ce009a7523c06ac0bbbbb5786325381affab51333",
+      "raw_bytes": 164321227,
+      "raw_sha256": "3e3cd43a0e3e40d808e2596523bb8c3bb14750bfd39c217ddbe06a4ad9f5b8a9",
+      "raw_hash_matches_filename": true
+    },
+    {
+      "member": "guala-c123-final-image-build.log",
+      "path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/image/guala-c123-final-image-build.log",
+      "bytes": 138036,
+      "sha256": "ccaaf877af80fbcbae1be983a6a36a06222cd9bf4e2e8fb187931f9011dac32b"
+    },
+    {
+      "member": "guala-c123-final-package.bLHWtFHD/stage/_release/release-receipt.json",
+      "path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/image/release-receipt.json",
+      "bytes": 89577,
+      "sha256": "973f5571ad910fbfbcf5999af5ff1cf5e8ac1134785e8c3307b5c29cb9ac40bc"
+    },
+    {
+      "member": "guala-c123-final-package.bLHWtFHD/image-metadata.json",
+      "path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/image/image-metadata.json",
+      "bytes": 1959,
+      "sha256": "a234072bf616d260ad1fa365c7789d9a3412c620b97e6c0e4e60153e0979a6b2"
+    },
+    {
+      "member": "guala-c123-final-package.bLHWtFHD/package.json",
+      "path": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/image/package.json",
+      "bytes": 475,
+      "sha256": "0a87f81acfb0550615400a1ed87dc092b7cea03d329f364a463defb0985f97a7"
+    }
+  ],
+  "product_executed": false
+}

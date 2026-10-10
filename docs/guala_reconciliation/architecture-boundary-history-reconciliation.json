@@ -1,0 +1,700 @@
+{
+  "schema": "guala.documentary_slice_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T11:28:29.997218+00:00",
+  "scope": "All ten captured versions across three paths fully read:583 latest lines and25 older-only passages/62 lines; hashes and every version reconstructed. Historical reports/proposals and present activation are separately scoped. No historical instruction, product program, test or organism action executed.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "AA001",
+      "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "git_blob": "e797c9bc93d7cbcc1aba8de15ca63e3113ecd773",
+      "sha256": "f0799f6291da19be1b20a7033ae048e9ff8bf612df8315026580be5c2c68b01e",
+      "bytes": 11585,
+      "lines": 191,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA001--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "observations": [
+        {
+          "author_time": "2026-08-02T23:49:14+00:00",
+          "commit": "5a5a99c1adbf49587e72625a5a48ccb7741926a1",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-02T22:29:55+00:00",
+          "commit": "df9975b2a87c2d3962db549dd7ccd45b44feb0fe",
+          "side": "new"
+        }
+      ],
+      "review": "All ten captured versions across three paths fully read:583 latest lines and25 older-only passages/62 lines; hashes and every version reconstructed. Historical reports/proposals and present activation are separately scoped. No historical instruction, product program, test or organism action executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/architecture-boundary-history/AA001--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md"
+    },
+    {
+      "id": "AA002",
+      "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "git_blob": "c6b35c07fd4c3fe2afdb654ea3a108a1e13faebb",
+      "sha256": "9646ece71c713dd896e74b792330bb3dbddeaa03af80c132ee421810ace688e3",
+      "bytes": 11651,
+      "lines": 192,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA002--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "observations": [
+        {
+          "author_time": "2026-08-03T01:56:40+00:00",
+          "commit": "95314263b86351bf29b076b83a905d418dad2908",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-02T23:49:14+00:00",
+          "commit": "5a5a99c1adbf49587e72625a5a48ccb7741926a1",
+          "side": "new"
+        }
+      ],
+      "review": "All ten captured versions across three paths fully read:583 latest lines and25 older-only passages/62 lines; hashes and every version reconstructed. Historical reports/proposals and present activation are separately scoped. No historical instruction, product program, test or organism action executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/architecture-boundary-history/AA002--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md"
+    },
+    {
+      "id": "AA003",
+      "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "git_blob": "ea76cd297bbbb555d635e424ba0638804cd8c44a",
+      "sha256": "9d42be562eb53e45178934cc042159e2848137f129953a20cf83cc06215c2bf7",
+      "bytes": 12034,
+      "lines": 197,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA003--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "observations": [
+        {
+          "author_time": "2026-08-03T05:26:37+00:00",
+          "commit": "271b165b96d74179dc46fdd3e788fbd1cc623829",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T01:56:40+00:00",
+          "commit": "95314263b86351bf29b076b83a905d418dad2908",
+          "side": "new"
+        }
+      ],
+      "review": "All ten captured versions across three paths fully read:583 latest lines and25 older-only passages/62 lines; hashes and every version reconstructed. Historical reports/proposals and present activation are separately scoped. No historical instruction, product program, test or organism action executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/architecture-boundary-history/AA003--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md"
+    },
+    {
+      "id": "AA004",
+      "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "git_blob": "b45e7667487d8dd9f829e198ade6381daf423e21",
+      "sha256": "cfb85996cab875a8d9f1e25c3b833a1edc404ad9596b0825eeeeaa6e573fc39a",
+      "bytes": 15277,
+      "lines": 250,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA004--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "observations": [
+        {
+          "author_time": "2026-08-03T07:41:53+00:00",
+          "commit": "38bf0e0c4becdf3d3dcb3f1a6b6f89e39258c91b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T05:26:37+00:00",
+          "commit": "271b165b96d74179dc46fdd3e788fbd1cc623829",
+          "side": "new"
+        }
+      ],
+      "review": "All ten captured versions across three paths fully read:583 latest lines and25 older-only passages/62 lines; hashes and every version reconstructed. Historical reports/proposals and present activation are separately scoped. No historical instruction, product program, test or organism action executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/architecture-boundary-history/AA004--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md"
+    },
+    {
+      "id": "AA005",
+      "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "git_blob": "a9b19ab6641a195f5a1625f3ed9e03fa34823fbf",
+      "sha256": "159807e9525d6045a0d75e404fa25614e08d46b87b4c096ae912c07cf60e1a00",
+      "bytes": 16555,
+      "lines": 269,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA005--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "observations": [
+        {
+          "author_time": "2026-08-03T07:47:16+00:00",
+          "commit": "3cf861b28feb22e9323a5d7d7a15ce445f076c74",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T07:41:53+00:00",
+          "commit": "38bf0e0c4becdf3d3dcb3f1a6b6f89e39258c91b",
+          "side": "new"
+        }
+      ],
+      "review": "All ten captured versions across three paths fully read:583 latest lines and25 older-only passages/62 lines; hashes and every version reconstructed. Historical reports/proposals and present activation are separately scoped. No historical instruction, product program, test or organism action executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/architecture-boundary-history/AA005--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md"
+    },
+    {
+      "id": "AA006",
+      "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "git_blob": "cf7f76367b678c9da0d5ba36e22b73f1164cd8a1",
+      "sha256": "3e6b4cb068db24407e72747d6d72055aab3c4b96dd676589dec6de7d62bbf42a",
+      "bytes": 16824,
+      "lines": 274,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA006--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "observations": [
+        {
+          "author_time": "2026-08-03T07:52:30+00:00",
+          "commit": "32c0c67217d4a0e231be0666364e12543baf4088",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T07:47:16+00:00",
+          "commit": "3cf861b28feb22e9323a5d7d7a15ce445f076c74",
+          "side": "new"
+        }
+      ],
+      "review": "All ten captured versions across three paths fully read:583 latest lines and25 older-only passages/62 lines; hashes and every version reconstructed. Historical reports/proposals and present activation are separately scoped. No historical instruction, product program, test or organism action executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/architecture-boundary-history/AA006--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md"
+    },
+    {
+      "id": "AA007",
+      "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "git_blob": "9a0e03e1c1eb2ad21aa1b925e9dd42b38cb56bd8",
+      "sha256": "bde9f54033c3857c4e247f5ef8c9145df22ea379f3934b56d4a55838ce244715",
+      "bytes": 17190,
+      "lines": 279,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA007--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T03:54:55+00:00",
+          "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-03T07:52:30+00:00",
+          "commit": "32c0c67217d4a0e231be0666364e12543baf4088",
+          "side": "new"
+        }
+      ],
+      "review": "All ten captured versions across three paths fully read:583 latest lines and25 older-only passages/62 lines; hashes and every version reconstructed. Historical reports/proposals and present activation are separately scoped. No historical instruction, product program, test or organism action executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/architecture-boundary-history/AA007--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md"
+    },
+    {
+      "id": "AA008",
+      "path": "docs/GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "git_blob": "6dc5a1a8136bb38ee385e55fa110867ed5cd6666",
+      "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2",
+      "bytes": 17670,
+      "lines": 287,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/architecture-authority-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T03:54:55+00:00",
+          "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+          "side": "new"
+        }
+      ],
+      "review": "All ten captured versions across three paths fully read:583 latest lines and25 older-only passages/62 lines; hashes and every version reconstructed. Historical reports/proposals and present activation are separately scoped. No historical instruction, product program, test or organism action executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md"
+    },
+    {
+      "id": "PB001",
+      "path": "docs/GUALA_PURE_PHYSICS_BOUNDARY_AUDIT_RULE.md",
+      "git_blob": "52467d54790cd46b77bdfb45810a1b200fb05279",
+      "sha256": "724d463f2ea97d3f4ac105fc5055e573b6fb72ad2344e33235f28e49e39d6dbd",
+      "bytes": 3295,
+      "lines": 65,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/physics-boundary-history/PB001--GUALA_PURE_PHYSICS_BOUNDARY_AUDIT_RULE.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-03T08:30:07+00:00",
+          "commit": "a6fa385a3ca312bab39be342a92e91fc46397557",
+          "side": "new"
+        }
+      ],
+      "review": "All ten captured versions across three paths fully read:583 latest lines and25 older-only passages/62 lines; hashes and every version reconstructed. Historical reports/proposals and present activation are separately scoped. No historical instruction, product program, test or organism action executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/architecture-boundary-history/PB001--GUALA_PURE_PHYSICS_BOUNDARY_AUDIT_RULE.md"
+    },
+    {
+      "id": "DA001",
+      "path": "docs/W1_LOOM_DYNAMIC_AUTHORITY_AUDIT_AND_REQUIRED_LAW_2026-07-27.md",
+      "git_blob": "0db43be28b1ddc7324a4b07d9a324a47a34f9402",
+      "sha256": "0607e9e5529573e3a627b117b9593b58686c3d16cc2bba17d9315a641f66183e",
+      "bytes": 9382,
+      "lines": 231,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/dynamic-authority-history/DA001--W1_LOOM_DYNAMIC_AUTHORITY_AUDIT_AND_REQUIRED_LAW_2026-07-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-07-29T00:52:55+00:00",
+          "commit": "30f2cf9ecde2eeda2bdd8d2e37d0061655ac2f9c",
+          "side": "new"
+        }
+      ],
+      "review": "All ten captured versions across three paths fully read:583 latest lines and25 older-only passages/62 lines; hashes and every version reconstructed. Historical reports/proposals and present activation are separately scoped. No historical instruction, product program, test or organism action executed.",
+      "canonical_copy": "docs/guala_reconciliation/sources/architecture-boundary-history/DA001--W1_LOOM_DYNAMIC_AUTHORITY_AUDIT_AND_REQUIRED_LAW_2026-07-27.md"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "AAR01",
+      "name": "Ratification, joint-field correction and frozen-kernel scope",
+      "classification": "dated_architectural_evolution_with_original_authority_limit",
+      "historical_requirement_or_mechanism": "AA008 explicitly dates task853 assertions as historical. Its D1 amendment reports Joe approved correcting independent per-port traces into a joint neuronal field, superseding earlier permanent-freeze wording for that old Guala profile. Exact explicit delivery does not imply an immutable neuron or organism.",
+      "current_disposition": "The amendment reports approval; this document is not independent original approval context or permission for another kernel change. Later subject authority governs its named subject, not every mechanism. A no-contradiction statement in the old authority map is not today’s complete reconciliation.",
+      "lawful_remedy": "Retain exact dated profiles and original approval evidence for each kernel/law change. Keep current L0–L4 frozen absent Joe’s explicit approval; trace the actual full joint field and separate global stability through dynamic native consumers.",
+      "unit_acceptance": "Verify actual approved kernel/profile inputs, all field positions and separate global stability without scalar substitution.",
+      "module_acceptance": "Bind source and native consumers to the exact ratified profile and distinguish storage from physical use.",
+      "system_acceptance": "Show the complete ordinary retained-state causal chain under the current approved architecture; historical production identity cannot establish present behavior.",
+      "release_acceptance": "Bind the exact approved current specification, native/Python source, compiled image, configuration and complete active predecessor. Independently verify cold continuation and ordinary live behavior. This documentary audit is not current activation, a product test or a speech/system/ML-free certificate.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A04",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 5,
+          "anchor": "Current-reality notice, 2026-08-29: this document remains architectural",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        },
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 13,
+          "anchor": "## D1 joint-field correction",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        },
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 121,
+          "anchor": "## 2. Terminology correction: explicit is not frozen",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        },
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 174,
+          "anchor": "## 4. Precedence and correction rules",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        }
+      ]
+    },
+    {
+      "id": "AAR02",
+      "name": "Reached fractals and co-observation were deliberately not learned mosaics",
+      "classification": "genuine_narrow_sensory_evidence_with_explicit_capability_gap",
+      "historical_requirement_or_mechanism": "D2 reports185 reached neuronal fractals from one material movement:162sight,6touch,8smell,5taste,4body; zero mosaics and no acoustic evidence for that event. Three distinct neurons are only a structural eligibility floor. Exact camera/microphone clocks retain an unresolved shared-capture candidate.",
+      "current_disposition": "These counts do not establish causal closure, collective recurrence, recognition, learned objects, sound or a common cross-clock cause. The absence of a vestibular mechanism and biological pre-receptor mechanics was explicitly stated at that date.",
+      "lawful_remedy": "Preserve the actual narrow sensory accomplishment. Require retained causal relations among participating senses, body, context, order, action and consequence before recognizing a formation; keep unavailable modalities explicit rather than inventing evidence.",
+      "unit_acceptance": "Verify actual sensory contributions, exact clocks and absent-channel behavior without replacing missing input by zero or a label.",
+      "module_acceptance": "Trace ordinary retained physical participation and later partial-cue use; co-observation and cardinality cannot authorize semantic admission.",
+      "system_acceptance": "Demonstrate experience-dependent grounded recognition and action on preserved state, then learned articulation separately.",
+      "release_acceptance": "Bind the exact approved current specification, native/Python source, compiled image, configuration and complete active predecessor. Independently verify cold continuation and ordinary live behavior. This documentary audit is not current activation, a product test or a speech/system/ML-free certificate.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A08",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 23,
+          "anchor": "## D2 evidence-only neuron-fractal correction and live proof",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        },
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 41,
+          "anchor": "One bounded virtual material movement now proves exact reached-neuron",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        },
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 201,
+          "anchor": "9. A custody receipt proves authenticated bytes, not the semantic or physical",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        },
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 244,
+          "anchor": "- the D2 candidate intentionally contains no mosaic formation implementation;",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        }
+      ]
+    },
+    {
+      "id": "AAR03",
+      "name": "Historical native-only migration and deployment evidence have bounded authority",
+      "classification": "candidate_to_live_evolution_not_blanket_reset_permission",
+      "historical_requirement_or_mechanism": "AA004 distinguishes candidate/local restart from production. Later D2 records task853/commit8cd0a4/image58affa, same identity/tick,96perspectives/twofields/442352nativebytes, zero legacy owner claim. It describes one process, no lifetime lease, transaction-duration exclusion, authenticated quiescence before replacement and a one-way extraction discarding legacy fields.",
+      "current_disposition": "A dated cutover may demonstrate that boundary while leaving later function open. These statements do not authorize deleting today’s acquired state, bypassing current custody, or treating inert history as active preserved memory. Candidate results must not be retrospectively labeled live.",
+      "lawful_remedy": "Recover each migration’s exact approval, before/after active state and any declared loss. Preserve current sole ownership and coherent body/world state through the actual canonical path; no reset or new commissioning to close continuity failures.",
+      "unit_acceptance": "Verify complete active learned-state mapping, explicit loss/refusal and atomic body/world successor bytes.",
+      "module_acceptance": "Cold-continue exact predecessor and admitted successor with matched future input; boundary exclusion must not enter physical cognition.",
+      "system_acceptance": "Independently verify actual release identity and real retained behavior after current cutover; UUID/tick alone is insufficient.",
+      "release_acceptance": "Bind the exact approved current specification, native/Python source, compiled image, configuration and complete active predecessor. Independently verify cold continuation and ordinary live behavior. This documentary audit is not current activation, a product test or a speech/system/ML-free certificate.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A09",
+        "A14",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "AA004",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA004--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 31,
+          "anchor": "fabric bytes and must discard every other legacy field. This paragraph records",
+          "sha256": "cfb85996cab875a8d9f1e25c3b833a1edc404ad9596b0825eeeeaa6e573fc39a"
+        },
+        {
+          "source_id": "AA004",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA004--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 51,
+          "anchor": "Before every production task replacement, the deploy controller must quiesce",
+          "sha256": "cfb85996cab875a8d9f1e25c3b833a1edc404ad9596b0825eeeeaa6e573fc39a"
+        },
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 49,
+          "anchor": "The production cutover completed on 2026-08-03 at 07:24:05 UTC as ECS task",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        },
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 62,
+          "anchor": "## D0 process and deployment correction",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        }
+      ]
+    },
+    {
+      "id": "AAR04",
+      "name": "Whole-word ternary coupling was physically rejected before replacement",
+      "classification": "falsified_candidate_not_a_working_neuron_to_reinstall",
+      "historical_requirement_or_mechanism": "D3 rejected signed whole-local-word addition because balanced-ternary carries crossed typed DSF-coordinate boundaries, aggregate settlement was non-injective and persistent operative Krimelack dynamics were absent. Typed-routing follow-up supplied carrier/lineage/atomicity/O(E) structure but explicitly stopped before a payload and target-state operator.",
+      "current_disposition": "Transport and compact persistence are not a physical successor law. The earlier broad golden-episode instruction and a later typed carrier cannot establish that speech-producing coupling was implemented.",
+      "lawful_remedy": "Use the actual approved post-L4 typed local interaction and persistent successor law. Preserve source/target coordinates and complete full-field structure; do not fabricate raw L0–L4 vertices or invent a missing arrival operator.",
+      "unit_acceptance": "Falsify carry crossing, non-injective projection and missing operative state in the smallest relevant one/three/four-element cases.",
+      "module_acceptance": "Trace typed arrivals through actual persistent target dynamics with conserved quantities and complete canonical continuation.",
+      "system_acceptance": "Establish retained experience causing ordinary later recognition/action and articulation under matched controls on the preserved organism.",
+      "release_acceptance": "Bind the exact approved current specification, native/Python source, compiled image, configuration and complete active predecessor. Independently verify cold continuation and ordinary live behavior. This documentary audit is not current activation, a product test or a speech/system/ML-free certificate.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A04",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "AA005",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA005--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 99,
+          "anchor": "   Krimelack-coupling transition equation and its golden one-, three-, and",
+          "sha256": "159807e9525d6045a0d75e404fa25614e08d46b87b4c096ae912c07cf60e1a00"
+        },
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 106,
+          "anchor": "5. **Single exact next implementation item:** ratify the native sparse",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        },
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 252,
+          "anchor": "- the D3 pre-implementation audit found no lawful direct mature-mosaic",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        },
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 258,
+          "anchor": "- the first D3 sparse-coupling candidate was rejected because whole-word",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        }
+      ]
+    },
+    {
+      "id": "AAR05",
+      "name": "Memory props and whole-organism relations are not semantic storage tiers",
+      "classification": "historical_terminology_requires_current_conceptual_reconciliation",
+      "historical_requirement_or_mechanism": "AA subject laws describe within-mosaic multisensory participation, body/fluid causal anchoring, multiple kinds of connectedness and recursive fractal→mosaic→tapestry→weave formations. Quiet mounted mechanisms may be quiescent or unavailable. Cognitive capital is non-flattened capability evidence.",
+      "current_disposition": "Current Joe instructions treat mosaic/tapestry/weave as conversational props for biological and neuronal relations, not compulsory named storage tiers. No count, textbook hierarchy or permanently mounted label proves actual experienced memory, sleep consolidation or autonomy.",
+      "lawful_remedy": "Canonize actual participating neuronal relations, episodic context/order and retained later use. Preserve valid historical concepts while replacing rigid semantic-tier interpretations; do not force every sense/fluid path to fabricate activity or become a neuron.",
+      "unit_acceptance": "Verify real causal membership and exact local retained state, separating quiet, absent and unavailable paths.",
+      "module_acceptance": "Trace context/order/body/action/consequence and actual sleep-owned retained changes where consolidation is claimed.",
+      "system_acceptance": "Demonstrate later use, recall, planning and self-directed behavior from genuine retained experience; counts and diagrams are not acceptance.",
+      "release_acceptance": "Bind the exact approved current specification, native/Python source, compiled image, configuration and complete active predecessor. Independently verify cold continuation and ordinary live behavior. This documentary audit is not current activation, a product test or a speech/system/ML-free certificate.",
+      "repair_actions": [
+        "A01",
+        "A06",
+        "A09",
+        "A11",
+        "A13",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 183,
+          "anchor": "3. The three-neuron floor and mature-mosaic admission conditions in the Mosaic–",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        },
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 190,
+          "anchor": "5. Every lived mosaic is body- and fluid-state anchored by causal reference;",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        },
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 214,
+          "anchor": "| Subject | Reconciled authority |",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        },
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 228,
+          "anchor": "| Recursive cognition | Fractal → mosaic → mosaic of mosaics → tapestry → tapestry of tapestries → weave. |",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        }
+      ]
+    },
+    {
+      "id": "AAR06",
+      "name": "Global stability and neurochemical descriptions leave specific law gaps",
+      "classification": "ratified_architectural_direction_not_invented_coefficients",
+      "historical_requirement_or_mechanism": "AA requires separate positive-coherence S(UF), prohibits an eighth local coordinate or (1-U_star)*B substitute, and says full executable coefficients/operators remain unratified. The older neurochemical document remains noncanonical except specifically ratified architectural portions.",
+      "current_disposition": "A physical name or reference list cannot authorize guessed species, coefficients, nonlinear solvers or complete fluid cognition. These dated omissions do not establish every present operator remains absent without subsequent source/authority review.",
+      "lawful_remedy": "Bind current actual constitutive equations and parameter units/authority to separately ratified requirements. Keep global/local quantities distinct and use approved functional equivalents without a new molecular prerequisite.",
+      "unit_acceptance": "Check exact dimensional/positional invariants and reject invented scalar proxies or unauthenticated coefficients.",
+      "module_acceptance": "Verify actual current fluid/global/local consumers and causal effects through the approved native boundary.",
+      "system_acceptance": "Demonstrate the claimed cognitive/body function under matched perturbations and complete active-state continuation.",
+      "release_acceptance": "Bind the exact approved current specification, native/Python source, compiled image, configuration and complete active predecessor. Independently verify cold continuation and ordinary live behavior. This documentary audit is not current activation, a product test or a speech/system/ML-free certificate.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A04",
+        "A11",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 166,
+          "anchor": "7. **Detailed neurochemical research basis and candidate physical equations:**",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        },
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 195,
+          "anchor": "7. The fluid–formation continuity law governs architectural integration. The",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        },
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 198,
+          "anchor": "8. Global `S(UF)` uses the ratified positive-coherence direction and remains",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        },
+        {
+          "source_id": "AA008",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/AA008--GUALA_CANONICAL_ARCHITECTURE_AUTHORITY_2026-08-02.md",
+          "line": 220,
+          "anchor": "| Global stability | `S(UF)` is separate, uses `+Coh`, and lacks ratified full executable coefficients/operators. |",
+          "sha256": "34eeaef149db979f53c4c952bc4aa19f1b96881b676e506a36293f48a55632f2"
+        }
+      ]
+    },
+    {
+      "id": "AAR07",
+      "name": "A separate canonical physics-boundary rule survives the AGENTS paragraph omission",
+      "classification": "independent_documentary_requirement_not_runtime_enforcement",
+      "historical_requirement_or_mechanism": "PB001 remains an indexed canonical promotion rule: external authentication/custody outside transition; exact topology/locality; measured reached-frontier work; bounded causative state; declared reduction loss; quiescence, constant/opposed drive, depletion/recovery, recurrence and cold-restoration falsification. Behavioral tests alone do not waive it.",
+      "current_disposition": "This separate record defeats any inference that deleting the paragraph automatically erased the requirement. It still does not prove current transitive code complies. Necessary physical admissibility/conservation checks are not repeated external authentication, and current functional-equivalent scope remains authoritative.",
+      "lawful_remedy": "Map the actual compiled transition and all transitive calls to the current boundary contract, including interpreter locks, callback costs, canonical publication and observation. Establish bounded actual progress rather than passing a health-only surface.",
+      "unit_acceptance": "Verify local physical invariants and required guards without duplicated external authentication or hidden energy.",
+      "module_acceptance": "Measure actual reached work/calls, recurrence, CPU/RAM/durable-state growth and exact cold continuation under the compiled boundary.",
+      "system_acceptance": "Demonstrate bounded ordinary sensory/body/cognitive progress and retained behavior with current observer load and release evidence.",
+      "release_acceptance": "Bind the exact approved current specification, native/Python source, compiled image, configuration and complete active predecessor. Independently verify cold continuation and ordinary live behavior. This documentary audit is not current activation, a product test or a speech/system/ML-free certificate.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A09",
+        "A13",
+        "A14",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "PB001",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/PB001--GUALA_PURE_PHYSICS_BOUNDARY_AUDIT_RULE.md",
+          "line": 9,
+          "anchor": "## Boundary law",
+          "sha256": "724d463f2ea97d3f4ac105fc5055e573b6fb72ad2344e33235f28e49e39d6dbd"
+        },
+        {
+          "source_id": "PB001",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/PB001--GUALA_PURE_PHYSICS_BOUNDARY_AUDIT_RULE.md",
+          "line": 22,
+          "anchor": "## Mandatory code-shape audit",
+          "sha256": "724d463f2ea97d3f4ac105fc5055e573b6fb72ad2344e33235f28e49e39d6dbd"
+        },
+        {
+          "source_id": "PB001",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/PB001--GUALA_PURE_PHYSICS_BOUNDARY_AUDIT_RULE.md",
+          "line": 42,
+          "anchor": "7. Persistent state contains bounded causal physical state, not an append-only",
+          "sha256": "724d463f2ea97d3f4ac105fc5055e573b6fb72ad2344e33235f28e49e39d6dbd"
+        },
+        {
+          "source_id": "PB001",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/PB001--GUALA_PURE_PHYSICS_BOUNDARY_AUDIT_RULE.md",
+          "line": 48,
+          "anchor": "## Mandatory physical falsification",
+          "sha256": "724d463f2ea97d3f4ac105fc5055e573b6fb72ad2344e33235f28e49e39d6dbd"
+        }
+      ]
+    },
+    {
+      "id": "AAR08",
+      "name": "July hearing reached receptors but did not change downstream neuronal state",
+      "classification": "dated_causal_dead_end_and_explicitly_prohibited_legacy_bridge",
+      "historical_requirement_or_mechanism": "DA reports656 auditory receptor trajectories. Its executable audit changed one exact D lane while downstream DSF, coupling matrix, membrane, synapses and Psi were unchanged. Legacy step used chi familiarity, a16value reduced injection and probability thresholds; coupling flattened/repeated DSF, membrane/STDP used wall time and heuristics, routing used a fixed two-neuron novelty pool.",
+      "current_disposition": "The historical report/hash is a pointer to dated evidence, not an independently rerun current measurement. These paths cannot be assumed active in1606. Their documented failure does not establish permanent speech impossibility.",
+      "lawful_remedy": "Do not bridge real receptors with prohibited legacy familiarities or semantic selection. Identify the actual current physical consumer of the retained receptor state and qualify lawful experience-dependent propagation through body/motor consequences.",
+      "unit_acceptance": "Verify authentic input changes reach the intended physical target and distinguish effect absence from a missing or insensitive measurement.",
+      "module_acceptance": "Trace ordinary native receptor→persistent target→retained relation→later consumer, with matched physical interventions and no imported answer.",
+      "system_acceptance": "Demonstrate acquired grounded hearing and then ordered articulation/self-hearing on the preserved organism; receptor acceptance alone cannot pass.",
+      "release_acceptance": "Bind the exact approved current specification, native/Python source, compiled image, configuration and complete active predecessor. Independently verify cold continuation and ordinary live behavior. This documentary audit is not current activation, a product test or a speech/system/ML-free certificate.",
+      "repair_actions": [
+        "A04",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "DA001",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/DA001--W1_LOOM_DYNAMIC_AUTHORITY_AUDIT_AND_REQUIRED_LAW_2026-07-27.md",
+          "line": 5,
+          "anchor": "No existing real `LoomNeuron` dynamic can lawfully carry the authenticated",
+          "sha256": "0607e9e5529573e3a627b117b9593b58686c3d16cc2bba17d9315a641f66183e"
+        },
+        {
+          "source_id": "DA001",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/DA001--W1_LOOM_DYNAMIC_AUTHORITY_AUDIT_AND_REQUIRED_LAW_2026-07-27.md",
+          "line": 14,
+          "anchor": "The legacy dynamics are not a lawful continuation:",
+          "sha256": "0607e9e5529573e3a627b117b9593b58686c3d16cc2bba17d9315a641f66183e"
+        },
+        {
+          "source_id": "DA001",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/DA001--W1_LOOM_DYNAMIC_AUTHORITY_AUDIT_AND_REQUIRED_LAW_2026-07-27.md",
+          "line": 34,
+          "anchor": "2. Current code reality: all 656 exact neuronal trajectories enter real",
+          "sha256": "0607e9e5529573e3a627b117b9593b58686c3d16cc2bba17d9315a641f66183e"
+        },
+        {
+          "source_id": "DA001",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/DA001--W1_LOOM_DYNAMIC_AUTHORITY_AUDIT_AND_REQUIRED_LAW_2026-07-27.md",
+          "line": 54,
+          "anchor": "## Executable audit",
+          "sha256": "0607e9e5529573e3a627b117b9593b58686c3d16cc2bba17d9315a641f66183e"
+        }
+      ]
+    },
+    {
+      "id": "AAR09",
+      "name": "The proposed W1 closure is an unproven temporal-constraint recognizer",
+      "classification": "proposed_semantic_indexed_learning_rule_not_verified_physical_transmission",
+      "historical_requirement_or_mechanism": "AuthenticatedBilateralL6PulseClosure proposes fixed topology, neighboring-frame nonzero windings, at least two source-disjoint witnesses, L6 n_eff<ceil(n_start/e), per-THING graphs and ternary target gates. Held-THING receipts authorize plasticity; all retained graphs receive queries. The document explicitly says speech recognition is not yet proved.",
+      "current_disposition": "The nonzero adjacent-frame predicate alone does not establish causal transmission: independently driven endpoints satisfy it even when the edge has no causal effect. Recurrence, provenance and L6 naming do not supply a material learning law. Winding-based gates lose subthreshold magnitude and reduce direction/multiplicity in activity; retaining full-field receipts does not make that decision a full-field evaluation. Current source existence was checked, but that1033line implementation and its activation are not reviewed by this documentary slice.",
+      "lawful_remedy": "Classify the proposal’s actual update/decision rule and later implementation before extension. Do not install per-THING temporal matching as a substitute for approved native physical plasticity. Require genuine local causal contribution, complete retained native state and source-disjoint grounded later use; any unavailable law stays explicit. A historical separate-envelope proposal is not permission to bypass the current canonical checkpoint.",
+      "unit_acceptance": "Falsify common-input/independent-endpoint coincidence, missing inputs, zero versus absence, reduced-field loss and complete unchanged-state refusal.",
+      "module_acceptance": "Establish actual local physical interaction and retained causal contribution with controlled edge interruption/continuation and ordinary native consumers; distinguish reduced receptor response from full DSF.",
+      "system_acceptance": "Qualify held-out grounded recognition, unrelated and wrong-grounding controls, ambiguous mixtures, cold continuation and later intelligible speech separately; do not preload labels or infer speech from one terminal lock.",
+      "release_acceptance": "Bind the exact approved current specification, native/Python source, compiled image, configuration and complete active predecessor. Independently verify cold continuation and ordinary live behavior. This documentary audit is not current activation, a product test or a speech/system/ML-free certificate.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "DA001",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/DA001--W1_LOOM_DYNAMIC_AUTHORITY_AUDIT_AND_REQUIRED_LAW_2026-07-27.md",
+          "line": 112,
+          "anchor": "For one physical edge \\(e=(i,j)\\), a causal transmission witness exists at",
+          "sha256": "0607e9e5529573e3a627b117b9593b58686c3d16cc2bba17d9315a641f66183e"
+        },
+        {
+          "source_id": "DA001",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/DA001--W1_LOOM_DYNAMIC_AUTHORITY_AUDIT_AND_REQUIRED_LAW_2026-07-27.md",
+          "line": 127,
+          "anchor": "For a causal THING \\(T\\), each physical edge/direction maintains bounded",
+          "sha256": "0607e9e5529573e3a627b117b9593b58686c3d16cc2bba17d9315a641f66183e"
+        },
+        {
+          "source_id": "DA001",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/DA001--W1_LOOM_DYNAMIC_AUTHORITY_AUDIT_AND_REQUIRED_LAW_2026-07-27.md",
+          "line": 148,
+          "anchor": "During a new hearing, every retained THING graph receives the same receptor",
+          "sha256": "0607e9e5529573e3a627b117b9593b58686c3d16cc2bba17d9315a641f66183e"
+        },
+        {
+          "source_id": "DA001",
+          "path": "docs/guala_reconciliation/sources/architecture-boundary-history/DA001--W1_LOOM_DYNAMIC_AUTHORITY_AUDIT_AND_REQUIRED_LAW_2026-07-27.md",
+          "line": 225,
+          "anchor": "## Promotion boundary",
+          "sha256": "0607e9e5529573e3a627b117b9593b58686c3d16cc2bba17d9315a641f66183e"
+        }
+      ]
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false
+}

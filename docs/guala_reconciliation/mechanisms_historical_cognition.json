@@ -1,0 +1,353 @@
+{
+  "schema": "guala.reconciliation_mechanism_supplement.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T01:03:29.703910+00:00",
+  "mechanisms": [
+    {
+      "id": "HP01",
+      "name": "Per-neuron atlas and population selection",
+      "algorithm_classes": [
+        "example_matching",
+        "hand_authored_policy"
+      ],
+      "observed_mechanism": "Store/query per-neuron chi bindings; match-score and grandurun/greedy selection are prescribed decision authorities.",
+      "architecture_disposition": "REJECT as physical recall/attention",
+      "refs": [
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 47,
+          "anchor": "**This is the architectural correction that distinguishes Loom-Neuron from production.** Each neuron carries her OWN chi-atlas (`ChiAtlas` instance per `LoomNeuron`). She binds what HER krimelack transduced. She queries her own bindings on recall. She does not have access to other neurons' bindings except via coupling spikes propagating activity to her."
+        },
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 87,
+          "anchor": "Physics: clockless habituation. Match-score from chi-atlas raises dead-zone barrier — Δ_eff = Δ_base + match_score. The medium remembers what it has been doing. Repeated identical input exhausts the response. Novelty escapes through the lifted barrier when match_score is low."
+        },
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 322,
+          "anchor": "| 8 | Attention | Grandurun selection greedy gain (already substrate-true) | EMERGES |"
+        }
+      ],
+      "lawful_remedy": "Preserve the required recognition/recall/attention functions; replace answer selection with actual retained physical reassembly and causal use.",
+      "acceptance_falsifier": "Labels or stored examples alone must not recover a supposedly experienced answer; sever retained causal relations on an isolated copy.",
+      "repair_actions": [
+        "A05",
+        "A06",
+        "A09",
+        "A15",
+        "A16"
+      ],
+      "evidence_level": "Exact historical specification/report bytes; not independent executable proof",
+      "artifact_scope": "Historical design or reported mechanism. No current production activation or source/binary binding inferred.",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "HP02",
+      "name": "LLM-generated sensory catalog",
+      "algorithm_classes": [
+        "external_ml_service",
+        "semantic_sensory_generation"
+      ],
+      "observed_mechanism": "An external LLM supplies per-word parameter distributions stored in SQLite; samples and semantic word filters become sensory input. Historical specification proves the design, not runtime calls.",
+      "architecture_disposition": "REJECT fabricated sensation as actual experience; disclose external ML scope",
+      "refs": [
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 217,
+          "anchor": "Curriculum-side, substrate-EXTERNAL. When a story loads, the catalog scans for unknown words → batches them → calls an LLM with structured brief → receives parameter DISTRIBUTIONS (mean + std per parameter per modality per word) → stores in persistent SQLite catalog."
+        },
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 217,
+          "anchor": "Curriculum-side, substrate-EXTERNAL. When a story loads, the catalog scans for unknown words → batches them → calls an LLM with structured brief → receives parameter DISTRIBUTIONS (mean + std per parameter per modality per word) → stores in persistent SQLite catalog."
+        },
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 223,
+          "anchor": "Words like \"the\" / \"of\" / \"and\" marked `applicable: false` for all modalities — they route through word-token only."
+        }
+      ],
+      "lawful_remedy": "Retire word-to-somatic truth injection; use authentic media/material interaction. Record external teaching services separately in whole-release qualification and retain original approvals if any.",
+      "acceptance_falsifier": "Present text without material/contact: no fabricated taste, smell or object evidence may enter as sensed fact. Verify service calls/assets/flags for the exact artifact.",
+      "repair_actions": [
+        "A06",
+        "A10",
+        "A12",
+        "A15",
+        "A16"
+      ],
+      "evidence_level": "Exact historical specification/report bytes; not independent executable proof",
+      "artifact_scope": "Historical design or reported mechanism. No current production activation or source/binary binding inferred.",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "HP03",
+      "name": "Normalized law fields and familiarity/contact gains",
+      "algorithm_classes": [
+        "field_projection",
+        "physical_model_unverified",
+        "hand_authored_policy"
+      ],
+      "observed_mechanism": "Selected DSF magnitudes become normalized law weights; contact-count scaling and match-score motor barriers are asserted as physical without complete derivation.",
+      "architecture_disposition": "REJECT unproved reduction and physical equivalence",
+      "refs": [
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 137,
+          "anchor": "When `n_neighbors → K_TOTAL`, overflow_eff → 0, fold rate at that location → 0. The squared exponent reflects Hippo's non-linear contact-density response; if the squared term proves wrong empirically we DERIVE the correct exponent from substrate physics, never tune."
+        },
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 97,
+          "anchor": "Physics: exposure-modulated couplings propagating spikes between neurons. J_BASE = 1.0, J_MAX = 1.5 (substrate-canonical, Master Spec Ch.7). Each neuron has K_TOTAL = 16 neighbors."
+        },
+        {
+          "source_id": "HWB14-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB14-01--GL-SPC-LOOM-NEURON-CANONICAL-ARCHITECTURE-EVE-20260620-103.md",
+          "sha256": "78108a4f838329b2963ddddb638e09d5c99ea01f9f73b4634046985a3e1de6ab",
+          "line": 113,
+          "anchor": "Weights normalized to sum=1. No menus, no archetypes."
+        }
+      ],
+      "lawful_remedy": "Recover exact lawful parameter/field mappings; preserve useful function and refuse unproved numerical replacements.",
+      "acceptance_falsifier": "Check units, dependency on each field, conservation and boundary regimes; matching a desired behavioral curve does not qualify the law.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A11",
+        "A14",
+        "A16"
+      ],
+      "evidence_level": "Exact historical specification/report bytes; not independent executable proof",
+      "artifact_scope": "Historical design or reported mechanism. No current production activation or source/binary binding inferred.",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "HP04",
+      "name": "Scalar salience and anticipatory candidate veto",
+      "algorithm_classes": [
+        "hand_authored_policy",
+        "field_projection"
+      ],
+      "observed_mechanism": "Weighted absolute reserve/sleep rates plus shock and boundary terms are thresholded to admit episodic records; anticipated somatic delta vetoes candidate acts.",
+      "architecture_disposition": "REJECT scalar memory/action authority",
+      "refs": [
+        {
+          "source_id": "HWB02-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+          "line": 42,
+          "anchor": "An environmental event is etched into long-term phase space if and only if it produces an acute change in the organism's internal somatic integrity ($\\Gamma_{\\text{salience}}$). The physical variables present during the transition are bound into a unified 4D coordinate manifold."
+        },
+        {
+          "source_id": "HWB02-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+          "line": 42,
+          "anchor": "An environmental event is etched into long-term phase space if and only if it produces an acute change in the organism's internal somatic integrity ($\\Gamma_{\\text{salience}}$). The physical variables present during the transition are bound into a unified 4D coordinate manifold."
+        },
+        {
+          "source_id": "HWB02-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+          "line": 47,
+          "anchor": "- Stored trajectories are queried prior to actuation; if anticipated somatic delta is negative, candidate actions are inhibited."
+        }
+      ],
+      "lawful_remedy": "Replace the proxy with ratified local body/neuronal effects and retained trajectory reassembly; preserve actual context and lawful inhibition.",
+      "acceptance_falsifier": "Hold actual participating state fixed while changing semantic shock/boundary labels; no episodic admission or action veto may arise from labels alone.",
+      "repair_actions": [
+        "A04",
+        "A05",
+        "A06",
+        "A09",
+        "A11",
+        "A16"
+      ],
+      "evidence_level": "Exact historical specification/report bytes; not independent executable proof",
+      "artifact_scope": "Historical design or reported mechanism. No current production activation or source/binary binding inferred.",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "HP05",
+      "name": "Prescribed affordance graph planning",
+      "algorithm_classes": [
+        "hand_authored_policy"
+      ],
+      "observed_mechanism": "Move-to-tool, translate-tool, step-on-tool and grasp-target are supplied as a causal graph recipe rather than demonstrated retained physical recombination.",
+      "architecture_disposition": "REJECT as learned planning",
+      "refs": [
+        {
+          "source_id": "HWB02-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+          "line": 57,
+          "anchor": "3. Causal Graph Search: $\\text{MoveTo}(O_{\\text{tool}}) \\to \\text{Translate}(O_{\\text{tool}}, X_{\\text{target}}) \\to \\text{StepOnto}(O_{\\text{tool}}) \\to \\text{Grasp}(O_{\\text{target}})$."
+        },
+        {
+          "source_id": "HWB02-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+          "line": 18,
+          "anchor": "   *(Derivation: The Refrigerator Climbing Principle)*  "
+        }
+      ],
+      "lawful_remedy": "Derive bounded preparation/recombination from authentic observed tool/body/food experience; expose the missing operator if not yet implemented.",
+      "acceptance_falsifier": "Move the target/tool, change nonphysicalhandles, omit prior experience and sever relevant retainedrelations on copies; no scripted recipe can pass.",
+      "repair_actions": [
+        "A05",
+        "A07",
+        "A08",
+        "A09",
+        "A16"
+      ],
+      "evidence_level": "Exact historical specification/report bytes; not independent executable proof",
+      "artifact_scope": "Historical design or reported mechanism. No current production activation or source/binary binding inferred.",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "HP06",
+      "name": "Spectral similarity qualified as babbling convergence",
+      "algorithm_classes": [
+        "example_matching",
+        "physical_model_unverified"
+      ],
+      "observed_mechanism": "A 32-channel cosine similarity threshold of 0.65 is specified as the convergence criterion. External diagnostic comparison and pupil decision authority must be traced separately.",
+      "architecture_disposition": "REJECT similarity alone as retained vocal learning; preserve authentic self-hearing",
+      "refs": [
+        {
+          "source_id": "HWB02-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+          "line": 23,
+          "anchor": "   Continuous acoustic-motor mapping via 32-channel basilar membrane spectral cosine similarity ($\\rho \\ge 0.65$), purging static vowel tables in favor of dynamic acoustic resonance between hearing and vocal tract actuation."
+        },
+        {
+          "source_id": "HWB02-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB02-01--COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+          "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+          "line": 62,
+          "anchor": "*(Status: Production Complete & Verified 2026-09-18)*"
+        }
+      ],
+      "lawful_remedy": "Trace physical pressure through actual ear/body and retained contact change; prove later causal vocal use without dictionary/reward/similarity answer selection.",
+      "acceptance_falsifier": "A matching spectrum without experience-linked retained change must not pass learned speech; current channel counts require effective anatomy binding.",
+      "repair_actions": [
+        "A06",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "evidence_level": "Exact historical specification/report bytes; not independent executable proof",
+      "artifact_scope": "Historical design or reported mechanism. No current production activation or source/binary binding inferred.",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "HP07",
+      "name": "Global decay and pruning called dream consolidation",
+      "algorithm_classes": [
+        "associative_parameter_update",
+        "physical_model_unverified"
+      ],
+      "observed_mechanism": "Each conductance above a threshold is multiplied by one minus decay; lower values become zero. No replay/consolidation benefit follows from this operation alone.",
+      "architecture_disposition": "REJECT decay-only cognitive qualification",
+      "refs": [
+        {
+          "source_id": "HWB01-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB01-01--WHOLE_BRAIN_SPECIFICATION.md",
+          "sha256": "706e88be11e21ad559eb6a50f42c7648f4f9f2d879581a5da23e94912a53e211",
+          "line": 137,
+          "anchor": "g_{ij}(t) \\cdot (1 - \\gamma_{\\text{decay}}), & \\text{if } |g_{ij}(t)| \\ge \\theta_{\\text{prune}} \\\\"
+        },
+        {
+          "source_id": "HWB01-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB01-01--WHOLE_BRAIN_SPECIFICATION.md",
+          "sha256": "706e88be11e21ad559eb6a50f42c7648f4f9f2d879581a5da23e94912a53e211",
+          "line": 137,
+          "anchor": "g_{ij}(t) \\cdot (1 - \\gamma_{\\text{decay}}), & \\text{if } |g_{ij}(t)| \\ge \\theta_{\\text{prune}} \\\\"
+        },
+        {
+          "source_id": "HWB15-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB15-01--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
+          "sha256": "6ad32eea3addc93d414eb9ed64e495d9e79fae656a402902374dcf137cd9c101",
+          "line": 237,
+          "anchor": "9. durability through time, sleep where applicable, and cold restart; and"
+        }
+      ],
+      "lawful_remedy": "Map actual internal rest/recovery and bounded recurrence through retained physicalrelations, with measured before/after causal use and continuity.",
+      "acceptance_falsifier": "A sleepcallthatonlyshrinksweightsorcounts must fail consolidation; repeatedcoldrestoredcycles must preserve proven experience distinctions.",
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A11",
+        "A16"
+      ],
+      "evidence_level": "Exact historical specification/report bytes; not independent executable proof",
+      "artifact_scope": "Historical design or reported mechanism. No current production activation or source/binary binding inferred.",
+      "whole_system_ml_exclusion": false
+    },
+    {
+      "id": "HP08",
+      "name": "Sparse current cognitive-capital observation",
+      "algorithm_classes": [
+        "state_transport"
+      ],
+      "observed_mechanism": "Reference exact current causal witnesses on independent capability/evidence axes, without a scalar score, raw body copy or cognitive authority; unavailable evidence stays blank.",
+      "architecture_disposition": "PRESERVE truthful observation requirements; implementation and current reachability require proof",
+      "refs": [
+        {
+          "source_id": "HWB06-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-01--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+          "sha256": "cab4b2b7cdbf0d7100b643a398a5a85557075da30d2daabfd6872e74092d9cfd",
+          "line": 115,
+          "anchor": "- Rejected: mount `physical_cognitive_capital.rs`. It labels all complete"
+        },
+        {
+          "source_id": "HWB06-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-01--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+          "sha256": "cab4b2b7cdbf0d7100b643a398a5a85557075da30d2daabfd6872e74092d9cfd",
+          "line": 79,
+          "anchor": "| Cold-restored | current retained formation state and the exact restored CURRENT reference support durability without a startup scan, history, body copy, or persistent ledger |"
+        },
+        {
+          "source_id": "HWB06-01",
+          "path": "docs/guala_reconciliation/sources/whole-brain-history/HWB06-01--GUALA_C024_COGNITIVE_CAPITAL_SPRINT_LEDGER_2026-08-14.md",
+          "sha256": "cab4b2b7cdbf0d7100b643a398a5a85557075da30d2daabfd6872e74092d9cfd",
+          "line": 50,
+          "anchor": "| Native current body | retained formation counts/references, exact identity, tick, state digest, resource state | read once through `_native_record`; no body scan added | compact current-state references |"
+        }
+      ],
+      "lawful_remedy": "Retain explicit availability/participation/retention/etc. with provenance and missing cells; restore the lawful observation function without resurrecting archive cognition.",
+      "acceptance_falsifier": "New formation without later recognition must leave recognition blank; empty native evidence must produce no invented credit.",
+      "repair_actions": [
+        "A01",
+        "A13",
+        "A16",
+        "A18"
+      ],
+      "evidence_level": "Exact historical specification/report bytes; not independent executable proof",
+      "artifact_scope": "Historical design or reported mechanism. No current production activation or source/binary binding inferred.",
+      "whole_system_ml_exclusion": false
+    }
+  ],
+  "source_registry": "whole-brain-history-reconciliation.json",
+  "scope": "Historical mechanism specifications, separately scoped from active runtime classification",
+  "status_authority": "collaborative_todo.md"
+}

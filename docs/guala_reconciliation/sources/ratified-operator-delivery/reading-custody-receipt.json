@@ -1,0 +1,175 @@
+{
+  "schema": "guala.documentary_full_content_read.v1",
+  "sources": [
+    {
+      "id": "RO001",
+      "path": "docs/G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+      "git_blob": "2d14bce142cb774f70ba017d1739c1e59ee2509a",
+      "sha256": "d4796af8f45fcab60188a32b541e05e164110b7a1db044c4c18b0c83a8d05541",
+      "bytes": 5298,
+      "lines": 76,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/ratified-operator-delivery/RO001--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+      "observations": [
+        {
+          "author_time": "2026-10-01T02:29:37+00:00",
+          "commit": "f37afb6f1b62aa8b2ea83aba3217f50fddef08ef",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-10-01T02:19:57+00:00",
+          "commit": "3dc8206acf13ce33fbb1d17352b06b7b8f55135e",
+          "side": "new"
+        }
+      ]
+    },
+    {
+      "id": "RO002",
+      "path": "docs/G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+      "git_blob": "1bfef0e84d6b52a73ce945d01e8a74aebba964f3",
+      "sha256": "6cd4d66baa78496e988dcd9ed61c62724015179873f6fd27a4f035751b1fea99",
+      "bytes": 7039,
+      "lines": 94,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/ratified-operator-delivery/RO002--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+      "observations": [
+        {
+          "author_time": "2026-10-01T02:55:23+00:00",
+          "commit": "e378c9296ebabc16b9e972e2584927ebcef21877",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-10-01T02:29:37+00:00",
+          "commit": "f37afb6f1b62aa8b2ea83aba3217f50fddef08ef",
+          "side": "new"
+        }
+      ]
+    },
+    {
+      "id": "RO003",
+      "path": "docs/G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+      "git_blob": "c03ec742ba991c51ca6a550ccb5af7d13be9c0aa",
+      "sha256": "d45f2f54bc8eda5685a0525a34022ce8e636424dae46d5565fd622215989a2bf",
+      "bytes": 4038,
+      "lines": 74,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/ratified-operator-delivery/RO003--G1_ARCLOOM_RATIFIED_OPERATOR_DELIVERY_2026-10-01.md",
+      "observations": [
+        {
+          "author_time": "2026-10-01T02:55:23+00:00",
+          "commit": "e378c9296ebabc16b9e972e2584927ebcef21877",
+          "side": "new"
+        }
+      ]
+    },
+    {
+      "id": "RO004",
+      "path": "docs/A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+      "git_blob": "3ca3c917828b4800e78fbfd49601d4de49bd6598",
+      "sha256": "e3e8e4550ed620719412b888e7b3b02589f16daa917487e8ead4a863e3a9adc0",
+      "bytes": 13504,
+      "lines": 231,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/ratified-operator-delivery/RO004--A1_ARCLOOM_TWELFTH_PASS_CORRECTION_2026-10-01.md",
+      "observations": [
+        {
+          "author_time": "2026-10-01T02:55:23+00:00",
+          "commit": "e378c9296ebabc16b9e972e2584927ebcef21877",
+          "side": "new"
+        }
+      ]
+    }
+  ],
+  "all_four_versions_read_in_full": true,
+  "total_lines": 475,
+  "historical_only_passages": [
+    {
+      "source_id": "RO001",
+      "start_line": 1,
+      "end_line": 1,
+      "text": "# G1 / Chief Architect Delivery Report: Ratified Physical Current Operator & Continuous Joint Field Participation"
+    },
+    {
+      "source_id": "RO001",
+      "start_line": 3,
+      "end_line": 6,
+      "text": "**Date**: 2026-10-01 UTC  \n**Author**: Chief Systems Architect & Senior DARPA Neuromorphic Systems Engineer (G1)  \n**Proving Ground**: Domain 2 (ArcLoom Ternary Neuromorphic Hardware Substrate — Guala)  \n**Branch**: `guala-live`  "
+    },
+    {
+      "source_id": "RO001",
+      "start_line": 8,
+      "end_line": 8,
+      "text": "---"
+    },
+    {
+      "source_id": "RO001",
+      "start_line": 10,
+      "end_line": 10,
+      "text": "## 1. Executive Summary & Physical Invariants"
+    },
+    {
+      "source_id": "RO001",
+      "start_line": 12,
+      "end_line": 12,
+      "text": "This delivery mounts the **Ratified Physical Current Operator** in native Rust (`native/guala_core/src/cortical_column.rs` and `arcloom_demonstrator/native/guala_core/src/cortical_column.rs`), replacing the temporary A10 runtime refusal gate (`self.continuous_joint_field_present`) with the full, unreduced physical transduction chain:"
+    },
+    {
+      "source_id": "RO001",
+      "start_line": 14,
+      "end_line": 14,
+      "text": "$$\\text{shared typed UF continuous tensor} \\to \\text{exact rational trits} \\to \\text{typed } \\Psi/\\text{Krimelack phase constraints} \\to \\text{phase settlement} \\to \\text{channel aperture displacement} \\to \\text{pore current injection} \\to \\text{laminar microcircuits} \\to \\text{motor/world consequence}$$"
+    },
+    {
+      "source_id": "RO001",
+      "start_line": 16,
+      "end_line": 35,
+      "text": "### Physical Laws & Structural Invariants Mounted\n1. **Lossless Field Custody (IEEE-754 binary64)**:\n   All 7 continuous field dimensions ($D_k, M_k, R_{rev,k}, U^*_k, C_k, P_k, B_k$) and the global stability invariant $S_{UF}$ are preserved bit-for-bit without lossy 2-trit truncation or binary32 collapse.\n2. **Exact Rational Balanced-Ternary Decomposition**:\n   Decomposes arbitrary finite binary64 values into exact integer numerator and power-of-two denominator balanced ternary digit sequences $\\tau_{qp} \\in \\{-1, 0, +1\\}$.\n3. **Krimelack Phase Settlement ($\\Psi$)**:\n   Settles continuous phase coordinates according to the ratified physical phase-constraint energy:\n   $$E_{qp}^{DSF} = -\\kappa_{qp} \\sum_{a \\to b} \\cos\\left(\\phi_b - \\phi_a - \\frac{2\\pi \\tau_{qp}}{3}\\right)$$\n   Primary Columns 48..55 settle along numerator trits; Conjugate Columns 56..63 settle along denominator trits across the Layer 2/3 associative lattice (128 nodes).\n4. **Channel Aperture Displacement & Injected Current**:\n   Dimensionless pore aperture coordinate:\n   $$y_c = \\frac{1}{2}\\left(1.0 + \\tanh(\\Phi)\\right) \\in [0, 1]$$\n   Pore conductance and injected current:\n   $$g_c = G_{\\text{ELASTIC\\_BASELINE}} \\cdot y_c, \\quad I_{\\text{inj}} = \\text{sign} \\cdot y_c$$\n   Injected into supragranular Layer 2/3 and infragranular Layer 5 of Columns 48..63.\n5. **Continuous Somatic Potential Venting ($P_k > B_k$)**:\n   When somatic structural pressure exceeds breathing capacity ($P_k > B_k$), the excess potential energy $\\Delta \\Phi = (P_k - B_k)$ directly vents into Motor Cortex Layer 5 (Columns 40..47) with conductance coupling $G_{\\text{ELASTIC\\_BASELINE}} = 0.05$.\n6. **Kinematic Refusal Interlocks (DSF V3 Basin Physics)**:\n   - Viability Gate: $S_{UF} \\le 0.0 \\implies \\text{refusal\\_active} = \\text{true}, \\ \\text{stride} = 0.0\\text{ mm}$.\n   - Kill Switch: $R_{rev,k} > 0.0 \\implies \\text{refusal\\_active} = \\text{true}, \\ \\text{stride} = 0.0\\text{ mm}$."
+    },
+    {
+      "source_id": "RO001",
+      "start_line": 39,
+      "end_line": 39,
+      "text": "## 2. Decisive Measurements & Verification Proofs"
+    },
+    {
+      "source_id": "RO001",
+      "start_line": 41,
+      "end_line": 49,
+      "text": "### A. Witness Test 4: Controlled Field Intervention & Strain Divergence\nTest: `test_witness_a6_04_full_continuous_joint_field_participation`\n- **Field A Intervention**: $[0.8, -0.4, 0.9, 0.1, 0.7, 0.8, 0.3], S_{UF}=0.95$ (positive displacement, reversal $R_{rev} > 0$, pressure surplus $P > B$ venting somatic potential).\n- **Field B Intervention**: $[-0.8, 0.4, -0.9, -0.1, -0.7, -0.8, -0.3], S_{UF}=0.10$ (negative displacement, sub-breathing pressure).\n- **Measured Outputs**:\n  - Field A: **212,944 yield events**, **106,472.0 total plastic strain energy**\n  - Field B: **225,204 yield events**, **112,602.0 total plastic strain energy**\n  - Result: $(y_A, s_A) \\ne (y_B, s_B)$ with $\\Delta s = 6,130.0$ divergent strain energy.\n  - `@pytest.mark.xfail` removed. **PASSED**."
+    },
+    {
+      "source_id": "RO001",
+      "start_line": 51,
+      "end_line": 54,
+      "text": "### B. Demonstrator Suite Mirror\nTest: `arcloom_demonstrator/tests/test_arcloom_causal_action_witness.py`\n- `test_witness_a6_04_full_continuous_joint_field_f64_participation`: `@pytest.mark.xfail` removed.\n- **19 passed, 1 xfailed** (only A11 matched ablation remains open per Astra sign-off)."
+    },
+    {
+      "source_id": "RO001",
+      "start_line": 56,
+      "end_line": 62,
+      "text": "### C. MathLoom Boundary & Cold Restoration Invariance\nTest: `tests/test_mathloom_a10_boundary.py`\n- Verified full continuous field step and bit-for-bit cold state serialization/restoration parity:\n  - Value $2^{-52}$: $(y, s) = (121477, 48633.27)$ restored $(y_r, s_r) = (121477, 48633.27)$\n  - Value $0.8229$: $(y, s) = (225023, 89889.11)$ restored $(y_r, s_r) = (225023, 89889.11)$\n  - Value $0.0$: $(y, s) = (185, 148.0)$ restored $(y_r, s_r) = (185, 148.0)$\n  - Output parity: $(y_r, s_r) == (y, s)$ exact. **7/7 PASSED**."
+    },
+    {
+      "source_id": "RO001",
+      "start_line": 64,
+      "end_line": 65,
+      "text": "### D. Native Rust Unit Tests (`cargo test`)\n- All 50 unit tests in `native/guala_core` passing in 2.67s."
+    },
+    {
+      "source_id": "RO001",
+      "start_line": 69,
+      "end_line": 69,
+      "text": "## 3. Package & Archive Custody"
+    },
+    {
+      "source_id": "RO001",
+      "start_line": 71,
+      "end_line": 76,
+      "text": "- **Native Rust Source Checksum Parity**:\n  - `native/guala_core/src/cortical_column.rs`: `6b07e0ee3d16add22f6db143f4425cc978599ae01b81ef0a1023e12b5b1aaf4a`\n  - `arcloom_demonstrator/native/guala_core/src/cortical_column.rs`: `6b07e0ee3d16add22f6db143f4425cc978599ae01b81ef0a1023e12b5b1aaf4a`\n  - Exact match verified.\n- **Demonstrator Tarball Rebuilt**:\n  - `arcloom_demonstrator_v1.0.tar.gz`: Exactly 22 source-matching files, zero `__pycache__`, zero `.pytest_cache`, zero build artifacts."
+    },
+    {
+      "source_id": "RO002",
+      "start_line": 71,
+      "end_line": 94,
+      "text": "- **Native Rust Source Checksum Parity**:\n  - `native/guala_core/src/cortical_column.rs`: `6b07e0ee3d16add22f6db143f4425cc978599ae01b81ef0a1023e12b5b1aaf4a`\n  - `arcloom_demonstrator/native/guala_core/src/cortical_column.rs`: `6b07e0ee3d16add22f6db143f4425cc978599ae01b81ef0a1023e12b5b1aaf4a`\n  - Exact match verified.\n- **Demonstrator Tarball Rebuilt**:\n  - `arcloom_demonstrator_v1.0.tar.gz`: Exactly 22 source-matching files, zero `__pycache__`, zero `.pytest_cache`, zero build artifacts.\n\n---\n\n## 4. Long-Horizon 50,000-Cycle Diurnal Stability Burn-In Trial Completed\n\nThe long-horizon endurance trial was executed via `tools/run_arcloom_50k_burn_in.py`:\n- **Protocol**: 50,000 continuous cycles across 5 planetary diurnal cycles (8,000 waking exploration beats + 2,000 nocturnal sleep consolidation beats per day = 50,000 total cycles).\n- **Execution Throughput**: 431.96 seconds wall time (**115.8 cycles/second**).\n- **Day-by-Day Equilibrium Telemetry**:\n  - **Day 1 (Cycle 10,000)**: Active Synapses: **828,726** | Cumulative Yields: 3,705,784 | Strain: 3,291,421.0 | Cold Parity: **100% OK** (88.7s)\n  - **Day 2 (Cycle 20,000)**: Active Synapses: **828,726** | Cumulative Yields: 6,627,434 | Strain: 6,213,071.0 | Cold Parity: **100% OK** (174.2s)\n  - **Day 3 (Cycle 30,000)**: Active Synapses: **828,758** | Cumulative Yields: 9,548,174 | Strain: 9,133,795.0 | Cold Parity: **100% OK** (258.8s)\n  - **Day 4 (Cycle 40,000)**: Active Synapses: **828,758** | Cumulative Yields: 12,469,490 | Strain: 12,055,111.0 | Cold Parity: **100% OK** (346.1s)\n  - **Day 5 (Cycle 50,000)**: Active Synapses: **828,758** | Cumulative Yields: 15,390,548 | Strain: 14,976,169.0 | Cold Parity: **100% OK** (431.9s)\n- **Physical Invariants Established**:\n  1. **Plastic Equilibrium Confirmed**: Active synaptic contacts reached stable plateau at exactly **828,758 synapses** across Days 3, 4, and 5 with zero unbounded runaway drift.\n  2. **Zero Memory Degradation**: Bit-for-bit cold state serialization and restoration parity verified at 100% across all 5 day boundaries.\n  3. **Zero Unphysical Waking Decay**: Retention preserved during waking exploration; homeostatic consolidation strictly confined to scheduled nocturnal sleep intervals."
+    }
+  ],
+  "product_execution": false,
+  "complete_reconciliation": false
+}

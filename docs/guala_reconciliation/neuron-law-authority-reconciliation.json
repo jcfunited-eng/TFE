@@ -1,0 +1,902 @@
+{
+  "schema": "guala.documentary_slice_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T08:13:35.705721+00:00",
+  "scope": "Complete captured content of15 versions/14 paths:1519 latest-document lines plus14 older-only passages/52 lines. Independent printed-equation arithmetic only; no product/model execution, original approval authentication, full literature review or current qualification.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "NL01-01",
+      "path": "docs/GUALA_D3_KRIMELACK_BIOPHYSICAL_COUPLING_RATIFICATION_2026-08-03.md",
+      "git_blob": "fabbbfd873d5bb881d70ccf5ec9b60ba9c0e69fa",
+      "sha256": "447627469151f9f18febab839f2a113de08f4afddb261c4aeb11c2da402501a8",
+      "bytes": 4494,
+      "lines": 60,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/neuron-law-authority/NL01-01--GUALA_D3_KRIMELACK_BIOPHYSICAL_COUPLING_RATIFICATION_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of15 versions/14 paths:1519 latest-document lines plus14 older-only passages/52 lines. Independent printed-equation arithmetic only; no product/model execution, original approval authentication, full literature review or current qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/neuron-law-authority/NL01-01--GUALA_D3_KRIMELACK_BIOPHYSICAL_COUPLING_RATIFICATION_2026-08-03.md"
+    },
+    {
+      "id": "NL02-01",
+      "path": "docs/GUALA_D3_UNRESOLVED_KRIMELACK_TRANSITION_BOUNDARY_2026-08-03.md",
+      "git_blob": "514133c45f4a4a920ec8b7dfad3bad4cd534e3a5",
+      "sha256": "1c4e9b7e7ca6c4c9271f3c15a4908cf38ec220f83c3225944662829ba6c43f71",
+      "bytes": 3731,
+      "lines": 80,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/neuron-law-authority/NL02-01--GUALA_D3_UNRESOLVED_KRIMELACK_TRANSITION_BOUNDARY_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of15 versions/14 paths:1519 latest-document lines plus14 older-only passages/52 lines. Independent printed-equation arithmetic only; no product/model execution, original approval authentication, full literature review or current qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/neuron-law-authority/NL02-01--GUALA_D3_UNRESOLVED_KRIMELACK_TRANSITION_BOUNDARY_2026-08-03.md"
+    },
+    {
+      "id": "NL03-01",
+      "path": "docs/GUALA_D3_TYPED_PHASE_COUPLING_FALSIFICATION_2026-08-03.md",
+      "git_blob": "160c9b0f3c5e30b1f4783a16da2f205fa02ff13d",
+      "sha256": "f18121dc86f6bbcedfd0d8e8cd5636bf946c1291fd909db4e67ca1042e48def8",
+      "bytes": 8108,
+      "lines": 189,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/neuron-law-authority/NL03-01--GUALA_D3_TYPED_PHASE_COUPLING_FALSIFICATION_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-03T08:07:05+00:00",
+          "commit": "0c6d80cc8b35f8f5e4cd7be35d624612086bbf83",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of15 versions/14 paths:1519 latest-document lines plus14 older-only passages/52 lines. Independent printed-equation arithmetic only; no product/model execution, original approval authentication, full literature review or current qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/neuron-law-authority/NL03-01--GUALA_D3_TYPED_PHASE_COUPLING_FALSIFICATION_2026-08-03.md"
+    },
+    {
+      "id": "NL04-01",
+      "path": "docs/GUALA_D3_KRIMELACK_SOURCE_PHASE_AUDIT_2026-08-04.md",
+      "git_blob": "f6afe1986384b6a85280d9d346ebb06b3ee559ca",
+      "sha256": "766b3b9a2a6b724e0166f329bda4d92e83dbfe4fdbc576ba853e9370e81552a5",
+      "bytes": 6455,
+      "lines": 135,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/neuron-law-authority/NL04-01--GUALA_D3_KRIMELACK_SOURCE_PHASE_AUDIT_2026-08-04.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of15 versions/14 paths:1519 latest-document lines plus14 older-only passages/52 lines. Independent printed-equation arithmetic only; no product/model execution, original approval authentication, full literature review or current qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/neuron-law-authority/NL04-01--GUALA_D3_KRIMELACK_SOURCE_PHASE_AUDIT_2026-08-04.md"
+    },
+    {
+      "id": "NL05-01",
+      "path": "docs/GUALA_D3_BOUNDED_DISCRETE_PHYSICAL_QUANTA_LAW_2026-08-03.md",
+      "git_blob": "cf6045b49bea147928d0283e66334e0baf577064",
+      "sha256": "cbdf276c7633253d28d5f05d9c2e7c22d2c0f5a4d66b8870a48f8b2bcab8bee6",
+      "bytes": 5326,
+      "lines": 112,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/neuron-law-authority/NL05-01--GUALA_D3_BOUNDED_DISCRETE_PHYSICAL_QUANTA_LAW_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of15 versions/14 paths:1519 latest-document lines plus14 older-only passages/52 lines. Independent printed-equation arithmetic only; no product/model execution, original approval authentication, full literature review or current qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/neuron-law-authority/NL05-01--GUALA_D3_BOUNDED_DISCRETE_PHYSICAL_QUANTA_LAW_2026-08-03.md"
+    },
+    {
+      "id": "NL06-01",
+      "path": "docs/GUALA_D3_EXACT_MEMBRANE_CHARGE_LAW_2026-08-03.md",
+      "git_blob": "04e2ce75b93f4a6aeb6c1af007978730e896b516",
+      "sha256": "6fe9828f962bd502c2dad91ef3dd80be44b24a74a1ada99742c5b7a6a57741aa",
+      "bytes": 2878,
+      "lines": 69,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/neuron-law-authority/NL06-01--GUALA_D3_EXACT_MEMBRANE_CHARGE_LAW_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-03T09:00:21+00:00",
+          "commit": "acc18a922af930bc639da0f2b305a302310d0cc4",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of15 versions/14 paths:1519 latest-document lines plus14 older-only passages/52 lines. Independent printed-equation arithmetic only; no product/model execution, original approval authentication, full literature review or current qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/neuron-law-authority/NL06-01--GUALA_D3_EXACT_MEMBRANE_CHARGE_LAW_2026-08-03.md"
+    },
+    {
+      "id": "NL06-02",
+      "path": "docs/GUALA_D3_EXACT_MEMBRANE_CHARGE_LAW_2026-08-03.md",
+      "git_blob": "6047011372d3e417d69d7f4ef8042da5f9b3bfd8",
+      "sha256": "3f21e224ce1ef5b819216d63e35c1288214aaf6813b9bda191d4df423dbdd662",
+      "bytes": 3251,
+      "lines": 70,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/neuron-law-authority/NL06-02--GUALA_D3_EXACT_MEMBRANE_CHARGE_LAW_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of15 versions/14 paths:1519 latest-document lines plus14 older-only passages/52 lines. Independent printed-equation arithmetic only; no product/model execution, original approval authentication, full literature review or current qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/neuron-law-authority/NL06-02--GUALA_D3_EXACT_MEMBRANE_CHARGE_LAW_2026-08-03.md"
+    },
+    {
+      "id": "NL07-01",
+      "path": "docs/GUALA_D3_MEMBRANE_AND_ELECTRICAL_COUPLING_LAW_2026-08-03.md",
+      "git_blob": "c5e9f9bb2eeece54e5ec61c875551aefac4417f8",
+      "sha256": "f5f2b14e64d59fe4e8d7c2f8776f3c8bdb7e6c9cc22b10cae7e379302383f72b",
+      "bytes": 3554,
+      "lines": 85,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/neuron-law-authority/NL07-01--GUALA_D3_MEMBRANE_AND_ELECTRICAL_COUPLING_LAW_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of15 versions/14 paths:1519 latest-document lines plus14 older-only passages/52 lines. Independent printed-equation arithmetic only; no product/model execution, original approval authentication, full literature review or current qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/neuron-law-authority/NL07-01--GUALA_D3_MEMBRANE_AND_ELECTRICAL_COUPLING_LAW_2026-08-03.md"
+    },
+    {
+      "id": "NL08-01",
+      "path": "docs/GUALA_D3_ELEMENTARY_CHARGE_MEMBRANE_LAW_2026-08-04.md",
+      "git_blob": "363c37394df97d54d315ff286e9be4e29423724c",
+      "sha256": "4f8da41600ff6972edf158295050b2789cf98dca1ca0a1653e2984a7b76f8bea",
+      "bytes": 3826,
+      "lines": 85,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/neuron-law-authority/NL08-01--GUALA_D3_ELEMENTARY_CHARGE_MEMBRANE_LAW_2026-08-04.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of15 versions/14 paths:1519 latest-document lines plus14 older-only passages/52 lines. Independent printed-equation arithmetic only; no product/model execution, original approval authentication, full literature review or current qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/neuron-law-authority/NL08-01--GUALA_D3_ELEMENTARY_CHARGE_MEMBRANE_LAW_2026-08-04.md"
+    },
+    {
+      "id": "NL09-01",
+      "path": "docs/GUALA_D3_ELEMENTARY_CHARGE_TRANSFER_LAW_2026-08-04.md",
+      "git_blob": "389bcfe8a3c4d4ca17d0003afce1a94ec3b3b747",
+      "sha256": "124cab0513a95cdc7f90c6246cd5159beef6004cffa31ade5d5a0fa225a35bcf",
+      "bytes": 3743,
+      "lines": 88,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/neuron-law-authority/NL09-01--GUALA_D3_ELEMENTARY_CHARGE_TRANSFER_LAW_2026-08-04.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of15 versions/14 paths:1519 latest-document lines plus14 older-only passages/52 lines. Independent printed-equation arithmetic only; no product/model execution, original approval authentication, full literature review or current qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/neuron-law-authority/NL09-01--GUALA_D3_ELEMENTARY_CHARGE_TRANSFER_LAW_2026-08-04.md"
+    },
+    {
+      "id": "NL10-01",
+      "path": "docs/GUALA_D3_LATTICE_CLOSED_EXACT_PHYSICAL_QUANTITY_LAW_2026-08-04.md",
+      "git_blob": "b919ba91f28a304b84c889eb5a1a31a3cf4816f7",
+      "sha256": "0b10ab4fd7fb56f297dad7afeebbe4b0a5a3d71b1b9459902d7f3c39e829db5f",
+      "bytes": 6060,
+      "lines": 156,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/neuron-law-authority/NL10-01--GUALA_D3_LATTICE_CLOSED_EXACT_PHYSICAL_QUANTITY_LAW_2026-08-04.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of15 versions/14 paths:1519 latest-document lines plus14 older-only passages/52 lines. Independent printed-equation arithmetic only; no product/model execution, original approval authentication, full literature review or current qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/neuron-law-authority/NL10-01--GUALA_D3_LATTICE_CLOSED_EXACT_PHYSICAL_QUANTITY_LAW_2026-08-04.md"
+    },
+    {
+      "id": "NL11-01",
+      "path": "docs/GUALA_D3_LOCAL_MEMBRANE_CONDUCTANCE_BALANCE_LAW_2026-08-04.md",
+      "git_blob": "479acdb3f6f00886ccf2fb4103e129cedfb5cade",
+      "sha256": "14f93e7748158d471e0ffe472b9bb6942ed947f1813c148e29ff8ef4b4c5e324",
+      "bytes": 6565,
+      "lines": 135,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/neuron-law-authority/NL11-01--GUALA_D3_LOCAL_MEMBRANE_CONDUCTANCE_BALANCE_LAW_2026-08-04.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of15 versions/14 paths:1519 latest-document lines plus14 older-only passages/52 lines. Independent printed-equation arithmetic only; no product/model execution, original approval authentication, full literature review or current qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/neuron-law-authority/NL11-01--GUALA_D3_LOCAL_MEMBRANE_CONDUCTANCE_BALANCE_LAW_2026-08-04.md"
+    },
+    {
+      "id": "NL12-01",
+      "path": "docs/GUALA_D3_DIRECTED_CHEMICAL_SYNAPSE_LAW_2026-08-03.md",
+      "git_blob": "4a397bca8faaf6b3591f47c93288d26de88438fe",
+      "sha256": "6d3bfc17e664d261d8a20129b75211c0ad746ee1347dbde0cb1f61908469a7a6",
+      "bytes": 4250,
+      "lines": 95,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/neuron-law-authority/NL12-01--GUALA_D3_DIRECTED_CHEMICAL_SYNAPSE_LAW_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of15 versions/14 paths:1519 latest-document lines plus14 older-only passages/52 lines. Independent printed-equation arithmetic only; no product/model execution, original approval authentication, full literature review or current qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/neuron-law-authority/NL12-01--GUALA_D3_DIRECTED_CHEMICAL_SYNAPSE_LAW_2026-08-03.md"
+    },
+    {
+      "id": "NL13-01",
+      "path": "docs/GUALA_D3_LOCALIZED_REACTION_CONTACT_LAW_2026-08-03.md",
+      "git_blob": "775a51f7340e00645162acf1c299810576837242",
+      "sha256": "4a52b603a41d3108a1422cb138db55054efbba5d0ba6b21696b13a9262dd8827",
+      "bytes": 6186,
+      "lines": 127,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/neuron-law-authority/NL13-01--GUALA_D3_LOCALIZED_REACTION_CONTACT_LAW_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of15 versions/14 paths:1519 latest-document lines plus14 older-only passages/52 lines. Independent printed-equation arithmetic only; no product/model execution, original approval authentication, full literature review or current qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/neuron-law-authority/NL13-01--GUALA_D3_LOCALIZED_REACTION_CONTACT_LAW_2026-08-03.md"
+    },
+    {
+      "id": "NL14-01",
+      "path": "docs/GUALA_D3_FINITE_CHANNEL_ENSEMBLE_ADAPTER_2026-08-03.md",
+      "git_blob": "650f8b3d48d56fe7de5848f8b69bdc635866a8b1",
+      "sha256": "bac3a6824988719ed33b880d3e6d22e87b74e157a1926f3aa698bceb836d5c58",
+      "bytes": 5395,
+      "lines": 102,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/neuron-law-authority/NL14-01--GUALA_D3_FINITE_CHANNEL_ENSEMBLE_ADAPTER_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of15 versions/14 paths:1519 latest-document lines plus14 older-only passages/52 lines. Independent printed-equation arithmetic only; no product/model execution, original approval authentication, full literature review or current qualification.",
+      "canonical_copy": "docs/guala_reconciliation/sources/neuron-law-authority/NL14-01--GUALA_D3_FINITE_CHANNEL_ENSEMBLE_ADAPTER_2026-08-03.md"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "NLR01",
+      "name": "Architectural ratification did not supply missing constitutive equations",
+      "classification": "documented_boundary_with_original_authority_and_successor_gaps",
+      "historical_requirement_or_mechanism": "The Aug3 ratification report separates complete DSF delivery, the persistent physical neuron, local Krimelack state and learned formations. It retires direct algebraic K-to-K copying/addition and routes neighbor influence through conserved physical interactions. It expressly leaves units, D1-to-K successor, material/growth laws and genesis unresolved. The Aug4 unresolved document still refuses successor dynamics.",
+      "current_disposition": "The ratification heading reports Joe’s approval; original context is not independently recovered here. An accepted architectural direction cannot authorize an invented missing local equation. These dated gaps also cannot establish that today’s implementation is absent without tracing subsequent laws.",
+      "lawful_remedy": "Recover exact original approvals and follow each missing operator to its actual ratified successor and current readers. Preserve complete DSF and physical coupling; keep unsupported boundaries visibly unavailable without substituting a direct numerical bridge.",
+      "unit_acceptance": "Verify each transition’s units, state and authority; reject direct neighbor-word cognition.",
+      "module_acceptance": "Trace source/body/field/local state/physical consequence through one actual native route.",
+      "system_acceptance": "Prove retained experience and sparse recurrence cause later behavior under bounded material/energy.",
+      "release_acceptance": "Qualify current code and exact serving artifact separately from old ratification/status.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "NL01-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL01-01--GUALA_D3_KRIMELACK_BIOPHYSICAL_COUPLING_RATIFICATION_2026-08-03.md",
+          "line": 41,
+          "anchor": "This ratification selects the architecture but does not invent:",
+          "sha256": "447627469151f9f18febab839f2a113de08f4afddb261c4aeb11c2da402501a8"
+        },
+        {
+          "source_id": "NL01-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL01-01--GUALA_D3_KRIMELACK_BIOPHYSICAL_COUPLING_RATIFICATION_2026-08-03.md",
+          "line": 15,
+          "anchor": "Direct algebraic K-to-K arrivals are retired. A neighbouring neuron's Krimelack word may not be copied, added, scored, phase-shifted, or similarity-matched into another neuron's Krimelack state.",
+          "sha256": "447627469151f9f18febab839f2a113de08f4afddb261c4aeb11c2da402501a8"
+        },
+        {
+          "source_id": "NL02-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL02-01--GUALA_D3_UNRESOLVED_KRIMELACK_TRANSITION_BOUNDARY_2026-08-03.md",
+          "line": 5,
+          "anchor": "Status: unresolved. No local D1-to-Krimelack successor law, biological",
+          "sha256": "1c4e9b7e7ca6c4c9271f3c15a4908cf38ec220f83c3225944662829ba6c43f71"
+        }
+      ]
+    },
+    {
+      "id": "NLR02",
+      "name": "Centered ternary arithmetic produced unphysical recurrent amplification",
+      "classification": "explicitly_rejected_model_with_reusable_narrow_arithmetic",
+      "historical_requirement_or_mechanism": "The typed-phase candidate centers sign/null drive and incoming counts modulo3**width, treats carries as winding and copies each crossing to every outgoing route. Its recorded counterexamples include constant+1 yielding winding100 after300 steps/300 after900, fan-out multiplying events, and a four-neuron graph retaining12 events each generation without new input. Width silently changes the physical crossing threshold. The document rejects the model despite exact arithmetic, type checks and cold restore.",
+      "current_disposition": "These are documented historical counterexamples, not a fresh run of the model or evidence of current activation. Arithmetic carry is not physical winding; bounded residue is not bounded cumulative state. A rejected model’s passing negative-test suite is not an organism pass.",
+      "lawful_remedy": "Preserve useful exact arithmetic and the rejection record, retire all cognitive/physical authority derived from the model, and trace replacements to actual finite physical sources, topology, dissipation/recovery and local constitutive law.",
+      "unit_acceptance": "Falsify repeated-state energetic drive, quantity-copying fan-out and unbounded winding.",
+      "module_acceptance": "Verify actual successor mechanics and sparse material/energy conservation independent of positional representation.",
+      "system_acceptance": "Demonstrate bounded recurrence/quiescence or physically supported continuing cadence on mature state.",
+      "release_acceptance": "No source, fixture or named phase component may resurrect the rejected law as a speech repair.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A09",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "NL03-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL03-01--GUALA_D3_TYPED_PHASE_COUPLING_FALSIFICATION_2026-08-03.md",
+          "line": 129,
+          "anchor": "every three generations.  The executable counterexample gives winding `100`",
+          "sha256": "f18121dc86f6bbcedfd0d8e8cd5636bf946c1291fd909db4e67ca1042e48def8"
+        },
+        {
+          "source_id": "NL03-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL03-01--GUALA_D3_TYPED_PHASE_COUPLING_FALSIFICATION_2026-08-03.md",
+          "line": 145,
+          "anchor": "model retains 12 pending events every generation and cumulative winding grows",
+          "sha256": "f18121dc86f6bbcedfd0d8e8cd5636bf946c1291fd909db4e67ca1042e48def8"
+        },
+        {
+          "source_id": "NL03-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL03-01--GUALA_D3_TYPED_PHASE_COUPLING_FALSIFICATION_2026-08-03.md",
+          "line": 150,
+          "anchor": "Changing `width` changes the crossing boundary from `3` to `9`, `27`, and so",
+          "sha256": "f18121dc86f6bbcedfd0d8e8cd5636bf946c1291fd909db4e67ca1042e48def8"
+        }
+      ]
+    },
+    {
+      "id": "NLR03",
+      "name": "Full-field custody and reported phase are not full physical evaluation",
+      "classification": "reduced_projection_and_uncalibrated_phase_distinction",
+      "historical_requirement_or_mechanism": "The rejected typed model retains full-field receipts but drives with sign/null values, explicitly losing rational magnitudes. The source-phase audit retains exact binary64-normalized input, reported phase and relevance, yet says index/count is trajectory position, some phases are zero, and auditory phase/winding comes from floating DSP. Body yaw divided by360000 yields exact turn position, not hair-cell deformation or Krimelack.",
+      "current_disposition": "Keeping a receipt to full data does not establish that the active decision used the full field. Exact conversion cannot recover discarded physical magnitude or calibration. Floating DSP or an index is not automatically prohibited as external measurement, but must not silently become exact cognitive phase authority.",
+      "lawful_remedy": "Trace each actual reader and declare all projections and lost units/relationships. Preserve full explicit DSF as authority and separately carry physically defined source quantities; no repeated trit, label or positional index may supply missing energy or phase.",
+      "unit_acceptance": "Distinguish observed zero, absent input, constant availability and new physical work.",
+      "module_acceptance": "Verify full-field use and source units/calibration at each active producer/consumer.",
+      "system_acceptance": "Show sensed physical cause affects retained native state and later action without a reduced proxy controller.",
+      "release_acceptance": "Bind current transducer/source evidence; historical phase retention cannot certify speech or full-field execution.",
+      "repair_actions": [
+        "A02",
+        "A04",
+        "A06",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "NL03-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL03-01--GUALA_D3_TYPED_PHASE_COUPLING_FALSIFICATION_2026-08-03.md",
+          "line": 29,
+          "anchor": "7. **Declared loss:** compact sign/null local drive does not contain every",
+          "sha256": "f18121dc86f6bbcedfd0d8e8cd5636bf946c1291fd909db4e67ca1042e48def8"
+        },
+        {
+          "source_id": "NL04-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL04-01--GUALA_D3_KRIMELACK_SOURCE_PHASE_AUDIT_2026-08-04.md",
+          "line": 95,
+          "anchor": "- foveal sight uses `index / sample_count`, which is trajectory position;",
+          "sha256": "766b3b9a2a6b724e0166f329bda4d92e83dbfe4fdbc576ba853e9370e81552a5"
+        },
+        {
+          "source_id": "NL04-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL04-01--GUALA_D3_KRIMELACK_SOURCE_PHASE_AUDIT_2026-08-04.md",
+          "line": 106,
+          "anchor": "Dividing that integer orientation by the defined full-turn extent of 360,000",
+          "sha256": "766b3b9a2a6b724e0166f329bda4d92e83dbfe4fdbc576ba853e9370e81552a5"
+        },
+        {
+          "source_id": "NL04-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL04-01--GUALA_D3_KRIMELACK_SOURCE_PHASE_AUDIT_2026-08-04.md",
+          "line": 67,
+          "anchor": "The specification itself says `kappa` is frozen per sensor type. Freezing an",
+          "sha256": "766b3b9a2a6b724e0166f329bda4d92e83dbfe4fdbc576ba853e9370e81552a5"
+        }
+      ]
+    },
+    {
+      "id": "NLR04",
+      "name": "Fixed-quanta arithmetic proves bounded representation, not kinetics",
+      "classification": "isolated_exact_candidate_with_unratified_parameters",
+      "historical_requirement_or_mechanism": "The bounded-quanta candidate binds finite anatomy, capacities, species/moieties, integer stoichiometry and fraction p/q, settling z=p*N+r by quotient/remainder. Admission bounds p*Nmax+q-1 and products before state creation. It explicitly does not derive geometry, quantum scale, p/q or biological kinetics; open flux lacks whole-organism conservation until an opposite finite reservoir is mounted.",
+      "current_disposition": "The quotient with retained remainder is exact at its declared model resolution, not discarded truncation or automatically a heuristic. Its fraction still needs constitutive authority. Constant payload/codec size and100000 fixture intervals do not prove target stack, total runtime or mounted organism bounds.",
+      "lawful_remedy": "Preserve exact finite accounting where the actual synthetic/physical constitution is approved. Trace parameter derivation and all external flux partners; do not promote fixture fractions or isolated shape tests into an active neuron law.",
+      "unit_acceptance": "Verify width admission, exact remainders, stoichiometry and refusal before mutation.",
+      "module_acceptance": "Bind finite source/destination reservoirs and actual local opportunity to each transition.",
+      "system_acceptance": "Prove bounded acquired behavior using ratified kinetics and mature resource envelope.",
+      "release_acceptance": "Separate arithmetic, constitutive, integration and live qualification; exact bookkeeping is not cognition.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A11",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "NL05-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL05-01--GUALA_D3_BOUNDED_DISCRETE_PHYSICAL_QUANTA_LAW_2026-08-03.md",
+          "line": 52,
+          "anchor": "z        = p * N + r",
+          "sha256": "cbdf276c7633253d28d5f05d9c2e7c22d2c0f5a4d66b8870a48f8b2bcab8bee6"
+        },
+        {
+          "source_id": "NL05-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL05-01--GUALA_D3_BOUNDED_DISCRETE_PHYSICAL_QUANTA_LAW_2026-08-03.md",
+          "line": 14,
+          "anchor": "   and exact codec behavior for admitted fixtures. It does not derive geometry,",
+          "sha256": "cbdf276c7633253d28d5f05d9c2e7c22d2c0f5a4d66b8870a48f8b2bcab8bee6"
+        },
+        {
+          "source_id": "NL05-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL05-01--GUALA_D3_BOUNDED_DISCRETE_PHYSICAL_QUANTA_LAW_2026-08-03.md",
+          "line": 73,
+          "anchor": "the opposite finite body or environment reservoir is mounted atomically.",
+          "sha256": "cbdf276c7633253d28d5f05d9c2e7c22d2c0f5a4d66b8870a48f8b2bcab8bee6"
+        }
+      ]
+    },
+    {
+      "id": "NLR05",
+      "name": "Contact occupancy and one-way channel adapter left real causal producers missing",
+      "classification": "isolated_material_boundary_not_complete_receptor",
+      "historical_requirement_or_mechanism": "The contact candidate validates supplied local occupancy, rejects overlapping lanes without a winner and derives extent from available reactants/capacity. It cannot derive geometry or detect an upstream duplicated quantum placed in two supposedly distinct lanes. The finite-channel adapter conserves one declared population and finite ligand but has only one directed relation; reverse kinetics, competition and voltage-dependent opening remain unresolved.",
+      "current_disposition": "Canonical location order is serialization/admission, not reaction priority when it does not select the result. Honest material accounting after an externally supplied event does not prove that event’s cause. Counts1/3/9 and synthetic thirds are fixtures, not ratified biological anatomy.",
+      "lawful_remedy": "Bind occupancy to a real physical source and conserved transport, and specify any required reverse/competing transitions directly. Keep deterministic functional emulation within ratified scope; no scheduling, identifier preference or caller-authored extent may fill a missing reaction.",
+      "unit_acceptance": "Reject duplicated occupancy, unrelated predecessor, invalid location and material creation.",
+      "module_acceptance": "Trace actual geometry/source, local contact and population state through current native transition.",
+      "system_acceptance": "Show real sensory perturbation and recovery cause usable retained effects without synthetic triggers.",
+      "release_acceptance": "No channel/synapse/neuron claim from the adapter alone; verify all mounted producers and limits.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A11",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "NL13-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL13-01--GUALA_D3_LOCALIZED_REACTION_CONTACT_LAW_2026-08-03.md",
+          "line": 65,
+          "anchor": "candidate cannot detect that an incorrect upstream transport mechanism copied",
+          "sha256": "4a52b603a41d3108a1422cb138db55054efbba5d0ba6b21696b13a9262dd8827"
+        },
+        {
+          "source_id": "NL13-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL13-01--GUALA_D3_LOCALIZED_REACTION_CONTACT_LAW_2026-08-03.md",
+          "line": 83,
+          "anchor": "solve several reactions competing inside one shared lane. Such a predecessor",
+          "sha256": "4a52b603a41d3108a1422cb138db55054efbba5d0ba6b21696b13a9262dd8827"
+        },
+        {
+          "source_id": "NL14-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL14-01--GUALA_D3_FINITE_CHANNEL_ENSEMBLE_ADAPTER_2026-08-03.md",
+          "line": 65,
+          "anchor": "There is exactly one directed conformational relation in this candidate's one",
+          "sha256": "bac3a6824988719ed33b880d3e6d22e87b74e157a1926f3aa698bceb836d5c58"
+        },
+        {
+          "source_id": "NL14-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL14-01--GUALA_D3_FINITE_CHANNEL_ENSEMBLE_ADAPTER_2026-08-03.md",
+          "line": 62,
+          "anchor": "codes are synthetic falsification fixtures, not biological coefficients or",
+          "sha256": "bac3a6824988719ed33b880d3e6d22e87b74e157a1926f3aa698bceb836d5c58"
+        }
+      ]
+    },
+    {
+      "id": "NLR06",
+      "name": "Charge conversion and membrane balance need distinct material and causal scope",
+      "classification": "legitimate_units_and_exact_residue_with_missing_physical_links",
+      "historical_requirement_or_mechanism": "The charge law uses outward-positive current integrated over time, SI elementary charge, emitted whole carriers and a retained signed phase; the membrane uses Q/C with explicit capacitance. Independent audit arithmetic reproduces the reported-12pA×1ms result: -74898 whole carriers plus -29077778/267029439 phase, preserving -12fC exactly. The5.5pF reference is explicitly a test preparation, not production default. These candidates do not yet account ion species or derive sensory current.",
+      "current_disposition": "Fractional residual phase is a model integration remainder, not a fractional electron or learned memory. Correct charge equality does not establish K+/Ca2+ partition, available material, gate kinetics or a complete neuron. The cited biological papers are not independently reviewed here.",
+      "lawful_remedy": "Keep units/signs and genuine per-path residues, while tracing finite source inventories, actual current producers and approved synthetic capacitance/material law. Do not treat a calibrated fixture number, current source or residue as a semantic learning mechanism.",
+      "unit_acceptance": "Verify units, signs, exact current integration/residue and refusal of unsupported anatomy/time.",
+      "module_acceptance": "Bind real gate/current, charge, finite material and energy to one atomic native transition.",
+      "system_acceptance": "Demonstrate sensory cause and recovery produce retained functional behavior after restart.",
+      "release_acceptance": "Document exact synthetic/physical preparation and scope; no biological or learning certificate from charge arithmetic.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A09",
+        "A11",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "NL09-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL09-01--GUALA_D3_ELEMENTARY_CHARGE_TRANSFER_LAW_2026-08-04.md",
+          "line": 33,
+          "anchor": "  = 801088317 / 5000000000000 fC",
+          "sha256": "124cab0513a95cdc7f90c6246cd5159beef6004cffa31ade5d5a0fa225a35bcf"
+        },
+        {
+          "source_id": "NL09-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL09-01--GUALA_D3_ELEMENTARY_CHARGE_TRANSFER_LAW_2026-08-04.md",
+          "line": 62,
+          "anchor": "- exact conversion of `-12 pA` over `1 ms` to `-74,898` emitted elementary",
+          "sha256": "124cab0513a95cdc7f90c6246cd5159beef6004cffa31ade5d5a0fa225a35bcf"
+        },
+        {
+          "source_id": "NL08-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL08-01--GUALA_D3_ELEMENTARY_CHARGE_MEMBRANE_LAW_2026-08-04.md",
+          "line": 47,
+          "anchor": "The executable reference test uses `5.5 pF`, the reported mean capacitance for",
+          "sha256": "4f8da41600ff6972edf158295050b2789cf98dca1ca0a1653e2984a7b76f8bea"
+        },
+        {
+          "source_id": "NL08-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL08-01--GUALA_D3_ELEMENTARY_CHARGE_MEMBRANE_LAW_2026-08-04.md",
+          "line": 50,
+          "anchor": "capacitance and does not hide a default by sensory label.",
+          "sha256": "4f8da41600ff6972edf158295050b2789cf98dca1ca0a1653e2984a7b76f8bea"
+        }
+      ]
+    },
+    {
+      "id": "NLR07",
+      "name": "Bounded rational magnitude does not guarantee bounded exact state width",
+      "classification": "representation_law_with_domain_and_successor_obligations",
+      "historical_requirement_or_mechanism": "The lattice law identifies denominator growth under Vnext=(V+E)/2 and requires producer closure on a finite exact physical lattice. Independent arithmetic with E=0,V0=1 gives denominator bitwidth11/101/1001 after10/100/1000 steps despite shrinking magnitude. Finite charge domain must come from inventory, all allowed producers must map it into itself and failed admission cannot mutate state.",
+      "current_disposition": "Fixed i128/u128 fields or100000 successful fixtures alone do not prove all reachable exact denominators fit. Conversely the later C003 removal of an all-possible-denominator validation lattice does not by itself violate mathematical closure; the actual physical invariant and runtime representability must be examined. Lattice rounding is not an authorized fix.",
+      "lawful_remedy": "Derive the current exact reachable domain, quantum/time relations and intermediate widths from the ratified constitution, separating proof from redundant stored validation. Keep typed refusal if closure is absent; no truncation, wrap, clamp, unbounded rational growth or charge/energy reset.",
+      "unit_acceptance": "Falsify denominator-growth and domain-exhaustion cases with unchanged state on refusal.",
+      "module_acceptance": "Verify each actual producer, shared rational/ternary width and exact codec against admitted domain.",
+      "system_acceptance": "Measure mature long-run resources while retaining authentic physical effects and recovery.",
+      "release_acceptance": "Boundedness must cover all admitted transitions and native/observer work, not only scalar magnitude or payload size.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "NL10-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL10-01--GUALA_D3_LATTICE_CLOSED_EXACT_PHYSICAL_QUANTITY_LAW_2026-08-04.md",
+          "line": 38,
+          "anchor": "can produce denominators `2^t`. A fixed numerator/denominator payload must then",
+          "sha256": "0b10ab4fd7fb56f297dad7afeebbe4b0a5a3d71b1b9459902d7f3c39e829db5f"
+        },
+        {
+          "source_id": "NL10-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL10-01--GUALA_D3_LATTICE_CLOSED_EXACT_PHYSICAL_QUANTITY_LAW_2026-08-04.md",
+          "line": 88,
+          "anchor": "5. every allowed producer's `I*dt` is exactly divisible by charge quantum;",
+          "sha256": "0b10ab4fd7fb56f297dad7afeebbe4b0a5a3d71b1b9459902d7f3c39e829db5f"
+        },
+        {
+          "source_id": "NL10-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL10-01--GUALA_D3_LATTICE_CLOSED_EXACT_PHYSICAL_QUANTITY_LAW_2026-08-04.md",
+          "line": 119,
+          "anchor": "Nutrition, rest, or sleep cannot reset charge or energy. They must cause typed",
+          "sha256": "0b10ab4fd7fb56f297dad7afeebbe4b0a5a3d71b1b9459902d7f3c39e829db5f"
+        }
+      ]
+    },
+    {
+      "id": "NLR08",
+      "name": "Net membrane charge must not erase simultaneous physical flux",
+      "classification": "valid_local_aggregation_with_per_path_preservation",
+      "historical_requirement_or_mechanism": "The conductance law computes each path from predecessor voltage and its own reversal potential, retains per-path carrier phase, and adds already-reached electrogenic carriers only at the capacitor. Equal inward/outward currents can sum to zero while material crosses both paths. Gap junction equations conserve equal-and-opposite charge on explicit sparse edges; topology cannot be invented from coordinates, order or DSF similarity.",
+      "current_disposition": "A conservation-derived membrane charge scalar is not inherently a forbidden flattened cognitive score. But reducing all path evidence to that net value loses actual flux, material and local effects. Supplying conductance still does not derive channel occupancy or a native learning decision.",
+      "lawful_remedy": "Preserve every causative physical path and shared atomic material state while using physically defined sums only for their proper conserved quantity. Derive current topology and conductance from ratified anatomy/state; never confuse charge balance with full-field cognitive evaluation.",
+      "unit_acceptance": "Check opposed nonzero flux, equal-and-opposite edge charge and no free fan-out.",
+      "module_acceptance": "Bind per-path material/phase and active transport to common predecessor and atomic successor.",
+      "system_acceptance": "Show genuine local changes and later acquired effects survive apparently zero net charge.",
+      "release_acceptance": "Qualify full source/material/DSF role; neither reject legitimate physical sums nor relabel score reductions as physics.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A09",
+        "A11",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "NL11-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL11-01--GUALA_D3_LOCAL_MEMBRANE_CONDUCTANCE_BALANCE_LAW_2026-08-04.md",
+          "line": 49,
+          "anchor": "Each conductive path retains its own bounded carrier phase. Equal apical inward",
+          "sha256": "14f93e7748158d471e0ffe472b9bb6942ed947f1813c148e29ff8ef4b4c5e324"
+        },
+        {
+          "source_id": "NL11-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL11-01--GUALA_D3_LOCAL_MEMBRANE_CONDUCTANCE_BALANCE_LAW_2026-08-04.md",
+          "line": 51,
+          "anchor": "ions cross both paths. Active transport is not flattened into a conductive",
+          "sha256": "14f93e7748158d471e0ffe472b9bb6942ed947f1813c148e29ff8ef4b4c5e324"
+        },
+        {
+          "source_id": "NL07-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL07-01--GUALA_D3_MEMBRANE_AND_ELECTRICAL_COUPLING_LAW_2026-08-03.md",
+          "line": 69,
+          "anchor": "Topology may not be inferred from coordinate proximity, receptor order,",
+          "sha256": "f5f2b14e64d59fe4e8d7c2f8776f3c8bdb7e6c9cc22b10cae7e379302383f72b"
+        }
+      ]
+    },
+    {
+      "id": "NLR09",
+      "name": "Chemical and channel accounting did not provide the missing trigger or recovery law",
+      "classification": "explicitly_incomplete_physics_not_speech_impossibility",
+      "historical_requirement_or_mechanism": "The21-material vestibular candidate accounts multiple ions and ATP-related extents with fixed336-byte material state; it explicitly lacks ATP regeneration, proton/Mg speciation/removal, Na/Cl return and gating kinetics. The synapse proposal likewise lacks a complete membrane→Ca-channel→fusion→postreceptor trigger. Population fits do not authorize an arbitrary power, threshold, probability matrix or one-Ca/one-vesicle rule.",
+      "current_disposition": "This establishes the historical candidate’s incompleteness, not a requirement that today’s functional emulation reconstruct every molecule or that speech is impossible. A conservative response to an authored fusion event is not a functioning causally triggered synapse. Literature and exact reaction extents do not themselves ratify kinetics.",
+      "lawful_remedy": "Trace current ratified functional equivalents for the required local gate, transfer, adaptation and recovery. Specify only state/dynamics needed for the function, with units, conservation and boundedness. Preserve unavailability where direct mapping is absent instead of inventing a trigger or imposing unnecessary atomistic prerequisites.",
+      "unit_acceptance": "Separate permitted material reactions from the actual physical event that triggers them.",
+      "module_acceptance": "Verify current causal gate/transfer/recovery and every source/sink without hidden numeric choices.",
+      "system_acceptance": "Demonstrate sensory-driven retained adaptation and later body/vocal consequence.",
+      "release_acceptance": "Qualify the actual approved functional architecture; neither old missing biology nor synthetic test extents can decide speech feasibility.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A09",
+        "A10",
+        "A11",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "NL11-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL11-01--GUALA_D3_LOCAL_MEMBRANE_CONDUCTANCE_BALANCE_LAW_2026-08-04.md",
+          "line": 70,
+          "anchor": "material state is fixed at 336 bytes, allocates nothing per transition, and",
+          "sha256": "14f93e7748158d471e0ffe472b9bb6942ed947f1813c148e29ff8ef4b4c5e324"
+        },
+        {
+          "source_id": "NL11-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL11-01--GUALA_D3_LOCAL_MEMBRANE_CONDUCTANCE_BALANCE_LAW_2026-08-04.md",
+          "line": 89,
+          "anchor": "reaction extents, not kinetics. ATP regeneration, proton/Mg2+ speciation,",
+          "sha256": "14f93e7748158d471e0ffe472b9bb6942ed947f1813c148e29ff8ef4b4c5e324"
+        },
+        {
+          "source_id": "NL12-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL12-01--GUALA_D3_DIRECTED_CHEMICAL_SYNAPSE_LAW_2026-08-03.md",
+          "line": 83,
+          "anchor": "matrix, or one-Ca/one-vesicle rule.",
+          "sha256": "6d3bfc17e664d261d8a20129b75211c0ad746ee1347dbde0cb1f61908469a7a6"
+        },
+        {
+          "source_id": "NL12-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL12-01--GUALA_D3_DIRECTED_CHEMICAL_SYNAPSE_LAW_2026-08-03.md",
+          "line": 86,
+          "anchor": "material accounting can test an explicitly reached fusion event, but it cannot",
+          "sha256": "6d3bfc17e664d261d8a20129b75211c0ad746ee1347dbde0cb1f61908469a7a6"
+        }
+      ]
+    },
+    {
+      "id": "NLR10",
+      "name": "Historical precision demands and present functional scope require explicit reconciliation",
+      "classification": "authority_and_numerical_model_boundary",
+      "historical_requirement_or_mechanism": "The older membrane/synapse records require measured finite TypeII channel laws and reject silently converting ensemble probabilities into integer channel state. Conductance notes a Boltzmann fit uses a real exponential and leaves executable gating unavailable pending precision/error authority. Other documents ratify synthetic exact representation while still refusing K dynamics.",
+      "current_disposition": "An empirically fitted population curve and a deterministic finite-state model are different descriptions; the documents do not establish a universal impossibility of functional emulation. Joe’s current64-column functional-equivalent scope removes atom-by-atom reconstruction as a prerequisite but does not approve guessed coefficients, heuristic fitting or changing frozen L0–L4.",
+      "lawful_remedy": "Authenticate what exact later synthetic constitutive law supersedes each measured-biological prerequisite. Declare model scope, units, precision, preserved DSF and verification limits explicitly. Do not treat a file’s ratified label, exact arithmetic or current functional scope as blanket approval of an invented numerical mechanism.",
+      "unit_acceptance": "Classify every coefficient, fit, discretization and finite-state rule by original authority and physical role.",
+      "module_acceptance": "Bind current approved equations/state domains to their exact source implementations.",
+      "system_acceptance": "Prove required learning/sensory/action functions with meaningful controls and bounded resources.",
+      "release_acceptance": "Certify only actual tested scope; lack of a biological paper is not permission for a shortcut or proof of permanent failure.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A06",
+        "A10",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "NL06-02",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL06-02--GUALA_D3_EXACT_MEMBRANE_CHARGE_LAW_2026-08-03.md",
+          "line": 24,
+          "anchor": "5. **Single exact next item:** obtain one measured finite-state Type II",
+          "sha256": "3f21e224ce1ef5b819216d63e35c1288214aaf6813b9bda191d4df423dbdd662"
+        },
+        {
+          "source_id": "NL11-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL11-01--GUALA_D3_LOCAL_MEMBRANE_CONDUCTANCE_BALANCE_LAW_2026-08-04.md",
+          "line": 85,
+          "anchor": "remains unavailable until numerical precision and error authority are",
+          "sha256": "14f93e7748158d471e0ffe472b9bb6942ed947f1813c148e29ff8ef4b4c5e324"
+        },
+        {
+          "source_id": "NL12-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL12-01--GUALA_D3_DIRECTED_CHEMICAL_SYNAPSE_LAW_2026-08-03.md",
+          "line": 24,
+          "anchor": "5. **Single exact next item:** establish the measured finite presynaptic",
+          "sha256": "6d3bfc17e664d261d8a20129b75211c0ad746ee1347dbde0cb1f61908469a7a6"
+        }
+      ]
+    },
+    {
+      "id": "NLR11",
+      "name": "Earlier law evolution and numerical evidence retain narrow limits",
+      "classification": "complete_documentary_scope_not_executable_or_scientific_qualification",
+      "historical_requirement_or_mechanism": "All1519 latest lines and14 older-only passages/52 lines are read across15 versions/14 paths. The old membrane primitive moves from isolated Python Fraction relations to native whole-carrier candidates; the new descriptions still leave source/gating/integration incomplete. Strict Clippy remained34 warnings despite candidate tests passing. Only independent exact unit/denominator arithmetic ran in this audit.",
+      "current_disposition": "No historical model, native organism, test suite or current production ran here. No full cited-literature review or original approval authentication is claimed. Earlier names such as canonical, ratified, accepted and current retain their dated scope and do not supersede later source truth.",
+      "lawful_remedy": "Continue complete source/authority/state lineage and primary-science qualification where the present law depends on it. Preserve rejected candidates as negative evidence and all useful narrower arithmetic/material results without converting them into current cognition claims.",
+      "unit_acceptance": "Validate captured content, hashes, source anchors and exact arithmetic receipt.",
+      "module_acceptance": "Trace actual historical/current operators, parameter authority and state-preservation path.",
+      "system_acceptance": "Complete preserved-state charter verification and isolate the first real failed causal function.",
+      "release_acceptance": "Overall reconciliation remains OPEN and no speech/system/ML-free certificate follows.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "NL06-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL06-01--GUALA_D3_EXACT_MEMBRANE_CHARGE_LAW_2026-08-03.md",
+          "line": 57,
+          "anchor": "reached compartment. It imports only `dataclass` and `Fraction`; it has no loop,",
+          "sha256": "6fe9828f962bd502c2dad91ef3dd80be44b24a74a1ada99742c5b7a6a57741aa"
+        },
+        {
+          "source_id": "NL11-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL11-01--GUALA_D3_LOCAL_MEMBRANE_CONDUCTANCE_BALANCE_LAW_2026-08-04.md",
+          "line": 112,
+          "anchor": "denied is not green: it stops on 34 unrelated existing warnings/lints; none",
+          "sha256": "14f93e7748158d471e0ffe472b9bb6942ed947f1813c148e29ff8ef4b4c5e324"
+        },
+        {
+          "source_id": "NL03-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL03-01--GUALA_D3_TYPED_PHASE_COUPLING_FALSIFICATION_2026-08-03.md",
+          "line": 188,
+          "anchor": "Passing this suite means that both the retained arithmetic properties and the",
+          "sha256": "f18121dc86f6bbcedfd0d8e8cd5636bf946c1291fd909db4e67ca1042e48def8"
+        }
+      ]
+    },
+    {
+      "id": "NLR12",
+      "name": "Speech must be judged by current lawful causal function, not reassurance or inherited refusal",
+      "classification": "specific_qualification_obligation_not_feasibility_verdict",
+      "historical_requirement_or_mechanism": "These records show why exact arithmetic, physical accounting and useful isolated candidates can coexist with a missing complete sensory-to-neuron successor. Later reported gains must be preserved and independently traced into today’s retained-memory, choice/order, vocal actuation and acoustic feedback chain. Neither word-like names nor increasing columns establishes those links.",
+      "current_disposition": "The evidence supports neither guaranteed intelligible speech nor a proof that ArcLoom can never support it. Old missing constitutive law, current implementation defect and unproven complete function are different findings. G1’s approved preserved-state qualification is still the route to a concrete verdict.",
+      "lawful_remedy": "Require the frozen source/image/state and exact first failed acquired-experience→retention→native action→physical voice→sensed-consequence boundary. Supply a direct ratified remedy or identify the precise missing law. No ML, dictionary, supplied answer, arbitrary gain or softened test may bridge the gap.",
+      "unit_acceptance": "Qualify each actual input/state/operator with wrong/absent-cause controls.",
+      "module_acceptance": "Bind all active native and external authorities across the speech route.",
+      "system_acceptance": "Demonstrate learned intelligible output and later retained effect under ordinary conditions.",
+      "release_acceptance": "A1 independently verifies exact serving evidence and preservation; no predecessor claim can replace it.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A09",
+        "A10",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "NL02-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL02-01--GUALA_D3_UNRESOLVED_KRIMELACK_TRANSITION_BOUNDARY_2026-08-03.md",
+          "line": 74,
+          "anchor": "2. a dimensionally complete D1-to-local-K relation;",
+          "sha256": "1c4e9b7e7ca6c4c9271f3c15a4908cf38ec220f83c3225944662829ba6c43f71"
+        },
+        {
+          "source_id": "NL01-01",
+          "path": "docs/guala_reconciliation/sources/neuron-law-authority/NL01-01--GUALA_D3_KRIMELACK_BIOPHYSICAL_COUPLING_RATIFICATION_2026-08-03.md",
+          "line": 49,
+          "anchor": "Until each missing operator is ratified, source must preserve a typed refusal or unavailable state rather than supply a coefficient, threshold, lookup, random choice, compatibility path, or semantic shortcut.",
+          "sha256": "447627469151f9f18febab839f2a113de08f4afddb261c4aeb11c2da402501a8"
+        }
+      ]
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false
+}

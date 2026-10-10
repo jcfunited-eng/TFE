@@ -1,0 +1,97 @@
+{
+  "at_utc": "2026-10-09T23:55:36.379768+00:00",
+  "method": "AST literal extraction and source inspection; no product imports or execution",
+  "lexicon_words": 42,
+  "noun_templates": 17,
+  "adjective_templates": 19,
+  "invalid_lexicon_syllables": [
+    {
+      "word": "chair",
+      "syllable_index": 1,
+      "onset": "ah",
+      "vowel": "eh",
+      "pitch_decihertz": 3600,
+      "errors": [
+        "invalid_onset"
+      ]
+    },
+    {
+      "word": "hot",
+      "syllable_index": 0,
+      "onset": "ah",
+      "vowel": "oh",
+      "pitch_decihertz": 3600,
+      "errors": [
+        "invalid_onset"
+      ]
+    },
+    {
+      "word": "hard",
+      "syllable_index": 0,
+      "onset": "ah",
+      "vowel": "ah",
+      "pitch_decihertz": 3600,
+      "errors": [
+        "invalid_onset"
+      ]
+    },
+    {
+      "word": "blue",
+      "syllable_index": 0,
+      "onset": "b",
+      "vowel": "l",
+      "pitch_decihertz": 3600,
+      "errors": [
+        "invalid_vowel"
+      ]
+    }
+  ],
+  "lean_export_fields": [
+    "source",
+    "retina_rgb_u8",
+    "pressure_s16le"
+  ],
+  "word_transport": {
+    "samples": 4000,
+    "sample_hz": 16000,
+    "byte_limit": 8000,
+    "duration_seconds": 0.25,
+    "whole_word_tail_discarded": true
+  },
+  "earlier_audit_failures": [
+    {
+      "operation": "Initial static helper asserted only blue was invalid",
+      "result": "AssertionError",
+      "actual": "Four invalid tuples: chair, hot, hard, blue",
+      "disposition": "Auditor expectation was wrong; preserve failure and enumerate complete literal comparison. No product test was executed."
+    },
+    {
+      "operation": "Repo-relative root guard invocation",
+      "result": "Path absent",
+      "disposition": "Correct skill-root guard subsequently passed; this was an auditor path error."
+    },
+    {
+      "operation": "Search named absent deploy directory and test_dynamic_television_broadcast.py",
+      "result": "rg exit 2",
+      "disposition": "Actual source paths searched; audio fixture is test_environmental_variety_and_channels.py."
+    },
+    {
+      "operation": "Search named specifications.json",
+      "result": "rg exit 2",
+      "disposition": "Actual existing crosswalk is specification-crosswalk.json. No product defect inferred."
+    },
+    {
+      "operation": "docker image inspect last-inspected Task1598 digest",
+      "result": "No such image in local Docker cache",
+      "disposition": "No fresh image/module/live execution claim. Absence from cache does not prove absence from deployment."
+    }
+  ],
+  "limits": [
+    "Not an ML-free certification",
+    "No current image binding",
+    "No timing/latency measurement",
+    "No native or organism test",
+    "No dynamic caller closure",
+    "No complete-project violation count"
+  ]
+}

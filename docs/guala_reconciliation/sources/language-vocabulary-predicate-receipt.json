@@ -1,0 +1,90 @@
+{
+  "scope": "Independent lexical inventory of captured documentary lists and the explicitly inspected projection. No product imports, functions, downstream readers, organism or tests executed.",
+  "unique_listed_tokens": 331,
+  "multiply_assigned_tokens": 100,
+  "examples": {
+    "why": [
+      "why asks for what produced the thing. The answer is not a",
+      "every question has two kinds of word in it — the ones that",
+      "a follow-up does not carry its own subject. It leans on the",
+      "a loaded question carries a claim inside its framing, so",
+      "a closed question can be answered in a word and an open one",
+      "a problem question — it broke, it stopped, it will not",
+      "why splits in two and the word does not warn you. Why did"
+    ],
+    "how": [
+      "why asks for what produced the thing. The answer is not a",
+      "how asks for a method — the ordered steps that get from",
+      "how much and how many ask for a quantity, and the answer",
+      "every question has two kinds of word in it — the ones that",
+      "a question about doing wants a change in the world; a",
+      "a closed question can be answered in a word and an open one",
+      "a number in a question changes what a good answer is. It",
+      "how do I and what is share their subject and share nothing"
+    ],
+    "not": [
+      "a complaint says something is wrong and has already",
+      "negation flips what is being asked without changing a"
+    ]
+  },
+  "projection_pairs": [
+    {
+      "inputs": [
+        "why does this work",
+        "why does this not work"
+      ],
+      "projections": [
+        [
+          "work"
+        ],
+        [
+          "work"
+        ]
+      ],
+      "same_carried_subject": true
+    },
+    {
+      "inputs": [
+        "bake at 200C",
+        "bake at 300C"
+      ],
+      "projections": [
+        [
+          "bake"
+        ],
+        [
+          "bake"
+        ]
+      ],
+      "same_carried_subject": true
+    }
+  ],
+  "word_novelty_counterexample": {
+    "question": "hot or cold?",
+    "correct_choice_can_be": "hot",
+    "new_answer_word_required": false
+  },
+  "refs": [
+    {
+      "source_id": "LD05-01",
+      "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-01--171_words_that_carry_the_question.md",
+      "line": 260,
+      "anchor": "MEANS-SAME: not no never cannot without fails lacks missing absent neither none unless",
+      "sha256": "c40637f05bbeffa839339ba439f4efa3774db21f32731d01ada56eb7857298a1"
+    },
+    {
+      "source_id": "LDC04",
+      "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+      "line": 65,
+      "anchor": "        subject = [w for w in raw if w not in self.asking and len(w) > 2]",
+      "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+    },
+    {
+      "source_id": "LDC04",
+      "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+      "line": 92,
+      "anchor": "    settled, stopped, reached = os_fabric.deliver(carried)",
+      "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+    }
+  ]
+}

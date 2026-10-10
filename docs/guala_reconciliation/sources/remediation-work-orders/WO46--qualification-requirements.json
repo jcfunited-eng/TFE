@@ -1,0 +1,177 @@
+{
+  "schema": "guala.qualification_requirements.v1",
+  "at_utc": "2026-10-10T13:05:52.808807+00:00",
+  "certificate_issued": false,
+  "scope": "Whole requested system/artifact; no narrowed exclusion claim",
+  "requirements": [
+    {
+      "id": "Q01",
+      "requirement": "One declared whole-system subject and claim boundary; exact version/configuration/process roster",
+      "falsifier": "A narrower source-only claim cannot clear an image or external process",
+      "current_evidence": "Incomplete A02/A15 closure",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q02",
+      "requirement": "Authenticated requirement/law/approval and terminology for every mechanism",
+      "falsifier": "A canonical header, assistant assertion or old green test cannot ratify a law",
+      "current_evidence": "SC05 and other historical authorities unresolved",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q03",
+      "requirement": "Complete source/native/dependency/entrypoint/configuration inventory and call/state-writer graph",
+      "falsifier": "Rename/alias/import/rollback must not resurrect rejected authority",
+      "current_evidence": "Task1606 retired files absent; complete actual dependency/authority graph remains unqualified. Earlier M14/M45/M46 are dated evidence.",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q04",
+      "requirement": "Independent semantic classification of every active adaptive/decision operator, including state and reader",
+      "falsifier": "Keyword/model-extension scan alone cannot certify ML or heuristic absence",
+      "current_evidence": "Registry partial; forbidden and unknown rows remain",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q05",
+      "requirement": "Unchanged L0–L4; exact full joint field/types/clock/relationships through their actual neuronal effects",
+      "falsifier": "One score/hash/sign/tuple transport is not full-field cognition",
+      "current_evidence": "R09; source/binary and global stability authority unresolved",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q06",
+      "requirement": "Declared local neuronal/contact/fluid law, dimensions, conservation, reciprocal effects, bounds and retained change",
+      "falsifier": "Renamed learning rate, arbitrary gain or fixture-derived stress fails",
+      "current_evidence": "Qualify the approved functional neuron/contact/regulation law; microscopic reconstruction is not required.",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q07",
+      "requirement": "Real material/light/pressure/body/contact/exposure reaches actual receptors with authentic clock and context",
+      "falsifier": "Word apple cannot create taste; hidden world labels cannot steer recognition",
+      "current_evidence": "R06 and OT02; unavailable lanes remain explicit",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q08",
+      "requirement": "Complete causative retained neuronal relations and distributed cue-driven reassembly/use",
+      "falsifier": "Stored answer, count, address, transcript or same UUID is not memory",
+      "current_evidence": "R01/R06/R13; retained-use proof incomplete",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q09",
+      "requirement": "Sleep/internal provenance, before/after retained consolidation and changed later use",
+      "falsifier": "Five ordinary silent ticks or a sleep flag cannot prove consolidation",
+      "current_evidence": "R04/R08 and UI03 fail claimed scope",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q10",
+      "requirement": "Native retained causes prepare independent actions and physically settled consequences",
+      "falsifier": "One chooser option, route recipe or motor output alone cannot prove autonomous planning",
+      "current_evidence": "R03/R07/R11 unresolved/rejected",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q11",
+      "requirement": "Learned auditory/articulatory causal path, self-hearing, later grounded/compositional use",
+      "falsifier": "Mean-worth/cosine/catalog/orthographic output cannot qualify language",
+      "current_evidence": "R05 and OT01/OT04/OT05",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q12",
+      "requirement": "No prohibited model assets, inference packages or external inference in requested scope",
+      "falsifier": "Deleting source models while retaining a base-image model fails",
+      "current_evidence": "Task1598 package failed. Task1606 retains Whisper-capable source; current whole-package exclusion and invocation closure remain unqualified.",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q13",
+      "requirement": "Reviewed source/compiler/dependencies map to each loaded native binary and process",
+      "falsifier": "A matching wheel checksum without complete source/build binding is insufficient",
+      "current_evidence": "R09/M31/M45 incomplete",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q14",
+      "requirement": "Mature body/world/history preserved through failure, migration, paired commit and cold continuation",
+      "falsifier": "Genesis at the old identity, inert archive alone or fabricated migration fails",
+      "current_evidence": "R01; lawful active-state mapping remains open",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q15",
+      "requirement": "Derived admission and measured CPU/RAM/storage/calls/work/cadence for mature/extreme states",
+      "falsifier": "Increasing force-work allowance or dropping digits/fields to pass fails",
+      "current_evidence": "R16; complete physical/resource proof open",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q16",
+      "requirement": "Both UI artifacts show authenticated exact quantities or unavailability, with real browser evidence",
+      "falsifier": "Invented senses, counts, S(UF), consolidation or stale API success fails",
+      "current_evidence": "UI01–UI08; source/public differences preserved",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q17",
+      "requirement": "Every external actor/action/provision/media source is attributed and clocked; no semantic pupil hint",
+      "falsifier": "Caretaker relocation/feed/script cannot be reported as pupil learning",
+      "current_evidence": "R07/R12; runtime process closure incomplete",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q18",
+      "requirement": "Unit tests falsify the actual physical law, invalid bounds and prohibited shortcuts",
+      "falsifier": "Checking a copied constant, finite output or audit metadata alone fails scope",
+      "current_evidence": "R08/OT05; complete unit evidence absent",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q19",
+      "requirement": "Module tests exercise real callers/native bindings, actual field/state handoffs and recurrent/failure branches",
+      "falsifier": "Helper availability, import success or direct fixture injection is insufficient",
+      "current_evidence": "Missing actual closure receipts remain blockers",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q20",
+      "requirement": "System tests on the authenticated mature predecessor prove experience→retention→recall/action→consequence→cold continuation",
+      "falsifier": "Teleporting, setting reserve, preloading a meaning, omitted sleep or swapped predecessor fails",
+      "current_evidence": "Whole-system qualification not passed",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q21",
+      "requirement": "Exact immutable candidate build, full layer/package review, exact-image rehearsal and state-preserving rollback",
+      "falsifier": "Candidate source proof cannot clear a different image; historic prohibited rollback fails",
+      "current_evidence": "Task1606 exact artifact has improved retirement but unresolved preservation/progress/inputs; no whole-release pass.",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q22",
+      "requirement": "Actual release controller invokes and cannot bypass the evidence gate; negative gate tests fail before cutover",
+      "falsifier": "A written skill or unused checker cannot enforce qualification",
+      "current_evidence": "Controller enforcement not independently verified",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q23",
+      "requirement": "Independent live backend/body/world/external/UI evidence for the same qualified subject",
+      "falsifier": "Healthy/ticking/HTTP200/positive reserve cannot prove the requested cognition",
+      "current_evidence": "Latest independent Task1606 receipt11:12–11:19UTC has intermittent HTTP responsiveness and unchanged durable checkpoint; no functional live pass.",
+      "verdict": "NOT_QUALIFIED"
+    },
+    {
+      "id": "Q24",
+      "requirement": "Independent signed/attributed verdict, complete evidence index, dissent/failure disposition and verified notification",
+      "falsifier": "Self-attestation, softened failure or notification alone cannot issue a certificate",
+      "current_evidence": "No complete independent PASS dossier exists",
+      "verdict": "NOT_QUALIFIED"
+    }
+  ],
+  "functional_scope": "Approved64-column functional equivalence; no atomic/molecular reconstruction prerequisite. Exact requirements apply to the implemented model, not an invented more detailed model."
+}

@@ -1,0 +1,22 @@
+{
+  "at_utc": "2026-10-10T00:18:07.451289+00:00",
+  "returncode": 0,
+  "scope": "Read-only service metadata; not behavior/cognitive qualification",
+  "result": [
+    {
+      "service": "dsf-ai-service-lb",
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1598",
+      "desired": 1,
+      "running": 1,
+      "pending": 0,
+      "deployments": [
+        {
+          "status": "PRIMARY",
+          "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1598",
+          "running": 1,
+          "rollout": "COMPLETED"
+        }
+      ]
+    }
+  ]
+}

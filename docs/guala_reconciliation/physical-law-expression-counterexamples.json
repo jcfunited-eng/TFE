@@ -1,0 +1,38 @@
+{
+  "schema": "guala.source_expression_falsifiers.v1",
+  "checks": [
+    {
+      "id": "PL-E1",
+      "finding": "PL01",
+      "result": "COUNTEREXAMPLE",
+      "current": "1/2",
+      "gain": "1",
+      "resulting_state": "1",
+      "scope": "Printed helper does reach the ceiling; no assertion this gain was observed live"
+    },
+    {
+      "id": "PL-E2",
+      "finding": "PL01",
+      "result": "COUNTEREXAMPLE",
+      "one_gain_half": "3/4",
+      "two_gains_quarter": "23/32",
+      "scope": "Equal summed gain with different event partition changes state; not a time-derived kinetic law by itself"
+    },
+    {
+      "id": "PL-E3",
+      "finding": "PL02",
+      "result": "COUNTEREXAMPLE",
+      "visual_score_lower_bound": "base_payoff/10 for positive base_payoff and valid familiarity<=9/10",
+      "scope": "Source cap contradicts a zero visual-attraction limit; not proof of which action won live"
+    },
+    {
+      "id": "PL-E4",
+      "finding": "PL03",
+      "result": "COUNTEREXAMPLE",
+      "first_winner": "a",
+      "renamed_winner": "b",
+      "scope": "Exact Python tuple-order behavior changes winner solely on arbitrary label renaming; no organism execution"
+    }
+  ],
+  "product_acceptance": false
+}

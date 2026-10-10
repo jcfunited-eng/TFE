@@ -1,0 +1,7 @@
+{
+  "at_utc": "2026-10-10T09:33:34.974182+00:00",
+  "scope": "Read-only filesystem hashes and HTTP GET health/ready; no organism import/action/test",
+  "exit_code": 0,
+  "stdout": "\nThe Session Manager plugin was installed successfully. Use the AWS CLI to start a session.\n\n\nStarting session with SessionId: ecs-execute-command-fv6vadoqezf9vzeh852se2ynpu\n{\"files\": [{\"bytes\": 22757, \"path\": \"/app/dsf_ai_service/lean_production_app.py\", \"present\": true, \"sha256\": \"e0eae159c9aac1038cecb7effa10fca158a058f9e493b5b97a196abbfba5c9da\"}, {\"path\": \"/app/dsf_ai_service/guala_functional_loop.py\", \"present\": false}, {\"path\": \"/app/dsf_ai_service/guala_functional_organism.py\", \"present\": false}, {\"bytes\": 12385, \"path\": \"/app/dsf_ai_service/guala_voice.py\", \"present\": true, \"sha256\": \"a7b03520aaf5df0dc3082d8c8860eaa0ea0f7d6f39041013dc2b15e301090313\"}, {\"bytes\": 30985, \"path\": \"/app/dsf_ai_service/speech_transducer.py\", \"present\": true, \"sha256\": \"fdad4926f42394d0b0a76faaf74827915016ac10af18e2a798c50ae7149b1b7d\"}], \"http\": [{\"detail\": \"timed out\", \"elapsed_seconds\": 4.0055182109999805, \"error\": \"TimeoutError\", \"route\": \"/health\"}, {\"detail\": \"timed out\", \"elapsed_seconds\": 4.003424634999874, \"error\": \"TimeoutError\", \"route\": \"/ready\"}]}\nCannot perform start session: EOF\n",
+  "stderr": ""
+}

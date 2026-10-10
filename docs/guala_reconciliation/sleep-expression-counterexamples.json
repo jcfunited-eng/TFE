@@ -1,0 +1,57 @@
+{
+  "schema": "guala.source_expression_falsifiers.v1",
+  "checks": [
+    {
+      "id": "SL-E1",
+      "finding": "HS12",
+      "result": "COUNTEREXAMPLE",
+      "actual_per_tick": "3/1000000",
+      "claimed_per_tick": "3/2000000",
+      "scope": "Exact report arithmetic versus captured if/elif branch; no organism execution"
+    },
+    {
+      "id": "SL-E2-200",
+      "finding": "HS01",
+      "result": "COUNTEREXAMPLE",
+      "atlas_keys": 200,
+      "replay_indices": [
+        0,
+        1,
+        2
+      ],
+      "scope": "Captured tick-modulo200 replay selector at a fixed key count; most keys never selected by this replay branch"
+    },
+    {
+      "id": "SL-E2-400",
+      "finding": "HS01",
+      "result": "COUNTEREXAMPLE",
+      "atlas_keys": 400,
+      "replay_indices": [
+        0,
+        1,
+        2,
+        200,
+        201,
+        202
+      ],
+      "scope": "Captured tick-modulo200 replay selector at a fixed key count; most keys never selected by this replay branch"
+    },
+    {
+      "id": "SL-E3",
+      "finding": "HS02",
+      "result": "COUNTEREXAMPLE",
+      "one_call_exponent": "1/500",
+      "two_calls_exponent": "1/250",
+      "scope": "Strength multiplier exp(-exponent) differs solely with call partition when elapsed time is clipped"
+    },
+    {
+      "id": "SL-E4",
+      "finding": "HS24",
+      "result": "COUNTEREXAMPLE",
+      "single_bucket_population": 50000,
+      "pairs": 1249975000,
+      "scope": "Exact worst-case pair count; a derived operation count, not a capacity override"
+    }
+  ],
+  "product_acceptance": false
+}

@@ -1,0 +1,66 @@
+{
+  "schema": "guala.selected_historical_claim_correction.v1",
+  "at_utc": "2026-10-10T11:48:00.406717+00:00",
+  "status_authority": "collaborative_todo.md",
+  "scope": "Two exact historical ledger excerpts, not a complete ledger or new active-mechanism census",
+  "source_read_complete": false,
+  "sources": [
+    {
+      "id": "LC01",
+      "path": "docs/guala_reconciliation/sources/shared-ledger-claim-corrections/LC01.txt",
+      "excerpt_sha256": "18977b575d586bdaa508224c61829d56812efb395ece5457a6417d180b260d25",
+      "excerpt_bytes": 6956,
+      "original_path": "collaborative_todo.md",
+      "original_blob": "80ac08bed3f52f0e5523e5da9091119d3f177689",
+      "original_sha256": "9163fe63e1b2e464b9b1074ba639abd5b0e3c19d3bf113d9a4bf5a35eba8b802",
+      "original_start_line": 15282,
+      "original_end_line": 15351,
+      "scope": "Complete named excerpt read; entire source ledger is not yet fully read"
+    },
+    {
+      "id": "LC02",
+      "path": "docs/guala_reconciliation/sources/shared-ledger-claim-corrections/LC02.txt",
+      "excerpt_sha256": "b54e5f39d127d1f6b91590238b2a313bd9c4e6d70eacfa525d4f6f5d6b38c585",
+      "excerpt_bytes": 2774,
+      "original_path": "collaborative_todo.md",
+      "original_blob": "3c0fc72121dde31d2c83628ad66e68c2f30ebc02",
+      "original_sha256": "3de0a198e2ca17b6cb10c1e2facd83ee2d4691320ffd9c0cc39ed07b598fc130",
+      "original_start_line": 188,
+      "original_end_line": 208,
+      "scope": "Complete named excerpt read; entire source ledger is not yet fully read"
+    }
+  ],
+  "findings": [
+    {
+      "id": "LCF01",
+      "claim": "September14 A1 entry at ded92cb32 called seven-field sign atoms unflattened, successor-frequency/need-valued action prediction real autonomy and situation-key/previous-syllable/profile selection True Speech.",
+      "correction": "Sign encoding does not preserve all DSF structure, and software transition/action-value or situation-key response mechanisms do not establish the requested native physical learning or learned speech. Passing24functional/65lean tests and a claimed ratification heading do not independently establish that exact algorithm was approved or the capability qualified.",
+      "existing_mechanism_refs": [
+        "mechanisms_task1598.json::M01",
+        "mechanisms_task1598.json::M02",
+        "mechanisms_task1598.json::M07",
+        "functional-body-history-reconciliation.json::FBR02",
+        "sleep-history-reconciliation.json::HS21",
+        "sleep-history-reconciliation.json::HS22"
+      ],
+      "remedy": "Retire those mechanisms and renamed equivalents from pupil authority; correct downstream claims while preserving forensic evidence and genuine active acquired state under an approved mapping. Qualify actual native experience-dependent retention and ordinary recognition/ordered articulation.",
+      "acceptance": "Unit exact full-field/local law and truthful labels; module actual native retained state/consumer and removal of supplied response authority; system grounded held-out behavior and intelligible acquired speech; independent exact-image/current-state live verification."
+    },
+    {
+      "id": "LCF02",
+      "claim": "Task1549 ledger called authored250ms quiet-gap say release and consumed speech targets conversational turn-taking.",
+      "correction": "The stated rule is an authored controller response. A test proving that rule and a successful cutover do not prove learned conversational timing, comprehension, syntax or substrate-chosen speech.",
+      "existing_mechanism_refs": [
+        "mechanisms_task1598.json::M02"
+      ],
+      "remedy": "Remove authored pupil turn/target selection from qualified cognition. Preserve legitimate acoustic sensing and transport while requiring the actual native retained causal process to govern vocal response.",
+      "acceptance": "Unit authentic hearing/motor/pressure components; module retained experience→ordinary ordered vocal act/self-hearing; system grounded response and timing under held-out context with no scripted target; exact preserved-release/live audit."
+    }
+  ],
+  "activation_limit": "These are dated historical claims. Task1606 retired-controller path absence remains valid. This correction does not assert those controllers currently run, prove intentional deceit or establish permanent speech impossibility.",
+  "implementation_owner": "G1",
+  "verification_owner": "A1",
+  "product_execution": false,
+  "product_acceptance": false,
+  "complete_reconciliation": false
+}

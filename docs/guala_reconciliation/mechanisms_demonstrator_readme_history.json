@@ -1,0 +1,493 @@
+{
+  "schema": "guala.documentary_mechanisms.v1",
+  "at_utc": "2026-10-10T11:11:14.708563+00:00",
+  "scope": "Complete13capturedREADMEversions/onepath,73latestlinesplus60olderpassages/722linesfullyread;allhashesandreconstructionverified. Historicalclaims/executionsandcurrentactivationseparatelyscoped;no product,bootstrap,test,hardwareorliveexecution.",
+  "mechanisms": [
+    {
+      "id": "VDR01",
+      "name": "Spoken-command and sensory-capacity claims retracted",
+      "classification": "unsupported_language_claim_then_explicit_unavailability",
+      "finding": "DRR01",
+      "observed_mechanism": "DR002 advertises512-channelcochlea, fullfovea and multi-wordcommand syntax such as pick up bear. Later versions narrow to component interfaces. DR013refuses all nonempty named/formant-profile input before mutation because old frequency bins erased distinctions among eight synthetic verbs; hardening daemon retired and generated weights cannot become lived command knowledge.",
+      "evidence_limits": "Advertised topology, fixture channels and authored named profiles do not prove heard words, acquired syntax or native command behavior. The README retraction is evidence of scope correction, not proof the actual package/current service enforces it.",
+      "replacement": "Remove synthetic command knowledge and named-profile cognitive authority from the qualified pupil path. Use actual experienced waveform→native transduction/fullfield→retained relation→grounded later use, with unavailable hearing kept explicit until implemented.",
+      "acceptance": {
+        "unit": "Check distinct real physical signals and absent/zero/nonempty input refusal with complete unchanged state; no labels as acoustic identity.",
+        "module": "Trace ordinary native waveform and learned-state consumer with matched exposed/unexposed and altered-command controls.",
+        "system": "Demonstrate grounded held-out command combinations and acquired intelligible articulation separately on preserved current state; no imported synthetic weights or scripted answers.",
+        "release": "Bind truthful scope to exact current packaged source, compiled binary, dependencies/configuration and active preserved state. This documentary review neither executes the demonstrator nor qualifies live Guala or hardware. No speech/system/ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DR002",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR002--README.md",
+          "line": 42,
+          "anchor": "### B. The 64-Column Cortical Array (High-Capacity Multi-Modal Cognition)",
+          "sha256": "cba5a82ec02a0c2a5946458967670a778b1599a061b242a00804923bd3c9c551"
+        },
+        {
+          "source_id": "DR002",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR002--README.md",
+          "line": 45,
+          "anchor": "- **Sensory Capacity**: 512-channel cochlear filterbank, full foveal retinal grid, multi-word spoken command syntax tracking (\"pick up bear\", \"find tv remote\", \"get bottle\").",
+          "sha256": "cba5a82ec02a0c2a5946458967670a778b1599a061b242a00804923bd3c9c551"
+        },
+        {
+          "source_id": "DR005",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR005--README.md",
+          "line": 45,
+          "anchor": "### B. The 64-Column Cortical Array (High-Capacity Modular Substrate)",
+          "sha256": "095aec03f8e2beb11ff8cf1d17d801b3d5fc13152289ba981ecb91fc247ca85b"
+        },
+        {
+          "source_id": "DR013",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR013--README.md",
+          "line": 62,
+          "anchor": "## Acoustic boundary correction (2026-10-02)",
+          "sha256": "888f42ca51dd57232595a3743faafef819f1cd6a20573994a3fc9299820af742"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDR02",
+      "name": "Console controls called cognition, memory and sleep",
+      "classification": "authored_component_demonstration_overclaimed",
+      "finding": "DRR02",
+      "observed_mechanism": "Oldcontrols call storedpolarcoordinates0drift spatialpermanence, injected220Hzformant associativebinding, stress.95over.60stridearrest/vocal220Hz, and Skey sleepconsolidationwithoutmemorycollapse. LaterREADME calls these authored component probes and admits effector/interlock rules.",
+      "evidence_limits": "An operator probe, coordinate register, protective rule or downscaling routine is not autonomous attention, cognition, learned speech or actual sleep-owned consolidation. A yield-stress label cannot establish native causal authority.",
+      "replacement": "Retain probes as explicitly scoped component tests. Replace prohibited cognitive/effector policy with the approved actual native mechanism; require learned contribution, actual sleep/recall and physical consequence evidence for broader claims.",
+      "acceptance": {
+        "unit": "Verify literal rule/probe inputs and component outputs, with no falsely inferred acquisition or sleep labels.",
+        "module": "Trace actual ordinary state/reader/motor path and real sleep caller instead of operator keys or preloaded target coordinates.",
+        "system": "Demonstrate preserved acquired spatial use, meaningful consolidation and autonomy independently with matched controls.",
+        "release": "Bind truthful scope to exact current packaged source, compiled binary, dependencies/configuration and active preserved state. This documentary review neither executes the demonstrator nor qualifies live Guala or hardware. No speech/system/ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DR001",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR001--README.md",
+          "line": 89,
+          "anchor": "#### Interactive Controls:",
+          "sha256": "f5473bf194d63f2412ee46a4dc044feac18aded28675216c0e55ae6916e01fdc"
+        },
+        {
+          "source_id": "DR004",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR004--README.md",
+          "line": 105,
+          "anchor": "#### Interactive Controls:",
+          "sha256": "95f4ca1d69d3e85c9701d0522115af92a873567703a7e0ecfac8c00029a28ecb"
+        },
+        {
+          "source_id": "DR008",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR008--README.md",
+          "line": 80,
+          "anchor": "Console controls: B changes the optical fixture; A injects an acoustic fixture;",
+          "sha256": "321bb28eea56055b387395d81f5201299ba44a79cff29ddac87dbc8999df3cfa"
+        },
+        {
+          "source_id": "DR013",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR013--README.md",
+          "line": 18,
+          "anchor": "- The component column model still contains authored effector/interlock",
+          "sha256": "888f42ca51dd57232595a3743faafef819f1cd6a20573994a3fc9299820af742"
+        },
+        {
+          "source_id": "DR013",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR013--README.md",
+          "line": 58,
+          "anchor": "Console controls: b = optical blindout, a = acoustic stimulus,",
+          "sha256": "888f42ca51dd57232595a3743faafef819f1cd6a20573994a3fc9299820af742"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A05",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDR03",
+      "name": "Full-field exact storage conflated with physical execution",
+      "classification": "claim_reintroduced_after_refusal_then_corrected_again",
+      "finding": "DRR03",
+      "observed_mechanism": "DR008namesA10unimplemented and rejects32tritcosine/tanh/directPminusBmotor. DR009then again claims implementedverified fullfield, S<=0clamp,Rrev>0stridekill,P>Bventing;DR010retainsdirectclamps. FinalDR013storessevenfields/separateglobalSbutrefusespresentfields, includingzero, beforemutation.",
+      "evidence_limits": "Bit-exact storage does not prove positional physical consumption or emergence; refusal is unavailable capability, not a field-to-material operator. Historical contradictory README claims require source/binary/authority qualification.",
+      "replacement": "Keep strict atomic unsupported-boundary refusal until approved complete field→retained phase/material/gate→own motor causation exists. Do not reinstall scalar clamps/projection or call zero-valued present field absent.",
+      "acceptance": {
+        "unit": "Verify all supported positions, separate global stability, presence/zero and complete atomic refusal/continuation bytes.",
+        "module": "Trace real native field producer into actual persistent physical consumers and material/work balance without direct decision shortcuts.",
+        "system": "Demonstrate actual same-organism acquired action/speech contribution on preserved state with isolated field controls; legitimate different inputs need not cause different actions.",
+        "release": "Bind truthful scope to exact current packaged source, compiled binary, dependencies/configuration and active preserved state. This documentary review neither executes the demonstrator nor qualifies live Guala or hardware. No speech/system/ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DR008",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR008--README.md",
+          "line": 9,
+          "anchor": "The A10 / A9-04 continuous joint-field physical operator is **unimplemented**.",
+          "sha256": "321bb28eea56055b387395d81f5201299ba44a79cff29ddac87dbc8999df3cfa"
+        },
+        {
+          "source_id": "DR009",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR009--README.md",
+          "line": 8,
+          "anchor": "The continuous joint-field physical operator (A10 / A9-04) is implemented and verified in the 64-column cortical array:",
+          "sha256": "db8ed2660f9d7594de6698eb473136fef2a5e0449387b50eacc3bab66112ff4f"
+        },
+        {
+          "source_id": "DR010",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR010--README.md",
+          "line": 8,
+          "anchor": "- Exact binary64-to-rational balanced ternary encoding and storage via MathLoom rational custody.",
+          "sha256": "81ca30745eff45934e14d60666a7172335f7a8279d71f6971f56ce59c1de815d"
+        },
+        {
+          "source_id": "DR013",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR013--README.md",
+          "line": 9,
+          "anchor": "- MathLoom preserves finite binary64 values as exact signed rational trits.",
+          "sha256": "888f42ca51dd57232595a3743faafef819f1cd6a20573994a3fc9299820af742"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A04",
+        "A05",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDR04",
+      "name": "Standalone material neuron versus claimed integrated column motor",
+      "classification": "integration_and_checkpoint_claims_superseded",
+      "finding": "DRR04",
+      "observed_mechanism": "DR010adds standaloneArcLoomNeuron;DR011claims14typededges, fullmaterialstate inARCLOOM4 and emergentstride/interlock. DR013clarifies materialneuron is separately callable, solver notwired tocolumnmotor, authoredrulesremain, and rejectedappendedblocks must be refused/preserved rather than silently merged/discarded.",
+      "evidence_limits": "A file, class, codec or14-edge diagram does not prove the integrated current causal chain. A declared64digitcapacity withatomicrefusal differs from silently truncating. Current64columnfunctionalimplementation must be audited separately.",
+      "replacement": "Maintain exact current schema, explicit unsupported-state refusal and active learned-state mapping. Connect only the approved native material law through actual consumers; no cosmetic source presence or hidden receiver-state merge as integration.",
+      "acceptance": {
+        "unit": "Verify supported formats/positional bounds and complete rejection without mutation, including receiver-independent restore.",
+        "module": "Exercise actual producer→persistent material→motor plus complete canonical checkpoint/coldnextstep, not an isolated solver instance.",
+        "system": "Qualify preserved acquired behavior on exact current release and expose any missing active mapping; no archived appended block as functioning memory.",
+        "release": "Bind truthful scope to exact current packaged source, compiled binary, dependencies/configuration and active preserved state. This documentary review neither executes the demonstrator nor qualifies live Guala or hardware. No speech/system/ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DR010",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR010--README.md",
+          "line": 15,
+          "anchor": "- Microscopic material neuron solver (`ArcLoomNeuron`, `exact_carrier`) included and verified with First Law thermodynamic energy balance and exact integer ion custody.",
+          "sha256": "81ca30745eff45934e14d60666a7172335f7a8279d71f6971f56ce59c1de815d"
+        },
+        {
+          "source_id": "DR011",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR011--README.md",
+          "line": 8,
+          "anchor": "- Exact binary64-to-rational balanced ternary encoding and storage via MathLoom rational custody.",
+          "sha256": "82c99f6c555fae2bf7b224f3492b5b4a2df45532b28366d64edf0059e1c8ed89"
+        },
+        {
+          "source_id": "DR013",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR013--README.md",
+          "line": 15,
+          "anchor": "- ArcLoomNeuron is a separate, callable material component with bounded",
+          "sha256": "888f42ca51dd57232595a3743faafef819f1cd6a20573994a3fc9299820af742"
+        },
+        {
+          "source_id": "DR013",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR013--README.md",
+          "line": 20,
+          "anchor": "- ARCLOOM4 restores the accepted complete column state. Rejected experimental",
+          "sha256": "888f42ca51dd57232595a3743faafef819f1cd6a20573994a3fc9299820af742"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A09",
+        "A10",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDR05",
+      "name": "Expected failure described as confirmation of learning",
+      "classification": "explicit_acceptance_logic_violation",
+      "finding": "DRR05",
+      "observed_mechanism": "DR009/DR010claimstrictA11weight-onlyablationXFAILconfirmsreyieldwithoutheuristics. DR008andDR013insteadstateA11open and distinguishmatchedplasticitycausationfromtrained/fresh,severing,codec/componentretention.",
+      "evidence_limits": "An expected failure exposes missing required capability. It cannot confirm the behavior whose assertion fails, and weaker controls may change more than retained plasticity.",
+      "replacement": "Keep A11 open until matched retained-state interventions isolate the actual learned material change and its motor reader. Preserve failed expectation; do not soften or replace it with different-state or component counters.",
+      "acceptance": {
+        "unit": "Require actual executed assertion with matched predecessor/input and only the declared state intervention.",
+        "module": "Trace retained conductance/material change into the ordinary gate/motor transition, comparing complete state and physical accounting.",
+        "system": "Show reproducible acquired useful behavior/speech dependence on that retained change on the qualified current organism.",
+        "release": "Bind truthful scope to exact current packaged source, compiled binary, dependencies/configuration and active preserved state. This documentary review neither executes the demonstrator nor qualifies live Guala or hardware. No speech/system/ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DR008",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR008--README.md",
+          "line": 15,
+          "anchor": "The A11 matched retained-plasticity motor-divergence witness is also open.",
+          "sha256": "321bb28eea56055b387395d81f5201299ba44a79cff29ddac87dbc8999df3cfa"
+        },
+        {
+          "source_id": "DR009",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR009--README.md",
+          "line": 18,
+          "anchor": "The A11 matched weight-only ablation witness remains a strict documented expected failure (`XFAIL`), confirming that plastic weight ablation re-yields without artificial heuristics.",
+          "sha256": "db8ed2660f9d7594de6698eb473136fef2a5e0449387b50eacc3bab66112ff4f"
+        },
+        {
+          "source_id": "DR010",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR010--README.md",
+          "line": 16,
+          "anchor": "- The A11 matched weight-only ablation witness remains a strict documented expected failure (`XFAIL`), confirming that plastic weight ablation re-yields without artificial heuristics.",
+          "sha256": "81ca30745eff45934e14d60666a7172335f7a8279d71f6971f56ce59c1de815d"
+        },
+        {
+          "source_id": "DR013",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR013--README.md",
+          "line": 23,
+          "anchor": "- The matched weight-ablation capability remains A11, OPEN.",
+          "sha256": "888f42ca51dd57232595a3743faafef819f1cd6a20573994a3fc9299820af742"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDR06",
+      "name": "Node/contact capacity and timing presented as delivered capability",
+      "classification": "quantitative_scope_claims_narrowed",
+      "finding": "DRR06",
+      "observed_mechanism": "Early8columnfasciculicountchanges1.31Mto1.05M;64column83.8Mbecomespotentialcapacity. DR002states8.5ms/118Hz, later8.2ms/123Hzstandalonebenchmarks,20Hztarget and255us8D; finalREADMErequiresactualconfiguration/cost and removes blanket timing/cognition inference.",
+      "evidence_limits": "Potential contacts are not allocated, reached, learned or useful cognitive assets. A component benchmark/clock is not full sensory-to-action latency on a retained organism; exact original runs/configuration are not authenticated here.",
+      "replacement": "Report declaredcapacity,actualallocation,active/reachedlearnedstructure and retained function separately. Bind each timing to exact work, state, clock, binary, machine and resource envelope; retain failed full-system deadlines.",
+      "acceptance": {
+        "unit": "Check actual cardinalities and timing units without interpreting labels as proof of useful function.",
+        "module": "Measure complete ordinary source/native/body/world/persistence costs and causal participation on the exact configuration.",
+        "system": "Qualify current end-to-end latency and bounded memory/work under full-change load and cold continuation, without replacing required physics with benchmark fixtures.",
+        "release": "Bind truthful scope to exact current packaged source, compiled binary, dependencies/configuration and active preserved state. This documentary review neither executes the demonstrator nor qualifies live Guala or hardware. No speech/system/ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DR001",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR001--README.md",
+          "line": 10,
+          "anchor": "The substrate models 8 specialized cortical macrocolumns ($2,560$ ternary nodes, $1.31\\text{ million}$ plastic fasciculi) operating under continuum material yield stress mechanics ($f = |\\sigma| - Y \\le 0$):",
+          "sha256": "f5473bf194d63f2412ee46a4dc044feac18aded28675216c0e55ae6916e01fdc"
+        },
+        {
+          "source_id": "DR002",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR002--README.md",
+          "line": 11,
+          "anchor": "The hardware substrate models 8 specialized cortical macrocolumns ($2,560$ ternary nodes, $1.05\\text{ million}$ plastic fasciculi) operating under continuum material yield stress mechanics ($f = |\\sigma| - Y \\le 0$). Synthesizes directly into Xilinx Zynq-7020 FPGA silicon (~$22,000\\text{ LUTs}$, $41\\%$ fabric utilization):",
+          "sha256": "cba5a82ec02a0c2a5946458967670a778b1599a061b242a00804923bd3c9c551"
+        },
+        {
+          "source_id": "DR002",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR002--README.md",
+          "line": 44,
+          "anchor": "- **Structure**: 8 interconnected macro-clusters of 8 columns each ($20,480$ ternary nodes, $83.8\\text{ million}$ plastic fasciculi).",
+          "sha256": "cba5a82ec02a0c2a5946458967670a778b1599a061b242a00804923bd3c9c551"
+        },
+        {
+          "source_id": "DR006",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR006--README.md",
+          "line": 45,
+          "anchor": "### B. The 64-Column Cortical Array (High-Capacity Modular Substrate)",
+          "sha256": "2eaf2bf79188ec46c2170ad81241e3b432a3a83b364c4bf703abc429b7004329"
+        },
+        {
+          "source_id": "DR008",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR008--README.md",
+          "line": 28,
+          "anchor": "- Native Rust 4-, 8- and 64-column models with a Python adapter.",
+          "sha256": "321bb28eea56055b387395d81f5201299ba44a79cff29ddac87dbc8999df3cfa"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A14",
+        "A15",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDR07",
+      "name": "FPGA, scope and air-gap assertions without delivery evidence",
+      "classification": "hardware_and_package_claims_corrected_to_source_scope",
+      "finding": "DRR07",
+      "observed_mechanism": "DR002claims directZynq7020synthesis22kLUT/41%;DR003downgrades toprojectedtargets;DR008/DR013sayHDLpresence is not loadedbitstream,timing/scope/equivalenceproof. DR009callsairgapped;DR010/DR013saynetworkbootstrapunlessdependenciescached andnotreproducible/offlinebundle.",
+      "evidence_limits": "A source archive, probe pin assignment, software testbench or exact wheel digest does not certify hardware or independent reproducible build. No hardware run or dependency retrieval was performed here.",
+      "replacement": "Make source/package/component/hardware acceptance separate. For a hardware claim supply actual governed synthesis/place-route reports, exactbitstream/board configuration, measured traces and native-to-HDLlaw/equivalence proof; for offline delivery supply exact full dependency/toolchain custody.",
+      "acceptance": {
+        "unit": "Validate source/constraints and declared build/runtime dependency closure with exact artifact hashes.",
+        "module": "Prove extracted isolated package uses the intended native extension and dependency versions; separately verify HDL/native boundary at claimed scope.",
+        "system": "Qualify actual board resource/timing/behavior and genuine offline/reproducible release only when those are delivered; do not inherit host or file-presence evidence.",
+        "release": "Bind truthful scope to exact current packaged source, compiled binary, dependencies/configuration and active preserved state. This documentary review neither executes the demonstrator nor qualifies live Guala or hardware. No speech/system/ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DR002",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR002--README.md",
+          "line": 10,
+          "anchor": "### A. The 8-Column Balanced Octet (FPGA Silicon Synthesis & Scope Probes)",
+          "sha256": "cba5a82ec02a0c2a5946458967670a778b1599a061b242a00804923bd3c9c551"
+        },
+        {
+          "source_id": "DR003",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR003--README.md",
+          "line": 13,
+          "anchor": "> [!NOTE]",
+          "sha256": "381070aebe1b64853a3d68b49ae5a827686a474f8cc8288d2da676a1ff6249ed"
+        },
+        {
+          "source_id": "DR008",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR008--README.md",
+          "line": 92,
+          "anchor": "The supplied PYNQ-Z2 constraint file assigns four scope channels:",
+          "sha256": "321bb28eea56055b387395d81f5201299ba44a79cff29ddac87dbc8999df3cfa"
+        },
+        {
+          "source_id": "DR009",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR009--README.md",
+          "line": 3,
+          "anchor": "This is a standalone source package for discrete balanced-ternary component experiments and DARPA evaluation.",
+          "sha256": "db8ed2660f9d7594de6698eb473136fef2a5e0449387b50eacc3bab66112ff4f"
+        },
+        {
+          "source_id": "DR010",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR010--README.md",
+          "line": 30,
+          "anchor": "- Supported host OS: Linux x86_64 with POSIX terminal (termios/tty support for interactive controls). Native Windows execution is not supported.",
+          "sha256": "81ca30745eff45934e14d60666a7172335f7a8279d71f6971f56ce59c1de815d"
+        },
+        {
+          "source_id": "DR013",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR013--README.md",
+          "line": 28,
+          "anchor": "Native component sources, exact carrier arithmetic, Python transport,",
+          "sha256": "888f42ca51dd57232595a3743faafef819f1cd6a20573994a3fc9299820af742"
+        },
+        {
+          "source_id": "DR013",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR013--README.md",
+          "line": 47,
+          "anchor": "Setup builds one wheel with Cargo --locked in a fresh directory, installs that",
+          "sha256": "888f42ca51dd57232595a3743faafef819f1cd6a20573994a3fc9299820af742"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A14",
+        "A15",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VDR08",
+      "name": "No-ML/no-heuristic and physical-units slogans versus mechanisms",
+      "classification": "blanket_certification_unsupported",
+      "finding": "DRR08",
+      "observed_mechanism": "EarlyREADME declareszeroML/noheuristics andcontinuummaterialyield. DR008sayscontactreturnmapdimensionless, notcalibratedpascal/joule/ampere/newton; finalREADMEexplicitlyretainsauthoredeffectorrules andmissingcoupling.",
+      "evidence_limits": "DeterministicRust, ternaryarithmetic, a yield equation or absentbackprop are not sufficient to classify every active update/decision law as allowed. The README does not itself prove a particular trained model is active either.",
+      "replacement": "Classify actual update, decision, sensory, memory and actuation laws plus dependency/assets/externalroutes. Bind units and constitutive parameters to approved functional physics; remove prohibited authority and keep unqualified physical claims visible.",
+      "acceptance": {
+        "unit": "Verify dimensional/material/work contracts and direct predicates, including no hidden semantic/action lookup.",
+        "module": "Audit complete current import/native/caller/state routes and provenance of fitted/generated parameters.",
+        "system": "Require independent current source/dependency/state/causal qualification before any ML/heuristic-free system representation.",
+        "release": "Bind truthful scope to exact current packaged source, compiled binary, dependencies/configuration and active preserved state. This documentary review neither executes the demonstrator nor qualifies live Guala or hardware. No speech/system/ML-free certificate."
+      },
+      "refs": [
+        {
+          "source_id": "DR001",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR001--README.md",
+          "line": 111,
+          "anchor": "1. **Zero ML Approximations**: No neural network weights, no backpropagation, no statistical gradient descent. Plasticity proceeds strictly from continuum yield mechanics ($f = |\\sigma| - Y \\le 0$).",
+          "sha256": "f5473bf194d63f2412ee46a4dc044feac18aded28675216c0e55ae6916e01fdc"
+        },
+        {
+          "source_id": "DR004",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR004--README.md",
+          "line": 127,
+          "anchor": "1. **Zero ML Approximations**: No neural network weights, no backpropagation, no statistical gradient descent. Plasticity proceeds strictly from continuum yield mechanics ($f = |\\sigma| - Y \\le 0$).",
+          "sha256": "95f4ca1d69d3e85c9701d0522115af92a873567703a7e0ecfac8c00029a28ecb"
+        },
+        {
+          "source_id": "DR008",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR008--README.md",
+          "line": 21,
+          "anchor": "The implemented contact model is dimensionless. Its algebraic return map is",
+          "sha256": "321bb28eea56055b387395d81f5201299ba44a79cff29ddac87dbc8999df3cfa"
+        },
+        {
+          "source_id": "DR013",
+          "path": "docs/guala_reconciliation/sources/demonstrator-readme-history/DR013--README.md",
+          "line": 18,
+          "anchor": "- The component column model still contains authored effector/interlock",
+          "sha256": "888f42ca51dd57232595a3743faafef819f1cd6a20573994a3fc9299820af742"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A05",
+        "A10",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

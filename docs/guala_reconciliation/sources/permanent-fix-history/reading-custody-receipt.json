@@ -1,0 +1,2590 @@
+{
+  "schema": "guala.documentary_full_content_read.v1",
+  "sources": [
+    {
+      "id": "PF001",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "200da51fae5cfa505ccac35a0b10c271f65e4ad0",
+      "sha256": "bc3cd1a653e4b3b6bd77950b362d4d24a14d6e1b7a92ac37605760e64bc95b3e",
+      "bytes": 6668,
+      "lines": 61,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF001--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-27T23:05:32+00:00",
+          "commit": "2f456b4e09eebce8fca7540a7c2ba156191705ca",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-27T22:47:43+00:00",
+          "commit": "c8f84bd1c6e32704e78389078376564c0b45259c",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF002",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "fe74c90906082f65e9f7b38dda810c05b963019e",
+      "sha256": "51a0ef8886bab782b8942be37d700e7b64cb05e9dfaa36862936bae2640cf736",
+      "bytes": 7705,
+      "lines": 63,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF002--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T00:20:22+00:00",
+          "commit": "7e07c031f3a19c93f59280f6b442ea78e25003dd",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-27T23:05:32+00:00",
+          "commit": "2f456b4e09eebce8fca7540a7c2ba156191705ca",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF003",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "183614cf8fde1678707d20b10b969213c3735082",
+      "sha256": "8276398f7e4e42fe4844c1f73c223ad40daaf03f1be10fb7ae1ec347b3be5200",
+      "bytes": 8486,
+      "lines": 76,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF003--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T00:50:57+00:00",
+          "commit": "cb8d50193012b26bfddb417847fb2b4bee223649",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T00:20:22+00:00",
+          "commit": "7e07c031f3a19c93f59280f6b442ea78e25003dd",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF004",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "b45ddf7955d5676d10a25ebb627a0827fd0206ef",
+      "sha256": "78c587526909a96d36e597092e9e1ceb0caac8ffff07718db1dbda5f59f0e2f3",
+      "bytes": 9066,
+      "lines": 84,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF004--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T01:10:28+00:00",
+          "commit": "0931c5f2b13ab3cce8afb3d36b7f6b21e0d380bb",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T00:50:57+00:00",
+          "commit": "cb8d50193012b26bfddb417847fb2b4bee223649",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF005",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "f444279b9a8f7f1593ce6be0ea9d0f194b194026",
+      "sha256": "8a5e7b0b6d6c9c80b4123f2bb05cab59f85533a0a7be8c2eab412b45a4f91bd8",
+      "bytes": 10180,
+      "lines": 95,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF005--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T01:21:17+00:00",
+          "commit": "5e66b03552d279b5793455c3288aab5e991f7657",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T01:10:28+00:00",
+          "commit": "0931c5f2b13ab3cce8afb3d36b7f6b21e0d380bb",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF006",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "9686d4244a66cf699a7160bbf79180fcae5bcc47",
+      "sha256": "784bc0ca131b854bc42b4de12208f702150d6deb17551130e5941e492ed0d627",
+      "bytes": 11461,
+      "lines": 105,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF006--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T07:04:30+00:00",
+          "commit": "6e6d220b656bb36fa4fffbc5d0cf3f3e07818386",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T01:21:17+00:00",
+          "commit": "5e66b03552d279b5793455c3288aab5e991f7657",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF007",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "8548fa73128dd9c3e965927d86a55f3806183d92",
+      "sha256": "d6fb400848c9f9ef8f4ed17fd0333c2d3f8557d6208a2c9a7962c75a4120fd6b",
+      "bytes": 11910,
+      "lines": 105,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF007--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T07:22:51+00:00",
+          "commit": "39a302064a7a40a3babd228e41c383f76edb2115",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T07:04:30+00:00",
+          "commit": "6e6d220b656bb36fa4fffbc5d0cf3f3e07818386",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF008",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "1d9fcee7e1ddb4b525f29422b97eb85e3f782964",
+      "sha256": "428e7a52123b025acb20ef4e2920e6490e0a863d10c0c485d2732ca7e1688266",
+      "bytes": 11945,
+      "lines": 105,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF008--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T08:09:09+00:00",
+          "commit": "89fff22a562ed25a4849c11addab838a03e882de",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T07:22:51+00:00",
+          "commit": "39a302064a7a40a3babd228e41c383f76edb2115",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF009",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "8a69cfb2de62ff67ca662447c81491c1c8dadd63",
+      "sha256": "2331ce6adccb66588b518a9dbe1b3bcb189371eee92ba49662affeea1589f36a",
+      "bytes": 12665,
+      "lines": 106,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF009--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T08:30:36+00:00",
+          "commit": "0eb510e0d465e677d00269a28daae122beb24644",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T08:09:09+00:00",
+          "commit": "89fff22a562ed25a4849c11addab838a03e882de",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF010",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "177d8bdcc16ab2f8e24984dd9c674b8bebbb968e",
+      "sha256": "df0f1d10eadaef703ae105f66cdad32cd365ac83474d793067c7f18b81ab2cc4",
+      "bytes": 12820,
+      "lines": 106,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF010--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T16:39:41+00:00",
+          "commit": "ea13588cb31f41562be0adc07faa953815d28ad1",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T08:30:36+00:00",
+          "commit": "0eb510e0d465e677d00269a28daae122beb24644",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF011",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "c72f7e6a7db661d6031fb2b6e4e0460d1cbea22d",
+      "sha256": "3180d53121d8ca52143fea283722f6ad9fa0ea0161fea565b69cdf97b05b4023",
+      "bytes": 14045,
+      "lines": 112,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF011--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T01:52:31+00:00",
+          "commit": "e50a67dfef4778ea81925c69e962d6db13317572",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T16:39:41+00:00",
+          "commit": "ea13588cb31f41562be0adc07faa953815d28ad1",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF012",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "4c82956389f65d00306c2adf4db17cf4f57387fc",
+      "sha256": "bdee7a9502707ef3df2367c05513d865109bb993a1607830ed6d7f44025ddf46",
+      "bytes": 15161,
+      "lines": 113,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF012--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T02:04:26+00:00",
+          "commit": "f136dd639e00f9efbff66c4b15332e98372e77e8",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T01:52:31+00:00",
+          "commit": "e50a67dfef4778ea81925c69e962d6db13317572",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF013",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "411ced8ad5d6b0dc1a17cb78bfa39a298635da4d",
+      "sha256": "50c46c88b92eda4a4be17fc58f52e25ef463220ce817d675936826d53b65fd6a",
+      "bytes": 15185,
+      "lines": 113,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF013--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T03:54:55+00:00",
+          "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T02:04:26+00:00",
+          "commit": "f136dd639e00f9efbff66c4b15332e98372e77e8",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF014",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "222a774eb4617e38895c0aeacfb8d7a5013c1230",
+      "sha256": "a10f692ec153a8a321febfbc7b4424b776858a71cd10c48a6cb64e31967fbb26",
+      "bytes": 16879,
+      "lines": 115,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF014--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T06:06:44+00:00",
+          "commit": "1aebe5e05d341b049ac614d3678960612d0b0437",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T03:54:55+00:00",
+          "commit": "714cd6b9feff41a709f9132c672e4b59de9063ae",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF015",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "74348dada7d2ca7782318a8969423d61e5f10d90",
+      "sha256": "70344f11e8a43ffa4934010c0a37e361bedb6fed3a39f3d537b932b76d9339d3",
+      "bytes": 17890,
+      "lines": 116,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF015--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T06:22:09+00:00",
+          "commit": "dc6673af2f2eb70215b1f7e8ac209997b2c74f05",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T06:06:44+00:00",
+          "commit": "1aebe5e05d341b049ac614d3678960612d0b0437",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF016",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "0fbd227709bfc99d3da1294686ebccffa11f4b08",
+      "sha256": "773167e14849084444cb973a8e7afca60cbc39288d46150b4291507f6d7f9739",
+      "bytes": 18206,
+      "lines": 116,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF016--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T06:33:22+00:00",
+          "commit": "04a6299921c046071e7fa01683926eebc447dfca",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T06:22:09+00:00",
+          "commit": "dc6673af2f2eb70215b1f7e8ac209997b2c74f05",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF017",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "11527c4fc1c9aee890a02266428f1d03191be12f",
+      "sha256": "c137e2fa56b64eb2033b972bb9befd8ad11423dabb8234219d18cda5d304ecc4",
+      "bytes": 17901,
+      "lines": 116,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF017--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T09:56:39+00:00",
+          "commit": "3093e9454fe27e083517062a1eae85f08a685618",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T06:33:22+00:00",
+          "commit": "04a6299921c046071e7fa01683926eebc447dfca",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF018",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "6aa04dd610d6e444e039ec701eb7a4fce819b3a8",
+      "sha256": "f914708697ab81a1cb8c9d4fdf4361f5d51f688ccaf46f3f7b7b6a8f656bdd9b",
+      "bytes": 18839,
+      "lines": 117,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF018--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T10:34:39+00:00",
+          "commit": "ef8247ba459f4cae3504cf5cbf11d60fd4aa114d",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T09:56:39+00:00",
+          "commit": "3093e9454fe27e083517062a1eae85f08a685618",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF019",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "339c4b4d1a01068d0e177f7f51f3621353549404",
+      "sha256": "0305832adb206c2a24139a3f1ec615d563244248fb66e1cb7d0ea2a4fc77ce2c",
+      "bytes": 18882,
+      "lines": 117,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF019--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T11:06:10+00:00",
+          "commit": "63278db53c2697bf85df28022826b7257dc60e7b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T10:34:39+00:00",
+          "commit": "ef8247ba459f4cae3504cf5cbf11d60fd4aa114d",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF020",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "b4ea079ef1c6b237f8ba6109600931919272ce81",
+      "sha256": "81bbb570ea6e9f5319c58bedf622eab335649b346c5a18a0f432abc41d0d2ec0",
+      "bytes": 19762,
+      "lines": 118,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF020--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T06:56:48+00:00",
+          "commit": "b6b0aa2d5b598545fa29c443744aaf937a1e7784",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T11:06:10+00:00",
+          "commit": "63278db53c2697bf85df28022826b7257dc60e7b",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF021",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "7213740508ad5022c7210510f43e7428818acd88",
+      "sha256": "ce0d35d9872e74bed3b3c0a43b4eee3d6ce6284fef37ef09f2aabb953f964574",
+      "bytes": 22021,
+      "lines": 121,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF021--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T08:10:39+00:00",
+          "commit": "fd010ec39ebaa964aec4d8121dc3fe9228aa351c",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T06:56:48+00:00",
+          "commit": "b6b0aa2d5b598545fa29c443744aaf937a1e7784",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF022",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "9dc0c7bd77d9ef117626f11860d35122ee47db9f",
+      "sha256": "9ec0f8fd501b7434d9b65b281f5c07825495d811004cbc604916375381f54899",
+      "bytes": 23562,
+      "lines": 123,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF022--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T14:38:55+00:00",
+          "commit": "44a3870098f07e40435c57368133422469b4192e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T08:10:39+00:00",
+          "commit": "fd010ec39ebaa964aec4d8121dc3fe9228aa351c",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF023",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "57507adbc0156d8a3a7c73bf3fc763f68e007d0b",
+      "sha256": "ecada952dd50ed66b1284bc3a55de04d17b372c2373e5e2f40c828be2345d03c",
+      "bytes": 24435,
+      "lines": 124,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF023--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T14:49:54+00:00",
+          "commit": "c92acda649ccc14e4aff6f587c2fca736acd3a6c",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T14:38:55+00:00",
+          "commit": "44a3870098f07e40435c57368133422469b4192e",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF024",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "b14311da707ad0689a24e3ed35dc122f418ee095",
+      "sha256": "3e6b5ab72558e5338af1f344f3ee20c602c82dae3e897b63057c38ddfd1a2f32",
+      "bytes": 25457,
+      "lines": 125,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF024--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T15:11:47+00:00",
+          "commit": "98741962785ed2f2d7e28c3a0771d244c3ba1edd",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T14:49:54+00:00",
+          "commit": "c92acda649ccc14e4aff6f587c2fca736acd3a6c",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF025",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "72e3a6d72300c947ebf1da4ec0ec5a23b44e46fc",
+      "sha256": "456658af8fc6668c9c04e5e7d24c803244772316c5cab3c23457afdb378198b9",
+      "bytes": 26620,
+      "lines": 126,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF025--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T15:26:51+00:00",
+          "commit": "813d3c98b04a2a910537916d3170765e30b97557",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T15:11:47+00:00",
+          "commit": "98741962785ed2f2d7e28c3a0771d244c3ba1edd",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF026",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "96d0413835f6a47ee0fe35bae37af69a4bbf35dc",
+      "sha256": "c79ac138b7b4c533d253d881e5dc2b03fbe94b327778721b30794bc6ba05461c",
+      "bytes": 27068,
+      "lines": 126,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF026--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T15:35:41+00:00",
+          "commit": "d8f2ffbe66b1e1411758dd5485c895359027c66f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T15:26:51+00:00",
+          "commit": "813d3c98b04a2a910537916d3170765e30b97557",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF027",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "ffbdf1208fc57640f994b59eff957f22d3d0a5a9",
+      "sha256": "cbfb9f76a0bdccb2d9e726c786595ab21d7035e8733885d181046526477b6f6b",
+      "bytes": 27383,
+      "lines": 126,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF027--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T15:54:18+00:00",
+          "commit": "a8d4bb4eddcbd751ecfb0acd1f827c0cadccb61f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T15:35:41+00:00",
+          "commit": "d8f2ffbe66b1e1411758dd5485c895359027c66f",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF028",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "a137e64de20eb5a7d96f2565918595dc093a253f",
+      "sha256": "bfa6704c88d322854045f427443011e9945ba0da8445e6f7186ca48d149ae595",
+      "bytes": 27895,
+      "lines": 126,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF028--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T15:55:39+00:00",
+          "commit": "b05a33da3449927724553a2c2a3af0fc2e6f3878",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T15:54:18+00:00",
+          "commit": "a8d4bb4eddcbd751ecfb0acd1f827c0cadccb61f",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF029",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "2a4a04628bdea4292ed60accf997f0ea507f2e28",
+      "sha256": "c6ae0a9719636548534efeea581de8fb16e27776396b8defeb5e0fa2e6734ad7",
+      "bytes": 27937,
+      "lines": 126,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF029--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T16:04:32+00:00",
+          "commit": "46054734652c81497041e1e5088ffc05afc81297",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T15:55:39+00:00",
+          "commit": "b05a33da3449927724553a2c2a3af0fc2e6f3878",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF030",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "e5c902948d37a5d3fe5370235e4eb3618e241967",
+      "sha256": "f4ad6ded73d20d48440c7f8652051200ab95bf93ba2f0a6d3461a8f3dd44503f",
+      "bytes": 29221,
+      "lines": 127,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF030--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T16:22:45+00:00",
+          "commit": "f71affa99099b76dd2c10b047e96973406215149",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T16:04:32+00:00",
+          "commit": "46054734652c81497041e1e5088ffc05afc81297",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF031",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "2b37d7ad5d3658789199e7c0ddb5fc0214a1f8b6",
+      "sha256": "f812d42ec2802ae513e0ce7aabc252c951184b550bdb0c8d237b1eb23be8b606",
+      "bytes": 29633,
+      "lines": 127,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF031--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T16:30:03+00:00",
+          "commit": "fa275c3d70dc565a92208c999225c661b12218cb",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T16:22:45+00:00",
+          "commit": "f71affa99099b76dd2c10b047e96973406215149",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF032",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "fbe57dc08c8f308b67aa9134003899eb766b0875",
+      "sha256": "2295ea86dbf589a502eb35369b3f165c0519f3b68c5efedc064faf1648254065",
+      "bytes": 30207,
+      "lines": 127,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF032--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T16:49:43+00:00",
+          "commit": "d0c33af27fcd38cb4f34460e48ab2493dfe0817b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T16:30:03+00:00",
+          "commit": "fa275c3d70dc565a92208c999225c661b12218cb",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF033",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "eda6eaeaebcd24e683d9a316d30d976c17f6a98e",
+      "sha256": "91ac4810ac24c7e9d964cda1100281ef24233e6a5e92a4050068daa02fc40045",
+      "bytes": 31356,
+      "lines": 128,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF033--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T17:02:47+00:00",
+          "commit": "f62bac35410a5957082b7d67ff3f9958b622bc08",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T16:49:43+00:00",
+          "commit": "d0c33af27fcd38cb4f34460e48ab2493dfe0817b",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF034",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "44e407afd911f9c2b1a551eb2318200424620d55",
+      "sha256": "2dd649a25677283b6dec1d3b63165388868e7408b97891e9c8cee8ef586f9407",
+      "bytes": 31560,
+      "lines": 128,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF034--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T17:09:20+00:00",
+          "commit": "77b90a5df1764e605ecb6bd3148466ee6837a75d",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T17:02:47+00:00",
+          "commit": "f62bac35410a5957082b7d67ff3f9958b622bc08",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF035",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "87b762f989d8a4913f4f45702f2243927d680824",
+      "sha256": "561953d6b7611faca424be9d31b6a511a18b49055c2cd3360a55e84d6372fb18",
+      "bytes": 32443,
+      "lines": 129,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF035--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T17:29:11+00:00",
+          "commit": "92187c03a80833cba136323b807cf078b27b0f16",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T17:09:20+00:00",
+          "commit": "77b90a5df1764e605ecb6bd3148466ee6837a75d",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF036",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "0f0fadc7e7cbb222c8f2fc805214c934e894e550",
+      "sha256": "dc0e836fc1143efe28c3a4bfb1e47b1d163d178e5ba9fba468dd14db48608194",
+      "bytes": 33582,
+      "lines": 130,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF036--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T18:08:54+00:00",
+          "commit": "5a8d61f4b0fa19572d5b98892992269b5a6e3eac",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T17:29:11+00:00",
+          "commit": "92187c03a80833cba136323b807cf078b27b0f16",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF037",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "6636ec9363648b9a87b1756fefd89d36398d7c63",
+      "sha256": "55717db986edf3ffd9e976a5cbcf2f91210b180e5b4a786c27bba46c700d3341",
+      "bytes": 34057,
+      "lines": 130,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF037--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T18:23:02+00:00",
+          "commit": "208d09d0bf7546f4341c22ab6bd18f944719095f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T18:08:54+00:00",
+          "commit": "5a8d61f4b0fa19572d5b98892992269b5a6e3eac",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF038",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "5a22565ea0438d77b74e274f7ababe5beab01373",
+      "sha256": "a6fe85b4ece723c84ef277bd3bc9ef0496e7f5322eb405ea42e4f3b7b829810f",
+      "bytes": 35552,
+      "lines": 131,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF038--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T18:55:15+00:00",
+          "commit": "1461c5ec1adcc74bb348af95e66ed8940f080b70",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T18:23:02+00:00",
+          "commit": "208d09d0bf7546f4341c22ab6bd18f944719095f",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF039",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "7a0526f3682c0053e29dd9df004bdd6211be7750",
+      "sha256": "d644225680dd79cf8e2d231e1a096cedbab454f80f5da90202c2b0065b69cb7e",
+      "bytes": 36802,
+      "lines": 133,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF039--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T18:57:17+00:00",
+          "commit": "bd7d3436c1e07565272f573a2b96f614c5e1dd5b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T18:55:15+00:00",
+          "commit": "1461c5ec1adcc74bb348af95e66ed8940f080b70",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF040",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "12ddf4c13448d7c22477f283802da019bcc34b52",
+      "sha256": "7f7b30954c08c8785bd54e37fe57c193c71522c26f519df6628434aa4345e401",
+      "bytes": 37041,
+      "lines": 133,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF040--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T20:47:19+00:00",
+          "commit": "9466b8edfbc1c42685f5ddd12df0429ba96ba338",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T18:57:17+00:00",
+          "commit": "bd7d3436c1e07565272f573a2b96f614c5e1dd5b",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF041",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "5f4731928a7d79a93d2d432ac2af975783a91f8a",
+      "sha256": "59dbb8ca59bfc687daf49a2656454ec1d28426ddb82b5672113ec94724d27495",
+      "bytes": 39750,
+      "lines": 135,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF041--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-30T21:47:14+00:00",
+          "commit": "677ee7be88de18ed3ee8dbe619ae1f5a8d690f73",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T20:47:19+00:00",
+          "commit": "9466b8edfbc1c42685f5ddd12df0429ba96ba338",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF042",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "fb304d43e6abaf33c68f39a423e3a67d8d60c0e2",
+      "sha256": "9373b47acd19731b45118c373ea93f883c1c18e515c6d540c8e6036d63c2f2b4",
+      "bytes": 41098,
+      "lines": 136,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF042--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-31T00:31:23+00:00",
+          "commit": "bd3f0ca407766cd6df9df5d890b09ef235e486ec",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-30T21:47:14+00:00",
+          "commit": "677ee7be88de18ed3ee8dbe619ae1f5a8d690f73",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF043",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "6f016726e014ca8deed3571ef50db2e487f21e06",
+      "sha256": "73d9434fb016be0ccb2c551a25f862e2316774cb7e8da96e4f3a928f7b648a17",
+      "bytes": 42226,
+      "lines": 137,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF043--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-31T00:54:22+00:00",
+          "commit": "a8ba50cfd68b7c195b9cfbb77c5ba0ced6d27179",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-31T00:31:23+00:00",
+          "commit": "bd3f0ca407766cd6df9df5d890b09ef235e486ec",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF044",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "17ce2a85e10536c98f8e8f1624914c276316f1e0",
+      "sha256": "bde5800604c0512178dd7f216479f0a66bc209dcd6e9596b3b8791056714e144",
+      "bytes": 42706,
+      "lines": 137,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF044--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-31T01:07:37+00:00",
+          "commit": "1b228c5ecbf176425689760eb86c319616224282",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-31T00:54:22+00:00",
+          "commit": "a8ba50cfd68b7c195b9cfbb77c5ba0ced6d27179",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF045",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "641833da4d4156723141783bcd36128a0bb7da3a",
+      "sha256": "8f4feddcf8c3132b058f629335a4f17953f802d2b99848a472fcf0e5e2d90164",
+      "bytes": 42978,
+      "lines": 137,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF045--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-31T01:40:04+00:00",
+          "commit": "fce1ae2c19e38360390966f33c3af757286b88ac",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-31T01:07:37+00:00",
+          "commit": "1b228c5ecbf176425689760eb86c319616224282",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF046",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "aef107d9773c206d785007fc2fbaab65b1fbca75",
+      "sha256": "4a5c25e9d87671304819192f2a3e70cd51d0156dbf322ccc6cb6222aabecd4ff",
+      "bytes": 43995,
+      "lines": 138,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF046--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-31T01:55:48+00:00",
+          "commit": "8c5ce8f7327754aa3875e562165c277f13ac13fd",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-31T01:40:04+00:00",
+          "commit": "fce1ae2c19e38360390966f33c3af757286b88ac",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF047",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "cb8fc4d842f9e86126a045f238f68b1a10cfeb53",
+      "sha256": "95d116c9ae4bb2c070fefc84ed7cb1ff6bcb90317f7a77f9aa67ff1c2fbfc5fd",
+      "bytes": 44295,
+      "lines": 138,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF047--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-31T06:14:33+00:00",
+          "commit": "9fd774385b2309e947c41a256c384a6eb4f5e1b5",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-31T01:55:48+00:00",
+          "commit": "8c5ce8f7327754aa3875e562165c277f13ac13fd",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF048",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "a3ab7206ffe9294aabb9efc49891243cfe6095be",
+      "sha256": "aeb3e6d7cd4802ea591b1f9d23d98fa9b68a5f91448746ded5cc9dc7bc8fd4c0",
+      "bytes": 51096,
+      "lines": 200,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF048--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-31T08:56:32+00:00",
+          "commit": "c978fbfb6315482b916b99569b7fb3e663f00a5c",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-31T06:14:33+00:00",
+          "commit": "9fd774385b2309e947c41a256c384a6eb4f5e1b5",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF049",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "7a9d4889714d24d1dcadfa0f1007ca67eba79fcb",
+      "sha256": "535b78fdae73cf0b25a2a0917753e0b5fd0f1d845b87dad71b2a6e2f65d46d85",
+      "bytes": 55131,
+      "lines": 253,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF049--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-31T09:16:15+00:00",
+          "commit": "836e53dc075743fb2b455c7b485be5d6827989b7",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-31T08:56:32+00:00",
+          "commit": "c978fbfb6315482b916b99569b7fb3e663f00a5c",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF050",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "697485ec1e85ded035cf5cce452d28d81e005bf0",
+      "sha256": "8fb02bd410fca7a4ff85ce8042c5eb8f4cfda5287adf9096b049e5102e3dcdf8",
+      "bytes": 55595,
+      "lines": 261,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF050--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-31T12:10:48+00:00",
+          "commit": "b3017357f3d7edd0f263a80b3cf7f69321757fd4",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-31T09:16:15+00:00",
+          "commit": "836e53dc075743fb2b455c7b485be5d6827989b7",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF051",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "45c2423a5e597c97db5f95da93fc9b2977ee330b",
+      "sha256": "9de70538a9e70dec7f0cdca6ecba627f1ff00364a6c58472caaa7293f94733ae",
+      "bytes": 57820,
+      "lines": 292,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF051--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-31T13:03:34+00:00",
+          "commit": "902edd0a067e569c020953b0af087c65fb8765ac",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-31T12:44:08+00:00",
+          "commit": "16313bc5e1a41c219d00a9cb90ca8ced9fa586c3",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF052",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "c5ff5546a0e7d4c3e61a384649cef2c8c2878816",
+      "sha256": "84a3edfdf96a80f6d73d0a4a63421657b71a9daec72beaf57e8643780272429c",
+      "bytes": 56030,
+      "lines": 268,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF052--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-31T13:04:32+00:00",
+          "commit": "faff9e06b575d56a5845adb4d8a2c2410d28b02f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-31T13:03:34+00:00",
+          "commit": "902edd0a067e569c020953b0af087c65fb8765ac",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-31T12:44:08+00:00",
+          "commit": "16313bc5e1a41c219d00a9cb90ca8ced9fa586c3",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-31T12:10:48+00:00",
+          "commit": "b3017357f3d7edd0f263a80b3cf7f69321757fd4",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF053",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "dcc24b6e7f0c94991e241aff29a43349c17e90b7",
+      "sha256": "094b986b1ec066fe75516d47f0099cf818f368445333118a0e1ba816dff5dfc9",
+      "bytes": 57717,
+      "lines": 295,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF053--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-31T15:18:42+00:00",
+          "commit": "2440a9ed56834afeca70ed19e41680608f63b57e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-31T13:04:32+00:00",
+          "commit": "faff9e06b575d56a5845adb4d8a2c2410d28b02f",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF054",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "47c5178e595989b758735712fdcaaa610ac8ad72",
+      "sha256": "6b3137e547d36c8d657516ea42a678f80c59a77cccf57844b489393ac88b7d50",
+      "bytes": 67957,
+      "lines": 454,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF054--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-31T15:40:13+00:00",
+          "commit": "5f0df59481cc9c2e47c9b70d19949879ccd474b9",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-31T15:18:42+00:00",
+          "commit": "2440a9ed56834afeca70ed19e41680608f63b57e",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF055",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "889993e573974bf38ccb5f7cd0fcafdedfc4b31b",
+      "sha256": "d3289a30decde27bc0ac9607d162e7fc9c2b38d59a721fe9ab86c71ae677f6e8",
+      "bytes": 69917,
+      "lines": 485,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF055--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-31T16:08:28+00:00",
+          "commit": "bdd7c001333ae497756f1cea67f113c74383dc90",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-31T15:40:13+00:00",
+          "commit": "5f0df59481cc9c2e47c9b70d19949879ccd474b9",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF056",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "83900bdf1bc1fc645fe9cc5d3430943d327af751",
+      "sha256": "797832779a24911dce3c4c397e688b8331e74a64a6b1d69483d2b7bb0a93447b",
+      "bytes": 72438,
+      "lines": 521,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF056--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-09-04T17:33:52+00:00",
+          "commit": "a7398bc1b36436c887fa10f370f5a7aaf27d1141",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-01T14:33:08+00:00",
+          "commit": "cc7453497ada69dac589bfe0a83f4e056face042",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-31T16:33:00+00:00",
+          "commit": "23a3d5add333a0f1fba5b63e42d44f90c27e86bf",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-31T16:08:28+00:00",
+          "commit": "bdd7c001333ae497756f1cea67f113c74383dc90",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF057",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "01bdb496b8bde6d8b35d0326ba0be058dd15be07",
+      "sha256": "e6d72527eeef328c0065bd0c9da0a37e55e7d1553c7b1e46cea38047850b8a4d",
+      "bytes": 74670,
+      "lines": 557,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF057--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-31T17:56:41+00:00",
+          "commit": "6d8bb3fe2fad95439f5cde61902454ee62333701",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-31T16:33:00+00:00",
+          "commit": "23a3d5add333a0f1fba5b63e42d44f90c27e86bf",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF058",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "a26565ea6dc00af4f02b9da662cf2e6a501dfc01",
+      "sha256": "bfd3742a972830ad0a4116257c49e9213d72318d130e0f57805bf050ce8b823d",
+      "bytes": 76423,
+      "lines": 584,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF058--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-31T18:34:29+00:00",
+          "commit": "5baf27cdf06f1d23da0f0aaff69367a290a1f647",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-31T17:56:41+00:00",
+          "commit": "6d8bb3fe2fad95439f5cde61902454ee62333701",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF059",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "fddac1e152cd46be810f256da964fd048c56d99d",
+      "sha256": "0180f15b1e5d36563d1350a3cd23c50a7fd364cb735b9126efbf499035a0fb96",
+      "bytes": 81800,
+      "lines": 663,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF059--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-31T20:39:26+00:00",
+          "commit": "ede80b3f31bc0a8115fabc2811f94fd16f864a84",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-31T18:34:29+00:00",
+          "commit": "5baf27cdf06f1d23da0f0aaff69367a290a1f647",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF060",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "3b48e0dfb64cbeb50721cac4d2d93cd7e46895d9",
+      "sha256": "ec0c8dabe7deb499edb97fbda7ec54651e3e931018b5953ccb424d400b7d2435",
+      "bytes": 86150,
+      "lines": 726,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF060--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-08-31T20:39:26+00:00",
+          "commit": "ede80b3f31bc0a8115fabc2811f94fd16f864a84",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF061",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "3364daa9ad67c0a363fd3f224ce253ce8db5e6a1",
+      "sha256": "c84967e70cd0ab2fd8f6f679fb138ee8d4b9d8a52e6977cd0e23581877e09664",
+      "bytes": 73765,
+      "lines": 541,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF061--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-09-01T14:33:08+00:00",
+          "commit": "cc7453497ada69dac589bfe0a83f4e056face042",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF062",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "4d71689c414809766efc42e0d34977dcb7a9ddf2",
+      "sha256": "283abb29db908e4785081ff89b9a28807c3449313a8279e7fe1ffec0cddc0a22",
+      "bytes": 73686,
+      "lines": 522,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF062--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-09-04T18:06:33+00:00",
+          "commit": "bd15840e01e98a5199c966e64749ffae55b6183c",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-04T17:33:52+00:00",
+          "commit": "a7398bc1b36436c887fa10f370f5a7aaf27d1141",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF063",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "51b6a199224886f99ef35fc4517e38e5a842fb94",
+      "sha256": "26a795779295be54dbdf0b274eab3ad074d2195ef17e127ae5715ed2ca5041c4",
+      "bytes": 74119,
+      "lines": 529,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF063--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-09-04T19:42:43+00:00",
+          "commit": "0c68eda05fcacf9b90d845f7dc5bb3c9ca97a980",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-04T18:06:33+00:00",
+          "commit": "bd15840e01e98a5199c966e64749ffae55b6183c",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF064",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "859cdeeacd64b6a4c6370b1a6b1662d0624b0f7a",
+      "sha256": "136dd3c00cf2fb1ea0c1eda21c38e3c478bfadc89d55d87cfb78f6967ebccf91",
+      "bytes": 75371,
+      "lines": 548,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF064--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-09-04T20:42:57+00:00",
+          "commit": "c3c45802137e8ded65f2a16aaa265c5e02ddac87",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-04T19:42:43+00:00",
+          "commit": "0c68eda05fcacf9b90d845f7dc5bb3c9ca97a980",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF065",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "709e2f609edd1bd670111573b47eff86e6a6d1b4",
+      "sha256": "4ba85f9fe1932892bf57c4fe568e77373d3cc385b67147aff2b1bf00374272fb",
+      "bytes": 75850,
+      "lines": 555,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF065--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-09-04T21:51:49+00:00",
+          "commit": "80c12429c5b88b515aeb65eb45c62bd750f97a01",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-04T20:42:57+00:00",
+          "commit": "c3c45802137e8ded65f2a16aaa265c5e02ddac87",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF066",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "8c94aefc0755f3f96ebe44dc6fb37dc29e93d599",
+      "sha256": "b969fd4a9159dd4ab360574433e7c0f9053fda2021b045034a6c94fb56032d31",
+      "bytes": 76433,
+      "lines": 565,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF066--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-09-05T01:32:30+00:00",
+          "commit": "5a71211b0ef17bc51a09549e1df33af8efbd5d75",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-04T21:51:49+00:00",
+          "commit": "80c12429c5b88b515aeb65eb45c62bd750f97a01",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF067",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "0bf4c1b1308635cd4b66910c0f808e27887a1dac",
+      "sha256": "edee1b9e5e8032bc91f5c6811dd920d951979bc4e2bfa7a5f8ae64cf28ba6961",
+      "bytes": 77779,
+      "lines": 587,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF067--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-09-05T02:09:24+00:00",
+          "commit": "f04f0cefc01a44f8562ab72309b4e00356ff0367",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T01:32:30+00:00",
+          "commit": "5a71211b0ef17bc51a09549e1df33af8efbd5d75",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF068",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "5564f4228090407029efcb664b0215cabffc3dd9",
+      "sha256": "e3fcdcf770311d7c6e3d4d928da071d901404ac50535f3497596e1acf73ae3c6",
+      "bytes": 78033,
+      "lines": 591,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF068--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-09-05T03:37:01+00:00",
+          "commit": "1d7328b99f9ea2f4109f1ca0e07fd27208c0225e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T02:09:24+00:00",
+          "commit": "f04f0cefc01a44f8562ab72309b4e00356ff0367",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF069",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "1e1208cc2c2c5aa748643f36d696a3cc1e5b8a82",
+      "sha256": "ecdcd581f39edd12208b428e211c402ef9c4f107a34cbdcf8f227c26d951d8c1",
+      "bytes": 78756,
+      "lines": 601,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF069--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-09-05T04:10:56+00:00",
+          "commit": "429b8fa2b17cab32265f082eaf1d279676d25976",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T03:37:01+00:00",
+          "commit": "1d7328b99f9ea2f4109f1ca0e07fd27208c0225e",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF070",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "4065699c1de6f244b99d28eb702736a3741339e6",
+      "sha256": "5f3cb327cab5ceb12bc28f7cec995b0949c2d62397940c99221f2389e3bbb1c3",
+      "bytes": 79258,
+      "lines": 608,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF070--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-09-05T05:06:58+00:00",
+          "commit": "8ef9930e9e05e3f192d9b1f4016c60683c43f4d9",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T04:10:56+00:00",
+          "commit": "429b8fa2b17cab32265f082eaf1d279676d25976",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "PF071",
+      "path": "docs/GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "git_blob": "661756c62d527f6f53f4df7e5f7ac5e89f001fb5",
+      "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100",
+      "bytes": 79795,
+      "lines": 615,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/permanent-fix-history/PF071--GUALA_PERMANENT_FIX_REGRESSION_REGISTER.md",
+      "observations": [
+        {
+          "author_time": "2026-09-05T05:06:58+00:00",
+          "commit": "8ef9930e9e05e3f192d9b1f4016c60683c43f4d9",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    }
+  ],
+  "base": "PF071",
+  "base_lines": 615,
+  "historical_only_passages": [
+    {
+      "source_id": "PF001",
+      "start_line": 25,
+      "end_line": 25,
+      "latest_id": "PF071",
+      "latest_start_line": 25,
+      "latest_end_line": 25,
+      "kind": "replace",
+      "text": "| F-001 | One resident organism restores only from authenticated `CURRENT`; identity survives cutover. | Ghost successor organisms, alternate restore authority, or observer-owned cognition. | Confirm one running writer, one `CURRENT` lineage, and unchanged organism identity after cutover. | Production task 1280 reports identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; detailed custody evidence remains in the A-009/A-011 ledgers. |"
+    },
+    {
+      "source_id": "PF001",
+      "start_line": 28,
+      "end_line": 29,
+      "latest_id": "PF071",
+      "latest_start_line": 28,
+      "latest_end_line": 29,
+      "kind": "replace",
+      "text": "| F-004 | Coincidence-based layer-11 to motor/articulatory fan-out is deleted and the contaminated pool was removed one way. | Authoring every simultaneous ordering/motor pair; restart restoration of the approximately 97,000 removed contacts. | Check authorship requires the retained directed causal chain; restore census must keep contaminated-pool count zero. | Live cleanup cut over in the task-1248 lineage; successor task 1280 retained the corrected body. |\n| F-005 | Contact settlement uses the mounted event frontier and the old unconditional full-contact sweep is deleted. | Production reachability of the old whole-fabric sweep or a second scheduler authority. | Inspect the production call graph and observe due/sleeping census from the sole resident frontier. | Task-1248 lineage and later releases; detailed scheduler evidence in A-006. |"
+    },
+    {
+      "source_id": "PF001",
+      "start_line": 31,
+      "end_line": 31,
+      "latest_id": "PF071",
+      "latest_start_line": 31,
+      "latest_end_line": 31,
+      "kind": "replace",
+      "text": "| F-007 | Persistence encoding/copying is outside the ordinary cognitive settlement critical section. | Whole-body seal or cloud copy pausing every physical interval. | Per-interval timing must show custody outside settlement and one bounded custodian. | Task-1248 lineage and later releases; A-006 runtime evidence. |"
+    },
+    {
+      "source_id": "PF001",
+      "start_line": 35,
+      "end_line": 35,
+      "latest_id": "PF071",
+      "latest_start_line": 53,
+      "latest_end_line": 56,
+      "kind": "replace",
+      "text": "## Current candidate"
+    },
+    {
+      "source_id": "PF001",
+      "start_line": 37,
+      "end_line": 39,
+      "latest_id": "PF071",
+      "latest_start_line": 58,
+      "latest_end_line": 63,
+      "kind": "replace",
+      "text": "| ID | Correction in progress | Regression scope |\n|---|---|---|\n| C-001 | Give the two root-yaw directional endings compact, disjoint layer-6 and layer-8 projection slots instead of recursively Cantor-projecting them into a 93,824,443 pF regulation membrane; retire every contact incident to the malformed historical paths at the V32 one-way boundary. | Source-complete. Must preserve F-001 through F-009. It changes only root-yaw anatomical address derivation and cold contact retirement; no DSF field, observer, action label, event law, or motor-output law changes. Focused proofs: `body_terminal_integration_places_follow_the_existing_sensory_geography`, `moved_root_terminal_mounts_only_its_paired_sensorimotor_reflex`, and `v32_retires_misprojected_root_yaw_paths_once` all pass. Live cutover evidence remains pending. |"
+    },
+    {
+      "source_id": "PF001",
+      "start_line": 41,
+      "end_line": 41,
+      "latest_id": "PF071",
+      "latest_start_line": 65,
+      "latest_end_line": 65,
+      "kind": "replace",
+      "text": "## Candidate C-001 preservation check"
+    },
+    {
+      "source_id": "PF001",
+      "start_line": 43,
+      "end_line": 43,
+      "latest_id": "PF071",
+      "latest_start_line": 67,
+      "latest_end_line": 226,
+      "kind": "replace",
+      "text": "| Prior fix | Result before commit |"
+    },
+    {
+      "source_id": "PF001",
+      "start_line": 45,
+      "end_line": 53,
+      "latest_id": "PF071",
+      "latest_start_line": 228,
+      "latest_end_line": 237,
+      "kind": "replace",
+      "text": "| F-001 one organism | Preserved: V32 is a one-way rewrite of the same resident state; no new organism owner or restore path. |\n| F-002 unattended life | Preserved: no loop, request, or observer code changed. |\n| F-003 connected-path settlement | Preserved: no solver or DSF equation changed. |\n| F-004 fan-out cleanup | Preserved: the shared retirement helper keeps V31's exact contaminated-pool removal and the existing motor authorship law. |\n| F-005 event frontier | Preserved: no event selection or scheduling code changed; retired-path frontier entries are removed with their retired bonds. |\n| F-006 passive return | Preserved: no membrane return, pump, carrier, energy, work, or heat law changed. |\n| F-007 custody outside cognition | Preserved: no runtime, custodian, seal cadence, or cloud path changed. |\n| F-008 read-only observers | Preserved: no observation surface changed. |\n| F-009 membrane-owned motor output | Preserved by the paired-reflex proof: preparation remains an exact contact transfer and output remains exact positive local membrane discharge. |"
+    },
+    {
+      "source_id": "PF002",
+      "start_line": 36,
+      "end_line": 36,
+      "latest_id": "PF071",
+      "latest_start_line": 53,
+      "latest_end_line": 56,
+      "kind": "replace",
+      "text": "## Current open correction"
+    },
+    {
+      "source_id": "PF002",
+      "start_line": 38,
+      "end_line": 38,
+      "latest_id": "PF071",
+      "latest_start_line": 58,
+      "latest_end_line": 179,
+      "kind": "replace",
+      "text": "| ID | Correction in progress | Regression scope |"
+    },
+    {
+      "source_id": "PF002",
+      "start_line": 40,
+      "end_line": 40,
+      "latest_id": "PF071",
+      "latest_start_line": 181,
+      "latest_end_line": 222,
+      "kind": "replace",
+      "text": "| O-001 | The corrected root route is live, but no unattended root motor discharge has yet occurred. Determine whether its exact resident excitation/recovery timing is lawful or still contains a local coupling defect; do not alter DSF or fabricate an action. | Every candidate must preserve F-001 through F-010. A lesson is not claimed landed until the native motor discharges, the world applies it, all applicable consequences return to the same identity, and unattended life continues. |"
+    },
+    {
+      "source_id": "PF003",
+      "start_line": 47,
+      "end_line": 51,
+      "latest_id": "PF071",
+      "latest_start_line": 188,
+      "latest_end_line": 200,
+      "kind": "replace",
+      "text": "- Still open: the motor retains arriving charge but its ordinary quiescent\n  gate cannot open because its mounted anatomy contains no voltage, chemical,\n  or Psi opening drive. No action is claimed from arrival alone.\n- Next acceptance: an explicitly physical efferent specialization must produce\n  the motor's own local whole-carrier discharge; then the live world must move,"
+    },
+    {
+      "source_id": "PF004",
+      "start_line": 40,
+      "end_line": 40,
+      "latest_id": "PF071",
+      "latest_start_line": 181,
+      "latest_end_line": 181,
+      "kind": "replace",
+      "text": "| O-001 | The corrected root route is live. A copied authenticated body now produces the motor's own seven-carrier terminal discharge; live world application, returned consequences, and continued unattended life remain to be cut over and witnessed. | Every candidate must preserve F-001 through F-010. A lesson is not claimed landed until the native motor discharges, the world applies it, all applicable consequences return to the same identity, and unattended life continues. |"
+    },
+    {
+      "source_id": "PF005",
+      "start_line": 28,
+      "end_line": 28,
+      "latest_id": "PF071",
+      "latest_start_line": 28,
+      "latest_end_line": 28,
+      "kind": "replace",
+      "text": "| F-004 | Coincidence-based layer-11 to motor/articulatory fan-out is deleted and the contaminated pool was removed one way. | Authoring every simultaneous ordering/motor pair; restart restoration of the approximately 97,000 removed contacts. | Check authorship requires the retained directed causal chain; restore census must keep contaminated-pool count zero. | Live cleanup cut over in the task-1248 lineage; successor task 1280 retained the corrected body. |"
+    },
+    {
+      "source_id": "PF007",
+      "start_line": 28,
+      "end_line": 28,
+      "latest_id": "PF071",
+      "latest_start_line": 28,
+      "latest_end_line": 28,
+      "kind": "replace",
+      "text": "| F-004 | **Reopened 2026-08-28.** Coincidence-based layer-11 to motor/articulatory fan-out was removed on task 1248, but the later root-yaw bootstrap again treated unrelated preceding layer-11 cells as motor-authoring evidence. The local V33 candidate removes that exception and re-runs the one-way cleanup on the same organism. | Authoring every simultaneous or merely preceding ordering/motor pair; guided movement as contact authority; restart restoration of the removed contacts. | Require the exact two-interval ordering -> affective -> regulation chain for every learned motor contact, including root yaw; migrate V32 -> V33; verify the layer-11/layer-12 and historical layer-13 pools stay absent across unattended live intervals and restart. | Local source and restart proofs pass; production task 1283 remains V32 and is **not yet corrected**. Do not cite the task-1248/1280 closure as current proof. |"
+    },
+    {
+      "source_id": "PF008",
+      "start_line": 28,
+      "end_line": 28,
+      "latest_id": "PF071",
+      "latest_start_line": 28,
+      "latest_end_line": 28,
+      "kind": "replace",
+      "text": "| F-004 | Coincidence-based layer-11 to motor/articulatory fan-out is removed. Root-guided movement is not contact-authoring evidence; every learned motor contact, including root yaw, requires the exact two-interval ordering -> affective -> regulation chain. | Authoring every simultaneous or merely preceding ordering/motor pair; guided movement as contact authority; restart restoration of the removed contacts. | Require the exact causal-chain falsifiers; require V33 CURRENT with no V32 cognitive segment; observe a bounded exact event frontier across unattended live intervals; recheck after every later motor or articulatory change. | **Closed again 2026-08-28 on production task 1284**, commit `6e6d220b656bb36fa4fffbc5d0cf3f3e07818386`. Same identity, one writer, V33-only persisted CURRENT, ticks 211191 through at least 211288, and approximately 3,151 scheduled contacts rather than the former approximately 95,000-contact population. |"
+    },
+    {
+      "source_id": "PF009",
+      "start_line": 36,
+      "end_line": 36,
+      "latest_id": "PF071",
+      "latest_start_line": 36,
+      "latest_end_line": 175,
+      "kind": "replace",
+      "text": "| F-012 | Innate vocal anatomy is one fixed bridge from the ten antagonist terminals of the five physical vocal axes to one layer-13 excitation cell; learned meaning remains upstream and sparse. | Requiring a prior utterance before mounting the anatomy needed for the first utterance; restoring the broad layer-13 coincidence pool; connecting a limb, eye, or unrelated motor to speech. | Migrate an exact V33 body with no speech bridge to V34; require ten and only ten vocal-motor contacts converging on one layer-13 cell; refuse non-vocal motor routes; require V34 restart identity. | Local V34 candidate: focused V33-to-V34 migration and articulatory suites pass. Live deployment and utterance evidence remain open. |"
+    },
+    {
+      "source_id": "PF012",
+      "start_line": 37,
+      "end_line": 37,
+      "latest_id": "PF071",
+      "latest_start_line": 37,
+      "latest_end_line": 63,
+      "kind": "replace",
+      "text": "| F-013 | Root translation returns through the same organism as sensory proprioception and cannot feed directly back into the translation motor. Explicit migration must traverse current-body structural corrections even when the format magic is already current. | The stale place-6/178-pF motor; any direct layer-8 -> translation-motor contact; counting returned feedback as another command; or a current-format early return that skips the one-way repair. | Restore and explicitly migrate a copied production CURRENT twice to identical bytes; require the fixed terminal at its exact declared place, no layer-8 motor contact, then complete one full returned translation consequence with zero repeated recruitment. Synthetic helper fixtures alone are forbidden closure evidence. | **Copied-live regression passed locally 2026-08-29:** task-1312 body, same identity, tick 246557 -> 246558, full native successor sealed. Commits `de856a63` (migration bypassed in production) and `04429e17` (feedback classification only) are recorded failed attempts, not accepted fixes. Live closure remains pending the final cutover. |"
+    },
+    {
+      "source_id": "PF013",
+      "start_line": 37,
+      "end_line": 37,
+      "latest_id": "PF071",
+      "latest_start_line": 37,
+      "latest_end_line": 63,
+      "kind": "replace",
+      "text": "| F-013 | Root translation returns through the same organism as sensory proprioception and cannot feed directly back into the translation motor. Explicit migration must traverse current-body structural corrections even when the format magic is already current. | The stale place-6/178-pF motor; any direct layer-8 -> translation-motor contact; counting returned feedback as another command; or a current-format early return that skips the one-way repair. | Restore and explicitly migrate a copied production CURRENT twice to identical bytes; require the fixed terminal at its exact declared place, no layer-8 motor contact, then complete one full returned translation consequence with zero repeated recruitment. Synthetic helper fixtures alone are forbidden closure evidence. | **Open.** Copied task-1312 regression passed locally, but live task 1313 moved x=6705 -> 6706 and then refused the sensory transition with `gate exceeds declared maximum causal interval`. The former lineage-authority refusal did not recur, but same-organism consequence closure is not proved. Commits `de856a63` and `04429e17` remain recorded failed attempts. |"
+    },
+    {
+      "source_id": "PF014",
+      "start_line": 31,
+      "end_line": 31,
+      "latest_id": "PF071",
+      "latest_start_line": 31,
+      "latest_end_line": 31,
+      "kind": "replace",
+      "text": "| F-007 | Ordinary cognition is not sealed on every interval; the current cadence seals every fourth interval. | Calling the unused snapshot API a mounted custodian, claiming checkpoint work is off-lock, or restoring per-interval whole-body publication. | Inspect the production call graph, not comments: until a bounded custodian is actually called outside `_transition_lock`, record checkpoint sealing/stage/publish as synchronous lock-held work. | **Reconciled Partial 2026-08-29.** Three intervals defer persistence, but the fourth seals and publishes synchronously under `_transition_lock`; no background custodian thread is mounted. |"
+    },
+    {
+      "source_id": "PF015",
+      "start_line": 46,
+      "end_line": 46,
+      "latest_id": "PF071",
+      "latest_start_line": 70,
+      "latest_end_line": 175,
+      "kind": "replace",
+      "text": "| R-002 | **Open — the same defect has recurred 33 times; reproduced on production tasks 1317 through 1320.** Recovery is physical and native thought recurs, but every observed interval still recruits an action, so no action-free rest interval can occur. | Treating any layer-11 transfer in the wider compact electrical settlement as a motor command even when its sender is absent from the current causal seed. This resurrects the C-021 attempt-2 defect: background balancing current becomes motor preparation and keeps the organism continuously acting. | Ordinary body, root-yaw, and root-translation preparation must all require the exact sender in the current causal seed. Preserve the typed layer-8 reacted-load reflex and root-yaw's separately retained prepared terminal. Prove unseeded layer-11 transfer is refused on all three paths, seeded action remains possible, and live production shows recovery followed by action-free internal recurrence and a later physical action with returned consequence. |"
+    },
+    {
+      "source_id": "PF016",
+      "start_line": 46,
+      "end_line": 46,
+      "latest_id": "PF071",
+      "latest_start_line": 70,
+      "latest_end_line": 175,
+      "kind": "replace",
+      "text": "| R-002 | **Open — the same defect has recurred 33 times; reproduced on production tasks 1317 through 1321.** Recovery is physical and native thought recurs, but every observed interval still recruits an action, so no action-free rest interval can occur. Task 1321 proved that a downstream motor predicate alone is insufficient: 127 motors still recruited. | Commit `9228fa81` promoted an unseeded scheduled carrier crossing into `ActiveElectricalFrontierEntry`. That gave the physical maintenance schedule cognitive/action authority and resurrected C-021 attempt 2: background balancing current becomes motor preparation and keeps the organism continuously acting. | Scheduled crossings must remain physical settlement only; changed endpoints continue through the independent incident-contact wake law, but an unseeded scheduled crossing must never enter the cognitive frontier. Ordinary body, root-yaw, and root-translation preparation must additionally require the exact causal frontier. Preserve the typed layer-8 reacted-load reflex and root-yaw's separately retained prepared terminal. Prove unseeded scheduled settlement creates no action authority, seeded action remains possible, and live production shows recovery followed by action-free internal recurrence and a later physical action with returned consequence. |"
+    },
+    {
+      "source_id": "PF018",
+      "start_line": 47,
+      "end_line": 47,
+      "latest_id": "PF071",
+      "latest_start_line": 71,
+      "latest_end_line": 175,
+      "kind": "replace",
+      "text": "| R-003 | **Open candidate 2026-08-29.** The eight persisted vocal-tract section areas were immutable parameters rather than body axes, so six airway sections could never be changed by native motor activity. | Duplicating the areas beside the body axes; adding phonemes, word targets, stored waveforms or Python speech authority; moving any of the original 37 axes, 74 terminal addresses, or six root-motion addresses; assigning new motor neurons arbitrary fixed places that may collide with developed resident anatomy. | Keep the body checkpoint exactly 195 bytes; decode V1's eight areas into eight appended axes; retain every old address; append 16 new receptor/load endings after root motion; claim layer-12 motor cells through the existing dormant-anatomy law; require a tract-only drive to change exact proprioception and the resulting physical pressure; then cold-restore the same live identity and prove one-way V2 persistence. |"
+    },
+    {
+      "source_id": "PF019",
+      "start_line": 47,
+      "end_line": 47,
+      "latest_id": "PF071",
+      "latest_start_line": 71,
+      "latest_end_line": 175,
+      "kind": "replace",
+      "text": "| R-003 | **Closed live 2026-08-29 on task 1330.** The eight persisted vocal-tract section areas are appended physical body axes with their own receptors, regulation cells, antagonist motors, one bounded first-use calibration, and exact returned proprioception. | Duplicating the areas beside the body axes; adding phonemes, word targets, stored waveforms or Python speech authority; moving any original terminal address; recurring tonic-pose motor drive; or reopening first-use calibration after V3 has recorded it consumed. | Keep the body checkpoint exactly 195 bytes; decode V1/V2 into the appended axes without moving old addresses; admit the complete 45-axis position source only once; reject sparse consequences as calibration authority; preserve V3's consumed flag across restart. Commit `88b05fe1`, task 1330, same identity: live sections 0, 2, 3, 4, 5, and 7 physically moved while sections 1 and 6 lawfully remained unchanged; the admission then reported initialized. |"
+    },
+    {
+      "source_id": "PF025",
+      "start_line": 47,
+      "end_line": 47,
+      "latest_id": "PF071",
+      "latest_start_line": 47,
+      "latest_end_line": 63,
+      "kind": "replace",
+      "text": "| F-023 | Continuous browser audiovisual ingress is a microphone-clocked sequence of exact 250 ms pressure hops, each paired at capture time with its own camera frame; at most eight current hops may exist locally, and transport failure discards the failed window without closing either sense. | Pairing independently timed camera and microphone queues; stopping senses on tab visibility or one failed request; retaining a stale backlog; retrying device permission denial; letting UI/observer state acquire cognition authority. | Require page syntax and focused audiovisual/lifecycle contracts; verify the exact committed public bytes; retain epoch/abort ownership, bounded queue eviction, exact native audiovisual cardinality, and one resident organism across cutover; sustained real-device/resource proof remains mandatory before claiming 24/7 closure. | **Deployed, sustained-device proof open, 2026-08-30 on task 1377**, commit `d08fd2dd`. The same organism advanced beyond tick 333757; CloudFront invalidation `IF583CTHPSF6GKUQ9XN8JFQC6P` completed; local and public page SHA-256 are both `4d9c99854988767e911aa447695a414683f861f6a1137c504263e565ef1f136b`. |"
+    },
+    {
+      "source_id": "PF026",
+      "start_line": 47,
+      "end_line": 47,
+      "latest_id": "PF071",
+      "latest_start_line": 47,
+      "latest_end_line": 63,
+      "kind": "replace",
+      "text": "| F-023 | Continuous browser audiovisual ingress is a microphone-clocked sequence of exact 250 ms pressure hops, each paired at capture time with its own camera frame; at most eight current hops may exist locally, and transport failure discards the failed window without closing either sense. “Microphone active” requires the browser audio clock to be running and real PCM samples to have arrived; permission alone is not activity. | Pairing independently timed camera and microphone queues; using the foreground-timer `ScriptProcessor` for continuous capture; reporting permission as live samples; failing to resume or verify the audio clock; stopping senses on tab visibility or one failed request; retaining a stale backlog; retrying device permission denial; letting UI/observer state acquire cognition authority. | Require page syntax and focused audiovisual/lifecycle contracts; use the browser audio-thread worklet, explicitly resume/verify its clock, and refuse the active-samples label until PCM arrives; verify the exact committed public bytes; retain epoch/abort ownership, bounded queue eviction, exact native audiovisual cardinality, and one resident organism across cutover; sustained real-device/resource proof remains mandatory before claiming 24/7 closure. | **Deployed, sustained-device proof open, 2026-08-30 on task 1377**, service commit `d08fd2dd`, UI correction `f686ec0b`. The same organism was not restarted. CloudFront invalidation `ICTE7OCZB8AW2QIXUCXRZR7M2V` completed; local and public page SHA-256 are both `84020681f72b5d134a1cf9ae55cb1eb370f189d600ca906013c5fa36386ff04b`. |"
+    },
+    {
+      "source_id": "PF027",
+      "start_line": 47,
+      "end_line": 47,
+      "latest_id": "PF071",
+      "latest_start_line": 47,
+      "latest_end_line": 63,
+      "kind": "replace",
+      "text": "| F-023 | Continuous browser audiovisual ingress is a microphone-clocked sequence of exact 250 ms pressure hops, each paired at capture time with its own camera frame; at most eight current hops may exist locally, and transport failure discards the failed window without closing either sense. “Microphone active” requires the browser audio clock to be running and real PCM samples to have arrived; permission alone is not activity. Long native settlement remains owned by the production transport boundary rather than a shorter competing page timer. | Pairing independently timed camera and microphone queues; using the foreground-timer `ScriptProcessor` for continuous capture; reporting permission as live samples; failing to resume or verify the audio clock; adding a page abort shorter than the organism's measured settlement; stopping senses on tab visibility or one failed request; retaining a stale backlog; retrying device permission denial; letting UI/observer state acquire cognition authority. | Require page syntax and focused audiovisual/lifecycle contracts; use the browser audio-thread worklet, explicitly resume/verify its clock, and refuse the active-samples label until PCM arrives; leave in-flight request lifetime to user/device/page abort plus the measured production load-balancer boundary; verify the exact committed public bytes; retain epoch/abort ownership, bounded queue eviction, exact native audiovisual cardinality, and one resident organism across cutover; sustained real-device/resource proof remains mandatory before claiming 24/7 closure. | **Deployed, sustained-device proof open, 2026-08-30 on task 1377**, service commit `d08fd2dd`, UI corrections `f686ec0b` and `7c85d20b`. The same organism was not restarted. CloudFront invalidation `I2UTJV37IAWHJ4A7Y48ENE0UTV` completed; local and public page SHA-256 are both `4cd51e39667a801c406c2dd5004ffba34fa0caa6227ebfb888100cfce41a3cee`. |"
+    },
+    {
+      "source_id": "PF028",
+      "start_line": 47,
+      "end_line": 47,
+      "latest_id": "PF071",
+      "latest_start_line": 47,
+      "latest_end_line": 63,
+      "kind": "replace",
+      "text": "| F-023 | Continuous browser audiovisual ingress is a microphone-clocked sequence of exact 250 ms pressure hops, each paired at capture time with its own camera frame; at most eight current hops may exist locally, and transport failure discards the failed window without closing either sense. “Microphone active” requires the browser audio clock to be running and real PCM samples to have arrived; permission alone is not activity. Both capture and window dispatch are driven by arrival of those audio-clock samples, never by a foreground page timer. Long native settlement remains owned by the production transport boundary rather than a shorter competing page timer. | Pairing independently timed camera and microphone queues; using the foreground-timer `ScriptProcessor` for continuous capture; dispatching audio-clocked windows from a normal page `setTimeout` loop that browsers throttle in hidden tabs; reporting permission as live samples; failing to resume or verify the audio clock; adding a page abort shorter than the organism's measured settlement; stopping senses on tab visibility or one failed request; retaining a stale backlog; retrying device permission denial; letting UI/observer state acquire cognition authority. | Require page syntax and focused audiovisual/lifecycle contracts; use the browser audio-thread worklet, dispatch directly when its PCM arrival completes a bounded current window, explicitly resume/verify its clock, and refuse the active-samples label until PCM arrives; permit a timer only as a one-time missing-clock watchdog; leave in-flight request lifetime to user/device/page abort plus the measured production load-balancer boundary; verify the exact committed public bytes; retain epoch/abort ownership, bounded queue eviction, exact native audiovisual cardinality, and one resident organism across cutover; sustained real-device/resource proof remains mandatory before claiming 24/7 closure. | **Deployed through the foreground-dispatch defect; event-driven correction locally proven and awaiting static publication, 2026-08-30 on task 1377.** Service commit `d08fd2dd`; prior UI corrections `f686ec0b` and `7c85d20b`. Live evidence before the final correction showed paired intake and bounded body size but 60–100+ second hidden-tab dispatch gaps. The same organism was not restarted. Prior local/public page SHA-256: `4cd51e39667a801c406c2dd5004ffba34fa0caa6227ebfb888100cfce41a3cee`. |"
+    },
+    {
+      "source_id": "PF029",
+      "start_line": 47,
+      "end_line": 47,
+      "latest_id": "PF071",
+      "latest_start_line": 47,
+      "latest_end_line": 63,
+      "kind": "replace",
+      "text": "| F-023 | Continuous browser audiovisual ingress is a microphone-clocked sequence of exact 250 ms pressure hops, each paired at capture time with its own camera frame; at most eight current hops may exist locally, and transport failure discards the failed window without closing either sense. “Microphone active” requires the browser audio clock to be running and real PCM samples to have arrived; permission alone is not activity. Both capture and window dispatch are driven by arrival of those audio-clock samples, never by a foreground page timer. Long native settlement remains owned by the production transport boundary rather than a shorter competing page timer. | Pairing independently timed camera and microphone queues; using the foreground-timer `ScriptProcessor` for continuous capture; dispatching audio-clocked windows from a normal page `setTimeout` loop that browsers throttle in hidden tabs; reporting permission as live samples; failing to resume or verify the audio clock; adding a page abort shorter than the organism's measured settlement; stopping senses on tab visibility or one failed request; retaining a stale backlog; retrying device permission denial; letting UI/observer state acquire cognition authority. | Require page syntax and focused audiovisual/lifecycle contracts; use the browser audio-thread worklet, dispatch directly when its PCM arrival completes a bounded current window, explicitly resume/verify its clock, and refuse the active-samples label until PCM arrives; permit a timer only as a one-time missing-clock watchdog; leave in-flight request lifetime to user/device/page abort plus the measured production load-balancer boundary; verify the exact committed public bytes; retain epoch/abort ownership, bounded queue eviction, exact native audiovisual cardinality, and one resident organism across cutover; sustained real-device/resource proof remains mandatory before claiming 24/7 closure. | **Event-driven correction live; sustained-device proof open, 2026-08-30 on task 1377.** Service commit `d08fd2dd`; UI commits `f686ec0b`, `7c85d20b`, and `a8d4bb4e`. Live evidence before the final correction showed paired intake and bounded body size but 60–100+ second hidden-tab dispatch gaps. The page-only cutover did not restart or replace the organism. CloudFront invalidation `IBYNDX296ZRM6FO2X479CGP54F` completed; committed local and public SHA-256 are both `029dc48fa0849370bd6ee9624158274402903e245dede1863b502dd0746b75dc`. |"
+    },
+    {
+      "source_id": "PF030",
+      "start_line": 47,
+      "end_line": 48,
+      "latest_id": "PF071",
+      "latest_start_line": 47,
+      "latest_end_line": 63,
+      "kind": "replace",
+      "text": "| F-023 | Continuous browser audiovisual ingress is a microphone-clocked sequence of exact 250 ms pressure hops, each paired at capture time with its own camera frame; at most eight current hops may exist locally, and transport failure discards the failed window without closing either sense. “Microphone active” requires the browser audio clock to be running and real PCM samples to have arrived; permission alone is not activity. Both capture and window dispatch are driven by arrival of those audio-clock samples, never by a foreground page timer. Long native settlement remains owned by the production transport boundary rather than a shorter competing page timer. | Pairing independently timed camera and microphone queues; using the foreground-timer `ScriptProcessor` for continuous capture; dispatching audio-clocked windows from a normal page `setTimeout` loop that browsers may throttle; reporting permission as live samples; failing to resume or verify the audio clock; adding a page abort shorter than the organism's measured settlement; stopping senses on tab visibility or one failed request; retaining a stale backlog; retrying device permission denial; letting UI/observer state acquire cognition authority. | Require page syntax and focused audiovisual/lifecycle contracts; use the browser audio-thread worklet, dispatch directly when its PCM arrival completes a bounded current window, explicitly resume/verify its clock, and refuse the active-samples label until PCM arrives; permit a timer only as a one-time missing-clock watchdog; leave in-flight request lifetime to user/device/page abort plus the measured production load-balancer boundary; verify the exact committed public bytes; retain epoch/abort ownership, bounded queue eviction, exact native audiovisual cardinality, and one resident organism across cutover; sustained real-device/resource proof remains mandatory before claiming 24/7 closure. | **Event-driven correction live; sustained-device proof open, 2026-08-30 on task 1377.** Service commit `d08fd2dd`; UI commits `f686ec0b`, `7c85d20b`, and `a8d4bb4e`. Post-cutover ALB evidence corrected the preliminary diagnosis: the browser offered each next window about 0.4 seconds after the preceding response; 29–102 seconds were target processing, not hidden-tab dispatch. The page-only cutover did not restart or replace the organism. CloudFront invalidation `IBYNDX296ZRM6FO2X479CGP54F` completed; committed local and public SHA-256 are both `029dc48fa0849370bd6ee9624158274402903e245dede1863b502dd0746b75dc`. |\n| F-024 | An arriving external sensory request announces itself on the request loop before its synchronous native route waits for a worker; unattended life may finish the one atomic interval already in flight but cannot start more intervals ahead of the waiting experience. | Implementing the admission signal as a synchronous generator dependency that can itself wait in the worker pool while the unattended loop starts successive 15–22 second intervals; interrupting an already-started native interval; or letting transport select cognition or action. | Require the dependency to be an async generator and preserve the existing global waiter count, event, non-blocking unattended lock, and `finally` release; focused proof checks both immediate dependency shape and the already-established unattended-yield behavior; live ALB and interval logs must show no newly started unattended interval between request arrival and native sensory settlement. | **Local correction proven; live cutover pending, 2026-08-30.** Refreshed-browser evidence showed one paired request spend 78.1 seconds at the target while three unattended intervals of 15.8, 22.2, and 17.5 seconds completed before the audiovisual settlement. |"
+    },
+    {
+      "source_id": "PF031",
+      "start_line": 47,
+      "end_line": 48,
+      "latest_id": "PF071",
+      "latest_start_line": 47,
+      "latest_end_line": 63,
+      "kind": "replace",
+      "text": "| F-023 | Continuous browser audiovisual ingress is a microphone-clocked sequence of exact 250 ms pressure hops, each paired at capture time with its own camera frame; at most eight current hops may exist locally, and transport failure discards the failed window without closing either sense. “Microphone active” requires the browser audio clock to be running and real PCM samples to have arrived; permission alone is not activity. Both capture and window dispatch are driven by arrival of those audio-clock samples, never by a foreground page timer. Long native settlement remains owned by the production transport boundary rather than a shorter competing page timer. A failed upload may arm exactly one bounded transport-retry window for the same live sense epoch; audio-clock callbacks cannot create parallel or repeated retries during that window. | Pairing independently timed camera and microphone queues; using the foreground-timer `ScriptProcessor` for continuous capture; dispatching audio-clocked windows from a normal page `setTimeout` loop that browsers may throttle; reporting permission as live samples; failing to resume or verify the audio clock; adding a page abort shorter than the organism's measured settlement; stopping senses on tab visibility or one failed request; retaining a stale backlog; retrying device permission denial; allowing every audio callback to retry a failed upload during a target outage; letting UI/observer state acquire cognition authority. | Require page syntax and focused audiovisual/lifecycle contracts; use the browser audio-thread worklet, dispatch directly when its PCM arrival completes a bounded current window, explicitly resume/verify its clock, and refuse the active-samples label until PCM arrives; permit timers only as a one-time missing-clock watchdog and one epoch-owned transport-retry window; leave in-flight request lifetime to user/device/page abort plus the measured production load-balancer boundary; verify the exact committed public bytes; retain epoch/abort ownership, bounded queue eviction, exact native audiovisual cardinality, and one resident organism across cutover; sustained real-device/resource proof remains mandatory before claiming 24/7 closure. | **Event-driven correction live; sustained-device proof open, 2026-08-30 on task 1378.** Service commits `d08fd2dd` and `46054734`; UI commits `f686ec0b`, `7c85d20b`, and `a8d4bb4e`. Post-cutover ALB evidence corrected the preliminary diagnosis: the browser offered each next window about 0.4 seconds after the preceding response; 29–102 seconds were target processing, not hidden-tab dispatch. The task-1378 zero-target handoff then exposed a retry burst: rejected uploads never entered the organism, but audio callbacks retried after each fast rejection. The page correction now permits exactly one epoch-owned retry window and clears it when the sense closes. The page-only cutover did not restart or replace the organism. |\n| F-024 | An arriving external sensory request announces itself on the request loop before its synchronous native route waits for a worker; unattended life may finish the one atomic interval already in flight but cannot start more intervals ahead of the waiting experience. | Implementing the admission signal as a synchronous generator dependency that can itself wait in the worker pool while the unattended loop starts successive 15–22 second intervals; interrupting an already-started native interval; or letting transport select cognition or action. | Require the dependency to be an async generator and preserve the existing global waiter count, event, non-blocking unattended lock, and `finally` release; focused proof checks both immediate dependency shape and the already-established unattended-yield behavior; live ALB and interval logs must show no newly started unattended interval between request arrival and native sensory settlement. | **Local correction proven; live cutover pending, 2026-08-30.** Refreshed-browser evidence showed one paired request spend 78.1 seconds at the target while three unattended intervals of 15.8, 22.2, and 17.5 seconds completed before the audiovisual settlement. |"
+    },
+    {
+      "source_id": "PF032",
+      "start_line": 48,
+      "end_line": 48,
+      "latest_id": "PF071",
+      "latest_start_line": 48,
+      "latest_end_line": 63,
+      "kind": "replace",
+      "text": "| F-024 | An arriving external sensory request announces itself on the request loop before its synchronous native route waits for a worker; unattended life may finish the one atomic interval already in flight but cannot start more intervals ahead of the waiting experience. | Implementing the admission signal as a synchronous generator dependency that can itself wait in the worker pool while the unattended loop starts successive 15–22 second intervals; interrupting an already-started native interval; or letting transport select cognition or action. | Require the dependency to be an async generator and preserve the existing global waiter count, event, non-blocking unattended lock, and `finally` release; focused proof checks both immediate dependency shape and the already-established unattended-yield behavior; live ALB and interval logs must show no newly started unattended interval between request arrival and native sensory settlement. | **Local correction proven; live cutover pending, 2026-08-30.** Refreshed-browser evidence showed one paired request spend 78.1 seconds at the target while three unattended intervals of 15.8, 22.2, and 17.5 seconds completed before the audiovisual settlement. |"
+    },
+    {
+      "source_id": "PF033",
+      "start_line": 48,
+      "end_line": 49,
+      "latest_id": "PF071",
+      "latest_start_line": 48,
+      "latest_end_line": 63,
+      "kind": "replace",
+      "text": "| F-024 | An arriving external sensory request announces itself on the request loop before its synchronous native route waits for a worker; unattended life may finish the one atomic interval already in flight but cannot start more intervals ahead of the waiting experience. | Implementing the admission signal as a synchronous generator dependency that can itself wait in the worker pool while the unattended loop starts successive 15–22 second intervals; interrupting an already-started native interval; or letting transport select cognition or action. | Require the dependency to be an async generator and preserve the existing global waiter count, event, non-blocking unattended lock, and `finally` release; focused proof checks both immediate dependency shape and the already-established unattended-yield behavior; live ALB and interval logs must show no newly started unattended interval between request arrival and native sensory settlement. | **Closed live on task 1378, 2026-08-30**, commit `46054734`. The request-loop admission signal now precedes worker scheduling; clean four-hop audiovisual target work measured 25.499 seconds without the former several-unattended-interval preemption sequence. |\n| F-025 | The exact world, visual, auditory, tactile, chemical, thermal and sparse body consequences of one action coexist at their receptors in one physical interval and the shared resident fabric settles once. | Passing coexisting consequence sources through the ordered-trajectory helper so every source becomes another organism tick; dropping body consequences to save time; merging or flattening their distinct DSF occurrences; or giving an observer authority over the grouping. | Require each source to retain its own authenticated episode, occurrence admissions and full seven-field evaluation; refuse sources with unequal physical duration; prove two coexisting sources advance one organism tick and produce one causal-interval record while the same sources through the temporal API advance two; live action evidence must report one consequence interval under the same resident identity. | **Local correction compiled and focused falsifier passed; production cutover pending, 2026-08-30.** The new coexisting admission boundary is domain-separated from temporal trajectory authority; L0-L4 and all source-local DSF fields remain unchanged. |"
+    },
+    {
+      "source_id": "PF034",
+      "start_line": 48,
+      "end_line": 48,
+      "latest_id": "PF071",
+      "latest_start_line": 48,
+      "latest_end_line": 48,
+      "kind": "replace",
+      "text": "| F-024 | An arriving external sensory request announces itself on the request loop before its synchronous native route waits for a worker; unattended life may finish the one atomic interval already in flight but cannot start more intervals ahead of the waiting experience. | Implementing the admission signal as a synchronous generator dependency that can itself wait in the worker pool while the unattended loop starts successive 15–22 second intervals; interrupting an already-started native interval; or letting transport select cognition or action. | Require the dependency to be an async generator and preserve the existing global waiter count, event, non-blocking unattended lock, and `finally` release; focused proof checks both immediate dependency shape and the already-established unattended-yield behavior; live ALB and interval logs must show no newly started unattended interval between request arrival and native sensory settlement. | **Closed live on task 1378, 2026-08-30**, commit `46054734`. The request-loop admission signal now precedes worker scheduling; clean four-hop audiovisual target work measured 25.499 seconds without the former several-unattended-interval preemption sequence. |"
+    },
+    {
+      "source_id": "PF035",
+      "start_line": 50,
+      "end_line": 50,
+      "latest_id": "PF071",
+      "latest_start_line": 50,
+      "latest_end_line": 63,
+      "kind": "replace",
+      "text": "| F-026 | An unattended transport borrow ends after one exact physical hop so waiting external sight, sound, or other experience enters at the next physical boundary. | Calling eight successive 250 ms physical moments one \"interval\" and holding the transition lock across the whole trajectory; interrupting a physical hop already settling; or allowing transport priority to select cognition. | Require the unattended transport unit and world advance to equal exactly one declared 250 ms hop; preserve non-blocking external-wait admission before each hop; prove the relationship is locked in source and measure live ALB target wait after cutover. | **Local correction pending production proof, 2026-08-30.** The former eight-hop/two-second-lived borrow was measured holding a real audiovisual request for about 12 seconds before its own approximately seven-second work could begin. |"
+    },
+    {
+      "source_id": "PF036",
+      "start_line": 51,
+      "end_line": 51,
+      "latest_id": "PF071",
+      "latest_start_line": 51,
+      "latest_end_line": 63,
+      "kind": "replace",
+      "text": "| F-027 | Whole-body terminal energy observation uses available CPU without changing settlement or arithmetic order. | Serially walking every cohort's reservoir and every neuronal dissipation lane after each unsealed native advance; parallel-reducing exact rationals in a different order; or letting the observation feed back into physics. | Compute each independent cohort subtotal in parallel, collect subtotals in canonical cohort order, then perform the original exact BigRational accumulation in that unchanged order; compare the parallel result with the retained serial reference and require live timing before crediting a speed gain. | **Local correction pending production timing, 2026-08-30.** Rust compilation passed and the focused exact-equality falsifier passed. No physics, persistence bytes, L0-L4 field, or neuronal state changed. |"
+    },
+    {
+      "source_id": "PF037",
+      "start_line": 31,
+      "end_line": 31,
+      "latest_id": "PF071",
+      "latest_start_line": 31,
+      "latest_end_line": 31,
+      "kind": "replace",
+      "text": "| F-007 | Ordinary cognition never seals, encodes, stages, or uploads its body. One bounded external custodian prepares the exact resident checkpoint off the lived-time boundary, publishes as the sole `CURRENT` writer, then atomically adopts that same body as the resident recovery predecessor without replacing newer cognition. | Restoring the synchronous fourth-interval seal; mounting an independent checkpoint writer that advances `CURRENT` without native predecessor adoption; publishing a stale/abandoned trajectory; or encoding the snapshot twice. | Require the native newer-life/adopt/abort falsifier, exact raw-stage read-back, publish-before-adopt ordering, trajectory-epoch abandonment refusal, one custodian thread, and multiple live checkpoint cycles followed by uninterrupted sensory intake and cold restore. | **Local correction pending production cutover, 2026-08-30.** Native compilation and the focused recovery/adoption falsifier pass; 14 surrounding unattended/custody tests pass. Production task 1381 still carries the rejected synchronous fourth-moment seal until this candidate is deployed. |"
+    },
+    {
+      "source_id": "PF038",
+      "start_line": 61,
+      "end_line": 61,
+      "latest_id": "PF071",
+      "latest_start_line": 77,
+      "latest_end_line": 175,
+      "kind": "replace",
+      "text": "| R-005 | **Open — isolated live after F-007 closure on task 1382.** One exact one-second browser audiovisual window still expanded into 19 and then 16 native physical moments and took 49.580 and 44.347 seconds at the load balancer. All those moments reported `seal_ms=0`; checkpoint custody is no longer the cause. | Inserting action, body-consequence, vestibular, and self-hearing moments serially between already-captured consecutive world moments, thereby making one second of real sensory time create several seconds of additional organism time instead of letting the next exact world moment carry every consequence that physically coexists with it. | Preserve all four ordered 250 ms camera/microphone occurrences. Carry each action's exact applicable consequences into the immediately following physical interval beside that interval's real world/sensory sources, using the already-proven coexisting-source settlement; if no external moment is waiting, the next unattended world interval carries them. Drop no source, flatten no DSF field, pause no cognition, and prove one second admits exactly four organism moments with every consequence returned to the same identity. |"
+    },
+    {
+      "source_id": "PF039",
+      "start_line": 53,
+      "end_line": 53,
+      "latest_id": "PF071",
+      "latest_start_line": 53,
+      "latest_end_line": 63,
+      "kind": "replace",
+      "text": "| F-028 | A read-only observation refresh is never awaited by camera, microphone, action, speech, autonomy, or sensory dispatch. Observation may update independently after a committed transition but cannot hold a sense closed, delay the next capture, or acquire organism authority. | `await refreshObservation(...)` or any equivalent observer promise on a lived transport path; treating a report as the acknowledgement required to continue sensing. | Inspect every changed lived-path caller; the microphone sender must use a detached refresh and focused proof must reject an awaited refresh. Verify the exact public S3/CloudFront artifact, then measure consecutive real-device capture cadence. | **Correction live on task 1384 and public page origin, 2026-08-30**, commit `e94bed62`; focused browser proof 9/9, S3 origin SHA-256 `e452865611529ded01eac8667f29bf0b4c4345fa5c7b201bf636a64835a9b2b6`, CloudFront invalidation `I4J9X5SXD3VDRSUX422SWNFGZG`. Sustained real-device cadence remains part of R-005. |"
+    },
+    {
+      "source_id": "PF043",
+      "start_line": 55,
+      "end_line": 55,
+      "latest_id": "PF071",
+      "latest_start_line": 55,
+      "latest_end_line": 63,
+      "kind": "replace",
+      "text": "| F-030 | One exact 1 ms layer-13 discharge changes a bounded resident respiratory/laryngeal activation once; the body then carries its own exhalation and glottal cycles across physical intervals and restart until that activation exhausts. | Re-stretching the neuronal discharge, returning to millisecond pressure clicks, using a sensory interval as motor duration, scripting pressure/phonemes/words, or allowing body activation to grow without a fixed anatomical bound. | Restore the prior V4 body without inventing activation; require one discharge, nonzero pressure in every complete 160-sample glottal cycle of the bounded exhalation, zero additional applied motor quanta during continuation, exact cold persistence, and exact exhaustion without a timer or observer. Live closure additionally requires the emitted/self-heard WAV and bounded CPU/RAM/state evidence. | **Candidate source-present 2026-08-31; production open.** The focused native body gate passes 11/11. Direct task-1395 evidence before correction was 22, 22, and 27 nonzero samples in three successive 4,000-sample intervals, proving the click/buzz defect. |"
+    },
+    {
+      "source_id": "PF044",
+      "start_line": 55,
+      "end_line": 55,
+      "latest_id": "PF071",
+      "latest_start_line": 55,
+      "latest_end_line": 63,
+      "kind": "replace",
+      "text": "| F-030 | One exact 1 ms layer-13 discharge changes a bounded resident respiratory/laryngeal activation once; the body then carries its own exhalation and glottal cycles across physical intervals and restart until that activation exhausts. | Re-stretching the neuronal discharge, returning to millisecond pressure clicks, using a sensory interval as motor duration, scripting pressure/phonemes/words, allowing body activation to grow without a fixed anatomical bound, or letting an outer envelope assume the newest body width before reading the embedded body version. | Restore the prior V4 body without inventing activation; require one discharge, nonzero pressure in every complete 160-sample glottal cycle of the bounded exhalation, zero additional applied motor quanta during continuation, exact cold persistence, and exact exhaustion without a timer or observer. Embed that exact V4 body in a current organism envelope and prove migration does not consume the following acoustic-length, joint, or cognitive fields. Live closure additionally requires the emitted/self-heard WAV and bounded CPU/RAM/state evidence. | **Corrected candidate source-present 2026-08-31; production open.** The first candidate `bd3f0ca4` registered as task 1396 but failed startup with `InvalidLength`; production was restored to healthy task 1395. The version-directed outer-envelope falsifier and focused 15/15 articulated-body plus 11/11 articulatory-body gates pass. Direct task-1395 evidence before correction was 22, 22, and 27 nonzero samples in three successive 4,000-sample intervals, proving the click/buzz defect. |"
+    },
+    {
+      "source_id": "PF046",
+      "start_line": 28,
+      "end_line": 28,
+      "latest_id": "PF071",
+      "latest_start_line": 28,
+      "latest_end_line": 28,
+      "kind": "replace",
+      "text": "| F-004 | Coincidence-based layer-11 to motor/articulatory fan-out is removed. Root-guided movement is not contact-authoring evidence; every learned motor contact, including root yaw, requires the exact two-interval ordering -> affective -> regulation chain. | Authoring every simultaneous or merely preceding ordering/motor pair; guided movement as contact authority; restart restoration of the removed contacts. | Require the exact causal-chain falsifiers; require V33 CURRENT with no V32 cognitive segment; observe a bounded exact event frontier across unattended live intervals; recheck after every later motor or articulatory change. | **Recurrence found 2026-08-31; prior closure is not accepted as current.** Task 1397's exact body contains 26 layer-11 -> layer-12 vocal contacts attached to only two ordering cells. The V37 general whole-tract returned-sound branch reintroduced bounded fan-out after the V33 cleanup. See R-008. |"
+    },
+    {
+      "source_id": "PF046",
+      "start_line": 66,
+      "end_line": 66,
+      "latest_id": "PF071",
+      "latest_start_line": 74,
+      "latest_end_line": 75,
+      "kind": "replace",
+      "text": "| R-008 | **Source and exact frozen-body correction complete; live cutover pending.** Task 1397 at tick 344995 has all 26 vocal antagonist terminals attached to only two ordering cells, 23 plus 3. This is the same forbidden fan-out class as F-004, reintroduced by V37's general whole-tract returned-sound branch. | Letting general breath, glottis, mouth, perioral or self-hearing evidence identify every vocal motor that discharged nearby in time; preserving unprovable contacts or their dependent formations as learned truth; restoring them after restart. | Delete the ambiguous authorship branch; retain only exact-axis proprioceptive motor authorship; migrate V37 once to remove the 26 false contacts and dependent false formations; require 26 fixed layer-12 -> layer-13 contacts, all 1,809 neurons, identity and tick unchanged, and idempotent restart. Then live-verify zero layer-11 -> layer-12 fan-out, bounded sparse regrowth only through exact axes, continued phonation/self-hearing, and no CPU/RAM/storage runaway. |"
+    },
+    {
+      "source_id": "PF051",
+      "start_line": 245,
+      "end_line": 245,
+      "latest_id": "PF071",
+      "latest_start_line": 253,
+      "latest_end_line": 253,
+      "kind": "replace",
+      "text": "| No motor coincidence | Layer 13 can discharge only after the exact glottal-closing layer-12 motor is physically prepared by either its own reached-load regulation or learned layer-11 ordering, and that motor emits its own carriers. Jaw, lip, tract, limb, glottal opening, and unprepared coincidence remain insufficient. |"
+    },
+    {
+      "source_id": "PF051",
+      "start_line": 265,
+      "end_line": 269,
+      "latest_id": "PF071",
+      "latest_start_line": 273,
+      "latest_end_line": 276,
+      "kind": "replace",
+      "text": "maximal external-receptor frontier. Later source reconciliation rejected the\nconclusion that first phonation must wait for the absent learned route: doing\nso requires learned speech before the self-heard babble from which speech can\ndevelop. The retained `apple` formation at recurrent lineage `...055a` remains\nprotected, but it is not made a prerequisite for prelinguistic breath."
+    },
+    {
+      "source_id": "PF051",
+      "start_line": 271,
+      "end_line": 271,
+      "latest_id": "PF071",
+      "latest_start_line": 278,
+      "latest_end_line": 278,
+      "kind": "replace",
+      "text": "### R-009 attempt 18 — prelinguistic glottal/respiratory boundary"
+    },
+    {
+      "source_id": "PF051",
+      "start_line": 273,
+      "end_line": 292,
+      "latest_id": "PF071",
+      "latest_start_line": 280,
+      "latest_end_line": 615,
+      "kind": "replace",
+      "text": "- The task-1400 circular rule is reproduced in source: the resident layer-13\n  respiratory body could discharge only after an exact learned layer-11\n  arrival into a vocal motor. That blocks the first unscripted phonation and\n  self-hearing needed before a learned speech route exists.\n- Rejected again: any vocal motor recruits breath. Only an actually prepared,\n  actually discharged `glottal_aperture/toward_minimum` motor may co-recruit\n  the one resident respiratory effector. Glottal opening, jaw, lip, tract,\n  limb, observer state, labels, pressure fixtures, and coincidence remain\n  insufficient. Layer 13 still supplies and settles its own carriers and work.\n- Observation-truth defect found in the same boundary: Rust accepted either an\n  exact layer-8 reached-load arrival or a layer-11 learned arrival but projected\n  both to Python as layer 11. The candidate carries each sender's true layer;\n  Python accepts layer 8 only when it is the discharged motor's own mounted\n  body-regulation ancestor. This evidence correction has no cognition authority.\n- Focused source evidence: native compilation passed; exactly one Rust\n  glottal-boundary falsifier passed; exactly one Python evidence-join falsifier\n  passed. A Cargo command first ran from the non-crate repository root and\n  supplied no result; the corrected native-crate invocation supplied the\n  accepted result. Production remains task 1400 until copied-body/live proof\n  and cutover."
+    },
+    {
+      "source_id": "PF057",
+      "start_line": 523,
+      "end_line": 523,
+      "latest_id": "PF071",
+      "latest_start_line": 531,
+      "latest_end_line": 531,
+      "kind": "replace",
+      "text": "### R-009 repair attempt 28 — copied-body migration and cochlear consumption pass"
+    },
+    {
+      "source_id": "PF057",
+      "start_line": 525,
+      "end_line": 538,
+      "latest_id": "PF071",
+      "latest_start_line": 533,
+      "latest_end_line": 555,
+      "kind": "replace",
+      "text": "- Commit `bdd7c001` preserves the decoded bounded in-flight owner through\n  migration. Exact copied tick `354182` remained pointer-identical after real\n  migration startup and retained source tick `354180`, pressure SHA\n  `96b9644d...`, and body SHA `8bf4af3c...`.\n- The exact pressure was then consumed once across five cochlear hops: 170\n  sound ingresses, 79 changing receptors, 7,116 transitioned neurons, and 37\n  complete neuron fractals. A committed repeat published tick `354188`, state\n  SHA `be75595c...`, and a cold restore contained no replayable original.\n- Permanent measurement rule: the same stage key written by the in-flight\n  hearing hop must be the one reported by the transport stopwatch. Permanent\n  observation rule: a prior emission record with zero hearing fields cannot be\n  labelled self-hearing committed; the consumed exact pressure receipt and\n  causal hearing counts must be published only after their successor is\n  durable. These truth-surface rows remain open before deployment."
+    },
+    {
+      "source_id": "PF057",
+      "start_line": 540,
+      "end_line": 540,
+      "latest_id": "PF071",
+      "latest_start_line": 557,
+      "latest_end_line": 557,
+      "kind": "replace",
+      "text": "### R-009 repair attempt 29 — exact observer-join law"
+    },
+    {
+      "source_id": "PF057",
+      "start_line": 542,
+      "end_line": 557,
+      "latest_id": "PF071",
+      "latest_start_line": 559,
+      "latest_end_line": 615,
+      "kind": "replace",
+      "text": "- Permanent join rule: emitted pressure and later self-hearing are the same\n  occurrence only when their full SHA-256 identities are equal. Recency,\n  adjacency, process lifetime, or matching sample counts are not substitutes.\n- Permanent restart rule: after cold restore, exact consumed pressure may be\n  reported as self-heard without reconstructing missing layer-13 recruitment.\n  Missing motor evidence remains missing.\n- Permanent status rule: zero hearing hops is `native_articulation_in_flight`;\n  positive hearing counts without a matched emission is\n  `persisted_native_pressure_self_heard`; the combined committed status\n  requires the exact hash match.\n- Permanent boundedness rule: observation receipts replace one fixed-size\n  process-local record and never enter native cognition; PCM custody remains\n  capped at four entries.\n- Rejected evidence is retained: one diagnostic printed raw arrays and was too\n  noisy to use; one Pytest invocation failed import collection; and the valid\n  C005 run matched the inherited `faff9e06` baseline at 5 passed / 8 failed."
+    },
+    {
+      "source_id": "PF058",
+      "start_line": 559,
+      "end_line": 559,
+      "latest_id": "PF071",
+      "latest_start_line": 567,
+      "latest_end_line": 567,
+      "kind": "replace",
+      "text": "### R-009 repair attempt 30 — respiratory drive requires effective closure"
+    },
+    {
+      "source_id": "PF058",
+      "start_line": 561,
+      "end_line": 584,
+      "latest_id": "PF071",
+      "latest_start_line": 569,
+      "latest_end_line": 615,
+      "kind": "replace",
+      "text": "- Permanent force-conservation rule: an eligible closing-glottis motor\n  discharge may prepare the respiratory effector with no more than its exact\n  unopposed closing remainder after all simultaneous opening-glottis carriers\n  are accounted for. Equal or greater opening drive means zero respiratory\n  preparation.\n- Permanent consequence rule: attempted closure is not glottal closure. A\n  layer-13 discharge or audible-pressure claim must not survive when the same\n  interval's body force balance applies zero movement toward minimum.\n- Exact copied-body proof: closing 2 and opening 10 moved the aperture\n  `399 -> 400`, but layer 13 applied 2 quanta and launched the open-glottis\n  pressure heard as a buzz. A later layer-13 event restarted pressure while\n  the aperture remained at its anatomical maximum 400.\n- Permanent depletion rule: continuing acoustic state may emit without a new\n  motor event while retained drive or tube pressure physically remains, but\n  it must reach exact rest. The copied body did so; its span reduced from\n  8,016 and 16,016 samples to a 4,000-sample, 21-nonzero residual with zero\n  peak flow before a separate discharge restarted it.\n- Permanent acceptance rule: suppressing false open-glottis drive is not\n  speech completion. The current copied body must actually produce net\n  closure, non-buzz pressure, exact cochlear return, restart continuity and\n  rest before any release may be called speech or deployed for that claim.\n- Tooling failures retained: four failed SSM transfer forms, one pre-interval\n  `KeyError`, one pre-import Docker bind failure, and one rejected mislabeled\n  axis display. They change no organism evidence."
+    },
+    {
+      "source_id": "PF059",
+      "start_line": 561,
+      "end_line": 663,
+      "latest_id": "PF071",
+      "latest_start_line": 569,
+      "latest_end_line": 615,
+      "kind": "replace",
+      "text": "- Permanent force-conservation rule: an eligible closing-glottis motor\n  discharge may prepare the respiratory effector with no more than its exact\n  unopposed closing remainder after all simultaneous opening-glottis carriers\n  are accounted for. Closing carriers lacking valid respiratory preparation\n  cannot replace eligible carriers consumed by opposition. Equal or greater\n  opening drive means zero respiratory preparation.\n- Permanent consequence rule: attempted closure is not glottal closure. A\n  layer-13 discharge or audible-pressure claim must not survive when the same\n  interval's body force balance applies zero movement toward minimum.\n- Exact copied-body proof: closing 2 and opening 10 moved the aperture\n  `399 -> 400`, but layer 13 applied 2 quanta and launched the open-glottis\n  pressure heard as a buzz. A later layer-13 event restarted pressure while\n  the aperture remained at its anatomical maximum 400.\n- Permanent depletion rule: continuing acoustic state may emit without a new\n  motor event while retained drive or tube pressure physically remains, but\n  it must reach exact rest. The copied body did so; its span reduced from\n  8,016 and 16,016 samples to a 4,000-sample, 21-nonzero residual with zero\n  peak flow before a separate discharge restarted it.\n- Permanent acceptance rule: suppressing false open-glottis drive is not\n  speech completion. The current copied body must actually produce net\n  closure, non-buzz pressure, exact cochlear return, restart continuity and\n  rest before any release may be called speech or deployed for that claim.\n- Tooling failures retained: four failed SSM transfer forms, one pre-interval\n  `KeyError`, one pre-import Docker bind failure, and one rejected mislabeled\n  axis display. They change no organism evidence.\n- Implementation invocation 1 ran no test: inherited child-module formatting\n  drift made the format check unusable, and a test-only temporary-array borrow\n  failed compilation with `E0716`. This failure remains explicit and cannot be\n  counted toward the repair.\n- Implementation invocation 2 also ran no test: the narrowed format check\n  still found inherited drift in the same large source file, and `&&` stopped\n  the Cargo command. It changed no file and is retained only as rejected\n  tooling evidence.\n- Implementation invocation 3 passed its single focused native test with zero\n  failures and 579 filtered tests. This closes only the unit-level conservation\n  row; no copied-body, self-hearing, restart, rest, or audible claim follows.\n- Connected regression classification: candidate acoustic 10/10 and phonatory\n  5/5 passed. Candidate articulatory 36/38 and vocal 3/6 exactly matched\n  production-source `bdd7c001`, including every failed test name and assertion.\n  The repair introduces no measured connected-suite regression; inherited\n  failures remain explicitly unresolved and cannot be counted as passes.\n- Copied-body invocation 1 is rejected tooling evidence: an invisible host\n  `/tmp` bind made Docker exit 125 before container creation. No code loaded\n  and no organism state was mounted or mutated.\n- Candidate package staging invocation 1 is rejected: pip refused the renamed\n  `candidate.whl` before installation because the ABI filename was invalid.\n  The copied body remained unstarted and unchanged.\n- Copied-body invocation 2 ran no interval: incomplete sensory-authority flags\n  caused exact world restoration to refuse before transition, leaving tick\n  356896. Its old mislabeled anatomy display remains rejected. The retry must\n  copy task 1402's complete sensory environment.\n- Copied-body invocation 3 closes the false-launch row but opens the deeper\n  blocker: 2 closing versus 10 opening now yields exactly zero layer-13 drive,\n  retained pressure depletes to null, aperture remains at maximum 400, and no\n  later closure occurs. This candidate is permanently prohibited from being\n  deployed or described as speech on that evidence.\n- Architecture finding: the current phonatory body is a fixed-phase prescribed\n  flow generator. It lacks paired fold mass/elastic/collision state and lacks\n  aerodynamic pressure feedback into fold motion. Any future speech repair\n  must replace that boundary with conserved body physics rather than add\n  another trigger, waveform, label, or exception.\n- **Correction reopening F-029/F-030:** executable source fixes the laryngeal\n  phase at 160 samples, resets a 16,000-sample exhalation counter on discharge,\n  and decrements that counter while never subtracting emitted air from the\n  persisted lung volume. Therefore prior \"no scripted waveform\" and\n  \"exhaustion without a timer\" closure language is false. Those rows retain\n  historical deployment evidence only and no longer establish truthful vocal\n  physics or speech.\n- The `glottal_aperture` axis is 20..400 mm² with no zero-area closure. The\n  shipped source replaces instantaneous area with a 16..144/160 open duty\n  cycle, fabricating closure at maximum aperture. This mapping is prohibited\n  as a glottal-physics authority.\n- External-physics gate: the permissible replacement class is a fixed-capacity\n  self-oscillating fold body with mass, stiffness, damping, coupling,\n  collision, subglottal pressure, actual airflow/lung depletion, and two-way\n  fold/tract pressure interaction. Prescribed flow shapes, fixed pitch phases,\n  duration counters, tuned target sounds, and one-way source filtering are\n  permanently rejected.\n- Process-local proof may falsify a body law but can never close persistence.\n  Invocation 3 advanced to live tick 356910 with zero sealing while durable\n  `CURRENT` remained the original tick-356896 pointer. Any future candidate\n  must seal, exit, cold-restore the exact successor, and prove no replay/loss.\n\n### R-009 repair attempt 31 — rejected substrate-stalling gate\n\n- Attempt 30's antagonist subtraction must never be restored. Body-terminal\n  laryngeal opposition cannot cancel work in the distinct respiratory\n  effector merely because voiced closure failed. Open-glottis airflow is a\n  physical consequence; the fold body must settle it truthfully without\n  manufacturing periodic voicing.\n- A passing unit test for a rejected law is retained as failed-attempt history,\n  not regression authority. The copied body proved the symptom disappeared by\n  silencing respiration while aperture remained maximum, which is exactly why\n  the candidate is prohibited.\n- Candidate Rust was restored byte-identically to production-source SHA-256\n  `4e1a4ce706be56579685237601d6adc795514f1196e76f0443c553dd775c0e19`.\n  No deploy, task replacement, state migration, or production restart occurred.\n- Recurrence key: `ARTICULATORY_FULL_FIELD_TEMPORAL_PARTITION_2026-07-28.md`\n  already identified 160/16,000 as a one-second synthesis program. Commits\n  `b10ccfa2` and `bd3f0ca4` persisted that program inside the body without\n  adding fold or lung physics. Residency, restart survival, longer duration,\n  and exact self-hearing can never be reused as proof that a scripted source\n  became physical."
+    },
+    {
+      "source_id": "PF060",
+      "start_line": 561,
+      "end_line": 726,
+      "latest_id": "PF071",
+      "latest_start_line": 569,
+      "latest_end_line": 615,
+      "kind": "replace",
+      "text": "- Permanent force-conservation rule: an eligible closing-glottis motor\n  discharge may prepare the respiratory effector with no more than its exact\n  unopposed closing remainder after all simultaneous opening-glottis carriers\n  are accounted for. Closing carriers lacking valid respiratory preparation\n  cannot replace eligible carriers consumed by opposition. Equal or greater\n  opening drive means zero respiratory preparation.\n- Permanent consequence rule: attempted closure is not glottal closure. A\n  layer-13 discharge or audible-pressure claim must not survive when the same\n  interval's body force balance applies zero movement toward minimum.\n- Exact copied-body proof: closing 2 and opening 10 moved the aperture\n  `399 -> 400`, but layer 13 applied 2 quanta and launched the open-glottis\n  pressure heard as a buzz. A later layer-13 event restarted pressure while\n  the aperture remained at its anatomical maximum 400.\n- Permanent depletion rule: continuing acoustic state may emit without a new\n  motor event while retained drive or tube pressure physically remains, but\n  it must reach exact rest. The copied body did so; its span reduced from\n  8,016 and 16,016 samples to a 4,000-sample, 21-nonzero residual with zero\n  peak flow before a separate discharge restarted it.\n- Permanent acceptance rule: suppressing false open-glottis drive is not\n  speech completion. The current copied body must actually produce net\n  closure, non-buzz pressure, exact cochlear return, restart continuity and\n  rest before any release may be called speech or deployed for that claim.\n- Tooling failures retained: four failed SSM transfer forms, one pre-interval\n  `KeyError`, one pre-import Docker bind failure, and one rejected mislabeled\n  axis display. They change no organism evidence.\n- Implementation invocation 1 ran no test: inherited child-module formatting\n  drift made the format check unusable, and a test-only temporary-array borrow\n  failed compilation with `E0716`. This failure remains explicit and cannot be\n  counted toward the repair.\n- Implementation invocation 2 also ran no test: the narrowed format check\n  still found inherited drift in the same large source file, and `&&` stopped\n  the Cargo command. It changed no file and is retained only as rejected\n  tooling evidence.\n- Implementation invocation 3 passed its single focused native test with zero\n  failures and 579 filtered tests. This closes only the unit-level conservation\n  row; no copied-body, self-hearing, restart, rest, or audible claim follows.\n- Connected regression classification: candidate acoustic 10/10 and phonatory\n  5/5 passed. Candidate articulatory 36/38 and vocal 3/6 exactly matched\n  production-source `bdd7c001`, including every failed test name and assertion.\n  The repair introduces no measured connected-suite regression; inherited\n  failures remain explicitly unresolved and cannot be counted as passes.\n- Copied-body invocation 1 is rejected tooling evidence: an invisible host\n  `/tmp` bind made Docker exit 125 before container creation. No code loaded\n  and no organism state was mounted or mutated.\n- Candidate package staging invocation 1 is rejected: pip refused the renamed\n  `candidate.whl` before installation because the ABI filename was invalid.\n  The copied body remained unstarted and unchanged.\n- Copied-body invocation 2 ran no interval: incomplete sensory-authority flags\n  caused exact world restoration to refuse before transition, leaving tick\n  356896. Its old mislabeled anatomy display remains rejected. The retry must\n  copy task 1402's complete sensory environment.\n- Copied-body invocation 3 closes the false-launch row but opens the deeper\n  blocker: 2 closing versus 10 opening now yields exactly zero layer-13 drive,\n  retained pressure depletes to null, aperture remains at maximum 400, and no\n  later closure occurs. This candidate is permanently prohibited from being\n  deployed or described as speech on that evidence.\n- Architecture finding: the current phonatory body is a fixed-phase prescribed\n  flow generator. It lacks paired fold mass/elastic/collision state and lacks\n  aerodynamic pressure feedback into fold motion. Any future speech repair\n  must replace that boundary with conserved body physics rather than add\n  another trigger, waveform, label, or exception.\n- **Correction reopening F-029/F-030:** executable source fixes the laryngeal\n  phase at 160 samples, resets a 16,000-sample exhalation counter on discharge,\n  and decrements that counter while never subtracting emitted air from the\n  persisted lung volume. Therefore prior \"no scripted waveform\" and\n  \"exhaustion without a timer\" closure language is false. Those rows retain\n  historical deployment evidence only and no longer establish truthful vocal\n  physics or speech.\n- The `glottal_aperture` axis is 20..400 mm² with no zero-area closure. The\n  shipped source replaces instantaneous area with a 16..144/160 open duty\n  cycle, fabricating closure at maximum aperture. This mapping is prohibited\n  as a glottal-physics authority.\n- External-physics gate: the permissible replacement class is a fixed-capacity\n  self-oscillating fold body with mass, stiffness, damping, coupling,\n  collision, subglottal pressure, actual airflow/lung depletion, and two-way\n  fold/tract pressure interaction. Prescribed flow shapes, fixed pitch phases,\n  duration counters, tuned target sounds, and one-way source filtering are\n  permanently rejected.\n- Process-local proof may falsify a body law but can never close persistence.\n  Invocation 3 advanced to live tick 356910 with zero sealing while durable\n  `CURRENT` remained the original tick-356896 pointer. Any future candidate\n  must seal, exit, cold-restore the exact successor, and prove no replay/loss.\n\n### R-009 repair attempt 31 — rejected substrate-stalling gate\n\n- Attempt 30's antagonist subtraction must never be restored. Body-terminal\n  laryngeal opposition cannot cancel work in the distinct respiratory\n  effector merely because voiced closure failed. Open-glottis airflow is a\n  physical consequence; the fold body must settle it truthfully without\n  manufacturing periodic voicing.\n- A passing unit test for a rejected law is retained as failed-attempt history,\n  not regression authority. The copied body proved the symptom disappeared by\n  silencing respiration while aperture remained maximum, which is exactly why\n  the candidate is prohibited.\n- Candidate Rust was restored byte-identically to production-source SHA-256\n  `4e1a4ce706be56579685237601d6adc795514f1196e76f0443c553dd775c0e19`.\n  No deploy, task replacement, state migration, or production restart occurred.\n- Recurrence key: `ARTICULATORY_FULL_FIELD_TEMPORAL_PARTITION_2026-07-28.md`\n  already identified 160/16,000 as a one-second synthesis program. Commits\n  `b10ccfa2` and `bd3f0ca4` persisted that program inside the body without\n  adding fold or lung physics. Residency, restart survival, longer duration,\n  and exact self-hearing can never be reused as proof that a scripted source\n  became physical.\n\n### R-010 candidate — participant touch must reach the read-only truth surface\n\n- Claude's first-visit rehearsal on an exact tick-356896 production-body copy\n  proved a real `shoulder_touch` at approximately 506 mm centre distance:\n  participant action -> world surface physics -> cutaneous topology index 9 ->\n  twelve admitted sensory hops. The public touch section nevertheless said\n  `no_contact_transition_this_process` because it read only Guala's own grip\n  and card-contact evidence.\n- The correction is one constant-size, process-local, replace-only participant\n  observation watermark, written only after its native intake succeeds. It is never\n  passed to a native method, settlement, action selection, persistence, or\n  rollback. Participant records retain exact physical contact values and\n  receipts but omit the human-facing contact-operation name and all meaning.\n- The first candidate wording incorrectly treated the endpoint's last sealed\n  pointer as the touch successor. Exact copied-body execution caught this:\n  the live trajectory contained the touch while durable `CURRENT` remained at\n  tick 356896. That candidate proof was rejected rather than called complete.\n- The accepted observation distinguishes resident from durable custody. Before\n  checkpoint it reports\n  `participant_contact_transition_resident_awaiting_checkpoint`, exact contact\n  tick, pending interval count, and the older durable pointer without claiming\n  a successor hash. Only the sole existing external custodian may replace that\n  watermark with `participant_contact_transition_committed`, and only after\n  published `CURRENT` covers the exact contact tick.\n- Decisive copied-body proof used final candidate Python SHA-256\n  `11c042fd279fc0219afa2743082de6f303c167433456505ea060606006ba764c`,\n  the immutable tick-356896 source volume read-only, a private clone, no\n  network, four CPUs, 16 GiB, and task-1402 sensory authorities. A lawful move\n  and `shoulder_touch` returned HTTP 200, one changed tactile receptor,\n  cutaneous topology index 9, and twelve sensory hops. The observer first\n  reported pending contact tick 356904 over durable tick 356896. The existing\n  custodian published exact contact tick 356904 and the public observation\n  equalled the committed watermark byte-for-byte. Its exact state SHA-256 is\n  `bbff08cdeb073fc1cc3339f6dffba20594c16869dd3c01b14c051bc97925dc16`.\n- A separate cold process restored identity\n  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, tick 356904, the exact state hash,\n  1,812 complete neurons, 152 mosaics, and 107,755,664 fabric bytes. Its\n  process-local observation correctly returned\n  `no_contact_transition_this_process`; the observer did not enter or recreate\n  learned state, while the organism successor survived restart.\n- Focused tests pass 5/5. The directly connected widened selection passes\n  86 tests and has six failures; the identical six failures reproduce on exact\n  production source `bdd7c001` and remain inherited failures, not green credit.\n  One earlier widened command named a nonexistent test file and therefore ran\n  zero tests. One secret lookup used a shortened, nonexistent secret name; one\n  Docker stdin invocation omitted `-i`; one final-review probe repeated that\n  omission and was rejected without acting; one disposable body clone was\n  mounted one directory above the declared organism root, restored a newborn,\n  and was rejected before contact; one correctly mounted proof started the\n  custodian thread with only two pending intervals, below its ordinary\n  four-interval trigger, so its unsealed copy was rejected and recloned; and\n  one otherwise successful sealed proof attempted to read a nonexistent\n  `organism_identity` readiness attribute before printing its final record;\n  its private copy was retained only as failed-attempt evidence and the final\n  proof was rerun cleanly from the immutable tick-356896 source; and\n  one read-only probe called a\n  nonexistent `_shutdown` helper after printing its valid baseline. None\n  touched production or supplies organism evidence.\n- Production task 1402 remains untouched. Before deployment, preserve F-001,\n  F-002, F-007, F-008, exact copied-body hashes, cold restore, bounded one-slot\n  observation state, and the rule that observer polling cannot cause or delay\n  a touch, checkpoint, or organism interval."
+    },
+    {
+      "source_id": "PF061",
+      "start_line": 523,
+      "end_line": 523,
+      "latest_id": "PF071",
+      "latest_start_line": 531,
+      "latest_end_line": 531,
+      "kind": "replace",
+      "text": "### F-030 successor correction — historical closure is not current source authority"
+    },
+    {
+      "source_id": "PF061",
+      "start_line": 525,
+      "end_line": 541,
+      "latest_id": "PF071",
+      "latest_start_line": 533,
+      "latest_end_line": 615,
+      "kind": "replace",
+      "text": "- F-030 was genuinely live-closed on task 1397, but commit `4aa3144d` later\n  retired its persisted fixed phase/countdown source and migrated that V5 state\n  to rest. Task 1408 therefore must not be described as currently carrying the\n  F-030 mechanism merely because it descends from task 1397.\n- The retirement was deliberate: a fixed laryngeal phase plus fixed exhalation\n  countdown was judged a scripted duration/clock rather than the requested\n  embodiment-neutral developmental source. Restoring `bd3f0ca4` verbatim is a\n  prohibited repeat repair.\n- The task-1408 successor source is three finite motor-struck acoustic surfaces\n  with zero respiratory-flow output. Attempt 43 made their stiffness depend on\n  existing tract areas and copied-body-proved varied bounded pressure and exact\n  self-hearing, but it still does not establish recognizable phonemes.\n- Permanent forward rule: retain F-030's valid invariant—organism-owned work\n  must support a bounded continuing excitation that survives interval/restart\n  and exhausts physically—without restoring its phase counter, duration\n  countdown, pressure waveform, or any phoneme/word table. Historical live\n  closure and current mechanism truth must be reported separately."
+    },
+    {
+      "source_id": "PF067",
+      "start_line": 586,
+      "end_line": 586,
+      "latest_id": "PF071",
+      "latest_start_line": 586,
+      "latest_end_line": 586,
+      "kind": "replace",
+      "text": "  mechanisms, test doctrine, and still-open 47C candidate are reconciled in"
+    }
+  ],
+  "reconstruction": [
+    {
+      "id": "PF001",
+      "sha256": "bc3cd1a653e4b3b6bd77950b362d4d24a14d6e1b7a92ac37605760e64bc95b3e",
+      "lines": 61,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF002",
+      "sha256": "51a0ef8886bab782b8942be37d700e7b64cb05e9dfaa36862936bae2640cf736",
+      "lines": 63,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF003",
+      "sha256": "8276398f7e4e42fe4844c1f73c223ad40daaf03f1be10fb7ae1ec347b3be5200",
+      "lines": 76,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF004",
+      "sha256": "78c587526909a96d36e597092e9e1ceb0caac8ffff07718db1dbda5f59f0e2f3",
+      "lines": 84,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF005",
+      "sha256": "8a5e7b0b6d6c9c80b4123f2bb05cab59f85533a0a7be8c2eab412b45a4f91bd8",
+      "lines": 95,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF006",
+      "sha256": "784bc0ca131b854bc42b4de12208f702150d6deb17551130e5941e492ed0d627",
+      "lines": 105,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF007",
+      "sha256": "d6fb400848c9f9ef8f4ed17fd0333c2d3f8557d6208a2c9a7962c75a4120fd6b",
+      "lines": 105,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF008",
+      "sha256": "428e7a52123b025acb20ef4e2920e6490e0a863d10c0c485d2732ca7e1688266",
+      "lines": 105,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF009",
+      "sha256": "2331ce6adccb66588b518a9dbe1b3bcb189371eee92ba49662affeea1589f36a",
+      "lines": 106,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF010",
+      "sha256": "df0f1d10eadaef703ae105f66cdad32cd365ac83474d793067c7f18b81ab2cc4",
+      "lines": 106,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF011",
+      "sha256": "3180d53121d8ca52143fea283722f6ad9fa0ea0161fea565b69cdf97b05b4023",
+      "lines": 112,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF012",
+      "sha256": "bdee7a9502707ef3df2367c05513d865109bb993a1607830ed6d7f44025ddf46",
+      "lines": 113,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF013",
+      "sha256": "50c46c88b92eda4a4be17fc58f52e25ef463220ce817d675936826d53b65fd6a",
+      "lines": 113,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF014",
+      "sha256": "a10f692ec153a8a321febfbc7b4424b776858a71cd10c48a6cb64e31967fbb26",
+      "lines": 115,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF015",
+      "sha256": "70344f11e8a43ffa4934010c0a37e361bedb6fed3a39f3d537b932b76d9339d3",
+      "lines": 116,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF016",
+      "sha256": "773167e14849084444cb973a8e7afca60cbc39288d46150b4291507f6d7f9739",
+      "lines": 116,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF017",
+      "sha256": "c137e2fa56b64eb2033b972bb9befd8ad11423dabb8234219d18cda5d304ecc4",
+      "lines": 116,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF018",
+      "sha256": "f914708697ab81a1cb8c9d4fdf4361f5d51f688ccaf46f3f7b7b6a8f656bdd9b",
+      "lines": 117,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF019",
+      "sha256": "0305832adb206c2a24139a3f1ec615d563244248fb66e1cb7d0ea2a4fc77ce2c",
+      "lines": 117,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF020",
+      "sha256": "81bbb570ea6e9f5319c58bedf622eab335649b346c5a18a0f432abc41d0d2ec0",
+      "lines": 118,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF021",
+      "sha256": "ce0d35d9872e74bed3b3c0a43b4eee3d6ce6284fef37ef09f2aabb953f964574",
+      "lines": 121,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF022",
+      "sha256": "9ec0f8fd501b7434d9b65b281f5c07825495d811004cbc604916375381f54899",
+      "lines": 123,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF023",
+      "sha256": "ecada952dd50ed66b1284bc3a55de04d17b372c2373e5e2f40c828be2345d03c",
+      "lines": 124,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF024",
+      "sha256": "3e6b5ab72558e5338af1f344f3ee20c602c82dae3e897b63057c38ddfd1a2f32",
+      "lines": 125,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF025",
+      "sha256": "456658af8fc6668c9c04e5e7d24c803244772316c5cab3c23457afdb378198b9",
+      "lines": 126,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF026",
+      "sha256": "c79ac138b7b4c533d253d881e5dc2b03fbe94b327778721b30794bc6ba05461c",
+      "lines": 126,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF027",
+      "sha256": "cbfb9f76a0bdccb2d9e726c786595ab21d7035e8733885d181046526477b6f6b",
+      "lines": 126,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF028",
+      "sha256": "bfa6704c88d322854045f427443011e9945ba0da8445e6f7186ca48d149ae595",
+      "lines": 126,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF029",
+      "sha256": "c6ae0a9719636548534efeea581de8fb16e27776396b8defeb5e0fa2e6734ad7",
+      "lines": 126,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF030",
+      "sha256": "f4ad6ded73d20d48440c7f8652051200ab95bf93ba2f0a6d3461a8f3dd44503f",
+      "lines": 127,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF031",
+      "sha256": "f812d42ec2802ae513e0ce7aabc252c951184b550bdb0c8d237b1eb23be8b606",
+      "lines": 127,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF032",
+      "sha256": "2295ea86dbf589a502eb35369b3f165c0519f3b68c5efedc064faf1648254065",
+      "lines": 127,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF033",
+      "sha256": "91ac4810ac24c7e9d964cda1100281ef24233e6a5e92a4050068daa02fc40045",
+      "lines": 128,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF034",
+      "sha256": "2dd649a25677283b6dec1d3b63165388868e7408b97891e9c8cee8ef586f9407",
+      "lines": 128,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF035",
+      "sha256": "561953d6b7611faca424be9d31b6a511a18b49055c2cd3360a55e84d6372fb18",
+      "lines": 129,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF036",
+      "sha256": "dc0e836fc1143efe28c3a4bfb1e47b1d163d178e5ba9fba468dd14db48608194",
+      "lines": 130,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF037",
+      "sha256": "55717db986edf3ffd9e976a5cbcf2f91210b180e5b4a786c27bba46c700d3341",
+      "lines": 130,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF038",
+      "sha256": "a6fe85b4ece723c84ef277bd3bc9ef0496e7f5322eb405ea42e4f3b7b829810f",
+      "lines": 131,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF039",
+      "sha256": "d644225680dd79cf8e2d231e1a096cedbab454f80f5da90202c2b0065b69cb7e",
+      "lines": 133,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF040",
+      "sha256": "7f7b30954c08c8785bd54e37fe57c193c71522c26f519df6628434aa4345e401",
+      "lines": 133,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF041",
+      "sha256": "59dbb8ca59bfc687daf49a2656454ec1d28426ddb82b5672113ec94724d27495",
+      "lines": 135,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF042",
+      "sha256": "9373b47acd19731b45118c373ea93f883c1c18e515c6d540c8e6036d63c2f2b4",
+      "lines": 136,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF043",
+      "sha256": "73d9434fb016be0ccb2c551a25f862e2316774cb7e8da96e4f3a928f7b648a17",
+      "lines": 137,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF044",
+      "sha256": "bde5800604c0512178dd7f216479f0a66bc209dcd6e9596b3b8791056714e144",
+      "lines": 137,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF045",
+      "sha256": "8f4feddcf8c3132b058f629335a4f17953f802d2b99848a472fcf0e5e2d90164",
+      "lines": 137,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF046",
+      "sha256": "4a5c25e9d87671304819192f2a3e70cd51d0156dbf322ccc6cb6222aabecd4ff",
+      "lines": 138,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF047",
+      "sha256": "95d116c9ae4bb2c070fefc84ed7cb1ff6bcb90317f7a77f9aa67ff1c2fbfc5fd",
+      "lines": 138,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF048",
+      "sha256": "aeb3e6d7cd4802ea591b1f9d23d98fa9b68a5f91448746ded5cc9dc7bc8fd4c0",
+      "lines": 200,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF049",
+      "sha256": "535b78fdae73cf0b25a2a0917753e0b5fd0f1d845b87dad71b2a6e2f65d46d85",
+      "lines": 253,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF050",
+      "sha256": "8fb02bd410fca7a4ff85ce8042c5eb8f4cfda5287adf9096b049e5102e3dcdf8",
+      "lines": 261,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF051",
+      "sha256": "9de70538a9e70dec7f0cdca6ecba627f1ff00364a6c58472caaa7293f94733ae",
+      "lines": 292,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF052",
+      "sha256": "84a3edfdf96a80f6d73d0a4a63421657b71a9daec72beaf57e8643780272429c",
+      "lines": 268,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF053",
+      "sha256": "094b986b1ec066fe75516d47f0099cf818f368445333118a0e1ba816dff5dfc9",
+      "lines": 295,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF054",
+      "sha256": "6b3137e547d36c8d657516ea42a678f80c59a77cccf57844b489393ac88b7d50",
+      "lines": 454,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF055",
+      "sha256": "d3289a30decde27bc0ac9607d162e7fc9c2b38d59a721fe9ab86c71ae677f6e8",
+      "lines": 485,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF056",
+      "sha256": "797832779a24911dce3c4c397e688b8331e74a64a6b1d69483d2b7bb0a93447b",
+      "lines": 521,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF057",
+      "sha256": "e6d72527eeef328c0065bd0c9da0a37e55e7d1553c7b1e46cea38047850b8a4d",
+      "lines": 557,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF058",
+      "sha256": "bfd3742a972830ad0a4116257c49e9213d72318d130e0f57805bf050ce8b823d",
+      "lines": 584,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF059",
+      "sha256": "0180f15b1e5d36563d1350a3cd23c50a7fd364cb735b9126efbf499035a0fb96",
+      "lines": 663,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF060",
+      "sha256": "ec0c8dabe7deb499edb97fbda7ec54651e3e931018b5953ccb424d400b7d2435",
+      "lines": 726,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF061",
+      "sha256": "c84967e70cd0ab2fd8f6f679fb138ee8d4b9d8a52e6977cd0e23581877e09664",
+      "lines": 541,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF062",
+      "sha256": "283abb29db908e4785081ff89b9a28807c3449313a8279e7fe1ffec0cddc0a22",
+      "lines": 522,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF063",
+      "sha256": "26a795779295be54dbdf0b274eab3ad074d2195ef17e127ae5715ed2ca5041c4",
+      "lines": 529,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF064",
+      "sha256": "136dd3c00cf2fb1ea0c1eda21c38e3c478bfadc89d55d87cfb78f6967ebccf91",
+      "lines": 548,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF065",
+      "sha256": "4ba85f9fe1932892bf57c4fe568e77373d3cc385b67147aff2b1bf00374272fb",
+      "lines": 555,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF066",
+      "sha256": "b969fd4a9159dd4ab360574433e7c0f9053fda2021b045034a6c94fb56032d31",
+      "lines": 565,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF067",
+      "sha256": "edee1b9e5e8032bc91f5c6811dd920d951979bc4e2bfa7a5f8ae64cf28ba6961",
+      "lines": 587,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF068",
+      "sha256": "e3fcdcf770311d7c6e3d4d928da071d901404ac50535f3497596e1acf73ae3c6",
+      "lines": 591,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF069",
+      "sha256": "ecdcd581f39edd12208b428e211c402ef9c4f107a34cbdcf8f227c26d951d8c1",
+      "lines": 601,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF070",
+      "sha256": "5f3cb327cab5ceb12bc28f7cec995b0949c2d62397940c99221f2389e3bbb1c3",
+      "lines": 608,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "PF071",
+      "sha256": "979ea971d1067b9823453d02b20c70440d386c34e560ac8a3deea0ff9abb9100",
+      "lines": 615,
+      "complete_reconstruction": true
+    }
+  ],
+  "notes": [
+    "review-notes-complete.md"
+  ],
+  "all_captured_content_read": true,
+  "product_execution": false,
+  "complete_reconciliation": false
+}

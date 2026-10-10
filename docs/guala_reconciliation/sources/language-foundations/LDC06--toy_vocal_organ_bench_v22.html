@@ -1,0 +1,576 @@
+<title>Toy Vocal Organ</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --ground:#F3F2EE; --panel:#FBFAF7; --line:#C9C5BB; --ink:#1A1D21;
+  --muted:#6B675E; --accent:#D98E1F; --accent-ink:#7A4E0A;
+  --lcd-ground:#10221F; --lcd-text:#5FD3C0;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#17191C; --panel:#212428; --line:#3A3E44; --ink:#E8E6E0;
+    --muted:#9A958A; --accent:#E9A43C; --accent-ink:#F0BE74;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#17191C; --panel:#212428; --line:#3A3E44; --ink:#E8E6E0;
+  --muted:#9A958A; --accent:#E9A43C; --accent-ink:#F0BE74;
+}
+body{
+  background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,sans-serif;
+  margin:0; padding:1.4rem 1rem 3rem;
+}
+.bench{max-width:44rem;margin:0 auto;display:flex;flex-direction:column;gap:1rem}
+h1{
+  font-family:"IBM Plex Sans Condensed",system-ui,sans-serif;
+  font-weight:700;font-size:1.7rem;margin:0;letter-spacing:0.01em;
+  text-wrap:balance;
+}
+.sub{color:var(--muted);margin:0.2rem 0 0.4rem;font-size:0.95rem;max-width:62ch}
+.module{
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:0.9rem 1rem 1rem;
+}
+.module h2{
+  font-family:"IBM Plex Sans Condensed",system-ui,sans-serif;
+  font-size:0.8rem;font-weight:600;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--muted);margin:0 0 0.7rem;
+}
+.row{display:grid;grid-template-columns:11.5rem 1fr 4.2rem;gap:0.6rem;align-items:center;margin:0.45rem 0}
+.row label{font-size:0.92rem}
+.row .bw{grid-template-columns:auto 1fr 4.2rem}
+input[type=range]{width:100%;accent-color:var(--accent);margin:0}
+.chip{
+  font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+  font-size:0.9rem;text-align:right;color:var(--accent-ink);
+}
+.presets{display:flex;flex-wrap:wrap;gap:0.45rem;margin-top:0.6rem}
+.presets button{
+  font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:600;
+  font-size:1.05rem;padding:0.35rem 1rem;border-radius:8px;
+  border:1px solid var(--line);background:var(--ground);color:var(--ink);
+  cursor:pointer;
+}
+.presets button:hover{border-color:var(--accent)}
+.playbar{display:flex;flex-wrap:wrap;align-items:center;gap:0.9rem}
+#play{
+  font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:700;
+  font-size:1.5rem;letter-spacing:0.06em;padding:0.55rem 2.2rem;
+  border-radius:10px;border:none;background:var(--accent);color:#1A1207;
+  cursor:pointer;
+}
+#play:active{transform:translateY(1px)}
+.playbar label{font-size:0.9rem;color:var(--muted);display:flex;align-items:center;gap:0.4rem}
+.dur{display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;color:var(--muted)}
+.dur input{width:8rem}
+#readout{
+  background:var(--lcd-ground);color:var(--lcd-text);
+  font-family:"IBM Plex Mono",monospace;font-size:0.88rem;
+  border-radius:8px;padding:0.7rem 0.9rem;white-space:pre-wrap;
+  min-height:2.4rem;font-variant-numeric:tabular-nums;
+}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:560px){ .row{grid-template-columns:1fr;gap:0.15rem} .chip{text-align:left} }
+</style>
+
+<div class="bench">
+<div>
+  <h1>Toy Vocal Organ <span style="font-size:0.55em;color:var(--accent)">bench v22</span></h1>
+  <p class="sub">The complete published voice recipe with every dial exposed:
+  a continuous valve cycle with a soft landing after each closure, five
+  damped throat resonances, breath that puffs with the valve, mouth radiation. Renders locally in milliseconds. Nothing here touches Guala.</p>
+</div>
+
+<div class="module">
+  <h2>Utterances — spoken gestures, not notes; press and judge</h2>
+  <div class="presets">
+    <button onclick="utter('c-ahh')">ahh</button>
+    <button onclick="utter('c-ohh')">ohh</button>
+    <button onclick="utter('c-eee')">eee</button>
+    <button onclick="utter('c-ay')">ay</button>
+    <button onclick="utter('c-uhoh')">uh-oh</button>
+  </div>
+  <div class="presets">
+    <button onclick="utter('c-sss')">sss</button>
+    <button onclick="utter('c-shh')">shh</button>
+    <button onclick="utter('c-mmm')">mmm</button>
+    <button onclick="utter('c-mama')">ma-ma</button>
+    <button onclick="utter('c-see')">see</button>
+    <button onclick="utter('c-shoe')">shoe</button>
+  </div>
+  <div class="presets">
+    <button onclick="utter('ahh')">the old man ahh (for contrast)</button>
+    <button onclick="cand(220,0.55,5,0.8,3, 700,110,1220,80,2600,150)">the frozen note (for contrast)</button>
+  </div>
+  <p class="sub">A note holds still; a voice moves. These glide the throat in
+  from neutral, bend the pitch, swell and release the breath, and carry a
+  whisper of air throughout — every part deterministic.</p>
+</div>
+
+<div class="module">
+  <h2>Ear + path check — each pair MUST sound clearly different</h2>
+  <div class="presets">
+    <button onclick="cal('lo')">A1 low voice</button>
+    <button onclick="cal('hi')">A2 high voice</button>
+    <button onclick="cal('still')">B1 dead still</button>
+    <button onclick="cal('waver')">B2 strong waver</button>
+    <button onclick="cal('clean')">C1 no breath</button>
+    <button onclick="cal('breathy')">C2 very breathy</button>
+  </div>
+  <p class="sub">Three pairs, exaggerated on purpose. If any pair sounds the
+  same to you, the sound is being flattened on its way to your ear
+  (remote-desktop audio, phone speaker) — then the bench is fine and the
+  listening path is the defect.</p>
+</div>
+
+<div class="module">
+  <h2>Layer test — the same "ahh", one ingredient added per button</h2>
+  <div class="presets">
+    <button onclick="layer(1)">1 bare</button>
+    <button onclick="layer(2)">2 +falling pitch (old glide)</button>
+    <button onclick="layer(2.5)">2b flat + tail-fall (the fix)</button>
+    <button onclick="layer(3)">3 +jitter</button>
+    <button onclick="layer(4)">4 +shimmer</button>
+    <button onclick="layer(5)">5 +breath</button>
+    <button onclick="layer(6)">6 +swell (=full)</button>
+  </div>
+  <p class="sub">Press 1 through 6 in order. Tell me the NUMBER where it goes
+  wrong — that names the guilty ingredient.</p>
+</div>
+
+<div class="module">
+  <h2>Valve dials — these DO shape the utterances (pitch scales the whole voice)</h2>
+  <div class="row"><label for="f0">Pitch F0 (Hz)</label><input type="range" id="f0" min="80" max="400" step="1" value="220"><span class="chip" id="f0v"></span></div>
+  <div class="row"><label for="oq">Open fraction of cycle</label><input type="range" id="oq" min="0.35" max="0.85" step="0.01" value="0.60"><span class="chip" id="oqv"></span></div>
+  <div class="row"><label for="asym">Rise : fall asymmetry</label><input type="range" id="asym" min="1" max="6" step="0.1" value="3"><span class="chip" id="asymv"></span></div>
+  <div class="row"><label for="jit">Breath wobble — jitter %</label><input type="range" id="jit" min="0" max="3" step="0.05" value="0.8"><span class="chip" id="jitv"></span></div>
+  <div class="row"><label for="shim">Loudness wobble — shimmer %</label><input type="range" id="shim" min="0" max="8" step="0.1" value="3"><span class="chip" id="shimv"></span></div>
+</div>
+
+<div class="module">
+  <h2>Throat dials — frozen-note engine only (utterances glide their own throat)</h2>
+  <div class="row"><label for="fa">F1 (Hz)</label><input type="range" id="fa" min="200" max="1000" step="5" value="700"><span class="chip" id="fav"></span></div>
+  <div class="row bw"><label for="ba">F1 damping bw</label><input type="range" id="ba" min="30" max="250" step="5" value="130"><span class="chip" id="bav"></span></div>
+  <div class="row"><label for="fb">F2 (Hz)</label><input type="range" id="fb" min="600" max="2600" step="10" value="1220"><span class="chip" id="fbv"></span></div>
+  <div class="row bw"><label for="bb">F2 damping bw</label><input type="range" id="bb" min="30" max="250" step="5" value="70"><span class="chip" id="bbv"></span></div>
+  <div class="row"><label for="fc">F3 (Hz)</label><input type="range" id="fc" min="1500" max="3500" step="10" value="2600"><span class="chip" id="fcv"></span></div>
+  <div class="row bw"><label for="bc">F3 damping bw</label><input type="range" id="bc" min="30" max="300" step="5" value="160"><span class="chip" id="bcv"></span></div>
+  <div class="presets">
+    <button onclick="preset(700,130,1220,70,2600,160)">ah</button>
+    <button onclick="preset(270,60,2290,100,3010,150)">ee</button>
+    <button onclick="preset(300,60,870,80,2240,140)">oo</button>
+    <button onclick="preset(530,80,1840,90,2480,140)">eh</button>
+    <button onclick="preset(570,80,840,80,2410,140)">aw</button>
+  </div>
+</div>
+
+<div class="module">
+  <div class="playbar">
+    <button id="play" onclick="play()">PLAY</button>
+    <label><input type="checkbox" id="auto" checked> replay on any dial change</label>
+    <span class="dur">length <input type="range" id="dur" min="0.4" max="3" step="0.1" value="1.2"><span class="chip" id="durv"></span> s</span>
+  </div>
+</div>
+
+<div id="readout">press PLAY</div>
+</div>
+
+<script>
+const SR = 32000;
+const ids = ["f0","oq","asym","jit","shim","fa","ba","fb","bb","fc","bc","dur"];
+function v(id){ return parseFloat(document.getElementById(id).value); }
+function refresh(){
+  for (const id of ids){ document.getElementById(id+"v").textContent = v(id); }
+}
+function lcg(seed){
+  let s = seed >>> 0;
+  return function(){
+    s = (1103515245 * s + 12345) % 2147483648;
+    return (s / 2147483648) * 2 - 1;
+  };
+}
+// ================= shared voice core (v11 rebuild) =====================
+// Kazoo verdict fix: (1) phase-accumulator valve — the cycle is
+// continuous, never quantized to whole samples (the old floor(period)
+// grit); (2) spectral tilt — the closure is sharp but not infinite, a
+// one-pole lowpass gives each closure a soft landing that rolls off the
+// screaming top harmonics; (3) five resonances, not three; (4) breath
+// puffs WITH the valve opening, not flat hiss.
+const TILT_HZ = 2400;
+const BREATH_GAIN = 7.0; // measured: at 1.0 breath lands -24 dB under the voice — inaudible
+function glottalVal(phase, oq, asym){
+  if (phase >= oq) return 0;
+  const peak = oq * asym / (asym + 1);
+  if (phase < peak) return 0.5 * (1 - Math.cos(Math.PI * phase / peak));
+  // closing edge: steep but with smooth ends — a hard linear corner
+  // folds ultrasonic energy back as inharmonic grit at high pitch
+  const u = (phase - peak) / (oq - peak);
+  return 0.5 * (1 + Math.cos(Math.PI * u));
+}
+function makeSource(total, f0at, oq, asym, jit, shim, breathAt, rng, fryAt, tiltHz){
+  const flow = new Float64Array(total);
+  let phase = 1, cycAmp = 1, cycRate = 1, parity = 0;
+  for (let i = 0; i < total; i++){
+    const f0 = f0at(i);
+    if (f0 <= 0){ phase = 1; flow[i] = 0; continue; }
+    const fry = fryAt ? fryAt(i) : 0;
+    phase += cycRate * f0 / SR;
+    if (phase >= 1){
+      phase -= Math.floor(phase);
+      parity ^= 1;
+      cycAmp = (1 + shim * rng()) * (1 - 0.45 * fry * parity);
+      cycRate = (1 + jit * rng()) / (1 + 0.30 * fry * parity);
+      // fry: every other cycle longer and weaker — the little end-creak
+      // of casual English; a strong "person, not tone" cue
+    }
+    flow[i] = cycAmp * glottalVal(phase, oq, asym);
+  }
+  const a = Math.exp(-2 * Math.PI * (tiltHz || TILT_HZ) / SR);
+  const nA = Math.exp(-2 * Math.PI * 1500 / SR);
+  const sig = new Float64Array(total);
+  let lp = 0, prev = 0, nLp = 0;
+  for (let i = 0; i < total; i++){
+    lp = a * lp + (1 - a) * flow[i];
+    // breath is AIR, not static: the turbulence noise is colored (soft,
+    // low-weighted) before it enters the throat, and puffs with the valve
+    nLp = nA * nLp + (1 - nA) * rng();
+    const noise = breathAt(i) * (0.25 + 0.75 * flow[i]) * nLp;
+    sig[i] = (lp - prev) * 25 + noise;
+    prev = lp;
+  }
+  return sig;
+}
+function resonate(sig, total, fAt, bws){
+  let x = sig;
+  for (let k = 0; k < bws.length; k++){
+    const y = new Float64Array(total);
+    let y1 = 0, y2 = 0, a1 = 0, a2 = 0, g = 1;
+    for (let i = 0; i < total; i++){
+      if ((i & 63) === 0){
+        const f = Math.max(150, Math.min(SR * 0.45, fAt(k, i)));
+        const r = Math.exp(-Math.PI * bws[k] / SR);
+        const th = 2 * Math.PI * f / SR;
+        a1 = 2 * r * Math.cos(th); a2 = -r * r;
+        g = (1 - r) * Math.sqrt(1 - 2*r*Math.cos(2*th) + r*r);
+      }
+      const out = g * x[i] + a1 * y1 + a2 * y2;
+      y[i] = out; y2 = y1; y1 = out;
+    }
+    x = y;
+  }
+  return x;
+}
+function smallRoom(x, total){
+  // sparse early reflections of a normal room, wet path softly lowpassed
+  const taps = [[0.013,0.13],[0.019,0.10],[0.027,0.08],[0.036,0.06],
+                [0.047,0.045],[0.059,0.033],[0.072,0.024],[0.086,0.017]];
+  const pad = Math.floor(0.09 * SR);
+  const out = new Float64Array(total + pad);
+  for (let i = 0; i < total; i++) out[i] = x[i];
+  const a = Math.exp(-2 * Math.PI * 3200 / SR);
+  let lp = 0;
+  for (let i = 0; i < total; i++){
+    lp = a * lp + (1 - a) * x[i];
+    for (const [dt, g] of taps){
+      const j = i + Math.floor(dt * SR);
+      out[j] += g * lp;
+    }
+  }
+  return out;
+}
+let ctx = null;
+function playBuf(x, total){
+  if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)({sampleRate: SR});
+  if (ctx.state === "suspended") ctx.resume();
+  let peak = 1e-9;
+  for (let i = 0; i < total; i++) peak = Math.max(peak, Math.abs(x[i]));
+  for (let i = 0; i < total; i++) x[i] = x[i] / peak * 0.8;
+  const buf = ctx.createBuffer(1, total, SR);
+  buf.getChannelData(0).set(x);
+  const src = ctx.createBufferSource();
+  src.buffer = buf; src.connect(ctx.destination); src.start();
+}
+// upper resonances (fourth, fifth): adult vs child scale
+const HIGH_A = [3500, 4500], HIGH_C = [4375, 5625];
+const BWS5 = [110, 90, 150, 260, 320];        // adult
+const BWS5_C = [180, 160, 260, 340, 400];     // child: soft, lossy walls
+// ---- gesture engine: time-varying voice, not a note -------------------
+const CHILD = 1.25;
+const GESTURES = {
+  // Pitch law v12: a hard final drop on a lone syllable IS a falling
+  // tone (the "china man" percept). English: GENTLE declination the
+  // whole way (-4%), a small extra ease at the end, under a fade.
+  // v14: REAL measured children's formants (Peterson-Barney child data),
+  // not adult values scaled by arithmetic. A child /ah/ has F1 near
+  // 1000 Hz — far from the scaled-adult 875 the ear kept flagging.
+  "c-ahh":  [[0.62, 312, 298, [1030,1370,3170], 0.10],
+             [0.13, 298, 281, [1030,1370,3170], 0.20]],
+  "c-ohh":  [[0.62, 306, 293, [ 580,1120,3350], 0.10],
+             [0.13, 293, 276, [ 580,1120,3350], 0.20]],
+  "c-eee":  [[0.62, 316, 302, [ 370,3200,3730], 0.10],
+             [0.13, 302, 285, [ 370,3200,3730], 0.20]],
+  "c-ay":   [[0.20, 314, 308, [ 690,2610,3570], 0.10],
+             [0.35, 308, 298, [ 480,3000,3700], 0.08],
+             [0.15, 298, 281, [ 480,3000,3700], 0.16]],
+  "c-uhoh": [[0.18, 325, 318, [ 850,1590,3360], 0.12],
+             [0.06,   0,   0, [ 850,1590,3360], 0.00],
+             [0.22, 285, 274, [ 580,1120,3350], 0.10],
+             [0.10, 274, 259, [ 580,1120,3350], 0.20]],
+  "c-sss":  [[0.45,   0,   0, [1030,1370,3170], 0.55, "s"]],
+  "c-shh":  [[0.50,   0,   0, [1030,1370,3170], 0.55, "sh"]],
+  "c-mmm":  [[0.55, 305, 295, [ 280,1150,2400], 0.03, "m"],
+             [0.12, 295, 283, [ 280,1150,2400], 0.05, "m"]],
+  "c-mama": [[0.15, 332, 332, [ 280,1150,2400], 0.03, "m"],
+             [0.22, 328, 316, [1030,1370,3170], 0.08],
+             [0.13, 318, 318, [ 280,1150,2400], 0.03, "m"],
+             [0.26, 312, 291, [1030,1370,3170], 0.10]],
+  "c-see":  [[0.18,   0,   0, [ 370,3200,3730], 0.35, "s"],
+             [0.45, 316, 299, [ 370,3200,3730], 0.08]],
+  "c-shoe": [[0.11,   0,   0, [ 445,1150,3300], 0.30, "sh"],
+             [0.11, 312, 306, [ 445,1150,3300], 0.08],
+             [0.20, 306, 290, [ 405, 980,3260], 0.09]],
+  "ahh":  [[0.62, 206, 197, [700,1220,2600], 0.08],
+           [0.14, 197, 184, [700,1220,2600], 0.18]],
+  "uh-oh":[[0.18, 228, 223, [620,1200,2550], 0.12],
+           [0.06,   0,   0, [620,1200,2550], 0.00],
+           [0.22, 196, 188, [570, 840,2410], 0.10],
+           [0.12, 188, 176, [570, 840,2410], 0.22]]
+};
+let lastUtter = null;
+let pressCount = 0;
+function utter(name){
+  refresh();
+  const t0 = performance.now();
+  const segs = GESTURES[name];
+  // no living thing says a word the same way twice: each press gets its
+  // own seed, its own slight pitch and pace — deterministic in sequence
+  pressCount += 1;
+  const prng = lcg(1000 + pressCount * 7919);
+  const sayPitch = 1 + 0.035 * prng();
+  const sayPace = 1 + 0.07 * prng();
+  const total = Math.floor(SR * segs.reduce((a,s)=>a+s[0],0) * sayPace);
+  const rng = lcg(20240902 + pressCount * 104729);
+  lastUtter = name;
+  const girl = name.startsWith("c-");
+  // little girl: valve more open and less abruptly closed than the
+  // pressed snap (which reads male), softer top, slightly higher pitch,
+  // more air. These override the male-default dials for the c- buttons.
+  const pitchScale = v("f0") / 220 * sayPitch * (girl ? 1.20 : 1);
+  const oq = girl ? Math.min(0.80, v("oq") * 1.18) : v("oq");
+  const asym = girl ? Math.max(1.6, v("asym") * 0.6) : v("asym");
+  const jit = v("jit")/100 * 0.08, shim = v("shim")/100 * 0.15;
+  // living drift, not wobble: a voice WANDERS smoothly and aperiodically.
+  // Random pitch targets every ~0.22 s, cosine-eased between — a sine
+  // wobble reads as machinery ("jittery"), this reads as breath support.
+  const drng = lcg(9090 + pressCount * 31);
+  const dN = Math.ceil(total / (0.22 * SR)) + 2;
+  const dTargets = [];
+  for (let k = 0; k < dN; k++) dTargets.push(0.008 * drng());
+  const driftAt = function(i){
+    const pos = i / (0.22 * SR);
+    const k = Math.floor(pos), u = pos - k;
+    const e = 0.5 - 0.5 * Math.cos(Math.PI * u);
+    return dTargets[k] * (1 - e) + dTargets[k + 1] * e;
+  };
+  const high = name.startsWith("c-") ? HIGH_C : HIGH_A;
+  const f0t = new Float64Array(total);
+  const ft = [new Float64Array(total), new Float64Array(total), new Float64Array(total)];
+  const breath = new Float64Array(total);
+  let cursor = 0;
+  let prevF = (segs.find(s => s[1] > 0) || segs[0])[3].slice();
+  const gt = new Float64Array(total).fill(1);
+  const mm = new Float64Array(total);
+  const frics = [];
+  for (const [dur, f0a, f0b, target, br, typ] of segs){
+    const n = Math.floor(dur * SR * sayPace);
+    const isFric = typ === "s" || typ === "sh";
+    if (isFric){
+      // the hiss is its own little machine: no voice, a jet of air
+      // shaped by the front of the mouth only — rendered separately
+      frics.push({start: cursor, n: n, kind: typ, level: br});
+    }
+    for (let i = 0; i < n && cursor + i < total; i++){
+      const u = i / n;
+      f0t[cursor+i] = isFric ? 0 : (f0a + (f0b - f0a) * u) * pitchScale;
+      breath[cursor+i] = isFric ? 0 : br;
+      if (typ === "m"){ gt[cursor+i] = 0.42; mm[cursor+i] = 1; } // lips shut
+      const glide = Math.min(1, i / (0.06 * SR));
+      const fscale = girl ? 1.09 : 1;
+      for (let k = 0; k < 3; k++){
+        ft[k][cursor+i] = (prevF[k] + (target[k] - prevF[k]) * glide) * fscale;
+      }
+    }
+    if (f0a > 0) prevF = target.slice();
+    cursor += n;
+  }
+  // slow two-rate waver: with the big slides gone this is the audible life
+  const f0at = function(i){
+    if (f0t[i] <= 0) return 0;
+    return f0t[i] * (1 + driftAt(i));
+  };
+  const fryStart = Math.floor(total * 0.90);
+  const fryMax = girl ? 0.18 : 0.5;
+  const fryAt = i => i <= fryStart ? 0 : fryMax * (i - fryStart) / (total - fryStart);
+  const breathBoost = girl ? 0.85 : 1.0;
+  const sig = makeSource(total, f0at, oq, asym, jit, shim,
+    i => breath[i] * BREATH_GAIN * breathBoost, rng, fryAt, girl ? 1800 : TILT_HZ);
+  const x = resonate(sig, total,
+    (k, i) => k < 3 ? ft[k][i] : high[k - 3],
+    name.startsWith("c-") ? BWS5_C : BWS5);
+  // shut lips pass almost nothing above the hum — without this the
+  // murmur keeps its vowel shape and reads as "who"
+  const mA = Math.exp(-2 * Math.PI * 600 / SR);
+  let mLp = 0;
+  for (let i = 0; i < total; i++){
+    mLp = mA * mLp + (1 - mA) * x[i];
+    if (mm[i]) x[i] = mLp * 1.7;
+    x[i] *= gt[i];
+  }
+  if (frics.length){
+    let vpk = 1e-9;
+    for (let i = 0; i < total; i++) vpk = Math.max(vpk, Math.abs(x[i]));
+    // the voiced path runs at tiny internal amplitude (final leveling
+    // rescales) — the hiss must reference the MEASURED voice scale;
+    // a fixed fallback only for utterances with no voice at all
+    if (!segs.some(s => s[1] > 0)) vpk = 1;
+    for (const fr of frics){
+      // S: thin jet at the teeth, high and bright. SH: wider jet further
+      // back, deeper hiss. One resonant band each, smooth air envelope.
+      const fc = fr.kind === "s" ? 6800 : 2900;
+      const bw = fr.kind === "s" ? 2000 : 1100;
+      const r = Math.exp(-Math.PI * bw / SR);
+      const th = 2 * Math.PI * fc / SR;
+      const a1 = 2*r*Math.cos(th), a2 = -r*r;
+      const g = (1-r)*Math.sqrt(1 - 2*r*Math.cos(2*th) + r*r);
+      let y1 = 0, y2 = 0, fpk = 1e-9;
+      const buf = new Float64Array(fr.n);
+      for (let i = 0; i < fr.n; i++){
+        const out = g * rng() + a1*y1 + a2*y2;
+        buf[i] = out; y2 = y1; y1 = out;
+        fpk = Math.max(fpk, Math.abs(out));
+      }
+      const edge = Math.floor(0.025 * SR);
+      for (let i = 0; i < fr.n; i++){
+        let w = 1;
+        if (i < edge) w = i / edge;
+        if (i > fr.n - edge) w = Math.min(w, (fr.n - i) / edge);
+        const j = fr.start + i;
+        if (j < total) x[j] += buf[i] / fpk * vpk * fr.level * w;
+      }
+    }
+  }
+  // loudness arc: fast rise, early peak, gradual decay all the way out —
+  // a body-constant loudness is the piano tell, and the decay makes the
+  // final pitch ease read as a fade, not a falling tone
+  const atk = Math.floor(0.045 * SR), rel = Math.floor(0.10 * SR);
+  let vStart = 0;
+  while (vStart < total && f0t[vStart] <= 0) vStart++;
+  if (vStart >= total) vStart = 0;
+  for (let i = 0; i < total; i++){
+    let w;
+    if (i < vStart) w = 0.8;
+    else if (i < vStart + atk) w = 0.8 + 0.2 * (i - vStart) / atk;
+    else w = 1 - 0.45 * (i - vStart - atk) / (total - vStart - atk);
+    if (i > total - rel) w *= (total - i) / rel;
+    x[i] *= w;
+  }
+  const xr = smallRoom(x, total);
+  playBuf(xr, xr.length);
+  const ms = (performance.now() - t0).toFixed(1);
+  document.getElementById("readout").textContent =
+    'bench v22 | "' + name + '" rendered ' + ms + " ms | continuous valve + " +
+    "soft-landing closure + 5 resonances + valve-synced breath";
+}
+function cal(mode){
+  refresh();
+  const total = Math.floor(SR * 0.9);
+  const rng = lcg(555);
+  const base = mode === "lo" ? 120 : mode === "hi" ? 380 : 300;
+  const wavAmt = mode === "waver" ? 0.05 : 0;
+  const brAmt = mode === "breathy" ? 0.45 * BREATH_GAIN : 0;
+  const f0at = function(i){
+    const ts = i / SR;
+    return base * (1 + wavAmt * Math.sin(2 * Math.PI * 3 * ts));
+  };
+  const sig = makeSource(total, f0at, 0.55, 5, 0, 0, () => brAmt, rng);
+  const x = resonate(sig, total,
+    (k, i) => k < 3 ? [875,1525,3250][k] : HIGH_C[k - 3], BWS5);
+  const edge = Math.floor(0.015 * SR);
+  for (let i = 0; i < edge; i++){ const w = i/edge; x[i] *= w; x[total-1-i] *= w; }
+  playBuf(x, total);
+  const names = {lo:"A1 low 120 Hz", hi:"A2 high 380 Hz", still:"B1 dead still",
+    waver:"B2 strong 5% waver", clean:"C1 no breath", breathy:"C2 very breathy"};
+  document.getElementById("readout").textContent = "bench v22 | path check: " + names[mode];
+}
+function layer(n){
+  refresh();
+  const total = Math.floor(SR * 0.9);
+  const rng = lcg(777);
+  const tailFall = n === 2.5;
+  const useFall = n >= 2 && !tailFall, useJit = n >= 3, useShim = n >= 4;
+  const useBreath = n >= 5, useSwell = n >= 6;
+  const f0at = function(i){
+    const u = i / total;
+    let f0 = useFall ? (320 - 40 * u) : 300;
+    if (tailFall) f0 = u < 0.8 ? 310 : 310 - 42 * (u - 0.8) / 0.2;
+    return f0;
+  };
+  const sig = makeSource(total, f0at, 0.55, 5,
+    useJit ? 0.006 : 0, useShim ? 0.025 : 0,
+    () => useBreath ? 0.10 : 0, rng);
+  const x = resonate(sig, total,
+    (k, i) => k < 3 ? [875,1525,3250][k] : HIGH_C[k - 3], BWS5);
+  const atk = useSwell ? Math.floor(0.06*SR) : Math.floor(0.008*SR);
+  const rel = useSwell ? Math.floor(0.12*SR) : Math.floor(0.03*SR);
+  for (let i = 0; i < total; i++){
+    let w = 1;
+    if (i < atk) w = i/atk;
+    if (i > total - rel) w = Math.min(w, (total-i)/rel);
+    x[i] *= w;
+  }
+  playBuf(x, total);
+  const parts = ["bare vowel","falling pitch","jitter","shimmer","breath","swell"];
+  document.getElementById("readout").textContent = tailFall
+    ? "bench v22 | layer 2b = bare vowel + FLAT body, fall only in the tail"
+    : "bench v22 | layer " + n + " = " + parts.slice(0, n).join(" + ");
+}
+function cand(f0,oq,asym,jit,shim,fa,ba,fb,bb,fc,bc){
+  const set=(id,val)=>{document.getElementById(id).value=val;};
+  set("f0",f0); set("oq",oq); set("asym",asym); set("jit",jit); set("shim",shim);
+  set("fa",fa); set("ba",ba); set("fb",fb); set("bb",bb); set("fc",fc); set("bc",bc);
+  refresh(); play();
+}
+function preset(fa,ba,fb,bb,fc,bc){
+  const set=(id,val)=>{document.getElementById(id).value=val;};
+  set("fa",fa); set("ba",ba); set("fb",fb); set("bb",bb); set("fc",fc); set("bc",bc);
+  refresh(); play();
+}
+function play(){
+  refresh();
+  const t0 = performance.now();
+  const total = Math.floor(SR * v("dur"));
+  const rng = lcg(12345);
+  const sig = makeSource(total, () => v("f0"), v("oq"), v("asym"),
+    v("jit")/100, v("shim")/100, () => 0.04, rng);
+  const bws = [v("ba"), v("bb"), v("bc"), 260, 320];
+  const x = resonate(sig, total,
+    (k, i) => k < 3 ? [v("fa"), v("fb"), v("fc")][k] : HIGH_A[k - 3], bws);
+  const edge = Math.floor(0.02 * SR);
+  for (let i = 0; i < edge; i++){ const w = i/edge; x[i] *= w; x[total-1-i] *= w; }
+  playBuf(x, total);
+  const ms = (performance.now() - t0).toFixed(1);
+  document.getElementById("readout").textContent =
+    "bench v22 | frozen note rendered " + ms + " ms | F0 " + v("f0") +
+    " Hz | formants " + v("fa") + " / " + v("fb") + " / " + v("fc");
+}
+for (const id of ids){
+  document.getElementById(id).addEventListener("input", function(){
+    refresh();
+    if (document.getElementById("auto").checked){
+      if (lastUtter) utter(lastUtter); else play();
+    }
+  });
+}
+refresh();
+</script>

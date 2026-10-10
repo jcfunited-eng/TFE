@@ -1,0 +1,252 @@
+{
+  "scope": "Exact mathematical falsification of recovered printed specifications; no organism import, mutation, native build or physical hardware test",
+  "checks": [
+    {
+      "id": "EQ01",
+      "subject": "April v4.0 carry formula and v5.0.1 carry function contain an extra minus one",
+      "verdict": "PRINTED_CLAIM_FALSIFIED",
+      "witness": [
+        {
+          "a": -1,
+          "b": -1,
+          "sum_trit": 1,
+          "printed_carry": -2,
+          "printed_reconstruction": -5,
+          "required_total": -2
+        },
+        {
+          "a": -1,
+          "b": 0,
+          "sum_trit": -1,
+          "printed_carry": -1,
+          "printed_reconstruction": -4,
+          "required_total": -1
+        },
+        {
+          "a": -1,
+          "b": 1,
+          "sum_trit": 0,
+          "printed_carry": -1,
+          "printed_reconstruction": -3,
+          "required_total": 0
+        },
+        {
+          "a": 0,
+          "b": -1,
+          "sum_trit": -1,
+          "printed_carry": -1,
+          "printed_reconstruction": -4,
+          "required_total": -1
+        },
+        {
+          "a": 0,
+          "b": 0,
+          "sum_trit": 0,
+          "printed_carry": -1,
+          "printed_reconstruction": -3,
+          "required_total": 0
+        },
+        {
+          "a": 0,
+          "b": 1,
+          "sum_trit": 1,
+          "printed_carry": -1,
+          "printed_reconstruction": -2,
+          "required_total": 1
+        },
+        {
+          "a": 1,
+          "b": -1,
+          "sum_trit": 0,
+          "printed_carry": -1,
+          "printed_reconstruction": -3,
+          "required_total": 0
+        },
+        {
+          "a": 1,
+          "b": 0,
+          "sum_trit": 1,
+          "printed_carry": -1,
+          "printed_reconstruction": -2,
+          "required_total": 1
+        },
+        {
+          "a": 1,
+          "b": 1,
+          "sum_trit": -1,
+          "printed_carry": 0,
+          "printed_reconstruction": -1,
+          "required_total": 2
+        }
+      ],
+      "limitation": "This falsifies the printed formula for the stated balanced digits; no claim that deployed native/HDL uses it. With incoming carry the same offset error persists."
+    },
+    {
+      "id": "EQ02",
+      "subject": "Printed numerical energy barrier2.37 contradicts its own coefficients",
+      "verdict": "PRINTED_CLAIM_FALSIFIED",
+      "witness": {
+        "exact": "1101/512",
+        "decimal": 2.150390625,
+        "printed_decimal": "2.37"
+      },
+      "limitation": "Arithmetic substitution only. This does not validate the proposed barrier law or physical constants."
+    },
+    {
+      "id": "EQ03",
+      "subject": "Subtracting individual constraint ranks double-counts dependent constraints",
+      "verdict": "PRINTED_CLAIM_FALSIFIED",
+      "witness": {
+        "n_start": 2,
+        "C1": [
+          1,
+          0
+        ],
+        "C2": [
+          1,
+          0
+        ],
+        "individual_rank_sum": 2,
+        "combined_rank": 1,
+        "printed_n_eff": 0,
+        "linear_solution_dimension": 1
+      },
+      "limitation": "For these linear equality constraints the correct rank is the stacked independent rank. Nonlinear geometry requires its own demonstrated conditions; no replacement L6 law is invented."
+    },
+    {
+      "id": "EQ04",
+      "subject": "One sum-parity constraint cannot uniquely locate and correct any unknown single-trit error",
+      "verdict": "PRINTED_CLAIM_FALSIFIED",
+      "witness": {
+        "K": 0,
+        "original_a": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "original_b": [
+          1,
+          -1,
+          0,
+          0,
+          0
+        ],
+        "same_received": [
+          1,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "limitation": "If the failed position is independently known, the other four trits can reconstruct that erasure. The counterexample concerns the blanket unknown-error correction claim."
+    },
+    {
+      "id": "EQ05",
+      "subject": "Hermitian evolution with additive injection does not generally conserve norm",
+      "verdict": "PRINTED_CLAIM_FALSIFIED",
+      "witness": {
+        "hbar": 1,
+        "psi": "1",
+        "H": "0",
+        "J": "i",
+        "derivative_psi": "1",
+        "derivative_norm_squared": 2,
+        "identity": "d||psi||²/dt = 2 Im(<psi,J>)/hbar for Hermitian H"
+      },
+      "limitation": "Norm preservation holds for the homogeneous Hermitian evolution, not arbitrary forcing. A valid open-system balance must be supplied; renormalization would hide the input balance."
+    },
+    {
+      "id": "EQ06",
+      "subject": "v0.4 Crank–Nicolson forcing term disagrees with its stated differential equation",
+      "verdict": "PRINTED_CLAIM_FALSIFIED",
+      "witness": {
+        "hbar": 1,
+        "H": 0,
+        "J": "1",
+        "psi_initial": "0",
+        "delta_time": 1,
+        "printed_successor": "1",
+        "successor_of_stated_ODE": "-i"
+      },
+      "limitation": "For i*hbar*dpsi/dt=H*psi+J with constant J, the forcing increment is -i*dt*J/hbar. No product equation was edited."
+    },
+    {
+      "id": "EQ07",
+      "subject": "The claimed three levels for ceil(log3(32)) is incorrect",
+      "verdict": "PRINTED_CLAIM_FALSIFIED",
+      "witness": {
+        "word_width": 32,
+        "three_levels_capacity": 27,
+        "four_levels_capacity": 81,
+        "required_ceiling_levels": 4
+      },
+      "limitation": "This only corrects the stated tree-depth arithmetic; it does not validate the physical per-level latency or the carry implementation."
+    },
+    {
+      "id": "EQ08",
+      "subject": "Integer folding quotient truncation is not always the nearest finite balanced-ternary approximation",
+      "verdict": "PRINTED_CLAIM_FALSIFIED",
+      "witness": {
+        "A": 5,
+        "B": 9,
+        "fractional_places": 1,
+        "scaled_integer_quotient": 1,
+        "returned": "1/3",
+        "actual": "5/9",
+        "closer_representable": "2/3",
+        "returned_error": "2/9",
+        "closer_error": "1/9"
+      },
+      "limitation": "Truncating an already exact balanced-ternary expansion has a different tail-bound property. The printed divide-after-scaling algorithm truncates an integer quotient, so that property does not prove its claim. Actual HDL must be traced independently."
+    },
+    {
+      "id": "EQ09",
+      "subject": "Independent redundant-digit normalization omits incoming carry when claimed as final canonical digits",
+      "verdict": "PRINTED_CLAIM_FALSIFIED",
+      "witness": {
+        "a": [
+          1,
+          1
+        ],
+        "b": [
+          1,
+          0
+        ],
+        "raw": [
+          2,
+          1
+        ],
+        "normalized_digits": [
+          -1,
+          1
+        ],
+        "outgoing_carries": [
+          1,
+          0
+        ],
+        "expected": 5,
+        "normalized_digits_value": 2
+      },
+      "limitation": "Keeping the carry vector as a separate redundant representation preserves value; it does not establish a fully normalized result in the asserted two independent passes. Further carry incorporation must be specified and bounded."
+    },
+    {
+      "id": "EQ10",
+      "subject": "Unforced time-independent Hermitian evolution does not itself minimize energy",
+      "verdict": "PRINTED_CLAIM_FALSIFIED",
+      "witness": {
+        "hbar": 1,
+        "H": "diag(0,1)",
+        "psi_initial": "(1/sqrt(2),1/sqrt(2))",
+        "psi_at_t": "(1/sqrt(2),exp(-i*t)/sqrt(2))",
+        "energy_expectation": "1/2 for all t",
+        "ground_state_energy": 0
+      },
+      "limitation": "This exact solution remains above the minimum. Dissipative TAL and conservative Psi laws need an explicit coupling/open-system balance; one cannot call them equivalent because both use a field."
+    }
+  ],
+  "count": 10,
+  "product_qualification": false
+}

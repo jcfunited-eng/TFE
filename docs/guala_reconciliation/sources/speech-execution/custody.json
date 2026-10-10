@@ -1,0 +1,152 @@
+[
+  {
+    "id": "AS01",
+    "archive": "/mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-runtime-two-posture-pass.tar.gz",
+    "archive_sha256": "50f6e05cca4086e4e981d911a015c89fee1eb2ce1a134c634459873c049019d2",
+    "members": [
+      {
+        "name": "guala-c123-runtime-recall.py",
+        "bytes": 7095,
+        "sha256": "01a1446bbaa28ccf1984e831debc53dd610cc08e84b47c67b609a5113b812c68",
+        "copy": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS01--guala-c123-runtime-recall.py"
+      },
+      {
+        "name": "guala-c123-runtime-recall.log",
+        "bytes": 197373,
+        "sha256": "2b9448fc0c6ba480267acd59757aaba2352c90d6e988d1e5ace5e4b0fcf992b5",
+        "copy": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS01--guala-c123-runtime-recall.log"
+      },
+      {
+        "name": "guala-c123-recall.7m7KBL/paired/world-generations/372c64ed0d58d5bcbfd997d50e6e95b7c3a36726e3fff7a202b4ee442d84dbbf.glworld",
+        "bytes": 63563,
+        "sha256": "372c64ed0d58d5bcbfd997d50e6e95b7c3a36726e3fff7a202b4ee442d84dbbf"
+      },
+      {
+        "name": "guala-c123-recall.7m7KBL/paired/world-generations/218e8ff00c7be3ffd3f5265e3f97b9951de3802047bfa55cc2f4c872ac61c8d0.glworld",
+        "bytes": 81987,
+        "sha256": "218e8ff00c7be3ffd3f5265e3f97b9951de3802047bfa55cc2f4c872ac61c8d0"
+      },
+      {
+        "name": "guala-c123-recall.7m7KBL/paired/CURRENT",
+        "bytes": 255,
+        "sha256": "c9ddefb0c18a497f07d70b84b20851104498c1f98d2a660d2f2763e9cf4205f1"
+      },
+      {
+        "name": "guala-c123-recall.7m7KBL/paired/body-generations/fa73dd48dfe7b0c6dafc33c6d8e86002dfd094f2ffe4aa7ce2def17f0466d82c.glorun.gz",
+        "bytes": 3280173,
+        "sha256": "dea76ad2e7791bf3d08856ea795e8c568eb7467c5cc6e1fda2d3294f3c726527",
+        "raw_sha256": "fa73dd48dfe7b0c6dafc33c6d8e86002dfd094f2ffe4aa7ce2def17f0466d82c",
+        "raw_bytes": 165481982,
+        "filename_matches_raw_hash": true
+      },
+      {
+        "name": "guala-c123-recall.7m7KBL/paired/body-generations/6dedb338f41fc650bda6589e4dc175229e726f74cb8b257953e7d86b3cd55f33.glorun.gz",
+        "bytes": 3238392,
+        "sha256": "2b7a9a0e5249919c5abbd5c1148ab4a3bef4e081a2b08bfb21c2bee9d1899912",
+        "raw_sha256": "6dedb338f41fc650bda6589e4dc175229e726f74cb8b257953e7d86b3cd55f33",
+        "raw_bytes": 165083418,
+        "filename_matches_raw_hash": true
+      }
+    ]
+  },
+  {
+    "id": "AS02",
+    "archive": "/mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-fresh-two-posture-recall.tar.gz",
+    "archive_sha256": "b384b82091da747d7cef993af49f7eb32392bcb408107d668b2589b6d091a1b1",
+    "members": [
+      {
+        "name": "guala-c123-release-recall.hsgWCI/paired/world-generations/1f5d9e83ab41229eee8edf8c40bf7ed6125bc59770832123c6ae71d3d639c334.glworld",
+        "bytes": 81995,
+        "sha256": "1f5d9e83ab41229eee8edf8c40bf7ed6125bc59770832123c6ae71d3d639c334"
+      },
+      {
+        "name": "guala-c123-release-recall.hsgWCI/paired/world-generations/9b1b52557f10d54dc4e876391d3db1ee4ebaa25a00bec0b589c453da3b16cf67.glworld",
+        "bytes": 63571,
+        "sha256": "9b1b52557f10d54dc4e876391d3db1ee4ebaa25a00bec0b589c453da3b16cf67"
+      },
+      {
+        "name": "guala-c123-release-recall.hsgWCI/paired/CURRENT",
+        "bytes": 255,
+        "sha256": "2c39ef1d457dbdcf776da1545bfe7640468288d396116f77df82c83e01a3b27c"
+      },
+      {
+        "name": "guala-c123-release-recall.hsgWCI/paired/body-generations/55609c3bfbd1421e055bfbc6376220f9f8b04fefdfe4913f0cae15fcede847bd.glorun.gz",
+        "bytes": 3243179,
+        "sha256": "a9e199b86cecc87be809ebd9b8c5e7648f9d71940a5b9cec9e0a2854e2922375",
+        "raw_sha256": "55609c3bfbd1421e055bfbc6376220f9f8b04fefdfe4913f0cae15fcede847bd",
+        "raw_bytes": 165113722,
+        "filename_matches_raw_hash": true
+      },
+      {
+        "name": "guala-c123-release-recall.hsgWCI/paired/body-generations/3d44f13de1c33bad3031b3c2b39c6d3ae49c276c9a919d81659f95b6604fa06c.glorun.gz",
+        "bytes": 3279730,
+        "sha256": "b4115ab5ef8faa86c86f2d5916b1fe582590bddbd289721affd5548e97d5f8d3",
+        "raw_sha256": "3d44f13de1c33bad3031b3c2b39c6d3ae49c276c9a919d81659f95b6604fa06c",
+        "raw_bytes": 165487020,
+        "filename_matches_raw_hash": true
+      },
+      {
+        "name": "guala-c123-release-recall.py",
+        "bytes": 9760,
+        "sha256": "b9178369117dc0f5b47acfb0f674a263acaa7951b597a18a60b2309053bfc89e",
+        "copy": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS02--guala-c123-release-recall.py"
+      },
+      {
+        "name": "guala-c123-release-recall.log",
+        "bytes": 191147,
+        "sha256": "f365ccf1e9e23f95791ce7e06178fb41cb756cb3c7c0504c53b299d8b0226c8f",
+        "copy": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS02--guala-c123-release-recall.log"
+      }
+    ]
+  },
+  {
+    "id": "AS03",
+    "archive": "/mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-two-posture-http-delivery.tar.gz",
+    "archive_sha256": "b678a26b195df9b059ce739c831e42f0fa1ee455c527ef2b0dde2667a54987e4",
+    "members": [
+      {
+        "name": "guala-c123-audio-recall.u9UCzP/paired/world-generations/bf68583b96830ed0a5ce24343c9807b68c0359ef9f19f62295860d71f2ec1ea0.glworld",
+        "bytes": 77815,
+        "sha256": "bf68583b96830ed0a5ce24343c9807b68c0359ef9f19f62295860d71f2ec1ea0"
+      },
+      {
+        "name": "guala-c123-audio-recall.u9UCzP/paired/world-generations/b4e60ab4471bbffd3df0f35cc8d33db9ab0a5a78d7c2968a70cc6be2bb5ba17e.glworld",
+        "bytes": 63575,
+        "sha256": "b4e60ab4471bbffd3df0f35cc8d33db9ab0a5a78d7c2968a70cc6be2bb5ba17e"
+      },
+      {
+        "name": "guala-c123-audio-recall.u9UCzP/paired/CURRENT",
+        "bytes": 255,
+        "sha256": "936430ceb5fa3c3abbaf18fd294d128dfcee449a797790883afc09862286fd4a"
+      },
+      {
+        "name": "guala-c123-audio-recall.u9UCzP/paired/body-generations/ed5e35eb7dfac2d418a3617df605fd731135238fc587b16168a1d672cc4882d8.glorun.gz",
+        "bytes": 3277352,
+        "sha256": "aad5e17d840e15820d91576ce63b4ae81f6d6bb9bd502225d8d7c20787c7b270",
+        "raw_sha256": "ed5e35eb7dfac2d418a3617df605fd731135238fc587b16168a1d672cc4882d8",
+        "raw_bytes": 165468914,
+        "filename_matches_raw_hash": true
+      },
+      {
+        "name": "guala-c123-audio-recall.u9UCzP/paired/body-generations/3252c6098c450a10d8668cb1e9b7e51f1e200aa72012ac2e3a745c20425fde4a.glorun.gz",
+        "bytes": 3240261,
+        "sha256": "a50e89cfd762961ff0004adccfc7bb346835e5b8b3341475e70ccaf62ed67ba5",
+        "raw_sha256": "3252c6098c450a10d8668cb1e9b7e51f1e200aa72012ac2e3a745c20425fde4a",
+        "raw_bytes": 165085440,
+        "filename_matches_raw_hash": true
+      },
+      {
+        "name": "guala-c123-audio-recall.py",
+        "bytes": 11635,
+        "sha256": "c0a608439db5d92f06ba3bb59fa1a45a67c69c707b545f53d21f0981fe479d1c",
+        "copy": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS03--guala-c123-audio-recall.py"
+      },
+      {
+        "name": "guala-c123-audio-recall.log",
+        "bytes": 119417,
+        "sha256": "3cc7774abef5be6333b8aaab635304a0b25412ba72569e78a198f46a50fc3ca1",
+        "copy": "backups/runtime/a1-speech-reconciliation-20261010/recovered-speech-execution/AS03--guala-c123-audio-recall.log"
+      }
+    ]
+  }
+]

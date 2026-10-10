@@ -1,0 +1,90 @@
+[
+  {
+    "path": "AGENTS.md",
+    "snapshot": "current-snapshots/AGENTS.md",
+    "sha256": "33c1fa2b0abfdb6c38fb9e29dcb27f2b47a46bf85dbfb51c22f5bc1f9307006b",
+    "bytes": 20976,
+    "captured_at": "2026-10-09T21:56:25.296128+00:00",
+    "unchanged_after_read": true
+  },
+  {
+    "path": "collaborative_todo.md",
+    "snapshot": "current-snapshots/collaborative_todo.md",
+    "sha256": "ea2528e5782d9e37de8e70811641ae83ccdf11e1e21211e3c29a5b9973e75481",
+    "bytes": 3779287,
+    "captured_at": "2026-10-09T21:56:25.296128+00:00",
+    "unchanged_after_read": true
+  },
+  {
+    "path": "docs/COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+    "snapshot": "current-snapshots/docs/COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+    "sha256": "cff9692f0f1bd53b2a3e86189f071448f6c8a75b36d75b28a745bc4c31df97a3",
+    "bytes": 10546,
+    "captured_at": "2026-10-09T21:56:25.296128+00:00",
+    "unchanged_after_read": true
+  },
+  {
+    "path": "docs/GUALA_COGNITIVE_MOSAIC_TAPESTRY_WEAVE_SPECIFICATION_2026-10-09.md",
+    "snapshot": "current-snapshots/docs/GUALA_COGNITIVE_MOSAIC_TAPESTRY_WEAVE_SPECIFICATION_2026-10-09.md",
+    "sha256": "a7dbe3fec1115b27dd91e766e96e1bb457a2183895fc61d910902b3b4f61148f",
+    "bytes": 9823,
+    "captured_at": "2026-10-09T21:56:25.296128+00:00",
+    "unchanged_after_read": true
+  },
+  {
+    "path": "docs/GUALA_OPTION2_NATIVE64_PHYSICAL_AUDIT_2026-10-09.md",
+    "snapshot": "current-snapshots/docs/GUALA_OPTION2_NATIVE64_PHYSICAL_AUDIT_2026-10-09.md",
+    "sha256": "3b5ce3396fb0b3b8128011764f3bb91b5f773375e16b06ee51e2cb155c911960",
+    "bytes": 5932,
+    "captured_at": "2026-10-09T21:56:25.296128+00:00",
+    "unchanged_after_read": true
+  },
+  {
+    "path": "tests/test_64column_mosaic_tapestry_weave.py",
+    "snapshot": "current-snapshots/tests/test_64column_mosaic_tapestry_weave.py",
+    "sha256": "5af660a56f393572a0dd065b08b90163bc062c3e729d9d244dc8b11efd333bed",
+    "bytes": 6405,
+    "captured_at": "2026-10-09T21:56:25.296128+00:00",
+    "unchanged_after_read": true
+  },
+  {
+    "path": "dsf_ai_service/substrate/modular_column_substrate.py",
+    "snapshot": "current-snapshots/dsf_ai_service/substrate/modular_column_substrate.py",
+    "sha256": "a65691f29c15d831616382275d72d51eeb22060d00339c0a6eaf055af8b31287",
+    "bytes": 29543,
+    "captured_at": "2026-10-09T21:56:25.296128+00:00",
+    "unchanged_after_read": true
+  },
+  {
+    "path": "native/guala_core/src/cortical_column.rs",
+    "snapshot": "current-snapshots/native/guala_core/src/cortical_column.rs",
+    "sha256": "8062baeca1d58df495df833db9df925b78e7727588417b1d18a7353b285edd99",
+    "bytes": 172230,
+    "captured_at": "2026-10-09T21:56:25.296128+00:00",
+    "unchanged_after_read": true
+  },
+  {
+    "path": "dsf_ai_service/guala_functional_organism.py",
+    "snapshot": "current-snapshots/dsf_ai_service/guala_functional_organism.py",
+    "sha256": "99e971c3039cd1d4c9652755e529b9358d87af7403e1c3ccfcebe22d2ad844e0",
+    "bytes": 208696,
+    "captured_at": "2026-10-09T21:56:25.296128+00:00",
+    "unchanged_after_read": true
+  },
+  {
+    "path": "docs/GUALA_LEARNING_DECISION_MECHANISM_CONTRACT_2026-10-08.md",
+    "snapshot": "current-snapshots/docs/GUALA_LEARNING_DECISION_MECHANISM_CONTRACT_2026-10-08.md",
+    "sha256": "15ca8ce53cab440680b1c246ac9530d7967d4f46b41f7d7173195b8bad35f38b",
+    "bytes": 19732,
+    "captured_at": "2026-10-09T21:56:25.296128+00:00",
+    "unchanged_after_read": true
+  },
+  {
+    "path": "docs/GUALA_NEXT_SESSION_HANDOFF_2026-10-08.md",
+    "snapshot": "current-snapshots/docs/GUALA_NEXT_SESSION_HANDOFF_2026-10-08.md",
+    "sha256": "9940535c521b7bafff213775236ecbd02c56d01943dc0c659e2c43fcaa8062af",
+    "bytes": 14193,
+    "captured_at": "2026-10-09T21:56:25.296128+00:00",
+    "unchanged_after_read": true
+  }
+]

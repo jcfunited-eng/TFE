@@ -1,0 +1,3872 @@
+[
+  {
+    "at_utc": "2026-10-09T22:30:09.708076+00:00",
+    "bucket": "dsf-ai-site-backups",
+    "prefix": "guala/native-organism/",
+    "returncode": 0,
+    "result": {
+      "IsTruncated": false,
+      "Contents": [
+        {
+          "Key": "guala/native-organism/4a96b9efdd1b296ab795e3646fd89f397f850445330c0af0be4d3969f3372033.glorun",
+          "LastModified": "2026-09-07T13:12:56+00:00",
+          "ETag": "\"15e256a92ddb3002643689d470c7fbbc\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 561912,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/native-organism/f5e3cc8f428178fa969fd07214be1689ddafbd410d530cc01f9d3cb6da203135.glorun",
+          "LastModified": "2026-09-07T13:12:48+00:00",
+          "ETag": "\"d4c14ec26cb51a344e5f89fc5e86b7df\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 563063,
+          "StorageClass": "STANDARD"
+        }
+      ],
+      "Name": "dsf-ai-site-backups",
+      "Prefix": "guala/native-organism/",
+      "MaxKeys": 1000,
+      "EncodingType": "url",
+      "KeyCount": 2
+    }
+  },
+  {
+    "at_utc": "2026-10-09T22:30:10.563683+00:00",
+    "bucket": "dsf-ai-site-backups",
+    "prefix": "guala/generations/",
+    "returncode": 0,
+    "result": {
+      "IsTruncated": false,
+      "Contents": [
+        {
+          "Key": "guala/generations/bac4c292-b6bb-496a-858f-4c07f3a5ebe7/MANIFEST.json",
+          "LastModified": "2026-08-03T03:02:28+00:00",
+          "ETag": "\"1898d7f216d5f18d131a63fee4cef0ba\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 5939,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/bbbb1a05-bc01-4957-aaba-4ca93c4dccf5/MANIFEST.json",
+          "LastModified": "2026-08-03T01:01:41+00:00",
+          "ETag": "\"de3d787a1e207b019d1c7dbc4b6c695e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 6141,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/01/01e89c57a7117cdbdd034c094f44b44c50d3bb94e3702c6ae10c46567e90b166",
+          "LastModified": "2026-08-03T03:02:23+00:00",
+          "ETag": "\"abd29f02b41751ca524cafd567ce8ecd\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 3958556,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/0c/0c7ad61f3d4e4471722ee6e5444f61694c2ccfb1145848d216e28178a0ead262",
+          "LastModified": "2026-08-02T00:59:19+00:00",
+          "ETag": "\"8125f19b2d0b6aa020b34517b2112c55\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 3860231,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/14/14cf81878875c933a75f559993aba3c1f7b8330c550cdf5afa4bc022b2cf9a24",
+          "LastModified": "2026-08-02T00:59:19+00:00",
+          "ETag": "\"1da2a92e784643eb405522682a9d40b4\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/15/152d595ca09775adfb713aa3ab17c0de7f512a435bebd432081390b01286b1ad",
+          "LastModified": "2026-08-03T03:02:23+00:00",
+          "ETag": "\"acbc77b2ec6038dd9b7a0f54e7cced7d\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 295,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/18/18b048fe1d998a9ca4ea4df1df07ca4c6e92f614d5f4c1d9313ff6a770af844f",
+          "LastModified": "2026-08-03T01:01:36+00:00",
+          "ETag": "\"f9d5ec30c525d0426387e2c0e260fcf2\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 295,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/1d/1d16c7055af2294c9526c206b3cbe8e8fba5c8daf004ca2a5f60d5580c8c384f",
+          "LastModified": "2026-08-02T00:59:19+00:00",
+          "ETag": "\"7b706e2c81f8ee872dce66c5cc881dcf\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/21/211970f3576116aa3dc7340d8cf3b65149a721c3a566b2cad188412e905c9ead",
+          "LastModified": "2026-08-03T03:02:24+00:00",
+          "ETag": "\"6ad25df8b2500b2527ac44e18c5f9557\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/21/218a0274f9524b371884ec4197f477fef342082df16231ac93965f0be41f63e1",
+          "LastModified": "2026-08-03T03:02:24+00:00",
+          "ETag": "\"5477d38345ae394c8475293dc379d649\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/24/2449a0155b3ccf7a4669c172276374cb66991aa4446f51a94ca8440b700800c0",
+          "LastModified": "2026-08-03T03:02:24+00:00",
+          "ETag": "\"b607d0651361169e77d0999f5beefb7d\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/37/37115297eb8fa87b245bcda9ff178457ca854ba874d764969e2a243083c66dfe",
+          "LastModified": "2026-08-02T00:59:20+00:00",
+          "ETag": "\"7a83fccd17f55106f7b05a3be3425053\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/3b/3b3377734e98848ffd57b53f5006f594b01fdb37e57815a1935043de25922fd8",
+          "LastModified": "2026-08-02T00:59:20+00:00",
+          "ETag": "\"eff1c2994ed2cf2b033cbbb364c42415\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/3d/3d298ca29029bd2b278918db936251cc1eb09b1e5aacb2a89909087629987533",
+          "LastModified": "2026-08-02T00:59:20+00:00",
+          "ETag": "\"ce615e1baa7f0cd2a41bf4f8b6cb0088\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/45/4503b2f2107c6fcd78556784ae33e8aacb1ecc431b43732ed954502d4b16d829",
+          "LastModified": "2026-08-03T03:02:24+00:00",
+          "ETag": "\"cd5839aecfec314c1564eef7fba00862\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/46/46260567822de6b07fbbe52dac7f075e10de5c59dbbba4f0844732248a7235fb",
+          "LastModified": "2026-07-29T16:47:48+00:00",
+          "ETag": "\"ae5ee768741c03fd02bf976c2daf657b\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 215,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/47/47b0a944592b1b5a9b507791401b8756bb191b3a9bdb5375b0a4022a5ab92193",
+          "LastModified": "2026-08-02T00:59:20+00:00",
+          "ETag": "\"ea943bb9d7166d2ae3a57bfc3a356e68\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/51/510c3806655316bd78ab4115bc319664f8b11dd08f64c914034b24a968d3e257",
+          "LastModified": "2026-08-03T03:02:25+00:00",
+          "ETag": "\"a84f2fe5e9aa2c50ed213742e69584d7\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/58/588e1830209e3c022822d8f87f34d95014131e6193348b91293cde0fa69e9c2a",
+          "LastModified": "2026-08-03T03:02:25+00:00",
+          "ETag": "\"8a64735dd9a02596dad888880228b6f8\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/68/6807ac08fc01cb32c4b0405c8c35a4412162ca7606667ec4959f50a636415b41",
+          "LastModified": "2026-08-03T01:01:37+00:00",
+          "ETag": "\"583fe6451754912f3c9d7a175b1035d7\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 3750289,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/69/69ec37837adda0d20cdd6b4e554c8dd3648a53546b2491d6d4ad58ae221efc60",
+          "LastModified": "2026-08-03T03:02:25+00:00",
+          "ETag": "\"986b7784637176c602582964d261be8a\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/77/77bb35b6fdab37b57767ef7440402ceda4eee0d224cbb8cf836bb5171d61ba71",
+          "LastModified": "2026-08-03T03:02:26+00:00",
+          "ETag": "\"bb3a2378c4e9143d6ccf45e6aa532df4\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/78/782f1f7af978887fe006850bc9161f6426e62f9a95eac740d87886f8e4dcb720",
+          "LastModified": "2026-08-02T00:59:21+00:00",
+          "ETag": "\"365209b80fe8063ef75cfa190152a5f5\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/7d/7d4cabe4917642570a02208be662fa72dca41be4d46742a979128233d6b4396a",
+          "LastModified": "2026-08-03T03:02:26+00:00",
+          "ETag": "\"75be846f86f2df0ea9b3a3630bb0ce61\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/8b/8b253c252445188bd9e109dc4269dcc92f2831c30ee064c4a4cf1d51ebbf6494",
+          "LastModified": "2026-08-03T03:02:26+00:00",
+          "ETag": "\"eb5e8f65869c4bdae1ae8b703bb6814f\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/9f/9fa8052bcb20a6be3d8daeb3074f1efca60ff38faad4913167d82fca830d751d",
+          "LastModified": "2026-08-03T03:02:26+00:00",
+          "ETag": "\"de5a64d9005aaeef524977a64717b489\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/a0/a0e351d8e2f88463e6e42b6799c5f5ea5206eb048af0e8b63b622e1cd8c5a243",
+          "LastModified": "2026-08-03T03:02:27+00:00",
+          "ETag": "\"41bd9d7aba259338beeeb8fff5331350\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/ae/ae2c28de8a5ae54747f931b421cbc49aee6ea82b8f851161b7598539c769c1db",
+          "LastModified": "2026-08-03T03:02:27+00:00",
+          "ETag": "\"9aa776afc44269198ba0cf832a70bbda\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/ae/ae8e17f1d49603c232ee11d4d5793a0dc320912a8fccc30bd695ccf81a7757d4",
+          "LastModified": "2026-08-02T00:59:21+00:00",
+          "ETag": "\"e26d7b0265f7e8c7e9810ce3c161d120\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/b2/b21ac264aa169e288ae4b04cc36c0c8c11b938135fd1cc73443f61077b9fc79b",
+          "LastModified": "2026-08-03T01:01:38+00:00",
+          "ETag": "\"f660ea61b1d923e53f9e3fddcb088d44\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 3958556,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/b2/b24a8f01a595099fb808064482d489ac37934c6391f549babb2824e749d16d8a",
+          "LastModified": "2026-08-03T03:02:27+00:00",
+          "ETag": "\"3b9593d51a9ce880472b2a1ca4b2bb67\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/b5/b5ded096938ec231396d4968db06c2972eed784f4e7e57a0c269c386f43ee701",
+          "LastModified": "2026-08-03T03:02:27+00:00",
+          "ETag": "\"c92c5c48f48e6e84293b91a1a8ddfad6\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 2334449,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/bd/bd4331e7625e5d0aae4532768fe2ed9a62bcc244ef1757b56f8522399fd440c5",
+          "LastModified": "2026-08-02T00:59:22+00:00",
+          "ETag": "\"8b169738ff6e1eaa19697662c6eaa201\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 2685429,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/c2/c23991f2f0e0a5e683b7cd4a77c84d944fd40791431b1a7e93a5a6d4b0c425ec",
+          "LastModified": "2026-08-03T01:01:38+00:00",
+          "ETag": "\"10f2d79dac14b813749e1f4a3c7d8eaf\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/c2/c26f9354d0ad7429a00b3641e24f6132693a87275ef90e9a3d7534ad531148c3",
+          "LastModified": "2026-08-01T01:06:18+00:00",
+          "ETag": "\"b0c7b1b55d63e4dae3e6e6bf6e0b67c8\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/c4/c4d7074e8282b30c804b7429f5809884e80b38cf90f04c6743285f97f0894109",
+          "LastModified": "2026-08-03T03:02:28+00:00",
+          "ETag": "\"489404d0889a90598748ccf2f476fb80\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 1182727,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/c6/c678b14db7897f17ce7d59beba294c5777252baaa9af384d703b56295470278b",
+          "LastModified": "2026-08-03T01:01:39+00:00",
+          "ETag": "\"dcfaa45ee821451598529c55b7aa6d8f\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/d0/d07f60c0ad6fb6a10438b59cb89cf88f4c2025ffcefcff1d9f57cedcf4ecb69e",
+          "LastModified": "2026-08-02T00:59:22+00:00",
+          "ETag": "\"4629162f2124de429b5d60803dbdcf15\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 7101432,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/e1/e1a00ec4f711a910a211024f8c984131a1c3b9e5203fa9e0c2442df9dc6432ff",
+          "LastModified": "2026-08-02T00:59:23+00:00",
+          "ETag": "\"8bba5e050ac8fcd39f74fb3f5f4af273\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/e6/e6c004bf35561df6a8baec317b123cacaff5701d5145dbcc081b752085ea7798",
+          "LastModified": "2026-08-03T01:01:40+00:00",
+          "ETag": "\"ac94edc7ba19d81d63b83a1a7b72e0db\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/f2/f2bf627978c3dd205ba1b1603be2d59cfcf763a06b60027524a94da72e4fddf8",
+          "LastModified": "2026-08-02T00:59:23+00:00",
+          "ETag": "\"e03a0161753cc83ee09997ea95fb2f7f\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/f5/f5a9dd8ad3c3a06f0e8f31b365f1b9f278b8177d1fba8df07a1797b1c2bda24e",
+          "LastModified": "2026-08-02T00:59:23+00:00",
+          "ETag": "\"9c7ac8c11508ca31300538ee1dafbad4\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/f6/f6ab8852b701555a921fd1b6946d6245153c21a123a973a952814009c01c1e0c",
+          "LastModified": "2026-08-02T00:59:24+00:00",
+          "ETag": "\"6d46cb79a09f779f337150720fd2eea6\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 8388608,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/generations/content-chunks/f7/f757825a714bad4bb3ff9ddbc2dd21ec2732c3792fb03d774e84fd70e5881dfc",
+          "LastModified": "2026-08-03T03:02:28+00:00",
+          "ETag": "\"6170f11e366e29223016277afe68d48a\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 6762447,
+          "StorageClass": "STANDARD"
+        }
+      ],
+      "Name": "dsf-ai-site-backups",
+      "Prefix": "guala/generations/",
+      "MaxKeys": 1000,
+      "EncodingType": "url",
+      "KeyCount": 44
+    }
+  },
+  {
+    "at_utc": "2026-10-09T22:30:11.529848+00:00",
+    "bucket": "dsf-ai-site-backups",
+    "prefix": "guala/retired-legacy-archive/",
+    "returncode": 0,
+    "result": {
+      "IsTruncated": false,
+      "Contents": [
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/.sleeping",
+          "LastModified": "2026-07-29T15:53:10+00:00",
+          "ETag": "\"0d26dc05310b5bfbbec15638cce70a40\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 56,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/CAUSAL_GENERATION.json",
+          "LastModified": "2026-07-29T15:53:10+00:00",
+          "ETag": "\"b0fbe763ecfbdbf286b64de51d4e14a0\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 573,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/MANIFEST.json",
+          "LastModified": "2026-07-29T15:53:29+00:00",
+          "ETag": "\"947904c3e48e9187242c7be727fce64d\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 38106,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/RETIREMENT_RECEIPT.json",
+          "LastModified": "2026-07-29T15:53:29+00:00",
+          "ETag": "\"23e46a108bcb42255ff597baab0ba2fa\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 33937,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/03b7757eda054d94a99dc9c02b23809c1499d9c4ecd3ec9fee691df9dd25a9b4/grid.npy",
+          "LastModified": "2026-07-29T15:53:11+00:00",
+          "ETag": "\"865cd038db560e1af4d07dfe5e76d5ab\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/0616e957ccefb3f25fd871baae937a9eab00be0fa7027ce17b0c9efc3176ac9d/grid.npy",
+          "LastModified": "2026-07-29T15:53:11+00:00",
+          "ETag": "\"b4e589763d7dd72d97bb3f8eef1d5e0f\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/07b576b0ddc1dbc08f0b4ce5d72123195227c893f98684cde855b38b2c9a1529/grid.npy",
+          "LastModified": "2026-07-29T15:53:11+00:00",
+          "ETag": "\"022da1db8c68f0c633a13bbc22bd5dae\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/0912528bae9899dcb1463c07e819eaa30b51c210be65e5673f9fa1cab1fd6c73/grid.npy",
+          "LastModified": "2026-07-29T15:53:11+00:00",
+          "ETag": "\"a61adeeea2d4a4c602208cb8fea3b331\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/171adac3bb95044a7f2c35eb2dc78ed7ba6700023de66c7ac04f8426be7a5234/grid.npy",
+          "LastModified": "2026-07-29T15:53:11+00:00",
+          "ETag": "\"6b48197f6a1d89306e3bd8162edd61e6\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/1780634a61200bc9e4edeac6b300a6db68895b9730bc9ebb84b246f4e6371198/grid.npy",
+          "LastModified": "2026-07-29T15:53:11+00:00",
+          "ETag": "\"c75ac31de3d4fa197dabd977fc746eec\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/1ad6752981592d817118880fe583b7d57201aa0755f7048e3ac33e0482b3de07/grid.npy",
+          "LastModified": "2026-07-29T15:53:11+00:00",
+          "ETag": "\"ca9ec0c7d7ade9fd1dd5da0891dd8691\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/2c93df327e4680de0bf50fbdfafb3e72ef093c5d811161be0b501293c7b118d6/grid.npy",
+          "LastModified": "2026-07-29T15:53:11+00:00",
+          "ETag": "\"9e2f98a0e6750b92326bc55c712d81d5\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/380c507cad993028826c353a864418a1aa78763a1fde6df2cfa708814f19c61f/grid.npy",
+          "LastModified": "2026-07-29T15:53:11+00:00",
+          "ETag": "\"982f5c2c1de151d1402d6178cefc4779\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/393d0675c6468beb46837e8a3efa725586c526b8bba4eb91337629b1ce486d1c/grid.npy",
+          "LastModified": "2026-07-29T15:53:11+00:00",
+          "ETag": "\"24235c709f5991dee990f92e8d5dece4\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/41c278bfcd6abe0d690386fd9186dceb05d524c099331f20bfd43b33e8d7df61/grid.npy",
+          "LastModified": "2026-07-29T15:53:11+00:00",
+          "ETag": "\"74a071c6b7b7b727fadd0cf3e24cdc4d\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/4a4eac83d41d63238b33954c192ef8b73221bb806adee20da227e0e58b2cd2b9/grid.npy",
+          "LastModified": "2026-07-29T15:53:11+00:00",
+          "ETag": "\"273d4f4f21a1cddb63107db46734685a\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/51d7ecd5ec0cc2a03237c272bf2c2716217896143154d2f6017bd328aa004488/grid.npy",
+          "LastModified": "2026-07-29T15:53:11+00:00",
+          "ETag": "\"d345a668403d52181abe0c966015b148\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/525eb065d9179ff1805cf5b38fb10c6d3ee866242ba36d52a5e5ed20a8eccbde/grid.npy",
+          "LastModified": "2026-07-29T15:53:11+00:00",
+          "ETag": "\"1fca53c90ad10a4039effea2b39b3f7a\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/5a249c7b467a375ee2f5f861bdd4881b8f118bf31e6591818b99fedf20879ebd/grid.npy",
+          "LastModified": "2026-07-29T15:53:12+00:00",
+          "ETag": "\"48cd1fe8ed586e3a518ba78c4df4622e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/61d91ee5d34d6e9594ef611498cc268b48e1bc933cbba7ef36e9071fc5028119/grid.npy",
+          "LastModified": "2026-07-29T15:53:12+00:00",
+          "ETag": "\"69c69ead1f5108c90e78b676a0c7497b\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/65657dfb6d3e9a112ee96992bb96019afb4bb72ed58db548270bfb3a1f09f6b3/grid.npy",
+          "LastModified": "2026-07-29T15:53:12+00:00",
+          "ETag": "\"164e821f8f3c5bd6c48a798a09694acf\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/668084b4a3f91a58185754f4a645ad559faf62bc76969f97a078fc3530b42a09/grid.npy",
+          "LastModified": "2026-07-29T15:53:12+00:00",
+          "ETag": "\"1ff90f16e2aee9b6613d4d7a2180d737\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/66ddc0326019a8f3ffe77c96d7236033e6bb7ecf96b3ffb9f84fc36570ba2bbe/grid.npy",
+          "LastModified": "2026-07-29T15:53:12+00:00",
+          "ETag": "\"c7a4e595d77d53aabc0b449d0f0e92e2\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/6b70fcc056e9365dc50561a624e76f716e277b536c68aa876a1bb4acb910025d/grid.npy",
+          "LastModified": "2026-07-29T15:53:12+00:00",
+          "ETag": "\"0aa79c06670a6bf47aa5a73c1e5aaee2\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/6df4bb673cf53743f5b70d80239c72658aae2f3b96edd1a06e00621e9b2446e2/grid.npy",
+          "LastModified": "2026-07-29T15:53:12+00:00",
+          "ETag": "\"85c5a4800ebb855d4ba472c8468f053d\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/7449afd390ca943e9f9b712570577b09615ea1c52a135c505e3f5c2160da6cc3/grid.npy",
+          "LastModified": "2026-07-29T15:53:12+00:00",
+          "ETag": "\"fc3fdd10d6829583c0284fe2871ad710\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/76005a4d6725e523787056b4eae3b67c6abf20601c0ab5c17d75a4f88e1d54e9/grid.npy",
+          "LastModified": "2026-07-29T15:53:12+00:00",
+          "ETag": "\"36f8d25a7d8349dfb86de9c3c96339c4\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/7a7fb74f3e6ed480b2241e02c4726bacb726c9309bb1e410080b4d82916b3006/grid.npy",
+          "LastModified": "2026-07-29T15:53:12+00:00",
+          "ETag": "\"0e0a32178b01627b5f21287e94d74a47\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/86603db79423630ce2e2a07921d81ef382a6941cd92664021edcb57f913d8acc/grid.npy",
+          "LastModified": "2026-07-29T15:53:12+00:00",
+          "ETag": "\"992f042045396ea65278ac72175aaf3b\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/8866a6049b382acba52ec07f2df7c4a44edf59b5166824aa37ee6a04fc581ddc/grid.npy",
+          "LastModified": "2026-07-29T15:53:12+00:00",
+          "ETag": "\"c53449df3f7f09701176e61b1ac774b3\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/8ab4476e4c40b12a2cbffdcf49945c92bacba7036c92a70082c6e5265cfdd390/grid.npy",
+          "LastModified": "2026-07-29T15:53:12+00:00",
+          "ETag": "\"928f969a9feb9143ed6ffeffcaf464e8\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/8dd1a58acac77c6b2302ec53cfd48fcb960d95ea38578d77b9967b62393294a5/grid.npy",
+          "LastModified": "2026-07-29T15:53:12+00:00",
+          "ETag": "\"6ea5fe4bb66ad112ca8dbd31cc7ee610\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/9245b3794ab3961a7c4af4dcef8e776e8837e6a247fd06380a41ab41df9388b9/grid.npy",
+          "LastModified": "2026-07-29T15:53:12+00:00",
+          "ETag": "\"4df9bdbcd0569678f05d947bf0544a7e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/95e9520dd175d3b0f28c86db073f399bdaa4a558be7b3fdd227061da475b5b72/grid.npy",
+          "LastModified": "2026-07-29T15:53:12+00:00",
+          "ETag": "\"39737573fff6542581c6cd01a3332806\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/9602f6b49f83c244eb61a65c2a44c080936517017ad9e3d6ee5847b74458522b/grid.npy",
+          "LastModified": "2026-07-29T15:53:13+00:00",
+          "ETag": "\"8fc05740e4535a5b0750056bfcd1debd\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/96bb88a96aaeaf5621f15e89033db5fce1087782385f1f14bde257ecd2db1753/grid.npy",
+          "LastModified": "2026-07-29T15:53:13+00:00",
+          "ETag": "\"d26a4814778dcf916b49692b3962f670\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/971b2705cedf61be8a12664766f8a5e70409bdcf505e895db3dabcff99270db6/grid.npy",
+          "LastModified": "2026-07-29T15:53:13+00:00",
+          "ETag": "\"edcf4d246b6693dedd3983681b84870e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/97e179f33e6b37582d18eba113b453e8d976d173361de7cc02e28e5c3c2958c4/grid.npy",
+          "LastModified": "2026-07-29T15:53:13+00:00",
+          "ETag": "\"39b1fd6c88e321dbe42dd717103dabc8\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/b2bcb992ee2f55be1864b7c9b15f6ad6f8c92d35f4de3e6dcfca16d9b742e571/grid.npy",
+          "LastModified": "2026-07-29T15:53:13+00:00",
+          "ETag": "\"bb7e06e7a2a73f94e2a90b8e20076746\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/b3d3de172e2ce8b826d5ebb532308a90f9c2ceaed3b5180a19da44353f6d11cb/grid.npy",
+          "LastModified": "2026-07-29T15:53:13+00:00",
+          "ETag": "\"fdff6e42ce57a47447d1351f771dc6fc\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/b60fa58713cb691953f1cdfd78bb0e01c85a3d3cbe89eaa68d69fb9dcc99c45d/grid.npy",
+          "LastModified": "2026-07-29T15:53:13+00:00",
+          "ETag": "\"aec1c514153a3adfe80a515b30b4b998\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/b6bac027bc1fbc52fce5d352b81bab7c80b2172f5536330449e826716cf016ca/grid.npy",
+          "LastModified": "2026-07-29T15:53:13+00:00",
+          "ETag": "\"808cfee66edce9d165da87ff20b5de01\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/bbe76a4b79fc3c871e1c1c2fa213e0872509c77fc11176bccb5736dbf3ec936e/grid.npy",
+          "LastModified": "2026-07-29T15:53:13+00:00",
+          "ETag": "\"73a2e7b0d0e1c7424cf10fce952fac33\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/bc695540572fa1f0653b7dabefedbcb5dbaf1d41555eb680ebb8658144b5b455/grid.npy",
+          "LastModified": "2026-07-29T15:53:13+00:00",
+          "ETag": "\"5eba42ac6237f4bc2dfc292e8b4ed4c1\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/bcf6ef2a0af5a6c7403b086328413596aad30833b4945d9691afba56a41670ba/grid.npy",
+          "LastModified": "2026-07-29T15:53:13+00:00",
+          "ETag": "\"0a2cf608454ef61c73aa63a606a3d472\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/bf8a49deb89db8b8d88068200657518d08445daee9bd4a1d427bbeaee85ab9f0/grid.npy",
+          "LastModified": "2026-07-29T15:53:13+00:00",
+          "ETag": "\"b40a3e15a8caa3dff4974488dcdf932f\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/c53818bbca02eacbfa4aa868556996f3b613db9387dc1dcd87c805cd5a4f42f9/grid.npy",
+          "LastModified": "2026-07-29T15:53:13+00:00",
+          "ETag": "\"a024f8cb982d9f6ef6ca8c237d5f18ec\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/c9b8704f5bd9da8d6ace06bf343410fd525828c8db78d59388ef3749fc50e126/grid.npy",
+          "LastModified": "2026-07-29T15:53:13+00:00",
+          "ETag": "\"8cbf6b950c30dfdd36285a053eaa307a\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/cbf2142b698058eeda773e5d11f91a02fe3af32e327e645023d8d6a9251f0248/grid.npy",
+          "LastModified": "2026-07-29T15:53:14+00:00",
+          "ETag": "\"6ee18264ffcc63ababdd0c37a53af0c4\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/ccaeb0ac9947722b715de3c14ddf6d45747e3b1f837318d3e35d49a571ac3826/grid.npy",
+          "LastModified": "2026-07-29T15:53:14+00:00",
+          "ETag": "\"5f58a153def3025612661b1bbe3dddb4\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/cd03cfdbf763f735ffbdc3e25d960f61a9ce27740aa63000b1251d11face4b01/grid.npy",
+          "LastModified": "2026-07-29T15:53:14+00:00",
+          "ETag": "\"07ab6c888f61cef8fef38a697f33fd88\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/d409663df91325e58d7fd9be110917a0a36cc282836d68a4c3e4beae064b47e4/grid.npy",
+          "LastModified": "2026-07-29T15:53:14+00:00",
+          "ETag": "\"302bfd7bb0d298a659aef4e92d98e1b8\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/d52c2d63c347c04e74caaf167e84a7058f18a9e906970d239513db4bb4194171/grid.npy",
+          "LastModified": "2026-07-29T15:53:14+00:00",
+          "ETag": "\"98a29404299cdaf9515b0fe67d7bb216\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/d6e8095289c331084a1e6343af12ca0a4d8babe50567f87e10be7b27d9642537/grid.npy",
+          "LastModified": "2026-07-29T15:53:14+00:00",
+          "ETag": "\"72e0566e38207b28761bbed2753953c4\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/d7e26655a71c8531b684acbe0f927ec49dcf2de10b2544172e77928310556648/grid.npy",
+          "LastModified": "2026-07-29T15:53:14+00:00",
+          "ETag": "\"83d85640eb3409565ad9d654ac5022c5\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/db75af554669f83162a77064779778f6a122bcdb4855ffbe14eee7c64e025474/grid.npy",
+          "LastModified": "2026-07-29T15:53:14+00:00",
+          "ETag": "\"dd36d7387d8c20db7fb94457ed67412e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/e12111aa227a5d939e6007fb5a17b2aa5e671463fa647279424f9562b24c7f20/grid.npy",
+          "LastModified": "2026-07-29T15:53:14+00:00",
+          "ETag": "\"8631584b1610ed6be857d8e5d33b33ac\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/e1df709b6e7d3f6fd04883185fafc7f60ce157676c9ef7195b2e640dd78da366/grid.npy",
+          "LastModified": "2026-07-29T15:53:14+00:00",
+          "ETag": "\"3d0b8b55a295f66ee527a6354603fe07\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/e566cbeeb1b711fa60d1776490775cdfc8c6f95b071daf56fe28f0b8c8aa65a3/grid.npy",
+          "LastModified": "2026-07-29T15:53:14+00:00",
+          "ETag": "\"9edd4c829ec6c012ba68c334bed3555c\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/e706d701736dac09006681b506078b6ed829ea5b247da08b605c86b728af84b0/grid.npy",
+          "LastModified": "2026-07-29T15:53:14+00:00",
+          "ETag": "\"60e9a8bc44316a1683a514c4a15ad6b5\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/f3647a171b9af5e898ffb91a5860620e28af3af6dd94000557fd7f9763b5113e/grid.npy",
+          "LastModified": "2026-07-29T15:53:14+00:00",
+          "ETag": "\"2998588047276c495aae06e12e5b254f\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/assets/pictures/f7284f956973ca472d6d8983dcb1bacb6be31a760538a4bc005812a0297a3921/grid.npy",
+          "LastModified": "2026-07-29T15:53:14+00:00",
+          "ETag": "\"816c242dc38dbdd1e6e66d70304c73cf\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/curriculum_progress.json",
+          "LastModified": "2026-07-29T15:53:14+00:00",
+          "ETag": "\"3665dc8c71cbb3724fe11be62e3a7a5e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 502,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/dream_gate_cleared.json",
+          "LastModified": "2026-07-29T15:53:15+00:00",
+          "ETag": "\"9e97e9032993e5b223567d7f4ffa6e2d\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 318,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/guala_atlas.json",
+          "LastModified": "2026-07-29T15:53:15+00:00",
+          "ETag": "\"a10098ae7a69ad7accfc0f763c7a0979\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 717083,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/guala_bucket.json",
+          "LastModified": "2026-07-29T15:53:15+00:00",
+          "ETag": "\"4141f501f53b6088bf11f2fd2c06b05b\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 491,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/guala_coordinator.json",
+          "LastModified": "2026-07-29T15:53:15+00:00",
+          "ETag": "\"b7295865aa62875e8fa43404ee722af7\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 175596,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/guala_core.json",
+          "LastModified": "2026-07-29T15:53:15+00:00",
+          "ETag": "\"4352a6341a4de40ae362d38844400ba0\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 474849,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/guala_deep_atlas.json",
+          "LastModified": "2026-07-29T15:53:15+00:00",
+          "ETag": "\"9c2e1a9c8c9fd9a21197c8055e0107f0\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 257676263,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/guala_episodic.json",
+          "LastModified": "2026-07-29T15:53:20+00:00",
+          "ETag": "\"17a789e866554d40f8cb7ca33a669ec1\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 509,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/guala_identity.json",
+          "LastModified": "2026-07-29T15:53:20+00:00",
+          "ETag": "\"ef6a0b4998d3ede936d4160ce5ea77ae\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 465,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/guala_needs.json",
+          "LastModified": "2026-07-29T15:53:20+00:00",
+          "ETag": "\"a6b4b885553007357fd3a96277329dcf\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 639,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/guala_organism.sgr",
+          "LastModified": "2026-07-29T15:53:20+00:00",
+          "ETag": "\"3d92d92a205892cbc0b61edf5cb6fb03\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 299896832,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/guala_organism.sgr.binding.json",
+          "LastModified": "2026-07-29T15:53:26+00:00",
+          "ETag": "\"3b0b04d6a4f318724fbbad329e5ec5ef\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 690,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/guala_sections.json",
+          "LastModified": "2026-07-29T15:53:26+00:00",
+          "ETag": "\"2926408b25939003138a09a02246eb44\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 37363476,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/guala_sight_motifs.json",
+          "LastModified": "2026-07-29T15:53:26+00:00",
+          "ETag": "\"295951fc901ddf889b93c6f5cd3ed328\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 618917,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/guala_sounds.json",
+          "LastModified": "2026-07-29T15:53:27+00:00",
+          "ETag": "\"80b5a8f1a2650ca3f0ce5e23c5852435\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 1328367,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/guala_survival.json",
+          "LastModified": "2026-07-29T15:53:27+00:00",
+          "ETag": "\"da10dfc3496b2d473f49e7cb9927c6e5\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 52477,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/guala_tapestry.sgr",
+          "LastModified": "2026-07-29T15:53:27+00:00",
+          "ETag": "\"0521b2656471f16c1e71e701f75f8ecd\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 24117248,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/guala_tapestry.sgr.binding.json",
+          "LastModified": "2026-07-29T15:53:27+00:00",
+          "ETag": "\"9ad6ac4719adfc5692aca2bd7b47c810\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 689,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/guala_teaching.json",
+          "LastModified": "2026-07-29T15:53:27+00:00",
+          "ETag": "\"8cf52f60e54acec1ba64371f714fbd08\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 6944605,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/guala_videos.json",
+          "LastModified": "2026-07-29T15:53:28+00:00",
+          "ETag": "\"35804df14baa66ae590566ad9dc90a6e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 513,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/guala_visual.json",
+          "LastModified": "2026-07-29T15:53:28+00:00",
+          "ETag": "\"865ea7246c8e99384d1f88bda483b52f\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 29815,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/sounds/1e31c988a4dd.audio",
+          "LastModified": "2026-07-29T15:53:28+00:00",
+          "ETag": "\"1e31c988a4dd0ca73bfc2654d8a27c6e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 26137,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/sounds/200ed8ac60cc.audio",
+          "LastModified": "2026-07-29T15:53:28+00:00",
+          "ETag": "\"200ed8ac60cc250a4f0e62bfa6658766\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 61556,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/sounds/3f234d965339.audio",
+          "LastModified": "2026-07-29T15:53:28+00:00",
+          "ETag": "\"3f234d965339a5bff3ea4dfaf6015f18\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 1345185,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/sounds/440d1619ec77.audio",
+          "LastModified": "2026-07-29T15:53:28+00:00",
+          "ETag": "\"440d1619ec7762e63ff8d1e196431488\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 267620,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/sounds/526eb32807c5.audio",
+          "LastModified": "2026-07-29T15:53:28+00:00",
+          "ETag": "\"526eb32807c56f74350e1716187c2371\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 638018,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/sounds/69c4d38e0b3d.audio",
+          "LastModified": "2026-07-29T15:53:28+00:00",
+          "ETag": "\"69c4d38e0b3d831dd73da70599028ab7\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 93083,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/sounds/a9cacf70826e.audio",
+          "LastModified": "2026-07-29T15:53:29+00:00",
+          "ETag": "\"a9cacf70826efe44b51df47d4a1c79fd\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 2002904,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/sounds/b46ba21b76a5.audio",
+          "LastModified": "2026-07-29T15:53:29+00:00",
+          "ETag": "\"b46ba21b76a590d1073853b14c55a3b7\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 4799877,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/sounds/b5416742f6f7.audio",
+          "LastModified": "2026-07-29T15:53:29+00:00",
+          "ETag": "\"b5416742f6f703d1aba254a5081e46df\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 161516,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/0c9b5987-c671-47cf-b12c-45a0ad5c2ffc/world_state.json",
+          "LastModified": "2026-07-29T15:53:29+00:00",
+          "ETag": "\"215c57dfaa06de5cdc46addd6c94ef53\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 1273,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/.sleeping",
+          "LastModified": "2026-07-29T14:38:24+00:00",
+          "ETag": "\"213fa26a9745baa88cd77405c5e41d9f\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 55,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/CAUSAL_GENERATION.json",
+          "LastModified": "2026-07-29T14:38:24+00:00",
+          "ETag": "\"c69a1bec17d8350d053f9e80681a0791\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 573,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/MANIFEST.json",
+          "LastModified": "2026-07-29T14:38:42+00:00",
+          "ETag": "\"d427605c25f5be84ff99507acb62e2cc\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 38106,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/RETIREMENT_RECEIPT.json",
+          "LastModified": "2026-07-29T14:38:42+00:00",
+          "ETag": "\"04658bab980cda2ffa98171ae98f083e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 33937,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/03b7757eda054d94a99dc9c02b23809c1499d9c4ecd3ec9fee691df9dd25a9b4/grid.npy",
+          "LastModified": "2026-07-29T14:38:24+00:00",
+          "ETag": "\"865cd038db560e1af4d07dfe5e76d5ab\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/0616e957ccefb3f25fd871baae937a9eab00be0fa7027ce17b0c9efc3176ac9d/grid.npy",
+          "LastModified": "2026-07-29T14:38:24+00:00",
+          "ETag": "\"b4e589763d7dd72d97bb3f8eef1d5e0f\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/07b576b0ddc1dbc08f0b4ce5d72123195227c893f98684cde855b38b2c9a1529/grid.npy",
+          "LastModified": "2026-07-29T14:38:24+00:00",
+          "ETag": "\"022da1db8c68f0c633a13bbc22bd5dae\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/0912528bae9899dcb1463c07e819eaa30b51c210be65e5673f9fa1cab1fd6c73/grid.npy",
+          "LastModified": "2026-07-29T14:38:24+00:00",
+          "ETag": "\"a61adeeea2d4a4c602208cb8fea3b331\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/171adac3bb95044a7f2c35eb2dc78ed7ba6700023de66c7ac04f8426be7a5234/grid.npy",
+          "LastModified": "2026-07-29T14:38:24+00:00",
+          "ETag": "\"6b48197f6a1d89306e3bd8162edd61e6\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/1780634a61200bc9e4edeac6b300a6db68895b9730bc9ebb84b246f4e6371198/grid.npy",
+          "LastModified": "2026-07-29T14:38:24+00:00",
+          "ETag": "\"c75ac31de3d4fa197dabd977fc746eec\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/1ad6752981592d817118880fe583b7d57201aa0755f7048e3ac33e0482b3de07/grid.npy",
+          "LastModified": "2026-07-29T14:38:24+00:00",
+          "ETag": "\"ca9ec0c7d7ade9fd1dd5da0891dd8691\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/2c93df327e4680de0bf50fbdfafb3e72ef093c5d811161be0b501293c7b118d6/grid.npy",
+          "LastModified": "2026-07-29T14:38:24+00:00",
+          "ETag": "\"9e2f98a0e6750b92326bc55c712d81d5\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/380c507cad993028826c353a864418a1aa78763a1fde6df2cfa708814f19c61f/grid.npy",
+          "LastModified": "2026-07-29T14:38:24+00:00",
+          "ETag": "\"982f5c2c1de151d1402d6178cefc4779\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/393d0675c6468beb46837e8a3efa725586c526b8bba4eb91337629b1ce486d1c/grid.npy",
+          "LastModified": "2026-07-29T14:38:25+00:00",
+          "ETag": "\"24235c709f5991dee990f92e8d5dece4\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/41c278bfcd6abe0d690386fd9186dceb05d524c099331f20bfd43b33e8d7df61/grid.npy",
+          "LastModified": "2026-07-29T14:38:25+00:00",
+          "ETag": "\"74a071c6b7b7b727fadd0cf3e24cdc4d\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/4a4eac83d41d63238b33954c192ef8b73221bb806adee20da227e0e58b2cd2b9/grid.npy",
+          "LastModified": "2026-07-29T14:38:25+00:00",
+          "ETag": "\"273d4f4f21a1cddb63107db46734685a\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/51d7ecd5ec0cc2a03237c272bf2c2716217896143154d2f6017bd328aa004488/grid.npy",
+          "LastModified": "2026-07-29T14:38:25+00:00",
+          "ETag": "\"d345a668403d52181abe0c966015b148\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/525eb065d9179ff1805cf5b38fb10c6d3ee866242ba36d52a5e5ed20a8eccbde/grid.npy",
+          "LastModified": "2026-07-29T14:38:25+00:00",
+          "ETag": "\"1fca53c90ad10a4039effea2b39b3f7a\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/5a249c7b467a375ee2f5f861bdd4881b8f118bf31e6591818b99fedf20879ebd/grid.npy",
+          "LastModified": "2026-07-29T14:38:25+00:00",
+          "ETag": "\"48cd1fe8ed586e3a518ba78c4df4622e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/61d91ee5d34d6e9594ef611498cc268b48e1bc933cbba7ef36e9071fc5028119/grid.npy",
+          "LastModified": "2026-07-29T14:38:25+00:00",
+          "ETag": "\"69c69ead1f5108c90e78b676a0c7497b\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/65657dfb6d3e9a112ee96992bb96019afb4bb72ed58db548270bfb3a1f09f6b3/grid.npy",
+          "LastModified": "2026-07-29T14:38:25+00:00",
+          "ETag": "\"164e821f8f3c5bd6c48a798a09694acf\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/668084b4a3f91a58185754f4a645ad559faf62bc76969f97a078fc3530b42a09/grid.npy",
+          "LastModified": "2026-07-29T14:38:25+00:00",
+          "ETag": "\"1ff90f16e2aee9b6613d4d7a2180d737\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/66ddc0326019a8f3ffe77c96d7236033e6bb7ecf96b3ffb9f84fc36570ba2bbe/grid.npy",
+          "LastModified": "2026-07-29T14:38:25+00:00",
+          "ETag": "\"c7a4e595d77d53aabc0b449d0f0e92e2\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/6b70fcc056e9365dc50561a624e76f716e277b536c68aa876a1bb4acb910025d/grid.npy",
+          "LastModified": "2026-07-29T14:38:25+00:00",
+          "ETag": "\"0aa79c06670a6bf47aa5a73c1e5aaee2\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/6df4bb673cf53743f5b70d80239c72658aae2f3b96edd1a06e00621e9b2446e2/grid.npy",
+          "LastModified": "2026-07-29T14:38:25+00:00",
+          "ETag": "\"85c5a4800ebb855d4ba472c8468f053d\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/7449afd390ca943e9f9b712570577b09615ea1c52a135c505e3f5c2160da6cc3/grid.npy",
+          "LastModified": "2026-07-29T14:38:25+00:00",
+          "ETag": "\"fc3fdd10d6829583c0284fe2871ad710\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/76005a4d6725e523787056b4eae3b67c6abf20601c0ab5c17d75a4f88e1d54e9/grid.npy",
+          "LastModified": "2026-07-29T14:38:25+00:00",
+          "ETag": "\"36f8d25a7d8349dfb86de9c3c96339c4\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/7a7fb74f3e6ed480b2241e02c4726bacb726c9309bb1e410080b4d82916b3006/grid.npy",
+          "LastModified": "2026-07-29T14:38:25+00:00",
+          "ETag": "\"0e0a32178b01627b5f21287e94d74a47\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/86603db79423630ce2e2a07921d81ef382a6941cd92664021edcb57f913d8acc/grid.npy",
+          "LastModified": "2026-07-29T14:38:26+00:00",
+          "ETag": "\"992f042045396ea65278ac72175aaf3b\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/8866a6049b382acba52ec07f2df7c4a44edf59b5166824aa37ee6a04fc581ddc/grid.npy",
+          "LastModified": "2026-07-29T14:38:26+00:00",
+          "ETag": "\"c53449df3f7f09701176e61b1ac774b3\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/8ab4476e4c40b12a2cbffdcf49945c92bacba7036c92a70082c6e5265cfdd390/grid.npy",
+          "LastModified": "2026-07-29T14:38:26+00:00",
+          "ETag": "\"928f969a9feb9143ed6ffeffcaf464e8\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/8dd1a58acac77c6b2302ec53cfd48fcb960d95ea38578d77b9967b62393294a5/grid.npy",
+          "LastModified": "2026-07-29T14:38:26+00:00",
+          "ETag": "\"6ea5fe4bb66ad112ca8dbd31cc7ee610\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/9245b3794ab3961a7c4af4dcef8e776e8837e6a247fd06380a41ab41df9388b9/grid.npy",
+          "LastModified": "2026-07-29T14:38:26+00:00",
+          "ETag": "\"4df9bdbcd0569678f05d947bf0544a7e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/95e9520dd175d3b0f28c86db073f399bdaa4a558be7b3fdd227061da475b5b72/grid.npy",
+          "LastModified": "2026-07-29T14:38:26+00:00",
+          "ETag": "\"39737573fff6542581c6cd01a3332806\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/9602f6b49f83c244eb61a65c2a44c080936517017ad9e3d6ee5847b74458522b/grid.npy",
+          "LastModified": "2026-07-29T14:38:26+00:00",
+          "ETag": "\"8fc05740e4535a5b0750056bfcd1debd\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/96bb88a96aaeaf5621f15e89033db5fce1087782385f1f14bde257ecd2db1753/grid.npy",
+          "LastModified": "2026-07-29T14:38:26+00:00",
+          "ETag": "\"d26a4814778dcf916b49692b3962f670\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/971b2705cedf61be8a12664766f8a5e70409bdcf505e895db3dabcff99270db6/grid.npy",
+          "LastModified": "2026-07-29T14:38:26+00:00",
+          "ETag": "\"edcf4d246b6693dedd3983681b84870e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/97e179f33e6b37582d18eba113b453e8d976d173361de7cc02e28e5c3c2958c4/grid.npy",
+          "LastModified": "2026-07-29T14:38:26+00:00",
+          "ETag": "\"39b1fd6c88e321dbe42dd717103dabc8\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/b2bcb992ee2f55be1864b7c9b15f6ad6f8c92d35f4de3e6dcfca16d9b742e571/grid.npy",
+          "LastModified": "2026-07-29T14:38:26+00:00",
+          "ETag": "\"bb7e06e7a2a73f94e2a90b8e20076746\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/b3d3de172e2ce8b826d5ebb532308a90f9c2ceaed3b5180a19da44353f6d11cb/grid.npy",
+          "LastModified": "2026-07-29T14:38:26+00:00",
+          "ETag": "\"fdff6e42ce57a47447d1351f771dc6fc\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/b60fa58713cb691953f1cdfd78bb0e01c85a3d3cbe89eaa68d69fb9dcc99c45d/grid.npy",
+          "LastModified": "2026-07-29T14:38:26+00:00",
+          "ETag": "\"aec1c514153a3adfe80a515b30b4b998\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/b6bac027bc1fbc52fce5d352b81bab7c80b2172f5536330449e826716cf016ca/grid.npy",
+          "LastModified": "2026-07-29T14:38:26+00:00",
+          "ETag": "\"808cfee66edce9d165da87ff20b5de01\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/bbe76a4b79fc3c871e1c1c2fa213e0872509c77fc11176bccb5736dbf3ec936e/grid.npy",
+          "LastModified": "2026-07-29T14:38:26+00:00",
+          "ETag": "\"73a2e7b0d0e1c7424cf10fce952fac33\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/bc695540572fa1f0653b7dabefedbcb5dbaf1d41555eb680ebb8658144b5b455/grid.npy",
+          "LastModified": "2026-07-29T14:38:26+00:00",
+          "ETag": "\"5eba42ac6237f4bc2dfc292e8b4ed4c1\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/bcf6ef2a0af5a6c7403b086328413596aad30833b4945d9691afba56a41670ba/grid.npy",
+          "LastModified": "2026-07-29T14:38:27+00:00",
+          "ETag": "\"0a2cf608454ef61c73aa63a606a3d472\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/bf8a49deb89db8b8d88068200657518d08445daee9bd4a1d427bbeaee85ab9f0/grid.npy",
+          "LastModified": "2026-07-29T14:38:27+00:00",
+          "ETag": "\"b40a3e15a8caa3dff4974488dcdf932f\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/c53818bbca02eacbfa4aa868556996f3b613db9387dc1dcd87c805cd5a4f42f9/grid.npy",
+          "LastModified": "2026-07-29T14:38:27+00:00",
+          "ETag": "\"a024f8cb982d9f6ef6ca8c237d5f18ec\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/c9b8704f5bd9da8d6ace06bf343410fd525828c8db78d59388ef3749fc50e126/grid.npy",
+          "LastModified": "2026-07-29T14:38:27+00:00",
+          "ETag": "\"8cbf6b950c30dfdd36285a053eaa307a\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/cbf2142b698058eeda773e5d11f91a02fe3af32e327e645023d8d6a9251f0248/grid.npy",
+          "LastModified": "2026-07-29T14:38:27+00:00",
+          "ETag": "\"6ee18264ffcc63ababdd0c37a53af0c4\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/ccaeb0ac9947722b715de3c14ddf6d45747e3b1f837318d3e35d49a571ac3826/grid.npy",
+          "LastModified": "2026-07-29T14:38:27+00:00",
+          "ETag": "\"5f58a153def3025612661b1bbe3dddb4\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/cd03cfdbf763f735ffbdc3e25d960f61a9ce27740aa63000b1251d11face4b01/grid.npy",
+          "LastModified": "2026-07-29T14:38:27+00:00",
+          "ETag": "\"07ab6c888f61cef8fef38a697f33fd88\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/d409663df91325e58d7fd9be110917a0a36cc282836d68a4c3e4beae064b47e4/grid.npy",
+          "LastModified": "2026-07-29T14:38:27+00:00",
+          "ETag": "\"302bfd7bb0d298a659aef4e92d98e1b8\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/d52c2d63c347c04e74caaf167e84a7058f18a9e906970d239513db4bb4194171/grid.npy",
+          "LastModified": "2026-07-29T14:38:27+00:00",
+          "ETag": "\"98a29404299cdaf9515b0fe67d7bb216\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/d6e8095289c331084a1e6343af12ca0a4d8babe50567f87e10be7b27d9642537/grid.npy",
+          "LastModified": "2026-07-29T14:38:27+00:00",
+          "ETag": "\"72e0566e38207b28761bbed2753953c4\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/d7e26655a71c8531b684acbe0f927ec49dcf2de10b2544172e77928310556648/grid.npy",
+          "LastModified": "2026-07-29T14:38:27+00:00",
+          "ETag": "\"83d85640eb3409565ad9d654ac5022c5\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/db75af554669f83162a77064779778f6a122bcdb4855ffbe14eee7c64e025474/grid.npy",
+          "LastModified": "2026-07-29T14:38:27+00:00",
+          "ETag": "\"dd36d7387d8c20db7fb94457ed67412e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/e12111aa227a5d939e6007fb5a17b2aa5e671463fa647279424f9562b24c7f20/grid.npy",
+          "LastModified": "2026-07-29T14:38:27+00:00",
+          "ETag": "\"8631584b1610ed6be857d8e5d33b33ac\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/e1df709b6e7d3f6fd04883185fafc7f60ce157676c9ef7195b2e640dd78da366/grid.npy",
+          "LastModified": "2026-07-29T14:38:27+00:00",
+          "ETag": "\"3d0b8b55a295f66ee527a6354603fe07\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/e566cbeeb1b711fa60d1776490775cdfc8c6f95b071daf56fe28f0b8c8aa65a3/grid.npy",
+          "LastModified": "2026-07-29T14:38:28+00:00",
+          "ETag": "\"9edd4c829ec6c012ba68c334bed3555c\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/e706d701736dac09006681b506078b6ed829ea5b247da08b605c86b728af84b0/grid.npy",
+          "LastModified": "2026-07-29T14:38:28+00:00",
+          "ETag": "\"60e9a8bc44316a1683a514c4a15ad6b5\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/f3647a171b9af5e898ffb91a5860620e28af3af6dd94000557fd7f9763b5113e/grid.npy",
+          "LastModified": "2026-07-29T14:38:28+00:00",
+          "ETag": "\"2998588047276c495aae06e12e5b254f\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/assets/pictures/f7284f956973ca472d6d8983dcb1bacb6be31a760538a4bc005812a0297a3921/grid.npy",
+          "LastModified": "2026-07-29T14:38:28+00:00",
+          "ETag": "\"816c242dc38dbdd1e6e66d70304c73cf\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/curriculum_progress.json",
+          "LastModified": "2026-07-29T14:38:28+00:00",
+          "ETag": "\"1e4916f1e9200501aa7d6e7800bcd209\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 502,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/dream_gate_cleared.json",
+          "LastModified": "2026-07-29T14:38:28+00:00",
+          "ETag": "\"33dad7a4b1f8b32d71df8be09c950729\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 318,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/guala_atlas.json",
+          "LastModified": "2026-07-29T14:38:28+00:00",
+          "ETag": "\"4bb8250808bbb636600ba68a34bb2a34\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 717094,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/guala_bucket.json",
+          "LastModified": "2026-07-29T14:38:28+00:00",
+          "ETag": "\"66507766ee8aa1478e674e7aa2eded03\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 491,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/guala_coordinator.json",
+          "LastModified": "2026-07-29T14:38:28+00:00",
+          "ETag": "\"a5bfcaa06870877737d8fb63fa5c2b5e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 175596,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/guala_core.json",
+          "LastModified": "2026-07-29T14:38:28+00:00",
+          "ETag": "\"380c64ea9728a4184674e4845831baab\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 474849,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/guala_deep_atlas.json",
+          "LastModified": "2026-07-29T14:38:28+00:00",
+          "ETag": "\"e28368801593117ec7df83e029b4c6f2\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 257676263,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/guala_episodic.json",
+          "LastModified": "2026-07-29T14:38:33+00:00",
+          "ETag": "\"fd17bb788dfbd036807b1f67f29beec7\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 509,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/guala_identity.json",
+          "LastModified": "2026-07-29T14:38:33+00:00",
+          "ETag": "\"a461a09ef90efe5c381857efe619a943\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 465,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/guala_needs.json",
+          "LastModified": "2026-07-29T14:38:33+00:00",
+          "ETag": "\"0be0b75f946dacb895ae7d5311e8e0b5\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 638,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/guala_organism.sgr",
+          "LastModified": "2026-07-29T14:38:33+00:00",
+          "ETag": "\"3d92d92a205892cbc0b61edf5cb6fb03\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 299896832,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/guala_organism.sgr.binding.json",
+          "LastModified": "2026-07-29T14:38:39+00:00",
+          "ETag": "\"744975f51d4c34878644be332ef5bc5c\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 690,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/guala_sections.json",
+          "LastModified": "2026-07-29T14:38:39+00:00",
+          "ETag": "\"1a99fa8676dfe41a9e9301ab2391c8ea\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 37363476,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/guala_sight_motifs.json",
+          "LastModified": "2026-07-29T14:38:40+00:00",
+          "ETag": "\"c0153ad475217361afc776352ccf98fc\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 618917,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/guala_sounds.json",
+          "LastModified": "2026-07-29T14:38:40+00:00",
+          "ETag": "\"0d6d5b6d2323af6b614da993888e4886\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 1328367,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/guala_survival.json",
+          "LastModified": "2026-07-29T14:38:40+00:00",
+          "ETag": "\"b8bdc509fd47310d124c6be3b8d739a8\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 52477,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/guala_tapestry.sgr",
+          "LastModified": "2026-07-29T14:38:40+00:00",
+          "ETag": "\"0521b2656471f16c1e71e701f75f8ecd\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 24117248,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/guala_tapestry.sgr.binding.json",
+          "LastModified": "2026-07-29T14:38:40+00:00",
+          "ETag": "\"d6960d5a2df94d387dec68edae50ff0e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 689,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/guala_teaching.json",
+          "LastModified": "2026-07-29T14:38:41+00:00",
+          "ETag": "\"ff8ae73629528891d6424cc78557aea1\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 6944605,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/guala_videos.json",
+          "LastModified": "2026-07-29T14:38:41+00:00",
+          "ETag": "\"a07818009483c9a49c9ab8b49ad9dc9a\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 513,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/guala_visual.json",
+          "LastModified": "2026-07-29T14:38:41+00:00",
+          "ETag": "\"520481f68a751d79b1b549b3b5b5115a\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 29815,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/sounds/1e31c988a4dd.audio",
+          "LastModified": "2026-07-29T14:38:41+00:00",
+          "ETag": "\"1e31c988a4dd0ca73bfc2654d8a27c6e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 26137,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/sounds/200ed8ac60cc.audio",
+          "LastModified": "2026-07-29T14:38:41+00:00",
+          "ETag": "\"200ed8ac60cc250a4f0e62bfa6658766\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 61556,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/sounds/3f234d965339.audio",
+          "LastModified": "2026-07-29T14:38:41+00:00",
+          "ETag": "\"3f234d965339a5bff3ea4dfaf6015f18\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 1345185,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/sounds/440d1619ec77.audio",
+          "LastModified": "2026-07-29T14:38:41+00:00",
+          "ETag": "\"440d1619ec7762e63ff8d1e196431488\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 267620,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/sounds/526eb32807c5.audio",
+          "LastModified": "2026-07-29T14:38:41+00:00",
+          "ETag": "\"526eb32807c56f74350e1716187c2371\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 638018,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/sounds/69c4d38e0b3d.audio",
+          "LastModified": "2026-07-29T14:38:41+00:00",
+          "ETag": "\"69c4d38e0b3d831dd73da70599028ab7\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 93083,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/sounds/a9cacf70826e.audio",
+          "LastModified": "2026-07-29T14:38:41+00:00",
+          "ETag": "\"a9cacf70826efe44b51df47d4a1c79fd\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 2002904,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/sounds/b46ba21b76a5.audio",
+          "LastModified": "2026-07-29T14:38:41+00:00",
+          "ETag": "\"b46ba21b76a590d1073853b14c55a3b7\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 4799877,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/sounds/b5416742f6f7.audio",
+          "LastModified": "2026-07-29T14:38:42+00:00",
+          "ETag": "\"b5416742f6f703d1aba254a5081e46df\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 161516,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/80d39f15-1740-4851-8742-9345bd2ab097/world_state.json",
+          "LastModified": "2026-07-29T14:38:42+00:00",
+          "ETag": "\"cf6d15f275cb6d31bca95732cbd9032f\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 1273,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/.sleeping",
+          "LastModified": "2026-07-29T16:41:36+00:00",
+          "ETag": "\"ba61bb535b84f7576a80c52beb713f56\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 56,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/CAUSAL_GENERATION.json",
+          "LastModified": "2026-07-29T16:41:36+00:00",
+          "ETag": "\"4a48739176c5876416ced8bf17ab960a\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 573,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/MANIFEST.json",
+          "LastModified": "2026-07-29T16:41:54+00:00",
+          "ETag": "\"e67a84cd7e58f4d45625f1e8470c3c02\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 38106,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/RETIREMENT_RECEIPT.json",
+          "LastModified": "2026-07-29T16:41:54+00:00",
+          "ETag": "\"5219e8d0d7128f261b492ac988f25699\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 33937,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/03b7757eda054d94a99dc9c02b23809c1499d9c4ecd3ec9fee691df9dd25a9b4/grid.npy",
+          "LastModified": "2026-07-29T16:41:36+00:00",
+          "ETag": "\"865cd038db560e1af4d07dfe5e76d5ab\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/0616e957ccefb3f25fd871baae937a9eab00be0fa7027ce17b0c9efc3176ac9d/grid.npy",
+          "LastModified": "2026-07-29T16:41:36+00:00",
+          "ETag": "\"b4e589763d7dd72d97bb3f8eef1d5e0f\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/07b576b0ddc1dbc08f0b4ce5d72123195227c893f98684cde855b38b2c9a1529/grid.npy",
+          "LastModified": "2026-07-29T16:41:37+00:00",
+          "ETag": "\"022da1db8c68f0c633a13bbc22bd5dae\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/0912528bae9899dcb1463c07e819eaa30b51c210be65e5673f9fa1cab1fd6c73/grid.npy",
+          "LastModified": "2026-07-29T16:41:37+00:00",
+          "ETag": "\"a61adeeea2d4a4c602208cb8fea3b331\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/171adac3bb95044a7f2c35eb2dc78ed7ba6700023de66c7ac04f8426be7a5234/grid.npy",
+          "LastModified": "2026-07-29T16:41:37+00:00",
+          "ETag": "\"6b48197f6a1d89306e3bd8162edd61e6\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/1780634a61200bc9e4edeac6b300a6db68895b9730bc9ebb84b246f4e6371198/grid.npy",
+          "LastModified": "2026-07-29T16:41:37+00:00",
+          "ETag": "\"c75ac31de3d4fa197dabd977fc746eec\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/1ad6752981592d817118880fe583b7d57201aa0755f7048e3ac33e0482b3de07/grid.npy",
+          "LastModified": "2026-07-29T16:41:37+00:00",
+          "ETag": "\"ca9ec0c7d7ade9fd1dd5da0891dd8691\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/2c93df327e4680de0bf50fbdfafb3e72ef093c5d811161be0b501293c7b118d6/grid.npy",
+          "LastModified": "2026-07-29T16:41:37+00:00",
+          "ETag": "\"9e2f98a0e6750b92326bc55c712d81d5\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/380c507cad993028826c353a864418a1aa78763a1fde6df2cfa708814f19c61f/grid.npy",
+          "LastModified": "2026-07-29T16:41:37+00:00",
+          "ETag": "\"982f5c2c1de151d1402d6178cefc4779\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/393d0675c6468beb46837e8a3efa725586c526b8bba4eb91337629b1ce486d1c/grid.npy",
+          "LastModified": "2026-07-29T16:41:37+00:00",
+          "ETag": "\"24235c709f5991dee990f92e8d5dece4\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/41c278bfcd6abe0d690386fd9186dceb05d524c099331f20bfd43b33e8d7df61/grid.npy",
+          "LastModified": "2026-07-29T16:41:37+00:00",
+          "ETag": "\"74a071c6b7b7b727fadd0cf3e24cdc4d\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/4a4eac83d41d63238b33954c192ef8b73221bb806adee20da227e0e58b2cd2b9/grid.npy",
+          "LastModified": "2026-07-29T16:41:37+00:00",
+          "ETag": "\"273d4f4f21a1cddb63107db46734685a\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/51d7ecd5ec0cc2a03237c272bf2c2716217896143154d2f6017bd328aa004488/grid.npy",
+          "LastModified": "2026-07-29T16:41:37+00:00",
+          "ETag": "\"d345a668403d52181abe0c966015b148\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/525eb065d9179ff1805cf5b38fb10c6d3ee866242ba36d52a5e5ed20a8eccbde/grid.npy",
+          "LastModified": "2026-07-29T16:41:37+00:00",
+          "ETag": "\"1fca53c90ad10a4039effea2b39b3f7a\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/5a249c7b467a375ee2f5f861bdd4881b8f118bf31e6591818b99fedf20879ebd/grid.npy",
+          "LastModified": "2026-07-29T16:41:37+00:00",
+          "ETag": "\"48cd1fe8ed586e3a518ba78c4df4622e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/61d91ee5d34d6e9594ef611498cc268b48e1bc933cbba7ef36e9071fc5028119/grid.npy",
+          "LastModified": "2026-07-29T16:41:37+00:00",
+          "ETag": "\"69c69ead1f5108c90e78b676a0c7497b\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/65657dfb6d3e9a112ee96992bb96019afb4bb72ed58db548270bfb3a1f09f6b3/grid.npy",
+          "LastModified": "2026-07-29T16:41:37+00:00",
+          "ETag": "\"164e821f8f3c5bd6c48a798a09694acf\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/668084b4a3f91a58185754f4a645ad559faf62bc76969f97a078fc3530b42a09/grid.npy",
+          "LastModified": "2026-07-29T16:41:38+00:00",
+          "ETag": "\"1ff90f16e2aee9b6613d4d7a2180d737\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/66ddc0326019a8f3ffe77c96d7236033e6bb7ecf96b3ffb9f84fc36570ba2bbe/grid.npy",
+          "LastModified": "2026-07-29T16:41:38+00:00",
+          "ETag": "\"c7a4e595d77d53aabc0b449d0f0e92e2\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/6b70fcc056e9365dc50561a624e76f716e277b536c68aa876a1bb4acb910025d/grid.npy",
+          "LastModified": "2026-07-29T16:41:38+00:00",
+          "ETag": "\"0aa79c06670a6bf47aa5a73c1e5aaee2\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/6df4bb673cf53743f5b70d80239c72658aae2f3b96edd1a06e00621e9b2446e2/grid.npy",
+          "LastModified": "2026-07-29T16:41:38+00:00",
+          "ETag": "\"85c5a4800ebb855d4ba472c8468f053d\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/7449afd390ca943e9f9b712570577b09615ea1c52a135c505e3f5c2160da6cc3/grid.npy",
+          "LastModified": "2026-07-29T16:41:38+00:00",
+          "ETag": "\"fc3fdd10d6829583c0284fe2871ad710\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/76005a4d6725e523787056b4eae3b67c6abf20601c0ab5c17d75a4f88e1d54e9/grid.npy",
+          "LastModified": "2026-07-29T16:41:38+00:00",
+          "ETag": "\"36f8d25a7d8349dfb86de9c3c96339c4\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/7a7fb74f3e6ed480b2241e02c4726bacb726c9309bb1e410080b4d82916b3006/grid.npy",
+          "LastModified": "2026-07-29T16:41:38+00:00",
+          "ETag": "\"0e0a32178b01627b5f21287e94d74a47\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/86603db79423630ce2e2a07921d81ef382a6941cd92664021edcb57f913d8acc/grid.npy",
+          "LastModified": "2026-07-29T16:41:38+00:00",
+          "ETag": "\"992f042045396ea65278ac72175aaf3b\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/8866a6049b382acba52ec07f2df7c4a44edf59b5166824aa37ee6a04fc581ddc/grid.npy",
+          "LastModified": "2026-07-29T16:41:38+00:00",
+          "ETag": "\"c53449df3f7f09701176e61b1ac774b3\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/8ab4476e4c40b12a2cbffdcf49945c92bacba7036c92a70082c6e5265cfdd390/grid.npy",
+          "LastModified": "2026-07-29T16:41:38+00:00",
+          "ETag": "\"928f969a9feb9143ed6ffeffcaf464e8\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/8dd1a58acac77c6b2302ec53cfd48fcb960d95ea38578d77b9967b62393294a5/grid.npy",
+          "LastModified": "2026-07-29T16:41:38+00:00",
+          "ETag": "\"6ea5fe4bb66ad112ca8dbd31cc7ee610\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/9245b3794ab3961a7c4af4dcef8e776e8837e6a247fd06380a41ab41df9388b9/grid.npy",
+          "LastModified": "2026-07-29T16:41:38+00:00",
+          "ETag": "\"4df9bdbcd0569678f05d947bf0544a7e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/95e9520dd175d3b0f28c86db073f399bdaa4a558be7b3fdd227061da475b5b72/grid.npy",
+          "LastModified": "2026-07-29T16:41:38+00:00",
+          "ETag": "\"39737573fff6542581c6cd01a3332806\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/9602f6b49f83c244eb61a65c2a44c080936517017ad9e3d6ee5847b74458522b/grid.npy",
+          "LastModified": "2026-07-29T16:41:38+00:00",
+          "ETag": "\"8fc05740e4535a5b0750056bfcd1debd\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/96bb88a96aaeaf5621f15e89033db5fce1087782385f1f14bde257ecd2db1753/grid.npy",
+          "LastModified": "2026-07-29T16:41:38+00:00",
+          "ETag": "\"d26a4814778dcf916b49692b3962f670\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/971b2705cedf61be8a12664766f8a5e70409bdcf505e895db3dabcff99270db6/grid.npy",
+          "LastModified": "2026-07-29T16:41:39+00:00",
+          "ETag": "\"edcf4d246b6693dedd3983681b84870e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/97e179f33e6b37582d18eba113b453e8d976d173361de7cc02e28e5c3c2958c4/grid.npy",
+          "LastModified": "2026-07-29T16:41:39+00:00",
+          "ETag": "\"39b1fd6c88e321dbe42dd717103dabc8\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/b2bcb992ee2f55be1864b7c9b15f6ad6f8c92d35f4de3e6dcfca16d9b742e571/grid.npy",
+          "LastModified": "2026-07-29T16:41:39+00:00",
+          "ETag": "\"bb7e06e7a2a73f94e2a90b8e20076746\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/b3d3de172e2ce8b826d5ebb532308a90f9c2ceaed3b5180a19da44353f6d11cb/grid.npy",
+          "LastModified": "2026-07-29T16:41:39+00:00",
+          "ETag": "\"fdff6e42ce57a47447d1351f771dc6fc\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/b60fa58713cb691953f1cdfd78bb0e01c85a3d3cbe89eaa68d69fb9dcc99c45d/grid.npy",
+          "LastModified": "2026-07-29T16:41:39+00:00",
+          "ETag": "\"aec1c514153a3adfe80a515b30b4b998\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/b6bac027bc1fbc52fce5d352b81bab7c80b2172f5536330449e826716cf016ca/grid.npy",
+          "LastModified": "2026-07-29T16:41:39+00:00",
+          "ETag": "\"808cfee66edce9d165da87ff20b5de01\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/bbe76a4b79fc3c871e1c1c2fa213e0872509c77fc11176bccb5736dbf3ec936e/grid.npy",
+          "LastModified": "2026-07-29T16:41:39+00:00",
+          "ETag": "\"73a2e7b0d0e1c7424cf10fce952fac33\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/bc695540572fa1f0653b7dabefedbcb5dbaf1d41555eb680ebb8658144b5b455/grid.npy",
+          "LastModified": "2026-07-29T16:41:39+00:00",
+          "ETag": "\"5eba42ac6237f4bc2dfc292e8b4ed4c1\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/bcf6ef2a0af5a6c7403b086328413596aad30833b4945d9691afba56a41670ba/grid.npy",
+          "LastModified": "2026-07-29T16:41:39+00:00",
+          "ETag": "\"0a2cf608454ef61c73aa63a606a3d472\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/bf8a49deb89db8b8d88068200657518d08445daee9bd4a1d427bbeaee85ab9f0/grid.npy",
+          "LastModified": "2026-07-29T16:41:39+00:00",
+          "ETag": "\"b40a3e15a8caa3dff4974488dcdf932f\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/c53818bbca02eacbfa4aa868556996f3b613db9387dc1dcd87c805cd5a4f42f9/grid.npy",
+          "LastModified": "2026-07-29T16:41:39+00:00",
+          "ETag": "\"a024f8cb982d9f6ef6ca8c237d5f18ec\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/c9b8704f5bd9da8d6ace06bf343410fd525828c8db78d59388ef3749fc50e126/grid.npy",
+          "LastModified": "2026-07-29T16:41:39+00:00",
+          "ETag": "\"8cbf6b950c30dfdd36285a053eaa307a\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/cbf2142b698058eeda773e5d11f91a02fe3af32e327e645023d8d6a9251f0248/grid.npy",
+          "LastModified": "2026-07-29T16:41:39+00:00",
+          "ETag": "\"6ee18264ffcc63ababdd0c37a53af0c4\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/ccaeb0ac9947722b715de3c14ddf6d45747e3b1f837318d3e35d49a571ac3826/grid.npy",
+          "LastModified": "2026-07-29T16:41:39+00:00",
+          "ETag": "\"5f58a153def3025612661b1bbe3dddb4\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/cd03cfdbf763f735ffbdc3e25d960f61a9ce27740aa63000b1251d11face4b01/grid.npy",
+          "LastModified": "2026-07-29T16:41:39+00:00",
+          "ETag": "\"07ab6c888f61cef8fef38a697f33fd88\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/d409663df91325e58d7fd9be110917a0a36cc282836d68a4c3e4beae064b47e4/grid.npy",
+          "LastModified": "2026-07-29T16:41:40+00:00",
+          "ETag": "\"302bfd7bb0d298a659aef4e92d98e1b8\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/d52c2d63c347c04e74caaf167e84a7058f18a9e906970d239513db4bb4194171/grid.npy",
+          "LastModified": "2026-07-29T16:41:40+00:00",
+          "ETag": "\"98a29404299cdaf9515b0fe67d7bb216\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/d6e8095289c331084a1e6343af12ca0a4d8babe50567f87e10be7b27d9642537/grid.npy",
+          "LastModified": "2026-07-29T16:41:40+00:00",
+          "ETag": "\"72e0566e38207b28761bbed2753953c4\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/d7e26655a71c8531b684acbe0f927ec49dcf2de10b2544172e77928310556648/grid.npy",
+          "LastModified": "2026-07-29T16:41:40+00:00",
+          "ETag": "\"83d85640eb3409565ad9d654ac5022c5\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/db75af554669f83162a77064779778f6a122bcdb4855ffbe14eee7c64e025474/grid.npy",
+          "LastModified": "2026-07-29T16:41:40+00:00",
+          "ETag": "\"dd36d7387d8c20db7fb94457ed67412e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/e12111aa227a5d939e6007fb5a17b2aa5e671463fa647279424f9562b24c7f20/grid.npy",
+          "LastModified": "2026-07-29T16:41:40+00:00",
+          "ETag": "\"8631584b1610ed6be857d8e5d33b33ac\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/e1df709b6e7d3f6fd04883185fafc7f60ce157676c9ef7195b2e640dd78da366/grid.npy",
+          "LastModified": "2026-07-29T16:41:40+00:00",
+          "ETag": "\"3d0b8b55a295f66ee527a6354603fe07\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/e566cbeeb1b711fa60d1776490775cdfc8c6f95b071daf56fe28f0b8c8aa65a3/grid.npy",
+          "LastModified": "2026-07-29T16:41:40+00:00",
+          "ETag": "\"9edd4c829ec6c012ba68c334bed3555c\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/e706d701736dac09006681b506078b6ed829ea5b247da08b605c86b728af84b0/grid.npy",
+          "LastModified": "2026-07-29T16:41:40+00:00",
+          "ETag": "\"60e9a8bc44316a1683a514c4a15ad6b5\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/f3647a171b9af5e898ffb91a5860620e28af3af6dd94000557fd7f9763b5113e/grid.npy",
+          "LastModified": "2026-07-29T16:41:40+00:00",
+          "ETag": "\"2998588047276c495aae06e12e5b254f\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/assets/pictures/f7284f956973ca472d6d8983dcb1bacb6be31a760538a4bc005812a0297a3921/grid.npy",
+          "LastModified": "2026-07-29T16:41:40+00:00",
+          "ETag": "\"816c242dc38dbdd1e6e66d70304c73cf\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 32896,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/curriculum_progress.json",
+          "LastModified": "2026-07-29T16:41:40+00:00",
+          "ETag": "\"ea7172a2c7100929c102204579b4f6be\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 502,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/dream_gate_cleared.json",
+          "LastModified": "2026-07-29T16:41:40+00:00",
+          "ETag": "\"aeb79d4bc3c67801c9567e4f886eb1a0\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 318,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/guala_atlas.json",
+          "LastModified": "2026-07-29T16:41:40+00:00",
+          "ETag": "\"f31e2c3ae5ae5e58b68cfeeae1fd6462\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 717083,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/guala_bucket.json",
+          "LastModified": "2026-07-29T16:41:40+00:00",
+          "ETag": "\"bd729bb82ee12e6f41488bbb205edba1\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 491,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/guala_coordinator.json",
+          "LastModified": "2026-07-29T16:41:40+00:00",
+          "ETag": "\"385571b64ecaafbb620c0f2025623f30\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 175595,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/guala_core.json",
+          "LastModified": "2026-07-29T16:41:40+00:00",
+          "ETag": "\"d27797121d0b5d30e4425aafb99caa57\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 474849,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/guala_deep_atlas.json",
+          "LastModified": "2026-07-29T16:41:41+00:00",
+          "ETag": "\"02dee2dd049c47f7558862f95b9738d3\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 257676263,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/guala_episodic.json",
+          "LastModified": "2026-07-29T16:41:45+00:00",
+          "ETag": "\"6bc5e56665cbe8abbcb46159dc2c758b\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 509,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/guala_identity.json",
+          "LastModified": "2026-07-29T16:41:46+00:00",
+          "ETag": "\"56c1d5ba17d76d4f7d6ff8c0af23e4de\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 465,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/guala_needs.json",
+          "LastModified": "2026-07-29T16:41:46+00:00",
+          "ETag": "\"9acdcc9f5e8193cbe47fbf2c9c498603\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 639,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/guala_organism.sgr",
+          "LastModified": "2026-07-29T16:41:46+00:00",
+          "ETag": "\"3d92d92a205892cbc0b61edf5cb6fb03\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 299896832,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/guala_organism.sgr.binding.json",
+          "LastModified": "2026-07-29T16:41:51+00:00",
+          "ETag": "\"b2ae9647b9718f81702c167f63033583\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 690,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/guala_sections.json",
+          "LastModified": "2026-07-29T16:41:51+00:00",
+          "ETag": "\"9d21e702c8885303663b48199d04e40e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 37363476,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/guala_sight_motifs.json",
+          "LastModified": "2026-07-29T16:41:52+00:00",
+          "ETag": "\"9ad45d3072582c484cddab18462aa828\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 618917,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/guala_sounds.json",
+          "LastModified": "2026-07-29T16:41:52+00:00",
+          "ETag": "\"cfc0e1a8590976fc107d28d8da2019fc\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 1328367,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/guala_survival.json",
+          "LastModified": "2026-07-29T16:41:52+00:00",
+          "ETag": "\"90263dd329c5726e970b8e1aea97f5b8\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 52477,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/guala_tapestry.sgr",
+          "LastModified": "2026-07-29T16:41:52+00:00",
+          "ETag": "\"0521b2656471f16c1e71e701f75f8ecd\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 24117248,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/guala_tapestry.sgr.binding.json",
+          "LastModified": "2026-07-29T16:41:53+00:00",
+          "ETag": "\"48ea692d3b9c54383bf01ca73b692f27\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 689,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/guala_teaching.json",
+          "LastModified": "2026-07-29T16:41:53+00:00",
+          "ETag": "\"13ee8eea945d5e07fa7ac96f458048e0\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 6944605,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/guala_videos.json",
+          "LastModified": "2026-07-29T16:41:53+00:00",
+          "ETag": "\"8f7019cc9ad4d3b7f257349f8a0f89ab\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 513,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/guala_visual.json",
+          "LastModified": "2026-07-29T16:41:53+00:00",
+          "ETag": "\"2cdce95b57f55618f46ee1a9d15c2237\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 29815,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/sounds/1e31c988a4dd.audio",
+          "LastModified": "2026-07-29T16:41:53+00:00",
+          "ETag": "\"1e31c988a4dd0ca73bfc2654d8a27c6e\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 26137,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/sounds/200ed8ac60cc.audio",
+          "LastModified": "2026-07-29T16:41:53+00:00",
+          "ETag": "\"200ed8ac60cc250a4f0e62bfa6658766\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 61556,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/sounds/3f234d965339.audio",
+          "LastModified": "2026-07-29T16:41:54+00:00",
+          "ETag": "\"3f234d965339a5bff3ea4dfaf6015f18\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 1345185,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/sounds/440d1619ec77.audio",
+          "LastModified": "2026-07-29T16:41:54+00:00",
+          "ETag": "\"440d1619ec7762e63ff8d1e196431488\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 267620,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/sounds/526eb32807c5.audio",
+          "LastModified": "2026-07-29T16:41:54+00:00",
+          "ETag": "\"526eb32807c56f74350e1716187c2371\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 638018,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/sounds/69c4d38e0b3d.audio",
+          "LastModified": "2026-07-29T16:41:54+00:00",
+          "ETag": "\"69c4d38e0b3d831dd73da70599028ab7\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 93083,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/sounds/a9cacf70826e.audio",
+          "LastModified": "2026-07-29T16:41:54+00:00",
+          "ETag": "\"a9cacf70826efe44b51df47d4a1c79fd\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 2002904,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/sounds/b46ba21b76a5.audio",
+          "LastModified": "2026-07-29T16:41:54+00:00",
+          "ETag": "\"b46ba21b76a590d1073853b14c55a3b7\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 4799877,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/sounds/b5416742f6f7.audio",
+          "LastModified": "2026-07-29T16:41:54+00:00",
+          "ETag": "\"b5416742f6f703d1aba254a5081e46df\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 161516,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala/retired-legacy-archive/bc2500d5-4988-4502-954f-5978e190b288/world_state.json",
+          "LastModified": "2026-07-29T16:41:54+00:00",
+          "ETag": "\"b49fa155d1e74cac9799770a6e8c2062\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 1273,
+          "StorageClass": "STANDARD"
+        }
+      ],
+      "Name": "dsf-ai-site-backups",
+      "Prefix": "guala/retired-legacy-archive/",
+      "MaxKeys": 1000,
+      "EncodingType": "url",
+      "KeyCount": 279
+    }
+  },
+  {
+    "at_utc": "2026-10-09T22:30:12.338185+00:00",
+    "bucket": "dsf-ai-site-backups",
+    "prefix": "guala-salvage/",
+    "returncode": 0,
+    "result": {
+      "IsTruncated": false,
+      "Contents": [
+        {
+          "Key": "guala-salvage/EMERGENCY-gen5-stage-20260807-1906.glorun",
+          "LastModified": "2026-08-07T19:25:34+00:00",
+          "ETag": "\"37ab05d62897a34de0ba96a1f71c4545\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 4023787,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/cf-config-backup-20260805.json",
+          "LastModified": "2026-08-05T04:39:23+00:00",
+          "ETag": "\"d98b82b69118ca028464216611745e81\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 3987,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/guala-autonomy2-20260806.bundle",
+          "LastModified": "2026-08-06T21:04:39+00:00",
+          "ETag": "\"7a3eb6519b882c300f64687df4f3e327-52\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 430993255,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/guala-eye-lattice-20260806.bundle",
+          "LastModified": "2026-08-06T19:27:28+00:00",
+          "ETag": "\"77e4c45a288706baac1fce5cab0d3957-52\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 430835573,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/guala-noarchive-20260807.bundle",
+          "LastModified": "2026-08-07T02:32:46+00:00",
+          "ETag": "\"fb0836855c049ff2a881eaf180db42ae-52\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 430973563,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/guala-restcost-20260806.bundle",
+          "LastModified": "2026-08-06T23:58:45+00:00",
+          "ETag": "\"b6a1f321b767ae25c193bc0730f23966-52\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 430965814,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/guala-work-20260806-5b777291.bundle",
+          "LastModified": "2026-08-06T04:26:44+00:00",
+          "ETag": "\"712b71ce6f199fff1f05acc649360f37-52\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 430778490,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/guala-work-20260806-campaign-complete.bundle",
+          "LastModified": "2026-08-06T10:12:41+00:00",
+          "ETag": "\"c2a0f62c6fc4328afc1f183522bd756a-52\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 430974723,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/guala-work-20260806-d557ae59.bundle",
+          "LastModified": "2026-08-06T06:20:17+00:00",
+          "ETag": "\"2d89a9d437242f5dbcbad3327ed95b4f-52\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 430832765,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/guala-work-20260806-final.bundle",
+          "LastModified": "2026-08-06T04:50:58+00:00",
+          "ETag": "\"a5e6fa93a8612b11a3b45b5b25f79b40-52\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 430792751,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/live-body-before-ears-20260806.tar.gz",
+          "LastModified": "2026-08-06T20:16:16+00:00",
+          "ETag": "\"bb600e8e8b46a3b9278d6a85e5867c1f\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 18539413,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/live-body-carrier-dry-tick3534.glorun",
+          "LastModified": "2026-08-08T00:40:49+00:00",
+          "ETag": "\"932c8bcec0e0a51c48f0d4ef045e85da\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 3994153,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/live-body-consistent-20260806.tar.gz",
+          "LastModified": "2026-08-06T16:52:17+00:00",
+          "ETag": "\"6099d833b659e5ed0fd86f48b23832ad\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 18539386,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/live-body-continuity-20260806-post-curriculum.tar.gz",
+          "LastModified": "2026-08-06T12:37:50+00:00",
+          "ETag": "\"1aa72fe8f282493a57760426c803a956\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 10436724,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/live-body-continuity-20260806-tick2195.tar.gz",
+          "LastModified": "2026-08-06T06:22:27+00:00",
+          "ETag": "\"6c34710106b961cda857ee37f1d606ff\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 1329282,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/live-body-continuity-20260807-recovered-tick3333.glorun",
+          "LastModified": "2026-08-07T19:35:21+00:00",
+          "ETag": "\"b93f98fe6b1b471e7aa87bf70cdd1e74\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 4023935,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/live-body-gen4-20260807T0330Z.tar.gz",
+          "LastModified": "2026-08-07T03:24:46+00:00",
+          "ETag": "\"fd51d60cdd0ace42d5485ad4a24f131b\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 105707,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/live-body-gen4-STUCK-20260807T1345Z.tar.gz",
+          "LastModified": "2026-08-07T13:51:44+00:00",
+          "ETag": "\"2c8695a23e5dc00b101aafc37698492d\"",
+          "ChecksumAlgorithm": [
+            "CRC32"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 208199,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/pages-backup-20260805/gualaloom.html",
+          "LastModified": "2026-08-05T13:41:42+00:00",
+          "ETag": "\"3cb53999e029af32db53d8b0a5edb0d9\"",
+          "ChecksumAlgorithm": [
+            "SHA256"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 79173,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/pages-backup-20260805/loomscan.html",
+          "LastModified": "2026-08-05T13:41:43+00:00",
+          "ETag": "\"d1f63011824e7fe9bf927f77b87542b2\"",
+          "ChecksumAlgorithm": [
+            "SHA256"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 37089,
+          "StorageClass": "STANDARD"
+        },
+        {
+          "Key": "guala-salvage/salvage-codex-d3-20260805.bundle",
+          "LastModified": "2026-08-05T03:57:08+00:00",
+          "ETag": "\"49e6c0a7c3a6163ac0f32895506ce3ed-52\"",
+          "ChecksumAlgorithm": [
+            "CRC64NVME"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 430708936,
+          "StorageClass": "STANDARD"
+        }
+      ],
+      "Name": "dsf-ai-site-backups",
+      "Prefix": "guala-salvage/",
+      "MaxKeys": 1000,
+      "EncodingType": "url",
+      "KeyCount": 21
+    }
+  }
+]

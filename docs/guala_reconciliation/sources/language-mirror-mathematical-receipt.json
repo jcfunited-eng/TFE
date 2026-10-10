@@ -1,0 +1,63 @@
+{
+  "scope": "Independent mathematical comparison of printed document and source definitions only; no product or benchmark execution.",
+  "staging": [
+    {
+      "groups": 4,
+      "binary_parenthesizations": 5,
+      "actual_parent_assignment_candidates": 2500
+    },
+    {
+      "groups": 6,
+      "binary_parenthesizations": 42,
+      "actual_parent_assignment_candidates": 705894
+    },
+    {
+      "groups": 8,
+      "binary_parenthesizations": 429,
+      "actual_parent_assignment_candidates": 344373768
+    }
+  ],
+  "four_to_six_actual_ratio": "352947/1250",
+  "identity_recurrence": {
+    "rule": "f(x)=x",
+    "accepts_own_output": true,
+    "distinct_outputs_from_one_seed": 1
+  },
+  "three_token_arithmetic": {
+    "vocabulary": 5000,
+    "all_strings": 125000000000,
+    "assumed_grammatical_divisor": 10000,
+    "conditional_grammatical_count": 12500000,
+    "proves_storage_impossible": false
+  },
+  "refs": [
+    {
+      "source_id": "LD16-01",
+      "path": "docs/guala_reconciliation/sources/language-mirror/LD16-01--color.md",
+      "line": 308,
+      "anchor": "  four groups a reading weighs at most 5 shapes; at six it weighs",
+      "sha256": "afae8dd15ed0b1d6eab8e7c33e8d5d8404439f942f83a17a5fad679d865ed8a8"
+    },
+    {
+      "source_id": "LDC02",
+      "path": "docs/guala_reconciliation/sources/language-foundations/LDC02--first_ribbon.py",
+      "line": 918,
+      "anchor": "            for parents in itertools.product(*[slots] * n)",
+      "sha256": "e10bc66110117a897ec193726f1e93ce003f6f98bbb02ee9f0a6ec41de70fa7e"
+    },
+    {
+      "source_id": "LD16-01",
+      "path": "docs/guala_reconciliation/sources/language-mirror/LD16-01--color.md",
+      "line": 292,
+      "anchor": "LAW: a rule that accepts its own output never runs out \u2014 a piece",
+      "sha256": "afae8dd15ed0b1d6eab8e7c33e8d5d8404439f942f83a17a5fad679d865ed8a8"
+    },
+    {
+      "source_id": "LD16-01",
+      "path": "docs/guala_reconciliation/sources/language-mirror/LD16-01--color.md",
+      "line": 301,
+      "anchor": "  Storage cannot be the mechanism; composition is compulsory",
+      "sha256": "afae8dd15ed0b1d6eab8e7c33e8d5d8404439f942f83a17a5fad679d865ed8a8"
+    }
+  ]
+}

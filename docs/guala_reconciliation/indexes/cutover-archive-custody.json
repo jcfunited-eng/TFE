@@ -1,0 +1,80 @@
+[
+  {
+    "bucket": "guala-incident-bench-20260831",
+    "key": "captures/0914d/current.zip",
+    "returncode": 0,
+    "receipt": {
+      "AcceptRanges": "bytes",
+      "LastModified": "2026-09-14T04:07:54+00:00",
+      "ContentLength": 6943403,
+      "ETag": "\"a41efd284ed4f13f30e9ef05111ecab5\"",
+      "ChecksumCRC64NVME": "S6lM1vX/C24=",
+      "ChecksumType": "FULL_OBJECT",
+      "ContentType": "application/zip",
+      "ServerSideEncryption": "AES256",
+      "Metadata": {}
+    },
+    "path": "backups/runtime/a1-architecture-reconciliation-20261009/cutover-archives/captures--0914d--current.zip",
+    "sha256": "901bc9e14e3b5a50d4874bb6a17bff4a2838f63f6256cc1bdf429706d3291bd4",
+    "bytes": 6943403,
+    "members": [
+      {
+        "name": "body.glorun.gz",
+        "bytes": 6920814,
+        "compressed_bytes": 6920814,
+        "crc32": 2121276306
+      },
+      {
+        "name": "world.json",
+        "bytes": 63659,
+        "compressed_bytes": 21954,
+        "crc32": 2389427278
+      },
+      {
+        "name": "pointer.json",
+        "bytes": 612,
+        "compressed_bytes": 313,
+        "crc32": 967002814
+      }
+    ]
+  },
+  {
+    "bucket": "guala-incident-bench-20260831",
+    "key": "drive-organ-20260914/feeding-release/current-710377-stall.zip",
+    "returncode": 0,
+    "receipt": {
+      "AcceptRanges": "bytes",
+      "LastModified": "2026-09-14T02:33:31+00:00",
+      "ContentLength": 7888288,
+      "ETag": "\"d961c0d097860da38f360c7f5aac8d6e\"",
+      "ChecksumCRC64NVME": "ZNzLJsmfwFY=",
+      "ChecksumType": "FULL_OBJECT",
+      "ContentType": "application/zip",
+      "ServerSideEncryption": "AES256",
+      "Metadata": {}
+    },
+    "path": "backups/runtime/a1-architecture-reconciliation-20261009/cutover-archives/drive-organ-20260914--feeding-release--current-710377-stall.zip",
+    "sha256": "59dfcdba8ffe5a552dfb9bcbdd267ed990473f79e00d09df90e6a5c3d3c6eeb6",
+    "bytes": 7888288,
+    "members": [
+      {
+        "name": "body.glorun.gz",
+        "bytes": 7357538,
+        "compressed_bytes": 7357538,
+        "crc32": 1291253577
+      },
+      {
+        "name": "world.json",
+        "bytes": 1957855,
+        "compressed_bytes": 530110,
+        "crc32": 1635393889
+      },
+      {
+        "name": "pointer.json",
+        "bytes": 614,
+        "compressed_bytes": 318,
+        "crc32": 1920658235
+      }
+    ]
+  }
+]

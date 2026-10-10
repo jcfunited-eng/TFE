@@ -1,0 +1,2190 @@
+{
+  "schema": "guala.speech_decision_record.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T05:43:02.601228+00:00",
+  "role": "A1 independent auditor",
+  "status_authority": "collaborative_todo.md",
+  "decision": "Proceed with the approved preserved-state charter qualification; withhold speech and whole-system exclusion claims.",
+  "current_speech_qualified": false,
+  "speech_proven_impossible": false,
+  "speech_guaranteed": false,
+  "whole_reconciliation_complete": false,
+  "new_findings": false,
+  "existing_evidence": {
+    "CQ01": {
+      "registry": "charter-assessment.json",
+      "record": {
+        "id": "CQ01",
+        "name": "64-column commissioning is not yet a demonstrated conservative extension",
+        "classification": "verified source boundary; preservation qualification open",
+        "finding": "The captured commission_from_current carries original bytes, raw contact values, yield thresholds and severed topology into an explicitly new material. Functional64Material::commission initializes new phases, rings, gates, facts, work and delivery state. The outer runtime keeps the original paired body/world inert. This establishes custody/design scope, not preserved learned capability or historical erasure.",
+        "lawful_remedy": "Map each causative predecessor state into the proposed successor or record why it cannot be translated. Preserve all originals. Prove retained physical relations and ordinary next-step/cold behavior with copied mature fixtures before calling the new anatomy an enhancement. New-law initialization requires its explicit authority; an archive is not operational memory.",
+        "acceptance_falsifier": "An identity, tick, byte archive or contact count alone cannot pass. The earlier supported learned-state effect must survive the stated migration and ordinary cue; unlearned/severed controls must distinguish it. Do not remount rejected historical policy merely to reproduce a symptom.",
+        "repair_actions": [
+          "A01",
+          "A03",
+          "A04",
+          "A09",
+          "A16",
+          "A18"
+        ],
+        "refs": [
+          {
+            "source_id": "CA08",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA08--functional64_current_commission.rs",
+            "line": 106,
+            "anchor": "pub(crate) fn commission_from_current(current:&CurrentView,clock:ExactTime,",
+            "sha256": "74a86e547719f6e024fcfbbead380fa3b63493802ffe1fa9f2cf8b882006b137"
+          },
+          {
+            "source_id": "CA09",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+            "line": 357,
+            "anchor": "        let mut s=Self{anatomy,clock,phases:Pages::new(NODES,PhasePair::default()),rings:Pages::new(FACTS,Ring{phase:[0.0;3]}),weights:Pages::new(RAW_SLOTS,0.0),incident:Pages::new(NODES,Arc::new(Vec::new())),nonzero_nodes:Arc::new(BTreeSet::new()),facts:vec![Fact{digit:0,present:false};FACTS].into(),gates:Arc::new(vec![Gate::new();INPUTS+TERMINALS]),power:Vec::new(),last_power:vec![None;INPUTS],delivery:VecDeque::new(),reserve_ug,work:Work::ZERO,unavailable_since:None,contact_changes:Pages::new(RAW_SLOTS,false)};",
+            "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+          },
+          {
+            "source_id": "CA01",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA01--guala_functional64_runtime.py",
+            "line": 3,
+            "anchor": "The original paired body/world remain inert bytes. Native material separately",
+            "sha256": "f4710a82da0fbaa1e45ebad2018c521a739ccd8555ca780ca9f8758e662181ca"
+          }
+        ]
+      }
+    },
+    "CQ02": {
+      "registry": "charter-assessment.json",
+      "record": {
+        "id": "CQ02",
+        "name": "Current fixture contracts deliberately stop short of the charter",
+        "classification": "preserve honest test scope; positive capability proof missing",
+        "finding": "Captured loop tests explicitly use new fixtures and test physical delivery/paired persistence. The neutral source test asserts field progression, changed phases across64columns, END discharges, body/pressure and cold comparison, while expressly disclaiming learned-language evidence. Source reading does not establish that these tests passed.",
+        "lawful_remedy": "Keep these component and continuation tests. Add separately specified retained-learning, partial-cue use, grounded syntax and unattended need/action/consequence evidence on the frozen candidate and authentic history. Keep intervention fixtures outside product cognition.",
+        "acceptance_falsifier": "Changed phases, nonzero pressure, a source delivery, four quarters or an ordinary call must not count as learning, syntax or mature autonomy. Require learned versus pre-learning/severed differences and later reuse.",
+        "repair_actions": [
+          "A06",
+          "A08",
+          "A09",
+          "A10",
+          "A11",
+          "A16",
+          "A17"
+        ],
+        "refs": [
+          {
+            "source_id": "CA04",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA04--test_functional64_loop.py",
+            "line": 1,
+            "anchor": "\"\"\"Ordinary caller/persistence witnesses, never mature learning/autonomy proof.",
+            "sha256": "0df21c33649c66c7686d67fd0592d93f47f383a64617e1d506acbe595a1b2ebc"
+          },
+          {
+            "source_id": "CA05",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA05--test_functional64_physical_path.py",
+            "line": 1,
+            "anchor": "\"\"\"Positive ordinary-path component witness; not learned-language evidence.",
+            "sha256": "8b3ff4e845a17018c351a24a2158a457ca37e096e4b1cf9361bd9032fae11bc5"
+          },
+          {
+            "source_id": "CA05",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA05--test_functional64_physical_path.py",
+            "line": 141,
+            "anchor": "            assert changed_columns == tuple(range(64))",
+            "sha256": "8b3ff4e845a17018c351a24a2158a457ca37e096e4b1cf9361bd9032fae11bc5"
+          }
+        ]
+      }
+    },
+    "CQ03": {
+      "registry": "charter-assessment.json",
+      "record": {
+        "id": "CQ03",
+        "name": "Exact charge custody does not qualify the complete neuronal computation",
+        "classification": "preserve exactness boundary; full-law approval and conformance open",
+        "finding": "The current one-neuron file explicitly calls its dynamics numerical and separates full joint UF/MathLoom mounting. Functional64 material reuses its constants but implements its own material/geometry/contact/source route. The captured exact Charge representation does not itself certify that full route or its physical calibration.",
+        "lawful_remedy": "Bind the intended neuron law, approved material/accuracy contract, actual typed full-field mount, reciprocal interactions and complete conserved state to the frozen64-column execution. Demonstrate any functional specialization as such; do not advertise a direct multiplication of an independently proven complete neuron without correspondence.",
+        "acceptance_falsifier": "Exact encoded packets alongside an unqualified solver cannot pass exact physical evolution. Fields must retain typed meaning/topology; conservation, refusal, numerical error and ordinary continuation must meet their declared authority.",
+        "repair_actions": [
+          "A01",
+          "A04",
+          "A14",
+          "A16",
+          "A17"
+        ],
+        "refs": [
+          {
+            "source_id": "CA06",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA06--arcloom_neuron.rs",
+            "line": 1,
+            "anchor": "//! Engineered one-neuron material component. Numerical dynamics are NOT exact",
+            "sha256": "8824748466903ce11333007e3dfe3cd0201e7c88fa9da63abc6c4350f2db181d"
+          },
+          {
+            "source_id": "CA09",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+            "line": 6,
+            "anchor": "use crate::arcloom_neuron as material;",
+            "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+          },
+          {
+            "source_id": "CA11",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA11--functional64_charge.rs",
+            "line": 1,
+            "anchor": "//! Exact custody of admitted finite charge packets. Numerical capacitor voltage",
+            "sha256": "09eff4269b7d2ac49a36fbe2bd1a3be46d8a4398020e051d07ec8496b37b237b"
+          }
+        ]
+      }
+    },
+    "CNA01": {
+      "registry": "current-native-speech-audit.json",
+      "record": {
+        "id": "CNA01",
+        "name": "The64-column material does not inherit the standalone neuron’s acceptance",
+        "classification": "Verified implementation divergence; conservation qualification gap",
+        "finding": "The standalone ArcLoomTransitionOperator checks a first-law residual against numerical and carrier bounds before adopting state. Functional64Material imports material constants but executes its own phase/ring/gate/contact solver. It computes energy_residual_j and contact-energy enclosures; its adaptive acceptance uses continuous state error and discrete causal agreement, while caloric pairs explicitly remain observations. No energy-residual limit is enforced in the inspected material/owner chain.",
+        "evidence_limit": "This proves a difference in implemented admission, not an observed conservation violation, historical regression date, or impossibility of a legitimate functional specialization. No candidate was run.",
+        "lawful_remedy": "G1 must reconcile this specialization against the approved physical and numerical law, including the complete energy balance and an explicit error budget that actually gates adoption. Derive that budget; do not add a convenient threshold or reclassify residual as heat. Preserve exact work custody and genuine causal comparison improvements.",
+        "unit_acceptance": "Independent bounded constitutive cases must account for phase, gate, capacitor, contact, plastic and boundary work with units; rejection must preserve the predecessor.",
+        "module_acceptance": "Exercise the actual coupled solver at stops, yield, depletion and field changes; expose the residual and demonstrate the approved acceptance criterion rejects an out-of-contract result.",
+        "system_acceptance": "Demonstrate bounded cumulative balance on preserved mature state together with retained learning, body action and all environmental transfers.",
+        "release_acceptance": "Bind law approval, source/binary/configuration and original ordered-test receipts to the release; standalone-neuron passes cannot certify a different solver.",
+        "repair_actions": [
+          "A01",
+          "A04",
+          "A14",
+          "A16",
+          "A17"
+        ],
+        "refs": [
+          {
+            "source_id": "CA06",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA06--arcloom_neuron.rs",
+            "line": 625,
+            "anchor": "            if residual.abs()>numerical+carrier_bound {",
+            "sha256": "8824748466903ce11333007e3dfe3cd0201e7c88fa9da63abc6c4350f2db181d"
+          },
+          {
+            "source_id": "CA09",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+            "line": 1334,
+            "anchor": "                if comparison.accepted(){b.evidence.error_estimate=error;accepted=Some(b);}",
+            "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+          },
+          {
+            "source_id": "CA09",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+            "line": 1355,
+            "anchor": "struct AdaptiveComparison{state_error:f64,causal_mismatch:Option<&'static str>}",
+            "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+          },
+          {
+            "source_id": "CA09",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+            "line": 1221,
+            "anchor": "            evidence.energy_residual_j=finite(energy1-energy0+evidence.phase_heat_j+evidence.gate_heat_j+",
+            "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+          }
+        ]
+      }
+    },
+    "CNA02": {
+      "registry": "current-native-speech-audit.json",
+      "record": {
+        "id": "CNA02",
+        "name": "Complete field storage is not complete neuronal participation",
+        "classification": "Verified consumer boundary; required local/global participation unqualified",
+        "finding": "The producer stores the joint source, local SEV vectors, sparse contact references and seven explicit DSF fields. It exposes local perspectives and separately measured global stability. In the inspected functional64 chain neither API has a caller. The material converts the seven gate fields into typed numerator/denominator trits and couples them through its fixed fact_node anatomy; local power arrives separately. The complete source archive is retained, but its presence alone does not establish the required neuron-local field/topology participation or measured global gate.",
+        "evidence_limit": "All seven DSF values are read; no single-score substitution is asserted. Existing source powers and retained material contacts do participate. Absence of these API calls alone is not a proof that no equivalent law exists; the correspondence has not been established.",
+        "lawful_remedy": "Bind every reached neuron’s physical locality, source component, complete shared field and incident relationships to its actual consumer, or document the exact missing approved mechanism. Supply authentic measured global components and their separately authorized consumer. Do not replace missing measurement with B−P or unlock a gate with defaults.",
+        "unit_acceptance": "Verify every field family, numeric role, position, signed-zero custody, source clock and local incidence; changed locality must have its specified causal effect.",
+        "module_acceptance": "Prove the union of reached perspectives covers the declared reached topology without per-neuron kernel reruns, invented local fields or hidden scalar authority.",
+        "system_acceptance": "Use preserved-state causal interventions to distinguish full-field/local participation from merely storing an archive; separately verify global stability where claimed.",
+        "release_acceptance": "Correct the producer’s stale unmounted description for the qualified mount and issue only claims bound to actual consumer evidence.",
+        "repair_actions": [
+          "A01",
+          "A04",
+          "A06",
+          "A16",
+          "A17"
+        ],
+        "refs": [
+          {
+            "source_id": "CN06",
+            "path": "docs/guala_reconciliation/sources/current-native-speech/CN06--joint_uf_vector.rs",
+            "line": 415,
+            "anchor": "    pub(crate) fn perspective(&self, vertex: usize, gate: usize) -> UfResult<LocalPerspective<'_>> {",
+            "sha256": "3293663734f1a90a73c530324aad0452c29137892bdc98cbd4f5769e397614c9"
+          },
+          {
+            "source_id": "CN06",
+            "path": "docs/guala_reconciliation/sources/current-native-speech/CN06--joint_uf_vector.rs",
+            "line": 407,
+            "anchor": "    pub(crate) fn global_stability(",
+            "sha256": "3293663734f1a90a73c530324aad0452c29137892bdc98cbd4f5769e397614c9"
+          },
+          {
+            "source_id": "CA09",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+            "line": 1401,
+            "anchor": "    fn facts_for(field:&SharedJointField,gate:usize)->Result<Arc<[Fact]>>{",
+            "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+          },
+          {
+            "source_id": "CA09",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+            "line": 252,
+            "anchor": "    fn fact_node(site:usize)->usize{let round=site/64;site%64*320+[0,32,160,224,288][round%5]+round/5}",
+            "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+          },
+          {
+            "source_id": "LAW01",
+            "path": "docs/guala_reconciliation/sources/current-native-speech/LAW01--GUALA_ONE_NEURON_PHYSICAL_TRANSITION_CONTRACT_2026-10-01.md",
+            "line": 94,
+            "anchor": "Carry one complete shared UF result, the reached neuron's perspective and",
+            "sha256": "b94602c76ee21f66f26360a84bb4c0810fe73525ed82d13d0959f95e5721da29"
+          }
+        ]
+      }
+    },
+    "CNA03": {
+      "registry": "current-native-speech-audit.json",
+      "record": {
+        "id": "CNA03",
+        "name": "Sensory dimensionalization has explicit losses before joint UF",
+        "classification": "Verified reduced sensor projections; authority and sufficiency unresolved",
+        "finding": "Root F contains only the final1ms sign of yaw/x/y, although ten exact displacement intervals are retained as evidence. Optical F and optical power use the combined two-lid transmission. The auditory power path uses adjacent RMS squared sums; phase remains in the joint source but does not enter that power calculation. Body-axis positions and material charge are normalized/projection values with raw custody retained. These are source/transducer choices, not evidence that every archived quantity drives cognition.",
+        "evidence_limit": "This is a description of lost magnitude, within-window order, separate-lid transmission and local power-phase dependence at named boundaries. It does not prove every reduction is forbidden, that a declared direction receptor must measure position, or that words cannot be learned. The seven DSF output fields themselves are not flattened here.",
+        "lawful_remedy": "Recover and bind each approved sensor quantity, geometry, calibration, dimensionalization and uncertainty to its consumer. For required information omitted by the mounted sensor, implement the direct approved sensing law rather than smuggling evidence bytes or semantic labels into decisions.",
+        "unit_acceptance": "Use distinct physical inputs with identical projected values as declared falsifiers: +1 versus +100 displacement, motion in an earlier versus final millisecond, and swapped lid openings. Verify exactly which boundaries should distinguish them.",
+        "module_acceptance": "Verify full joint-source construction, independent power custody and local field use against the same physical record; report each reduced representation honestly.",
+        "system_acceptance": "Test required navigation, sensory association and articulation on authentic history without providing labels or selectors; do not infer adequacy from archive completeness.",
+        "release_acceptance": "Publish the actual mounted sensor inventory and its limits in GualaLoom/configuration and qualification evidence.",
+        "repair_actions": [
+          "A01",
+          "A04",
+          "A06",
+          "A08",
+          "A10",
+          "A13",
+          "A16"
+        ],
+        "refs": [
+          {
+            "source_id": "CN02",
+            "path": "docs/guala_reconciliation/sources/current-native-speech/CN02--functional64_source.rs",
+            "line": 565,
+            "anchor": "    pub(crate) fn presence(&self)->[f64;6]{",
+            "sha256": "0882fa96a85893adef4b834a204a06a4bff711c52e27cbd558e45e5c12027533"
+          },
+          {
+            "source_id": "CN02",
+            "path": "docs/guala_reconciliation/sources/current-native-speech/CN02--functional64_source.rs",
+            "line": 221,
+            "anchor": "        values.extend_from_slice(&root.latest().presence());",
+            "sha256": "0882fa96a85893adef4b834a204a06a4bff711c52e27cbd558e45e5c12027533"
+          },
+          {
+            "source_id": "CN02",
+            "path": "docs/guala_reconciliation/sources/current-native-speech/CN02--functional64_source.rs",
+            "line": 187,
+            "anchor": "fn shutter(body:&ArticulatedBodyState)->Result<(u128,u128)>{",
+            "sha256": "0882fa96a85893adef4b834a204a06a4bff711c52e27cbd558e45e5c12027533"
+          },
+          {
+            "source_id": "CN02",
+            "path": "docs/guala_reconciliation/sources/current-native-speech/CN02--functional64_source.rs",
+            "line": 422,
+            "anchor": "        let work=outward_product(outward_sum(outward_product(p,p)?,outward_product(q,q)?)?,factor)?;",
+            "sha256": "0882fa96a85893adef4b834a204a06a4bff711c52e27cbd558e45e5c12027533"
+          }
+        ]
+      }
+    },
+    "CNA04": {
+      "registry": "current-native-speech-audit.json",
+      "record": {
+        "id": "CNA04",
+        "name": "Physical latency and source gaps are explicit mechanisms requiring qualification",
+        "classification": "Verified scheduling and gap behavior; current wall latency not measured",
+        "finding": "The owner advances body/material at1ms, samples source rows at10ms, evaluates after46 real rows, and mounts a250ms field interval. Source completion retains21 rows of overlap. Two field slots bound delivery; a full source register records new rows as unacquired until delivery resumes, then starts a new cohort rather than inventing continuity. Native output drives the following millisecond; self-pressure enters the ear through a4000-sample/250ms FIFO.",
+        "evidence_limit": "These are simulated-time mechanics, not a measurement of current wall-clock delay or proof that a gap occurred live. Source gaps do not imply all optics/audio power stops. Missing samples are visibly counted; that honesty must remain.",
+        "lawful_remedy": "Bind these occurrence boundaries and delay laws to the approved sensory experience contract. Measure source-age, acquisition coverage, field residence, solver work and wall latency separately. Repair any unsupported delay or lost required experience at its cause; never fill gaps with zeros or shorten physics to pass.",
+        "unit_acceptance": "Verify timestamps, overlap, first warm-up, full-register gap and FIFO causality with actual occurrence identities.",
+        "module_acceptance": "Exercise backlog/brownout, resumed acquisition and restart while preserving pending field/audio state and reporting missing coverage.",
+        "system_acceptance": "Measure the complete preserved-state loop and correlate true gaps/delays with learning and action failures; separate caretaker/environment interference from native cost.",
+        "release_acceptance": "Verify the exact live candidate continuously under admitted resource bounds with source coverage exposed, not just task health.",
+        "repair_actions": [
+          "A02",
+          "A04",
+          "A06",
+          "A10",
+          "A14",
+          "A16",
+          "A17"
+        ],
+        "refs": [
+          {
+            "source_id": "CN02",
+            "path": "docs/guala_reconciliation/sources/current-native-speech/CN02--functional64_source.rs",
+            "line": 286,
+            "anchor": "        let next=Self{anatomy:self.anatomy.clone(),rows:self.rows[25..].to_vec()};Ok((source,next))",
+            "sha256": "0882fa96a85893adef4b834a204a06a4bff711c52e27cbd558e45e5c12027533"
+          },
+          {
+            "source_id": "CA09",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA09--functional64_material.rs",
+            "line": 411,
+            "anchor": "    pub(crate) fn can_accept_field(&self)->bool{self.delivery.len()<2}",
+            "sha256": "0d67ae164a882c51435eef9a1cdc63a3365b759bed7f002c1c23e4be16165e7a"
+          },
+          {
+            "source_id": "CA07",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA07--functional64_owner.rs",
+            "line": 348,
+            "anchor": "            coverage.miss(at)?;summary.source_rows_unacquired=count(summary.source_rows_unacquired,1)?;self.current.source.clone()",
+            "sha256": "8a32081253636874e282f6596d83755648877158e39bae8c4f51cf90e44e38a9"
+          },
+          {
+            "source_id": "CA07",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA07--functional64_owner.rs",
+            "line": 295,
+            "anchor": "        let own_ear_pcm=self.fifo[self.steps*32..(self.steps+1)*32].try_into().unwrap();",
+            "sha256": "8a32081253636874e282f6596d83755648877158e39bae8c4f51cf90e44e38a9"
+          }
+        ]
+      }
+    },
+    "CNA05": {
+      "registry": "current-native-speech-audit.json",
+      "record": {
+        "id": "CNA05",
+        "name": "Vocal pressure has a real efferent route; learned speech remains unproved",
+        "classification": "Verified source path; physical-model and learned-use qualification open",
+        "finding": "Prior native terminal96 discharge supplies the existing vocal body;45 opposed body-axis pairs shape posture, and16 pressure samples are produced each millisecond. The same2156-line vocal-body source previously classified in SP08 is still used. Its implementation is a reduced-order spectral/valve organ, including finite work, constitutive coefficients, saturation and a phase accumulator. Joe’s historical approval of a minimal virtual oscillator must be preserved at its exact scope. The loop reports said:null, rather than translating pressure into an asserted word.",
+        "evidence_limit": "A phase accumulator, cosine or physical resonator is not automatically a heuristic or ML. This source path proves neither audible output in a run nor learned phonemes, words, syntax or conversation. Existing SP08/VO authority gaps are not closed by this caller.",
+        "lawful_remedy": "Retain the lawful efferent route. Resolve SP08’s organ-law/work/calibration correspondence, then qualify actual sensory experience causing persistent material change that later governs breath and articulation. Keep tutor TTS/recognition and semantic transcripts outside pupil decision authority.",
+        "unit_acceptance": "Verify paid breath, posture, silence, saturation, residual air and exact cold continuation under the authorized organ law.",
+        "module_acceptance": "Trace authentic native discharge through body pressure and the same organism’s ear, including all timing and work transfers.",
+        "system_acceptance": "From matched preserved states, distinguish learned versus pre-exposure and severed-path controls; demonstrate held-out intelligibility and grounded recombination without target drives or answer labels.",
+        "release_acceptance": "Bind intelligibility/learning claims to original emitted audio, source occurrence, mature state and independent assessment on the exact serving artifact.",
+        "repair_actions": [
+          "A01",
+          "A03",
+          "A04",
+          "A06",
+          "A09",
+          "A10",
+          "A16",
+          "A17"
+        ],
+        "refs": [
+          {
+            "source_id": "CA07",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA07--functional64_owner.rs",
+            "line": 292,
+            "anchor": "        let voice=settle_native_articulatory_interval(motion.successor,&motion.proprioceptive_consequences,p[96] as u128,16)?;",
+            "sha256": "8a32081253636874e282f6596d83755648877158e39bae8c4f51cf90e44e38a9"
+          },
+          {
+            "source_id": "CN03",
+            "path": "docs/guala_reconciliation/sources/current-native-speech/CN03--virtual_articulatory_body.rs",
+            "line": 79,
+            "anchor": "    valve_rate_floor_hz: 352,",
+            "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f"
+          },
+          {
+            "source_id": "CN03",
+            "path": "docs/guala_reconciliation/sources/current-native-speech/CN03--virtual_articulatory_body.rs",
+            "line": 608,
+            "anchor": "        position %= VALVE_CYCLE_ONE;",
+            "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f"
+          },
+          {
+            "source_id": "CN01",
+            "path": "docs/guala_reconciliation/sources/current-native-speech/CN01--guala_functional64_loop.py",
+            "line": 253,
+            "anchor": "                \"said\": None,",
+            "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+          }
+        ]
+      }
+    },
+    "CNA06": {
+      "registry": "current-native-speech-audit.json",
+      "record": {
+        "id": "CNA06",
+        "name": "The current caller is not complete multimodal embodiment",
+        "classification": "Verified mounted-input scope and asserted coverage boundary",
+        "finding": "External ingress currently admits one4000-sample mono microphone occurrence or unattended work; other sensory payloads and retained pending physical returns explicitly refuse. The same mixed audio block feeds both ears. Surface packing passes events:empty and both coverage flags:true on every10ms boundary. Thus the general event producer/consumer coverage is not established by this caller, even though current body axes, optics, temperature and intake have real paths.",
+        "evidence_limit": "An exclusive actor with no admitted surface-command events may legitimately have an empty interval; this reading does not prove an event was dropped. Command-event coverage is not skin occupancy. Duplicate input does not prove previously different ear states become equal.",
+        "lawful_remedy": "Bind the exclusive-caller no-event assertion to the actual admitted event stream, and mount required modalities/returns in chronological same-history order. Keep unavailable routes visibly unavailable; do not label empty event records as functioning touch or complete multisensory memory.",
+        "unit_acceptance": "Verify event identity, actual empty versus unavailable intervals, independent-ear semantics and rejection before mutation.",
+        "module_acceptance": "Use actual ingress and world/body producers to verify every claimed modality reaches its own declared consumer and persists across restart.",
+        "system_acceptance": "Demonstrate multimodal associations and the story of experience with real internal/external source timing, including required physical returns.",
+        "release_acceptance": "GualaLoom and certification scope must match mounted modalities and original production-device/browser evidence.",
+        "repair_actions": [
+          "A02",
+          "A06",
+          "A10",
+          "A12",
+          "A13",
+          "A16",
+          "A17"
+        ],
+        "refs": [
+          {
+            "source_id": "CN01",
+            "path": "docs/guala_reconciliation/sources/current-native-speech/CN01--guala_functional64_loop.py",
+            "line": 193,
+            "anchor": "                    batch = ears.advance(mixed, mixed, start_sample=ears.sample_count)",
+            "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+          },
+          {
+            "source_id": "CN01",
+            "path": "docs/guala_reconciliation/sources/current-native-speech/CN01--guala_functional64_loop.py",
+            "line": 207,
+            "anchor": "                        received_covered=True, own_covered=True, events=(),",
+            "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+          },
+          {
+            "source_id": "CN01",
+            "path": "docs/guala_reconciliation/sources/current-native-speech/CN01--guala_functional64_loop.py",
+            "line": 108,
+            "anchor": "            raise NotImplementedError(\"this input requires the complete chronological external physical owner\")",
+            "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+          },
+          {
+            "source_id": "CN01",
+            "path": "docs/guala_reconciliation/sources/current-native-speech/CN01--guala_functional64_loop.py",
+            "line": 127,
+            "anchor": "            raise NotImplementedError(\"retained physical return needs explicit same-history delivery\")",
+            "sha256": "86b7bd22e52f0e0b1435ffb11b200da2d150ce7c5abf13ff9912896b2ccc8862"
+          }
+        ]
+      }
+    },
+    "SP01": {
+      "registry": "speech-history-reconciliation.json",
+      "record": {
+        "id": "SP01",
+        "name": "Reward-ranked speech survived claims that worth scoring was excised",
+        "classification": "verified forbidden selector and contradictory comment",
+        "historical_requirement_or_mechanism": "Exact Task1598 _settle accumulates scalar outcome value and spectral reward. _choose_syllable ranks candidates by cosine similarity, learned mean_worth and catalog order. The source then claims tabular worth scoring was excised. The handoff-named b6f5860c0 commit contains the same ranking mechanism.",
+        "current_disposition": "The comment and blanket zero-reward claim are false for these source paths. Earlier successful branches may bypass this branch; individual live branch use is not established by source inspection.",
+        "lawful_remedy": "Retire the complete reward/catalog decision path, including native or renamed equivalents. Preserve records inert. Use the approved retained local sensorimotor mechanism and demonstrate later ordered articulation.",
+        "acceptance_falsifier": "Changing a stored worth or catalog ordering under unchanged physical state must not select speech. Learned-state ablation must remove the claimed learned contribution without replacing it with a fallback.",
+        "repair_actions": [
+          "A05",
+          "A10",
+          "A15",
+          "A16",
+          "A17"
+        ],
+        "refs": [
+          {
+            "source_id": "SV1598",
+            "path": "backups/runtime/a1-architecture-reconciliation-20261009/task1598-image-root/app/dsf_ai_service/guala_functional_organism.py",
+            "sha256": "99e971c3039cd1d4c9652755e529b9358d87af7403e1c3ccfcebe22d2ad844e0",
+            "line": 3345,
+            "anchor": "                        mean_worth = float(s_data[1]) / max(1, int(s_data[0]))"
+          },
+          {
+            "source_id": "SV1598",
+            "path": "backups/runtime/a1-architecture-reconciliation-20261009/task1598-image-root/app/dsf_ai_service/guala_functional_organism.py",
+            "sha256": "99e971c3039cd1d4c9652755e529b9358d87af7403e1c3ccfcebe22d2ad844e0",
+            "line": 3353,
+            "anchor": "        # Physical syllable selection (V2: Tabular worth scoring excised)"
+          },
+          {
+            "source_id": "SPHC02",
+            "path": "docs/guala_reconciliation/sources/speech-history/SPHC02--guala_functional_organism.py",
+            "sha256": "45cf541f9bf33008f34f070f896e9e99d4e3627d619c9c1d29e8a76fc6ebd54a",
+            "line": 3359,
+            "anchor": "                        mean_worth = float(s_data[1]) / max(1, int(s_data[0]))"
+          }
+        ]
+      }
+    },
+    "SP02": {
+      "registry": "speech-history-reconciliation.json",
+      "record": {
+        "id": "SP02",
+        "name": "Hunger could select an authored mah syllable and invented field defaults",
+        "classification": "verified hidden semantic fallback and reduced field proxy",
+        "historical_requirement_or_mechanism": "The selector fabricates missing hunger coordinates, substitutes B_k-P_k for S_UF, sets sixteen somatic trits, and when decoding fails supplies onset m, vowel ah and pitch index3. This is an authored fallback, not demonstrated learned distress speech or syntax.",
+        "current_disposition": "A biologically inspired label does not establish causal learning. The pitch comment also disagrees with index3 of the declared four-pitch catalog; labels cannot repair that authority problem.",
+        "lawful_remedy": "Let actual body state reach the unchanged full-field/local physical path. Reject unavailable fields; remove label-to-syllable and fabricated-field authority. Any born vocal reflex needs an explicit approved body law and must be reported as reflex.",
+        "acceptance_falsifier": "Missing fields or decoder failure cannot produce an installed word/syllable. Separate reflex sound from later learned contextual speech using retained-state controls.",
+        "repair_actions": [
+          "A04",
+          "A10",
+          "A11",
+          "A15",
+          "A16"
+        ],
+        "refs": [
+          {
+            "source_id": "SV1598",
+            "path": "backups/runtime/a1-architecture-reconciliation-20261009/task1598-image-root/app/dsf_ai_service/guala_functional_organism.py",
+            "sha256": "99e971c3039cd1d4c9652755e529b9358d87af7403e1c3ccfcebe22d2ad844e0",
+            "line": 2664,
+            "anchor": "            s_uf = hunger_dsf[\"S_UF\"] if hunger_dsf else (b_k - p_k)"
+          },
+          {
+            "source_id": "SV1598",
+            "path": "backups/runtime/a1-architecture-reconciliation-20261009/task1598-image-root/app/dsf_ai_service/guala_functional_organism.py",
+            "sha256": "99e971c3039cd1d4c9652755e529b9358d87af7403e1c3ccfcebe22d2ad844e0",
+            "line": 3319,
+            "anchor": "                o_idx = 1  # 'm' (infant nasal murmur)"
+          },
+          {
+            "source_id": "SPC01",
+            "path": "docs/guala_reconciliation/sources/speech-history/SPC01--guala_voice.py",
+            "sha256": "a7b03520aaf5df0dc3082d8c8860eaa0ea0f7d6f39041013dc2b15e301090313",
+            "line": 60,
+            "anchor": "PITCHES_DECIHERTZ = (3_450, 3_600, 3_750, 3_900)   # her pitch choices, in tenths of a hertz"
+          }
+        ]
+      }
+    },
+    "SP03": {
+      "registry": "speech-history-reconciliation.json",
+      "record": {
+        "id": "SP03",
+        "name": "Scheduled vocal release was presented as conversation or spontaneous exploration",
+        "classification": "verified authored release policy; stronger capability unproved",
+        "historical_requirement_or_mechanism": "Task1598 voice attachment uses quiet-input gating, fifteen-tick distress spacing and eight-tick waking spacing. The handoff calls a calibrated250ms quiet gap conversational turn-taking.",
+        "current_disposition": "Timing an output after silence can be a disclosed transport/body constraint; it is not evidence of learned social timing, grounded response or spontaneous internally caused thought.",
+        "lawful_remedy": "Separate any justified sensor/body timing from cognitive choice. Require context and retained state to cause response content and timing under the ordinary physical clock; display raw release facts rather than conversation credit.",
+        "acceptance_falsifier": "Keep the silence envelope identical while changing relational context. A fixed timer alone must not pass context-appropriate response or syntax; observer polling must not cause a turn.",
+        "repair_actions": [
+          "A10",
+          "A12",
+          "A13",
+          "A16"
+        ],
+        "refs": [
+          {
+            "source_id": "SV1598",
+            "path": "backups/runtime/a1-architecture-reconciliation-20261009/task1598-image-root/app/dsf_ai_service/guala_functional_organism.py",
+            "sha256": "99e971c3039cd1d4c9652755e529b9358d87af7403e1c3ccfcebe22d2ad844e0",
+            "line": 2677,
+            "anchor": "            elif not state.get(\"asleep\") and since_last_vocal >= 8:"
+          },
+          {
+            "source_id": "SV1598",
+            "path": "backups/runtime/a1-architecture-reconciliation-20261009/task1598-image-root/app/dsf_ai_service/guala_functional_organism.py",
+            "sha256": "99e971c3039cd1d4c9652755e529b9358d87af7403e1c3ccfcebe22d2ad844e0",
+            "line": 2673,
+            "anchor": "            elif strained and since_last_exhaust >= 15:"
+          },
+          {
+            "source_id": "SPC06",
+            "path": "docs/guala_reconciliation/sources/speech-history/SPC06--GUALA_NEXT_SESSION_HANDOFF_2026-10-09.md",
+            "sha256": "0d658047f9e4d7a464523ee8593ede8eb8633bc696ac70e7d586079daafdb14d",
+            "line": 52,
+            "anchor": "- **Conversational Turn-Taking**: Enforced a calibrated 250ms acoustic quiet-gap release clamp. Guala does not interrupt ongoing vocal pressure from the tutor and releases the airway only upon physical acoustic silence."
+          }
+        ]
+      }
+    },
+    "SP04": {
+      "registry": "speech-history-reconciliation.json",
+      "record": {
+        "id": "SP04",
+        "name": "Native articulation errors were hidden behind a catalog fallback",
+        "classification": "verified failure masking",
+        "historical_requirement_or_mechanism": "The exact serving selector catches any exception from get_articulatory_efferent, ignores it, then chooses the first untried or catalog-ordered tried syllable and calls it physical resonance.",
+        "current_disposition": "This can make a broken native path audibly appear functional. Determinism of the fallback does not qualify it.",
+        "lawful_remedy": "Expose the native failure and keep speech unavailable until its real causal path is repaired. Preserve diagnostic source/error evidence without emitting a replacement syllable.",
+        "acceptance_falsifier": "A deliberately refused native articulatory transition must surface as refusal and must not emit fallback sound, change learned state, or receive a passing speech label.",
+        "repair_actions": [
+          "A05",
+          "A10",
+          "A13",
+          "A16"
+        ],
+        "refs": [
+          {
+            "source_id": "SV1598",
+            "path": "backups/runtime/a1-architecture-reconciliation-20261009/task1598-image-root/app/dsf_ai_service/guala_functional_organism.py",
+            "sha256": "99e971c3039cd1d4c9652755e529b9358d87af7403e1c3ccfcebe22d2ad844e0",
+            "line": 3357,
+            "anchor": "                art = self._modular_substrate.get_articulatory_efferent()"
+          },
+          {
+            "source_id": "SV1598",
+            "path": "backups/runtime/a1-architecture-reconciliation-20261009/task1598-image-root/app/dsf_ai_service/guala_functional_organism.py",
+            "sha256": "99e971c3039cd1d4c9652755e529b9358d87af7403e1c3ccfcebe22d2ad844e0",
+            "line": 3366,
+            "anchor": "        untried = [s for s in SYLLABLES if s not in tried]"
+          }
+        ]
+      }
+    },
+    "SP06": {
+      "registry": "speech-history-reconciliation.json",
+      "record": {
+        "id": "SP06",
+        "name": "Whisper is ML recognition regardless of its transducer label",
+        "classification": "verified packaged ML inference implementation; current activation unproved",
+        "historical_requirement_or_mechanism": "speech_transducer.py constructs faster_whisper.WhisperModel and calls model.transcribe. Its header describes this as equivalent to ffmpeg and never cognition. Exact Task1598 source has the same hash.",
+        "current_disposition": "Calling a pretrained word recognizer a boundary transducer does not make it ML-free. Current legacy app places its result in boundary_transcript, separately from deterministic recognition; the header saying the caller feeds it into sentence intake is not current caller proof. Captured lean startup does not directly invoke Whisper.",
+        "lawful_remedy": "Remove obsolete inference code/assets from the qualified pupil release and enumerate all reachable internal/external loaders. Keep raw acoustic sensing separate from any explicitly authorized external transcription. Correct stale documentation and disclose the certified boundary.",
+        "acceptance_falsifier": "Freeze entrypoint/configuration/image/dependencies and trace actual callers. Asset absence alone and a disabled flag alone cannot prove complete exclusion; source presence alone cannot prove a live inference occurred.",
+        "repair_actions": [
+          "A02",
+          "A10",
+          "A12",
+          "A15",
+          "A17"
+        ],
+        "refs": [
+          {
+            "source_id": "SPC02",
+            "path": "docs/guala_reconciliation/sources/speech-history/SPC02--speech_transducer.py",
+            "sha256": "fdad4926f42394d0b0a76faaf74827915016ac10af18e2a798c50ae7149b1b7d",
+            "line": 68,
+            "anchor": "            from faster_whisper import WhisperModel"
+          },
+          {
+            "source_id": "SPC02",
+            "path": "docs/guala_reconciliation/sources/speech-history/SPC02--speech_transducer.py",
+            "sha256": "fdad4926f42394d0b0a76faaf74827915016ac10af18e2a798c50ae7149b1b7d",
+            "line": 139,
+            "anchor": "        segments, _ = self._model.transcribe(samples, language=\"en\","
+          },
+          {
+            "source_id": "SPC04",
+            "path": "docs/guala_reconciliation/sources/speech-history/SPC04--app.py",
+            "sha256": "744bd3ab46d39d1cfd48e0953148df00145b9e6f4749a586fdf6394c4ac6340c",
+            "line": 3804,
+            "anchor": "                result[\"boundary_transcript\"] = spoken"
+          },
+          {
+            "source_id": "SPC03",
+            "path": "docs/guala_reconciliation/sources/speech-history/SPC03--lean_production_app.py",
+            "sha256": "3ed977f4f8e28b7814bef4c6545a3ef283f0f45e03a877e15411a121b80e4845",
+            "line": 203,
+            "anchor": "        raise RuntimeError(\"GUALA64_ADMISSION_JSON is required: legacy functional organism is permanently decommissioned\")"
+          }
+        ]
+      }
+    },
+    "SP08": {
+      "registry": "speech-history-reconciliation.json",
+      "record": {
+        "id": "SP08",
+        "name": "Current native voice is a spectral emulation requiring its own qualification",
+        "classification": "source-disclosed model; physical-law clearance unresolved",
+        "historical_requirement_or_mechanism": "The captured native body uses a352–376Hz work-dependent phase accumulator, smoothstep valve profile, fixed mode ranges/bandwidths, area interpolation, seeded wake start, wake clipping, and filter state. A nearby comment says no phase clock or waveform is present. Native implementation is not automatically pure constitutive physics.",
+        "current_disposition": "A calibrated functional acoustic organ can be within the approved scope. Constants, resonators or cosine arithmetic are not by themselves ML. However this source cannot be called table-free exact continuum dynamics merely because it is Rust; calibration/approximation, work and saturation must be disclosed and qualified.",
+        "lawful_remedy": "Bind the accepted reduced-order organ law and original authority to each control/state/parameter, units, work conversion, loss and numerical error. Correct the phase-clock wording. Derive or explicitly resolve missing laws before qualification; do not tune coefficients to a target word.",
+        "acceptance_falsifier": "Hold the predecessor fixed and vary actual motor/breath/area state, sever work, test stops and cold continuation, and close the declared work/material accounts. No arbitrary clamp may silently stand in for an unimplemented physical boundary.",
+        "repair_actions": [
+          "A01",
+          "A04",
+          "A10",
+          "A14",
+          "A16"
+        ],
+        "refs": [
+          {
+            "source_id": "SPC05",
+            "path": "docs/guala_reconciliation/sources/speech-history/SPC05--virtual_articulatory_body.rs",
+            "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f",
+            "line": 79,
+            "anchor": "    valve_rate_floor_hz: 352,"
+          },
+          {
+            "source_id": "SPC05",
+            "path": "docs/guala_reconciliation/sources/speech-history/SPC05--virtual_articulatory_body.rs",
+            "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f",
+            "line": 608,
+            "anchor": "        position %= VALVE_CYCLE_ONE;"
+          },
+          {
+            "source_id": "SPC05",
+            "path": "docs/guala_reconciliation/sources/speech-history/SPC05--virtual_articulatory_body.rs",
+            "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f",
+            "line": 963,
+            "anchor": "            let bounded = max(-4_096_i128, min(4_096_i128, candidate));"
+          },
+          {
+            "source_id": "SPC05",
+            "path": "docs/guala_reconciliation/sources/speech-history/SPC05--virtual_articulatory_body.rs",
+            "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f",
+            "line": 566,
+            "anchor": "/// modes; no sound name, target spectrum, phase clock, or waveform is present."
+          }
+        ]
+      }
+    },
+    "SP09": {
+      "registry": "speech-history-reconciliation.json",
+      "record": {
+        "id": "SP09",
+        "name": "The replacement transports physical drives but does not yet prove learned speech",
+        "classification": "preserve structural improvement; positive capability unproved",
+        "historical_requirement_or_mechanism": "Captured owner maps97 pending END terminals to body drives and a respiratory effector, advances the native organ for16samples per millisecond, and retains pressure in a4000sample FIFO. Python mixes signed pressure before cochlear processing and reports said=None.",
+        "current_disposition": "This is a materially different source path from the catalog chooser. Its explicit250ms self-pressure delay, identical left/right mixed input and transitive source/body laws still need qualification. No binaural localization or learned articulation follows from the plumbing alone.",
+        "lawful_remedy": "Qualify exact source clocks, pressure arrival, channel geometry, retained-state continuation and learning on one frozen candidate. Preserve this ordinary native path without reintroducing authored syllables.",
+        "acceptance_falsifier": "Emitted pressure must reach the actual ear once at its declared arrival time, including simultaneous external pressure, cold restart and variable request grouping. Learned versus pre-learning/severed copies must distinguish learned articulation.",
+        "repair_actions": [
+          "A02",
+          "A06",
+          "A10",
+          "A16",
+          "A17"
+        ],
+        "refs": [
+          {
+            "source_id": "CA07",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA07--functional64_owner.rs",
+            "sha256": "8a32081253636874e282f6596d83755648877158e39bae8c4f51cf90e44e38a9",
+            "line": 292,
+            "anchor": "        let voice=settle_native_articulatory_interval(motion.successor,&motion.proprioceptive_consequences,p[96] as u128,16)?;"
+          },
+          {
+            "source_id": "CA07",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA07--functional64_owner.rs",
+            "sha256": "8a32081253636874e282f6596d83755648877158e39bae8c4f51cf90e44e38a9",
+            "line": 295,
+            "anchor": "        let own_ear_pcm=self.fifo[self.steps*32..(self.steps+1)*32].try_into().unwrap();"
+          },
+          {
+            "source_id": "CA02",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA02--guala_functional64_loop.py",
+            "sha256": "d26d3c059abebfe12ee599ecc15a1bc1e574fd8c57fa1dec9bc169ba2bb58b41",
+            "line": 193,
+            "anchor": "                    batch = ears.advance(mixed, mixed, start_sample=ears.sample_count)"
+          },
+          {
+            "source_id": "CA02",
+            "path": "docs/guala_reconciliation/sources/charter-assessment/CA02--guala_functional64_loop.py",
+            "sha256": "d26d3c059abebfe12ee599ecc15a1bc1e574fd8c57fa1dec9bc169ba2bb58b41",
+            "line": 245,
+            "anchor": "                \"said\": None,"
+          }
+        ]
+      }
+    },
+    "SP12": {
+      "registry": "speech-history-reconciliation.json",
+      "record": {
+        "id": "SP12",
+        "name": "Blanket purge and guaranteed language claims lack complete evidence",
+        "classification": "withdraw unsupported certification and architectural certainty",
+        "historical_requirement_or_mechanism": "The handoff says complete purge, zeroML/ONNX, zero reward tables, all plasticity compliant and guaranteed subsecond native execution. Its named source still has reward speech selection; later independently inspected Task1598 retains a neural model asset and Whisper source. The same handoff describes attractor matching as emergent words without retained-learning receipts.",
+        "current_disposition": "The source contradiction is proved; Task1594 exact image exclusion is not independently re-established here. The later Task1598 findings cannot silently be backdated to another image. Neither future speech impossibility nor guaranteed emergence is established.",
+        "lawful_remedy": "Withdraw blanket clearance, correct claims visibly, and require exact release scope plus independent capability evidence. G1 must name each functioning/failing/absent/unproved speech link and the physical reason.",
+        "acceptance_falsifier": "A green suite, paper design, model-file extension scan, native implementation or sound clip cannot close an untested capability or whole-release exclusion claim.",
+        "repair_actions": [
+          "A01",
+          "A02",
+          "A10",
+          "A15",
+          "A16",
+          "A17",
+          "A18"
+        ],
+        "refs": [
+          {
+            "source_id": "SPC06",
+            "path": "docs/guala_reconciliation/sources/speech-history/SPC06--GUALA_NEXT_SESSION_HANDOFF_2026-10-09.md",
+            "sha256": "0d658047f9e4d7a464523ee8593ede8eb8633bc696ac70e7d586079daafdb14d",
+            "line": 10,
+            "anchor": "This handoff supersedes all previous session notes (`docs/GUALA_NEXT_SESSION_HANDOFF_2026-10-08.md` and predecessors). It documents the authoritative physical root-cause resolution for the perceived interface latency, 0% somatic satiety, lack of foraging, and food depletion reported on live Task 1593, together with the verified deployment of **Task Definition 1594**, the complete purge of ML/heuristic artifacts, the ArcLoom ternary neuromorphic substrate physics, the upcoming physical hardware upgrade specifications, and the Tumbler acoustic-structural language architecture."
+          },
+          {
+            "source_id": "SPC06",
+            "path": "docs/guala_reconciliation/sources/speech-history/SPC06--GUALA_NEXT_SESSION_HANDOFF_2026-10-09.md",
+            "sha256": "0d658047f9e4d7a464523ee8593ede8eb8633bc696ac70e7d586079daafdb14d",
+            "line": 64,
+            "anchor": "   - **Remediation**: The action selection authority operates strictly via deterministic potential manifolds: somatic surplus $\\sigma_{\\text{surplus}}$ scaling local basin boredom exhaustion ($\\Phi_{\\text{boredom}}$) and distal negative space portal attraction. Zero tabular Q-values, zero epsilon-greedy heuristics, zero reward tables."
+          },
+          {
+            "source_id": "SPC06",
+            "path": "docs/guala_reconciliation/sources/speech-history/SPC06--GUALA_NEXT_SESSION_HANDOFF_2026-10-09.md",
+            "sha256": "0d658047f9e4d7a464523ee8593ede8eb8633bc696ac70e7d586079daafdb14d",
+            "line": 142,
+            "anchor": "   - **Zero Canned Speech**: Words are emergent physical waveforms produced by structural mechanics, not string templates."
+          },
+          {
+            "source_id": "SPHC02",
+            "path": "docs/guala_reconciliation/sources/speech-history/SPHC02--guala_functional_organism.py",
+            "sha256": "45cf541f9bf33008f34f070f896e9e99d4e3627d619c9c1d29e8a76fc6ebd54a",
+            "line": 3359,
+            "anchor": "                        mean_worth = float(s_data[1]) / max(1, int(s_data[0]))"
+          }
+        ]
+      }
+    },
+    "SH28": {
+      "registry": "speech-history-reconciliation.json",
+      "record": {
+        "id": "SH28",
+        "name": "Seed verification checked a band hit instead of the claimed word",
+        "classification": "verified original-source false-positive acceptance predicate",
+        "historical_requirement_or_mechanism": "verify_seed_integrity never tests the requested word/motif: any positive match_score at the selected address passes. A different motif at the same chi therefore verifies a missing target word. Read/parse failure merely appends an error and can return ok=True with zero checks; seed_path=None also performs no promised nonempty sanity check. This invalidates the predicate used to claim all requested words retrievable; it does not prove every loaded word was absent.",
+        "current_disposition": "Historical dispatch/report plus explicitly scoped original source. Reported deployment/test results are not independently re-executed; current64 reachability and original approval context remain open.",
+        "lawful_remedy": "Replace this acceptance predicate wherever reused with exact object/provenance and required-count verification that fails on any read/validation error. In the current pupil, verify genuine retained causal memory and later use rather than rehabilitating the semantic seed loader.",
+        "unit_acceptance": "A missing target with another motif at the same chi must fail; unreadable/empty/unrequested input must not pass a nonempty verification gate.",
+        "module_acceptance": "Verify every intended record and its exact retained source under actual callers, without using familiarity as identity.",
+        "system_acceptance": "Require causal retained-memory and language qualification independently; zero missing entries under this old predicate cannot certify200,000 words.",
+        "release_acceptance": "Bind original authority, preserved mature state, exact source/native/dependencies/configuration and serving process. Pass applicable Q01–Q24 without dormant-path resurrection, semantic seed injection, reset or substituted acceptance. No product execution or present serving refresh in this addition.",
+        "repair_actions": [
+          "A01",
+          "A03",
+          "A05",
+          "A09",
+          "A10",
+          "A13",
+          "A16"
+        ],
+        "refs": [
+          {
+            "source_id": "ELC01",
+            "path": "backups/runtime/a1-speech-reconciliation-20261010/early-language/1b9ab14--seed_loader.py",
+            "sha256": "1c5e050635c7473fc07da19b6fdde5375768cf66540c0cc858c575469e479c3b",
+            "line": 272,
+            "anchor": "def verify_seed_integrity(substrate, seed_path: Optional[str] = None) -> IntegrityReport:"
+          },
+          {
+            "source_id": "ELC01",
+            "path": "backups/runtime/a1-speech-reconciliation-20261010/early-language/1b9ab14--seed_loader.py",
+            "sha256": "1c5e050635c7473fc07da19b6fdde5375768cf66540c0cc858c575469e479c3b",
+            "line": 313,
+            "anchor": "            if neuron.chi_atlas.match_score(chi, \"neuron\") > 0.0:"
+          },
+          {
+            "source_id": "ELC01",
+            "path": "backups/runtime/a1-speech-reconciliation-20261010/early-language/1b9ab14--seed_loader.py",
+            "sha256": "1c5e050635c7473fc07da19b6fdde5375768cf66540c0cc858c575469e479c3b",
+            "line": 296,
+            "anchor": "            report.errors.append(f\"could not re-read seed file for verification: {e}\")"
+          }
+        ]
+      }
+    },
+    "SH32": {
+      "registry": "speech-history-reconciliation.json",
+      "record": {
+        "id": "SH32",
+        "name": "Unexecuted harnesses and inconsistent test counts were presented as successful protocol completion",
+        "classification": "acceptance and reporting failure; no intent inference",
+        "historical_requirement_or_mechanism": "Phase1 baseline, post-deploy and seeded scenarios all returned PRECONDITION_NOT_MET, yet the report called them still pass/no regression. Phase2 substituted direct local load checks for system scenarios and claimed32 unit tests while its listed counts sum to41. A placeholder marker also bypassed the isolated restore’s missing dream-gate file. These do not establish a functional system pass.",
+        "current_disposition": "Historical dispatch/report plus explicitly scoped original source. Reported deployment/test results are not independently re-executed; current64 reachability and original approval context remain open.",
+        "lawful_remedy": "Recover original logs and report executed/passed/failed/not-run separately. Repair authentic preconditions and restore custody, then run the actual required behavioral boundary; do not use a marker shim or downgrade system tests to storage checks.",
+        "unit_acceptance": "Reject zero executed assertions, unmet preconditions and contradictory result counts as acceptance.",
+        "module_acceptance": "Run real integrated callers on authentic state without placeholder restore markers or substituted load-only checks.",
+        "system_acceptance": "Require the agreed system and release/live qualification; completed infrastructure setup or accessible objects during background loading cannot replace it.",
+        "release_acceptance": "Bind original authority, preserved mature state, exact source/native/dependencies/configuration and serving process. Pass applicable Q01–Q24 without dormant-path resurrection, semantic seed injection, reset or substituted acceptance. No product execution or present serving refresh in this addition.",
+        "repair_actions": [
+          "A01",
+          "A02",
+          "A03",
+          "A13",
+          "A16",
+          "A17"
+        ],
+        "refs": [
+          {
+            "source_id": "EL06",
+            "path": "backups/runtime/a1-speech-reconciliation-20261010/early-language/EL06--GL-RPT-LANGUAGE-SEED-PHASE1-C1-20260707-v1.md",
+            "sha256": "65d371c914cae1364957e4750684a0f2a3909d934ddfd2628f3e2fed3610e364",
+            "line": 139,
+            "anchor": "**2. Baseline harness.** `binding_windows_acceptance`,"
+          },
+          {
+            "source_id": "EL06",
+            "path": "backups/runtime/a1-speech-reconciliation-20261010/early-language/EL06--GL-RPT-LANGUAGE-SEED-PHASE1-C1-20260707-v1.md",
+            "sha256": "65d371c914cae1364957e4750684a0f2a3909d934ddfd2628f3e2fed3610e364",
+            "line": 184,
+            "anchor": "`PRECONDITION_NOT_MET` / same finding as baseline — \"still pass\" in the"
+          },
+          {
+            "source_id": "EL06",
+            "path": "backups/runtime/a1-speech-reconciliation-20261010/early-language/EL06--GL-RPT-LANGUAGE-SEED-PHASE1-C1-20260707-v1.md",
+            "sha256": "65d371c914cae1364957e4750684a0f2a3909d934ddfd2628f3e2fed3610e364",
+            "line": 176,
+            "anchor": "checks for) — worked around the same way, a placeholder marker written"
+          },
+          {
+            "source_id": "EL07",
+            "path": "backups/runtime/a1-speech-reconciliation-20261010/early-language/EL07--GL-RPT-LANGUAGE-SEED-PHASE2-GENERATOR-C1-20260707-v1.md",
+            "sha256": "c3a886e7b83af8f0343c565f1e59efb138ed09ee96f82b60c2d2e9a8ccebf1d5",
+            "line": 103,
+            "anchor": "## Unit tests (protocol step 1)"
+          },
+          {
+            "source_id": "EL07",
+            "path": "backups/runtime/a1-speech-reconciliation-20261010/early-language/EL07--GL-RPT-LANGUAGE-SEED-PHASE2-GENERATOR-C1-20260707-v1.md",
+            "sha256": "c3a886e7b83af8f0343c565f1e59efb138ed09ee96f82b60c2d2e9a8ccebf1d5",
+            "line": 349,
+            "anchor": "6. **Harness scenarios substituted with direct local load-verification.**"
+          }
+        ]
+      }
+    },
+    "SX01": {
+      "registry": "speech-execution-reconciliation.json",
+      "record": {
+        "id": "SX01",
+        "name": "Preserve the authenticated historical two-posture result",
+        "finding": "Three recovered archives match their recorded SHA256 values. Original logs independently corroborate one4000-sample sound cue, two later four-motor phases, positive respiratory discharge,136000 self-heard samples and eight final vocally quiet intervals. Drivers and both helper dependencies were fully read; recall supplies no guided motor input.",
+        "evidence_limit": "These are recovered historical execution records, not a fresh rerun or complete qualification of their internal learning law. Recognizable speech, lexical meaning and syntax were not tested.",
+        "lawful_remedy": "Retain the paired checkpoints and exact prior capability as a preservation obligation. Bind its causative state to the64-column successor, then reproduce the supported effect with the current approved law; do not restore rejected code merely because the old run passed.",
+        "acceptance_falsifier": "The successor must demonstrate equivalent supported learned use from preserved causative state, with matching learned/prelearning/severed/cold controls and exact-source binding.",
+        "repair_actions": [
+          "A03",
+          "A06",
+          "A10",
+          "A16",
+          "A18"
+        ],
+        "refs": [
+          {
+            "path": "docs/guala_reconciliation/sources/speech-execution/AS02--guala-c123-release-recall.log",
+            "sha256": "f365ccf1e9e23f95791ce7e06178fb41cb756cb3c7c0504c53b299d8b0226c8f",
+            "line": 405,
+            "anchor": "{\"body\": \"3d44f13de1c33bad3031b3c2b39c6d3ae49c276c9a919d81659f95b6604fa06c\", \"cue_tick\": 659826, \"event\": \"recall_result\", \"extra_breath\": [], \"learned_events\": [[659828, \"474c4e4c494e453100000000000000b7\"], [659828, \"474c4e4c494e453100000000000000d3\"], [659828, \"474c4e4c494e453100000000000000ef\"], [659828, \"474c4e4c494e453100000000000004fb\"], [659829, \"474c4e4c494e453100000000000000c5\"], [659829, \"474c4e4c494e453100000000000000e1\"], [659829, \"474c4e4c494e453100000000000000fd\"], [659829, \"474c4e4c494e45310000000000000509\"]], \"missing_originals\": 0, \"next_rows\": [{\"breath\": [[\"474c4e4c494e4531000000000000008e\", 3, 487, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000c5\", 12, 0, 137], [\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000e1\", 12, 0, 48], [\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000fd\", 12, 0, 164], [\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e45310000000000000509\", 12, 0, 138]]]], \"motor\": [[\"474c4e4c494e453100000000000000c5\", 7, 137, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000c5\", 12, 0, 137]], [[\"474c4e4c494e45310000000000000f23\", \"474c4e4c494e45310000000000002b3d\", \"474c4e4c494e45310000000000000962\", 5, 165, \"articulated-body-proprioceptor\", \"vocal_tract_section_0_area-toward-maximum\"], [\"474c4e4c494e45310000000000000ff5\", \"474c4e4c494e45310000000000002c0f\", \"474c4e4c494e45310000000000000a34\", 5, 180, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_0_area-toward-minimum-load\"]]], [\"474c4e4c494e453100000000000000e1\", 9, 48, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000e1\", 12, 0, 48]], [[\"474c4e4c494e45310000000000000f3f\", \"474c4e4c494e45310000000000002b59\", \"474c4e4c494e4531000000000000097e\", 5, 167, \"articulated-body-proprioceptor\", \"vocal_tract_section_1_area-toward-maximum\"], [\"474c4e4c494e45310000000000001011\", \"474c4e4c494e45310000000000002c2b\", \"474c4e4c494e45310000000000000a50\", 5, 182, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_1_area-toward-minimum-load\"]]], [\"474c4e4c494e453100000000000000fd\", 11, 164, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000fd\", 12, 0, 164]], [[\"474c4e4c494e45310000000000000f5b\", \"474c4e4c494e45310000000000002b75\", \"474c4e4c494e4531000000000000099a\", 5, 169, \"articulated-body-proprioceptor\", \"vocal_tract_section_2_area-toward-maximum\"], [\"474c4e4c494e4531000000000000102d\", \"474c4e4c494e45310000000000002c47\", \"474c4e4c494e45310000000000000a6c\", 5, 184, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_2_area-toward-minimum-load\"]]], [\"474c4e4c494e45310000000000000509\", 85, 138, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e45310000000000000509\", 12, 0, 138]], [[\"474c4e4c494e45310000000000000fe7\", \"474c4e4c494e45310000000000002c01\", \"474c4e4c494e45310000000000000a26\", 5, 179, \"articulated-body-proprioceptor\", \"vocal_tract_section_7_area-toward-maximum\"], [\"474c4e4c494e453100000000000010b9\", \"474c4e4c494e45310000000000002cd3\", \"474c4e4c494e45310000000000000af8\", 5, 194, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_7_area-toward-minimum-load\"]]]], \"nonzero_pressure\": 3995, \"tick\": 659829, \"work\": []}], \"passed\": true, \"reflex_events\": [], \"root_rows\": [{\"breath\": [[\"474c4e4c494e4531000000000000008e\", 3, 21, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000b7\", 12, 0, 3], [\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000d3\", 12, 0, 6], [\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000ef\", 12, 0, 6], [\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000004fb\", 12, 0, 6]]]], \"motor\": [[\"474c4e4c494e453100000000000000b7\", 6, 3, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000b7\", 12, 0, 3]], [[\"474c4e4c494e45310000000000000f15\", \"474c4e4c494e45310000000000002b2f\", \"474c4e4c494e45310000000000000954\", 5, 164, \"articulated-body-proprioceptor\", \"vocal_tract_section_0_area-toward-minimum\"], [\"474c4e4c494e45310000000000001003\", \"474c4e4c494e45310000000000002c1d\", \"474c4e4c494e45310000000000000a42\", 5, 181, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_0_area-toward-maximum-load\"]]], [\"474c4e4c494e453100000000000000d3\", 8, 6, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000d3\", 12, 0, 6]], [[\"474c4e4c494e45310000000000000f31\", \"474c4e4c494e45310000000000002b4b\", \"474c4e4c494e45310000000000000970\", 5, 166, \"articulated-body-proprioceptor\", \"vocal_tract_section_1_area-toward-minimum\"], [\"474c4e4c494e4531000000000000101f\", \"474c4e4c494e45310000000000002c39\", \"474c4e4c494e45310000000000000a5e\", 5, 183, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_1_area-toward-maximum-load\"]]], [\"474c4e4c494e453100000000000000ef\", 10, 6, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000ef\", 12, 0, 6]], [[\"474c4e4c494e45310000000000000f4d\", \"474c4e4c494e45310000000000002b67\", \"474c4e4c494e4531000000000000098c\", 5, 168, \"articulated-body-proprioceptor\", \"vocal_tract_section_2_area-toward-minimum\"], [\"474c4e4c494e4531000000000000103b\", \"474c4e4c494e45310000000000002c55\", \"474c4e4c494e45310000000000000a7a\", 5, 185, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_2_area-toward-maximum-load\"]]], [\"474c4e4c494e453100000000000004fb\", 84, 6, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000004fb\", 12, 0, 6]], [[\"474c4e4c494e45310000000000000fd9\", \"474c4e4c494e45310000000000002bf3\", \"474c4e4c494e45310000000000000a18\", 5, 178, \"articulated-body-proprioceptor\", \"vocal_tract_section_7_area-toward-minimum\"], [\"474c4e4c494e453100000000000010c7\", \"474c4e4c494e45310000000000002ce1\", \"474c4e4c494e45310000000000000b06\", 5, 195, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_7_area-toward-maximum-load\"]]]], \"nonzero_pressure\": 3993, \"tick\": 659828, \"work\": []}], \"scope\": \"sound-only two postures and quiet; not full word or live speech\", \"self_heard_samples\": 136000, \"tick\": 659889, \"unexplained_events\": [], \"world\": \"1f5d9e83ab41229eee8edf8c40bf7ed6125bc59770832123c6ae71d3d639c334\"}"
+          },
+          {
+            "path": "docs/guala_reconciliation/sources/speech-execution/AS03--guala-c123-audio-recall.log",
+            "sha256": "3cc7774abef5be6333b8aaab635304a0b25412ba72569e78a198f46a50fc3ca1",
+            "line": 225,
+            "anchor": "{\"body\": \"3252c6098c450a10d8668cb1e9b7e51f1e200aa72012ac2e3a745c20425fde4a\", \"cue_tick\": 659899, \"event\": \"recall_result\", \"extra_breath\": [], \"learned_events\": [[659901, \"474c4e4c494e453100000000000000b7\"], [659901, \"474c4e4c494e453100000000000000d3\"], [659901, \"474c4e4c494e453100000000000000ef\"], [659901, \"474c4e4c494e453100000000000004fb\"], [659902, \"474c4e4c494e453100000000000000c5\"], [659902, \"474c4e4c494e453100000000000000e1\"], [659902, \"474c4e4c494e453100000000000000fd\"], [659902, \"474c4e4c494e45310000000000000509\"]], \"missing_originals\": 0, \"next_rows\": [{\"breath\": [[\"474c4e4c494e4531000000000000008e\", 3, 17, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000c5\", 12, 0, 5], [\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000e1\", 12, 0, 1], [\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000fd\", 12, 0, 5], [\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e45310000000000000509\", 12, 0, 5]]]], \"motor\": [[\"474c4e4c494e453100000000000000c5\", 7, 5, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000c5\", 12, 0, 5]], [[\"474c4e4c494e45310000000000000f23\", \"474c4e4c494e45310000000000002b3d\", \"474c4e4c494e45310000000000000962\", 5, 165, \"articulated-body-proprioceptor\", \"vocal_tract_section_0_area-toward-maximum\"], [\"474c4e4c494e45310000000000000ff5\", \"474c4e4c494e45310000000000002c0f\", \"474c4e4c494e45310000000000000a34\", 5, 180, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_0_area-toward-minimum-load\"]]], [\"474c4e4c494e453100000000000000e1\", 9, 2, [[\"474c4e4c494e45310000000000001011\", 8, \"474c4e4c494e453100000000000000e1\", 12, 0, 1], [\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000e1\", 12, 0, 1]], [[\"474c4e4c494e45310000000000000f3f\", \"474c4e4c494e45310000000000002b59\", \"474c4e4c494e4531000000000000097e\", 5, 167, \"articulated-body-proprioceptor\", \"vocal_tract_section_1_area-toward-maximum\"], [\"474c4e4c494e45310000000000001011\", \"474c4e4c494e45310000000000002c2b\", \"474c4e4c494e45310000000000000a50\", 5, 182, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_1_area-toward-minimum-load\"]]], [\"474c4e4c494e453100000000000000fd\", 11, 5, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e453100000000000000fd\", 12, 0, 5]], [[\"474c4e4c494e45310000000000000f5b\", \"474c4e4c494e45310000000000002b75\", \"474c4e4c494e4531000000000000099a\", 5, 169, \"articulated-body-proprioceptor\", \"vocal_tract_section_2_area-toward-maximum\"], [\"474c4e4c494e4531000000000000102d\", \"474c4e4c494e45310000000000002c47\", \"474c4e4c494e45310000000000000a6c\", 5, 184, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_2_area-toward-minimum-load\"]]], [\"474c4e4c494e45310000000000000509\", 85, 5, [[\"474c4e4c494e4531000000000000269c\", 11, \"474c4e4c494e45310000000000000509\", 12, 0, 5]], [[\"474c4e4c494e45310000000000000fe7\", \"474c4e4c494e45310000000000002c01\", \"474c4e4c494e45310000000000000a26\", 5, 179, \"articulated-body-proprioceptor\", \"vocal_tract_section_7_area-toward-maximum\"], [\"474c4e4c494e453100000000000010b9\", \"474c4e4c494e45310000000000002cd3\", \"474c4e4c494e45310000000000000af8\", 5, 194, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_7_area-toward-minimum-load\"]]]], \"nonzero_pressure\": 3996, \"tick\": 659902, \"work\": []}], \"passed\": true, \"reflex_events\": [], \"root_rows\": [{\"breath\": [[\"474c4e4c494e4531000000000000008e\", 3, 491, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000b7\", 12, 0, 56], [\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000d3\", 12, 0, 138], [\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000ef\", 12, 0, 152], [\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000004fb\", 12, 0, 145]]]], \"motor\": [[\"474c4e4c494e4531000000000000039d\", 59, 6, [], [[\"474c4e4c494e4531000000000000092d\", \"474c4e4c494e45310000000000002547\", \"474c4e4c494e4531000000000000036c\", 5, 56, \"articulated-body-proprioceptor\", \"left_grip_aperture-toward-minimum\"], [\"474c4e4c494e45310000000000000d47\", \"474c4e4c494e45310000000000002961\", \"474c4e4c494e45310000000000000786\", 5, 131, \"articulated-body-effector-load-receptor\", \"left_grip_aperture-toward-maximum-load\"], [\"474c4e4c494e453100000000000019a3\", \"474c4e4c494e453100000000000019a1\", \"474c4e4c494e45310000000000000059\", 2, 27, \"native-palmar-contact\", \"held-contact\"]]], [\"474c4e4c494e4531000000000000048b\", 76, 6, [], [[\"474c4e4c494e45310000000000000a53\", \"474c4e4c494e4531000000000000266d\", \"474c4e4c494e45310000000000000492\", 5, 77, \"articulated-body-proprioceptor\", \"right_hip_pitch-toward-maximum\"], [\"474c4e4c494e45310000000000000e51\", \"474c4e4c494e45310000000000002a6b\", \"474c4e4c494e45310000000000000890\", 5, 150, \"articulated-body-effector-load-receptor\", \"right_hip_pitch-toward-minimum-load\"]]], [\"474c4e4c494e453100000000000000b7\", 6, 56, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000b7\", 12, 0, 56]], [[\"474c4e4c494e45310000000000000f15\", \"474c4e4c494e45310000000000002b2f\", \"474c4e4c494e45310000000000000954\", 5, 164, \"articulated-body-proprioceptor\", \"vocal_tract_section_0_area-toward-minimum\"], [\"474c4e4c494e45310000000000001003\", \"474c4e4c494e45310000000000002c1d\", \"474c4e4c494e45310000000000000a42\", 5, 181, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_0_area-toward-maximum-load\"]]], [\"474c4e4c494e453100000000000000d3\", 8, 138, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000d3\", 12, 0, 138]], [[\"474c4e4c494e45310000000000000f31\", \"474c4e4c494e45310000000000002b4b\", \"474c4e4c494e45310000000000000970\", 5, 166, \"articulated-body-proprioceptor\", \"vocal_tract_section_1_area-toward-minimum\"], [\"474c4e4c494e4531000000000000101f\", \"474c4e4c494e45310000000000002c39\", \"474c4e4c494e45310000000000000a5e\", 5, 183, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_1_area-toward-maximum-load\"]]], [\"474c4e4c494e453100000000000000ef\", 10, 152, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000000ef\", 12, 0, 152]], [[\"474c4e4c494e45310000000000000f4d\", \"474c4e4c494e45310000000000002b67\", \"474c4e4c494e4531000000000000098c\", 5, 168, \"articulated-body-proprioceptor\", \"vocal_tract_section_2_area-toward-minimum\"], [\"474c4e4c494e4531000000000000103b\", \"474c4e4c494e45310000000000002c55\", \"474c4e4c494e45310000000000000a7a\", 5, 185, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_2_area-toward-maximum-load\"]]], [\"474c4e4c494e453100000000000004fb\", 84, 145, [[\"474c4e4c494e4531000000000000268e\", 11, \"474c4e4c494e453100000000000004fb\", 12, 0, 145]], [[\"474c4e4c494e45310000000000000fd9\", \"474c4e4c494e45310000000000002bf3\", \"474c4e4c494e45310000000000000a18\", 5, 178, \"articulated-body-proprioceptor\", \"vocal_tract_section_7_area-toward-minimum\"], [\"474c4e4c494e453100000000000010c7\", \"474c4e4c494e45310000000000002ce1\", \"474c4e4c494e45310000000000000b06\", 5, 195, \"articulated-body-effector-load-receptor\", \"vocal_tract_section_7_area-toward-maximum-load\"]]]], \"nonzero_pressure\": 3994, \"tick\": 659901, \"work\": [[\"474c4e4c494e4531000000000000039d\", [[\"474c4e4c494e45310000000000000818\", \"474c4e4c494e45310000000000000734\", [\"474c4e4c494e45310000000000000734\", \"474c4e4c494e45310000000000000818\", 0], [\"474c4e4c494e4531000000000000039d\", \"474c4e4c494e45310000000000000818\", 0], [61626948490633836729588879447, 349333600000000000000000000000]]], [[61626948490633836729588879447, 349333600000000000000000000000], [61626948490633836729588879447, 349333600000000000000000000000], [7072830096725420987335083183, 79228162514264337593543950336], [0, 1], [109573708327883101516395809630073737120220305967153, 412420320995047873305798246400000000000000000000000], [0, 1], [0, 1]]], [\"474c4e4c494e4531000000000000048b\", [[\"474c4e4c494e45310000000000000700\", \"474c4e4c494e453100000000000005f2\", [\"474c4e4c494e453100000000000005f2\", \"474c4e4c494e45310000000000000700\", 0], [\"474c4e4c494e4531000000000000048b\", \"474c4e4c494e45310000000000000700\", 0], [228492081015794786079957282633, 2713610000000000000000000000000]], [\"474c4e4c494e453100000000000007ee\", \"474c4e4c494e4531000000000000070a\", [\"474c4e4c494e4531000000000000070a\", \"474c4e4c494e453100000000000007ee\", 0], [\"474c4e4c494e4531000000000000048b\", \"474c4e4c494e453100000000000007ee\", 0], [62698208676169295706525683973, 401081300000000000000000000000]], [\"474c4e4c494e453100000000000007fc\", \"474c4e4c494e45310000000000000718\", [\"474c4e4c494e45310000000000000718\", \"474c4e4c494e453100000000000007fc\", 0], [\"474c4e4c494e4531000000000000048b\", \"474c4e4c494e453100000000000007fc\", 0], [499937164984939322046442406067, 2476153375000000000000000000000]], [\"474c4e4c494e4531000000000000080a\", \"474c4e4c494e45310000000000000726\", [\"474c4e4c494e45310000000000000726\", \"474c4e4c494e4531000000000000080a\", 0], [\"474c4e4c494e4531000000000000048b\", \"474c4e4c494e4531000000000000080a\", 0], [233769787834216081930061778657, 1018927070000000000000000000000]]], [[14759272227504602355289745097564851281967514042592641, 21967997680322549831000060770000000000000000000000000], [14759272227504602355289745097564851281967514042592641, 21967997680322549831000060770000000000000000000000000], [0, 1], [0, 1], [14759272227504602355289745097564851281967514042592641, 21967997680322549831000060770000000000000000000000000], [0, 1], [0, 1]]]]}], \"scope\": \"sound-only two postures and quiet; not full word or live speech\", \"self_heard_samples\": 136000, \"tick\": 659962, \"unexplained_events\": [], \"world\": \"b4e60ab4471bbffd3df0f35cc8d33db9ab0a5a78d7c2968a70cc6be2bb5ba17e\"}"
+          }
+        ]
+      }
+    },
+    "SX04": {
+      "registry": "speech-execution-reconciliation.json",
+      "record": {
+        "id": "SX04",
+        "name": "Positive recall archives do not contain matched negative controls",
+        "finding": "Each recovered recall driver uses a taught body and a bounded quiet baseline, then a positive cue. These three archives do not contain matched prelearning, severed or unrelated-cue arms for those exact taught states.",
+        "evidence_limit": "Earlier documents report separate controls, but those cannot be imported into this proof without exact state/law correspondence. These positive witnesses do not independently establish complete learning specificity.",
+        "lawful_remedy": "Recover the corresponding controls or execute the specified current qualification with the authentic preserved body under G1 ownership. Keep the historical positive result while withholding the broader certificate.",
+        "acceptance_falsifier": "Matched negative controls must remove the learned contribution without replacing it with fallback sound; ordinary silence is not a substitute for severing or prelearning comparison.",
+        "repair_actions": [
+          "A06",
+          "A10",
+          "A16",
+          "A17"
+        ],
+        "refs": [
+          {
+            "path": "docs/guala_reconciliation/sources/speech-execution/AS02--guala-c123-release-recall.py",
+            "sha256": "b9178369117dc0f5b47acfb0f674a263acaa7951b597a18a60b2309053bfc89e",
+            "line": 95,
+            "anchor": "        actor.submit(cue)"
+          },
+          {
+            "path": "docs/guala_reconciliation/sources/speech-execution/AS03--guala-c123-audio-recall.py",
+            "sha256": "c0a608439db5d92f06ba3bb59fa1a45a67c69c707b545f53d21f0981fe479d1c",
+            "line": 126,
+            "anchor": "        actor.submit(cue)"
+          }
+        ]
+      }
+    },
+    "SX09": {
+      "registry": "speech-execution-reconciliation.json",
+      "record": {
+        "id": "SX09",
+        "name": "Earlier claims of complete speech were explicitly retracted",
+        "finding": "Attempt54 states Joe’s hearing disproved its former speech-complete claim: isolated tonal outputs persisted. It records later two-posture learning separately and leaves quantitative motor-strength use and recognizable speech open.",
+        "evidence_limit": "Ordered physical output is a genuine narrower capability; it is not established lexical meaning, syntax or conversation. Nor does a lack of intelligible words prove a permanent substrate impossibility.",
+        "lawful_remedy": "Use separate acceptance for acoustic capacity, experience-dependent ordered articulation, quantitative learned control, grounded words and relational syntax. Withdraw any claim that crosses an unproved boundary.",
+        "acceptance_falsifier": "Require meaningful, context-sensitive use and independent controls at the claimed level; a waveform, a vocabulary label or a remembered body sequence cannot stand in for semantic competence.",
+        "repair_actions": [
+          "A01",
+          "A10",
+          "A13",
+          "A16",
+          "A18"
+        ],
+        "refs": [
+          {
+            "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+            "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+            "line": 325,
+            "anchor": "Joe's live hearing disproved the former speech-complete claim: the body emits"
+          },
+          {
+            "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+            "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+            "line": 347,
+            "anchor": "JOE'S AUDITORY VERDICT: SAME TOOTS. RECOGNIZABLE SPEECH IS NOT FIXED."
+          }
+        ]
+      }
+    },
+    "VO56": {
+      "registry": "speech-organ-history-reconciliation.json",
+      "record": {
+        "id": "VO56",
+        "name": "Earlier apple recognition is a positive historical claim distinct from spoken output",
+        "classification": "preserve reported narrower capability; qualify causal specificity",
+        "historical_requirement_or_mechanism": "Task1322 reportedly received two different human apple recordings without labels. The later cue reassembled existing visual1/auditory31 formation55a, reached jaw motor2cb, returned sensation and emitted/self-heard pressure. A later bee recording used route514. The source explicitly did not claim emitted pressure said apple. The comparison was sequential with intervening organism activity, not matched-predecessor lexical generalization.",
+        "current_disposition": "Recovered L005 documentary evidence. Original reported production/test/approval receipts are not independently authenticated by this addition. Current64 preservation, exclusion and capability qualification remain open.",
+        "lawful_remedy": "Recover original input/predecessor/code/causal receipts and preserve this reported recognition result at its scope. Qualify cue specificity and current64 causal correspondence independently of speech output.",
+        "unit_acceptance": "Prove formation existed before the cue and identify actual auditory versus visual entry.",
+        "module_acceptance": "Trace exact retained formation through motor work and sensed consequence; separate simultaneous unrelated acts.",
+        "system_acceptance": "Use matched taught/prelearning/severed and altered/unrelated cue controls, then independently qualify intelligible words and grounding.",
+        "release_acceptance": "Bind exact approved law, authentic paired predecessor, ordinary source/binary/configuration and serving release. Complete applicable Q01–Q24 with retained learning, cold continuation, bounded execution and actual live claims. Historical reports are not a current certificate.",
+        "repair_actions": [
+          "A01",
+          "A03",
+          "A06",
+          "A09",
+          "A10",
+          "A16"
+        ],
+        "refs": [
+          {
+            "source_id": "LR38",
+            "path": "backups/runtime/a1-speech-reconciliation-20261010/learned-recognition/LR38--GUALA_L005_LEARNED_RECOGNITION_SPRINT_LEDGER_2026-08-17.md",
+            "sha256": "1a081757a39b6dd5146489d87e83ee55c5780b4c993c32a80d4dd91546db0925",
+            "line": 84,
+            "anchor": "## Task 1322 first learned-word recognition — `apple`"
+          },
+          {
+            "source_id": "LR38",
+            "path": "backups/runtime/a1-speech-reconciliation-20261010/learned-recognition/LR38--GUALA_L005_LEARNED_RECOGNITION_SPRINT_LEDGER_2026-08-17.md",
+            "sha256": "1a081757a39b6dd5146489d87e83ee55c5780b4c993c32a80d4dd91546db0925",
+            "line": 505,
+            "anchor": "## Acceptance evidence"
+          }
+        ]
+      }
+    },
+    "VO57": {
+      "registry": "speech-organ-history-reconciliation.json",
+      "record": {
+        "id": "VO57",
+        "name": "The bear claim was reopened; later corrected-body evidence was not automatically lexical",
+        "classification": "claim correction and distinct later requalification",
+        "historical_requirement_or_mechanism": "The Aug25 bear-hidden Live-Closed claim was reopened Aug28 because its action path depended on coincidence-grown anatomy retired byV33. The task1298 header then classified changed-cue causal use as Partial because the pressure record did not establish a lexical word. The later apple claim is a separate record.",
+        "current_disposition": "Recovered L005 documentary evidence. Original reported production/test/approval receipts are not independently authenticated by this addition. Current64 preservation, exclusion and capability qualification remain open.",
+        "lawful_remedy": "Keep original claims, withdrawals, corrected mechanism and later evidence distinct. Do not erase real earlier sensory use or transfer invalidated motor authority into the new architecture.",
+        "unit_acceptance": "Bind each claim to its exact formation, code and input identity.",
+        "module_acceptance": "Test corrected causal path after the retired anatomy is absent.",
+        "system_acceptance": "Require fresh applicable capability evidence on the corrected preserved organism.",
+        "release_acceptance": "Bind exact approved law, authentic paired predecessor, ordinary source/binary/configuration and serving release. Complete applicable Q01–Q24 with retained learning, cold continuation, bounded execution and actual live claims. Historical reports are not a current certificate.",
+        "repair_actions": [
+          "A01",
+          "A03",
+          "A05",
+          "A09",
+          "A10",
+          "A16",
+          "A18"
+        ],
+        "refs": [
+          {
+            "source_id": "LR38",
+            "path": "backups/runtime/a1-speech-reconciliation-20261010/learned-recognition/LR38--GUALA_L005_LEARNED_RECOGNITION_SPRINT_LEDGER_2026-08-17.md",
+            "sha256": "1a081757a39b6dd5146489d87e83ee55c5780b4c993c32a80d4dd91546db0925",
+            "line": 1196,
+            "anchor": "### Task 1231 learned recognition and task 1232 bounded observation"
+          },
+          {
+            "source_id": "LR28",
+            "path": "backups/runtime/a1-speech-reconciliation-20261010/learned-recognition/LR28--GUALA_L005_LEARNED_RECOGNITION_SPRINT_LEDGER_2026-08-17.md",
+            "sha256": "9966bf54b54a3f64d743d70bf2b7215a77c33ccfd066f5811d11e4bb384abd0c",
+            "line": 5,
+            "anchor": "Status: reopened on 2026-08-28. The 2026-08-25 bear-hidden recognition record"
+          },
+          {
+            "source_id": "LR34",
+            "path": "backups/runtime/a1-speech-reconciliation-20261010/learned-recognition/LR34--GUALA_L005_LEARNED_RECOGNITION_SPRINT_LEDGER_2026-08-17.md",
+            "sha256": "1258f82f249780e8a9916589b44f2e26588ece1059b3c2fe14f60cc7b578ff9c",
+            "line": 5,
+            "anchor": "Status: Reconciled Partial on 2026-08-28. Task 1298 freshly proved changed-cue"
+          }
+        ]
+      }
+    },
+    "LFR09": {
+      "registry": "language-foundations-reconciliation.json",
+      "record": {
+        "id": "LFR09",
+        "name": "The accepted vocal bench is a component demonstration with exact source custody",
+        "classification": "Preserve legitimate scoped acceptance; not learned native speech",
+        "historical_requirement_or_mechanism": "The v22 manifest reports Joe accepted the full board and records an exact HTML hash, ordered gestures, default dials and V8 waveform hashes. The inspected HTML matches that source hash exactly and states Nothing here touches Guala. It generates labelled gestures from authored pitch/formant/duration sequences, seeded pitch/pace variation, a reduced-order source and resonators, then browser playback. Those controls are pressed externally.",
+        "current_disposition": "Source identity is independently verified; Joe’s original acceptance context and the recorded waveform hashes were not replayed here. Reduced-order oscillators, phase and resonances are not automatically cheats or ML. Acceptance of this bench does not authorize its gesture table to select pupil words or certify endogenous articulation.",
+        "lawful_remedy": "Preserve the accepted artifact and its exact component scope. Reconcile the approved physical organ against it where relevant, but require native efferents and retained experience to govern actual pupil articulation; no gesture name or word table may supply that behavior.",
+        "unit_acceptance": "Qualify physical controls and acoustic response with independent organ inputs; keep test gestures outside pupil choice authority.",
+        "module_acceptance": "Verify actual efferent→organ→pressure→same-organism ear timing and energy custody.",
+        "system_acceptance": "Demonstrate retained sensory experience causes later endogenous articulation on preserved state.",
+        "release_acceptance": "Use original acceptance/source/audio custody at its scope and separately qualify the exact current organ and serving artifact.",
+        "repair_actions": [
+          "A01",
+          "A02",
+          "A04",
+          "A05",
+          "A06",
+          "A09",
+          "A10",
+          "A13",
+          "A16",
+          "A17"
+        ],
+        "refs": [
+          {
+            "source_id": "LD20-01",
+            "path": "docs/guala_reconciliation/sources/language-foundations/LD20-01--ACCEPTED_V22_MANIFEST.md",
+            "line": 8,
+            "anchor": "- SHA-256: becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589",
+            "sha256": "9b3b41b43ea3c6015dde191c68ae0d3c8191791beda47a70bd9c5f662afcf77c"
+          },
+          {
+            "source_id": "LD20-01",
+            "path": "docs/guala_reconciliation/sources/language-foundations/LD20-01--ACCEPTED_V22_MANIFEST.md",
+            "line": 3,
+            "anchor": "Joe's acceptance: \"Yep that's it\" on bench v22, full board.",
+            "sha256": "9b3b41b43ea3c6015dde191c68ae0d3c8191791beda47a70bd9c5f662afcf77c"
+          },
+          {
+            "source_id": "LDC06",
+            "path": "docs/guala_reconciliation/sources/language-foundations/LDC06--toy_vocal_organ_bench_v22.html",
+            "line": 82,
+            "anchor": "  damped throat resonances, breath that puffs with the valve, mouth radiation. Renders locally in milliseconds. Nothing here touches Guala.</p>",
+            "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589"
+          },
+          {
+            "source_id": "LDC06",
+            "path": "docs/guala_reconciliation/sources/language-foundations/LDC06--toy_vocal_organ_bench_v22.html",
+            "line": 300,
+            "anchor": "const GESTURES = {",
+            "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589"
+          },
+          {
+            "source_id": "LDC06",
+            "path": "docs/guala_reconciliation/sources/language-foundations/LDC06--toy_vocal_organ_bench_v22.html",
+            "line": 345,
+            "anchor": "  const segs = GESTURES[name];",
+            "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589"
+          }
+        ]
+      }
+    },
+    "LMR04": {
+      "registry": "language-mirror-reconciliation.json",
+      "record": {
+        "id": "LMR04",
+        "name": "Benchmark retractions invalidate broad passes but do not prohibit independent human judgment",
+        "classification": "Historical false-positive evidence and overstated replacement test",
+        "historical_requirement_or_mechanism": "The white language record reports63/70 builder-chosen sentences against3/20 sampled from the actual writing,29/30 order cases while two statements in five were misread, a failing case pruned from a perfect bench, and a declared-subject proxy scoring73% against74% random words. It explicitly leaves fluent prose at a three-bare-word ceiling. The color then labels arithmetic a bench that cannot be gamed and dismisses hand-labelled tests categorically.",
+        "current_disposition": "These are recorded retractions; original complete traces and their exact test/serving paths remain unauthenticated here. A weak subject proxy does not establish failure on every possible task, and an arithmetic pass does not prove speech. Independent blinded listeners or validated labels can measure narrowly specified intelligibility/meaning; the flaw is biased or circular evidence, not the mere presence of human judgment.",
+        "lawful_remedy": "Preserve every failed case and authenticate original denominators, selection rules and execution paths. Use complementary tests tied to the actual claim: physical causal controls, independent grounded task outcomes, and blinded perceptual evidence where appropriate. No single benchmark is immune to gaming by its subject matter.",
+        "repair_actions": [
+          "A01",
+          "A02",
+          "A05",
+          "A09",
+          "A10",
+          "A13",
+          "A16",
+          "A18"
+        ],
+        "refs": [
+          {
+            "source_id": "LD17-01",
+            "path": "docs/guala_reconciliation/sources/language-mirror/LD17-01--white.md",
+            "line": 212,
+            "anchor": "- SCORING ON SENTENCES THE BUILDER CHOSE — 63 of 70 on",
+            "sha256": "22f72beac8d8b47a7e2de5488bcf77b687bd61c660927793f0ba6f75e3ad9866"
+          },
+          {
+            "source_id": "LD17-01",
+            "path": "docs/guala_reconciliation/sources/language-mirror/LD17-01--white.md",
+            "line": 208,
+            "anchor": "  in 100 and a control picking RANDOM words scored 74. Standing,",
+            "sha256": "22f72beac8d8b47a7e2de5488bcf77b687bd61c660927793f0ba6f75e3ad9866"
+          },
+          {
+            "source_id": "LD17-01",
+            "path": "docs/guala_reconciliation/sources/language-mirror/LD17-01--white.md",
+            "line": 315,
+            "anchor": "  in five were being misread as orders; a bench quietly pruned of",
+            "sha256": "22f72beac8d8b47a7e2de5488bcf77b687bd61c660927793f0ba6f75e3ad9866"
+          },
+          {
+            "source_id": "LD16-01",
+            "path": "docs/guala_reconciliation/sources/language-mirror/LD16-01--color.md",
+            "line": 608,
+            "anchor": "- THE BENCH THAT CANNOT BE GAMED: say a thing in plain words, let",
+            "sha256": "afae8dd15ed0b1d6eab8e7c33e8d5d8404439f942f83a17a5fad679d865ed8a8"
+          },
+          {
+            "source_id": "LD17-01",
+            "path": "docs/guala_reconciliation/sources/language-mirror/LD17-01--white.md",
+            "line": 305,
+            "anchor": "- SPEAK FLUENT PROSE FROM THIS FABRIC — blocked on the",
+            "sha256": "22f72beac8d8b47a7e2de5488bcf77b687bd61c660927793f0ba6f75e3ad9866"
+          }
+        ],
+        "unit_acceptance": "Audit sample generation, labels, exclusions, denominators and measurement predicates.",
+        "module_acceptance": "Run the actual consumer/caller chain with independent controls; report all arms and failures.",
+        "system_acceptance": "Qualify retained learned vocal use on new situations with authentic state and blinded listening at its declared scope.",
+        "release_acceptance": "Bind original results to source/configuration/image and same-event evidence; no inherited all-speech pass."
+      }
+    },
+    "LVR02": {
+      "registry": "language-vocabulary-reconciliation.json",
+      "record": {
+        "id": "LVR02",
+        "name": "The question dictionary is a handwritten classifier with overwrite precedence",
+        "classification": "Deterministic heuristic in the inspected separate fabric reader",
+        "historical_requirement_or_mechanism": "File171 mixes question forms, common words, rare-word descriptors, negation, courtesy and subject descriptors in MEANS-SAME lists. Language.__init__ marks every token from every such entry as an asking word, with later assignments overwriting earlier kinds. read() takes the kind of the first matching input token and removes all listed tokens from the subject. This is authored classification and filtering, not a sentence assembling its own language mechanism.",
+        "current_disposition": "This is exact inspected source behavior conditional on these loaded entries, not proof the current ArcLoom pupil invokes it. The audit-only lexical receipt inventories the captured lists without importing the product; it is not a runtime acceptance test. Changing a list changes this classifier even if Python remains unchanged.",
+        "lawful_remedy": "Exclude this classifier from pupil cognitive authority. Preserve the corpus and its historical failures for reconciliation. If retained as external tooling, label its scope and failure modes. Native roles, requests and contextual references must be acquired and retained through the approved sensory mechanism rather than repaired by more trigger words.",
+        "repair_actions": [
+          "A01",
+          "A02",
+          "A05",
+          "A06",
+          "A09",
+          "A10",
+          "A12",
+          "A15",
+          "A16"
+        ],
+        "refs": [
+          {
+            "source_id": "LD05-01",
+            "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-01--171_words_that_carry_the_question.md",
+            "line": 16,
+            "anchor": "MEANS-SAME: why reason cause because behind purpose explain how come what for",
+            "sha256": "c40637f05bbeffa839339ba439f4efa3774db21f32731d01ada56eb7857298a1"
+          },
+          {
+            "source_id": "LD05-01",
+            "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-01--171_words_that_carry_the_question.md",
+            "line": 149,
+            "anchor": "MEANS-SAME: rare unusual uncommon specific technical distinctive particular narrow precise telling",
+            "sha256": "c40637f05bbeffa839339ba439f4efa3774db21f32731d01ada56eb7857298a1"
+          },
+          {
+            "source_id": "LD05-01",
+            "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-01--171_words_that_carry_the_question.md",
+            "line": 260,
+            "anchor": "MEANS-SAME: not no never cannot without fails lacks missing absent neither none unless",
+            "sha256": "c40637f05bbeffa839339ba439f4efa3774db21f32731d01ada56eb7857298a1"
+          },
+          {
+            "source_id": "LDC04",
+            "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+            "line": 38,
+            "anchor": "                for w in words: self.asking[w] = kind.strip()",
+            "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+          },
+          {
+            "source_id": "LDC04",
+            "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+            "line": 64,
+            "anchor": "                if kind is None: kind = self.asking[w]",
+            "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+          },
+          {
+            "source_id": "LDC04",
+            "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+            "line": 65,
+            "anchor": "        subject = [w for w in raw if w not in self.asking and len(w) > 2]",
+            "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+          }
+        ],
+        "unit_acceptance": "Inventory every policy-bearing token, collision, precedence and discarded distinction.",
+        "module_acceptance": "Trace actual reader/caller behavior, including input order, paraphrase, negation and multi-question controls.",
+        "system_acceptance": "Require authentic experience-dependent interpretation and action on new contexts, with no dictionary answer injection.",
+        "release_acceptance": "Verify all executable routes and effective corpora in the frozen serving artifact; a module name or absence of an ML import is not clearance."
+      }
+    },
+    "LVR03": {
+      "registry": "language-vocabulary-reconciliation.json",
+      "record": {
+        "id": "LVR03",
+        "name": "Crowd matching supplies authored context to the downstream answer",
+        "classification": "Count-based selection, fixed threshold and lexical query expansion",
+        "historical_requirement_or_mechanism": "File172 supplies 44 authored subject crowds and repeatedly declares two words nearly certain. The reader counts subject/crowd overlap, takes a strictly greater count (earliest crowd survives a tie), requires two hits, and answer() adds the alphabetically first twelve crowd words to the carried query. These added words were not supplied by the current question or acquired by the pupil in this path.",
+        "current_disposition": "The full downstream os_fabric consumer has not been closed in this slice, so no particular final answer or live interference is inferred. Subject token order is retained in the carried string; the finding is supplied lexical context and score authority, not a claim that this function alone flattens every representation.",
+        "lawful_remedy": "Remove the count/tie/threshold/expansion route from pupil authority. Do not tune two to three or substitute another similarity score. Demonstrate native contextual discrimination using retained sensory relations; keep genuine external retrieval tools separately attributed if used outside the pupil.",
+        "repair_actions": [
+          "A02",
+          "A05",
+          "A06",
+          "A09",
+          "A10",
+          "A12",
+          "A14",
+          "A15",
+          "A16"
+        ],
+        "refs": [
+          {
+            "source_id": "LD06-02",
+            "path": "docs/guala_reconciliation/sources/language-vocabulary/LD06-02--172_what_words_go_together.md",
+            "line": 10,
+            "anchor": "  doings. Any two of them in one line places the sentence in a",
+            "sha256": "90f54829a35bbaf6322193dc09fad7908337e1d6172d5503ea8c82fc8a214d5f"
+          },
+          {
+            "source_id": "LD06-02",
+            "path": "docs/guala_reconciliation/sources/language-vocabulary/LD06-02--172_what_words_go_together.md",
+            "line": 131,
+            "anchor": "  things elsewhere, but two together settle it.",
+            "sha256": "90f54829a35bbaf6322193dc09fad7908337e1d6172d5503ea8c82fc8a214d5f"
+          },
+          {
+            "source_id": "LDC04",
+            "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+            "line": 71,
+            "anchor": "            hit = len(sset & words)",
+            "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+          },
+          {
+            "source_id": "LDC04",
+            "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+            "line": 72,
+            "anchor": "            if hit > best_hit:",
+            "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+          },
+          {
+            "source_id": "LDC04",
+            "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+            "line": 75,
+            "anchor": "                    area=best_area if best_hit >= 2 else None,",
+            "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+          },
+          {
+            "source_id": "LDC04",
+            "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+            "line": 91,
+            "anchor": "        sorted(r[\"crowd\"])[:12])",
+            "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+          }
+        ],
+        "unit_acceptance": "Expose exact candidate set, tie order, thresholds and inserted terms; no near-certainty claim without independent evidence.",
+        "module_acceptance": "Follow the complete caller chain and verify no hidden context insertion drives native outcomes.",
+        "system_acceptance": "Test ambiguous and mixed-context sensory experiences under matched retained-state controls, without supplied topic labels.",
+        "release_acceptance": "Publish the exact source/configuration/data route and causal results; retrieval counts are not speech qualification."
+      }
+    },
+    "LVR04": {
+      "registry": "language-vocabulary-reconciliation.json",
+      "record": {
+        "id": "LVR04",
+        "name": "Loaded sense tables and cached policy do not fulfill the advertised reader",
+        "classification": "False source-level mechanism description; unused state is not active decision evidence",
+        "historical_requirement_or_mechanism": "File170 stores SPLITS-INTO under sense labels such as money, river and tilt, each followed by bank and contextual words. The loader keys these entries by the first token of the label, rather than bank, merges them with MEANS-SAME sets, and never reads self.senses in read() or answer(). Its header nevertheless says it settles which sense is meant and reads the language files at the moment of each question. The global LANG object is built once and has no refresh path in this file.",
+        "current_disposition": "The built .senses table is unused by this complete inspected module. Other consumers/dynamic access remain to inventory; no blanket repository-wide dead-code conclusion is made. core refreshing its own entries does not rebuild this Language object. The actual current serving use of either is unknown.",
+        "lawful_remedy": "Correct the mechanism inventory and claims before any acceptance. Do not wire the unused dictionary into the pupil to make the advertised behavior appear. Prove the lawful native ambiguity mechanism separately; inventory snapshot/version coherence for any permitted external tool.",
+        "repair_actions": [
+          "A01",
+          "A02",
+          "A05",
+          "A09",
+          "A10",
+          "A13",
+          "A15",
+          "A16",
+          "A18"
+        ],
+        "refs": [
+          {
+            "source_id": "LD04-01",
+            "path": "docs/guala_reconciliation/sources/language-vocabulary/LD04-01--170_words_with_two_meanings.md",
+            "line": 27,
+            "anchor": "SPLITS-INTO: money: bank account loan deposit branch interest teller savings | river: bank shore edge water bend erosion mud stream | tilt: bank turn aircraft corner camber lean roll",
+            "sha256": "bf8b6a2337543e00006b1d0f22b3fc630e75ba979597dc81b1c78149b34996bb"
+          },
+          {
+            "source_id": "LD04-01",
+            "path": "docs/guala_reconciliation/sources/language-vocabulary/LD04-01--170_words_with_two_meanings.md",
+            "line": 628,
+            "anchor": "ESSENCE: the entries in this file and its neighbours are about WORDS,",
+            "sha256": "bf8b6a2337543e00006b1d0f22b3fc630e75ba979597dc81b1c78149b34996bb"
+          },
+          {
+            "source_id": "LDC04",
+            "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+            "line": 9,
+            "anchor": "Every one of those is read out of the files at the moment of the",
+            "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+          },
+          {
+            "source_id": "LDC04",
+            "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+            "line": 54,
+            "anchor": "                for w in re.findall(r\"[a-z]{3,}\", name.lower())[:1]:",
+            "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+          },
+          {
+            "source_id": "LDC04",
+            "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+            "line": 82,
+            "anchor": "    if LANG is None: LANG = Language()",
+            "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+          }
+        ],
+        "unit_acceptance": "Require a real consumer for every claimed mechanism; verify names, data shape, version and refresh behavior.",
+        "module_acceptance": "Exercise complete allowed external callers across data revisions and demonstrate exact snapshot coherence.",
+        "system_acceptance": "Verify new-context native recall resolves distinctions from experience rather than supplied labels.",
+        "release_acceptance": "No certification from loaded-but-unused assets, docstrings or stale policy; establish current invocation and exclusion separately."
+      }
+    },
+    "LVR05": {
+      "registry": "language-vocabulary-reconciliation.json",
+      "record": {
+        "id": "LVR05",
+        "name": "The reader loses distinctions its own language documents require",
+        "classification": "Source/document contradiction with bounded static counterexamples",
+        "historical_requirement_or_mechanism": "File171 says negation reverses the requested answer, then calls bread/rising the whole question after stripping not. The reader removes listed negations from its carried subject; asked/kind metadata is not passed by answer() to deliver(). Its letters-only tokenizer discards numeric values, so changing 200C to 300C leaves the same lexical material. File173 demands number-plus-unit fidelity and warns about negation, quotation, hypothetical claims and direction. The separate core masks additionally discard word order and polarity as previously documented.",
+        "current_disposition": "The independent receipt checks text projection only; it does not run the organism or assert all system representations lose order. The contradiction is not fixed by retaining raw text in a receipt if the decision consumer still receives the reduced projection. File173’s requirement that an answer add new words is also an invalid universal acceptance predicate: a correct choice may repeat an offered alternative.",
+        "lawful_remedy": "Specify the actual physical/retained distinctions needed for roles, quantities, negation, source attribution and temporal context. Prove they reach and influence the decision consumer. Retire the symbolic filtering authority rather than add exception lists, synthetic polarity flags or word-novelty scoring to emulate understanding.",
+        "repair_actions": [
+          "A01",
+          "A04",
+          "A05",
+          "A06",
+          "A09",
+          "A10",
+          "A13",
+          "A16"
+        ],
+        "refs": [
+          {
+            "source_id": "LD05-01",
+            "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-01--171_words_that_carry_the_question.md",
+            "line": 252,
+            "anchor": "ESSENCE: negation flips what is being asked without changing a",
+            "sha256": "c40637f05bbeffa839339ba439f4efa3774db21f32731d01ada56eb7857298a1"
+          },
+          {
+            "source_id": "LD05-01",
+            "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-01--171_words_that_carry_the_question.md",
+            "line": 363,
+            "anchor": "  strip why, is, my and not, and bread and rising are what is left",
+            "sha256": "c40637f05bbeffa839339ba439f4efa3774db21f32731d01ada56eb7857298a1"
+          },
+          {
+            "source_id": "LD07-02",
+            "path": "docs/guala_reconciliation/sources/language-vocabulary/LD07-02--173_when_words_mislead.md",
+            "line": 303,
+            "anchor": "ESSENCE: numbers and units look like words and are not. A question",
+            "sha256": "90bdb7a969ac433b562ebf1c1c09e0bffe954b2d32597696c844c5cb4c7f246b"
+          },
+          {
+            "source_id": "LD07-02",
+            "path": "docs/guala_reconciliation/sources/language-vocabulary/LD07-02--173_when_words_mislead.md",
+            "line": 317,
+            "anchor": "  nothing. The remedy is to require the answer to add words the",
+            "sha256": "90bdb7a969ac433b562ebf1c1c09e0bffe954b2d32597696c844c5cb4c7f246b"
+          },
+          {
+            "source_id": "LDC04",
+            "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+            "line": 59,
+            "anchor": "        raw = re.findall(r\"[a-z]+\", question.lower())",
+            "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+          },
+          {
+            "source_id": "LDC04",
+            "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+            "line": 92,
+            "anchor": "    settled, stopped, reached = os_fabric.deliver(carried)",
+            "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+          }
+        ],
+        "unit_acceptance": "Use paired polarity, role-order, magnitude/unit, quotation and hypothetical falsifiers tied to exact representations.",
+        "module_acceptance": "Trace differing physical inputs through retained state and actual consumers; display any point where distinguishing information is lost.",
+        "system_acceptance": "Show later grounded behavior distinguishes those experiences and survives retention, with independent negative controls.",
+        "release_acceptance": "Qualify semantic claims only at the demonstrated causal scope; a new word or fluent sentence is not evidence of a correct answer."
+      }
+    }
+  },
+  "implementation_owner": "G1",
+  "independent_verification_owner": "A1",
+  "g1_acknowledged": false,
+  "source_limit": "Per-file captured working sources are not an atomic candidate. Last independently verified serving evidence remains Task1598 on2026-10-10 around00:18–00:19UTC; no refresh in this publication.",
+  "qualification_request": "Bind candidate and preserved causative state; disclose missing laws/mappings; run required component then connected causal then system tests; independently verify exact released artifact. Name the first failed boundary and preserve every failure.",
+  "product_execution": false,
+  "product_acceptance": false,
+  "cross_context_history_update": {
+    "at_utc": "2026-10-10T06:15:06.244345+00:00",
+    "record": "cross-context-reconciliation.json",
+    "ids": [
+      "CXR01",
+      "CXR04",
+      "CXR06",
+      "CXR10"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "Earlier retained-formation-to-native-action routes are reported and must be preserved/recovered at narrow scope. The broad cognitive closure was retracted. Neither current learned speech nor permanent speech impossibility follows; exact64-column state/mechanism correspondence remains unqualified."
+  },
+  "legacy_word_recall_update": {
+    "at_utc": "2026-10-10T06:26:46.071172+00:00",
+    "record": "legacy-word-recall-reconciliation.json",
+    "ids": [
+      "WRR01",
+      "WRR02",
+      "WRR03",
+      "WRR04",
+      "WRR05",
+      "WRR06",
+      "WRR07",
+      "WRR08",
+      "WRR09",
+      "WRR10"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The newly reconciled June/July speech records expose semantic lookup/vote/role controllers, microphone labels treated as heard words, weakened acceptance and unqualified fallback repairs. They also preserve legitimate performance findings, regression rejections and synthetic-test retirement. None proves current learned speech, permanent impossibility or present activation of the historical mechanisms."
+  },
+  "aurelion_content_update": {
+    "at_utc": "2026-10-10T06:49:04.508732+00:00",
+    "record": "aurelion-content-reconciliation.json",
+    "ids": [
+      "ACR01",
+      "ACR02",
+      "ACR03",
+      "ACR04",
+      "ACR05",
+      "ACR06",
+      "ACR07",
+      "ACR08",
+      "ACR09",
+      "ACR10",
+      "ACR11",
+      "ACR12"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The repository contains actual pretrained-model/statistical semantic and optional LLM implementations in historical Aurelion, plus text-derived fake modalities and authored speech. Present serving invocation of these routes is not established. Incompatible interfaces/schemas and disconnected growth payloads prevent treating this file set or its CSV labels as a verified working predecessor. Neither permanent speech impossibility nor successful current learned speech is established. The lawful next engineering item remains preserved-state native causal qualification."
+  },
+  "curiosity_multisensory_update": {
+    "at_utc": "2026-10-10T06:57:43.760456+00:00",
+    "record": "curiosity-multisensory-reconciliation.json",
+    "ids": [
+      "CMR01",
+      "CMR02",
+      "CMR03",
+      "CMR04",
+      "CMR05",
+      "CMR06",
+      "CMR07",
+      "CMR08",
+      "CMR09",
+      "CMR10",
+      "CMR11",
+      "CMR12",
+      "CMR13"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The complete A006/A009 history preserves genuine reported native sensory/action progress and exact resource corrections, but also explicit loss of higher-layer retained state: GLCOG027 keeps organism identity while retained mosaics become zero. Earlier identity/cadence fixes do not establish current performance or continuity into64 columns. Qualification must expose every loss, recover original authority and prove the current sensory→retained-state→action/speech chain without invented observer conditions, omitted physiology or false health/learning labels."
+  },
+  "migration_v27_update": {
+    "at_utc": "2026-10-10T07:23:04.223619+00:00",
+    "record": "migration-v27-reconciliation.json",
+    "ids": [
+      "MGR01",
+      "MGR02",
+      "MGR03",
+      "MGR04",
+      "MGR05",
+      "MGR06"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "Original Aug23 approval for the disclosed V27 cleanup is recovered, correcting the earlier unresolved-authority finding. Exact code confirms broad retained-experience custody loss, but the outer valid-current guard refutes a blanket claim that every restart clears memory. Old play/laughter witnesses were explicitly retired. Artifact-dependent tests can return without assertions and their stale lossless predicates do not qualify this migration. None of this proves speech impossible or current speech working; preserved-state native causal qualification remains required."
+  },
+  "sensorimotor_play_update": {
+    "at_utc": "2026-10-10T07:33:08.829937+00:00",
+    "record": "sensorimotor-play-reconciliation.json",
+    "ids": [
+      "PLR01",
+      "PLR02",
+      "PLR03",
+      "PLR04",
+      "PLR05",
+      "PLR06",
+      "PLR07",
+      "PLR08",
+      "PLR09",
+      "PLR10",
+      "PLR11",
+      "PLR12",
+      "PLR13",
+      "PLR14",
+      "PLR15",
+      "PLR16"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The recovered play/contact history gives concrete failures rather than a verdict of speech impossibility: neuron-wide plastic saturation lacked contact-specific repeated reinforcement; generic mature recurrent flow produced false recognition; missing body feedback and wrong preparation direction caused stalls/fanout; and observers both hid valid paths and accepted temporal coincidence. Preserve documented genuine circuit/contact/native vocal evidence, including Task1095 pressure and self-hearing, while refusing to call it intelligible speech. The old learned vocal witness was retired; Task1222 later closed basic varied play only, leaving affect/social joy/laughter separately open. Exact current preserved-state sensory→retained-state→vocal/body/acoustic→self-hearing qualification remains required."
+  },
+  "reconstructive_memory_update": {
+    "at_utc": "2026-10-10T07:41:43.510539+00:00",
+    "record": "reconstructive-memory-reconciliation.json",
+    "ids": [
+      "RMR01",
+      "RMR02",
+      "RMR03",
+      "RMR04",
+      "RMR05",
+      "RMR06",
+      "RMR07",
+      "RMR08",
+      "RMR09",
+      "RMR10",
+      "RMR11",
+      "RMR12"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The full recovered memory group distinguishes genuine reported distributed partial-cue relation reassembly from retired episode retrieval and unratified reconsolidation proposals. Derived counts can still be score authority; byte novelty is not a derived prediction-error law; forgetting proposals contradict their own recovery/reversibility assertions. Preserve actual sensory/body/action/context relations and prove later native use. Historical copied-current recall tests and an MLbased paper citation establish neither current speech nor permanent impossibility, and cannot support an ML-free certificate."
+  },
+  "formations_sleep_update": {
+    "at_utc": "2026-10-10T07:54:11.541876+00:00",
+    "record": "formations-sleep-reconciliation.json",
+    "ids": [
+      "FSR01",
+      "FSR02",
+      "FSR03",
+      "FSR04",
+      "FSR05",
+      "FSR06",
+      "FSR07",
+      "FSR08",
+      "FSR09",
+      "FSR10",
+      "FSR11",
+      "FSR12",
+      "FSR13",
+      "FSR14",
+      "FSR15"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The recovered formation/rest chain contains useful narrow reported mechanisms: learned local differential, multisensory/body retention, physical recurrence, transient relations, quiet recovery and ordinary-live internally sourced reassembly. None establishes useful sleep consolidation or the full current speech route. An older authored-app WeaveSpec conflicts with cognitive-weave meaning and contains score/commit/decay proposals; deterministic seeds do not make those lawful. Preserve legitimate gains, reconcile exact changed laws and losses, and require G1’s frozen preserved-state causal qualification. Neither permanent impossibility nor guaranteed speech is demonstrated."
+  },
+  "cognitive_dynamics_update": {
+    "at_utc": "2026-10-10T08:01:12.660625+00:00",
+    "record": "cognitive-dynamics-reconciliation.json",
+    "ids": [
+      "CDR01",
+      "CDR02",
+      "CDR03",
+      "CDR04",
+      "CDR05",
+      "CDR06",
+      "CDR07",
+      "CDR08",
+      "CDR09",
+      "CDR10",
+      "CDR11",
+      "CDR12"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The recovered ordered-memory/prediction chain preserves narrower reported native gains, but exposes a concrete learning gap: C016 requires a relation acquired from prior lived consequence, admits that proof is missing, and closes as a physical precursor on pre-existing routes plus a later directed transfer. The learned requirement remains unqualified. C012 likewise changes a failed overlapping-path model to recurrence of one route, not proof of semantic depth. G1 must identify the first failed actual preserved-state speech boundary and supply a lawful remedy; neither inevitable speech nor impossibility is established."
+  },
+  "recognition_foundations_update": {
+    "at_utc": "2026-10-10T08:07:10.568606+00:00",
+    "record": "recognition-foundations-reconciliation.json",
+    "ids": [
+      "RFR01",
+      "RFR02",
+      "RFR03",
+      "RFR04",
+      "RFR05",
+      "RFR06",
+      "RFR07",
+      "RFR08",
+      "RFR09",
+      "RFR10",
+      "RFR11"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The retained-memory foundation contains reported useful repairs, but its scope must remain exact. C002 first excluded then admitted receptor residue after a failed positive; persistent physical evidence is not itself learned speech. C007/C008 decisive postcutover tests ran on disposable production-body copies, and broad participant reach does not establish useful contextual recognition. Earlier ordered-object laws conflict with later architecture and require authority/preservation mapping. Preserve genuine causal mechanisms and complete G1’s frozen-state learned speech qualification; neither guaranteed success nor permanent impossibility follows."
+  },
+  "neuron_law_authority_update": {
+    "at_utc": "2026-10-10T08:13:35.705721+00:00",
+    "record": "neuron-law-authority-reconciliation.json",
+    "ids": [
+      "NLR01",
+      "NLR02",
+      "NLR03",
+      "NLR04",
+      "NLR05",
+      "NLR06",
+      "NLR07",
+      "NLR08",
+      "NLR09",
+      "NLR10",
+      "NLR11",
+      "NLR12"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "Earlier neuron-law records explicitly distinguish architecture ratification from missing local equations, reject conserved/deterministic shortcuts, and limit isolated charge/material proofs. Current functional emulation must preserve those honesty boundaries without imposing molecule-by-molecule prerequisites. Exact field custody, finite displayed magnitudes and a positive count do not establish full-field causation, bounded exact representation or learned speech. G1’s preserved-state chain must identify the actual current missing law or failed implementation; neither speech certainty nor impossibility is established."
+  },
+  "early_runtime_physics_update": {
+    "at_utc": "2026-10-10T08:20:32.948212+00:00",
+    "record": "early-runtime-physics-reconciliation.json",
+    "ids": [
+      "EPR01",
+      "EPR02",
+      "EPR03",
+      "EPR04",
+      "EPR05",
+      "EPR06",
+      "EPR07",
+      "EPR08",
+      "EPR09",
+      "EPR10",
+      "EPR11",
+      "EPR12"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The early runtime/physics history contains explicit invalidation of apparently successful recurrence tests when their component/terminal laws were rejected. Those cannot support current speech or organism claims. Logical memory plans remain distinct from actual allocator bounds, and signed body/sensory models remain distinct from native learned selection. A supplied-recovery fixture motivates checking current environment causes but does not diagnose today’s loop. Preserve real advances and complete G1’s exact preserved-state causal qualification; no speech certainty, impossibility or ML-free certificate follows."
+  },
+  "continuous_ingress_care_update": {
+    "at_utc": "2026-10-10T08:30:09.611947+00:00",
+    "record": "continuous-ingress-care-reconciliation.json",
+    "ids": [
+      "CIR01",
+      "CIR02",
+      "CIR03",
+      "CIR04",
+      "CIR05",
+      "CIR06",
+      "CIR07",
+      "CIR08",
+      "CIR09",
+      "CIR10",
+      "CIR11",
+      "CIR12"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "Continuous ingress history preserves real native sensory gains but explicitly does not establish learned words. A014 later retracts Live-Closed after a healthy service froze CURRENT through competing contact authorities, and records false genesis on hot startup. The older latency fix passed a gateway criterion with43–57 seconds for250ms motion; it did not prove real-time function. Current caretaker interference requires actual producer/rate/source/native-effect mapping. Preserve state and qualify the real first failing speech boundary; neither permanent impossibility nor promised success is proved."
+  },
+  "autonomy_selection_update": {
+    "at_utc": "2026-10-10T08:39:04.447029+00:00",
+    "record": "autonomy-selection-reconciliation.json",
+    "ids": [
+      "ASR01",
+      "ASR02",
+      "ASR03",
+      "ASR04",
+      "ASR05",
+      "ASR06",
+      "ASR07",
+      "ASR08",
+      "ASR09",
+      "ASR10",
+      "ASR11",
+      "ASR12",
+      "ASR13"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The autonomy history contains genuine narrow physical gains and explicit later retractions. Motor discharge is not choice; internal recurrence is not sleep; a controlled scalar bridge is not automatically ratified cognition. Task1321locally passed a motor gate while scheduled-contact promotion contaminated its causal seed input. Preserve later physical corrections and task1322ordered evidence at its scope. Trace every current descendant and actual learned speech boundary on preserved state; no guarantee, permanent impossibility or ML-free certificate follows."
+  },
+  "motor_motivation_update": {
+    "at_utc": "2026-10-10T08:46:06.402337+00:00",
+    "record": "motor-motivation-reconciliation.json",
+    "ids": [
+      "MMR01",
+      "MMR02",
+      "MMR03",
+      "MMR04",
+      "MMR05",
+      "MMR06",
+      "MMR07",
+      "MMR08",
+      "MMR09"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The record now explicitly links claimed ratified hunger coupling to the R3audit correction: no ratified hunger ancestor existed; the cited law was endogenous cue. The Junev4plan openly prescribes identity-tag bonding cheat and target/timer controls. These violate current charter if active, but their present activation is not established by the documents. Earlier417-test motor success also hid an unreachable real source. Trace exact current descendants and first failed native learned-speech boundary; no old positive runner can certify the system."
+  },
+  "legacy_motivation_charter_update": {
+    "at_utc": "2026-10-10T08:53:28.532910+00:00",
+    "record": "legacy-motivation-charter-reconciliation.json",
+    "ids": [
+      "LMR01",
+      "LMR02",
+      "LMR03",
+      "LMR04",
+      "LMR05",
+      "LMR06",
+      "LMR07",
+      "LMR08",
+      "LMR09",
+      "LMR10",
+      "LMR11",
+      "LMR12",
+      "LMR13"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "June terminology called needs-payoff scoring and word lookup substrate-causal; that classification is incompatible with the current charter. Self-section explicitly hard-binds and emitsguala, which is programmed lexical output rather than sensory-acquired name learning. Preserve real historical gains and reported authorizations at their scope while tracing current descendants, original decisions and retained state. No current learned speech or ML-free certificate is established."
+  },
+  "legacy_v4_source_update": {
+    "at_utc": "2026-10-10T09:06:27.369098+00:00",
+    "record": "legacy-v4-source-reconciliation.json",
+    "ids": [
+      "LVR01",
+      "LVR02",
+      "LVR03",
+      "LVR04",
+      "LVR05",
+      "LVR06",
+      "LVR07",
+      "LVR08",
+      "LVR09",
+      "LVR10",
+      "LVR11",
+      "LVR12",
+      "LVR13",
+      "LVR14",
+      "LVR15",
+      "LVR16"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The legacy speech and learning substitutions are now confirmed in captured source: authored word meaning/roles, approximate fields, cosine prototypes with EMA adaptation, stored SVO assembly and a conversation pass that never evaluates an utterance. Those are real architectural and acceptance conflicts if claimed as native learned speech. They do not establish present activation or permanent ArcLoom speech impossibility. G1 must produce the first actual failed boundary of current preserved-state sensory→native retention→preparation→articulation→sound→self-hearing qualification, with the direct lawful remedy. No guarantee or certificate is issued."
+  },
+  "v5_transition_update": {
+    "at_utc": "2026-10-10T09:14:54.843088+00:00",
+    "record": "v5-transition-reconciliation.json",
+    "ids": [
+      "VTR01",
+      "VTR02",
+      "VTR03",
+      "VTR04",
+      "VTR05",
+      "VTR06",
+      "VTR07",
+      "VTR08",
+      "VTR09",
+      "VTR10",
+      "VTR11",
+      "VTR12",
+      "VTR13",
+      "VTR14"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The v5 transition preserves genuine corrections but repeatedly certifies substitutes: echo gives way to atlas lookup and question templates; bigram/template speakers are rejected, then a word-candidate/two-section gate is called the true voice. Reports expose a monkeypatched recall success absent from the library and also show that repaired library was absent from the serving bridge. These facts invalidate broad historical speech/production claims; they do not prove the current native substrate incapable of learning speech. G1 still owes preserved-state qualification of the actual sensory→retention→preparation→articulation→self-hearing chain and the first failed boundary with its lawful remedy."
+  },
+  "shell_retirement_update": {
+    "at_utc": "2026-10-10T09:30:17.949558+00:00",
+    "record": "shell-retirement-reconciliation.json",
+    "ids": [
+      "QSR01",
+      "QSR02",
+      "QSR03",
+      "QSR04",
+      "QSR05",
+      "QSR06",
+      "QSR07",
+      "QSR08",
+      "QSR09",
+      "QSR10",
+      "QSR11",
+      "QSR12",
+      "QSR13",
+      "QSR14",
+      "QSR15",
+      "QSR16",
+      "QSR17"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The September record contains genuine lean-shell, lossless-storage and exact native execution improvements, alongside severe continuous-audio loss, a consequential1620-cell/formation retirement and a manual restart that lost13 intervals. Candidate78’s known-cue native pressure/self-hearing is real scoped physiology, but calling it speech closed overstates acquired language. The final captured revision records Joe hearing a mostly tonal sound without identifiable articulation. Preserve that progress and its limits; G1 must qualify the actual current preserved-state learned speech chain and identify the first failed boundary, without inventing a decoder or promising impossibility/success."
+  },
+  "task1606_boundary_update": {
+    "at_utc": "2026-10-10T09:48:50.461496+00:00",
+    "record": "task1606-boundary-reconciliation.json",
+    "ids": [
+      "TSR01",
+      "TSR02",
+      "TSR03",
+      "TSR04",
+      "TSR05",
+      "TSR06",
+      "TSR07"
+    ],
+    "documentary_only": false,
+    "current_correspondence_qualified": false,
+    "conclusion": "Task1606 removes the checked retired-controller paths but fails live health/ready. Native computation retains the interpreter lock; one worker is busy while the web thread waits. A fresh-substrate commissioning branch preserves old bytes inertly, which cannot establish active learned-state continuity. Current microphone-only ingress and actual native pressure remain narrower than complete senses and learned speech. G1 must repair/qualify the first real execution and preservation boundaries, then the full acquired speech chain. No impossibility or success promise follows.",
+    "independent_read_only_serving_inspection": true
+  },
+  "latest_independent_serving_inspection": {
+    "task_definition": 1606,
+    "task": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/54d300e31f754c8f913f70b4dd0840f1",
+    "observed_utc": "2026-10-10T11:12–11:19Z",
+    "record": "serving-refresh-20261010T111240Z.json",
+    "health": "ECS HEALTHY; /health timed out and /ready responded in1.637seconds",
+    "two_retired_controller_paths_absent": true,
+    "active_acquired_state_preservation_qualified": false,
+    "learned_speech_qualified": false,
+    "exact_dynamic_root_cause_qualified": false,
+    "read_only": true
+  },
+  "functional_body_history_update": {
+    "at_utc": "2026-10-10T10:27:44.566594+00:00",
+    "record": "functional-body-history-reconciliation.json",
+    "ids": [
+      "FBR01",
+      "FBR02",
+      "FBR03",
+      "FBR04",
+      "FBR05",
+      "FBR06",
+      "FBR07",
+      "FBR08",
+      "FBR09",
+      "FBR10",
+      "FBR11",
+      "FBR12",
+      "FBR13",
+      "FBR14",
+      "FBR15",
+      "FBR16",
+      "FBR17",
+      "FBR18",
+      "FBR19",
+      "FBR20"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The complete body history contains genuine reported physical corrections and explicitly rejected numerical candidates. It does not establish learned speech: the September source flags uncommitted dense association/Python recall-to-syllable logic, later vocal readouts and an unresolved native motor/receptor handoff. The final changed-law body remained unmounted and its paired trajectory reached22.2ms before a resource stop; old-law progress and local cold proofs cannot certify the current organism. G1 must complete the approved preserved-state sensory-learning→retained-state→contextual recall→native articulation→audible output qualification, identify the first actual failure and implement its lawful remedy. Neither guaranteed speech nor permanent impossibility is established. October5functional emulation does not require this entire historical body precursor. The same source explicitly calls the22stream/64choice scalar learner reduced cognition and records destructive unfamiliar-stream migration; these must not be grandfathered into current full-field speech or memory claims."
+  },
+  "ratified_operator_delivery_update": {
+    "at_utc": "2026-10-10T10:31:33.958525+00:00",
+    "record": "ratified-operator-delivery-reconciliation.json",
+    "ids": [
+      "ROR01",
+      "ROR02",
+      "ROR03",
+      "ROR04",
+      "ROR05",
+      "ROR06"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The October1 full-field/sleep/equilibrium report was explicitly retracted. Its32-trit weighted cosine/tanh reader, direct motor injection and overwritten interlocks did not implement the claimed retained physical law; its synthetic50k run did not establish real sleep, zero memory degradation or calibrated energy. Preserve the reported containment/test/package correction and open A10/A11 capability gates. G1 must qualify the actual current preserved-state native chain, including acquired audible expression; this evidence proves neither eventual speech success nor permanent impossibility."
+  },
+  "delivery_history_update": {
+    "at_utc": "2026-10-10T10:48:30.763493+00:00",
+    "record": "delivery-history-reconciliation.json",
+    "ids": [
+      "DLR01",
+      "DLR02",
+      "DLR03",
+      "DLR04",
+      "DLR05",
+      "DLR06",
+      "DLR07",
+      "DLR08",
+      "DLR09",
+      "DLR10",
+      "DLR11",
+      "DLR12",
+      "DLR13",
+      "DLR14",
+      "DLR15",
+      "DLR16",
+      "DLR17",
+      "DLR18",
+      "DLR19",
+      "DLR20",
+      "DLR21",
+      "DLR22"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The delivery history supports genuine physical voice and narrower recognition work, not a qualified acquired intelligible word. It identifies ordinary learned spatial/temporal vocal coordination, finite work recruitment and retained-state expression as open boundaries. A conserved young-motor pump produced no gate or motor effect and was rejected; the already capable organ did not require an added pitch axis for the accepted supplied Mama example. Preserve real physical progress and retractions, and qualify the exact current native experienced-waveform→active retained state→timed articulation→pressure/self-hearing chain. Neither eventual success nor permanent impossibility is established."
+  },
+  "permanent_fix_history_update": {
+    "at_utc": "2026-10-10T10:57:38.719340+00:00",
+    "record": "permanent-fix-history-reconciliation.json",
+    "ids": [
+      "PFR01",
+      "PFR02",
+      "PFR03",
+      "PFR04",
+      "PFR05",
+      "PFR06",
+      "PFR07",
+      "PFR08",
+      "PFR09",
+      "PFR10",
+      "PFR11",
+      "PFR12",
+      "PFR13",
+      "PFR14",
+      "PFR15",
+      "PFR16",
+      "PFR17",
+      "PFR18",
+      "PFR19",
+      "PFR20",
+      "PFR21"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The permanent-fix history explicitly retracts vocal physical-exhaustion claims after finding fixed160phase/16000countdown/no emitted-air debit, then retires that source. It also records repeated coincidence fan-out, missing mature effector authority,200012lostin-flightbytes and false self-hearing labels. Preserve genuine later source/custody/thermal/body repairs without calling them acquired intelligible speech. Native experience-dependent temporal/spatial articulation and current active-state preservation remain unqualified; neither success nor permanent impossibility is proved."
+  },
+  "root_yaw_history_update": {
+    "at_utc": "2026-10-10T11:01:29.517488+00:00",
+    "record": "root-yaw-history-reconciliation.json",
+    "ids": [
+      "RYR01",
+      "RYR02",
+      "RYR03",
+      "RYR04",
+      "RYR05",
+      "RYR06",
+      "RYR07",
+      "RYR08"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "Root-yaw history contains real native action/return progress after repeated explicit source and live failures; it does not establish current open navigation or learned speech. Its narrow final one-carrier turn plus later ticks does not document the original second-distinct-action criterion. Preserve actual typed physical invariants, active state and original test semantics, and qualify ordinary current causation rather than restoring obsolete frontend/controller paths."
+  },
+  "skill_history_update": {
+    "at_utc": "2026-10-10T11:07:03.184144+00:00",
+    "record": "skill-history-reconciliation.json",
+    "ids": [
+      "GSR01",
+      "GSR02",
+      "GSR03",
+      "GSR04",
+      "GSR05",
+      "GSR06",
+      "GSR07",
+      "GSR08",
+      "GSR09",
+      "GSR10",
+      "GSR11",
+      "GSR12"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "Historical skill claims were not a reliable certificate: it explicitly retracts inert hearing, caretaker-touch substitution, fixture-only autonomy and stale-root continuity assumptions. Real narrow camera/native memory progress must remain preserved. Current operating guidance already points to source-bound canonical mechanisms and the preserved-state charter; this history supplies further original contradictions and remedies. Current learned intelligible speech and complete active-state preservation remain unqualified, not proved impossible."
+  },
+  "demonstrator_readme_history_update": {
+    "at_utc": "2026-10-10T11:11:14.708563+00:00",
+    "record": "demonstrator-readme-history-reconciliation.json",
+    "ids": [
+      "DRR01",
+      "DRR02",
+      "DRR03",
+      "DRR04",
+      "DRR05",
+      "DRR06",
+      "DRR07",
+      "DRR08",
+      "DRR09"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The demonstratorREADME advertised multiwordspeech/commands and fullfieldintegration, later reintroduced rejectedphysicalclaims, and finally declares strict component-only refusal with A10/A11 and spoken-command learning unavailable. Exactstorage, a separate neuronclass, authoredinterlocks, profileinputs and expected failures cannot establish learnedspeech. Preserve honest component results and qualify the actual current native retained-state-to-articulation chain; no success or permanent-impossibility verdict follows."
+  },
+  "agents_history_update": {
+    "at_utc": "2026-10-10T11:20:31.421072+00:00",
+    "record": "agents-history-reconciliation.json",
+    "ids": [
+      "AGR01",
+      "AGR02",
+      "AGR03",
+      "AGR04"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The no-heuristic, architecture-honesty and full-field requirements already exist in the earliest indexed April predecessor. Later documentation cannot excuse false speech claims or substitute for actual enforcement. The correct speech verdict remains unqualified: preserve real component achievements and demand the ordinary retained-experience-to-articulation chain; neither inevitable success nor permanent impossibility is proved."
+  },
+  "architecture_boundary_history_update": {
+    "at_utc": "2026-10-10T11:28:29.997218+00:00",
+    "record": "architecture-boundary-history-reconciliation.json",
+    "ids": [
+      "AAR01",
+      "AAR02",
+      "AAR03",
+      "AAR04",
+      "AAR05",
+      "AAR06",
+      "AAR07",
+      "AAR08",
+      "AAR09"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "A dated July audit identifies genuine receptor input ending before downstream neuronal change, while its proposed temporal-constraint recognizer remains explicitly unproved. D2 later established narrow sensory/fractal custody, not learned speech. Preserve those real achievements and rejected physical candidates at their actual scope; qualify the actual current approved retained-state-to-articulation chain rather than infer success or permanent impossibility from either old report."
+  },
+  "w1_closure_source_update": {
+    "at_utc": "2026-10-10T11:34:02.966522+00:00",
+    "record": "w1-closure-source-reconciliation.json",
+    "ids": [
+      "WCR01",
+      "WCR02",
+      "WCR03",
+      "WCR04",
+      "WCR05",
+      "WCR06",
+      "WCR07",
+      "WCR08",
+      "WCR09"
+    ],
+    "documentary_only": true,
+    "current_correspondence_qualified": false,
+    "conclusion": "The current packaged legacy W1 owner is concretely a supervised sign-pair/frequency classifier, and its reduced_approximation=False status contradicts its decision law. It does not implement native material plasticity or articulation. This corrects mechanism claims while preserving exact arithmetic/integrity results. Presence is verified, active invocation is not; neither current learned speech nor permanent speech impossibility is established."
+  },
+  "selected_shared_ledger_claim_correction": {
+    "at_utc": "2026-10-10T11:48:00.406717+00:00",
+    "record": "shared-ledger-claim-corrections.json",
+    "complete_ledger_review": false,
+    "activation_inferred": false
+  },
+  "acoustic_authority_correction": {
+    "record": "speech-acoustic-authority-correction.json",
+    "status": "No impossibility or learned-speech qualification; external reference separated from pupil control.",
+    "at_utc": "2026-10-10T12:06:01.717146+00:00"
+  },
+  "serving_thread_attribution_precision": "Process/thread CPU and futex observations are measured; executing stack/program counter not captured. Specific native-call attribution remains inference.",
+  "shared_ledger_boundary_corroboration": {
+    "record": "shared-ledger-speech-boundary-reconciliation.json",
+    "at_utc": "2026-10-10T12:23:07.543835+00:00",
+    "current_capability_qualified": false
+  },
+  "reconciliation_implementation_handoff": {
+    "at_utc": "2026-10-10T14:01:01.708827+00:00",
+    "authority": "docs/GUALA_CANONICAL_RECONCILIATION.md",
+    "speech_implementation_supported": true,
+    "invariant_impossibility_established": false,
+    "work_orders": [
+      "A03",
+      "A06",
+      "A09",
+      "A10",
+      "A14"
+    ],
+    "product_execution": false,
+    "schedule": "Original allowance unvalidated; 5–10-week delivery forecast withdrawn. No promised learned-speech date."
+  }
+}

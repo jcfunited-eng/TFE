@@ -1,0 +1,282 @@
+{
+  "schema": "guala.aurelion_serialized_artifact_structure.v1",
+  "scope": "Complete structural/numeric traversal of two captured Git blobs; not full semantic content review, provenance authentication, native memory restore, product execution or current activation proof.",
+  "reports": [
+    {
+      "source": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/20251109_152133--language_memory.json",
+      "sha256": "12fcd7b86fe8f6d99d3cbfd728bd07da0b5098525ff6f6018a28324449ad6259",
+      "bytes": 7620088,
+      "lines": 349715,
+      "root_keys": [
+        "visual",
+        "auditory",
+        "smell",
+        "taste",
+        "touch",
+        "emotion",
+        "lexical"
+      ],
+      "duplicate_object_keys": 0,
+      "modalities": [
+        {
+          "modality": "visual",
+          "tokens": 6994,
+          "dimensions": {
+            "8": 6994
+          },
+          "all_zero_vectors": 0,
+          "non_vector_values": 0,
+          "numeric_values": 55952,
+          "non_numeric_values": 0,
+          "nonfinite_values": 0,
+          "negative_values": 0,
+          "minimum": 3.749716897489985e-05,
+          "maximum": 0.8326418248602632
+        },
+        {
+          "modality": "auditory",
+          "tokens": 6994,
+          "dimensions": {
+            "8": 6994
+          },
+          "all_zero_vectors": 0,
+          "non_vector_values": 0,
+          "numeric_values": 55952,
+          "non_numeric_values": 0,
+          "nonfinite_values": 0,
+          "negative_values": 0,
+          "minimum": 0.0005388459866677887,
+          "maximum": 0.8595994751543364
+        },
+        {
+          "modality": "smell",
+          "tokens": 6994,
+          "dimensions": {
+            "6": 6994
+          },
+          "all_zero_vectors": 0,
+          "non_vector_values": 0,
+          "numeric_values": 41964,
+          "non_numeric_values": 0,
+          "nonfinite_values": 0,
+          "negative_values": 0,
+          "minimum": 0.00010491729034880683,
+          "maximum": 0.9564545109559427
+        },
+        {
+          "modality": "taste",
+          "tokens": 6994,
+          "dimensions": {
+            "4": 6994
+          },
+          "all_zero_vectors": 0,
+          "non_vector_values": 0,
+          "numeric_values": 27976,
+          "non_numeric_values": 0,
+          "nonfinite_values": 0,
+          "negative_values": 0,
+          "minimum": 0.000326004140456,
+          "maximum": 0.9968159504965977
+        },
+        {
+          "modality": "touch",
+          "tokens": 6994,
+          "dimensions": {
+            "4": 6994
+          },
+          "all_zero_vectors": 0,
+          "non_vector_values": 0,
+          "numeric_values": 27976,
+          "non_numeric_values": 0,
+          "nonfinite_values": 0,
+          "negative_values": 0,
+          "minimum": 8.803267873975959e-05,
+          "maximum": 0.9880128327280863
+        },
+        {
+          "modality": "emotion",
+          "tokens": 6994,
+          "dimensions": {
+            "8": 6994
+          },
+          "all_zero_vectors": 0,
+          "non_vector_values": 0,
+          "numeric_values": 55952,
+          "non_numeric_values": 0,
+          "nonfinite_values": 0,
+          "negative_values": 1221,
+          "minimum": -0.9941831231117249,
+          "maximum": 0.9999999403953552
+        },
+        {
+          "modality": "lexical",
+          "tokens": 0,
+          "dimensions": {},
+          "all_zero_vectors": 0,
+          "non_vector_values": 0,
+          "numeric_values": 0,
+          "non_numeric_values": 0,
+          "nonfinite_values": 0,
+          "negative_values": 0,
+          "minimum": null,
+          "maximum": null
+        }
+      ],
+      "all_nonempty_modalities_same_tokens": true
+    },
+    {
+      "source": "backups/runtime/a1-speech-reconciliation-20261010/aurelion-content/20251109_153751--language_memory.json",
+      "sha256": "34c8cf837abea25e5ac664461295373733c0f8eb107d0d29cba2dc738efd7be6",
+      "bytes": 11019687,
+      "lines": 546124,
+      "root_keys": [
+        "visual",
+        "auditory",
+        "smell",
+        "taste",
+        "touch",
+        "emotion",
+        "lexical"
+      ],
+      "duplicate_object_keys": 0,
+      "modalities": [
+        {
+          "modality": "visual",
+          "tokens": 8031,
+          "dimensions": {
+            "8": 8031
+          },
+          "all_zero_vectors": 1318,
+          "non_vector_values": 0,
+          "numeric_values": 64248,
+          "non_numeric_values": 0,
+          "nonfinite_values": 0,
+          "negative_values": 0,
+          "minimum": 0.0,
+          "maximum": 0.028194215148687363
+        },
+        {
+          "modality": "auditory",
+          "tokens": 8031,
+          "dimensions": {
+            "8": 8031
+          },
+          "all_zero_vectors": 4457,
+          "non_vector_values": 0,
+          "numeric_values": 64248,
+          "non_numeric_values": 0,
+          "nonfinite_values": 0,
+          "negative_values": 0,
+          "minimum": 0.0,
+          "maximum": 0.01905043050646782
+        },
+        {
+          "modality": "smell",
+          "tokens": 8031,
+          "dimensions": {
+            "6": 8031
+          },
+          "all_zero_vectors": 7870,
+          "non_vector_values": 0,
+          "numeric_values": 48186,
+          "non_numeric_values": 0,
+          "nonfinite_values": 0,
+          "negative_values": 0,
+          "minimum": 0.0,
+          "maximum": 0.004988847300410271
+        },
+        {
+          "modality": "taste",
+          "tokens": 8031,
+          "dimensions": {
+            "4": 8031
+          },
+          "all_zero_vectors": 6169,
+          "non_vector_values": 0,
+          "numeric_values": 32124,
+          "non_numeric_values": 0,
+          "nonfinite_values": 0,
+          "negative_values": 0,
+          "minimum": 0.0,
+          "maximum": 0.011040551587939262
+        },
+        {
+          "modality": "touch",
+          "tokens": 8031,
+          "dimensions": {
+            "4": 8031
+          },
+          "all_zero_vectors": 4039,
+          "non_vector_values": 0,
+          "numeric_values": 32124,
+          "non_numeric_values": 0,
+          "nonfinite_values": 0,
+          "negative_values": 0,
+          "minimum": 0.0,
+          "maximum": 0.0256483294069767
+        },
+        {
+          "modality": "emotion",
+          "tokens": 8031,
+          "dimensions": {
+            "8": 8031
+          },
+          "all_zero_vectors": 3935,
+          "non_vector_values": 0,
+          "numeric_values": 64248,
+          "non_numeric_values": 0,
+          "nonfinite_values": 0,
+          "negative_values": 0,
+          "minimum": 0.0,
+          "maximum": 0.02272256277501583
+        },
+        {
+          "modality": "lexical",
+          "tokens": 8031,
+          "dimensions": {
+            "16": 8031
+          },
+          "all_zero_vectors": 0,
+          "non_vector_values": 0,
+          "numeric_values": 128496,
+          "non_numeric_values": 0,
+          "nonfinite_values": 0,
+          "negative_values": 0,
+          "minimum": 0.00037631046143360436,
+          "maximum": 0.999997615814209
+        }
+      ],
+      "all_nonempty_modalities_same_tokens": true
+    }
+  ],
+  "token_key_changes": {
+    "visual": {
+      "removed": 1217,
+      "added": 2254
+    },
+    "auditory": {
+      "removed": 1217,
+      "added": 2254
+    },
+    "smell": {
+      "removed": 1217,
+      "added": 2254
+    },
+    "taste": {
+      "removed": 1217,
+      "added": 2254
+    },
+    "touch": {
+      "removed": 1217,
+      "added": 2254
+    },
+    "emotion": {
+      "removed": 1217,
+      "added": 2254
+    },
+    "lexical": {
+      "removed": 0,
+      "added": 8031
+    }
+  }
+}

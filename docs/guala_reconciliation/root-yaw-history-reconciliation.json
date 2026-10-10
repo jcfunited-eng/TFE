@@ -1,0 +1,906 @@
+{
+  "schema": "guala.documentary_slice_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T11:01:29.517488+00:00",
+  "scope": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "RY001",
+      "path": "docs/GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "git_blob": "610cdd8d9a8077d4fdf8e7ee9af00fd0f9fcb16b",
+      "sha256": "6b43d65a24962d53b44e4355046d36b2e0d09f1da07fc6f68cf815d4f23e3b04",
+      "bytes": 6891,
+      "lines": 128,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/root-yaw-history/RY001--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-27T15:53:04+00:00",
+          "commit": "8bb2a670c181789027f41ef62dd940b4e799818a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-27T15:48:49+00:00",
+          "commit": "4e3b1bdba3d76d666f53d49f4a7853b533db1112",
+          "side": "new"
+        }
+      ],
+      "review": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/root-yaw-history/RY001--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md"
+    },
+    {
+      "id": "RY002",
+      "path": "docs/GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "git_blob": "28b4816d9bcc70421ad19594c2003281159d5786",
+      "sha256": "b1c4f16453f7e5f24f90299fb7b4fff40b5ca3e18c27f0b0fabcee554a79e115",
+      "bytes": 10541,
+      "lines": 158,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/root-yaw-history/RY002--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-27T15:59:20+00:00",
+          "commit": "d93f3ba52ffe36c721d3dadecb2c9d531893f877",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-27T15:53:04+00:00",
+          "commit": "8bb2a670c181789027f41ef62dd940b4e799818a",
+          "side": "new"
+        }
+      ],
+      "review": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/root-yaw-history/RY002--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md"
+    },
+    {
+      "id": "RY003",
+      "path": "docs/GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "git_blob": "e49dc10abad8518d828b31dd90697428882b1446",
+      "sha256": "27c74c37dec44615a77aa95bef817c1e29608b2d76b0c71b0ae7c80ccd78227f",
+      "bytes": 10887,
+      "lines": 159,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/root-yaw-history/RY003--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-27T16:06:00+00:00",
+          "commit": "f2645b8e46cc439a916ff6fa8c79e0a4a9dc223d",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-27T15:59:20+00:00",
+          "commit": "d93f3ba52ffe36c721d3dadecb2c9d531893f877",
+          "side": "new"
+        }
+      ],
+      "review": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/root-yaw-history/RY003--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md"
+    },
+    {
+      "id": "RY004",
+      "path": "docs/GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "git_blob": "f2b8124caeedf0e5539d8530a53c4a8409dd575f",
+      "sha256": "95e3abb456aa5442e0c4ca21152c49a8313b87d0f48ffb53aec87176d6fbed1b",
+      "bytes": 12379,
+      "lines": 184,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/root-yaw-history/RY004--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-27T16:12:58+00:00",
+          "commit": "a80147d64a6e9326f9eb4ccaabf921663574034f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-27T16:06:00+00:00",
+          "commit": "f2645b8e46cc439a916ff6fa8c79e0a4a9dc223d",
+          "side": "new"
+        }
+      ],
+      "review": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/root-yaw-history/RY004--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md"
+    },
+    {
+      "id": "RY005",
+      "path": "docs/GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "git_blob": "77557f07c3f680ec90c876c8191dc134bd526df5",
+      "sha256": "12c604e1d506a8691dbc482e97e99a25d17713206b4e0b67c94068a044f83b70",
+      "bytes": 12873,
+      "lines": 192,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/root-yaw-history/RY005--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-27T16:34:58+00:00",
+          "commit": "13e627e7104c6fe3ce369d2323080fa08f30e911",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-27T16:12:58+00:00",
+          "commit": "a80147d64a6e9326f9eb4ccaabf921663574034f",
+          "side": "new"
+        }
+      ],
+      "review": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/root-yaw-history/RY005--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md"
+    },
+    {
+      "id": "RY006",
+      "path": "docs/GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "git_blob": "c5500b3b97ecb336a09f186a0e0043341746499a",
+      "sha256": "db860a04437f2faec18d1c0583fed056441d268737b7092a40f9e0816554f007",
+      "bytes": 13693,
+      "lines": 204,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/root-yaw-history/RY006--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-27T19:11:35+00:00",
+          "commit": "a5a82cb62c196c6ab5a1db67322087f8d2ffe0b6",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-27T16:34:58+00:00",
+          "commit": "13e627e7104c6fe3ce369d2323080fa08f30e911",
+          "side": "new"
+        }
+      ],
+      "review": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/root-yaw-history/RY006--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md"
+    },
+    {
+      "id": "RY007",
+      "path": "docs/GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "git_blob": "89a6d05690532593107a4a94cfb4828a66d023d3",
+      "sha256": "5db03a634025837c97274c38338d103a82ea843ac363f224608867f97b27646f",
+      "bytes": 16728,
+      "lines": 249,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/root-yaw-history/RY007--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-27T19:37:48+00:00",
+          "commit": "0d40506f89b7f216cca52943334e0b71b9848d66",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-27T19:11:35+00:00",
+          "commit": "a5a82cb62c196c6ab5a1db67322087f8d2ffe0b6",
+          "side": "new"
+        }
+      ],
+      "review": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/root-yaw-history/RY007--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md"
+    },
+    {
+      "id": "RY008",
+      "path": "docs/GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "git_blob": "c9798141ea37e7e69e569b4e8b08413ae76cef1b",
+      "sha256": "01af94a92e3c4c48a4f2dc7d87955eb5122e1d2e49a7822344f68d39220f5191",
+      "bytes": 18964,
+      "lines": 282,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/root-yaw-history/RY008--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-27T19:51:42+00:00",
+          "commit": "f3b11a5b7e0b6839cb2e1497df07c821d6d52e75",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-27T19:37:48+00:00",
+          "commit": "0d40506f89b7f216cca52943334e0b71b9848d66",
+          "side": "new"
+        }
+      ],
+      "review": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/root-yaw-history/RY008--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md"
+    },
+    {
+      "id": "RY009",
+      "path": "docs/GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "git_blob": "3fc3a7ad035fc8581f2e148c3256f70e617f24bf",
+      "sha256": "8486c740c401483272cc3ea766ebc2ba12d51909fc4bd5093ec22ae14ae0fd31",
+      "bytes": 20318,
+      "lines": 303,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/root-yaw-history/RY009--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-27T20:12:21+00:00",
+          "commit": "93b235874a3ea7a8ce0df0180975ae0a84055b17",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-27T19:51:42+00:00",
+          "commit": "f3b11a5b7e0b6839cb2e1497df07c821d6d52e75",
+          "side": "new"
+        }
+      ],
+      "review": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/root-yaw-history/RY009--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md"
+    },
+    {
+      "id": "RY010",
+      "path": "docs/GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "git_blob": "45d19390055093acdb95cc96f065f934138c0e37",
+      "sha256": "c11ab576a26f3e6a6344a381e470dbe2f15a12e694b07cb12394a677b60e3cb4",
+      "bytes": 22815,
+      "lines": 340,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/root-yaw-history/RY010--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-27T20:26:07+00:00",
+          "commit": "d5837de1816aff153634e79399ec821b8b68405c",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-27T20:12:21+00:00",
+          "commit": "93b235874a3ea7a8ce0df0180975ae0a84055b17",
+          "side": "new"
+        }
+      ],
+      "review": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/root-yaw-history/RY010--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md"
+    },
+    {
+      "id": "RY011",
+      "path": "docs/GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "git_blob": "f117597e9d51eae08ffb259c54cff2b23f6b4791",
+      "sha256": "441711b2a7cb479722f5b111d92761075f0e099efabd6150c424c1e20f56bc1a",
+      "bytes": 23788,
+      "lines": 354,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/root-yaw-history/RY011--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-27T20:57:42+00:00",
+          "commit": "5098e6b39cd6f5cd4bc2af40ad32d39ac90e3b14",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-27T20:26:07+00:00",
+          "commit": "d5837de1816aff153634e79399ec821b8b68405c",
+          "side": "new"
+        }
+      ],
+      "review": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/root-yaw-history/RY011--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md"
+    },
+    {
+      "id": "RY012",
+      "path": "docs/GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "git_blob": "008b247bf5bbfeeb06029e64be5cec889101071b",
+      "sha256": "ba9e2a2ee693261f21f71ea4906ecc776ef5505711835b47f413979ee8268969",
+      "bytes": 26047,
+      "lines": 388,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/root-yaw-history/RY012--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-27T21:37:39+00:00",
+          "commit": "a2424e23643a8999753cdf50947bd59039c55fd6",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-27T20:57:42+00:00",
+          "commit": "5098e6b39cd6f5cd4bc2af40ad32d39ac90e3b14",
+          "side": "new"
+        }
+      ],
+      "review": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/root-yaw-history/RY012--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md"
+    },
+    {
+      "id": "RY013",
+      "path": "docs/GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "git_blob": "c799088962487c933dc38dc2fd353df526c202f9",
+      "sha256": "2da096562677dea8fec48b99fa46ea2d568ef578e736a2a1b70c4595d83245a9",
+      "bytes": 27151,
+      "lines": 403,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/root-yaw-history/RY013--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-27T22:03:25+00:00",
+          "commit": "40a0222cdc803666266712bef24ab8af444a2f51",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-27T21:37:39+00:00",
+          "commit": "a2424e23643a8999753cdf50947bd59039c55fd6",
+          "side": "new"
+        }
+      ],
+      "review": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/root-yaw-history/RY013--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md"
+    },
+    {
+      "id": "RY014",
+      "path": "docs/GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "git_blob": "9940063bdfc5b0f172b1075ea17811b1d547856a",
+      "sha256": "67d6aa3329dd41d36fb118a33f798cd8d10fe90de798f24fbf776bfae52eb6fb",
+      "bytes": 29221,
+      "lines": 434,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/root-yaw-history/RY014--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-27T22:47:43+00:00",
+          "commit": "c8f84bd1c6e32704e78389078376564c0b45259c",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-27T22:03:25+00:00",
+          "commit": "40a0222cdc803666266712bef24ab8af444a2f51",
+          "side": "new"
+        }
+      ],
+      "review": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/root-yaw-history/RY014--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md"
+    },
+    {
+      "id": "RY015",
+      "path": "docs/GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "git_blob": "1fccd143c3e1e299667f699a183999dee6840862",
+      "sha256": "fdbe727dd00de5e88111e92101b06cbe9285d1d10b8d6a5d7fc18d433ed34db0",
+      "bytes": 31619,
+      "lines": 470,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/root-yaw-history/RY015--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T00:20:22+00:00",
+          "commit": "7e07c031f3a19c93f59280f6b442ea78e25003dd",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-27T22:47:43+00:00",
+          "commit": "c8f84bd1c6e32704e78389078376564c0b45259c",
+          "side": "new"
+        }
+      ],
+      "review": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/root-yaw-history/RY015--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md"
+    },
+    {
+      "id": "RY016",
+      "path": "docs/GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "git_blob": "0f61392ec49573e5da744d72f26053248d028b5f",
+      "sha256": "cb69cd1eb98df2b7219eb002b266ffc1c776cf07313217e053c9ca47565ef559",
+      "bytes": 33702,
+      "lines": 500,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/root-yaw-history/RY016--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T00:50:57+00:00",
+          "commit": "cb8d50193012b26bfddb417847fb2b4bee223649",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T00:20:22+00:00",
+          "commit": "7e07c031f3a19c93f59280f6b442ea78e25003dd",
+          "side": "new"
+        }
+      ],
+      "review": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/root-yaw-history/RY016--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md"
+    },
+    {
+      "id": "RY017",
+      "path": "docs/GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "git_blob": "570d3f2858bee9ab94efc2781e02e7cd4e11aab5",
+      "sha256": "0ed4c7e265eda88cebd6073316551b441cde7232f138a5cceb01aadb0692bf6c",
+      "bytes": 35828,
+      "lines": 533,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/root-yaw-history/RY017--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T01:10:28+00:00",
+          "commit": "0931c5f2b13ab3cce8afb3d36b7f6b21e0d380bb",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T00:50:57+00:00",
+          "commit": "cb8d50193012b26bfddb417847fb2b4bee223649",
+          "side": "new"
+        }
+      ],
+      "review": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/root-yaw-history/RY017--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md"
+    },
+    {
+      "id": "RY018",
+      "path": "docs/GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "git_blob": "ae53fd9e74f8dbcff6c88cbcb1ffcd60bb855440",
+      "sha256": "ace0b5f97c557677fabb47b96d331d7c3fc12a5c7f72b2724e4644093c7930e5",
+      "bytes": 37337,
+      "lines": 556,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/root-yaw-history/RY018--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T01:21:17+00:00",
+          "commit": "5e66b03552d279b5793455c3288aab5e991f7657",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-28T01:10:28+00:00",
+          "commit": "0931c5f2b13ab3cce8afb3d36b7f6b21e0d380bb",
+          "side": "new"
+        }
+      ],
+      "review": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/root-yaw-history/RY018--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md"
+    },
+    {
+      "id": "RY019",
+      "path": "docs/GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "git_blob": "bb5b40ba3dbfed9d1dee45326c50ac9f631aa4fc",
+      "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b",
+      "bytes": 38582,
+      "lines": 574,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+      "observations": [
+        {
+          "author_time": "2026-08-28T01:21:17+00:00",
+          "commit": "5e66b03552d279b5793455c3288aab5e991f7657",
+          "side": "new"
+        }
+      ],
+      "review": "Complete19captured versions/one path,574latestlines and one7lineolder-onlypassage read; all hashes/reconstruction verified. Original execution/approval/test-semantic/current64column evidence remains separately open. No product execution or current live refresh.",
+      "canonical_copy": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "RYR01",
+      "name": "Typed root embodiment versus Python direction selection",
+      "classification": "requested_native_path_with_declared_virtual_units",
+      "historical_requirement_or_mechanism": "Initial runtime settled37local axes but forced four root coordinates tozero/root_motionfalse. Contract uses typed retained antagonist terminal, exact own-carrier discharge and declared1millidegree virtual lattice quantum, sole world heading and applicable sensory return; parity/topology/semantic/Python yaw mapping is expressly rejected.",
+      "current_disposition": "The declared virtual kinematic quantum is not by itself a derivation of physical torque/energy or original approval. Current64column correspondence and bounded functional emulation require qualification, not resurrection of the old app.",
+      "lawful_remedy": "Preserve explicit native terminal identity, one world pose owner and lawful action/sense coupling. Bind virtual units and work accounting to the approved functional body law; prohibit arbitrary sign/parity or a Python-selected direction.",
+      "unit_acceptance": "Verify opposite/zero/tampered terminal and carrier/work accounting under declared units.",
+      "module_acceptance": "Trace ordinary native discharge into prepared world and complete same-organism sensory successor with no action-policy authority in transport.",
+      "system_acceptance": "Demonstrate preserved-state unattended navigation and returned actual sensory change; tutor-authored motion remains a declared stimulus only.",
+      "release_acceptance": "Bind each surviving invariant to exact current source/binary/active preserved state and ordinary callers, then independent live trajectory/resource proof. Historical commands and fixes are evidence, not present authorization or current causal diagnosis. No product execution or speech/system/ML-free certificate.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A08",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 12,
+          "anchor": "Input is one positive whole-carrier discharge from an internally reached,",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 32,
+          "anchor": "2. Current code reality: native action settles only the 37 local articulated",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 49,
+          "anchor": "- **Physical input authority:** positive whole-carrier outward discharge from",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 55,
+          "anchor": "- **Magnitude:** opposing terminal carriers cancel exactly; remaining whole",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 61,
+          "anchor": "- **Conservation:** no neuronal carrier is copied. Discharged carrier counts",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        }
+      ]
+    },
+    {
+      "id": "RYR02",
+      "name": "Serial frontier certificates and causal direction mistakes",
+      "classification": "repeated_candidate_failures_then_direct_physical_authority",
+      "historical_requirement_or_mechanism": "Tasks1273–1277 failed to retain a root motor despite focused passes. Same-interval receptor/regulation requirement conflicted with one-contact-per-interval propagation. Revisions confused carrier sign with causal advance, then exact76,203,478bytebody showed zero relevant frontier entries across958/1713/958entries: demanded certificate was not emitted.",
+      "current_disposition": "A theoretically plausible joined certificate cannot govern a path whose ordinary producer never supplies it. Later current head lacks expired interval-local evidence; no missing transient fact can be guessed.",
+      "lawful_remedy": "Use approved actual typed changed receptor and paired reached regulation with validated physical contacts, as the historical replacement did. In current architecture trace actual authoritative causes and reject absent/ambiguous evidence rather than widening certificates or inventing bridges.",
+      "unit_acceptance": "Check physical endpoint versus canonical identity order, reverse charge direction, missing/ambiguous/opposite cause and correct changed/reached pair.",
+      "module_acceptance": "Exercise the ordinary producer/consumer through real temporal shape and complete active successor; fixtures must not manufacture the missing certificate.",
+      "system_acceptance": "Observe actual native route formation and useful action from preserved state with current cause telemetry, not HTTP200, broad stimulation or later counts alone.",
+      "release_acceptance": "Bind each surviving invariant to exact current source/binary/active preserved state and ordinary callers, then independent live trajectory/resource proof. Historical commands and fixes are evidence, not present authorization or current causal diagnosis. No product execution or speech/system/ML-free certificate.",
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A06",
+        "A08",
+        "A09",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 267,
+          "anchor": "- **Exact second defect:** directional root evidence and layer-8 arrival were",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 290,
+          "anchor": "- Read-only CURRENT neuron evidence identified the two retained root chains.",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 315,
+          "anchor": "- **Exact remaining source defect:** `next_active_frontier` correctly marks the",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 341,
+          "anchor": "- **Live result — rejected:** commit",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 369,
+          "anchor": "- The exact 76,203,478-byte generation was recovered from immutable custody",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 375,
+          "anchor": "- The governing A-013 contract already supplies the direct physical authority:",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        }
+      ]
+    },
+    {
+      "id": "RYR03",
+      "name": "Contact sign, motor preparation and membrane-owned discharge",
+      "classification": "distinct_physical_boundaries_corrected",
+      "historical_requirement_or_mechanism": "Task1279 finally retained75motors but incoming regulation preparation made net outward contact flow negative, so an impossible positive-contact predicate prevented recruitment. Later evidence also reversed current by confusing canonical bond order with physical electrical endpoints. Corrected membrane discharge remains distinct from contact preparation and passive return.",
+      "current_disposition": "A route can be stored and still unable to act. Fixing an evidence sign does not create missing motor work, and incoming charge must not be relabeled as efferent output.",
+      "lawful_remedy": "Carry the exact already-settled local membrane transport and physical endpoint orientation through native evidence. Implement only the approved own-carrier terminal law, finite energy/heat and positive retained displacement; no contact-current action proxy.",
+      "unit_acceptance": "Check positive/negative/zero preparation, deliberately reversed canonical ordering, exact work descent and no carrier duplication.",
+      "module_acceptance": "Trace actual local motor transition, typed terminal and world consequence across all aggregators.",
+      "system_acceptance": "Demonstrate real untreated native action and retained use on the current organism, with complete return and no false motor counters.",
+      "release_acceptance": "Bind each surviving invariant to exact current source/binary/active preserved state and ordinary callers, then independent live trajectory/resource proof. Historical commands and fixes are evidence, not present authorization or current causal diagnosis. No product execution or speech/system/ML-free certificate.",
+      "repair_actions": [
+        "A04",
+        "A08",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 418,
+          "anchor": "- **Exact remaining physics defect:** motor preparation requires contact",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 424,
+          "anchor": "- **Frozen correction:** `complete_neuron.rs` now carries the already-settled",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 478,
+          "anchor": "- The same replay exposed an independent evidence defect: contact settlement",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 508,
+          "anchor": "- The accepted source candidate instead gives an explicitly mounted effector",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        }
+      ]
+    },
+    {
+      "id": "RYR04",
+      "name": "Anatomical projection, missing efferent specialization and wake event",
+      "classification": "successive_real_blockers_not_gain_tuning",
+      "historical_requirement_or_mechanism": "GenericCantorprojection gave93824443pFregulation and3.62e-7carrier/ms, nextcrossing2.76millionclocks. Compactdeclaredplacesyield37120–37393pF. Motor then heldsevenchargesbutgatehadzeroopeningdrives. Passive-returncandidatecrossing20143intervalsawayfailed; distinctterminalworkedoncopiedreachedfrontierbuttask1282stilllackeditsownwakeevent.",
+      "current_disposition": "These are separate historical boundaries, not proof of the present turn-left loop or a license to choose capacitance/gain for desired action. Broad receptor activation masked ordinary scheduler reachability.",
+      "lawful_remedy": "Preserve lawful explicit anatomy and specialized terminal work path with authorized parameters. Schedule actual due local terminal state through the single native event owner; no arbitrary heartbeat, full scan or unrelated-contact wake dependency.",
+      "unit_acceptance": "Verify disjoint typed mapping, approved material parameters, one-way retirement and exact charged/neutral/negative scheduling conditions.",
+      "module_acceptance": "Use ordinary unattended frontier and real current-state restore; prove terminal wakes without broad external stimulation and reschedules from its actual successor.",
+      "system_acceptance": "Measure sustained native trajectory, distinct self-directed actions and sensory returns with bounded work/latency; no artificial escape behavior.",
+      "release_acceptance": "Bind each surviving invariant to exact current source/binary/active preserved state and ordinary callers, then independent live trajectory/resource proof. Historical commands and fixes are evidence, not present authorization or current causal diagnosis. No product execution or speech/system/ML-free certificate.",
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A08",
+        "A09",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 446,
+          "anchor": "- Read-only CURRENT inspection proved the retained root motor lineage",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 455,
+          "anchor": "- Source tracing proved both fixed root-yaw endings were omitted from the",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 493,
+          "anchor": "- **Remaining exact blocker:** a mounted intrinsic effector is still an",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 504,
+          "anchor": "- The first local candidate tried to use the already-ratified passive membrane",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 543,
+          "anchor": "- The copied-body proof had reached every external receptor before contact",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 551,
+          "anchor": "- Exact correction: the existing per-neuron local membrane schedule now places",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        }
+      ]
+    },
+    {
+      "id": "RYR05",
+      "name": "Typed growth, world transaction and persistence adoption",
+      "classification": "connected_boundary_defects_despite_local_passes",
+      "historical_requirement_or_mechanism": "Nested consequence input caused a committed world turn then cognition refusal. Later lawful root neuron growth1,373→1,374was rolled back because seal validator required everyL12tohaveanarticulatedterminal. Corrected exactly-one typed articulated/root authority retains75motors through cold restore.",
+      "current_disposition": "A successful native calculation or world mutation is not a valid paired commit. Current state preservation must include real active anatomy and world/history, not merely equalUUID.",
+      "lawful_remedy": "Keep native version/type authority and prepare both world/organism consequences before visible commit; failure must preserve their exact pairing. Validate all changed type constructors, aggregators, persistence and cold next-step routes.",
+      "unit_acceptance": "Reject missing/mixed/duplicate terminal authority and invalid input shape before partial visible mutation.",
+      "module_acceptance": "Exercise actual mature-body growth, complete world return, canonical seal and fresh-process next interval with exact state correspondence.",
+      "system_acceptance": "Release only from authenticated latest predecessor with zero overlapping writers and preserved acquired function, then independently verify continued causal use.",
+      "release_acceptance": "Bind each surviving invariant to exact current source/binary/active preserved state and ordinary callers, then independent live trajectory/resource proof. Historical commands and fixes are evidence, not present authorization or current causal diagnosis. No product execution or speech/system/ML-free certificate.",
+      "repair_actions": [
+        "A03",
+        "A08",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 64,
+          "anchor": "- **Preparation/commit:** native cognition and root drive are prepared first;",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 189,
+          "anchor": "The first replay found RF-057: the world committed a one-millidegree turn but",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 196,
+          "anchor": "The exact successor was then sealed and cold-restored. After 24 unattended",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 389,
+          "anchor": "- Commit `5098e6b39cd6f5cd4bc2af40ad32d39ac90e3b14` deployed as sole",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 398,
+          "anchor": "- The seal validator was stale: it required every layer-12 neuron to carry an",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 407,
+          "anchor": "- Commit `a2424e23643a8999753cdf50947bd59039c55fd6` is live as sole task",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        }
+      ]
+    },
+    {
+      "id": "RYR06",
+      "name": "Changed regression expectations versus a genuine assembly bug",
+      "classification": "reported_test_reconciliation_requires_original_semantics",
+      "historical_requirement_or_mechanism": "OlderRY005reports501pass/5fail/10ignoredas inherited release drift left outside scope. Latest156–165 instead reports repairing stale scheduler/history expectations plus a real defect merging distinct three-sense assemblies sharing two members; later658tests pass.",
+      "current_disposition": "A corrected test can be justified or can mask a failure. The ledger assertion alone does not establish that every changed predicate preserves the original requirement. Exact source/test/approval transitions remain necessary.",
+      "lawful_remedy": "Retain original failures and classify each change against ratified mechanism: legitimate obsolete expectation, test defect or real implementation defect. Preserve exact full assembly identity without inventing cognitive success from test totals.",
+      "unit_acceptance": "Prove distinct multisensory assemblies remain distinct and actual same assembly matches; preserve original negative controls.",
+      "module_acceptance": "Review every changed assertion against exact predecessor/candidate ordinary behavior and original authority, not just green totals.",
+      "system_acceptance": "Qualify current integrated sensory/memory/action behavior on preserved state and carry unresolved inherited failures honestly.",
+      "release_acceptance": "Bind each surviving invariant to exact current source/binary/active preserved state and ordinary callers, then independent live trajectory/resource proof. Historical commands and fixes are evidence, not present authorization or current causal diagnosis. No product execution or speech/system/ML-free certificate.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A06",
+        "A09",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "RY005",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY005--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 155,
+          "anchor": "The final candidate full native library gate executed 506 tests: 501 passed,",
+          "sha256": "12c604e1d506a8691dbc482e97e99a25d17713206b4e0b67c94068a044f83b70"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 156,
+          "anchor": "The first final-candidate native library gate executed 506 tests: 501 passed,",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 161,
+          "anchor": "histories are no longer mislabeled as different organism physics; and one real",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 167,
+          "anchor": "The first controller attempt stopped before rehearsal because the standalone",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        }
+      ]
+    },
+    {
+      "id": "RYR07",
+      "name": "Reported native root action versus broad autonomy acceptance",
+      "classification": "narrow_live_positive_with_remaining_original_scope",
+      "historical_requirement_or_mechanism": "Task1283reportsonepositivecarrier→+1millidegree→fullapplicableconsequence→sameidentityandlateradvancement;nativeaction/consequence1514.4ms. Original20–24alsoasksalaterdistinctunattendedrootaction;finalsummarynarrows to action/return/continuedlife and explicitly leavesbroaderembodimentopen.",
+      "current_disposition": "The final passage does not provide a second distinct root-action witness or full open navigation. This is a scoped evidence gap, not proof that another action never occurred. Neither current loop cause nor current250ms performance follows.",
+      "lawful_remedy": "Preserve the genuine narrow reported action. Recover exact original acceptance/any approved narrowing and require independent sustained trajectory, varied native cause and useful sensory return on actual current state.",
+      "unit_acceptance": "Check exact action receipt and applicable sensor identities without tutor or observer selection.",
+      "module_acceptance": "Verify preserved successor and ordinary autonomous next action causally rather than interpreting mere tick advancement as another turn.",
+      "system_acceptance": "Perform authorized extended continuous current telemetry with trajectory/time/source/caretaker attribution; report any attractor or stall and its first evidenced boundary.",
+      "release_acceptance": "Bind each surviving invariant to exact current source/binary/active preserved state and ordinary callers, then independent live trajectory/resource proof. Historical commands and fixes are evidence, not present authorization or current causal diagnosis. No product execution or speech/system/ML-free certificate.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A08",
+        "A09",
+        "A12",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 20,
+          "anchor": "Live acceptance requires an unattended retained or newly formed physical",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 202,
+          "anchor": "No unattended root discharge occurred in those 28 sampled moments. This proves",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 215,
+          "anchor": "- **Live contradiction:** after one tutor-authored signed turn, twelve passive",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 561,
+          "anchor": "- Its first measured live action interval reported 1,514.4 ms of native",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 570,
+          "anchor": "- Later unattended settlement advanced through at least tick 209176 and the",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        }
+      ]
+    },
+    {
+      "id": "RYR08",
+      "name": "Full root-yaw content and current architectural scope",
+      "classification": "complete_documentary_review_not_current_activation",
+      "historical_requirement_or_mechanism": "All19versions coveredby574latestlinesplusoneolder7linepassage; repeatedfocusedpasses,livefalsifications,narrowphysicalcorrectionsandtestpolicychangeare retained.",
+      "current_disposition": "Historical source lists and commands do not authorize restoring native_production_app or original controller. Source/runtime/approval/current64column mapping remain open beyond this document.",
+      "lawful_remedy": "Carry surviving actual physical invariants into current canonical specs and preserve original learned state; qualify current ordinary native mechanism instead of layering old exceptions.",
+      "unit_acceptance": "Verify all hashes and exact all-version reconstruction.",
+      "module_acceptance": "Resolve actual current implementations and test/authority/dependency correspondence.",
+      "system_acceptance": "Complete full preserved-state charter, speech and autonomy qualification before any broad certificate; no inevitability or impossibility claim.",
+      "release_acceptance": "Bind each surviving invariant to exact current source/binary/active preserved state and ordinary callers, then independent live trajectory/resource proof. Historical commands and fixes are evidence, not present authorization or current causal diagnosis. No product execution or speech/system/ML-free certificate.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A08",
+        "A10",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 28,
+          "anchor": "## Architecture honesty gate",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 93,
+          "anchor": "## Authorized source boundary",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 127,
+          "anchor": "These are candidate proofs only. A-013 remains open until the deployed resident",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        },
+        {
+          "source_id": "RY019",
+          "path": "docs/guala_reconciliation/sources/root-yaw-history/RY019--GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md",
+          "line": 574,
+          "anchor": "  capabilities remain separately governed and are not implied by this result.",
+          "sha256": "605602db05a6158604fd95e1fa79d2bf3b06cd6f1e7417685927d69d58c01a8b"
+        }
+      ]
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false
+}

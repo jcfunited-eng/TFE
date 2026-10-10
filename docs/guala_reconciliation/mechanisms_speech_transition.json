@@ -1,0 +1,2327 @@
+{
+  "schema": "guala.reconciliation_mechanism_supplement.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T03:51:17.612370+00:00",
+  "scope": "All249 Attempt54 and22 D122334 sensory-execution contract versions, full latest documents and all unique historical-only passages. Documentary reading is complete for these selected families; transitive implementation/authority, remaining history and current qualification remain open.",
+  "mechanisms": [
+    {
+      "id": "TVM01",
+      "name": "Mama-A was an externally supplied organ trajectory",
+      "classification": "component capacity misrepresented as learned capability",
+      "finding": "ST02",
+      "observed_mechanism": "Accepted Mama-A used prescribed geometry, jaw/lip context and150/220/130/260ms spans. Later four-axis250ms impulses omitted those conditions.",
+      "evidence_limits": "Historical acoustic acceptance is genuine at its component scope; neither preservation nor loss of current intelligibility follows automatically.",
+      "replacement": "Keep the reference as organ capacity. Specify ordinary learned control separately; do not require waveform identity or insert the reference trajectory into cognition.",
+      "acceptance": {
+        "unit": "Separate supplied controls from endogenous motor events.",
+        "module": "Compare actual duration, control opportunity and finite work across the two paths.",
+        "system": "Accept recognizable learned output, not matching an externally authored recording.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 15870,
+          "anchor": "### C-054-122-105 — preserve Mama-A; MIN/MAX ordering is not acoustic equivalence"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 16228,
+          "anchor": "### R-054-122-112 — quantitative learned-movement boundary review"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A10",
+        "A12",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM02",
+      "name": "The ordinary path lacked sustained motor opportunities",
+      "classification": "source-established missing functional integration",
+      "finding": "ST03",
+      "observed_mechanism": "Both guidance and native recruitment settled once for1ms; the acoustic renderer then advanced passive recovery across250ms. Motor events had no subinterval schedule.",
+      "evidence_limits": "A smaller audio buffer or guide-only HOLD does not establish learned temporal control; this is not permanent speech impossibility.",
+      "replacement": "Specify genuine native control changes during continuing sound with finite work, real sensory return and restart custody. Preserve the existing law unless explicitly replaced.",
+      "acceptance": {
+        "unit": "Verify local clock, source duration and carrier units independently.",
+        "module": "Exercise teaching and autonomous control through the same physical actuator.",
+        "system": "Show later unguided temporal articulation without a stored sequence, repeated sensory work or frozen mechanics.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 15942,
+          "anchor": "### R-054-122-107 — accepted trajectory mapping, not another wiring campaign"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 16095,
+          "anchor": "### S-054-122-110 — current callers have no intra-block motor-drive path"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 16158,
+          "anchor": "### C-054-122-111 — C1 path1 checked against retained successful recall, no rerun"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A08",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM03",
+      "name": "Completion denoted participation before physical attainment",
+      "classification": "unqualified action-completion semantics",
+      "finding": "ST05",
+      "observed_mechanism": "The vocal completion predicate accepted exact current recruitment or a joined previous transfer and moved terminal; it ran before applying current motor carriers to tissue.",
+      "evidence_limits": "It proved coordinated discharge, not attained shape or demonstrated duration. Numerical body experience still existed elsewhere.",
+      "replacement": "Name preparation, discharge, physical attainment and consequence separately. Any claimed completion must identify which boundary it measures.",
+      "acceptance": {
+        "unit": "Reject fabricated attainment from a positive motor count.",
+        "module": "Join accepted drive to actual body successor and sensed consequence.",
+        "system": "Require the functional consequence claimed by the specification, without a hidden pose controller.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 16228,
+          "anchor": "### R-054-122-112 — quantitative learned-movement boundary review"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A08",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM04",
+      "name": "Generic plasticity existed but did not reach vocal endpoints",
+      "classification": "actual applicability defect followed by documented repair",
+      "finding": "ST06",
+      "observed_mechanism": "The original direction producer selected only layer10 endpoints, leaving layer11/12 contacts quiescent. C125 connected actual pump and scheduled-return evidence to the existing contact law.",
+      "evidence_limits": "The focused helper test proved input routing, not demonstrated-strength learning. The initial C124 map missed scheduled passive returns and was rejected.",
+      "replacement": "Preserve complete physical endpoint evidence without layer privilege, magnitude tie-breaks, duplicate plasticity or teacher-dose assignment.",
+      "acceptance": {
+        "unit": "Test absent, pump, return and opposing pump+return, including scheduled returns.",
+        "module": "Verify changed retained contacts only under actual contact work and endpoint causes.",
+        "system": "Demonstrate later use of experience-dependent retained changes before claiming learned vocal strength.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 16510,
+          "anchor": "### C-054-122-116 — applicability correction to C122113: vocal branch strength"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 16660,
+          "anchor": "### F-054-122-119 — C124 rejected before compile: omitted scheduled return input"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 16680,
+          "anchor": "### R-054-122-120 — C125 complete pre-contact endpoint-motion contract"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 17129,
+          "anchor": "### S/F-054-122-133 — complete C125 applicability accounting; dose test caveat"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM05",
+      "name": "A dead reservation map was mistaken for a live conservation defect",
+      "classification": "false-positive diagnosis explicitly withdrawn",
+      "finding": "ST07",
+      "observed_mechanism": "Source tracing showed the questioned preplastic map was write-only; the consumed motor offer path already debited actual source heat.",
+      "evidence_limits": "Dead scans may waste work, but reconnecting them would revive a retired mechanism. A second debit would also be wrong.",
+      "replacement": "Trace producer to actual consumer before changing conservation. Remove dead paths only with their validation side effects accounted for.",
+      "acceptance": {
+        "unit": "Prove each accepted transfer is debited once.",
+        "module": "Exercise the live consumer, not the unused map.",
+        "system": "Preserve exact physical continuation and reject double-debit or resurrected authority.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 16540,
+          "anchor": "### R-054-122-117 — Candidate124: restore the ratified endpoint-direction input"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A05",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM06",
+      "name": "Cold restore discarded physical progress",
+      "classification": "real state-continuity defect; later scoped repair",
+      "finding": "ST09",
+      "observed_mechanism": "Warm/cold successors differed at39 contact phases and14 neuronal charge states. Disposable scheduler residency held recovery fractions and clocks that affected physics.",
+      "evidence_limits": "Earlier cold-next passes never established warm/cold equality. C129 later reports exact equality on authenticated mature and newer production copies.",
+      "replacement": "Keep causative progress in canonical state under stable identities; rebuild only derived schedules. Verify current64 carries the repaired semantics.",
+      "acceptance": {
+        "unit": "Cover exact fractions, parallel bonds, growth, abort and failed preparation.",
+        "module": "Compare warm/cold full body and world through the same next input.",
+        "system": "Qualify mature preservation and current migration; identity or topology counts alone cannot pass.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 17046,
+          "anchor": "### F-054-122-130 / S-054-122-131 — predecessor physical pass, restart inequality"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 17088,
+          "anchor": "### S-054-122-132 — one retained cold interval isolates predecessor difference"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 18086,
+          "anchor": "### R-054-122-147 — restart repair causal/lifecycle contract; no repeat assay"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 18766,
+          "anchor": "### S/H-054-122-159 — ordinary-artifact mature warm/cold continuation PASS"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 18992,
+          "anchor": "### S-054-122-165 — newest captured production body: real startup, response, exact restart PASS"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A09",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM07",
+      "name": "Warm scheduling and empty-selection exits lost legitimate work",
+      "classification": "source-defined evolution required for continuity",
+      "finding": "ST10",
+      "observed_mechanism": "Warm/cold scheduling used different current rules; seedless and contact-empty returns could lose passive recovery evidence and rescheduling. Equality of one wrong successor hid future failure.",
+      "evidence_limits": "C127 preserved codec tests but failed actual recovery continuation. C128’s common finalizer addressed the omitted paths.",
+      "replacement": "Use the same current authority and common physical finalization across every exit; retain earliest predecessors and accepted fractions.",
+      "acceptance": {
+        "unit": "Test recovery-only, local-contact-only, fractional and refused-return paths.",
+        "module": "Require the next event as well as current successor equality, with no invented external seed.",
+        "system": "Show continuous ordinary behavior and crash recovery without duplicated settlement or checkpoint-driven physics.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 18345,
+          "anchor": "### S/H/F-054-122-150 — Candidate127 supporting passes, physical failure and required rejection"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 18438,
+          "anchor": "### R-054-122-152 — amended physical-finalization contract after archived127 rejection"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 18582,
+          "anchor": "### S/H-054-122-154 — two physical passes preserved; localized migration fixture correction"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A09",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM08",
+      "name": "Migration initialized absent history; it did not recover it",
+      "classification": "explicit irreversible information limitation",
+      "finding": "ST11",
+      "observed_mechanism": "V45 lacked persisted progress; V46 migration initialized absent fractions once at the saved cold boundary and preserved other stored state.",
+      "evidence_limits": "This is a disclosed initialization, not proof that lost physical history was restored or that old-image rollback reads new state.",
+      "replacement": "Inventory every absent old variable, preserve the original pair, state the behavioral limitation and qualify the one-way conversion.",
+      "acceptance": {
+        "unit": "Refuse missing or foreign current-format identities rather than inventing them.",
+        "module": "Check unchanged old state and exact new-format continuation.",
+        "system": "Do not use a backup, migration PASS or stable UUID as a certificate of all prior cognition.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 18086,
+          "anchor": "### R-054-122-147 — restart repair causal/lifecycle contract; no repeat assay"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 18766,
+          "anchor": "### S/H-054-122-159 — ordinary-artifact mature warm/cold continuation PASS"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A09",
+        "A17",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM09",
+      "name": "Exact address indexes were mistaken for semantic shortcuts",
+      "classification": "legitimate representation correction",
+      "finding": "ST12",
+      "observed_mechanism": "Physical-progress membership binary-searched anatomy-order lineages and decoded sorted keys as cohort order. C129 reused the existing sorted identity index without reordering anatomy.",
+      "evidence_limits": "Exact address lookup does not select meaning, relevance or action. It needs no heuristic prohibition merely because it uses an index.",
+      "replacement": "Distinguish address custody from semantic authority and preserve canonical order and identity in the specification.",
+      "acceptance": {
+        "unit": "Use nonmonotonic anatomy order, duplicate/missing/foreign-key controls.",
+        "module": "Require exact codec, growth and abort semantics.",
+        "system": "Accept representation evolution only with identical supported physical continuation.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 18653,
+          "anchor": "### S/H-054-122-156 — sealing refusal isolated; two index consumers are wrong"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 18694,
+          "anchor": "### R-054-122-157 — Candidate129 localized sorted-index translation contract"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 18725,
+          "anchor": "### S/H-054-122-158 — C129 six focused proofs PASS, not speech or live acceptance"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A09",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM10",
+      "name": "Direct acoustic geometry was an approved redesign, not equivalence",
+      "classification": "documented authorized functional evolution",
+      "finding": "ST13",
+      "observed_mechanism": "C126 reused nine same-unit controls18/37–44 and removed jaw/lip caps from the organ input. It preserved broad old route completion while narrowing only excitation contribution.",
+      "evidence_limits": "The pressure law changed deliberately. Source reports Joe’s approval; original conversation provenance must remain distinct from documentary attribution.",
+      "replacement": "Keep units, retained terminal identities and shared reflex access explicit. Do not silently rename muscle destinations into frequencies or erase old routes.",
+      "acceptance": {
+        "unit": "Verify all nine control identities, zero-work silence and unchanged nonacoustic continuation.",
+        "module": "Show pressure independence from removed caps and real sensitivity to actual controls.",
+        "system": "Qualify the changed instrument and learned use separately; simpler anatomy does not guarantee speech.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 17560,
+          "anchor": "### R-054-122-138 — C1 Acoustic Effector Class review received; direct-control contract clarification"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 17651,
+          "anchor": "### R-054-122-139 — completed consumer audit: preserve continuation, separate excitation; exact feedback limit"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 17744,
+          "anchor": "### R-054-122-141 — Joe authorizes reuse; Candidate126 direct acoustic-control contract"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 17879,
+          "anchor": "### S/H-054-122-143 — Candidate126 source approved and focused boundary proofs pass"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A08",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM11",
+      "name": "The organ discarded most actual position feedback",
+      "classification": "source-established sensory omission followed by C131 repair",
+      "finding": "ST14",
+      "observed_mechanism": "Initial1ms typed feedback survived; later passive movement was computed but its consequences discarded. Four acoustic channels were not the eight tract trajectories.",
+      "evidence_limits": "Final neutral positions cannot reconstruct preceding movement. Initial limited feedback had been explicitly disclosed, not complete sensation.",
+      "replacement": "Return actual captured positions once with their true clock, preserving physical source identity and separate load work.",
+      "acceptance": {
+        "unit": "Check each sampled position and timestamp against the executed mechanics.",
+        "module": "Exercise impulse then passive return, including silence and held activation.",
+        "system": "Demonstrate ordinary sensory participation and retained later use; no fabricated animation from final poses.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 17651,
+          "anchor": "### R-054-122-139 — completed consumer audit: preserve continuation, separate excitation; exact feedback limit"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 20010,
+          "anchor": "### S-054-122-198 — complete return-format audit rejects append-only trajectory patch"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 20333,
+          "anchor": "### S-054-122-205 — final compact-return design review and lifecycle/resource closure"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 21914,
+          "anchor": "### S122231 — exact saved position-receptor participation measured, no lesson replay"
+        }
+      ],
+      "repair_actions": [
+        "A06",
+        "A08",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM12",
+      "name": "One-millisecond framing collapsed the tested quantitative distinction",
+      "classification": "input-boundary limitation, not a kernel defect",
+      "finding": "ST15",
+      "observed_mechanism": "For the tested two-sample guide inputs, the active fresh UF occurrence yielded [0,0,0,0,1,0,0] in both arms. Exact conservation also established equal cumulative quantized position work in the original window.",
+      "evidence_limits": "Different numerical input and residues remained. This did not prove total information loss, saturation or no learning forever.",
+      "replacement": "Specify actual temporal exposure before changing anything. Preserve full field and physical work as separate inputs; do not tune L0–L4, quantum or gain to a desired word.",
+      "acceptance": {
+        "unit": "Verify actual occurrence construction and seven-field delivery.",
+        "module": "Compare original impulse and genuine complete trajectory under the unchanged kernel.",
+        "system": "Require experience-dependent later effect; a richer source alone is not speech.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 19667,
+          "anchor": "### S-054-122-191 — exact delivered-work equality without another organism run"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 19802,
+          "anchor": "### S-054-122-194 — both guide sources also give identical seven-field constraints"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 19908,
+          "anchor": "### S-054-122-196 — actual saved-state position gate limit measured, no lesson repeated"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM13",
+      "name": "A closed final gate was incorrectly treated as no response",
+      "classification": "diagnosis falsified by an exact internal trace",
+      "finding": "ST16",
+      "observed_mechanism": "The later matched-successor trace showed MAX39 opened then closed in both arms. Supplied7/16 versus6/16 work gave equal1540-carrier local current and a1/16 heat difference.",
+      "evidence_limits": "The older recovery hypothesis was not a fix: zero settled recovery did not prevent opening. Local current equality is not whole-organism equality.",
+      "replacement": "Inspect the causal transition needed by the claim, including transient opening and later closure; preserve local heat/residue without inventing a heat-learning law.",
+      "acceptance": {
+        "unit": "Distinguish supplied work, accepted gate, current and exported heat.",
+        "module": "Require diagnostic continuation to match the exact ordinary saved successor.",
+        "system": "Do not edit recovery or infer absent perception from final closed state.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 23605,
+          "anchor": "### S-054-122-287 — recovery suspicion checked against prior art; NOT a diagnosed fix"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 23694,
+          "anchor": "### S-054-122-289 — actual gate opens then closes; dose difference becomes heat, not different local current"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM14",
+      "name": "Timed feedback needs separate impulse and passive episodes",
+      "classification": "lawful source design, not fabricated action history",
+      "finding": "ST17",
+      "observed_mechanism": "One shared timeline could not preserve the original nonzero load endpoints and a following zero-load tail. The design retained the1ms impulse and a249ms passive episode under one pending owner.",
+      "evidence_limits": "Appending samples to all ports or relabeling a1ms event as250ms changes field or work semantics. Passive motion must not become new motor authority.",
+      "replacement": "Keep true source epochs, all four ports per axis, unchanged impulse work and zero new passive load with the existing residue scale.",
+      "acceptance": {
+        "unit": "Reject invalid timelines, nonzero passive load, duplicate axes and fake moved-terminal evidence.",
+        "module": "Join original impulse and captured tail without duplicate sensory or motor work.",
+        "system": "Require exact once-only warm/cold consumption through ordinary runtime.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 20010,
+          "anchor": "### S-054-122-198 — complete return-format audit rejects append-only trajectory patch"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 20235,
+          "anchor": "### S-054-122-204 — source review narrows return representation to two episodes, one owner"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 20333,
+          "anchor": "### S-054-122-205 — final compact-return design review and lifecycle/resource closure"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A08",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM15",
+      "name": "Compact samples are lawful storage, not reduced cognition",
+      "classification": "lossless representation with explicit resource limits",
+      "finding": "ST18",
+      "observed_mechanism": "GLBPTR01 retained all actual integer positions; full four-port expansion occurred on consumption. Ordinary45-axis250-frame payload is45066bytes;30-second native capacity is much larger.",
+      "evidence_limits": "Compact bytes do not prove affordable decoded state or RSS. No sample truncation, semantic projection or second owner was authorized.",
+      "replacement": "Specify exact encode/decode, physical bounds, aggregate decoded allowance and working peak. Keep duration-specific limits distinct.",
+      "acceptance": {
+        "unit": "Check canonical roundtrip, range, arithmetic overflow and exact sample retention.",
+        "module": "Match warm/cold expanded full sources and independently authored admissions.",
+        "system": "Measure declared workload and real process/cgroup cost without silent truncation.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 20333,
+          "anchor": "### S-054-122-205 — final compact-return design review and lifecycle/resource closure"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 20576,
+          "anchor": "### I-054-122-208 — Candidate130 complete source path; frozen review next, NO execution claim"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 20961,
+          "anchor": "### S-054-122-212 — R122210 selects startup admission, not hot-loop accounting"
+        }
+      ],
+      "repair_actions": [
+        "A06",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM16",
+      "name": "A producer accepted feedback that its consumer could reject",
+      "classification": "architectural candidate rejection before execution",
+      "finding": "ST19",
+      "observed_mechanism": "C130 admitted compact bytes but deferred expansion admission until next consumption. The known gap could make durable experience unreadable under the same budget.",
+      "evidence_limits": "No compile or organism run qualified C130. C131 selected a startup bound over the maximum lawful ordinary source set instead of a new runtime manager.",
+      "replacement": "Require consumability before publication using the same fixed budget and enforced ingress/restore bounds; preserve pending experience on refusal.",
+      "acceptance": {
+        "unit": "Refuse insufficient capacity before allocation or publication.",
+        "module": "Exercise real startup and restored pending return with all coexisting source classes.",
+        "system": "Keep logical layout and measured allocator peak separate; no check-only certificate.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 20699,
+          "anchor": "### F-054-122-209 — Candidate130 source review rejected the known resource/custody gap"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 20961,
+          "anchor": "### S-054-122-212 — R122210 selects startup admission, not hot-loop accounting"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 21425,
+          "anchor": "### I-054-122-221 — Candidate131 startup capacity path connected; source only"
+        }
+      ],
+      "repair_actions": [
+        "A06",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM17",
+      "name": "Silent movement was skipped by an acoustic quiescence check",
+      "classification": "documented corrective evolution",
+      "finding": "ST20",
+      "observed_mechanism": "Acoustic/lung silence did not imply inactive actuator state. The approved C131 amendment integrated existing passive mechanics once when displacement or activation remained.",
+      "evidence_limits": "The formerly skipped successor legitimately changes; equality with the broken skipped path is not the correct acceptance criterion.",
+      "replacement": "Use actual physical actuator state for whether mechanical evolution remains due, without adding a timer or invented movement.",
+      "acceptance": {
+        "unit": "Cover held position with remaining activation and fully inactive neutral controls.",
+        "module": "Require silent PCM with actual position return and no new drive.",
+        "system": "Demonstrate exact restart under the corrected law and explicitly classify changed behavior.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 21355,
+          "anchor": "### S/I-054-122-219 — C1 approves the full compact feedback; continue Candidate131"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 21474,
+          "anchor": "### I-054-122-222 — Candidate131 complete source path frozen for review, NOT tested"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 21573,
+          "anchor": "### I122223 — C131 frozen review: one localized supporting-test correction"
+        }
+      ],
+      "repair_actions": [
+        "A08",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM18",
+      "name": "Transaction tokens were mislabeled as physical hashes",
+      "classification": "observation identity defect with future-use risk",
+      "finding": "ST21",
+      "observed_mechanism": "C131 warm/cold full body/world matched, but causal_transition_sha256 aliases differed because the value included process-local prepare ordinal. The token also entered later return identities.",
+      "evidence_limits": "Ignoring the two fields closed a limited physical comparison, not arbitrary future action/restart equivalence.",
+      "replacement": "Separate transaction identity from canonical physical evidence; trace every causal consumer before deciding whether token differences are harmless.",
+      "acceptance": {
+        "unit": "Expose token semantics without defaulting or calling it a state hash.",
+        "module": "Compare subsequent source/return identities through a real motion-producing restart.",
+        "system": "Require the claimed full future equivalence rather than exempting a causal field globally.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 21750,
+          "anchor": "### S122227 / F122227 — C131 MAX32 full feedback and cold physical equality PASS"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 21813,
+          "anchor": "### I122228 — independent token classification; same bounded128 arm begins"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 21845,
+          "anchor": "### S122229 — MAX128 complete feedback and cold physical equality PASS"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A06",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM19",
+      "name": "Reverse founder flow was not proved to be the defect",
+      "classification": "rejected diagnosis; law-specific direction semantics",
+      "finding": "ST24",
+      "observed_mechanism": "The founder law explicitly accepted reverse transfers; the forward-only continuation law governed a different bond class. Eight reverse entries alone did not establish a direction bug.",
+      "evidence_limits": "No arbitrary forward filter was justified. The actual ambiguity policy required a separate decision.",
+      "replacement": "Classify each bond’s physical and causal direction under its own law before changing eligibility.",
+      "acceptance": {
+        "unit": "Exercise zero phase, reverse phase and whole-carrier crossing independently.",
+        "module": "Preserve exact branch custody and all valid simultaneous sources.",
+        "system": "Reject iteration-order or direction filters chosen merely to make a lesson pass.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 22627,
+          "anchor": "### S-054-122-257 — exact copied refusal: two roots counted on reverse in-flight contacts"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 22664,
+          "anchor": "### D-054-122-259 — direction theory not established; explicit refusal-policy decision"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A05",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM20",
+      "name": "Local explicit refusal was ratified; it is not decision competence",
+      "classification": "approved failure-containment evolution",
+      "finding": "ST25",
+      "observed_mechanism": "C132 changed only the final competing-founder tie into observable local refusal, selected no root and allowed other settled experience to continue. Corruption remained fatal.",
+      "evidence_limits": "Reported approval and mature/live receipts support this narrower policy; they do not prove conflict resolution, choice, words or global silence.",
+      "replacement": "Preserve the explicit local refusal and ordinary physical work. Specify a separately justified experience-based resolution mechanism before claiming decisions.",
+      "acceptance": {
+        "unit": "Cover zero, unique and competing roots, existing authority and later unique input.",
+        "module": "Verify native→validated Python receipt→API→page without mocked missing fields.",
+        "system": "Observe actual refusal, real compact return, durability and later continuation on the serving image.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 22697,
+          "anchor": "### R-054-122-260 — C132 ratified local vocal refusal; frozen implementation scope"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 22755,
+          "anchor": "### R-054-122-261 — review caught missing Python receipt mapping BEFORE execution"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 22808,
+          "anchor": "### S-054-122-264 — C132 ordinary candidate passes incident-body closure and cold-next"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 23233,
+          "anchor": "### S-054-122-278 — C132 LIVE acceptance; independent H122247 witness CLOSED"
+        }
+      ],
+      "repair_actions": [
+        "A05",
+        "A08",
+        "A10",
+        "A13",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM21",
+      "name": "The caretaker confused unsaved work with attention",
+      "classification": "external presentation heuristic and ownership error",
+      "finding": "ST27",
+      "observed_mechanism": "Its pending_interval_count<=2 gate measured completed unsaved intervals, not queue depth or cognitive readiness; it prevented lesson delivery. C1 later removed it.",
+      "evidence_limits": "Six accepted apple blocks proved input delivery only, not memory, recognition or a word. This was an external presenter, not endogenous cognition.",
+      "replacement": "Keep external curriculum controls classified and out of cognition. Use actual transport/custody conditions and record delivery separately from learning.",
+      "acceptance": {
+        "unit": "Verify every gate’s producing variable and meaning.",
+        "module": "Exercise ordinary input without checkpoint-count dependence or duplicate presenters.",
+        "system": "Require retained later use before crediting caretaker success as cognitive development.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 23274,
+          "anchor": "### S/O-054-122-279 — caretaker resumed under prior concurrence; no learning claim"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 23303,
+          "anchor": "### O-054-122-280 — concurrent caretaker-lane correction observed, no duplicate"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 23322,
+          "anchor": "### S/O-054-122-281 — C1 correction acknowledged; full caretaker lesson delivery"
+        }
+      ],
+      "repair_actions": [
+        "A05",
+        "A06",
+        "A10",
+        "A12",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM22",
+      "name": "Delayed retained distinctions were real but not vocal-strength proof",
+      "classification": "preserve physical learning evidence at its measured scope",
+      "finding": "ST30",
+      "observed_mechanism": "Later saved states showed new L9 contacts, electrical differences and distinct L5→L6 carrier fractions. Connected topology and positive standing-current calculations refuted a lost-all-signal claim.",
+      "evidence_limits": "Undirected paths and frozen-endpoint next-crossing calculations did not establish actual later vocal contact adaptation or use.",
+      "replacement": "Preserve exact retained differences and follow their actual allowed consumer; do not inject a dose label or add an authored bridge.",
+      "acceptance": {
+        "unit": "Differentiate carrier fraction, work phase, conductance and address connectivity.",
+        "module": "Trace actual directed transfer and accepted contact update on the same bond/clock.",
+        "system": "Show that retained experience changes a later autonomous act, with supported causal controls.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 23779,
+          "anchor": "### S-054-122-290 — delayed position-member retention is real; motor-strength use still unmeasured"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 23910,
+          "anchor": "### S-054-122-292 — connected topology and retained transfer fractions; not a lost-all-signal boundary"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 24002,
+          "anchor": "### S-054-122-294 — crossing barrier not present; end transmission-side branch"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A06",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM23",
+      "name": "Vocal permissions can cancel provisional plasticity",
+      "classification": "unqualified authority requiring exact law review",
+      "finding": "ST31",
+      "observed_mechanism": "The code computed contact plasticity then restored the complete predecessor for unpermitted vocal transfer. Earlier logged fractions were identical across doses even before cancellation.",
+      "evidence_limits": "Deleting only the reset would not prove quantitative learning and could retain updates while cancelling their funding work.",
+      "replacement": "Specify the permission law, its conservation and ordinary experience reachability. Measure fresh work/direction before caught-up heat and exact retained successor after permission.",
+      "acceptance": {
+        "unit": "Join work, direction, permission, computed and accepted update for each stable bond.",
+        "module": "Exercise an actual authorized strength-writing opportunity, not a silent window without opportunity.",
+        "system": "Require later use of a retained distinction; no teacher-dose table or test-only permission bypass.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 19337,
+          "anchor": "### R-054-122-179 — frozen diagnostic contract for actual strength retention"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 19464,
+          "anchor": "### S-054-122-182 — two nonsaturating demonstrations measured; all completed states preserved"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 19497,
+          "anchor": "### F/C-054-122-183 — reset-only explanation insufficient; do not replace it with a new assumption"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 24044,
+          "anchor": "### S-054-122-295 — actual strength-writer map and existing permission receipts"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 24120,
+          "anchor": "### R-054-122-297 — bounded later-use evidence contract; temporary trace only"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A05",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM24",
+      "name": "Exact optical capacity and real-time performance remained separate",
+      "classification": "legitimate evolution with unmet latency gate",
+      "finding": "ST34",
+      "observed_mechanism": "The135-site browser path contained108 direct samples plus27 averages. Later903-site work preserved old identities and exact successor behavior, but initial ordinary intervals took over2seconds against a250ms requirement.",
+      "evidence_limits": "More transport pixels did not prove recognition; profiler times and two-interval comparisons were not end-to-end distributions.",
+      "replacement": "Preserve genuine spatial detail and exact state while removing measured representation cost. Do not drop sensed history or reduce fields to manufacture a latency pass.",
+      "acceptance": {
+        "unit": "Check geometry, old identity, full new coverage and exact projection semantics.",
+        "module": "Measure capture, admission, native settlement and display age on the same workload.",
+        "system": "Require the declared complete real-time vision boundary, separately from learned visual recognition.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 23058,
+          "anchor": "### R-054-122-273 — safe read-only vision preparation, no anatomy takeover"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 88,
+          "anchor": "## HISTORICAL — D122300: REAL-TIME OR NOTHING; SPEED AND VISION TOGETHER"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 24375,
+          "anchor": "### V122303 full-eye executed receipt — 2026-09-13"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A06",
+        "A13",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM25",
+      "name": "Some large-file growth was real evidence and custody; some was waste",
+      "classification": "distinguish justified evolution from unsupported complexity",
+      "finding": "ST35",
+      "observed_mechanism": "The record reports exact-result removal of repeated energy census, duplicate Python projections and redundant arithmetic. It also retired added parallel buffers after no material speed improvement.",
+      "evidence_limits": "File size alone does not establish cheating or explain latency. Exact arithmetic simplification is not a heuristic when all behavior and refusals are preserved.",
+      "replacement": "Maintain one causal owner, measure the actual cost, remove proven redundant representation and retire unsupported optimization complexity.",
+      "acceptance": {
+        "unit": "Compare complete values and error order, including canonical exact arithmetic.",
+        "module": "Require full body/world continuation and bounded memory under ordinary code.",
+        "system": "Report real workload timing; no speed promise from fewer lines or a favorable diagnostic run.",
+        "release": "Bind the approved law, preserved predecessor, source, ordinary binary, configuration, checkpoint and serving image; execute applicable Q01–Q24. Historical reports and documentary checks are not current product acceptance."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 24465,
+          "anchor": "### V122308 result — ordinary reporting census removed, exact successors retained"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 24528,
+          "anchor": "### V122311 result — unused Python copies removed; exact successor preserved"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 24606,
+          "anchor": "### V122314 result — exact but no material gain; candidate retired"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM26",
+      "name": "Donor debit and causal order are different questions",
+      "classification": "withdrawn accounting diagnosis; genuine ordering defect",
+      "finding": "ST37",
+      "observed_mechanism": "Source debit already existed. Internal motor settlement nevertheless preceded the required reassembly within an atomic staged candidate. The candidate could roll back safely while still having wrong causal ordering.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Preserve actual energy debit and distinguish transactional commit from physical cause. Specify the retained handoff that precedes motor work; do not double-debit or add a late output selector.",
+      "acceptance": {
+        "unit": "Reconcile source debit, receiver work and loss in declared units exactly once.",
+        "module": "Verify reassembly authority exists before the actuator consumes work, including refusal and rollback.",
+        "system": "Demonstrate authentic prior learning causes the later act through that same order.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 3800,
+          "anchor": "### Necessary correction: source/donor debit is not missing"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 3947,
+          "anchor": "### Newly proved source-order defect"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 4772,
+          "anchor": "### Candidate 77 — corrected event-coupled action founding"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A08",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM27",
+      "name": "Global uniqueness and cold-frontier deletion were not general memory laws",
+      "classification": "overrestrictive authority and unresolved preservation",
+      "finding": "ST38",
+      "observed_mechanism": "C76/77 wrongly assumed one global route or reassembly per motor. Removing restored in-flight action custody stopped a symptom but changed cold continuation; keeping old checkpoint bytes alone did not prove retained function.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Use exact local causal ambiguity, preserve lawful multiplicity, and give every changed persisted frontier an explicit continuation/migration contract.",
+      "acceptance": {
+        "unit": "Distinguish two legitimate local routes from two competing causes for one claimed act.",
+        "module": "Compare warm and cold continuation across fractional and in-flight boundaries.",
+        "system": "Preserve the earlier supported learned effect after migration without reviving rejected selectors.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 4680,
+          "anchor": "### Candidate 76 — SOW-SPEECH-03 implementation record"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 4772,
+          "anchor": "### Candidate 77 — corrected event-coupled action founding"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM28",
+      "name": "Articulation timing correction did not create a learned sequence",
+      "classification": "genuine component repair; stronger inference rejected",
+      "finding": "ST39",
+      "observed_mechanism": "The acoustic path held mouth geometry for250ms while body motion used1ms. C79 advanced the existing body every1ms/16samples. That repaired temporal mechanics; the accepted whole-word organ trajectory remained externally supplied.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Preserve lawful intra-render mechanics and real returned state. Specify learned temporal control separately from externally commanded organ capacity.",
+      "acceptance": {
+        "unit": "Check body and pressure clocks and finite work at each subinterval.",
+        "module": "Return actual changing organ state and sound through the ordinary path.",
+        "system": "Require endogenous ordered control after teaching; do not insert the reference trajectory.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 5121,
+          "anchor": "## Candidate 78 acceptance correction and articulation audit — 2026-09-09 UTC"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 5166,
+          "anchor": "### SOW-SPEECH-05 — organism-owned ordered articulation"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A08",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM29",
+      "name": "Copied speech proofs changed self-feedback permission and recovery",
+      "classification": "production-equivalence failure explicitly withdrawn",
+      "finding": "ST40",
+      "observed_mechanism": "Some probes allowed learned action from self-pressure where production did not. C110 used32 body-only recovery intervals with cognition held fixed, whereas the live organism continued cognition; the copied four-posture result did not qualify that live chronology.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Freeze the real serving call path, permissions and continuing cognition in qualification. Preserve the narrower probe result but withdraw transfer to production.",
+      "acceptance": {
+        "unit": "Assert actual permission flags and recovery dispatch against the packaged caller.",
+        "module": "Exercise complete sensory/body/self-hearing chronology with cognition active.",
+        "system": "Compare preserved-state behavior using the ordinary release path and disclose any intervention.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 5166,
+          "anchor": "### SOW-SPEECH-05 — organism-owned ordered articulation"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 9276,
+          "anchor": "### Candidate 110 production deployment and live-growth truth"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 9362,
+          "anchor": "`F-054-110-25` (copied acceptance was not production-equivalent): the copied"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A06",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM30",
+      "name": "Four source names supplied temporal identity",
+      "classification": "authored identity shortcut",
+      "finding": "ST41",
+      "observed_mechanism": "C81 assigned distinct source-authority strings to four temporal phases of one microphone lesson. That supplied phase identity through metadata instead of learned physical history.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Keep the actual microphone identity stable and represent real source times and pressure. Temporal discrimination must arise through retained state.",
+      "acceptance": {
+        "unit": "Changing a nonphysical label alone must not change learning or action.",
+        "module": "Present distinct times through one authenticated source and trace the actual retained difference.",
+        "system": "Demonstrate unguided temporal use without phase labels, word IDs or sequence lookup.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 5366,
+          "anchor": "## Candidate 81 — finite L11 preparation chain, pre-run record — 2026-09-09 UTC"
+        }
+      ],
+      "repair_actions": [
+        "A05",
+        "A06",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM31",
+      "name": "Anatomical membership was substituted for experienced ownership",
+      "classification": "false association and incomplete observer boundaries",
+      "finding": "ST43",
+      "observed_mechanism": "Cross-products of integrations, axes and reassemblies authored false routes. Other checks mistook receiver lists for all active bond endpoints, or a mounted source fan for actual multimodal participation. Broad shared auditory owners were not occurrence-local recognition.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Require original leaf, occurrence, exact bond and actual participation provenance. Observe the producing boundary before inferring absence; no class membership or Cartesian join may manufacture experience.",
+      "acceptance": {
+        "unit": "Reject unrelated co-present anatomy and cross-occurrence pairings; retain valid repeated experience.",
+        "module": "Compare exact association ownership before/after actual sensory participation.",
+        "system": "Use novel, repeated and unrelated sensory controls through the full organism; require specific later recall.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 5585,
+          "anchor": "## Candidate 83 — exact retained-formation ownership at vocal route growth"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 10049,
+          "anchor": "### Candidate 115 — frozen asynchronous physical-admission contract (source work)"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 10204,
+          "anchor": "### Candidate 115 source rejection; Candidate 116 exact same-hub lifecycle contract"
+        }
+      ],
+      "repair_actions": [
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM32",
+      "name": "Topology order and a frontier count did not establish physical sequence causation",
+      "classification": "unqualified ordering law and incomplete measurement",
+      "finding": "ST44",
+      "observed_mechanism": "C84 ordered symmetric contacts using developmental topology_index. Continuation counts sometimes counted preparations rather than existing topology/current. C93 retained exact in-flight bond custody, but custody itself did not create a directed chemical synapse or new energy.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Separate developmental address, current direction, causal propagation and ordered memory. Qualify the actual directional operator and retain exact physical progress without inventing a sequence database.",
+      "acceptance": {
+        "unit": "Renumbering equivalent topology must not choose a different behavior unless identity is an approved physical variable.",
+        "module": "Trace actual transfer, retained bond and later motor cause, including zero/reverse current and delayed crossings.",
+        "system": "Show taught order and later use with controls while preserving restart continuity and bounded execution.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 5665,
+          "anchor": "## Candidate 84 — sparse preparation-to-preparation articulation"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 6639,
+          "anchor": "### Candidate 94 — exact physically founded developmental predecessor"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 7939,
+          "anchor": "### Candidate 98 — exact causal in-flight founder"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM33",
+      "name": "Motor completion mixed membership, timing and attained consequence",
+      "classification": "unqualified completion predicate; genuine delayed-join repair",
+      "finding": "ST45",
+      "observed_mechanism": "Whole-posture counts included refused legacy routes, while same-clock four-motor completion excluded valid staggered discharges. Equal motor counts and same-source membership were also used as eligibility rules without general physical derivation.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Specify preparation, accepted work, actual movement and completed consequence separately. Preserve exact prior-transfer/returned-terminal joins without a timer or union of unrelated owners.",
+      "acceptance": {
+        "unit": "Reject partial, foreign, stale and opposed completions while accepting lawful staggered acts.",
+        "module": "Join each motor to its exact causal preparation and actual body consequence.",
+        "system": "Test ordinary articulation with coexisting nonvocal movement; no software mask may supply completion.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 6639,
+          "anchor": "### Candidate 94 — exact physically founded developmental predecessor"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 8460,
+          "anchor": "### Candidate 103 — exact in-flight motor completion and finite body act"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 8512,
+          "anchor": "### Candidate 104 — exact learned min-to-max continuation; recall direction still refused"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A08",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM34",
+      "name": "Conserved heat was not by itself a directed vocal-learning law",
+      "classification": "constitutive authority unresolved",
+      "finding": "ST46",
+      "observed_mechanism": "C95/96 reused reverse-contact heat as forward vocal preparation; removal and restoration followed failed routes. C100 parallel-load accounting and C105 directed continuation were later reported approved. Conservation alone does not derive either direction or functional learning.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Recover exact approval and specify the source, receiver, units, transduction operator and losses. Preserve any proved accounting but qualify the causal operator independently.",
+      "acceptance": {
+        "unit": "Account paying transfer and all losses without retaining plasticity from cancelled work.",
+        "module": "Distinguish current direction from route direction and test no-cue and unrelated-source conditions.",
+        "system": "Require experience-specific later action under the approved operator; component conservation cannot certify speech.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 8012,
+          "anchor": "### Candidate 100 — exact pre-plasticity parallel-load settlement (awaiting C1 ruling)"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 8175,
+          "anchor": "### S-054-100-10 — direct donor path already completes the coordinated motor set"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 8589,
+          "anchor": "### F/S-054-104-04 — no lawful forward current exists at continuation birth"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 8620,
+          "anchor": "### D-054-104-05 — authorized directed continuation work, not reverse current"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 8650,
+          "anchor": "### Candidate 105 — conserved learned continuation work closes two postures"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM35",
+      "name": "Output-assisted reassembly was mistaken for sound recognition",
+      "classification": "circular recognition claim withdrawn; later narrower correction",
+      "finding": "ST48",
+      "observed_mechanism": "All four Mama phases could match one formation; with motor isolation, external reassembly disappeared. Later visual input through shared anatomy activated a vocal root whose gate checked generic external arrival rather than the learned relation. C121 required the specific retained reassembly-to-founder handoff.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Separate sensory partial-cue recognition from the body changes caused by the response. Preserve legitimate spontaneous and visual behavior, but require the specific learned cause for a claimed auditory recall.",
+      "acceptance": {
+        "unit": "Reject generic arrival or output-completed membership as proof of a learned sound cue.",
+        "module": "Trace actual receptor, association, founder and motor ancestry with exact cue chronology.",
+        "system": "Use matched prelearning/severed/unrelated-cue controls and do not suppress ordinary senses to manufacture specificity.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 7823,
+          "anchor": "### Candidate 97 — exact recognition-founded first continuation"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 8400,
+          "anchor": "### Candidate 102 — exact reassembly-founded coordinated ordering"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 12734,
+          "anchor": "### Candidate121 — initial learned-reassembly handoff; existing state only"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 12910,
+          "anchor": "## Candidate121 — actual-runtime root recall preserved, 2026-09-11 22:04 UTC"
+        }
+      ],
+      "repair_actions": [
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM36",
+      "name": "Speech-specific eligibility filters narrowed the learning claim",
+      "classification": "unqualified policy authority in deterministic code",
+      "finding": "ST49",
+      "observed_mechanism": "C106–108 limited roots to external sources and growth to unique novel guided spans to avoid self-feedback branches. C109 removed a duplicate returned-body author and reported three recurrent uses. Those results are narrower than general autonomous observational learning.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Qualify general physical growth and endogenous reuse separately from each speech-specific filter. Do not transplant a successful restricted route into the64-column candidate as a general cognitive law.",
+      "acceptance": {
+        "unit": "Expose every eligibility predicate and show its law/authority or reject it.",
+        "module": "Verify duplicate prevention without deleting valid self-generated sensory experience.",
+        "system": "Demonstrate ordinary multimodal learning and later unguided use beyond the named lesson.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 8722,
+          "anchor": "### Candidates 106–108 — four-posture development and recurrent-use guard"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 8837,
+          "anchor": "### Candidate 109 — redundant returned-body author removed; three recurrent uses pass"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM37",
+      "name": "Finalized-leaf custody was a substantive memory repair",
+      "classification": "preserve bounded asynchronous evidence with explicit law",
+      "finding": "ST50",
+      "observed_mechanism": "C115–117 repaired pending existence checks and actual active-bond endpoint capture. Reported mature evidence retained eight leaves/four clocks and14 witness bonds with warm/cold equality. Zero-phase newborn eligibility was corrected before uniqueness; a genesis migration fixture was also corrected without weakening equality.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Preserve actual finalized physical evidence and its bounded lifecycle. Distinguish legitimate fixture corrections from capability relaxation, and demonstrate current64 causal-state correspondence.",
+      "acceptance": {
+        "unit": "Exercise pending expiry, recurrence, genuine quiescence and duplicate refusal.",
+        "module": "Verify exact warm/cold leaf, bond and physical-progress continuity on authentic mature state.",
+        "system": "Show the retained experience remains usable after conversion; archive-only preservation cannot pass.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 10049,
+          "anchor": "### Candidate 115 — frozen asynchronous physical-admission contract (source work)"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 10204,
+          "anchor": "### Candidate 115 source rejection; Candidate 116 exact same-hub lifecycle contract"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 10829,
+          "anchor": "### Candidate 118 — physical eligibility before founder uniqueness (active)"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A06",
+        "A09",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM38",
+      "name": "The full sensory runtime exposed a learning-admission defect hidden by helpers",
+      "classification": "genuine integration repair with unresolved cost",
+      "finding": "ST51",
+      "observed_mechanism": "C118 helper success did not close combined guided input and pending self-hearing. C119 fixed translation but full220-port input grew no root: old body-only owners and focused overlap excluded new relations. C120 allowed missing relations on familiar anatomy, reporting four new routes but about20.4MB and49.19s added cost in the compared run.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Preserve familiar memories while admitting genuinely new experienced relations. Specify relation identity and bounded growth; qualify through the complete source roster and actual runtime.",
+      "acceptance": {
+        "unit": "Distinguish duplicate experience from a new relation on already-owned anatomy.",
+        "module": "Exercise combined external, body and self-hearing ingress without masking context.",
+        "system": "Require genuine later recall and measured mature resource bounds; root growth alone cannot pass speech.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 11500,
+          "anchor": "## Candidate 119 — existing guided/self-hearing transport handoff"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 11666,
+          "anchor": "### 2026-09-11 18:54 UTC — C119 actual runtime result: custody passed, root absent"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 12734,
+          "anchor": "### Candidate121 — initial learned-reassembly handoff; existing state only"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A06",
+        "A09",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM39",
+      "name": "More retinal samples were not a fovea or color cognition",
+      "classification": "genuine expansion with terminology and functional gaps",
+      "finding": "ST53",
+      "observed_mechanism": "The903-site eye retained135 sites and added a32×24 grid over the full180×90 field. The world remained achromatic; browser RGB was preview. Source inspection later showed neck yaw/eyelids influenced world optics while existing eye yaw/pitch did not steer the claimed focal sampling.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Preserve original receptor identities and distinguish expanded coverage, color input and organism-directed narrow foveation. Specify actual optical footprint and action-to-sampling causality before changing optics.",
+      "acceptance": {
+        "unit": "Verify coverage, old-site identity and declared channel meaning.",
+        "module": "Show actual native aim changes source sampling on the correct capture/pose clock.",
+        "system": "Verify detailed perception through native receptors with coexisting hearing; a sharp preview cannot pass.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 25670,
+          "anchor": "### D122334 optical complete saved-body comparison — locally closed, not deployed"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 25750,
+          "anchor": "### D122334 — functional necessity and source-overlap decision, 2026-09-13 18:55 UTC"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A06",
+        "A08",
+        "A13",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM40",
+      "name": "Exact computational simplification is distinct from cognitive approximation",
+      "classification": "preserve demonstrated evolution at its exact scope",
+      "finding": "ST55",
+      "observed_mechanism": "Historical changes removed redundant topology scans, unused observation copies, repeated exact rational calculations and typed-port encode/decode reconstruction. They retained complete source bytes, structural validation and selected full body/world successor equality. That is narrower than universal equivalence or a real-time pass.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Retain only changes with explicit input/error/state correspondence. Exact addresses and call-local immutable reuse are not semantic answer lookups; refuse cross-state reuse that changes causal input.",
+      "acceptance": {
+        "unit": "Compare old/new exact outputs, invalid-input ordering and nonzero branches.",
+        "module": "Require complete ordinary-path observations and paired successor/restart equality.",
+        "system": "Measure actual mature workload and declared worst case; no single timing sample certifies speed.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 24340,
+          "anchor": "Source commit2b7db0dcab94440ef1f896c9d25017c99151ab83 pushed, remote ref verified. Evidence uploaded and FULL readback hash matched: s3://guala-incident-bench-20260831/vision-realtime-20260913/gZ3KpV/V122302-evidence.tar.gz, 9310599bytes, SHA25691f3429be133faff11a630ae092b0f843fb746f73302a7b4de4b9f97bb85ba94. Final05:33:29UTC health read: task1460 HEALTHY,1/1/0, CPU~47–50%mean, RAM~14–16%, runaway alarmsOK, historical clockALARM unchanged. Four owned terminal private containers may now be removed; all source/result/wheel/caller/failure receipts remain archived. No production cutover. Shared C1 coordination verified commit5320b97a1b69c370b8e413e07067c9e156b7a15b. C1 HTTP cap+whole-source corrections read; contiguous capture/push contract still requires completion, not silently replaced by dropped samples and faster polling."
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 24487,
+          "anchor": "Requestedarchitecture: reached-only full-field exact organism, full903<=250ms. Currentreality: ordinarywarm1.581688s; outerNeuronPhysicalState Arc::make_mut deepclones boxed Psi rings AND recovery-lane arrays for membrane/receptor-only changes. settle_prepared_psi_krimelack clones and rewrites unchangedrings; physicalinterval clonesPsi again; finalization with_held_membrane_and_carriers clonesbody solely to supply physicalheldmembrane/compartments. ConflictYES: repeatedrepresentation with no newphysicalstate. Single correction in complete_neuron.rs: privately share the SAME full arrays with Arc slices; detach on actual changedring/lane only. No interning, index, cache, score, reducedfield, new law, fields, owner or state/schema bytes. Anatomy arrays/preparedplans remain as-is; all seven DSF fields/ring positions/evaluations, recovery validation/refusal order, material/energy and predecessorstate stay exact. This is NOT the rejected anatomy-sharing hypothesis; mutable-state arrays were boxed."
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 24510,
+          "anchor": ""
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 24591,
+          "anchor": "### V122314 implementation contract — ordered shared recovery, parallel independent consequences"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 24659,
+          "anchor": "### V122317 contract — exact sign comparison without transient rational normalization"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 24899,
+          "anchor": "## V122325 CONTRACT — retain generated typed ports; keep one structural validator"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 25072,
+          "anchor": "## V122330 CONTRACT — resolve reached receptor addresses once per unchanged input"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 26137,
+          "anchor": "## D122334 — functional necessity, exact gate-energy combination contract (2026-09-13 20:24 UTC)"
+        }
+      ],
+      "repair_actions": [
+        "A04",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM41",
+      "name": "A bounded numerical magnitude did not justify a bounded denominator",
+      "classification": "refuted arithmetic shortcut",
+      "finding": "ST57",
+      "observed_mechanism": "The proposed fixed-width residue representation relied on sub-quantum magnitude. Source constructors, accumulation and restore allowed arbitrary rational denominators; the proposal was withdrawn.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Preserve exact rational state unless an actual constructor/operation/codec bound is proved. Never truncate digits or narrow a domain to force performance.",
+      "acceptance": {
+        "unit": "Include tiny magnitudes with large coprime denominators and exact refusal behavior.",
+        "module": "Prove closed arithmetic and serialization across all admitted producers.",
+        "system": "Require mature-state preservation before replacing the representation.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 24788,
+          "anchor": "## P122321 RESULT — preparation is the costly part of this helper"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 24820,
+          "anchor": "## V122322 RESULT — exact reuse retained; only small timing difference"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM42",
+      "name": "Queue priority was already correct; the proposed fix could not save a cycle",
+      "classification": "source-refuted diagnosis",
+      "finding": "ST60",
+      "observed_mechanism": "P122333 confirmed Queue.get retrieves waiting sensory input even at timeout0. A newly arriving frame instead waited for a non-preemptible ongoing settlement. The proposed duplicate priority check could not remove that computation.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Preserve the source correction and address the actual physical/commit boundary. Avoid extra owners or repeated priority branches.",
+      "acceptance": {
+        "unit": "Distinguish waiting-at-boundary from arriving-during-settlement cases.",
+        "module": "Verify actual queue/caller order without bypassing coupled physical obligations.",
+        "system": "Measure resulting sustained capture-to-native latency rather than presumed cycle savings.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 25305,
+          "anchor": "## P122333 — proposed priority fix refuted; camera-slot alternative not selected"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 25323,
+          "anchor": "### Decisive source correction"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A06",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM43",
+      "name": "A latest-camera slot left a Stop race unresolved",
+      "classification": "unimplemented proposal; lifecycle not qualified",
+      "finding": "ST61",
+      "observed_mechanism": "A replaceable unadmitted camera unit was considered for freshness, not compute reduction. DELETE-on-Stop could arrive before a delayed POST, allowing later input after Stop; the proposal was parked before coding.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Specify complete capture/admission/cancellation identity and ambiguous-network behavior before implementation. Do not add a registry, lease or hidden retry merely to conceal the missing lifecycle.",
+      "acceptance": {
+        "unit": "Exercise delayed POST, earlier cancellation and ambiguous response ordering.",
+        "module": "Prove bounded unadmitted custody and exact admitted-source identity.",
+        "system": "Verify actual browser Stop/disconnect and source age; early acknowledgement is not accepted perception.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 25335,
+          "anchor": "### Alternative considered and parked before coding"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A06",
+        "A13",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM44",
+      "name": "Co-timed source labels did not establish contiguous independent hearing",
+      "classification": "transport gap in the proposed sensory architecture",
+      "finding": "ST63",
+      "observed_mechanism": "The page formed camera/microphone units and discarded older waiting audio when selecting the newest. Separate timestamps improved evidence but did not make hearing contiguous. Counting gaps did not repair them.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Specify independently timed sensory ingress, exact admitted coverage, bounded custody and truthful gap reporting while retaining simultaneous relationships.",
+      "acceptance": {
+        "unit": "Detect missing, duplicate and reordered actual audio blocks.",
+        "module": "Verify independent camera/audio source clocks through joint field admission.",
+        "system": "Exercise sustained real input; neither a smooth preview nor silence buffers qualify continuous hearing.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 25393,
+          "anchor": "## D122334 — recommend the complete sensory-latency architecture, not timing-only work"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 25551,
+          "anchor": "## D122334 continuation — response-paced page preserved; exact optical arithmetic candidate (2026-09-13)"
+        }
+      ],
+      "repair_actions": [
+        "A06",
+        "A13",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM45",
+      "name": "Electrical separation did not permit splitting the shared DSF field",
+      "classification": "physical dependency boundary; shortcut rejected",
+      "finding": "ST64",
+      "observed_mechanism": "The active internal path evaluated one joint UF over all selected pre/post membrane coordinates before contact components. Independent components could affect the same field; separate per-component UF would change bounds and geometry. Stable ordering alone did not preserve simultaneous interaction.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Preserve complete joint field authority and coupled settlement. Any changed occurrence or participation law needs explicit specification/ratification rather than an optimization label.",
+      "acceptance": {
+        "unit": "Retain every explicit field, coordinate, bound and dependency.",
+        "module": "Compare coupled simultaneous outcomes and ordered shared-reservoir recovery.",
+        "system": "Prove full sensory/body/retained-state behavior and cold continuation without reduced-field proxies.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 25454,
+          "anchor": "### D122334 authorization and first source map — 2026-09-13"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 25511,
+          "anchor": "### D122334 dependency review and C1 coordination — 2026-09-13"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM46",
+      "name": "Unchanged light could still cause real physical work",
+      "classification": "invalid pixel-difference shortcut rejected",
+      "finding": "ST65",
+      "observed_mechanism": "Held luminance integrated energy over source duration. Retained receptor energy could be delivered in darkness despite a contrary header comment. Equal images, low amplitude or zero whole quanta did not prove unchanged/due-free physical state.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Separate input representation from physical evolution. Preserve exposure, retained residues, gates and recovery; fix misleading comments and qualify exact scheduling rather than inserting contrast thresholds or energy sinks.",
+      "acceptance": {
+        "unit": "Check steady exposure, darkness with residue and fractional accumulation.",
+        "module": "Compare complete timed receptor and downstream state under unchanged input.",
+        "system": "Meet the declared noisy/full-change workload as well as quiet scenes without dropping due physical work.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 25813,
+          "anchor": "### D122334 — steady-light execution constraint, 2026-09-13 19:10 UTC"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM47",
+      "name": "Only immutable preprocessing was proved safe to overlap",
+      "classification": "execution dependency not yet solved",
+      "finding": "ST66",
+      "observed_mechanism": "Full UF for a complete immutable source could be calculated independently. Actual receptor work depended on current topology, gates, residue, shared fluids and prior body/self-sound. The existing runtime committed only after cognition/body/acoustic completion.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Map the complete predecessor and commit dependencies. Do not publish provisional receptors as accepted perception or process a later source against stale living state.",
+      "acceptance": {
+        "unit": "Verify same predecessor and error precedence for any shared preprocessing.",
+        "module": "Require exact coupled state and rollback/restore behavior at every proposed boundary.",
+        "system": "Demonstrate sustained throughput with bounded pending work; early acknowledgement cannot replace capacity.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 25454,
+          "anchor": "### D122334 authorization and first source map — 2026-09-13"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 25511,
+          "anchor": "### D122334 dependency review and C1 coordination — 2026-09-13"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 25750,
+          "anchor": "### D122334 — functional necessity and source-overlap decision, 2026-09-13 18:55 UTC"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A06",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM48",
+      "name": "Context-versus-recipient reduction had no approved replacement law",
+      "classification": "unimplemented architecture boundary; no impossibility proof",
+      "finding": "ST67",
+      "observed_mechanism": "Selected contact endpoints supplied joint-field context and received local DSF/Psi settlement. Net-zero transfer did not exclude opposing transfers, fractional work, recovery or other causes. Final review found no existing authority to reclassify them as nonrecipients.",
+      "evidence_limits": "Historical documentary finding. Referenced source reports are not newly executed tests or present serving proof; current64 correspondence and applicable qualification remain open.",
+      "replacement": "Preserve full reached-neuron delivery. If participation changes are needed, supply a complete physical criterion and explicit approval; do not thin by net charge, relevance or changed pixels.",
+      "acceptance": {
+        "unit": "Cover cancelling transfers, fractional work, seeds, exposure, regulation and contact change.",
+        "module": "Verify any ratified recipient law retains complete field context and every due material obligation.",
+        "system": "Qualify changed successors and retained learning openly; do not call changed physics byte-equivalent optimization.",
+        "release": "Bind approved law, authentic paired predecessor, ordinary source/binary/configuration and exact serving image. Pass applicable Q01–Q24 without importing taught copies, changing acceptance after the result, or calling deployment health a capability pass."
+      },
+      "refs": [
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 26050,
+          "anchor": "### D122334 — calculation context versus physical recipient, 2026-09-13 20:02 UTC"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 26137,
+          "anchor": "## D122334 — functional necessity, exact gate-energy combination contract (2026-09-13 20:24 UTC)"
+        },
+        {
+          "path": "docs/guala_reconciliation/sources/speech-execution/LSP54-01--GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md",
+          "sha256": "4e411f339fb34ba62214b79910e4be9f8348740c4b69cb5cd621d0ad12a4ee9b",
+          "line": 26184,
+          "anchor": "### D122334 — direct architecture help requested,20:47UTC"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM49",
+      "name": "Sparse acquisition changed the joint input domain while retaining sampled identities",
+      "classification": "explicit acquisition redesign; not dense-input equivalence",
+      "finding": "ST70",
+      "observed_mechanism": "GLJSRC07 admitted sorted unique actual retinal IDs with three RGB bytes each. Missing samples were absent, not darkness, old light or replacement world light. All selected modalities stayed in one genuine occurrence. Alternating452/451-site copied-body runs preserved1169 receptor lineages and exact warm/cold successors, but contained silent sound and no self-sound/motor return; they did not exercise a network request or browser.",
+      "evidence_limits": "Recovered historical contract and reported evidence; original executable receipts/approvals and current64 correspondence remain independently qualified. This addition performs no product execution or serving refresh.",
+      "replacement": "Preserve explicit acquisition coverage, common source custody and honest holes. Derive sampling from declared physical acquisition/organism aim, never semantic selection. Qualify input-domain changes as changed physical exposure rather than kernel-equivalent dense optimization.",
+      "acceptance": {
+        "unit": "Reject duplicate/out-of-range/mismatched IDs and preserve dense receipts plus exact selected anatomy order.",
+        "module": "Exercise actual HTTP/native intake with interleaved subsets, external and nonzero self-hearing, pending body returns, failure and exact cold continuation.",
+        "system": "Verify public holes/coverage, actual independently clocked senses and sustained capture-to-receptor capacity; no sparse fixture or silent copied window closes the whole system.",
+        "release": "Bind exact approved law, authentic mature predecessor, source/binary/configuration and ordinary serving path. Complete applicable Q01–Q24, preserve state and record any scope exception. A historical report or documentation check is not a product pass."
+      },
+      "refs": [
+        {
+          "source_id": "SE22",
+          "path": "backups/runtime/a1-speech-reconciliation-20261010/sensory-contract/SE22--cb572c3b7030.md",
+          "sha256": "0dcd3944506679cf12f95169b7427300161e883a1aec04345141c2dc5a43357a",
+          "line": 726,
+          "anchor": "## Historical 21:46 checkpoint — D122334 ACTIVE; focal acquisition is Sol's one native item (2026-09-13 21:46 UTC)"
+        },
+        {
+          "source_id": "SE22",
+          "path": "backups/runtime/a1-speech-reconciliation-20261010/sensory-contract/SE22--cb572c3b7030.md",
+          "sha256": "0dcd3944506679cf12f95169b7427300161e883a1aec04345141c2dc5a43357a",
+          "line": 1137,
+          "anchor": "## Sparse camera intake — frozen implementation scope, 2026-09-13"
+        },
+        {
+          "source_id": "SE22",
+          "path": "backups/runtime/a1-speech-reconciliation-20261010/sensory-contract/SE22--cb572c3b7030.md",
+          "sha256": "0dcd3944506679cf12f95169b7427300161e883a1aec04345141c2dc5a43357a",
+          "line": 1269,
+          "anchor": "## Exact task1462 integration and fresh-body result — 2026-09-13 22:35Z"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A06",
+        "A13",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM50",
+      "name": "A source-packing assumption broke when new body ports followed focal sight",
+      "classification": "typed source-order defect; scoped corrective evolution",
+      "finding": "ST71",
+      "observed_mechanism": "The sparse packer gathered all nonvisual rows before focal sight. New BODY ports were appended after focal sites, so that assumption no longer matched actual anatomy. The correction substituted acquired sight inside one anatomy-ordered pass. A later distinct GLJSRC08 need source withdrew the earlier appended-sensorium design; its historical packing warning must not be applied blindly.",
+      "evidence_limits": "Recovered historical contract and reported evidence; original executable receipts/approvals and current64 correspondence remain independently qualified. This addition performs no product execution or serving refresh.",
+      "replacement": "Use authoritative typed anatomy order and one source occurrence. Reconcile each actual source version and its producers/consumers; do not add guessed port buckets or remount/zero-fill missing samples.",
+      "acceptance": {
+        "unit": "Compare exact encoded bytes for legacy-only, focal-only and mixed acquisitions, including actual ports on both sides of focal sight.",
+        "module": "Verify source receipt, native decoder and full-field groups together against the exact integrated schema.",
+        "system": "Qualify the actual released source format and retained anatomy without substituting a prior binary or relying on an obsolete warning.",
+        "release": "Bind exact approved law, authentic mature predecessor, source/binary/configuration and ordinary serving path. Complete applicable Q01–Q24, preserve state and record any scope exception. A historical report or documentation check is not a product pass."
+      },
+      "refs": [
+        {
+          "source_id": "SE22",
+          "path": "backups/runtime/a1-speech-reconciliation-20261010/sensory-contract/SE22--cb572c3b7030.md",
+          "sha256": "0dcd3944506679cf12f95169b7427300161e883a1aec04345141c2dc5a43357a",
+          "line": 657,
+          "anchor": "## Historical 22:50Z checkpoint — 2026-09-13 22:50Z — camera source on origin, not live; anatomical-order correction"
+        },
+        {
+          "source_id": "SE22",
+          "path": "backups/runtime/a1-speech-reconciliation-20261010/sensory-contract/SE22--cb572c3b7030.md",
+          "sha256": "0dcd3944506679cf12f95169b7427300161e883a1aec04345141c2dc5a43357a",
+          "line": 702,
+          "anchor": "### 22:52Z correction result — source only, no production mutation"
+        },
+        {
+          "source_id": "SE22",
+          "path": "backups/runtime/a1-speech-reconciliation-20261010/sensory-contract/SE22--cb572c3b7030.md",
+          "sha256": "0dcd3944506679cf12f95169b7427300161e883a1aec04345141c2dc5a43357a",
+          "line": 527,
+          "anchor": "## Historical 23:14–23:16 cutover observation"
+        }
+      ],
+      "repair_actions": [
+        "A02",
+        "A04",
+        "A06",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM51",
+      "name": "A global need fraction conflicted with the stated local interoception law",
+      "classification": "documented architecture-authority conflict; scoped release exception separate",
+      "finding": "ST74",
+      "observed_mechanism": "The source comparison reported Python iteration over recovery-fluid cohorts, exact Fraction sums, binary64 narrowing, then exact_native_interoceptive_source. The neuron skill explicitly prohibited turning a body-wide energy fraction into an interoceptor. Joe later allowed the vision-only release to preserve the already-live need mechanism pending separate reconciliation; that exception did not ratify the disputed law.",
+      "evidence_limits": "Recovered historical contract and reported evidence; original executable receipts/approvals and current64 correspondence remain independently qualified. This addition performs no product execution or serving refresh.",
+      "replacement": "Recover the actual approval chronology and trace local material state through genuine afference. Replace unsupported aggregate decision/sensory authority through a declared local functional mechanism, preserving existing history and without inventing a hunger score or modifying L0–L4.",
+      "acceptance": {
+        "unit": "Prove units, locality, finite-material balance and explicit arithmetic boundaries; test distinct local states that share the same aggregate.",
+        "module": "Trace actual local depletion/recovery and food consequences through afferents, retained experience and later action with no hidden global fraction controlling choice.",
+        "system": "Qualify nourishment and need-driven foraging on the preserved organism, including truthful empty food and external replenishment, without countdowns or semantic routing.",
+        "release": "Bind exact approved law, authentic mature predecessor, source/binary/configuration and ordinary serving path. Complete applicable Q01–Q24, preserve state and record any scope exception. A historical report or documentation check is not a product pass."
+      },
+      "refs": [
+        {
+          "source_id": "SE22",
+          "path": "backups/runtime/a1-speech-reconciliation-20261010/sensory-contract/SE22--cb572c3b7030.md",
+          "sha256": "0dcd3944506679cf12f95169b7427300161e883a1aec04345141c2dc5a43357a",
+          "line": 177,
+          "anchor": "# CURRENT AUTHORIZATION — 2026-09-14 vision-only release"
+        },
+        {
+          "source_id": "SE22",
+          "path": "backups/runtime/a1-speech-reconciliation-20261010/sensory-contract/SE22--cb572c3b7030.md",
+          "sha256": "0dcd3944506679cf12f95169b7427300161e883a1aec04345141c2dc5a43357a",
+          "line": 462,
+          "anchor": "## CURRENT — 2026-09-13 23:30 UTC — explicit release-scope decision escalated"
+        },
+        {
+          "source_id": "SE22",
+          "path": "backups/runtime/a1-speech-reconciliation-20261010/sensory-contract/SE22--cb572c3b7030.md",
+          "sha256": "0dcd3944506679cf12f95169b7427300161e883a1aec04345141c2dc5a43357a",
+          "line": 483,
+          "anchor": "observe_recovery_fluid() cohort output in PYTHON, sums exact Fractions, narrows"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A07",
+        "A09",
+        "A11",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "TVM52",
+      "name": "Existing local metabolic feedback had real source consumers",
+      "classification": "positive earlier mechanism preserved; complete need loop still unproved",
+      "finding": "ST75",
+      "observed_mechanism": "S-008 reported task972 local membrane/recovery consequences and explicitly excluded hunger/food/choice. The later source still applied reached-cohort pumps, retained changed layer5 receptor lineages, and admitted metabolic perturbation into internal contact and mosaic settlement. Saying no internal feedback route existed was therefore too broad; source presence did not prove current useful need-to-action behavior.",
+      "evidence_limits": "Recovered historical contract and reported evidence; original executable receipts/approvals and current64 correspondence remain independently qualified. This addition performs no product execution or serving refresh.",
+      "replacement": "Preserve and trace the actual local feedback path before inventing a replacement. Distinguish missing activity, lost continuation, absent retained association and ineffective downstream action from absent machinery. Reconcile old source with current64 causality.",
+      "acceptance": {
+        "unit": "Verify actual local pump/recovery state changes and exact afferent lineage generation, including no-change controls.",
+        "module": "Trace those lineages through full-field delivery, retained multimodal experience and action preparation; inspect actual working/serving consumers.",
+        "system": "Demonstrate current food/need/foraging causal use and cold preservation, without treating a wrapper field or a historical counter as functional closure.",
+        "release": "Bind exact approved law, authentic mature predecessor, source/binary/configuration and ordinary serving path. Complete applicable Q01–Q24, preserve state and record any scope exception. A historical report or documentation check is not a product pass."
+      },
+      "refs": [
+        {
+          "source_id": "SE22",
+          "path": "backups/runtime/a1-speech-reconciliation-20261010/sensory-contract/SE22--cb572c3b7030.md",
+          "sha256": "0dcd3944506679cf12f95169b7427300161e883a1aec04345141c2dc5a43357a",
+          "line": 1357,
+          "anchor": "## 2026-09-13 23:33 UTC — attached inventory answered; existing local feedback recovered for C1"
+        },
+        {
+          "source_id": "SE22",
+          "path": "backups/runtime/a1-speech-reconciliation-20261010/sensory-contract/SE22--cb572c3b7030.md",
+          "sha256": "0dcd3944506679cf12f95169b7427300161e883a1aec04345141c2dc5a43357a",
+          "line": 1374,
+          "anchor": ""
+        },
+        {
+          "source_id": "SE22",
+          "path": "backups/runtime/a1-speech-reconciliation-20261010/sensory-contract/SE22--cb572c3b7030.md",
+          "sha256": "0dcd3944506679cf12f95169b7427300161e883a1aec04345141c2dc5a43357a",
+          "line": 1394,
+          "anchor": "This closes a specific record gap: saying the organism has NO internal"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A06",
+        "A07",
+        "A09",
+        "A11",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ],
+  "complete": false,
+  "product_acceptance": false
+}

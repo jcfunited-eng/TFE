@@ -1,0 +1,79 @@
+{
+  "architecture_decision": "do_not_implement_auditory_familiarity_authority",
+  "causal_mosaic_binding_interpretation": {
+    "different_commands_are_distinct_causal_groundings": true,
+    "held_out_speakers_are_not_used_for_growth": true,
+    "same_command_source_disjoint_experiences_share_one_tutor_causal_grounding": true,
+    "tutor_grouping_is_not_visible_to_the_auditory_relation": true
+  },
+  "current_production_relation": {
+    "full_dsf_fields_retained": [
+      "D_k",
+      "M_k",
+      "R_rev_k",
+      "U_star_k",
+      "C_k",
+      "P_k",
+      "B_k"
+    ],
+    "retrieval_rule": "exact_tuple_equality_of_complete_sound_roots",
+    "source": "dsf_ai_service/substrate/causal_thing_vocal_route.py:CausalThingVocalRouteOwner.retrieve_auditory"
+  },
+  "falsification_results": {
+    "current_recurrent_and_temporal_neurons": {
+      "commands": 3,
+      "held_out_pass_count": 0,
+      "held_out_total": 3,
+      "recurrent_motif_neuron_count": 735,
+      "source_disjoint_speakers": 18,
+      "temporal_assembly_count": 3,
+      "walk_up_advance_allowed": false
+    },
+    "exact_full_field_relations": {
+      "candidate_count": 5,
+      "cross_command_pair_count": 1792,
+      "cross_command_relation_locks": 0,
+      "held_out_pass_count": 0,
+      "held_out_total": 24,
+      "source_disjoint_speakers": 64,
+      "within_command_pair_count": 224,
+      "within_command_relation_locks": 0
+    },
+    "repeated_causal_full_field_relations": {
+      "candidate_count": 4,
+      "held_out_pass_count_per_candidate": 0,
+      "held_out_total_per_candidate": 24,
+      "source_disjoint_speakers": 64
+    }
+  },
+  "information_gap": "The lived causal grounding can state which completed experiences belong to one THING, but the current complete auditory roots and current recurrent/temporal neurons contain no exact selective relation that lets an unheard speaker's occurrence choose that THING. Exact complete-root equality rejects different speakers; broader recurrent structure is either absent, shared across groundings, or resolves the wrong grounding. Promoting a union, intersection count, score, threshold, label, topology key, or reduced quotient would invent the missing relation.",
+  "l0_l4_modified": false,
+  "labels_entered_substrate": false,
+  "reports": [
+    {
+      "embedded_authority_receipt_sha256": "9f172dd5b95e4eefcb569e6a9e460e92e203b50f3bc2d6748fc299c70354d0a5",
+      "file": "/tmp/guala_full_field_separability_census_v1.json",
+      "file_sha256": "e55a97201626e3355e66ec55c56281d5d009f305b00acb99734429e4775c431b",
+      "internal_authority_verified": true
+    },
+    {
+      "embedded_authority_receipt_sha256": "bb5ff63689f97517e6081d2dc13514036ea82b97ee75eda117865fa7ca5f8192",
+      "file": "/tmp/guala_full_field_causal_recurrence_v1.json",
+      "file_sha256": "4d5d901d24bfd23df090bf6bd937fb8718ac7861da3d2ca51fc8fd9b01bbb072",
+      "internal_authority_verified": true
+    },
+    {
+      "embedded_authority_receipt_sha256": "becaae481c5de96598a42b569d4d22f92e56f3471ef96f57ff15b5206af8396e",
+      "file": "/tmp/guala_full_field_causal_resonance_v1.json",
+      "file_sha256": "c69a4485fbeeb069ad6f01e86af7a7155b922425476c3bfbd07e8c88efcfed83",
+      "internal_authority_verified": true
+    },
+    {
+      "embedded_authority_receipt_sha256": "2d2562a3e3790964bcd09580d81f8b6ed05f2f0e053c866ee04c035e76901224",
+      "file": "/tmp/existing_auditory_neuron_go_no_go_20260727.json",
+      "file_sha256": "ba72b0b87b4b68bbc0c7153129c07d43273eb7088e12cd9706258a802e2b3a71",
+      "internal_authority_verified": true
+    }
+  ],
+  "schema": "guala.audit.causal_mosaic_speech_familiarity_falsification.v1"
+}

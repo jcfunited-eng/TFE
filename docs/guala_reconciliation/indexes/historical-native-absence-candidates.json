@@ -1,0 +1,457 @@
+[
+  {
+    "path": "native/guala_core/src/articulated_body_joint_source_builder.rs",
+    "blob": "b9d08c89172ae497ed91585e126da76155c32696",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/articulatory_receptor_work.rs",
+    "blob": "c56fd6f52b1136184592d71a629110786b421c9a",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/auditory_receptor_work.rs",
+    "blob": "e3d10eedc6e5175a4454742b5d0fb338fb16e689",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/bounded_physical_quanta.rs",
+    "blob": "ed9a69b237ad0968e6d46cbce2710cb9b0084c45",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/canonical_basin.rs",
+    "blob": "2efb1667c93da0261423948c1ea1b8c8c1dbb9f4",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/canonical_causal_evidence.rs",
+    "blob": "8fb291cb50d6b4586dd1ae1ec3acc803266e75d8",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/canonical_l0_l4.rs",
+    "blob": "7ea984a176c9478a61e2f1b9b35412f425e28ca7",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/canonical_l0_l4_batch_api.rs",
+    "blob": "335da4a2f79a96d16c9bf1e01ec19795529feb31",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/causal_clock.rs",
+    "blob": "38128f04cab1841a9637bfff91f395897e9e0a35",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/causal_event_scheduler.rs",
+    "blob": "9ab9484372cdd3170244605a8c9b4a0cb5c75c21",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/chemical_receptor_work.rs",
+    "blob": "bd8fc7999cca948b19dfdc57645723326e79a5d5",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/complete_neuron.rs",
+    "blob": "41dedb3b8d65781f7db28cc69eaed09e49b7f421",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/content_defined_chunker.rs",
+    "blob": "a404baf5f28d3254e64d776d964b2bb17cbf3fec",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/current_neuron_carrier.rs",
+    "blob": "f2a9d9b8a95b197051d7a4aad22c2b4ad192108f",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/declared_geometric_anatomy.rs",
+    "blob": "4f240c9fc4ae1ac7b24aadf1d2a11f08e88f83fa",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/developmental_electrical_anatomy.rs",
+    "blob": "2cd5cb00d6a493899c973f71a67ffa94d5d8b5d0",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/developmental_resting_population.rs",
+    "blob": "ffbb037b84ae74edaa05754412972bfb7e1e38ec",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/elementary_charge_membrane.rs",
+    "blob": "5d5340f8047acf6feeb22df584bbb9b55f0922e4",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/elementary_charge_transfer.rs",
+    "blob": "be4cb0c4c1c38fbe2c5f98bc18caeef8b16f64ab",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/embryonic_neuron_genesis_candidate.rs",
+    "blob": "283c247d89ca54314e64399993152d1b335ab9f3",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/exact_rational.rs",
+    "blob": "90377c61a25e144d164350853311f1e0b4fbcba3",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/exact_time_grid_occurrence.rs",
+    "blob": "d0abc18a45b4b920159272110eb7d4748e269a26",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/fast_charge_math.rs",
+    "blob": "6f05eab81d4c8f1dab53a215dfdc6a5ef61d50ac",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/finite_channel_ensemble.rs",
+    "blob": "732fec4594564d56a9ad8b94206bf1411992d2c7",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/full_field_bank_final.rs",
+    "blob": "13daf2156f98f57a6f3e3be5d1688f91ecb94e6b",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/hippocampal_directory_cold_store.rs",
+    "blob": "c4edb356371ff55d34827d87aaa5777b707485ed",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/hippocampal_reference_page.rs",
+    "blob": "749a89ba47c49e574c093902a0741f3ddc866199",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/hippocampal_sparse_path.rs",
+    "blob": "3255a06bdfc5b81a686ad89b2bf870e89d2f1d49",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/immutable_evidence_store.rs",
+    "blob": "d0f340d82c19c1ab76f8442662fa3a736d3b5f4f",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/joint_field_l0_l4.rs",
+    "blob": "523f08d1d0d3ce1423ced3205281502b70bb509b",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/joint_source_episode.rs",
+    "blob": "d643f9d616f302e84c4e5d9edfc4d067ddab9a47",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/joint_uf_neuron_boundary.rs",
+    "blob": "1ddd6b25a635809a22056fd5dc83b859e02ca680",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/joint_uf_source_adapter.rs",
+    "blob": "28e2b45ffadc421c915e796a77cbd4e4699022d9",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/joint_uf_v1_4.rs",
+    "blob": "25cebdf716d7cb8f981a282f5c7652d1d1f3ffbf",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/joint_uf_v1_4_dynamic_fixture.rs",
+    "blob": "d66be7028b93bd8dcee836fdf7e846733ee3b4f8",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/lattice_closed_membrane.rs",
+    "blob": "b656bf90f309e8c336fd24a1a7d4fed8b7deaf0d",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/local_cupula_hair_bundle_geometry.rs",
+    "blob": "c8477470bc6035d7c3f81724bd1054190d55a8bb",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/local_gating_spring_energy.rs",
+    "blob": "a1397880a60ef19b6522a4bce2b8703fd54acc0e",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/local_membrane_conductance_balance.rs",
+    "blob": "4fec51f9b743abde3dfbf2ad30239c3717846048",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/local_tip_link_extension.rs",
+    "blob": "f5ee0b12bafec8bb0c7a92bdf0d9241dfe201ecd",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/localized_reaction_contacts.rs",
+    "blob": "d8355c2664333350a87572a36b13d2e02b076b6e",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/materialized_fabric.rs",
+    "blob": "78357ce21d1c944736cf1cfade9b3b5fe2e101ed",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/metabolic_feeding.rs",
+    "blob": "aa14612f2d1747ff17374f9929c6cb7e4c50391e",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/mounted_joint_fractal.rs",
+    "blob": "717b2907ed7ab49f2da81922cd0ffcd47b71192e",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/neuron_source_anchor.rs",
+    "blob": "18331fa489e1a6fa479eefa3e55158beb693a31d",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/optical_receptor_work.rs",
+    "blob": "2cdf2e456c62808563bb2641104a8f4ef40a135d",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/ordered_gate_delivery_candidate.rs",
+    "blob": "ea7a18388cc5dedb935198b0553f3a9b56ce5f18",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/organism.rs",
+    "blob": "09894810db6963cfb5fa8e3335d3289c9cf71c83",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/organism/field_binding.rs",
+    "blob": "ac09d798b47e43824e873e3b38585842cc598118",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/organism/genesis.rs",
+    "blob": "2c7b817f877427a698d2ea29ce764c08615bfea6",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/organism/owner_boot.rs",
+    "blob": "e6c48a9e6ab5ed39279de348f11966ae8006bbeb",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/organism/platform_envelope.rs",
+    "blob": "43e87614d4a70e3a1b519568519a01d62962cd32",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/organism/platform_observer.rs",
+    "blob": "6a94c555d04e04c9d061e8df9ac0be96bd11a317",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/organism/seal.rs",
+    "blob": "16ee62e7049f24309e6d9b890f387407a08568a6",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/organism/wake_admission.rs",
+    "blob": "15510f3fadcd8e242050a797f64180bb69087191",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/organism/world_body.rs",
+    "blob": "d997a2bde6fa313c949dc9288fc8d6999fe048ec",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/organism/world_body/test_support.rs",
+    "blob": "05795a08de331dbeb01d70d22d11d2528bc56b6a",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/organism/world_body/tests.rs",
+    "blob": "e27ef612b859b77589f84b0eb8d6f8af5ae6cb67",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/organism/world_body/world.rs",
+    "blob": "2915c15b1efa58138c17a0821acf498e460d9ed8",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/organism_runtime.rs",
+    "blob": "73142f7c74a3db599c7da5cf40e7fd8447298c90",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/physical_mosaic.rs",
+    "blob": "ac8b2e909205872d424e5904cfd7f2d5e81a493e",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/positional_krimelack_boundary.rs",
+    "blob": "cfc8495d04da34d4aef084220d2c1e8ffdc4c829",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/proprioceptive_receptor_work.rs",
+    "blob": "40d83f479936824bed3f46b9eadbbabf7fa823dc",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/reached_neuron_cohort.rs",
+    "blob": "fa6e723ef0f2622b792d9d9b452a42fc1795a525",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/reached_vestibular_bundle_path.rs",
+    "blob": "a2da29f6309e70dbcdce22a83a82dcb2e9855592",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/receptor_quantum_delivery.rs",
+    "blob": "0568421908cdf7553acdae951c73d4141af968fa",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/recovery_fluid_contact.rs",
+    "blob": "ee857dee7b1ea18cbdf7b7266bcc11906198d780",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/recursive_formation_evidence.rs",
+    "blob": "25c748f4120eac53a2773e6f82427c38226155fb",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/resident_cognitive_formation.rs",
+    "blob": "f58df83dcacba438077f29a095e099862912263a",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/resident_cognitive_formation/real_body_migration_probe.rs",
+    "blob": "0f2c6369eb44edaa7890790956026cc53a94cbbb",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/resident_cognitive_formation/reservoir_probe.rs",
+    "blob": "ddb46021ef8e377c8ec32d9c4db0db779469deb2",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/resident_electrical_fabric.rs",
+    "blob": "742abe4aa7dbeb34513b07116ad6ce3cf11e8d8f",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/resident_receptor_transition.rs",
+    "blob": "c33a9a4c4695f092917e3a6ed92fc6c8b85e017e",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/root_translation_joint_source_builder.rs",
+    "blob": "1e1fb574b4f4f63beb246cdaa5683b5f4a6bdb92",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/root_translation_terminal.rs",
+    "blob": "6eb243c8cfa9be26e21069aba4ed8f383f811c86",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/root_yaw_joint_source_builder.rs",
+    "blob": "4c2646146ce99d41ac3787ba144a7a81d7463d9c",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/root_yaw_terminal.rs",
+    "blob": "3cb6e9ddbcdea4d42adbba94efb93cc14fd0e900",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/scratch_auditory_ear_proofs.rs",
+    "blob": "7df5e6332984a6427940220f6df1e10344b6c32a",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/scratch_auditory_probe.rs",
+    "blob": "9fabc19edcea8299c419ca9f8868ab65ce91d479",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/sha256.rs",
+    "blob": "40ea73ac74ea14021917b7f2d739210349b54156",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/sparse_electrical_contact.rs",
+    "blob": "ba49628fcee8051259dfde462b07c81c31c44647",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/tactile_receptor_work.rs",
+    "blob": "3a2b2aa1072398a7dc29f76f5cec7c4bf6514add",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/task853_dormant_migration.rs",
+    "blob": "846eff4ff4c4edb231130e1a7ce336878fe064ef",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/thermal_receptor_work.rs",
+    "blob": "b982f7add86b12ecbc3c07e73dc7d51d542770ef",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/vestibular_fluid_material.rs",
+    "blob": "1bbce98c7cdd5cc2cb3cccdb011e50782e61ff1d",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/vestibular_joint_source_builder.rs",
+    "blob": "94f1fb48343232a92d978e9ba01caa4ff1acddaa",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/vestibular_neuron_path.rs",
+    "blob": "3786ab8c56a67eb236c1a6d2d0b570f7dba1efd5",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/virtual_body_yaw_motion.rs",
+    "blob": "c43b85ac5eea545d144a9dca0811f1a9a6dd283b",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/virtual_body_yaw_occurrence.rs",
+    "blob": "d120dfa0e8a5084d9da2397566cc6897c7c20a96",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/virtual_material_neuron_genesis.rs",
+    "blob": "a52615292ca090b5e57f9a672f13a22d0f8433e3",
+    "same_basename_candidates": []
+  },
+  {
+    "path": "native/guala_core/src/virtual_vestibular_canal.rs",
+    "blob": "85d4ce875b7d86187c05a86efb8b11dc9014ebdd",
+    "same_basename_candidates": []
+  }
+]

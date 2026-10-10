@@ -1,0 +1,869 @@
+{
+  "schema": "guala.language_vocabulary_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T05:39:33.090325+00:00",
+  "scope": "All17 recovered versions across seven specified vocabulary, ambiguity, question, word-company, language and programming-curriculum paths; related code is bound to the earlier complete per-file captures, not current live execution.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "LD02-01",
+      "path": "docs/fabric_phylums/126_deep_programming_languages.md",
+      "git_blob": "017985d1f1db2176d0e6f71de76e847367fc3990",
+      "sha256": "1845bd4ee5b6d4a7a9e9aa975eb545580374c1301807d24cbfc6794bedae684b",
+      "bytes": 37168,
+      "lines": 649,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD02-01--126_deep_programming_languages.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through seven latest documents (3796 lines) and all 347 unique older-only passages (943 lines); original authority, scientific claims, implementation closure and current speech qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-vocabulary/LD02-01--126_deep_programming_languages.md"
+    },
+    {
+      "id": "LD02-02",
+      "path": "docs/fabric_phylums/126_deep_programming_languages.md",
+      "git_blob": "8e53276ca74bbf47647f72c69b5a2d63554a57bd",
+      "sha256": "38c47b748018bb9fd1be18ac912c5f40f07597024229668022fddc8a2edb6829",
+      "bytes": 49940,
+      "lines": 864,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD02-02--126_deep_programming_languages.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T02:25:36+00:00",
+          "commit": "bf45e62ad7e4348740f94380b54a35b4529cba38",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through seven latest documents (3796 lines) and all 347 unique older-only passages (943 lines); original authority, scientific claims, implementation closure and current speech qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-vocabulary/LD02-02--126_deep_programming_languages.md"
+    },
+    {
+      "id": "LD03-01",
+      "path": "docs/fabric_phylums/169_words_that_mean_the_same.md",
+      "git_blob": "834b17d7a0681a97c6490981c0677d3b980e51b9",
+      "sha256": "4272fefab26e0ede1f67a82af20d5c48c61cc7a16f9378cd6c2403e584365478",
+      "bytes": 34997,
+      "lines": 563,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD03-01--169_words_that_mean_the_same.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through seven latest documents (3796 lines) and all 347 unique older-only passages (943 lines); original authority, scientific claims, implementation closure and current speech qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-vocabulary/LD03-01--169_words_that_mean_the_same.md"
+    },
+    {
+      "id": "LD03-02",
+      "path": "docs/fabric_phylums/169_words_that_mean_the_same.md",
+      "git_blob": "d794f477c147964f9b05dd5dd9e15b539a6fb4e8",
+      "sha256": "8ad32f38b23e9c6aa4a914372a0e1cb50f470acef45d3c366172366e278c31ca",
+      "bytes": 41629,
+      "lines": 674,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD03-02--169_words_that_mean_the_same.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T05:09:01+00:00",
+          "commit": "70817c342f9dc345235c581bd7fbe51ea368ec82",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through seven latest documents (3796 lines) and all 347 unique older-only passages (943 lines); original authority, scientific claims, implementation closure and current speech qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-vocabulary/LD03-02--169_words_that_mean_the_same.md"
+    },
+    {
+      "id": "LD04-01",
+      "path": "docs/fabric_phylums/170_words_with_two_meanings.md",
+      "git_blob": "5c9e735414a1e9ac9776bd23eccdc89cd653550c",
+      "sha256": "bf8b6a2337543e00006b1d0f22b3fc630e75ba979597dc81b1c78149b34996bb",
+      "bytes": 48996,
+      "lines": 637,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD04-01--170_words_with_two_meanings.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through seven latest documents (3796 lines) and all 347 unique older-only passages (943 lines); original authority, scientific claims, implementation closure and current speech qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-vocabulary/LD04-01--170_words_with_two_meanings.md"
+    },
+    {
+      "id": "LD04-02",
+      "path": "docs/fabric_phylums/170_words_with_two_meanings.md",
+      "git_blob": "d1d6d9d064bf7353d0bf85e121b9e2f2ce8ce4f7",
+      "sha256": "33d2def11e6eda3e22544a78ac8a0d59397842d9321bee43196e38316449eae4",
+      "bytes": 53646,
+      "lines": 720,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD04-02--170_words_with_two_meanings.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T08:00:22+00:00",
+          "commit": "c5d3088a4ed8f6e686e5cce6c55689c530fb37b8",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T05:09:01+00:00",
+          "commit": "70817c342f9dc345235c581bd7fbe51ea368ec82",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through seven latest documents (3796 lines) and all 347 unique older-only passages (943 lines); original authority, scientific claims, implementation closure and current speech qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-vocabulary/LD04-02--170_words_with_two_meanings.md"
+    },
+    {
+      "id": "LD04-03",
+      "path": "docs/fabric_phylums/170_words_with_two_meanings.md",
+      "git_blob": "d479a10e106e3d2f3822226220d61ec2612759a7",
+      "sha256": "c80d121f2f14921f7a8a176f7aae80e7200aa329bdabc90cbcf795be6a58d095",
+      "bytes": 56467,
+      "lines": 765,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD04-03--170_words_with_two_meanings.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T08:00:22+00:00",
+          "commit": "c5d3088a4ed8f6e686e5cce6c55689c530fb37b8",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through seven latest documents (3796 lines) and all 347 unique older-only passages (943 lines); original authority, scientific claims, implementation closure and current speech qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-vocabulary/LD04-03--170_words_with_two_meanings.md"
+    },
+    {
+      "id": "LD05-01",
+      "path": "docs/fabric_phylums/171_words_that_carry_the_question.md",
+      "git_blob": "360edacd16acf40f461dc72905f39aace3e3a7ea",
+      "sha256": "c40637f05bbeffa839339ba439f4efa3774db21f32731d01ada56eb7857298a1",
+      "bytes": 28470,
+      "lines": 502,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD05-01--171_words_that_carry_the_question.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through seven latest documents (3796 lines) and all 347 unique older-only passages (943 lines); original authority, scientific claims, implementation closure and current speech qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-vocabulary/LD05-01--171_words_that_carry_the_question.md"
+    },
+    {
+      "id": "LD05-02",
+      "path": "docs/fabric_phylums/171_words_that_carry_the_question.md",
+      "git_blob": "5b3e97e30c3d13b7885e673960c48a65060078cb",
+      "sha256": "29e339d433c00700d05f46d4b9d82c77fbac4241cbd7bfc46a6fdeb9ad86dbf3",
+      "bytes": 34637,
+      "lines": 608,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD05-02--171_words_that_carry_the_question.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T17:45:55+00:00",
+          "commit": "9683351efa501eb61bbbf5f939e9df88d498f0eb",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-29T17:15:00+00:00",
+          "commit": "2a09fb316644504dda214d60295e6878a3a903d7",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T05:09:01+00:00",
+          "commit": "70817c342f9dc345235c581bd7fbe51ea368ec82",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through seven latest documents (3796 lines) and all 347 unique older-only passages (943 lines); original authority, scientific claims, implementation closure and current speech qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-vocabulary/LD05-02--171_words_that_carry_the_question.md"
+    },
+    {
+      "id": "LD05-03",
+      "path": "docs/fabric_phylums/171_words_that_carry_the_question.md",
+      "git_blob": "8adeeca31fc4cb345dcb31199beb404302cf00f3",
+      "sha256": "1d89db6c03ec5cd157ed3fd413bfc9cbeb1b1ede6014829bac9e88609ef6b1c2",
+      "bytes": 34935,
+      "lines": 613,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD05-03--171_words_that_carry_the_question.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T17:45:55+00:00",
+          "commit": "9683351efa501eb61bbbf5f939e9df88d498f0eb",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T17:20:55+00:00",
+          "commit": "ed9f66baa43351ea1a051e2988bead0c9b41d6d0",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through seven latest documents (3796 lines) and all 347 unique older-only passages (943 lines); original authority, scientific claims, implementation closure and current speech qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-vocabulary/LD05-03--171_words_that_carry_the_question.md"
+    },
+    {
+      "id": "LD05-04",
+      "path": "docs/fabric_phylums/171_words_that_carry_the_question.md",
+      "git_blob": "9cd1503354c3caef685564e5c65b1dcdbff9ca89",
+      "sha256": "090403389abe40bcf05537242565c09cecdf95107144d94149f0802b8206bef3",
+      "bytes": 34956,
+      "lines": 613,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD05-04--171_words_that_carry_the_question.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T17:20:55+00:00",
+          "commit": "ed9f66baa43351ea1a051e2988bead0c9b41d6d0",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T17:15:00+00:00",
+          "commit": "2a09fb316644504dda214d60295e6878a3a903d7",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through seven latest documents (3796 lines) and all 347 unique older-only passages (943 lines); original authority, scientific claims, implementation closure and current speech qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-vocabulary/LD05-04--171_words_that_carry_the_question.md"
+    },
+    {
+      "id": "LD06-01",
+      "path": "docs/fabric_phylums/172_what_words_go_together.md",
+      "git_blob": "58931c98f51c4bf82fb7e87c2fd965895af19751",
+      "sha256": "2dfa93a8dcf7857ecdf381459396b8c63a9e0567ca36e03b853377f1ada94595",
+      "bytes": 37550,
+      "lines": 576,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD06-01--172_what_words_go_together.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T05:09:01+00:00",
+          "commit": "70817c342f9dc345235c581bd7fbe51ea368ec82",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through seven latest documents (3796 lines) and all 347 unique older-only passages (943 lines); original authority, scientific claims, implementation closure and current speech qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-vocabulary/LD06-01--172_what_words_go_together.md"
+    },
+    {
+      "id": "LD06-02",
+      "path": "docs/fabric_phylums/172_what_words_go_together.md",
+      "git_blob": "6a57549020fe0e9604e03f37c8828fd4c91a65fb",
+      "sha256": "90f54829a35bbaf6322193dc09fad7908337e1d6172d5503ea8c82fc8a214d5f",
+      "bytes": 31744,
+      "lines": 477,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD06-02--172_what_words_go_together.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through seven latest documents (3796 lines) and all 347 unique older-only passages (943 lines); original authority, scientific claims, implementation closure and current speech qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-vocabulary/LD06-02--172_what_words_go_together.md"
+    },
+    {
+      "id": "LD07-01",
+      "path": "docs/fabric_phylums/173_when_words_mislead.md",
+      "git_blob": "24fd1e281f7ef343a9ba19b838cd6c0bf62ea7e9",
+      "sha256": "afb9eb8bc6a67e441529c8bba55411fd284fbecbb59ac8cfd7b74a97067f2d78",
+      "bytes": 30520,
+      "lines": 551,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD07-01--173_when_words_mislead.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T05:09:01+00:00",
+          "commit": "70817c342f9dc345235c581bd7fbe51ea368ec82",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through seven latest documents (3796 lines) and all 347 unique older-only passages (943 lines); original authority, scientific claims, implementation closure and current speech qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-vocabulary/LD07-01--173_when_words_mislead.md"
+    },
+    {
+      "id": "LD07-02",
+      "path": "docs/fabric_phylums/173_when_words_mislead.md",
+      "git_blob": "db0e5bc6fa00598e9b855534ccae2544bd572886",
+      "sha256": "90bdb7a969ac433b562ebf1c1c09e0bffe954b2d32597696c844c5cb4c7f246b",
+      "bytes": 24391,
+      "lines": 442,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD07-02--173_when_words_mislead.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through seven latest documents (3796 lines) and all 347 unique older-only passages (943 lines); original authority, scientific claims, implementation closure and current speech qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-vocabulary/LD07-02--173_when_words_mislead.md"
+    },
+    {
+      "id": "LD15-01",
+      "path": "docs/fabric_phylums/89_deep_language.md",
+      "git_blob": "0d405d8c21f4db6bd5e13dad5e478b4f8a56f2b0",
+      "sha256": "b57296457bc4caaf6cc5f9c68b5f7f0c47ef3402ec025266e699075837cb73e2",
+      "bytes": 38521,
+      "lines": 687,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD15-01--89_deep_language.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-29T01:33:52+00:00",
+          "commit": "4c4cb975849bfa7877057be103c7b9ea2c5d2588",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through seven latest documents (3796 lines) and all 347 unique older-only passages (943 lines); original authority, scientific claims, implementation closure and current speech qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-vocabulary/LD15-01--89_deep_language.md"
+    },
+    {
+      "id": "LD15-02",
+      "path": "docs/fabric_phylums/89_deep_language.md",
+      "git_blob": "3bf0020d2c2a96a89f8e83ab001c4c1826980a16",
+      "sha256": "322ebfc5f6ca1945ba00655df05a62aeda83d97aa0da66a95943b966b25af2db",
+      "bytes": 29121,
+      "lines": 526,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/language-designs/LD15-02--89_deep_language.md",
+      "observations": [
+        {
+          "author_time": "2026-08-29T18:00:07+00:00",
+          "commit": "3b685ac4e8ff85d4a01ef08b240d5e9b46262147",
+          "side": "new"
+        }
+      ],
+      "review": "Complete content reviewed through seven latest documents (3796 lines) and all 347 unique older-only passages (943 lines); original authority, scientific claims, implementation closure and current speech qualification remain separate.",
+      "canonical_copy": "docs/guala_reconciliation/sources/language-vocabulary/LD15-02--89_deep_language.md"
+    }
+  ],
+  "prior_source_registry": "language-foundations-reconciliation.json",
+  "requirements": [
+    {
+      "id": "LVR01",
+      "name": "A word family is neither equivalence nor acquired sensory knowledge",
+      "classification": "Authored lexicon with explicit distinctions; reader semantics must be traced",
+      "historical_requirement_or_mechanism": "File169 groups words under MEANS-SAME while its prose distinguishes degree, direction and manner: warm versus scalding, hard versus brittle, whisper versus shout. The title is not a license to substitute every group member. File173 explicitly warns that opposite words can keep the same company. The inspected ribbon loader builds sets from the groups, losing their written distinctions in that representation.",
+      "current_disposition": "Authored dictionary/curriculum content is not intrinsically a violation. The vocabulary is not evidence of native acquired concepts. This particular ribbon reader never consumes its built sense sets, so the audit does not claim they currently decide a pupil response or that every table is executed.",
+      "lawful_remedy": "Keep source-attributed teaching material external to the pupil. Bind each relation to its actual consumer and retained physical experience. Do not seed semantic equivalence, antonymy, degree or context into native memory or pretend a shared set preserves them.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A12",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LD03-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD03-01--169_words_that_mean_the_same.md",
+          "line": 16,
+          "anchor": "MEANS-SAME: hot warm heated scalding boiling searing roasting sweltering baking | cold cool chilly freezing frigid icy frosty bitter",
+          "sha256": "4272fefab26e0ede1f67a82af20d5c48c61cc7a16f9378cd6c2403e584365478"
+        },
+        {
+          "source_id": "LD03-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD03-01--169_words_that_mean_the_same.md",
+          "line": 451,
+          "anchor": "MEANS-SAME: say tell speak talk state remark mention utter declare announce | whisper mutter mumble murmur shout yell scream",
+          "sha256": "4272fefab26e0ede1f67a82af20d5c48c61cc7a16f9378cd6c2403e584365478"
+        },
+        {
+          "source_id": "LD07-02",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD07-02--173_when_words_mislead.md",
+          "line": 390,
+          "anchor": "ESSENCE: opposites keep the same company. Hot and cold both travel",
+          "sha256": "90bdb7a969ac433b562ebf1c1c09e0bffe954b2d32597696c844c5cb4c7f246b"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 46,
+          "anchor": "                        self.senses.setdefault(w, set()).update(gw)",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        }
+      ],
+      "unit_acceptance": "Specify state distinctions for degree, polarity, manner and relation direction; retain counterexamples from the corpus.",
+      "module_acceptance": "Trace the actual acquisition, persistence and recall of those distinctions without direct semantic table writes.",
+      "system_acceptance": "Demonstrate retained discrimination in new sensory contexts, not lookup agreement with the supplied list.",
+      "release_acceptance": "Bind mounted data and readers to the serving artifact; retain explicit unknown activation/exclusion."
+    },
+    {
+      "id": "LVR02",
+      "name": "The question dictionary is a handwritten classifier with overwrite precedence",
+      "classification": "Deterministic heuristic in the inspected separate fabric reader",
+      "historical_requirement_or_mechanism": "File171 mixes question forms, common words, rare-word descriptors, negation, courtesy and subject descriptors in MEANS-SAME lists. Language.__init__ marks every token from every such entry as an asking word, with later assignments overwriting earlier kinds. read() takes the kind of the first matching input token and removes all listed tokens from the subject. This is authored classification and filtering, not a sentence assembling its own language mechanism.",
+      "current_disposition": "This is exact inspected source behavior conditional on these loaded entries, not proof the current ArcLoom pupil invokes it. The audit-only lexical receipt inventories the captured lists without importing the product; it is not a runtime acceptance test. Changing a list changes this classifier even if Python remains unchanged.",
+      "lawful_remedy": "Exclude this classifier from pupil cognitive authority. Preserve the corpus and its historical failures for reconciliation. If retained as external tooling, label its scope and failure modes. Native roles, requests and contextual references must be acquired and retained through the approved sensory mechanism rather than repaired by more trigger words.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A12",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LD05-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-01--171_words_that_carry_the_question.md",
+          "line": 16,
+          "anchor": "MEANS-SAME: why reason cause because behind purpose explain how come what for",
+          "sha256": "c40637f05bbeffa839339ba439f4efa3774db21f32731d01ada56eb7857298a1"
+        },
+        {
+          "source_id": "LD05-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-01--171_words_that_carry_the_question.md",
+          "line": 149,
+          "anchor": "MEANS-SAME: rare unusual uncommon specific technical distinctive particular narrow precise telling",
+          "sha256": "c40637f05bbeffa839339ba439f4efa3774db21f32731d01ada56eb7857298a1"
+        },
+        {
+          "source_id": "LD05-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-01--171_words_that_carry_the_question.md",
+          "line": 260,
+          "anchor": "MEANS-SAME: not no never cannot without fails lacks missing absent neither none unless",
+          "sha256": "c40637f05bbeffa839339ba439f4efa3774db21f32731d01ada56eb7857298a1"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 38,
+          "anchor": "                for w in words: self.asking[w] = kind.strip()",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 64,
+          "anchor": "                if kind is None: kind = self.asking[w]",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 65,
+          "anchor": "        subject = [w for w in raw if w not in self.asking and len(w) > 2]",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        }
+      ],
+      "unit_acceptance": "Inventory every policy-bearing token, collision, precedence and discarded distinction.",
+      "module_acceptance": "Trace actual reader/caller behavior, including input order, paraphrase, negation and multi-question controls.",
+      "system_acceptance": "Require authentic experience-dependent interpretation and action on new contexts, with no dictionary answer injection.",
+      "release_acceptance": "Verify all executable routes and effective corpora in the frozen serving artifact; a module name or absence of an ML import is not clearance."
+    },
+    {
+      "id": "LVR03",
+      "name": "Crowd matching supplies authored context to the downstream answer",
+      "classification": "Count-based selection, fixed threshold and lexical query expansion",
+      "historical_requirement_or_mechanism": "File172 supplies 44 authored subject crowds and repeatedly declares two words nearly certain. The reader counts subject/crowd overlap, takes a strictly greater count (earliest crowd survives a tie), requires two hits, and answer() adds the alphabetically first twelve crowd words to the carried query. These added words were not supplied by the current question or acquired by the pupil in this path.",
+      "current_disposition": "The full downstream os_fabric consumer has not been closed in this slice, so no particular final answer or live interference is inferred. Subject token order is retained in the carried string; the finding is supplied lexical context and score authority, not a claim that this function alone flattens every representation.",
+      "lawful_remedy": "Remove the count/tie/threshold/expansion route from pupil authority. Do not tune two to three or substitute another similarity score. Demonstrate native contextual discrimination using retained sensory relations; keep genuine external retrieval tools separately attributed if used outside the pupil.",
+      "repair_actions": [
+        "A02",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A12",
+        "A14",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LD06-02",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD06-02--172_what_words_go_together.md",
+          "line": 10,
+          "anchor": "  doings. Any two of them in one line places the sentence in a",
+          "sha256": "90f54829a35bbaf6322193dc09fad7908337e1d6172d5503ea8c82fc8a214d5f"
+        },
+        {
+          "source_id": "LD06-02",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD06-02--172_what_words_go_together.md",
+          "line": 131,
+          "anchor": "  things elsewhere, but two together settle it.",
+          "sha256": "90f54829a35bbaf6322193dc09fad7908337e1d6172d5503ea8c82fc8a214d5f"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 71,
+          "anchor": "            hit = len(sset & words)",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 72,
+          "anchor": "            if hit > best_hit:",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 75,
+          "anchor": "                    area=best_area if best_hit >= 2 else None,",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 91,
+          "anchor": "        sorted(r[\"crowd\"])[:12])",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        }
+      ],
+      "unit_acceptance": "Expose exact candidate set, tie order, thresholds and inserted terms; no near-certainty claim without independent evidence.",
+      "module_acceptance": "Follow the complete caller chain and verify no hidden context insertion drives native outcomes.",
+      "system_acceptance": "Test ambiguous and mixed-context sensory experiences under matched retained-state controls, without supplied topic labels.",
+      "release_acceptance": "Publish the exact source/configuration/data route and causal results; retrieval counts are not speech qualification."
+    },
+    {
+      "id": "LVR04",
+      "name": "Loaded sense tables and cached policy do not fulfill the advertised reader",
+      "classification": "False source-level mechanism description; unused state is not active decision evidence",
+      "historical_requirement_or_mechanism": "File170 stores SPLITS-INTO under sense labels such as money, river and tilt, each followed by bank and contextual words. The loader keys these entries by the first token of the label, rather than bank, merges them with MEANS-SAME sets, and never reads self.senses in read() or answer(). Its header nevertheless says it settles which sense is meant and reads the language files at the moment of each question. The global LANG object is built once and has no refresh path in this file.",
+      "current_disposition": "The built .senses table is unused by this complete inspected module. Other consumers/dynamic access remain to inventory; no blanket repository-wide dead-code conclusion is made. core refreshing its own entries does not rebuild this Language object. The actual current serving use of either is unknown.",
+      "lawful_remedy": "Correct the mechanism inventory and claims before any acceptance. Do not wire the unused dictionary into the pupil to make the advertised behavior appear. Prove the lawful native ambiguity mechanism separately; inventory snapshot/version coherence for any permitted external tool.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A05",
+        "A09",
+        "A10",
+        "A13",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LD04-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD04-01--170_words_with_two_meanings.md",
+          "line": 27,
+          "anchor": "SPLITS-INTO: money: bank account loan deposit branch interest teller savings | river: bank shore edge water bend erosion mud stream | tilt: bank turn aircraft corner camber lean roll",
+          "sha256": "bf8b6a2337543e00006b1d0f22b3fc630e75ba979597dc81b1c78149b34996bb"
+        },
+        {
+          "source_id": "LD04-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD04-01--170_words_with_two_meanings.md",
+          "line": 628,
+          "anchor": "ESSENCE: the entries in this file and its neighbours are about WORDS,",
+          "sha256": "bf8b6a2337543e00006b1d0f22b3fc630e75ba979597dc81b1c78149b34996bb"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 9,
+          "anchor": "Every one of those is read out of the files at the moment of the",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 54,
+          "anchor": "                for w in re.findall(r\"[a-z]{3,}\", name.lower())[:1]:",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 82,
+          "anchor": "    if LANG is None: LANG = Language()",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        }
+      ],
+      "unit_acceptance": "Require a real consumer for every claimed mechanism; verify names, data shape, version and refresh behavior.",
+      "module_acceptance": "Exercise complete allowed external callers across data revisions and demonstrate exact snapshot coherence.",
+      "system_acceptance": "Verify new-context native recall resolves distinctions from experience rather than supplied labels.",
+      "release_acceptance": "No certification from loaded-but-unused assets, docstrings or stale policy; establish current invocation and exclusion separately."
+    },
+    {
+      "id": "LVR05",
+      "name": "The reader loses distinctions its own language documents require",
+      "classification": "Source/document contradiction with bounded static counterexamples",
+      "historical_requirement_or_mechanism": "File171 says negation reverses the requested answer, then calls bread/rising the whole question after stripping not. The reader removes listed negations from its carried subject; asked/kind metadata is not passed by answer() to deliver(). Its letters-only tokenizer discards numeric values, so changing 200C to 300C leaves the same lexical material. File173 demands number-plus-unit fidelity and warns about negation, quotation, hypothetical claims and direction. The separate core masks additionally discard word order and polarity as previously documented.",
+      "current_disposition": "The independent receipt checks text projection only; it does not run the organism or assert all system representations lose order. The contradiction is not fixed by retaining raw text in a receipt if the decision consumer still receives the reduced projection. File173’s requirement that an answer add new words is also an invalid universal acceptance predicate: a correct choice may repeat an offered alternative.",
+      "lawful_remedy": "Specify the actual physical/retained distinctions needed for roles, quantities, negation, source attribution and temporal context. Prove they reach and influence the decision consumer. Retire the symbolic filtering authority rather than add exception lists, synthetic polarity flags or word-novelty scoring to emulate understanding.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LD05-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-01--171_words_that_carry_the_question.md",
+          "line": 252,
+          "anchor": "ESSENCE: negation flips what is being asked without changing a",
+          "sha256": "c40637f05bbeffa839339ba439f4efa3774db21f32731d01ada56eb7857298a1"
+        },
+        {
+          "source_id": "LD05-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-01--171_words_that_carry_the_question.md",
+          "line": 363,
+          "anchor": "  strip why, is, my and not, and bread and rising are what is left",
+          "sha256": "c40637f05bbeffa839339ba439f4efa3774db21f32731d01ada56eb7857298a1"
+        },
+        {
+          "source_id": "LD07-02",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD07-02--173_when_words_mislead.md",
+          "line": 303,
+          "anchor": "ESSENCE: numbers and units look like words and are not. A question",
+          "sha256": "90bdb7a969ac433b562ebf1c1c09e0bffe954b2d32597696c844c5cb4c7f246b"
+        },
+        {
+          "source_id": "LD07-02",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD07-02--173_when_words_mislead.md",
+          "line": 317,
+          "anchor": "  nothing. The remedy is to require the answer to add words the",
+          "sha256": "90bdb7a969ac433b562ebf1c1c09e0bffe954b2d32597696c844c5cb4c7f246b"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 59,
+          "anchor": "        raw = re.findall(r\"[a-z]+\", question.lower())",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        },
+        {
+          "source_id": "LDC04",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC04--ribbon_language.py",
+          "line": 92,
+          "anchor": "    settled, stopped, reached = os_fabric.deliver(carried)",
+          "sha256": "482d16dda6b5b2a132296f5981d711052fc6fef0a38d55fb9e84be6e95e88df5"
+        }
+      ],
+      "unit_acceptance": "Use paired polarity, role-order, magnitude/unit, quotation and hypothetical falsifiers tied to exact representations.",
+      "module_acceptance": "Trace differing physical inputs through retained state and actual consumers; display any point where distinguishing information is lost.",
+      "system_acceptance": "Show later grounded behavior distinguishes those experiences and survives retention, with independent negative controls.",
+      "release_acceptance": "Qualify semantic claims only at the demonstrated causal scope; a new word or fluent sentence is not evidence of a correct answer."
+    },
+    {
+      "id": "LVR06",
+      "name": "Human language descriptions are requirements and curriculum, not native mechanism proofs",
+      "classification": "Unqualified generalizations; preserve channel and context distinctions",
+      "historical_requirement_or_mechanism": "Deep-language89 describes role order, temporal perspective, modality, emphasis, speaker attribution, shared context, turn-taking, repair and signed language. These identify distinctions a language claim must handle. It also declares broad developmental and impossibility rules, including that word boundaries cannot be learned without already knowing words and that children supply missing grammar. The text supplies no ArcLoom state/update/retention/consumer design proving those claims apply to this substrate.",
+      "current_disposition": "This is reconciliation of what the documents assert, not independent validation of their biological/linguistic science. No scientific claim here establishes a universal barrier to native speech or a guarantee of emergence. The useful requirement for a live return path is distinct from proof that the pupil acquired or used it.",
+      "lawful_remedy": "Preserve the linguistic distinctions as explicit claim-specific requirements. Authenticate external scientific sources before importing calibration or universal laws. Map each claimed native ability to retained sensory/body/context state and its later causal use; keep unsupported capabilities visibly unqualified.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A06",
+        "A09",
+        "A10",
+        "A12",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LD15-02",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD15-02--89_deep_language.md",
+          "line": 35,
+          "anchor": "ESSENCE: who did what to whom has to be marked somewhere. English",
+          "sha256": "322ebfc5f6ca1945ba00655df05a62aeda83d97aa0da66a95943b966b25af2db"
+        },
+        {
+          "source_id": "LD15-02",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD15-02--89_deep_language.md",
+          "line": 242,
+          "anchor": "ROOT: speech is a live channel with a return path; writing is a",
+          "sha256": "322ebfc5f6ca1945ba00655df05a62aeda83d97aa0da66a95943b966b25af2db"
+        },
+        {
+          "source_id": "LD15-02",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD15-02--89_deep_language.md",
+          "line": 461,
+          "anchor": "  Whatever language is, it is not about sound.",
+          "sha256": "322ebfc5f6ca1945ba00655df05a62aeda83d97aa0da66a95943b966b25af2db"
+        },
+        {
+          "source_id": "LD15-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD15-01--89_deep_language.md",
+          "line": 411,
+          "anchor": "  not in the signal to be found. No learning where the words end",
+          "sha256": "b57296457bc4caaf6cc5f9c68b5f7f0c47ef3402ec025266e699075837cb73e2"
+        },
+        {
+          "source_id": "LD15-02",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD15-02--89_deep_language.md",
+          "line": 473,
+          "anchor": "  they supply whatever the plan is missing.",
+          "sha256": "322ebfc5f6ca1945ba00655df05a62aeda83d97aa0da66a95943b966b25af2db"
+        }
+      ],
+      "unit_acceptance": "Bind each required distinction to state, law, units, clock and exact evidence scope.",
+      "module_acceptance": "Verify sensing, persistence, recall and articulation are actually connected with channel provenance.",
+      "system_acceptance": "Measure intelligible, context-grounded native vocal use after authentic experience; report the first failed boundary.",
+      "release_acceptance": "No human-development analogy, seed text, historical anecdote or physical sound alone certifies speech or its impossibility."
+    },
+    {
+      "id": "LVR07",
+      "name": "Recover removed constraints and greeting-rule changes without restoring the wrong authority",
+      "classification": "Historical policy migration, explicit failure lessons and authored output",
+      "historical_requirement_or_mechanism": "Across these seven families, earlier versions contain 347 unique older-only passages totaling943 lines, predominantly removed CANNOT claims. The question family includes different greeting rules and ready-made CHUNKS (hello/morning/hi/good to see you/I am here/go on). The latest retains the broad MEANS-SAME lists. The inspected old core consumes CANNOT prose as rules, while saying.py separately builds authored greeting responses. Removing headings or moving policy between prose, chunks and Python changes authority; it is not automatically a semantic repair.",
+      "current_disposition": "All17 captured versions are content-reconciled. These are historical source transitions, not a deployment receipt or proof that every removed prohibition was sound. Some prohibitions are overbroad; blindly restoring all943 lines would reintroduce wrong policy. A documented retraction is useful evidence, not qualification of its successor.",
+      "lawful_remedy": "Preserve predecessor content, original decisions and counterexamples. Distinguish genuine correction, corpus editorial change, behavior change and unsupported replacement. Retire authored pupil replies rather than move them into data; any allowed external greeting/tool must remain attributed and outside learned-speech evidence.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A03",
+        "A05",
+        "A09",
+        "A10",
+        "A12",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LD05-03",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-03--171_words_that_carry_the_question.md",
+          "line": 257,
+          "anchor": "RULE: to answer a greeting — carry back a ready-made chunk; hold the",
+          "sha256": "1d89db6c03ec5cd157ed3fd413bfc9cbeb1b1ede6014829bac9e88609ef6b1c2"
+        },
+        {
+          "source_id": "LD05-04",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-04--171_words_that_carry_the_question.md",
+          "line": 257,
+          "anchor": "RULE: to answer a greeting — carry back a ready-made chunk, name no",
+          "sha256": "090403389abe40bcf05537242565c09cecdf95107144d94149f0802b8206bef3"
+        },
+        {
+          "source_id": "LD05-04",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD05-04--171_words_that_carry_the_question.md",
+          "line": 259,
+          "anchor": "CHUNKS: hello | morning | hi | good to see you | I am here | go on",
+          "sha256": "090403389abe40bcf05537242565c09cecdf95107144d94149f0802b8206bef3"
+        },
+        {
+          "source_id": "LD07-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD07-01--173_when_words_mislead.md",
+          "line": 29,
+          "anchor": "CANNOT: no meaning from a word that appears in more than a tenth of",
+          "sha256": "afb9eb8bc6a67e441529c8bba55411fd284fbecbb59ac8cfd7b74a97067f2d78"
+        },
+        {
+          "source_id": "LDC01",
+          "path": "docs/guala_reconciliation/sources/language-foundations/LDC01--core.py",
+          "line": 175,
+          "anchor": "            for piece in re.split(r\"(?<=[.;])\\s+\", e[\"cannot\"]):",
+          "sha256": "a613a04f650debafc525190d20ba966ec3d03273264f4064c64cf2b057633576"
+        }
+      ],
+      "unit_acceptance": "Check every removed/changed policy against original authority, counterexamples and actual readers.",
+      "module_acceptance": "Verify every representation migration preserves only approved behavior and exposes lost/unimplemented constraints.",
+      "system_acceptance": "Demonstrate native speech without authored reply chunks or hidden fallback routes.",
+      "release_acceptance": "Bind complete historical disposition and current exclusions to the candidate; no restored old controller or edited corpus can manufacture acceptance."
+    },
+    {
+      "id": "LVR08",
+      "name": "Programming-language curriculum cannot waive proof or resource accounting",
+      "classification": "External subject matter with unsupported universal bounds; not governing instructions",
+      "historical_requirement_or_mechanism": "Programming-language126 is general curriculum rather than an ArcLoom design. It asserts all languages compute the same things, discusses domain-limited languages, and makes broad statements about unavoidable costs, type safety, concurrency and foreign-code boundaries. Its older text says no auditing all transitive dependencies. These claims do not bind the actual deployed architecture, prove a latency floor or excuse incomplete ML/heuristic exclusion.",
+      "current_disposition": "The audit does not adopt the text’s universal claims as computer-science theorems or current operational instructions. Actual bounds depend on the specified implementation and workload. The file’s presence in the language corpus does not establish speech execution, an ML dependency or a live causal fault.",
+      "lawful_remedy": "Classify this material as external curriculum and authenticate any claim used in engineering. Derive resource bounds from the actual native/source path and account for its complete executable dependencies. Keep design gaps explicit; never substitute an unrelated broad theorem for current measurement.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A04",
+        "A14",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LD02-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD02-01--126_deep_programming_languages.md",
+          "line": 2,
+          "anchor": "Every language computes the same things. What differs is the bill:",
+          "sha256": "1845bd4ee5b6d4a7a9e9aa975eb545580374c1301807d24cbfc6794bedae684b"
+        },
+        {
+          "source_id": "LD02-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD02-01--126_deep_programming_languages.md",
+          "line": 595,
+          "anchor": "ESSENCE: a language that can say only the things in one domain says",
+          "sha256": "1845bd4ee5b6d4a7a9e9aa975eb545580374c1301807d24cbfc6794bedae684b"
+        },
+        {
+          "source_id": "LD02-01",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD02-01--126_deep_programming_languages.md",
+          "line": 574,
+          "anchor": "ESSENCE: some costs are built into a language and no cleverness",
+          "sha256": "1845bd4ee5b6d4a7a9e9aa975eb545580374c1301807d24cbfc6794bedae684b"
+        },
+        {
+          "source_id": "LD02-02",
+          "path": "docs/guala_reconciliation/sources/language-vocabulary/LD02-02--126_deep_programming_languages.md",
+          "line": 713,
+          "anchor": "  auditing them all — the discipline is fewer, pinned, and changed",
+          "sha256": "38c47b748018bb9fd1be18ac912c5f40f07597024229668022fddc8a2edb6829"
+        }
+      ],
+      "unit_acceptance": "Verify each adopted bound and theorem has explicit assumptions matching the actual implementation.",
+      "module_acceptance": "Inventory real transitive routes, binary/configuration boundaries and host versus physical resource units.",
+      "system_acceptance": "Measure bounded current behavior without bypasses or budget increases that conceal a failed physical mapping.",
+      "release_acceptance": "A finite source/runtime closure is required for a candidate-specific exclusion claim; curriculum cannot waive it."
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false
+}

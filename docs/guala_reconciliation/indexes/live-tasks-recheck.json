@@ -1,0 +1,23 @@
+{
+  "at_utc": "2026-10-09T21:57:22.345967+00:00",
+  "returncode": 0,
+  "result": {
+    "tasks": [
+      {
+        "taskArn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/db691dcfbc394b9ca06988a01dc26ce2",
+        "taskDefinitionArn": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1598",
+        "lastStatus": "RUNNING",
+        "startedAt": "2026-10-09T21:51:36.630000+00:00",
+        "containers": [
+          {
+            "name": "dsf-ai",
+            "image": "418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:fa39dad6277cf849a8952bd8e8f43f0f1d39e22eba68bf2fe114679ae0594fe1",
+            "imageDigest": "sha256:fa39dad6277cf849a8952bd8e8f43f0f1d39e22eba68bf2fe114679ae0594fe1",
+            "lastStatus": "RUNNING"
+          }
+        ]
+      }
+    ],
+    "failures": []
+  }
+}

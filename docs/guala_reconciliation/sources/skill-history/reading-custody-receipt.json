@@ -1,0 +1,722 @@
+{
+  "schema": "guala.documentary_full_content_read.v1",
+  "sources": [
+    {
+      "id": "GS001",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "216f61dabd972e0a48ca8038d76d1cdd070daf1f",
+      "sha256": "7b0c476e8cd76cf7aa88b61ee05d971a58a03901e23db6d88effb29b0f6e42ac",
+      "bytes": 5499,
+      "lines": 87,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS001--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T15:47:59+00:00",
+          "commit": "90573a2b6bb6e8a7d8aac943d61b774e4976381a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-05T15:00:35+00:00",
+          "commit": "12c7741467cba301b80d63b4a1f0117c77bed98f",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS002",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "92ac5d4e77e7fc90f9e3c9db966de5bee74d839e",
+      "sha256": "e6256dc759dce5c0255caf7a76ffc3fa1a3b47edb8ed3f5b496feb96e4b40516",
+      "bytes": 5713,
+      "lines": 90,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS002--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T17:21:43+00:00",
+          "commit": "1b652dc4c1ec26888d7516846ac42beaa4eeb346",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-05T15:47:59+00:00",
+          "commit": "90573a2b6bb6e8a7d8aac943d61b774e4976381a",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS003",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "7324aa41464fa582e0723ee8728534c61aa24d30",
+      "sha256": "493f10714095d70084fcece96748161d3668bcd063711a0f1bb4149bdae94768",
+      "bytes": 7293,
+      "lines": 116,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS003--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T02:28:09+00:00",
+          "commit": "b3f20309acf97b7e8d68c20a724b80b309dfbffb",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-05T17:21:43+00:00",
+          "commit": "1b652dc4c1ec26888d7516846ac42beaa4eeb346",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS004",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "a6bb7f7d6892b12693ae4a6ef8933ba72da004e5",
+      "sha256": "ecbf93efa4117deca286ff16264c78b964d85198233abdf3c62f1ca298169fe0",
+      "bytes": 11137,
+      "lines": 179,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS004--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T04:56:55+00:00",
+          "commit": "aff9d6d0094b44d9658de8d148e99ae03ae7cefd",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T02:28:09+00:00",
+          "commit": "b3f20309acf97b7e8d68c20a724b80b309dfbffb",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS005",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "6ad30152fed09c55d0c86bc63a8adc83518a7dda",
+      "sha256": "0f24f321dca822e30dd9b93695a80d34efdde8954800c1bf51722eedd1afdbf3",
+      "bytes": 13454,
+      "lines": 215,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS005--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T05:17:57+00:00",
+          "commit": "896694e2b3027d85f41b281a64863f9722a330fe",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T04:56:55+00:00",
+          "commit": "aff9d6d0094b44d9658de8d148e99ae03ae7cefd",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS006",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "a358d2b80461c030e0cd3d02bc238b02d15bac75",
+      "sha256": "621a94ea45c39d2be455d7ba46eada0be1d0041846a4ef3b4e58dfc50139527c",
+      "bytes": 14576,
+      "lines": 233,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS006--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T10:16:40+00:00",
+          "commit": "7ae4d3c11c776e0b5553dd50dee2e038e31395a0",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T05:17:57+00:00",
+          "commit": "896694e2b3027d85f41b281a64863f9722a330fe",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS007",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "9e88cd16b27991e754110a2d14126e468436517a",
+      "sha256": "7bf07fc4111c72865e4c5c0cddc02030e98ebf496e2dc9a5dd2cc1da17614f6d",
+      "bytes": 16833,
+      "lines": 266,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS007--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T10:44:23+00:00",
+          "commit": "12c7d9061a8e3762229f589a136ddbedf36d6666",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T10:16:40+00:00",
+          "commit": "7ae4d3c11c776e0b5553dd50dee2e038e31395a0",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS008",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "9eedc9fef0bd9d149468e203eca68990e1ea3d24",
+      "sha256": "fb9f096f1dde1db5246197dd059f2272c7b3c8f8ebed727b1fc4cf4fc4038e6d",
+      "bytes": 18658,
+      "lines": 292,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS008--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T11:42:54+00:00",
+          "commit": "1f187836838aca5b8eeb1ab7fd1aba50e8692179",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T10:44:23+00:00",
+          "commit": "12c7d9061a8e3762229f589a136ddbedf36d6666",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS009",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "749b05bf08a14ea12376a795029280025180a4a6",
+      "sha256": "87f048984e49100bb54871491a2aa4e350ec03cc11e5b90f50b339b64c965804",
+      "bytes": 20444,
+      "lines": 319,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS009--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T12:41:44+00:00",
+          "commit": "7f2c5d386fda10d1ffda15029b636e982f2386c0",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T11:42:54+00:00",
+          "commit": "1f187836838aca5b8eeb1ab7fd1aba50e8692179",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS010",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "3ca49beb16979a0312c559b679211d050bf4e42f",
+      "sha256": "60b9b8f47aa0d4e33a11772f69bfd0b1b9bda15dcb1a720d0a36a5ebdc936244",
+      "bytes": 21712,
+      "lines": 339,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS010--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T13:13:24+00:00",
+          "commit": "d1be277db32b047013fac29718725b24f8f3a808",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T12:41:44+00:00",
+          "commit": "7f2c5d386fda10d1ffda15029b636e982f2386c0",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS011",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "3e2d1e544b1281daca3066f8c021bd1d17801b1d",
+      "sha256": "70b84429f64119857c706af3d00c43508192a48cdac791bacbf3b15bf35bf66b",
+      "bytes": 23436,
+      "lines": 365,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS011--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T16:35:36+00:00",
+          "commit": "33250f0197cc81ec45cb8742cc955c69dbc3f68e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T13:13:24+00:00",
+          "commit": "d1be277db32b047013fac29718725b24f8f3a808",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS012",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "93f0289958195500dfd4b54c5ebbb594c56dbea6",
+      "sha256": "fe08815be23ec7d0c28d1e9bc9a1009cde011e9cdc311fccab670427b302543b",
+      "bytes": 26316,
+      "lines": 412,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS012--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T18:22:54+00:00",
+          "commit": "595d98ebe08c3042f5ab30f6799d6ba24b5f2bf7",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T16:35:36+00:00",
+          "commit": "33250f0197cc81ec45cb8742cc955c69dbc3f68e",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS013",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "64c99136a320114b3c1ba1eecd98af318d697014",
+      "sha256": "afe5bb11490178af44d0667abdf770b083d9efdda65537274353ecd9faa42415",
+      "bytes": 28532,
+      "lines": 445,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS013--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T18:36:22+00:00",
+          "commit": "3b02d5073dbb7e96fa25430a03d2cbb8aa18ee93",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T18:22:54+00:00",
+          "commit": "595d98ebe08c3042f5ab30f6799d6ba24b5f2bf7",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS014",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "bb98141193ac48a3569def2aad72a54c245b4e55",
+      "sha256": "890a1be0254726a2f7f7c761a4422076c69db16f4c69c599724f0a9e107cb96e",
+      "bytes": 29992,
+      "lines": 470,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS014--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T20:23:39+00:00",
+          "commit": "e34689fb03d61484ab300f74edc64c01a2f70dad",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T18:36:22+00:00",
+          "commit": "3b02d5073dbb7e96fa25430a03d2cbb8aa18ee93",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS015",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "3d70256574167ce5d9b56667e057cbf048a07c76",
+      "sha256": "9966a0d961d7a637f8764fb391d3b7de8dcb1446634ba3ef8ec49c204436590f",
+      "bytes": 31670,
+      "lines": 498,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS015--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T20:51:51+00:00",
+          "commit": "bd88c51aa02c64fe1a9c5ef6a7953fc5e29ec1d2",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T20:23:39+00:00",
+          "commit": "e34689fb03d61484ab300f74edc64c01a2f70dad",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS016",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "76a16dddf6e82c82c15768da880b74aa893913f4",
+      "sha256": "a9f7a675895fd650c8060cec14cc4b419362349c816068be88a56009f0b4c395",
+      "bytes": 35113,
+      "lines": 555,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS016--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-06T21:03:29+00:00",
+          "commit": "791e2d15db3616d9bced2985e5cb8b5f3da20caa",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T20:51:51+00:00",
+          "commit": "bd88c51aa02c64fe1a9c5ef6a7953fc5e29ec1d2",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS017",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "93b94f74bae51df4ea84b41a93b572db32e3ae76",
+      "sha256": "9c30c7d15bacf0480a30d817c7f90529769060acaf0c6a9de7c1f9e74c10a806",
+      "bytes": 35887,
+      "lines": 566,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS017--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-07T01:25:20+00:00",
+          "commit": "cf86577dd7adb1df5ab43ab91e920065ebdabbdf",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-06T21:03:29+00:00",
+          "commit": "791e2d15db3616d9bced2985e5cb8b5f3da20caa",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS018",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "abb7d39a0f9027eb9b02bc920b85c30d1fe2bb78",
+      "sha256": "91ef6484fff5aa0afef60f25c1c46f68209a9bb03a3cfae447a0e33957496aa2",
+      "bytes": 38101,
+      "lines": 600,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS018--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-07T01:47:01+00:00",
+          "commit": "556a70a87e52aea68f70597a9baa9354932156e8",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-07T01:25:20+00:00",
+          "commit": "cf86577dd7adb1df5ab43ab91e920065ebdabbdf",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS019",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "4a57ff9589fd81fe95d0762477d96c0982a3a44e",
+      "sha256": "501942c4973805f0e8f25bb691506582a5bf25df0e5394502b710be2c46ec31b",
+      "bytes": 39455,
+      "lines": 621,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS019--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-08-07T21:02:24+00:00",
+          "commit": "c77c6225128f009c70cbe465384022c734899594",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-07T01:47:01+00:00",
+          "commit": "556a70a87e52aea68f70597a9baa9354932156e8",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS020",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "993b7a6c45375491688cefee5f661c324beac3b7",
+      "sha256": "c7980a7dea9400a66df317a90860dd916f3bc7b8ba88b2841509374fccb8eff5",
+      "bytes": 40727,
+      "lines": 643,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS020--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-09-02T04:11:12+00:00",
+          "commit": "5aa5d7a90f0be3f330648377fd05be25a77dcc3e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-07T21:02:24+00:00",
+          "commit": "c77c6225128f009c70cbe465384022c734899594",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS021",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "e87dbfab8da9a1aebd82eb4af647eaba6afb97c6",
+      "sha256": "9cc6a31a1d1b1bcb6b45050b4b08aea63321aa16f24656ff33e5557df514aa9d",
+      "bytes": 42017,
+      "lines": 663,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS021--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-09-02T06:04:44+00:00",
+          "commit": "3905cb319689225e024fdbcbdf25657c14e12641",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-02T04:11:12+00:00",
+          "commit": "5aa5d7a90f0be3f330648377fd05be25a77dcc3e",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS022",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "0e9a514e94cabc91110b9e9332fd9a76fad10536",
+      "sha256": "1a84bafae0a5f5f0a6203da5a839d8200325e8c69b9a3c6e5e01b2d7d2dc9785",
+      "bytes": 42683,
+      "lines": 674,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS022--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-09-02T19:41:01+00:00",
+          "commit": "32dc8fcfa6b8b3189f6c0cb2603d8a940e392ec7",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-02T06:04:44+00:00",
+          "commit": "3905cb319689225e024fdbcbdf25657c14e12641",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS023",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "c30b4f7d07d0e90029b61db35484fc6e13be166b",
+      "sha256": "3bd93dfe712bea47bebeed0d4ab0a387681b87b102d8c79016f9b7b2387fb897",
+      "bytes": 43032,
+      "lines": 679,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS023--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-09-02T22:01:39+00:00",
+          "commit": "eccb7b2a23366fa5de26e1dd85cc3424ee64a873",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-02T19:41:01+00:00",
+          "commit": "32dc8fcfa6b8b3189f6c0cb2603d8a940e392ec7",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    },
+    {
+      "id": "GS024",
+      "path": ".claude/skills/guala-development/SKILL.md",
+      "git_blob": "f516d7013dcd330d934183a8f2e16b74ee13aa9d",
+      "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8",
+      "bytes": 43384,
+      "lines": 686,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/skill-history/GS024--SKILL.md",
+      "observations": [
+        {
+          "author_time": "2026-09-02T22:01:39+00:00",
+          "commit": "eccb7b2a23366fa5de26e1dd85cc3424ee64a873",
+          "side": "new"
+        }
+      ],
+      "review": "Captured; semantic reading pending"
+    }
+  ],
+  "base": "GS024",
+  "base_lines": 686,
+  "historical_only_passages": [
+    {
+      "source_id": "GS004",
+      "start_line": 157,
+      "end_line": 159,
+      "latest_id": "GS024",
+      "latest_start_line": 192,
+      "latest_end_line": 194,
+      "kind": "replace",
+      "text": "1. Autonomy increment 2: greed-field directed re-attention (needs\n   hippocampal navigation binding + motivation pressure over retained\n   formations; she now has things to want: cards, food, rest)."
+    },
+    {
+      "source_id": "GS004",
+      "start_line": 163,
+      "end_line": 163,
+      "latest_id": "GS024",
+      "latest_start_line": 198,
+      "latest_end_line": 199,
+      "kind": "replace",
+      "text": "4. Memory laws R1-R3 implementation (structural-identity boundary)."
+    },
+    {
+      "source_id": "GS016",
+      "start_line": 538,
+      "end_line": 538,
+      "latest_id": "GS024",
+      "latest_start_line": 543,
+      "latest_end_line": 545,
+      "kind": "replace",
+      "text": "  1. SIGHT   he clicks NEXT / PREVIOUS to show her a card; the raster reaches"
+    },
+    {
+      "source_id": "GS016",
+      "start_line": 543,
+      "end_line": 545,
+      "latest_id": "GS024",
+      "latest_start_line": 550,
+      "latest_end_line": 561,
+      "kind": "replace",
+      "text": "  3. TOUCH   his real contact on the card: a click carries position and\n             duration; an iPhone screen touch also carries real contact area.\n             Requires a touch receptor law, which does not exist yet."
+    }
+  ],
+  "reconstruction": [
+    {
+      "id": "GS001",
+      "sha256": "7b0c476e8cd76cf7aa88b61ee05d971a58a03901e23db6d88effb29b0f6e42ac",
+      "lines": 87,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS002",
+      "sha256": "e6256dc759dce5c0255caf7a76ffc3fa1a3b47edb8ed3f5b496feb96e4b40516",
+      "lines": 90,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS003",
+      "sha256": "493f10714095d70084fcece96748161d3668bcd063711a0f1bb4149bdae94768",
+      "lines": 116,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS004",
+      "sha256": "ecbf93efa4117deca286ff16264c78b964d85198233abdf3c62f1ca298169fe0",
+      "lines": 179,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS005",
+      "sha256": "0f24f321dca822e30dd9b93695a80d34efdde8954800c1bf51722eedd1afdbf3",
+      "lines": 215,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS006",
+      "sha256": "621a94ea45c39d2be455d7ba46eada0be1d0041846a4ef3b4e58dfc50139527c",
+      "lines": 233,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS007",
+      "sha256": "7bf07fc4111c72865e4c5c0cddc02030e98ebf496e2dc9a5dd2cc1da17614f6d",
+      "lines": 266,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS008",
+      "sha256": "fb9f096f1dde1db5246197dd059f2272c7b3c8f8ebed727b1fc4cf4fc4038e6d",
+      "lines": 292,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS009",
+      "sha256": "87f048984e49100bb54871491a2aa4e350ec03cc11e5b90f50b339b64c965804",
+      "lines": 319,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS010",
+      "sha256": "60b9b8f47aa0d4e33a11772f69bfd0b1b9bda15dcb1a720d0a36a5ebdc936244",
+      "lines": 339,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS011",
+      "sha256": "70b84429f64119857c706af3d00c43508192a48cdac791bacbf3b15bf35bf66b",
+      "lines": 365,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS012",
+      "sha256": "fe08815be23ec7d0c28d1e9bc9a1009cde011e9cdc311fccab670427b302543b",
+      "lines": 412,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS013",
+      "sha256": "afe5bb11490178af44d0667abdf770b083d9efdda65537274353ecd9faa42415",
+      "lines": 445,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS014",
+      "sha256": "890a1be0254726a2f7f7c761a4422076c69db16f4c69c599724f0a9e107cb96e",
+      "lines": 470,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS015",
+      "sha256": "9966a0d961d7a637f8764fb391d3b7de8dcb1446634ba3ef8ec49c204436590f",
+      "lines": 498,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS016",
+      "sha256": "a9f7a675895fd650c8060cec14cc4b419362349c816068be88a56009f0b4c395",
+      "lines": 555,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS017",
+      "sha256": "9c30c7d15bacf0480a30d817c7f90529769060acaf0c6a9de7c1f9e74c10a806",
+      "lines": 566,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS018",
+      "sha256": "91ef6484fff5aa0afef60f25c1c46f68209a9bb03a3cfae447a0e33957496aa2",
+      "lines": 600,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS019",
+      "sha256": "501942c4973805f0e8f25bb691506582a5bf25df0e5394502b710be2c46ec31b",
+      "lines": 621,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS020",
+      "sha256": "c7980a7dea9400a66df317a90860dd916f3bc7b8ba88b2841509374fccb8eff5",
+      "lines": 643,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS021",
+      "sha256": "9cc6a31a1d1b1bcb6b45050b4b08aea63321aa16f24656ff33e5557df514aa9d",
+      "lines": 663,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS022",
+      "sha256": "1a84bafae0a5f5f0a6203da5a839d8200325e8c69b9a3c6e5e01b2d7d2dc9785",
+      "lines": 674,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS023",
+      "sha256": "3bd93dfe712bea47bebeed0d4ab0a387681b87b102d8c79016f9b7b2387fb897",
+      "lines": 679,
+      "complete_reconstruction": true
+    },
+    {
+      "id": "GS024",
+      "sha256": "717e19c3b968cea980d98cf2826f6bd8dbddd262b9357682594eeb81a4eddeb8",
+      "lines": 686,
+      "complete_reconstruction": true
+    }
+  ],
+  "all_captured_content_read": true,
+  "historical_instructions_applied": false,
+  "product_execution": false,
+  "complete_reconciliation": false
+}

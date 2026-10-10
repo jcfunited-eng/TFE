@@ -1,0 +1,12 @@
+{
+  "url": "https://people.ece.cornell.edu/land/courses/ece4760/Speech/remez_rubin_pisoni_carrell1981.pdf",
+  "captured_at_utc": "2026-10-10T12:03:24.758676+00:00",
+  "pdf_sha256": "83a26764914f6b223e215eabdb538010ffd3c6504303ce082ec65133f836404e",
+  "pdf_bytes": 1123109,
+  "text_sha256": "eb8872ff3b463afffcb874d5f204edfa4cd823744dd7180b2796657c9c15bed9",
+  "scope": "Primary paper retrieved; reading separate. Not corpus pair. First extraction attempt failed because pdftotext executable absent; pypdf used without installing anything.",
+  "reading": "Scanned article pages947–950 visually read in full, PDF pages2–5, including figures/table and notes. Other adjacent articles are not evidence. Automated extraction produced only page markers and was not counted as semantic reading.",
+  "doi": "10.1126/science.7233191",
+  "repo_corpus_pair": false,
+  "product_acceptance": false
+}

@@ -1,0 +1,121 @@
+{
+  "schema": "guala.complete_captured_source_review.v1",
+  "captured_working_paths": 17,
+  "distinct_byte_bodies": 11,
+  "base_paths": 6,
+  "base_lines": 1625,
+  "nonbase_passages": 31,
+  "nonbase_lines": 602,
+  "all_base_and_nonbase_content_read": true,
+  "duplicates_compared_by_sha256": true,
+  "working_currency": [
+    {
+      "id": "LV01",
+      "captured_sha256": "11de93079737ee3832f0a3942eee73f8953d20296200ebffcda50e146a152095",
+      "current_sha256": "11de93079737ee3832f0a3942eee73f8953d20296200ebffcda50e146a152095",
+      "equal": true
+    },
+    {
+      "id": "LV02",
+      "captured_sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4",
+      "current_sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4",
+      "equal": true
+    },
+    {
+      "id": "LV03",
+      "captured_sha256": "031bbbf2fb2d127416cdcfe5347a0c7b67ccfde04c00a5ffdbc399b021587a6e",
+      "current_sha256": "031bbbf2fb2d127416cdcfe5347a0c7b67ccfde04c00a5ffdbc399b021587a6e",
+      "equal": true
+    },
+    {
+      "id": "LV04",
+      "captured_sha256": "2aa5a4c0b105b2a30baa8d8fb8a3aac3704f5c6e12ceb0f22a4b7f2da5d7ab64",
+      "current_sha256": "2aa5a4c0b105b2a30baa8d8fb8a3aac3704f5c6e12ceb0f22a4b7f2da5d7ab64",
+      "equal": true
+    },
+    {
+      "id": "LV05",
+      "captured_sha256": "0255d81b10e98d137d8b8a58ff49e52298338549fac4331c18fa3685294bc7ac",
+      "current_sha256": "0255d81b10e98d137d8b8a58ff49e52298338549fac4331c18fa3685294bc7ac",
+      "equal": true
+    },
+    {
+      "id": "LV06",
+      "captured_sha256": "a8ed22e9afd60e17566cad3ab1a3cd1bcca57ed69e8b8080fec0e4ada317110e",
+      "current_sha256": "a8ed22e9afd60e17566cad3ab1a3cd1bcca57ed69e8b8080fec0e4ada317110e",
+      "equal": true
+    },
+    {
+      "id": "LV07",
+      "captured_sha256": "d5782428fee8d3590c17397f979ed2dfb817d49aed26fac41e2380e4add57430",
+      "current_sha256": "d5782428fee8d3590c17397f979ed2dfb817d49aed26fac41e2380e4add57430",
+      "equal": true
+    },
+    {
+      "id": "LV08",
+      "captured_sha256": "95d122ac45cba2db32b4ffe8f2370829c4ffde9151bff908dbf04f5f1c7f1bac",
+      "current_sha256": "95d122ac45cba2db32b4ffe8f2370829c4ffde9151bff908dbf04f5f1c7f1bac",
+      "equal": true
+    },
+    {
+      "id": "LV09",
+      "captured_sha256": "3f1e31c2e375693b18a5115a5719a4cf7f1998f16d05acf1e2325b4e0bc4b132",
+      "current_sha256": "3f1e31c2e375693b18a5115a5719a4cf7f1998f16d05acf1e2325b4e0bc4b132",
+      "equal": true
+    },
+    {
+      "id": "LV10",
+      "captured_sha256": "2aa5a4c0b105b2a30baa8d8fb8a3aac3704f5c6e12ceb0f22a4b7f2da5d7ab64",
+      "current_sha256": "2aa5a4c0b105b2a30baa8d8fb8a3aac3704f5c6e12ceb0f22a4b7f2da5d7ab64",
+      "equal": true
+    },
+    {
+      "id": "LV11",
+      "captured_sha256": "a3b7672d36980a3b7660f8fe58c70921b1f1154ec31504043f76aded9822ada9",
+      "current_sha256": "a3b7672d36980a3b7660f8fe58c70921b1f1154ec31504043f76aded9822ada9",
+      "equal": true
+    },
+    {
+      "id": "LV12",
+      "captured_sha256": "11de93079737ee3832f0a3942eee73f8953d20296200ebffcda50e146a152095",
+      "current_sha256": "11de93079737ee3832f0a3942eee73f8953d20296200ebffcda50e146a152095",
+      "equal": true
+    },
+    {
+      "id": "LV13",
+      "captured_sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4",
+      "current_sha256": "267cf05c5ad39256560a2f13b864f83991cca5dbc9f0ac83dde5f1a0ffc757b4",
+      "equal": true
+    },
+    {
+      "id": "LV14",
+      "captured_sha256": "031bbbf2fb2d127416cdcfe5347a0c7b67ccfde04c00a5ffdbc399b021587a6e",
+      "current_sha256": "031bbbf2fb2d127416cdcfe5347a0c7b67ccfde04c00a5ffdbc399b021587a6e",
+      "equal": true
+    },
+    {
+      "id": "LV15",
+      "captured_sha256": "70ff8d4b101a48124f97268d5d563a227882c0d6c65716236b1d6b12f3b3f903",
+      "current_sha256": "70ff8d4b101a48124f97268d5d563a227882c0d6c65716236b1d6b12f3b3f903",
+      "equal": true
+    },
+    {
+      "id": "LV16",
+      "captured_sha256": "2aa5a4c0b105b2a30baa8d8fb8a3aac3704f5c6e12ceb0f22a4b7f2da5d7ab64",
+      "current_sha256": "2aa5a4c0b105b2a30baa8d8fb8a3aac3704f5c6e12ceb0f22a4b7f2da5d7ab64",
+      "equal": true
+    },
+    {
+      "id": "LV17",
+      "captured_sha256": "0255d81b10e98d137d8b8a58ff49e52298338549fac4331c18fa3685294bc7ac",
+      "current_sha256": "0255d81b10e98d137d8b8a58ff49e52298338549fac4331c18fa3685294bc7ac",
+      "equal": true
+    }
+  ],
+  "atomic_release_capture": false,
+  "corpus_pairs_added": 0,
+  "product_execution": false,
+  "product_qualification": false,
+  "original_authority_authenticated": false,
+  "current_activation_qualified": false
+}

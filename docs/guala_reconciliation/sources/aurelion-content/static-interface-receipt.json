@@ -1,0 +1,508 @@
+{
+  "schema": "guala.aurelion_static_interface_receipt.v1",
+  "scope": "Parse captured text and inspect names only; no product imports/execution. Missing symbols refer only to these local files; historical environments and import resolution remain unknown.",
+  "parser_version": "3.11.15",
+  "files": [
+    {
+      "id": "AC01",
+      "parse": "PASS",
+      "imports": [
+        {
+          "module": "__future__",
+          "names": [
+            "annotations"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "Embedder",
+          "methods": [
+            "__init__",
+            "encode"
+          ]
+        }
+      ],
+      "functions": []
+    },
+    {
+      "id": "AC02",
+      "parse": "PASS",
+      "imports": [
+        {
+          "module": "__future__",
+          "names": [
+            "annotations"
+          ]
+        },
+        {
+          "module": "sklearn.cluster",
+          "names": [
+            "AgglomerativeClustering"
+          ]
+        },
+        {
+          "module": "sklearn.metrics.pairwise",
+          "names": [
+            "cosine_similarity"
+          ]
+        },
+        {
+          "module": "sklearn.preprocessing",
+          "names": [
+            "normalize"
+          ]
+        },
+        {
+          "module": "sentence_transformers",
+          "names": [
+            "SentenceTransformer"
+          ]
+        },
+        {
+          "module": "typing",
+          "names": [
+            "List",
+            "Tuple",
+            "Optional",
+            "Dict"
+          ]
+        }
+      ],
+      "classes": [],
+      "functions": [
+        "embed_sentences",
+        "_cluster_with_warmstart",
+        "_coherence_entropy_energy",
+        "run_semantic_mosaic",
+        "load_persistent_mosaics",
+        "save_persistent_mosaic"
+      ]
+    },
+    {
+      "id": "AC03",
+      "parse": "PASS",
+      "imports": [
+        {
+          "module": "typing",
+          "names": [
+            "Optional"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "LLMBridge",
+          "methods": [
+            "__init__",
+            "set_backend",
+            "reply"
+          ]
+        }
+      ],
+      "functions": []
+    },
+    {
+      "id": "AC04",
+      "parse": "PASS",
+      "imports": [
+        {
+          "module": "typing",
+          "names": [
+            "Dict"
+          ]
+        },
+        {
+          "module": "primitive_sensory_pack",
+          "names": [
+            "DIMS"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "LanguageFieldLearner",
+          "methods": [
+            "__init__",
+            "learn",
+            "recall",
+            "load_memory",
+            "save_memory"
+          ]
+        }
+      ],
+      "functions": []
+    },
+    {
+      "id": "AC05",
+      "parse": "PASS",
+      "imports": [
+        {
+          "module": "pathlib",
+          "names": [
+            "Path"
+          ]
+        },
+        {
+          "module": "datetime",
+          "names": [
+            "datetime"
+          ]
+        },
+        {
+          "module": "language_field",
+          "names": [
+            "LanguageFieldLearner"
+          ]
+        },
+        {
+          "module": "morphospace_multimodal",
+          "names": [
+            "MultimodalField",
+            "Mosaic",
+            "SemanticHub"
+          ]
+        },
+        {
+          "module": "primitive_sensory_pack",
+          "names": [
+            "senses_from_text",
+            "DIMS"
+          ]
+        }
+      ],
+      "classes": [],
+      "functions": [
+        "simple_tokens",
+        "chunk_text",
+        "concept_map_png",
+        "run_harness",
+        "main"
+      ]
+    },
+    {
+      "id": "AC06",
+      "parse": "PASS",
+      "imports": [
+        {
+          "module": "pathlib",
+          "names": [
+            "Path"
+          ]
+        },
+        {
+          "module": "datetime",
+          "names": [
+            "datetime"
+          ]
+        },
+        {
+          "module": "language_field",
+          "names": [
+            "LanguageFieldLearner"
+          ]
+        },
+        {
+          "module": "morphospace_multimodal",
+          "names": [
+            "senses_from_text",
+            "MorphospaceMultimodal"
+          ]
+        },
+        {
+          "module": "primitive_sensory_pack",
+          "names": [
+            "DIMS"
+          ]
+        }
+      ],
+      "classes": [],
+      "functions": [
+        "run_harness"
+      ]
+    },
+    {
+      "id": "AC07",
+      "parse": "PASS",
+      "imports": [],
+      "classes": [],
+      "functions": [
+        "zeros",
+        "clamp01",
+        "_visual_features",
+        "_auditory_features",
+        "_smell_features",
+        "_taste_features",
+        "_touch_features",
+        "_emotion_features",
+        "senses_from_text"
+      ]
+    },
+    {
+      "id": "AC08",
+      "parse": "PASS",
+      "imports": [],
+      "classes": [
+        {
+          "name": "TinyVocab",
+          "methods": [
+            "__init__",
+            "_vec",
+            "encode",
+            "nearest_tokens",
+            "phrase_from_state"
+          ]
+        }
+      ],
+      "functions": []
+    },
+    {
+      "id": "AC09",
+      "parse": "PASS",
+      "imports": [
+        {
+          "module": "typing",
+          "names": [
+            "Dict",
+            "List",
+            "Optional"
+          ]
+        }
+      ],
+      "classes": [],
+      "functions": [
+        "_clean_tokens",
+        "_top_modalities",
+        "_soft_paraphrase",
+        "_association_hint",
+        "_curiosity_question",
+        "generate_reply_v48"
+      ]
+    },
+    {
+      "id": "AC10",
+      "parse": "PASS",
+      "imports": [
+        {
+          "module": "pathlib",
+          "names": [
+            "Path"
+          ]
+        },
+        {
+          "module": "primitive_sensory_pack",
+          "names": [
+            "DIMS",
+            "zeros"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "LanguageFieldLearner",
+          "methods": [
+            "__init__",
+            "learn",
+            "recall",
+            "save",
+            "reset"
+          ]
+        }
+      ],
+      "functions": []
+    },
+    {
+      "id": "AC11",
+      "parse": "PASS",
+      "imports": [],
+      "classes": [],
+      "functions": []
+    },
+    {
+      "id": "AC12",
+      "parse": "PASS",
+      "imports": [
+        {
+          "module": "primitive_sensory_pack",
+          "names": [
+            "DIMS",
+            "zeros"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "Modality",
+          "methods": [
+            "__init__",
+            "stimulate",
+            "reset",
+            "norm"
+          ]
+        },
+        {
+          "name": "MorphospaceMultimodal",
+          "methods": [
+            "__init__",
+            "stimulate",
+            "reset"
+          ]
+        }
+      ],
+      "functions": [
+        "senses_from_text"
+      ]
+    },
+    {
+      "id": "AC13",
+      "parse": "PASS",
+      "imports": [
+        {
+          "module": "bridge_llm",
+          "names": [
+            "LLMBridge"
+          ]
+        },
+        {
+          "module": "guard",
+          "names": [
+            "SafeGuard"
+          ]
+        },
+        {
+          "module": "ingest",
+          "names": [
+            "load_local",
+            "chunk_text",
+            "summarize_chunks"
+          ]
+        }
+      ],
+      "classes": [],
+      "functions": [
+        "load_config",
+        "save_store",
+        "main"
+      ]
+    },
+    {
+      "id": "AC14",
+      "parse": "FAIL",
+      "line": 51,
+      "reason": "f-string expression part cannot include a backslash"
+    },
+    {
+      "id": "AC15",
+      "parse": "FAIL",
+      "line": 46,
+      "reason": "f-string expression part cannot include a backslash"
+    },
+    {
+      "id": "AC19",
+      "parse": "PASS",
+      "imports": [
+        {
+          "module": "__future__",
+          "names": [
+            "annotations"
+          ]
+        },
+        {
+          "module": "pathlib",
+          "names": [
+            "Path"
+          ]
+        },
+        {
+          "module": "typing",
+          "names": [
+            "List",
+            "Dict",
+            "Any"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "MosaicMemory",
+          "methods": [
+            "__init__",
+            "load_domain",
+            "add_meta_mosaics",
+            "_merge",
+            "seeds_for_domain"
+          ]
+        }
+      ],
+      "functions": []
+    },
+    {
+      "id": "AC20",
+      "parse": "PASS",
+      "imports": [
+        {
+          "module": "__future__",
+          "names": [
+            "annotations"
+          ]
+        },
+        {
+          "module": "pathlib",
+          "names": [
+            "Path"
+          ]
+        },
+        {
+          "module": "typing",
+          "names": [
+            "Dict",
+            "List"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "MemoryRing",
+          "methods": [
+            "__init__",
+            "_load_existing",
+            "append",
+            "_decay_weight",
+            "snapshot"
+          ]
+        }
+      ],
+      "functions": []
+    }
+  ],
+  "checks": [
+    {
+      "boundary": "AC14/AC15 import IntentField from AC10",
+      "provided": false,
+      "qualification": "missing in inspected module; actual path/version resolution not executed"
+    },
+    {
+      "boundary": "AC05 imports MultimodalField from AC12",
+      "provided": false
+    },
+    {
+      "boundary": "AC05 imports Mosaic from AC12",
+      "provided": false
+    },
+    {
+      "boundary": "AC05 imports SemanticHub from AC12",
+      "provided": false
+    },
+    {
+      "boundary": "AC05/AC06 call LanguageFieldLearner.save",
+      "provided": false,
+      "actual_methods": [
+        "__init__",
+        "learn",
+        "load_memory",
+        "recall",
+        "save_memory"
+      ]
+    }
+  ]
+}

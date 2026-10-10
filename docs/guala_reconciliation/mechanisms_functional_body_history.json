@@ -1,0 +1,1288 @@
+{
+  "schema": "guala.documentary_mechanisms.v1",
+  "at_utc": "2026-10-10T10:27:44.566594+00:00",
+  "scope": "Complete content of157 Git versions/one path:18148 latest-document lines plus4 older-only passages/9lines; reconstructed differences cover every captured version. Historical executable and approval claims remain attributed, not replayed or independently ratified here. No product execution. Current correspondence and overall reconciliation remain OPEN.",
+  "mechanisms": [
+    {
+      "id": "VFB01",
+      "name": "Body-only numerical authority and the functional-emulation scope",
+      "classification": "reported_scoped_authority_not_blanket_approximation_permission",
+      "finding": "FBR01",
+      "observed_mechanism": "The sprint reports explicit body-only numerical approximation, a MuJoCo backend and bounded optics approvals. Exact rational articulated mechanics had bounded-coordinate/runtime failures; changing the mechanical representation was a substantial design decision.",
+      "evidence_limits": "Original approvals are reported in this source, not independently authenticated here. Sixty-four hinges are not sixty-four ArcLoom columns. Current October5 functional emulation does not require this unmounted precursor before speech or feeding.",
+      "replacement": "Recover exact approval contexts, document which mechanical approximation is active and its units/error limits; keep full DSF and cognition authority separate. Preserve useful bounded functions without reviving unnecessary anatomy work.",
+      "acceptance": {
+        "unit": "Identify physical coordinate representation, unit conversion and refused precision/overflow cases.",
+        "module": "Bind the approved numerical law to actual body callers and source/version headers.",
+        "system": "Demonstrate the selected functional body supplies genuine sensed consequences to the preserved substrate; qualify required functions without inventing microscopic prerequisites.",
+        "release": "Only if this mechanism is selected for the current architecture: bind exact approved source, artifact, active caller, preserved state and bounded live result. Historical offline proof does not qualify today's release. Keep unmounted, unavailable and failed capabilities explicit."
+      },
+      "refs": [
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 473,
+          "anchor": "Joe explicitly answered \"Approve body-only numerical approximation",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 642,
+          "anchor": "Ask Joe to authorize MuJoCo as the body-only numerical mechanics backend for",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 689,
+          "anchor": "Joe explicitly approved everything needed within this pre-embodiment scope;",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 2173,
+          "anchor": "Joe explicitly approved: \"I approve bounded numerical optics\". The goal has",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A04",
+        "A08",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFB02",
+      "name": "Legacy scalar controller and an unmapped motor interface",
+      "classification": "historical_architecture_conflict_and_missing_interface",
+      "finding": "FBR02",
+      "observed_mechanism": "The source explicitly identifies FunctionalOrganism's22 fixed streams,64-choice ceiling, per-stream regime/sign reduction and scalar learner as reduced cognition, not full joint DSF or neuronal learning. migrate() deleted unfamiliar streams/acts; old coarse consolidation did not retain all posture distinctions. Later core replacement returned vocal indices/recalled state, not joint efforts, with no acknowledged motor/receptor/current-state handoff.",
+      "evidence_limits": "This is dated source evidence, not current activation. The historical plan to extend that scalar learner is not current authority: the user has since required its retirement. Same schema name or surviving archive does not prove active learned-state preservation. Native world qpos/qvel and external geometry IDs are diagnostic custody, not organism sensory knowledge.",
+      "replacement": "Keep the deprecated scalar controller retired. Preserve legitimately learned physical state through a verified active mapping, without relabeling root-step experience as joint practice. Define native effector/receptor symbols, units, frames, timing and state custody; expose actual self-body receptors without hidden world knowledge. Refuse semantic/syllable-to-force inventions.",
+      "acceptance": {
+        "unit": "Reject semantic labels and unsupported indices at the physical interface; verify typed effort/sense units.",
+        "module": "Trace actual native motor producer through actuation and returned sensation without a Python selector.",
+        "system": "Preserved-state sensory experience must change later native action through retained physical state, with controlled absent/unrelated experience comparisons.",
+        "release": "Only if this mechanism is selected for the current architecture: bind exact approved source, artifact, active caller, preserved state and bounded live result. Historical offline proof does not qualify today's release. No learned-speech claim without native acquired-state causal qualification."
+      },
+      "refs": [
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 44,
+          "anchor": "| Active sensory ingress | `guala_functional_loop.py` constructing `Sensed` | Carries vision, sound and coarse skin evidence; full limb/inertial return is not mounted. No zero-fill or scalar 'balance' stand-in. |",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16702,
+          "anchor": "G1 coordination inspection additionally found an uncommitted dense1024x1024",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17658,
+          "anchor": "G1 coordination: main now at 2cce049fe with uncommitted cognitive replacement;",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17665,
+          "anchor": "BodyFeedback remains anatomical joint/contact/inertial evidence; WorldFrame",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 18147,
+          "anchor": "authority gap or Joe question is introduced. Body remains unmounted and goal",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 1177,
+          "anchor": "3. Afferent evidence is the actual native joint angle/rate/effort and site-frame",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 1192,
+          "anchor": "The reviewer found a concrete migration deletion hazard: migrate() compares",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 1197,
+          "anchor": "experience as joint practice. Preserve CONSOLIDATED_STREAMS and sleep equations;",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 5316,
+          "anchor": "SOURCE findings: FunctionalOrganism still has 22 fixed streams, a 64-choice",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 5321,
+          "anchor": "Body numerical approximation and this interface are approved. Existing per-stream",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A05",
+        "A06",
+        "A08",
+        "A10"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFB03",
+      "name": "Mechanical energy, work and thermal accounting",
+      "classification": "required_physical_custody_not_scalar_closure_certificate",
+      "finding": "FBR03",
+      "observed_mechanism": "Historical body work distinguishes supplied positive motor work, negative work, native constraint work and unresolved thermal integration. A joule-to-nanojoule scale is dimensional conversion; it is not automatically the prohibited abstract billion-fold energy gain. The historical thermal design explicitly computes basal_debit_nJ + round((self_bearing+braking)*1e9), with joule-to-nanojoule units and at most0.5nJ rounding per interval; its two-node heat model does not represent joint-local gradients.",
+      "evidence_limits": "A balanced aggregate or small discrete residual does not validate the force law or continuous trajectory. Negative motor work is not automatically food; unexplained residual is not heat. The current billion force-work capacity is separately audited.",
+      "replacement": "Specify each transfer, signed work convention and physical sink. Preserve independent work/supply arithmetic and reject synthetic replenishment or residual-as-heat closure.",
+      "acceptance": {
+        "unit": "Check dimensional conversions, sign conventions, zero supply and exact refusal rollback.",
+        "module": "Integrate actual motor/contact/thermal transfers with one authoritative body/world transaction.",
+        "system": "Measure supply, delivered work, dissipation and retained state across load/release and cold continuation; unavailable thermal coupling remains explicit.",
+        "release": "Only if this mechanism is selected for the current architecture: bind exact approved source, artifact, active caller, preserved state and bounded live result. Historical offline proof does not qualify today's release. Keep unmounted, unavailable and failed capabilities explicit."
+      },
+      "refs": [
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 839,
+          "anchor": "Contact dissipation/thermal transfer, metabolic supply and complete body/world",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 943,
+          "anchor": "thermal energy sink must be connected in the whole-world integration gate;",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 1259,
+          "anchor": "the old movement multiplier and physical work. Refusal cannot debit unperformed",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 1260,
+          "anchor": "work. Negative mechanical motor work is not automatically food replenishment.",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 15778,
+          "anchor": "Both own histories land exactly at.25s; the external bench motor input changes",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 1691,
+          "anchor": "  energy (integer nJ), replacing power*elapsed_time for that interval. Keep its",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 1696,
+          "anchor": "  replace that source input with basal_debit_nJ+round((self_bearing+braking)*1e9).",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 1701,
+          "anchor": "- Keep heat in the existing core/skin bulk approximation: heat is internally",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        }
+      ],
+      "repair_actions": [
+        "A07",
+        "A08",
+        "A11",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFB04",
+      "name": "Full head geometry, finite retinal aperture and optical source custody",
+      "classification": "reported_sensory_improvements_with_integration_gaps",
+      "finding": "FBR04",
+      "observed_mechanism": "The history replaces root/legacy neck geometry and pixel-offset pattern assumptions with anatomical head/camera geometry, finite optical aperture and declared surface pattern registration. Scalar/local optical successes did not mount the complete retinal path. Independent wall-clock solar queries were identified as a cold-repeatability gap requiring retained causal illumination; absent and unretained solar evidence are distinct. The reported292.893ms complete optical result still missed its250ms target.",
+      "evidence_limits": "Optical markings are physical source geometry when they govern emitted/reflected signal; they are a forbidden semantic shortcut if their identity selects cognition. Historical benchmarks do not prove current sensory throughput.",
+      "replacement": "Use one declared world illumination and anatomical geometry path; keep pattern identity out of neuronal decision authority and make all source/retinal sampling losses explicit.",
+      "acceptance": {
+        "unit": "Verify pose/frame transforms, aperture area, visibility/occlusion and analytic narrow-feature cases.",
+        "module": "Show actual camera/retina producer feeds the native receptor with full head pose and declared radiometry.",
+        "system": "Move an unfamiliar physically patterned object and measure lawful sensory differences without name/answer access; check actual latency and cold continuity.",
+        "release": "Only if this mechanism is selected for the current architecture: bind exact approved source, artifact, active caller, preserved state and bounded live result. Historical offline proof does not qualify today's release. No learned-speech claim without native acquired-state causal qualification."
+      },
+      "refs": [
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 1829,
+          "anchor": "retina uses rounded upright root geometry plus legacy neck offsets. Updating",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 1957,
+          "anchor": "or cognitive record. This small scene benchmark is NOT live retina latency or",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 2112,
+          "anchor": "- guala_functional_loop.py:_world_retina_u8 calls retinal_carriage then the old",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 2122,
+          "anchor": "- _retinal_projection's patterned sphere uses pixel offsets from its projected",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 4989,
+          "anchor": "per-point Python tuple/float unpack, no array-to-list conversion. GIL retained",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 5040,
+          "anchor": "under held GIL, initializes bounded bytes, calls no Python, stores nothing.",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 3835,
+          "anchor": "Lighting boundary: solar_sun() currently reads wall time independently, while",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 3837,
+          "anchor": "direction. Source view must distinguish ABSENT solar coupling from UNRETAINED",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 5313,
+          "anchor": "FB-01ai remains closed by its 82 local checks; its 292.893ms optics result",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        }
+      ],
+      "repair_actions": [
+        "A06",
+        "A08",
+        "A10",
+        "A13",
+        "A14"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFB05",
+      "name": "Nutrient donor custody versus foraging and satiety",
+      "classification": "reported_local_conservation_repair_not_autonomous_feeding",
+      "finding": "FBR05",
+      "observed_mechanism": "The source corrects nutrient inference from taste/parser proxies into typed digestible transfer, donor depletion and predecessor rollback. It reports 4320 micrograms transferred from12000 with7680 remaining.",
+      "evidence_limits": "Conserved intake tests do not prove autonomous acquisition, digestion, hunger-associated memory, complete mass/inertia coupling or current food availability. Later replenish_home_food startup failure and authored food flags are distinct historical issues.",
+      "replacement": "Keep physical food removal/reappearance world-owned and conserved. Drive hunger/nourishment through actual internal sensation and retained experience, not food labels or caretaker cognitive overrides.",
+      "acceptance": {
+        "unit": "Zero-nutrition tasting cannot create intake; nutrient transfer cannot disappear because taste is zero; failed bite restores both donor and recipient.",
+        "module": "One body/world transaction removes consumed material and applies typed intake once; respawn is declared external world dynamics.",
+        "system": "Preserved hungry state must discover/acquire/consume through native action and show subsequent internal changes and later experience-based behavior.",
+        "release": "Only if this mechanism is selected for the current architecture: bind exact approved source, artifact, active caller, preserved state and bounded live result. Historical offline proof does not qualify today's release. Keep unmounted, unavailable and failed capabilities explicit."
+      },
+      "refs": [
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 7497,
+          "anchor": "receipts conserve declared nutrient mass; tasted non-nutrient gives0 intake;",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 7531,
+          "anchor": "- removed nutrient -> active_contact.transferred_digestible_micrograms ->",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 7544,
+          "anchor": "and a first nutrient transfer4320ug from12000ug, leaving7680ug for recurrence",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 14307,
+          "anchor": "pending0/0/0. Successor startup failed in replenish_home_food -> successor",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 14309,
+          "anchor": "posted the exact source correction handoff in collaborative_todo.md, including",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        }
+      ],
+      "repair_actions": [
+        "A06",
+        "A07",
+        "A09",
+        "A11",
+        "A12"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFB06",
+      "name": "Ratified sensory accuracy versus uncalibrated all-actuator admission",
+      "classification": "separate_gate_authorities_and_rejected_candidate",
+      "finding": "FBR06",
+      "observed_mechanism": "Early all-actuator endpoint tests exposed widespread refusal. Later numerical response settings admitting128 endpoints did not by themselves establish physical accuracy. A later explicit accuracy contract was reported approved.",
+      "evidence_limits": "Admission, calibration, discrete energy closure and measured trajectory agreement are separate. Do not apply a later approval retrospectively or inherit a local pass across a law change.",
+      "replacement": "Bind each accepted error ceiling to original authority and typed physical quantity; reject force/tolerance tuning whose purpose is making a test green.",
+      "acceptance": {
+        "unit": "Exercise each finite/unit/frame boundary and retain original refused controls.",
+        "module": "Require full typed state, contact, proprioceptive, inertial, work and impulse comparisons under the same physical input.",
+        "system": "Run the ratified load/release and required environmental cases with independent histories; retain missing channels as unqualified.",
+        "release": "Only if this mechanism is selected for the current architecture: bind exact approved source, artifact, active caller, preserved state and bounded live result. Historical offline proof does not qualify today's release. Keep unmounted, unavailable and failed capabilities explicit."
+      },
+      "refs": [
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 7673,
+          "anchor": "### FB-01aj accuracy contract RATIFIED — 2026-09-26",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 7675,
+          "anchor": "Joe explicitly approved use of the preceding accuracy contract: 'you have me",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 7679,
+          "anchor": "20:56 proposal now govern verification. They are engineering requirements,",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 15232,
+          "anchor": "Measured correction effect on the originally identified interval:",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 15242,
+          "anchor": "The original local values were already below pointwise gates; the defect was",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A08",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFB07",
+      "name": "Coupled force law and midpoint work corrections",
+      "classification": "reported_genuine_numerical_repairs_with_scope_limits",
+      "finding": "FBR07",
+      "observed_mechanism": "The history separates discrete impulse/work accounting from the native force solve, rejects mismatched effective mass and nonconverged implicit candidates, and later uses consistently coupled force/constraint evaluation.",
+      "evidence_limits": "A small algebraic residual is not continuous accuracy; a source-reviewed or compiled candidate can still fail physical comparison. No independent reexecution occurred in this audit.",
+      "replacement": "Retain the single complete mechanical force law and evaluate its actual nonlinear residual; reject pseudo damping, post-hoc work repair or new forces to hide integration defects.",
+      "acceptance": {
+        "unit": "Verify same-state native residual and pair-first work arithmetic; preserve failed predecessor controls.",
+        "module": "Exercise coupled state/work/impulse transitions and exact refusal restoration.",
+        "system": "Show independent trajectory agreement across loaded contacts and release, then measure resource cost separately.",
+        "release": "Only if this mechanism is selected for the current architecture: bind exact approved source, artifact, active caller, preserved state and bounded live result. Historical offline proof does not qualify today's release. Keep unmounted, unavailable and failed capabilities explicit."
+      },
+      "refs": [
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 6204,
+          "anchor": "FMA contraction disabled. No solver change, SIMD/FMA shortcut or GIL worker.",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 14908,
+          "anchor": "Native source inspection only, no force evaluations/builds: pinned upstream",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 14911,
+          "anchor": "Lines728/1737 instantiate closed joint limits at dist<=margin. Lines2226-2227",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 14914,
+          "anchor": "force jump for the retained event. Lines2304-2315 change unilateral state at",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 15569,
+          "anchor": "One isolated build/proof, receipt FB-01aj-coupled-reaction-proof.json SHA",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        }
+      ],
+      "repair_actions": [
+        "A08",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFB08",
+      "name": "Pointwise local agreement does not bound inherited trajectory error",
+      "classification": "documented_counterexample_and_required_independent_history",
+      "finding": "FBR08",
+      "observed_mechanism": "Repeated58.2,173.5,360.6 and365.1ms failures persisted under finer final-step meshes but disappeared or changed under genuinely independent finer histories. Local pointwise limits could pass while an earlier error later amplified.",
+      "evidence_limits": "Same-input repeatability is determinism, not independent convergence. A finer endpoint cannot substitute for missing intermediate state, impulse or event evidence.",
+      "replacement": "Preserve two independently accumulated trajectories and their own supplies; diagnose local versus inherited error from retained predecessors before changing a law. Never synchronize lanes or promote a refused successor as accepted state.",
+      "acceptance": {
+        "unit": "Reproduce saved failing operands and distinguish same-input from different-history comparisons.",
+        "module": "Verify own-state continuation, cumulative work/impulse and complete ordered event evidence; resource-only resume requires exact rollback.",
+        "system": "Qualify the entire declared trajectory with required common observations and retain first failure; sparse endpoint positives cannot close dense-history obligations.",
+        "release": "Only if this mechanism is selected for the current architecture: bind exact approved source, artifact, active caller, preserved state and bounded live result. Historical offline proof does not qualify today's release. Keep unmounted, unavailable and failed capabilities explicit."
+      },
+      "refs": [
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 14232,
+          "anchor": "completed=true/failure=None: both actual25us/12.5us failed controls reproduce",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 14234,
+          "anchor": "channel failure is left-palm specific force. At nominal mesh error",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 14343,
+          "anchor": "At28.5ms state/sensory/work/impulse comparisons PASS, but actual sampled",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 14789,
+          "anchor": "all6 comparison cases completed; both original raw successors, cumulative work,",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 14809,
+          "anchor": "Read-only traversal of574 authenticated common endpoints0.8->58.1ms executed",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 15242,
+          "anchor": "The original local values were already below pointwise gates; the defect was",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A08",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFB09",
+      "name": "Event uncertainty, order and native solved-domain evidence",
+      "classification": "reported_observer_and_chronology_repairs",
+      "finding": "FBR09",
+      "observed_mechanism": "Coarse event sampling merged distinct joint releases; both histories could agree on the same incomplete path. Exact numerical cubic roots established order, while real substeps supplied missing native constraint domains. Some timing bracket unions exceeded1us although overlapping.",
+      "evidence_limits": "An overwide overlapping union is insufficient timing evidence, not proof of a physical separation. Numerical polynomial roots are not continuum enclosures. Constraint-state boundaries cannot be replaced by unrelated joint-angle roots.",
+      "replacement": "Preserve genuine simultaneous departures and all native domain components; refine actual motion for unresolved chronology and refuse fabricated intermediate labels or rounded-away limits.",
+      "acceptance": {
+        "unit": "Test distinct/shared roots, genuine simultaneous initial departures and contradictory same-time evidence.",
+        "module": "Compare actual native sequence and bracket support independently from sensory/work acceptance.",
+        "system": "Require both timing and full physical gates; passing event timing must not imply sensory accuracy or vice versa.",
+        "release": "Only if this mechanism is selected for the current architecture: bind exact approved source, artifact, active caller, preserved state and bounded live result. Historical offline proof does not qualify today's release. Keep unmounted, unavailable and failed capabilities explicit."
+      },
+      "refs": [
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 14408,
+          "anchor": "Both binary numerical constructions resolve joint36 before joint38:",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 14426,
+          "anchor": "Complete local preflight also found an earlier merged32/34 release at",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 14506,
+          "anchor": "Genuine initial release exactly reproduces predecessor native state AND work.",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 14557,
+          "anchor": "The first automatic level (3.125us and1.5625us nominal meshes) passes unchanged",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 14647,
+          "anchor": "order. However3 old paired brackets exceed1us: events5/8 around0.719/0.744ms,",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16009,
+          "anchor": "Lane0 bracket [0.47014086726720333,0.47014163273274795]; lane1 bracket",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        }
+      ],
+      "repair_actions": [
+        "A08",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFB10",
+      "name": "One-sided event quadrature and coupled reaction closure",
+      "classification": "reported_physical_numerical_correction_after_rejected_contract",
+      "finding": "FBR10",
+      "observed_mechanism": "Native static controls established a nonzero damping jump at an incoming joint limit but zero force at an outgoing control. One-sided Radau quadrature corrected an actual local error. v7 then wrongly treated coupled reaction changes as independent geometry and was rejected; v8 retained them as native coupled outputs.",
+      "evidence_limits": "Static altered-coordinate samples are not lived motion. Adjacent-time root brackets or measured jump times width are not global error proofs. A correct local event operator remains unmounted until whole integration is qualified.",
+      "replacement": "Keep actual solved terminal state separate from temporary incoming-side force coordinates; admit only lawful branch evidence and original accounting. Separate geometric activation from solved reactions without removing reaction observations.",
+      "acceptance": {
+        "unit": "Exercise incoming/outgoing controls, selected geometry, coupled row type/id/state and exact force/supply refusal.",
+        "module": "Require own-history state/work/impulse/senses and authentic event certificates; rejected search work is never delivered.",
+        "system": "Retain improved local results and rerun required full trajectory under the exact law; no pose projection, epsilon or new damping.",
+        "release": "Only if this mechanism is selected for the current architecture: bind exact approved source, artifact, active caller, preserved state and bounded live result. Historical offline proof does not qualify today's release. Keep unmounted, unavailable and failed capabilities explicit."
+      },
+      "refs": [
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 14978,
+          "anchor": "Distinguished two physical cases without using a semantic selector:",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 14983,
+          "anchor": "- Ordinal14, left digit0 distal lower-limit ENTRY, q=0: same incoming state",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 15025,
+          "anchor": "Source-only mathematical review recommends scalar event-time bracketing around",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 15043,
+          "anchor": "Do not project accepted coordinates onto the boundary after solving: that would",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 15518,
+          "anchor": "Exact cause: .78125/.390625/.1953125us trials contain only lower joint1 crossing,",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 15535,
+          "anchor": "Replacement contract(v8), same two native files, no force/anatomy/cognitive change:",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 15571,
+          "anchor": "- Both OWN26.6->26.7ms histories pass unchanged state/work/impulse/event and",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        }
+      ],
+      "repair_actions": [
+        "A08",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFB11",
+      "name": "Contact localization candidates rejected by their own measurements",
+      "classification": "rejected_numerical_substitutions_preserved_as_lessons",
+      "finding": "FBR11",
+      "observed_mechanism": "Adjacent-clock contact localization failed because one-step and recomputed own-prefix paths had different represented geometry. The first generic refusal was later traced to a real own bridge with no contact. A successor candidate progressed but exhausted its allowance through repeated searches.",
+      "evidence_limits": "The failures do not prove all event-alignment methods impossible. Unknown predicates were not valid causal explanations; clock precision alone did not guarantee contact-path agreement.",
+      "replacement": "Retain rejected candidates as evidence, remove them from active authority and derive the actual signed native geometry boundary before proposing another operator. Do not borrow a discarded trajectory or force a predicted contact time.",
+      "acceptance": {
+        "unit": "Reproduce exact first failed predicate and retain actual prefix/trial/bridge operands.",
+        "module": "Bound all searches and reserve restoration work; distinguish raw-state equality from complete native recomputation after exhaustion.",
+        "system": "Only complete independent physical/event/impulse comparisons can qualify the replacement; no allowance escalation or whole-history replay to conceal local failure.",
+        "release": "Only if this mechanism is selected for the current architecture: bind exact approved source, artifact, active caller, preserved state and bounded live result. Historical offline proof does not qualify today's release. Keep unmounted, unavailable and failed capabilities explicit."
+      },
+      "refs": [
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16332,
+          "anchor": "First lane accepted582 incoming pieces and rejected303 intervals:290 generic",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16347,
+          "anchor": "Falsified assumption: adjacent CLOCK values do not guarantee contact-path",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16414,
+          "anchor": "Decisive predicate is rejected contact_event_law.pxi:66: the recomputed OWN",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16463,
+          "anchor": "Focused original3.05ns interval proof FAILED its5000forward allowance, not an",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16478,
+          "anchor": "The observer forward guard also refused the native rollback-forward call",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16499,
+          "anchor": "Do NOT replace machine-clock precision with EVENT_S alone: the earlier original",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        }
+      ],
+      "repair_actions": [
+        "A08",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFB12",
+      "name": "Native contact guard readout and diagnostic clones",
+      "classification": "bounded_physical_observation_not_cognitive_lookup",
+      "finding": "FBR12",
+      "observed_mechanism": "Read-only instrumentation identified actual native face/edge contact predicates. A shared optional readout then used the same collision implementation and caller-owned bounded scratch, including generating-feature identity and upstream assignment-prefix dependence.",
+      "evidence_limits": "Static bit equivalence validates a readout, not the force law, continuum geometry or active integration. Native feature IDs are physical provenance; hardcoding them as desired solver or organism outcomes would be a shortcut.",
+      "replacement": "Keep one production geometry authority; diagnostic clones must remain observation-only and independently match the native output. Reject overflow/nonfinite or unstable feature evidence rather than truncating contacts.",
+      "acceptance": {
+        "unit": "Compare guarded/null-output/accepted-library calls independently, including negative capacity and identity cases.",
+        "module": "Demonstrate observation leaves physical bytes/forces unchanged and exact native caller binding.",
+        "system": "Trace ordinary broad phase through actual contact/force publication; no fragment pass may substitute for motion or live proof.",
+        "release": "Only if this mechanism is selected for the current architecture: bind exact approved source, artifact, active caller, preserved state and bounded live result. Historical offline proof does not qualify today's release. Keep unmounted, unavailable and failed capabilities explicit."
+      },
+      "refs": [
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16532,
+          "anchor": "One offline observer will extract the exact authenticated native mjc_BoxBox",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16595,
+          "anchor": "Actual native admission mechanisms, pair36/44, margin0:",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16637,
+          "anchor": "Candidate source: native/functional_body/contact_guards.patch. It is NOT yet",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16685,
+          "anchor": "Source review found one localized readout defect: the native edge-corner loop",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16752,
+          "anchor": "Numerical proof:11forwards,0integrationtrials,.179992572CPU seconds, exact",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16760,
+          "anchor": "Native feature identities now remain stable across each saved pair:",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        }
+      ],
+      "repair_actions": [
+        "A08",
+        "A14",
+        "A15",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFB13",
+      "name": "Tiny quaternion increments and nonunit geometry",
+      "classification": "reported_specific_numerical_defects_with_partial_corrections",
+      "finding": "FBR13",
+      "observed_mechanism": "The native tiny-angle API substituted positive-x direction below its normalization threshold. Power-of-two argument scaling preserved the actual rotation direction. A separate quaternion normalization deadband made world/local geometry inconsistent; projective H(q)/(q dot q) corrected matrix and vector rotation together.",
+      "evidence_limits": "The direction fix passed isolated controls while contact motion still failed. Higher-precision static references are not a continuum proof. Coordinate relocation before correcting the nonunit law would have changed the mathematical result.",
+      "replacement": "Preserve actual orientation algebra without arbitrary axis/epsilon, and update every coupled geometry representation consistently. Version any changed physical law; do not silently restore old-law state into it.",
+      "acceptance": {
+        "unit": "Signed tiny/zero/ordinary rotations, q/-q and power-scale invariance, invalid-input atomic refusal and vector/matrix agreement.",
+        "module": "Trace same quaternion law through kinematics, geometry, inertia, actuator and sensor frames with bounded scratch.",
+        "system": "Use preserved-state migration authority if active; qualify full native motion and cold next-state behavior rather than utility fragments alone.",
+        "release": "Only if this mechanism is selected for the current architecture: bind exact approved source, artifact, active caller, preserved state and bounded live result. Historical offline proof does not qualify today's release. Keep unmounted, unavailable and failed capabilities explicit."
+      },
+      "refs": [
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16857,
+          "anchor": "Source inspection found a concrete upstream numerical API misuse. Radau feeds",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16919,
+          "anchor": "The native API wrong-axis defect was reproduced in five signed-axis cases;",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16925,
+          "anchor": "The same saved6.7fs own-predecessor trial still failed with",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17047,
+          "anchor": "Common ancestor is body4, the free root at qpos address0. Local-frame",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17058,
+          "anchor": "Relevant exact algebra: the native homogeneous quaternion-to-matrix formula",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17091,
+          "anchor": "Cause: near-unit norm error is retained by mju_normalize4; mju_quat2Mat scales",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17165,
+          "anchor": "One compile/proof passed16 valid rotation/alias cases and4 invalid-input",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A08",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFB14",
+      "name": "Common-frame contacts and exact changed-law custody",
+      "classification": "reported_geometry_evolution_not_authorized_live_state_migration",
+      "finding": "FBR14",
+      "observed_mechanism": "After projective correction, world-frame cancellation still changed contact admission. Shared native common-ancestor kinematics and narrow-phase geometry removed the measured saved-pose discrepancy. New native version/header rejected old-law state; a disclosed raw initial-condition comparison and separate-process new-law restore passed the tiny saved-motion case.",
+      "evidence_limits": "The public runtime interval still used another module; the Radau probe remained unmounted. Importing old raw values into an offline new-law fixture is not preservation of a live learned organism. Existing upstream duplicate-filter rules remain qualification obligations.",
+      "replacement": "Keep shared transforms and native geometry as one authority. Bind codec law identity, reject incompatible restore before mutation, and supply an explicitly approved active-state mapping where a deployed law changes.",
+      "acceptance": {
+        "unit": "Check common/world ancestor paths, point/normal transforms, invalid IDs, stack cleanup and old-header rejection.",
+        "module": "Verify ordinary broad phase, native constraints, actual physical return and separate-process next-interval identity under the same artifact.",
+        "system": "Qualify the selected mounted body/world transaction and preserved neuronal consequences; no local6.7fs pass may certify the whole organism.",
+        "release": "Only if this mechanism is selected for the current architecture: bind exact approved source, artifact, active caller, preserved state and bounded live result. Historical offline proof does not qualify today's release. Keep unmounted, unavailable and failed capabilities explicit."
+      },
+      "refs": [
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17217,
+          "anchor": "Native boundary (one law, not a Python replacement):",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17229,
+          "anchor": "  function taking these two geometries. Move the existing box contact",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17376,
+          "anchor": "All four exact saved configurations yielded two filtered contacts in local",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17425,
+          "anchor": "no global install or old-library overwrite. Version becomes",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17431,
+          "anchor": "The first full-engine proof will import saved raw mechanical initial values",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17486,
+          "anchor": "New-law native capture is then restored in a separate Python process; compare",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17518,
+          "anchor": "Historical initial values at0.4695536358498123s advanced to",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A08",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFB15",
+      "name": "Numerical profiling and proven redundant work",
+      "classification": "reported_exact_optimization_and_retracted_wrong_hypothesis",
+      "finding": "FBR15",
+      "observed_mechanism": "The cost investigation initially proposed caching immutable polynomial bases, then removed that edit before build because the measured interval had no root construction. Complete Boolean tuple equality instead removed redundant per-joint enumeration;515 cases and the full returned state matched exactly.",
+      "evidence_limits": "A single roughly4ms timing difference was not a defensible speedup claim. Deterministic caches are not automatically semantic cheats, but state-dependent shortcuts require actual dependency and equality evidence.",
+      "replacement": "Remove only demonstrated redundant work; retain physical checks and exact source-specific equivalence. Do not call distinct force trials redundant or confuse profiler quantization with zero work.",
+      "acceptance": {
+        "unit": "Use counted-iteration falsifiers and complete exact output comparisons, not timing alone.",
+        "module": "Compare uninstrumented versus instrumented state/work/impulse/event returns and count all native calls.",
+        "system": "Measure actual selected runtime throughput and bounded growth independently; historical proof overhead is not today's live latency diagnosis.",
+        "release": "Only if this mechanism is selected for the current architecture: bind exact approved source, artifact, active caller, preserved state and bounded live result. Historical offline proof does not qualify today's release. Keep unmounted, unavailable and failed capabilities explicit."
+      },
+      "refs": [
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17722,
+          "anchor": "3.2 -> 3.3 ms pair, unprofiled and timing-wrapped returns exactly equal:",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17729,
+          "anchor": "Observed counts: 472 snapshots, 789 state copies, 6,147 finite checks and",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17775,
+          "anchor": "Pre-freeze correction to the preceding proposed optimization: inspection of",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17782,
+          "anchor": "The reached repeated work is joint_sample_resolution enumerating every",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17814,
+          "anchor": "515 original/candidate boundary cases agree, including Python/NumPy Booleans",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17827,
+          "anchor": "Performance honesty: old/new unprofiled100-us interval .295978683/.291955361",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        }
+      ],
+      "repair_actions": [
+        "A08",
+        "A14",
+        "A16"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFB16",
+      "name": "Mesh regime changes and final historical qualification limit",
+      "classification": "lawful_numerical_regime_measurement_not_full_acceptance",
+      "finding": "FBR16",
+      "observed_mechanism": "Four declared mesh pairs passed a300us smooth interval, with fewer solves at100/50us; that was numerical agreement, not identical states. Under the final new geometry law, the historical trajectory reached22.2ms/222 observations and46 events before a100000-forward stop.",
+      "evidence_limits": "The original500ms load/release, required gravity/load breadth, intrinsic couple ceiling, performance and mounting remained open. Earlier old-law470.3ms progress cannot be joined to a new-law local pass as full qualification.",
+      "replacement": "Retain exact law-specific lineage and unresolved gates. Use existing numerical admission bounds only with independent state/work/sense/event acceptance; do not create new physical tolerances or blind budget extensions.",
+      "acceptance": {
+        "unit": "Check resource versus physical-failure classification and mandatory reference-bridge completeness.",
+        "module": "Preserve two own histories and exact qualified predecessor on failure; never publish failed scratch.",
+        "system": "Complete only the required currently selected functional body qualification, at practical cost; historical expensive precursor remains optional under October5scope.",
+        "release": "Only if this mechanism is selected for the current architecture: bind exact approved source, artifact, active caller, preserved state and bounded live result. Historical offline proof does not qualify today's release. Keep unmounted, unavailable and failed capabilities explicit."
+      },
+      "refs": [
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17922,
+          "anchor": "Completed all four mesh rows and12 observations; original full return exactly",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17934,
+          "anchor": "The maximum reported cross-reference channel error ratio was0.000209130979",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 18025,
+          "anchor": "Own histories advanced3.2->20.0ms:168 new common observations,200 cumulative,",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 18076,
+          "anchor": "Complete, coarse historical physical result exact, existing pair and sensory",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 18115,
+          "anchor": "20.1->22.2ms own histories accepted:21 new common observations,222 cumulative,",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 18130,
+          "anchor": "Waste/next-item decision: do NOT perform another blind budget continuation or",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        }
+      ],
+      "repair_actions": [
+        "A01",
+        "A08",
+        "A14",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFB17",
+      "name": "Live health projections, caretaker boundaries and provenance",
+      "classification": "historical_operational_evidence_with_explicit_limits",
+      "finding": "FBR18",
+      "observed_mechanism": "Historical offline proofs repeatedly observed a healthy ECS task with clock-stalled alarm. At another point observation returned available=true while desired/running/pending were all zero. Co-resident G1 caretaker/test processes and later uncommitted cognitive replacements were documented separately.",
+      "evidence_limits": "A stale observation is not a live writer; healthy transport is not cognition. This history does not establish that a caretaker caused today's latency or turn loops. Task1606 has separate dated independent evidence.",
+      "replacement": "Bind every UI/health observation to actual task, image, owner, current tick and freshness. Classify caretaker inputs as external experiences or declared world operations; prohibit covert cognitive state control.",
+      "acceptance": {
+        "unit": "Reject stale/unsupported availability assertions and verify observation age/identity.",
+        "module": "Trace owner/process/caretaker paths and actual sensing versus direct cognitive mutation.",
+        "system": "Measure navigation, nourishment, latency and speech under the current serving artifact; isolate causal interference before attributing it.",
+        "release": "Only if this mechanism is selected for the current architecture: bind exact approved source, artifact, active caller, preserved state and bounded live result. Historical offline proof does not qualify today's release. Keep unmounted, unavailable and failed capabilities explicit."
+      },
+      "refs": [
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 14124,
+          "anchor": "Read-only envelopes20:10:23--20:27:05UTC retain sole1561/task5b6539...,",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 14307,
+          "anchor": "pending0/0/0. Successor startup failed in replenish_home_food -> successor",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 15685,
+          "anchor": "Read-only health spans03:11:18->03:19:33UTC: sole task1566/task",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16164,
+          "anchor": "The diagnostic did NOT execute. Wrapper session57814 exited1 at require_health",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16514,
+          "anchor": "Read-only production06:20:53->06:20:59UTC: same sole RUNNING/HEALTHY ECS1568",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17649,
+          "anchor": "Read-only AWS envelope 16:49:18.787681–16:49:43.027251 UTC: sole task 1568,",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        }
+      ],
+      "repair_actions": [
+        "A05",
+        "A12",
+        "A13",
+        "A14",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    },
+    {
+      "id": "VFB18",
+      "name": "Historical speech warning and the missing native expression chain",
+      "classification": "speech_capability_not_established_by_readouts_or_body_proofs",
+      "finding": "FBR19",
+      "observed_mechanism": "The September record flags a dense1024x1024 association lattice, Python recall-to-syllable branch and retained legacy selector. Later inspected native output was vocal indices/recalled state with no physical motor/receptor acknowledgment.",
+      "evidence_limits": "This source records a warning about uncommitted code, not exact deployed ML inference. It neither proves acquired intelligible speech nor proves that ArcLoom can never support it. Body corrections and syllable indices cannot supply the missing learning/expression evidence.",
+      "replacement": "G1 must implement or identify the exact native causal path from experienced waveform through retained distributed state, context-dependent recall, articulatory action and emitted waveform. Remove authored lexical selection and legacy controller authority; retain actual failures rather than canned speech.",
+      "acceptance": {
+        "unit": "Use unfamiliar/pseudoword and absent/unrelated-experience controls; authored labels or pronunciation tables cannot be the expected-answer authority.",
+        "module": "Trace actual native sensory, retained-state and motor readers/writers, production audio and self-hearing with no alternate Python word selector.",
+        "system": "On preserved state show a learned, contextually appropriate audible utterance and repeatable causal dependence on experience; report the first failed boundary and lawful remedy if it fails.",
+        "release": "Only if this mechanism is selected for the current architecture: bind exact approved source, artifact, active caller, preserved state and bounded live result. Historical offline proof does not qualify today's release. No learned-speech claim without native acquired-state causal qualification."
+      },
+      "refs": [
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16301,
+          "anchor": "warning is acknowledged literally: deterministic Python and passing tests are",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 16702,
+          "anchor": "G1 coordination inspection additionally found an uncommitted dense1024x1024",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17658,
+          "anchor": "G1 coordination: main now at 2cce049fe with uncommitted cognitive replacement;",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17665,
+          "anchor": "BodyFeedback remains anatomical joint/contact/inertial evidence; WorldFrame",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 17848,
+          "anchor": "G1 coordination: current main-source motor/receptor handoff remains unreceived;",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        },
+        {
+          "source_id": "FB157",
+          "path": "docs/guala_reconciliation/sources/functional-body-history/FB157--GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md",
+          "line": 18147,
+          "anchor": "authority gap or Joe question is introduced. Body remains unmounted and goal",
+          "sha256": "6adaf1d1214da5eaf865033ae3318881eaf9d36c21a409707cf83a3ad5129dc7"
+        }
+      ],
+      "repair_actions": [
+        "A03",
+        "A05",
+        "A06",
+        "A09",
+        "A10",
+        "A15",
+        "A16",
+        "A17"
+      ],
+      "implementation_owner": "G1",
+      "verification_owner": "A1",
+      "qualification": "not_qualified"
+    }
+  ]
+}

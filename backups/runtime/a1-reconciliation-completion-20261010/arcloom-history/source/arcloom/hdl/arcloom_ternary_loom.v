@@ -1,0 +1,451 @@
+// ============================================================
+// ArcLoom Ternary Loom Core — FPGA Hardware
+// ============================================================
+//
+// Pure Physical Neuromorphic Hardware Substrate
+//
+// Each trit: 2 wires encoding {-1, 0, +1}
+//   00 = 0 (null / quiescent / ground state)
+//   01 = +1 (positive displacement)
+//   10 = -1 (negative displacement)
+//   11 = invalid (never produced)
+//
+// Afferent Strands: 3 Sensors × 3 Kinematic Orders = 9 Strands (72 trits)
+// Strands:
+//   front_dist, front_dir, front_accel,
+//   left_dist,  left_dir,  left_accel,
+//   right_dist, right_dir, right_accel
+// Settling Strands: context[3], momentum[3]
+// Efferent Strands: decision[3] (steer, speed, conf)
+// Total Loom State = 81 trits (162 bits) = 3^4 balanced ternary space.
+//
+// Combinational settling in ONE clock period. O(1).
+// Zero heuristics. Zero ML. Pure continuum field mechanics.
+//
+// Target: PYNQ-Z2 (Zynq-7020)
+// ============================================================
+
+module arcloom_trit (
+    input  wire [1:0] trit_in,    // 00=0, 01=+1, 10=-1
+    output wire       is_pos,     // +1
+    output wire       is_neg,     // -1
+    output wire       is_null     //  0
+);
+    assign is_pos  = (trit_in == 2'b01);
+    assign is_neg  = (trit_in == 2'b10);
+    assign is_null = (trit_in == 2'b00);
+endmodule
+
+
+// ============================================================
+// Ternary multiply: trit × signed weight → signed result
+// ============================================================
+module arcloom_trit_mult (
+    input  wire [1:0]  trit,         // 00=0, 01=+1, 10=-1
+    input  wire [7:0]  weight,       // signed 8-bit weight
+    output wire [7:0]  result        // signed 8-bit result
+);
+    wire [7:0] neg_weight;
+    assign neg_weight = (~weight) + 8'd1;  // -weight (2's complement)
+
+    assign result = (trit == 2'b01) ? weight :      // +1 × w = w
+                    (trit == 2'b10) ? neg_weight :   // -1 × w = -w
+                    8'd0;                             //  0 × w = 0
+endmodule
+
+
+// ============================================================
+// Ternary local field: sum of coupled trit contributions
+// ============================================================
+module arcloom_local_field #(
+    parameter N_INPUTS = 9,
+    parameter signed [31:0] DEAD_ZONE = 32'd20
+)(
+    input  wire [2*N_INPUTS-1:0]  coupled_trits,
+    input  wire [16*N_INPUTS-1:0] weights,       // 16-bit signed weights (3^i positional)
+    input  wire signed [15:0]     external_h,    // 16-bit signed external field
+    input  wire [7:0]             dead_zone_adj, // familiarity raises dead zone
+    output wire [1:0]             trit_out,
+    output wire signed [31:0]     field_value    // 32-bit for debug
+);
+    integer i;
+    reg signed [31:0] total;
+
+    always @(coupled_trits or weights or external_h) begin
+        total = {{16{external_h[15]}}, external_h};  // sign-extend 16→32
+        for (i = 0; i < N_INPUTS; i = i + 1) begin
+            case (coupled_trits[2*i +: 2])
+                2'b01:   total = total + {{16{weights[16*i+15]}}, weights[16*i +: 16]};
+                2'b10:   total = total - {{16{weights[16*i+15]}}, weights[16*i +: 16]};
+                default: ;
+            endcase
+        end
+    end
+
+    wire signed [31:0] effective_dz = DEAD_ZONE + {24'd0, dead_zone_adj};
+
+    assign trit_out = (total > effective_dz)  ? 2'b01 :
+                      (total < -effective_dz) ? 2'b10 :
+                      2'b00;
+
+    assign field_value = total;
+endmodule
+
+
+// ============================================================
+// BSIL — Binary Story Ingestion Layer (Classic 3-trit reference)
+// ============================================================
+module arcloom_bsil (
+    input  wire        clk,
+    input  wire        rst_n,
+    input  wire [11:0] adc_value,     // 12-bit ADC reading (0-4095)
+    input  wire        adc_valid,     // ADC data valid pulse
+
+    // Ternary output: 3 strands × 3 trits = 9 trits = 18 bits
+    output reg [5:0]   distance_strand,  // 3 trits
+    output reg [5:0]   direction_strand, // 3 trits
+    output reg [5:0]   accel_strand      // 3 trits
+);
+    localparam [11:0] DIST_LO_0 = 12'd446;
+    localparam [11:0] DIST_HI_0 = 12'd584;
+    localparam [11:0] DIST_LO_1 = 12'd619;
+    localparam [11:0] DIST_HI_1 = 12'd818;
+    localparam [11:0] DIST_LO_2 = 12'd1006;
+    localparam [11:0] DIST_HI_2 = 12'd2406;
+
+    localparam [11:0] DELTA_THRESH_0 = 12'd62;
+    localparam [11:0] DELTA_THRESH_1 = 12'd186;
+    localparam [11:0] DELTA_THRESH_2 = 12'd372;
+
+    localparam [11:0] ACCEL_THRESH_0 = 12'd37;
+    localparam [11:0] ACCEL_THRESH_1 = 12'd99;
+    localparam [11:0] ACCEL_THRESH_2 = 12'd186;
+
+    reg [11:0] prev_value;
+    reg [11:0] prev_prev_value;
+    reg        has_prev;
+    reg        has_prev2;
+
+    wire signed [12:0] delta;
+    wire signed [12:0] prev_delta;
+    wire signed [12:0] accel;
+
+    assign delta = {1'b0, adc_value} - {1'b0, prev_value};
+    assign prev_delta = {1'b0, prev_value} - {1'b0, prev_prev_value};
+    assign accel = delta - prev_delta;
+
+    function [1:0] encode_trit;
+        input [11:0] val;
+        input [11:0] lo;
+        input [11:0] hi;
+        begin
+            if (val > hi)
+                encode_trit = 2'b01;
+            else if (val < lo)
+                encode_trit = 2'b10;
+            else
+                encode_trit = 2'b00;
+        end
+    endfunction
+
+    function [1:0] encode_delta_trit;
+        input signed [12:0] d;
+        input [11:0] thresh;
+        begin
+            if (d > $signed({1'b0, thresh}))
+                encode_delta_trit = 2'b01;
+            else if (d < -$signed({1'b0, thresh}))
+                encode_delta_trit = 2'b10;
+            else
+                encode_delta_trit = 2'b00;
+        end
+    endfunction
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            distance_strand  <= 6'b0;
+            direction_strand <= 6'b0;
+            accel_strand     <= 6'b0;
+            prev_value       <= 12'd0;
+            prev_prev_value  <= 12'd0;
+            has_prev         <= 1'b0;
+            has_prev2        <= 1'b0;
+        end else if (adc_valid) begin
+            distance_strand[1:0] <= encode_trit(adc_value, DIST_LO_0, DIST_HI_0);
+            distance_strand[3:2] <= encode_trit(adc_value, DIST_LO_1, DIST_HI_1);
+            distance_strand[5:4] <= encode_trit(adc_value, DIST_LO_2, DIST_HI_2);
+
+            if (has_prev) begin
+                direction_strand[1:0] <= encode_delta_trit(delta, DELTA_THRESH_0);
+                direction_strand[3:2] <= encode_delta_trit(delta, DELTA_THRESH_1);
+                direction_strand[5:4] <= encode_delta_trit(delta, DELTA_THRESH_2);
+            end else begin
+                direction_strand <= 6'b0;
+            end
+
+            if (has_prev2) begin
+                accel_strand[1:0] <= encode_delta_trit(accel, ACCEL_THRESH_0);
+                accel_strand[3:2] <= encode_delta_trit(accel, ACCEL_THRESH_1);
+                accel_strand[5:4] <= encode_delta_trit(accel, ACCEL_THRESH_2);
+            end else begin
+                accel_strand <= 6'b0;
+            end
+
+            prev_prev_value <= prev_value;
+            prev_value      <= adc_value;
+            has_prev2       <= has_prev;
+            has_prev        <= 1'b1;
+        end
+    end
+endmodule
+
+
+// ============================================================
+// ArcLoom Top Module — SPPU + L0-L4 Kernel + Krimelack + L6 (Camera-Free)
+// ============================================================
+module arcloom_top (
+    input  wire        clk,
+    input  wire        rst_n,
+
+    // 3 sensor inputs (from XADC)
+    input  wire [11:0] sensor_adc_front,
+    input  wire        sensor_valid_front,
+    input  wire [11:0] sensor_adc_left,
+    input  wire        sensor_valid_left,
+    input  wire [11:0] sensor_adc_right,
+    input  wire        sensor_valid_right,
+
+    // Runtime distance baselines (0 = use hardware parameter default)
+    input  wire [11:0] sensor_bl_front,
+    input  wire [11:0] sensor_bl_left,
+    input  wire [11:0] sensor_bl_right,
+
+    // Software familiarity override
+    input  wire [7:0]  sw_familiarity,
+    input  wire        sw_fam_enable,
+
+    // Software Krimelack commit (for turntable capture)
+    input  wire        sw_krim_commit,
+
+    // Decision output
+    output wire [1:0]  decision_steer,
+    output wire [1:0]  decision_speed,
+    output wire [1:0]  decision_conf,
+
+    // Status outputs
+    output wire        structural_lock,
+    output wire        dsf_safe_mode,
+    output wire        dsf_valid,
+    output wire [1:0]  dsf_D,
+    output wire signed [31:0] dsf_M,
+    output wire        dsf_R_rev,
+    output wire [31:0] dsf_U_star,
+    output wire [3:0]  dsf_C,
+    output wire [31:0] dsf_P,
+    output wire [31:0] dsf_B,
+
+    // Monitor outputs (via AXI)
+    // 81 trits = 162 bits: 9 input strands × 8 trits + 6 settling + 3 decision
+    output wire [161:0] loom_state,
+    output wire [6:0]   n_effective,
+    output wire [7:0]   omega,
+
+    // Krimelack status
+    output wire [5:0]  krimelack_count,
+    output wire [7:0]  krimelack_score,
+    output wire        krimelack_recall_valid,
+    output wire        krimelack_commit_accepted,
+    output wire        krimelack_commit_rejected,
+    output wire [7:0]  target_match_score,
+
+    // Debug: raw steer field value (signed 32-bit)
+    output wire signed [31:0] debug_steer_field
+);
+
+    // ================================================================
+    // Universal Field (L0-L4) Pipeline: Physical Structural Kernel
+    // Dimensionalizes raw temporal sensor stream into continuum geometry
+    // Maps 12-bit ADC [0..4095] to canonical Q16.16 fixed-point [0.0..1.0)
+    // ================================================================
+    wire [31:0] F_norm = {16'd0, sensor_adc_front, 4'd0};
+
+    wire        dsf_valid_w;
+    wire [1:0]  dsf_D_w;
+    wire signed [31:0] dsf_M_w;
+    wire        dsf_R_rev_w;
+    wire [31:0] dsf_U_star_w;
+    wire [3:0]  dsf_C_w;
+    wire [31:0] dsf_P_w;
+    wire [31:0] dsf_B_w;
+    wire        dsf_safe_mode_w;
+
+    arcloom_uf_pipeline uf_pipeline_inst (
+        .clk(clk),
+        .rst_n(rst_n),
+        .valid_in(sensor_valid_front),
+        .F_norm_in(F_norm),
+        .dsf_valid(dsf_valid_w),
+        .dsf_D(dsf_D_w),
+        .dsf_M(dsf_M_w),
+        .dsf_R_rev(dsf_R_rev_w),
+        .dsf_U_star(dsf_U_star_w),
+        .dsf_C(dsf_C_w),
+        .dsf_P(dsf_P_w),
+        .dsf_B(dsf_B_w),
+        .dsf_safe_mode(dsf_safe_mode_w),
+        .l0_valid(),
+        .l0_dF(),
+        .l0_sigma(),
+        .l0_kappa(),
+        .l0_N(),
+        .l0_boundary(),
+        .l0_D_t()
+    );
+
+    assign dsf_valid     = dsf_valid_w;
+    assign dsf_D         = dsf_D_w;
+    assign dsf_M         = dsf_M_w;
+    assign dsf_R_rev     = dsf_R_rev_w;
+    assign dsf_U_star    = dsf_U_star_w;
+    assign dsf_C         = dsf_C_w;
+    assign dsf_P         = dsf_P_w;
+    assign dsf_B         = dsf_B_w;
+    assign dsf_safe_mode = dsf_safe_mode_w;
+
+    // ================================================================
+    // BSIL-BT: Full Balanced Ternary Sensor Encoding (3 sensors)
+    // 8 trits per strand = 16 bits. Preserves full ADC gradient.
+    // Default BASELINE parameters match physical open-air floor:
+    // Front: 500, Left: 800, Right: 1200 counts (~0.4V - 0.9V)
+    // Overridden dynamically whenever baseline_in != 0.
+    // ================================================================
+    wire [15:0] front_dist, front_dir, front_accel;
+    wire        front_bsil_valid;
+
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd500)) bsil_front (
+        .clk(clk), .rst_n(rst_n),
+        .adc_value(sensor_adc_front), .adc_valid(sensor_valid_front),
+        .baseline_in(sensor_bl_front),
+        .bt_distance(front_dist), .bt_direction(front_dir),
+        .bt_acceleration(front_accel), .out_valid(front_bsil_valid)
+    );
+
+    wire [15:0] left_dist, left_dir, left_accel;
+    wire        left_bsil_valid;
+
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd800)) bsil_left (
+        .clk(clk), .rst_n(rst_n),
+        .adc_value(sensor_adc_left), .adc_valid(sensor_valid_left),
+        .baseline_in(sensor_bl_left),
+        .bt_distance(left_dist), .bt_direction(left_dir),
+        .bt_acceleration(left_accel), .out_valid(left_bsil_valid)
+    );
+
+    wire [15:0] right_dist, right_dir, right_accel;
+    wire        right_bsil_valid;
+
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd1200)) bsil_right (
+        .clk(clk), .rst_n(rst_n),
+        .adc_value(sensor_adc_right), .adc_valid(sensor_valid_right),
+        .baseline_in(sensor_bl_right),
+        .bt_distance(right_dist), .bt_direction(right_dir),
+        .bt_acceleration(right_accel), .out_valid(right_bsil_valid)
+    );
+
+    // ================================================================
+    // Damped Familiarity: coupling barrier on feedback path
+    // ================================================================
+    localparam [7:0] FAM_DEADZONE = 8'd15;
+
+    reg [7:0] damped_fam;
+    reg [7:0] prev_match_score;
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            damped_fam       <= 8'd0;
+            prev_match_score <= 8'd0;
+        end else begin
+            prev_match_score <= krimelack_score;
+            if (krimelack_score > prev_match_score + FAM_DEADZONE ||
+                prev_match_score > krimelack_score + FAM_DEADZONE) begin
+                damped_fam <= krimelack_score >> 2;
+            end
+        end
+    end
+
+    wire [7:0] active_familiarity = sw_fam_enable ? sw_familiarity : damped_fam;
+
+    // Speed bias: base forward tilt + target match amplifies forward
+    wire signed [15:0] target_speed_boost = {6'd0, target_match_score, 2'd0}; // score << 2
+    wire signed [15:0] speed_bias_with_target = -16'sd800 - target_speed_boost;
+
+    // ================================================================
+    // SPPU: 9-Strand Kinematic Loom Fabric (COMBINATIONAL — NO CLOCK)
+    // 9 afferent strands (72 trits) + 6 settling + 3 decision = 81 trits
+    // ================================================================
+    arcloom_sppu sppu_inst (
+        .in_front_dist(front_dist),
+        .in_front_dir(front_dir),
+        .in_front_accel(front_accel),
+        .in_left_dist(left_dist),
+        .in_left_dir(left_dir),
+        .in_left_accel(left_accel),
+        .in_right_dist(right_dist),
+        .in_right_dir(right_dir),
+        .in_right_accel(right_accel),
+        .familiarity(active_familiarity),
+        .ext_h_ctx(16'd0),
+        .ext_h_mmtm(16'd0),
+        .ext_h_steer(16'd0),
+        .ext_h_speed(speed_bias_with_target),
+        .ext_h_conf(16'd0),
+        .loom_state(loom_state),
+        .decision_steer(decision_steer),
+        .decision_speed(decision_speed),
+        .decision_conf(decision_conf),
+        .field_ctx_0(), .field_ctx_1(), .field_ctx_2(),
+        .field_mmtm_0(), .field_mmtm_1(), .field_mmtm_2(),
+        .field_dcsn_0(debug_steer_field), .field_dcsn_1(), .field_dcsn_2()
+    );
+
+    // ================================================================
+    // Krimelack: Structural Memory (CLOCKED)
+    // 81 trits × 2 bits = 162 bits width
+    // Gated by genuine L0-L4 uncertainty U* and SafeMode
+    // ================================================================
+    wire [161:0] recalled_motif;
+    wire [31:0]  resonance_from_l6 = {16'd0, omega, 8'd0};
+
+    arcloom_krimelack #(.TRIT_WIDTH(162), .DEPTH(32), .ADDR_BITS(5)) krimelack_inst (
+        .clk(clk), .rst_n(rst_n),
+        .commit_request(structural_lock),
+        .force_commit(sw_krim_commit),
+        .state_in(loom_state),
+        .u_star(dsf_U_star_w),
+        .resonance(resonance_from_l6),
+        .safe_mode(dsf_safe_mode_w),
+        .query(loom_state),
+        .best_match(recalled_motif),
+        .match_score(krimelack_score),
+        .recall_valid(krimelack_recall_valid),
+        .target_match_score(target_match_score),
+        .motif_count(krimelack_count),
+        .commit_accepted(krimelack_commit_accepted),
+        .commit_rejected(krimelack_commit_rejected)
+    );
+
+    // ================================================================
+    // L6: Topological Constraint Layer (COMBINATIONAL)
+    // 81 trits: knee at 81 / e ≈ 29.8 → KNEE=30
+    // ================================================================
+    arcloom_l6_tcl #(.N_TRITS(81), .KNEE(30)) l6_inst (
+        .loom_state(loom_state),
+        .disruption_active(1'b0),
+        .recovery_pending(1'b0),
+        .structural_lock(structural_lock),
+        .n_effective(n_effective),
+        .n_collapsed(),
+        .omega(omega)
+    );
+
+endmodule

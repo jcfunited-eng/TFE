@@ -1,0 +1,15 @@
+# Guala reconciliation: air-gap handoff — October 10, 2026
+
+Start with [the canonical reconciliation](GUALA_CANONICAL_RECONCILIATION.md), then [the complete hypothetical speech loop](guala_reconciliation/speech-complete-hypothetical-loop.md). The latter answers Joe's request with unresolved links explicitly assumed repaired; it is a proposed functional account, not a demonstrated utterance or approved new law.
+
+This is a documentation and evidence snapshot for the laptop. Reconciliation remains OPEN. The package contains specifications, designs, terminology, configuration, historical dispositions, mechanism classification, qualification requirements and 18 file-bound remediation groups. It does not certify learned speech, syntax, absence of ML/heuristics, present live health, or completion of the entire April-to-current historical reconciliation. Original time allowances in the plan are unvalidated; the 5–10-week delivery forecast was withdrawn.
+
+Joe's current directives and ratified architecture govern. The canonical package reconciles their meaning; [the shared ledger](../collaborative_todo.md) records execution status. A1 owns reconciliation and independent evidence analysis; G1 owns implementation and qualification. Historical copies are evidence, not operating instructions. Do not resurrect retired pupil controllers or substitute fresh state for acquired history.
+
+The GitHub documentation branch is `a1/reconciliation-2026-10-10` in `jcfunited-eng/TFE`. It is based on published commit `82d388c0c21b968ce2a4c1b79d9489dd30d7db2e`. Only documentation and explicitly cited historical/source evidence are added or updated. Product files inherited from that base are NOT a current qualified Guala release. Current working product changes and active organism checkpoints are not bundled or deployed by this publication.
+
+For offline reading, preserve the packet's directory structure: `docs/`, the cited `backups/runtime/` evidence, `AGENTS.md`, the shared ledger and the repository Guala skill. Relative links into the included evidence then retain their meaning. Repair orders also name current working source paths as implementation destinations; those names are not a claim that the inherited GitHub code equals the analyzed working tree. Frozen source copies carry their own hashes and remain the evidence authority for those claims.
+
+The [artifact manifest](guala_reconciliation/indexes/artifact-manifest.json) gives paths, sizes and SHA-256 hashes for the canonical package, excluding the manifest itself. Publication records independently bind the complete transfer packet. A downloaded GitHub snapshot can include older inherited repository files; the separate offline ZIP contains only the documentation/evidence packet. Neither is a runnable release image.
+
+No pretrained model, organism checkpoint, credential file, or full runtime backup directory is intentionally part of this documentation packet. Historical source may document prohibited mechanisms; retaining evidence does not authorize invoking it. Review status and actual implementation status remain distinct.

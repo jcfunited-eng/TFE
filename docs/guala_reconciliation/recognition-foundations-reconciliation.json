@@ -1,0 +1,817 @@
+{
+  "schema": "guala.documentary_slice_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T08:07:10.568606+00:00",
+  "scope": "Complete captured content of13 versions/seven paths:1418 latest-document lines plus14 older-only passages/82 lines. Exact original approvals, historical executions and current source/live correspondence remain unqualified. No product execution.",
+  "source_read_complete": true,
+  "implementation_closure": "not_complete",
+  "sources": [
+    {
+      "id": "RF01-01",
+      "path": "docs/GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md",
+      "git_blob": "0d586e0e61de047004c4fcd5ff641577b00e08ae",
+      "sha256": "8f0826a079e94d026420b7c2f03e39e65f0deb9e5f654bd4a083db7ce3e5e3bd",
+      "bytes": 10087,
+      "lines": 186,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/recognition-foundations/RF01-01--GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T06:56:38+00:00",
+          "commit": "d49cc0c22993f6ebae3009f7dee917ae0392a464",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-12T06:26:54+00:00",
+          "commit": "56f26c7f724fdd668b382b2e8ce5419c4a9863f4",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of13 versions/seven paths:1418 latest-document lines plus14 older-only passages/82 lines. Exact original approvals, historical executions and current source/live correspondence remain unqualified. No product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/recognition-foundations/RF01-01--GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "RF01-02",
+      "path": "docs/GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md",
+      "git_blob": "22dc5b405204d60cd8bd9b181b8d6dc1fd4a8f43",
+      "sha256": "de003d10b6bff9b1277c70e8be37d4c5b478cb99a9393ad682c8699cc380f591",
+      "bytes": 12933,
+      "lines": 243,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/recognition-foundations/RF01-02--GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T07:23:09+00:00",
+          "commit": "7785c6b8939b3a69dceeebf508269ef0c9b83ad4",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-12T06:56:38+00:00",
+          "commit": "d49cc0c22993f6ebae3009f7dee917ae0392a464",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of13 versions/seven paths:1418 latest-document lines plus14 older-only passages/82 lines. Exact original approvals, historical executions and current source/live correspondence remain unqualified. No product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/recognition-foundations/RF01-02--GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "RF01-03",
+      "path": "docs/GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md",
+      "git_blob": "36d685e89183abbbdbb30dcf8b3dc244239b023a",
+      "sha256": "cb30e1507bc4fc27410952387477577973e14c007069d4c078617e009438b5cc",
+      "bytes": 14774,
+      "lines": 273,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/recognition-foundations/RF01-03--GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T07:23:09+00:00",
+          "commit": "7785c6b8939b3a69dceeebf508269ef0c9b83ad4",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of13 versions/seven paths:1418 latest-document lines plus14 older-only passages/82 lines. Exact original approvals, historical executions and current source/live correspondence remain unqualified. No product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/recognition-foundations/RF01-03--GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "RF01-04",
+      "path": "docs/GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md",
+      "git_blob": "fde268e0ddf6238c363b882a96ea5a62d49c7a2f",
+      "sha256": "a267f79f4ad426da2628e78399d64a7e97bda09ef7ec605280506d9660793957",
+      "bytes": 8919,
+      "lines": 167,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/recognition-foundations/RF01-04--GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T06:26:54+00:00",
+          "commit": "56f26c7f724fdd668b382b2e8ce5419c4a9863f4",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-12T05:59:39+00:00",
+          "commit": "74888b559d734cbb24102fad4169a23d7aa2c0f5",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of13 versions/seven paths:1418 latest-document lines plus14 older-only passages/82 lines. Exact original approvals, historical executions and current source/live correspondence remain unqualified. No product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/recognition-foundations/RF01-04--GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "RF02-01",
+      "path": "docs/GUALA_C007_DISTRIBUTED_RECOGNITION_SPRINT_2026-08-12.md",
+      "git_blob": "0e42de889cfd807ffa26b9c6eb3707f5ef975586",
+      "sha256": "962587f308676173ea668bf576ab74db8a79f65fceb57c3fd0909ddf14421480",
+      "bytes": 7376,
+      "lines": 138,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/recognition-foundations/RF02-01--GUALA_C007_DISTRIBUTED_RECOGNITION_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T15:35:35+00:00",
+          "commit": "7b1e6540a28eb00337f43fc21ba3413e51c51bb2",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-12T15:13:25+00:00",
+          "commit": "0a4d71d8a8d8db8a9939388dcf1037e904fadf3f",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of13 versions/seven paths:1418 latest-document lines plus14 older-only passages/82 lines. Exact original approvals, historical executions and current source/live correspondence remain unqualified. No product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/recognition-foundations/RF02-01--GUALA_C007_DISTRIBUTED_RECOGNITION_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "RF02-02",
+      "path": "docs/GUALA_C007_DISTRIBUTED_RECOGNITION_SPRINT_2026-08-12.md",
+      "git_blob": "b13313f80274075e2dceb65843a1321fd4e3d4c3",
+      "sha256": "a85f70bcdb69b4cf63c00857c57ae6845404b94a24316ae35cd71fe90cc5bc0d",
+      "bytes": 7347,
+      "lines": 143,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/recognition-foundations/RF02-02--GUALA_C007_DISTRIBUTED_RECOGNITION_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T15:13:25+00:00",
+          "commit": "0a4d71d8a8d8db8a9939388dcf1037e904fadf3f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-12T14:47:13+00:00",
+          "commit": "1743ef7b07e0ed7153d3673c948b7bb885ae096e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of13 versions/seven paths:1418 latest-document lines plus14 older-only passages/82 lines. Exact original approvals, historical executions and current source/live correspondence remain unqualified. No product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/recognition-foundations/RF02-02--GUALA_C007_DISTRIBUTED_RECOGNITION_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "RF02-03",
+      "path": "docs/GUALA_C007_DISTRIBUTED_RECOGNITION_SPRINT_2026-08-12.md",
+      "git_blob": "b431e3ae3e11f705fdd023e9ff05a0fadc5db010",
+      "sha256": "9728a5dbb4b9ebc9fe150161eb4b36f714c2c984ba1e5b0c6ab66182f5d97463",
+      "bytes": 8388,
+      "lines": 158,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/recognition-foundations/RF02-03--GUALA_C007_DISTRIBUTED_RECOGNITION_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T15:35:35+00:00",
+          "commit": "7b1e6540a28eb00337f43fc21ba3413e51c51bb2",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of13 versions/seven paths:1418 latest-document lines plus14 older-only passages/82 lines. Exact original approvals, historical executions and current source/live correspondence remain unqualified. No product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/recognition-foundations/RF02-03--GUALA_C007_DISTRIBUTED_RECOGNITION_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "RF03-01",
+      "path": "docs/GUALA_C008_DISTRIBUTED_RECALL_SPRINT_2026-08-12.md",
+      "git_blob": "693435f1fa7ffec3591c06d6beaca8057cb01d47",
+      "sha256": "329e64bbc1cf3192771e2cd5c354c9a722be79e8bf9fa37eb1975754a94917a0",
+      "bytes": 15589,
+      "lines": 237,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/recognition-foundations/RF03-01--GUALA_C008_DISTRIBUTED_RECALL_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T17:01:58+00:00",
+          "commit": "4cfeea258b562b108802778a2b46d1284424055d",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-08-12T16:38:32+00:00",
+          "commit": "a893cd226fdc1f00d7be6467bff188f4c480b877",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of13 versions/seven paths:1418 latest-document lines plus14 older-only passages/82 lines. Exact original approvals, historical executions and current source/live correspondence remain unqualified. No product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/recognition-foundations/RF03-01--GUALA_C008_DISTRIBUTED_RECALL_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "RF03-02",
+      "path": "docs/GUALA_C008_DISTRIBUTED_RECALL_SPRINT_2026-08-12.md",
+      "git_blob": "af2c14d088f49cd61942e1fb16dd8019d5fafb6c",
+      "sha256": "17603d8637e01fa44915952e6491a8073e7cf26dcc2e1525317142a6b4175578",
+      "bytes": 17192,
+      "lines": 265,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/recognition-foundations/RF03-02--GUALA_C008_DISTRIBUTED_RECALL_SPRINT_2026-08-12.md",
+      "observations": [
+        {
+          "author_time": "2026-08-12T17:01:58+00:00",
+          "commit": "4cfeea258b562b108802778a2b46d1284424055d",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of13 versions/seven paths:1418 latest-document lines plus14 older-only passages/82 lines. Exact original approvals, historical executions and current source/live correspondence remain unqualified. No product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/recognition-foundations/RF03-02--GUALA_C008_DISTRIBUTED_RECALL_SPRINT_2026-08-12.md"
+    },
+    {
+      "id": "RF04-01",
+      "path": "docs/GUALA_D3_DISTRIBUTED_REASSEMBLY_LAW_2026-08-03.md",
+      "git_blob": "7f630a484418083e8913928f5df677e17d514753",
+      "sha256": "28b7e00fa5657a5d0bc2ed9cf91f2bedfba3a01e9900be42c6e804fa380f884d",
+      "bytes": 12268,
+      "lines": 210,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/recognition-foundations/RF04-01--GUALA_D3_DISTRIBUTED_REASSEMBLY_LAW_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of13 versions/seven paths:1418 latest-document lines plus14 older-only passages/82 lines. Exact original approvals, historical executions and current source/live correspondence remain unqualified. No product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/recognition-foundations/RF04-01--GUALA_D3_DISTRIBUTED_REASSEMBLY_LAW_2026-08-03.md"
+    },
+    {
+      "id": "RF05-01",
+      "path": "docs/GUALA_D3_NATIVE_COGNITIVE_SETTLEMENT_LAW_2026-08-03.md",
+      "git_blob": "1b1298535a8f48e0c511e8fc9348795c6a388869",
+      "sha256": "d52e78260137e96e8827ca0a621f6d5b7e677c3512eb3e3569557985a4fd8cb7",
+      "bytes": 4509,
+      "lines": 94,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/recognition-foundations/RF05-01--GUALA_D3_NATIVE_COGNITIVE_SETTLEMENT_LAW_2026-08-03.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of13 versions/seven paths:1418 latest-document lines plus14 older-only passages/82 lines. Exact original approvals, historical executions and current source/live correspondence remain unqualified. No product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/recognition-foundations/RF05-01--GUALA_D3_NATIVE_COGNITIVE_SETTLEMENT_LAW_2026-08-03.md"
+    },
+    {
+      "id": "RF06-01",
+      "path": "docs/GUALA_D3_COMPLETE_DELIVERY_CONTRACT_2026-08-04.md",
+      "git_blob": "3a3f1ed8b709171159c5801a57b7cadf11dd013e",
+      "sha256": "213dda82ed5c3c62780e8504fd2170c8c3605b8d7d3237d182e4c04be83601ce",
+      "bytes": 12320,
+      "lines": 260,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/recognition-foundations/RF06-01--GUALA_D3_COMPLETE_DELIVERY_CONTRACT_2026-08-04.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of13 versions/seven paths:1418 latest-document lines plus14 older-only passages/82 lines. Exact original approvals, historical executions and current source/live correspondence remain unqualified. No product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/recognition-foundations/RF06-01--GUALA_D3_COMPLETE_DELIVERY_CONTRACT_2026-08-04.md"
+    },
+    {
+      "id": "RF07-01",
+      "path": "docs/GUALA_D3_CURRENT_ARCHITECTURE_CORRECTION_2026-08-04.md",
+      "git_blob": "0dce6a55389960db681a0d729b0c0d92c87678fb",
+      "sha256": "8832bf43b49e00cf882b6d50bc1429dbe56517aa331bdb8788a2012ad886af62",
+      "bytes": 8136,
+      "lines": 158,
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/recognition-foundations/RF07-01--GUALA_D3_CURRENT_ARCHITECTURE_CORRECTION_2026-08-04.md",
+      "observations": [
+        {
+          "author_time": "2026-08-05T04:09:05+00:00",
+          "commit": "84b8f27fc18dfecfb9aa131df13e1f9584817951",
+          "side": "new"
+        },
+        {
+          "author_time": "2026-08-05T03:52:30+00:00",
+          "commit": "d2bdad5b08f3d0a0204eaffa433221d534beaf7e",
+          "side": "new"
+        }
+      ],
+      "review": "Complete captured content of13 versions/seven paths:1418 latest-document lines plus14 older-only passages/82 lines. Exact original approvals, historical executions and current source/live correspondence remain unqualified. No product execution.",
+      "canonical_copy": "docs/guala_reconciliation/sources/recognition-foundations/RF07-01--GUALA_D3_CURRENT_ARCHITECTURE_CORRECTION_2026-08-04.md"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "RFR01",
+      "name": "Post-quiescence evidence replaced premature per-occurrence fractal emission",
+      "classification": "documented_producer_repair_with_exact_definition_scope",
+      "historical_requirement_or_mechanism": "C002 finds both admitted-occurrence and cross-cohort emitters reported retained-coordinate deltas before the required post-experience quiescence. The candidate removes both bypasses and emits once after an acquired retained change followed by an exact interval with no further retained-coordinate change. It rejects requiring all membrane/fluid/metabolic activity to cease; quiescence applies to the measured persistent coordinates.",
+      "current_disposition": "This is a substantive producer correction, not just exposing more fields. One-interval retained-coordinate quiescence is a declared operational law, not proof that every later state is unchanged or every persistent difference is memory. Historical counts before correction cannot be inherited as genuine learned fractals.",
+      "lawful_remedy": "Preserve one ratified closure rule across every source and internal-contact route. Recover its exact authority and prove emitted deltas reference actual pre/post retained state, while continuous local physiology remains active and transients are excluded.",
+      "unit_acceptance": "Reject premature, duplicate and transient-coordinate emission; distinguish retained quiescence from total cellular inactivity.",
+      "module_acceptance": "Trace all pending/retained experiences and emitted vectors through actual producers, codecs and observations.",
+      "system_acceptance": "Demonstrate later authentic experience can settle and retain new physical effects without erasing prior formations.",
+      "release_acceptance": "Bind current definition and exact source/state to live evidence; old aggregate counts cannot certify learning.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A09",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "RF01-03",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF01-03--GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md",
+          "line": 83,
+          "anchor": "- Removed the admitted-occurrence exit emitter.",
+          "sha256": "cb30e1507bc4fc27410952387477577973e14c007069d4c078617e009438b5cc"
+        },
+        {
+          "source_id": "RF01-03",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF01-03--GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md",
+          "line": 86,
+          "anchor": "  coordinate change and then completes one exact causal interval with no",
+          "sha256": "cb30e1507bc4fc27410952387477577973e14c007069d4c078617e009438b5cc"
+        },
+        {
+          "source_id": "RF01-03",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF01-03--GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md",
+          "line": 98,
+          "anchor": "Here “post-quiescence” means quiescence of the persistent coordinates being",
+          "sha256": "cb30e1507bc4fc27410952387477577973e14c007069d4c078617e009438b5cc"
+        }
+      ]
+    },
+    {
+      "id": "RFR02",
+      "name": "Recurrent acquisition was blocked by existing retained experience",
+      "classification": "documented_lifecycle_defect_and_preserving_correction",
+      "historical_requirement_or_mechanism": "Task987 exposed per-neuron evidence but a new Q-card produced zero fractals. C002 identifies that retained_experience prevented opening new pending_experience. The correction uses existing independent carriers for a new bounded pending experience, emits later settled deltas and discards only completed pending evidence while keeping the prior retained formation identical.",
+      "current_disposition": "A first-use or newborn success cannot qualify learning throughout the organism lifetime. A valid lifecycle correction does not prove Q or Z was learned as a word, or that later V27 retirement preserved the same pending/retained custody.",
+      "lawful_remedy": "Preserve previous physical learning while allowing genuinely new experience under the same law. Trace pristine, experienced, pending-plus-retained and restored branches through every later migration; no reset or new organism may supply the positive result.",
+      "unit_acceptance": "Verify experienced neurons accept later lawful experience and preserve prior formation exactly.",
+      "module_acceptance": "Exercise canonical pending/retained coexistence, closure and cold restore with actual native boundaries.",
+      "system_acceptance": "Demonstrate successive acquired experiences retain distinct causal effects after restart.",
+      "release_acceptance": "Qualify on preserved mature state and report any sanctioned loss explicitly.",
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A09",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "RF01-03",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF01-03--GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md",
+          "line": 183,
+          "anchor": "excluded from opening a new pending physical experience, so its neurons cannot",
+          "sha256": "cb30e1507bc4fc27410952387477577973e14c007069d4c078617e009438b5cc"
+        },
+        {
+          "source_id": "RF01-03",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF01-03--GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md",
+          "line": 200,
+          "anchor": "not overwrite the prior retained formation, add a schema, or change mosaic",
+          "sha256": "cb30e1507bc4fc27410952387477577973e14c007069d4c078617e009438b5cc"
+        }
+      ]
+    },
+    {
+      "id": "RFR03",
+      "name": "Receptor residue entered the retained projection after a failed positive",
+      "classification": "material_definition_revision_needing_authority_and_functional_proof",
+      "historical_requirement_or_mechanism": "The older C002 version explicitly excludes receptor-residue alongside transient coordinates. After Z moves218 neurons but yields no fractal, the final candidate adds the existing receptor-quantum accumulator as receptor-quantum-residue, retaining wire tag24 and citing the definitive model’s allowance for retained receptor material. Task988 then reports216 neuronal records containing215 residue entries and46 winding entries, and expressly disclaims word learning.",
+      "current_disposition": "Persistent fractional transduction state can be a legitimate physical coordinate; including it is not automatically a cheat. But persistence, exact arithmetic and unchanged wire tag do not establish a lasting learning mechanism. The full authority and acquired-state effect must be established before treating these new positive counts as evidence of cognition or memory depth.",
+      "lawful_remedy": "Reconcile the old exclusion and new retained-coordinate law against original ratification and actual state lifetime/readers. Classify physical residue, experience custody and causal learned adaptation separately. Require a later behavioral differential caused by retained experience, not a broader measured projection alone.",
+      "unit_acceptance": "Verify actual residue lifetime, quiescence, exact state delta and absence of duplicate/transient credit.",
+      "module_acceptance": "Trace every writer/reader and schema interpretation across old/new retained-coordinate projection.",
+      "system_acceptance": "Show what later physical response changes because of acquisition, with no-experience/unrelated controls.",
+      "release_acceptance": "Keep the historical216 count scoped to physical evidence; no word, recognition or speech certificate from projection expansion.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A04",
+        "A06",
+        "A09",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "RF01-01",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF01-01--GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md",
+          "line": 109,
+          "anchor": "- Transient membrane, carrier, receptor-residue, dissipation, fuel, spent,",
+          "sha256": "8f0826a079e94d026420b7c2f03e39e65f0deb9e5f654bd4a083db7ce3e5e3bd"
+        },
+        {
+          "source_id": "RF01-03",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF01-03--GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md",
+          "line": 217,
+          "anchor": "the retained-coordinate projection. It excluded the neuron's persistent",
+          "sha256": "cb30e1507bc4fc27410952387477577973e14c007069d4c078617e009438b5cc"
+        },
+        {
+          "source_id": "RF01-03",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF01-03--GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md",
+          "line": 221,
+          "anchor": "`receptor-quantum-residue`; its existing wire tag remains 24, so no body or",
+          "sha256": "cb30e1507bc4fc27410952387477577973e14c007069d4c078617e009438b5cc"
+        },
+        {
+          "source_id": "RF01-03",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF01-03--GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md",
+          "line": 259,
+          "anchor": "evidence, not a claim that the word \"Z\" was learned.",
+          "sha256": "cb30e1507bc4fc27410952387477577973e14c007069d4c078617e009438b5cc"
+        }
+      ]
+    },
+    {
+      "id": "RFR04",
+      "name": "Recognition rehearsal initially observed the wrong successor and prompted wrong frontier repairs",
+      "classification": "documented_test_boundary_error_with_rejected_architecture_changes",
+      "historical_requirement_or_mechanism": "C007 initially uses a vestibular-only copy missing layer7 and proposes carrying layer6 activity. Carrying every layer6 lineage changes first-use receptor state and manufactures motor development; conditioning it on already reaching layer9 is later rejected as circular. The final correction instead preserves the actual whole-sensorium successor, where the existing physics already reaches the required populations; neither failed frontier change remains.",
+      "current_disposition": "A test-input/successor error can falsely implicate physics. However, broad whole-sensorium input and a narrow vestibular cue are different acceptance scenarios; solving one does not solve the other. The former is C007’s reported recognition proof and the latter remains C008’s recall target.",
+      "lawful_remedy": "Preserve the actual declared input and successor before diagnosing a mechanism. Reject outcome-driven frontier carry and test whether the present law genuinely supports each required function. Recover exact scope decisions without treating the broadened input as automatic equivalence.",
+      "unit_acceptance": "Falsify substituted successor, wrong cue breadth and circular reach prerequisites.",
+      "module_acceptance": "Bind authentic input/state to exact source propagation and participant evidence.",
+      "system_acceptance": "Test recognition and partial-cue recall separately with corresponding controls.",
+      "release_acceptance": "No new physics or closure from observing a convenient alternate specimen; preserve failed hypotheses and scope.",
+      "repair_actions": [
+        "A01",
+        "A02",
+        "A04",
+        "A06",
+        "A09",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "RF02-02",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF02-02--GUALA_C007_DISTRIBUTED_RECOGNITION_SPRINT_2026-08-12.md",
+          "line": 133,
+          "anchor": "first-use sensation then changed exact receptor state unexpectedly and could",
+          "sha256": "a85f70bcdb69b4cf63c00857c57ae6845404b94a24316ae35cd71fe90cc5bc0d"
+        },
+        {
+          "source_id": "RF02-03",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF02-03--GUALA_C007_DISTRIBUTED_RECOGNITION_SPRINT_2026-08-12.md",
+          "line": 31,
+          "anchor": "   rehearsal instead discarded the whole-sensorium successor and examined a",
+          "sha256": "9728a5dbb4b9ebc9fe150161eb4b36f714c2c984ba1e5b0c6ab66182f5d97463"
+        },
+        {
+          "source_id": "RF02-03",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF02-03--GUALA_C007_DISTRIBUTED_RECOGNITION_SPRINT_2026-08-12.md",
+          "line": 128,
+          "anchor": "  9 was also rejected: it made the desired association reach a prerequisite",
+          "sha256": "9728a5dbb4b9ebc9fe150161eb4b36f714c2c984ba1e5b0c6ab66182f5d97463"
+        },
+        {
+          "source_id": "RF02-03",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF02-03--GUALA_C007_DISTRIBUTED_RECOGNITION_SPRINT_2026-08-12.md",
+          "line": 134,
+          "anchor": "- No native-frontier change from either falsified hypothesis remains in the",
+          "sha256": "9728a5dbb4b9ebc9fe150161eb4b36f714c2c984ba1e5b0c6ab66182f5d97463"
+        }
+      ]
+    },
+    {
+      "id": "RFR05",
+      "name": "Signed physical receiver corrected a bounded recall loop",
+      "classification": "documented_native_progress_with_codec_identity_failure_history",
+      "historical_requirement_or_mechanism": "C008 reports the exact cue/return alternating17 neurons/25 bonds and43 neurons/76 bonds, repeatedly reassembling27 members but never reaching association or ordering. It carries only the actual receiver of nonzero signed whole-carrier transfer to the next interval; resting charge, changed endpoints and sender-only activity do not seed it. Early code confused compact coordinate indices with stable lineage endpoints, and a V19 validator still admitted only layer9 recipients; both required boundary corrections.",
+      "current_disposition": "This is a historical native propagation defect and reported correction, not evidence that today’s turning loop has the same cause. Correct receiving direction is necessary for this law, but later gate changes and boundary schemas require exact correspondence. Broad reconstruction is not sparse attention.",
+      "lawful_remedy": "Preserve actual signed transfer and stable physical identity as frontier authority, trace every admission/restore validator and later law change, and inspect current measured loop causation independently. Do not substitute both-endpoint flooding or a named-layer continuation quota.",
+      "unit_acceptance": "Check positive/negative/zero transfer, coordinate-versus-lineage identity and no resting-charge reseeding.",
+      "module_acceptance": "Verify recipient authority and codec domain across current native sparse settlement.",
+      "system_acceptance": "Show proper-cue reconstruction escapes the documented local cycle and changes appropriate retained current activity.",
+      "release_acceptance": "Bind any current loop diagnosis to current telemetry/source/state, not this older symptom.",
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A08",
+        "A09",
+        "A14",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "RF03-02",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF03-02--GUALA_C008_DISTRIBUTED_RECALL_SPRINT_2026-08-12.md",
+          "line": 187,
+          "anchor": "  six intervals reproduced the same two-step loop rather than continuing the",
+          "sha256": "17603d8637e01fa44915952e6491a8073e7cf26dcc2e1525317142a6b4175578"
+        },
+        {
+          "source_id": "RF03-02",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF03-02--GUALA_C008_DISTRIBUTED_RECALL_SPRINT_2026-08-12.md",
+          "line": 198,
+          "anchor": "  anatomy and treated its coordinate indices as neuron lineages. That boundary",
+          "sha256": "17603d8637e01fa44915952e6491a8073e7cf26dcc2e1525317142a6b4175578"
+        },
+        {
+          "source_id": "RF03-02",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF03-02--GUALA_C008_DISTRIBUTED_RECALL_SPRINT_2026-08-12.md",
+          "line": 194,
+          "anchor": "  the V19 lineage validator still admitted only the predecessor's layer-9",
+          "sha256": "17603d8637e01fa44915952e6491a8073e7cf26dcc2e1525317142a6b4175578"
+        },
+        {
+          "source_id": "RF03-02",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF03-02--GUALA_C008_DISTRIBUTED_RECALL_SPRINT_2026-08-12.md",
+          "line": 77,
+          "anchor": "   reaches left; zero whole-carrier transfer reaches neither next neuron.",
+          "sha256": "17603d8637e01fa44915952e6491a8073e7cf26dcc2e1525317142a6b4175578"
+        }
+      ]
+    },
+    {
+      "id": "RFR06",
+      "name": "Production-copy recognition and recall are narrower than ordinary-live useful memory",
+      "classification": "execution_scope_and_learning_specificity_gap",
+      "historical_requirement_or_mechanism": "C007 reports217 of224 reached neurons in the whole-sensorium active component; C008’s one-member cue later reassembles27 members and reaches212 neurons/747 bonds in its final proof. Both final decisive suffixes execute on disposable production-body copies and explicitly leave CURRENT unchanged. Participation, cold persistence and absence of original full visual input are reported; broad attention is explicitly not claimed.",
+      "current_disposition": "These are useful deployed-code/current-body test reports, not direct observations of that suffix in ordinary serving life. Layer population and component membership alone do not establish discrimination, learned meaning or a reconstructed contextual story. The cited summary lacks a demonstrated learned-versus-control outcome for those broader functions.",
+      "lawful_remedy": "Keep the valid reconstruction evidence and accurately label its execution. Recover actual acquired-state differences and prove cue-specific later use of sensory/body/context relations on the preserved current candidate, with unrelated/no-acquisition/disconnection controls and exact live scope.",
+      "unit_acceptance": "Distinguish cue specificity and retained cause from generic wide activation or layer-count matching.",
+      "module_acceptance": "Verify authentic copy provenance and exact successor while separately identifying primary-state execution.",
+      "system_acceptance": "Demonstrate contextually appropriate learned reconstruction and subsequent action/expression after cold restore.",
+      "release_acceptance": "Do not equate a passed production-copy probe or closed label with ordinary-live memory or speech.",
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A06",
+        "A09",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "RF02-03",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF02-03--GUALA_C007_DISTRIBUTED_RECOGNITION_SPRINT_2026-08-12.md",
+          "line": 101,
+          "anchor": "The production `CURRENT` pointer was not changed by this proof. The subprocess",
+          "sha256": "9728a5dbb4b9ebc9fe150161eb4b36f714c2c984ba1e5b0c6ab66182f5d97463"
+        },
+        {
+          "source_id": "RF02-03",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF02-03--GUALA_C007_DISTRIBUTED_RECOGNITION_SPRINT_2026-08-12.md",
+          "line": 117,
+          "anchor": "C-007 is closed in production. The component used 217 of 224 reached neurons.",
+          "sha256": "9728a5dbb4b9ebc9fe150161eb4b36f714c2c984ba1e5b0c6ab66182f5d97463"
+        },
+        {
+          "source_id": "RF03-02",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF03-02--GUALA_C008_DISTRIBUTED_RECALL_SPRINT_2026-08-12.md",
+          "line": 230,
+          "anchor": "post-cutover discarded-state proof from the exact live body shows a proper",
+          "sha256": "17603d8637e01fa44915952e6491a8073e7cf26dcc2e1525317142a6b4175578"
+        },
+        {
+          "source_id": "RF03-02",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF03-02--GUALA_C008_DISTRIBUTED_RECALL_SPRINT_2026-08-12.md",
+          "line": 260,
+          "anchor": "  and cold-restored byte-exact. Production `CURRENT` was read-only throughout.",
+          "sha256": "17603d8637e01fa44915952e6491a8073e7cf26dcc2e1525317142a6b4175578"
+        }
+      ]
+    },
+    {
+      "id": "RFR07",
+      "name": "Early formation law mandated addressed ordered objects later explicitly rejected",
+      "classification": "substantive_architecture_replacement_needing_authority_and_mapping",
+      "historical_requirement_or_mechanism": "Aug3 distributed reassembly law requires ordered_member_receipts for tapestries and typed addressed Formation/Relation/Recurrence/PartialCue/Durability/Consequence bodies. Its native settlement uses GLCOG001/GLOORG03 manifests and whole-graph cold re-admission, explicitly unmounted. Later C005/C011/C012 reject ordered-member arrays, hierarchy objects and episode archives, using physical retained state and transient paths instead.",
+      "current_disposition": "These are conflicting implementation designs despite shared cognitive vocabulary. The early document says no decoder exists for the prior body omitting ordered members; that does not alone establish production data loss because the candidate is explicitly isolated. Neither design becomes current simply by being called canonical.",
+      "lawful_remedy": "Recover exact replacement authority and source/state boundary; retire incompatible requirements rather than maintaining two competing cognitive owners. Preserve functional ordering/context and any legitimate learned state through the actual later mechanism. Do not resurrect addressed answer retrieval or invent a migration where no deployed state existed.",
+      "unit_acceptance": "Classify each stored reference as custody, navigation, physical state or decision authority.",
+      "module_acceptance": "Map old isolated types/manifests and actual deployed successors with precise migration applicability.",
+      "system_acceptance": "Show authentic retained temporal/context relations reassemble and affect later behavior without scripted sequences.",
+      "release_acceptance": "One current design and its exact approved history must replace mutually inconsistent canonical instructions.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A05",
+        "A09",
+        "A10",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "RF04-01",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF04-01--GUALA_D3_DISTRIBUTED_REASSEMBLY_LAW_2026-08-03.md",
+          "line": 127,
+          "anchor": "all descendants. It also retains `ordered_member_receipts` as a separate exact",
+          "sha256": "28b7e00fa5657a5d0bc2ed9cf91f2bedfba3a01e9900be42c6e804fa380f884d"
+        },
+        {
+          "source_id": "RF04-01",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF04-01--GUALA_D3_DISTRIBUTED_REASSEMBLY_LAW_2026-08-03.md",
+          "line": 187,
+          "anchor": "body uses its own canonical type tag; there is no decoder for the earlier body",
+          "sha256": "28b7e00fa5657a5d0bc2ed9cf91f2bedfba3a01e9900be42c6e804fa380f884d"
+        },
+        {
+          "source_id": "RF05-01",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF05-01--GUALA_D3_NATIVE_COGNITIVE_SETTLEMENT_LAW_2026-08-03.md",
+          "line": 65,
+          "anchor": "`GLCOG001` contains sorted content addresses for admitted formations,",
+          "sha256": "d52e78260137e96e8827ca0a621f6d5b7e677c3512eb3e3569557985a4fd8cb7"
+        },
+        {
+          "source_id": "RF05-01",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF05-01--GUALA_D3_NATIVE_COGNITIVE_SETTLEMENT_LAW_2026-08-03.md",
+          "line": 6,
+          "anchor": "checked; not yet called by the production organism runtime.",
+          "sha256": "d52e78260137e96e8827ca0a621f6d5b7e677c3512eb3e3569557985a4fd8cb7"
+        }
+      ]
+    },
+    {
+      "id": "RFR08",
+      "name": "Exact retention of normalized input did not repair missing physical transduction",
+      "classification": "historical_boundary_honesty_to_preserve",
+      "historical_requirement_or_mechanism": "Aug4 architecture correction retains exact rationals of finite binary64 normalized inputs plus reported phase/relevance in GLJSRC01. It explicitly says physical magnitude and calibrated receptor phase are still absent and no biological transduction claim is mounted. Its worktree resident path is locally tested, while production remains D2; complete joint field borrowing is distinguished from receipts or sign-compressed pseudo-fractals.",
+      "current_disposition": "An exact rational representation of already-normalized data cannot recover discarded original magnitude or calibration. Local candidate routing and code presence are not live speech/sensing. The dated current-state heading must not override later evidence or imply the gap persists today without source tracing.",
+      "lawful_remedy": "Preserve exact source identity and full explicit DSF, trace physical units/calibration before and after each transducer and preserve declared losses. Verify the actual current physical sensory path rather than treating exact serialization or field presence as complete embodiment.",
+      "unit_acceptance": "Reject source magnitude/phase relabeling and sign/hash substitution for full fields.",
+      "module_acceptance": "Trace original input units through receptor physics, full joint delivery and persistent neuron transition.",
+      "system_acceptance": "Demonstrate real sensed cause and learned bodily consequence on the preserved current architecture.",
+      "release_acceptance": "Bind source calibration and current execution; historical exact-rational custody is insufficient for certification.",
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A04",
+        "A06",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "RF07-01",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF07-01--GUALA_D3_CURRENT_ARCHITECTURE_CORRECTION_2026-08-04.md",
+          "line": 37,
+          "anchor": "7. **Declared loss:** physical source magnitude and calibrated receptor phase",
+          "sha256": "8832bf43b49e00cf882b6d50bc1429dbe56517aa331bdb8788a2012ad886af62"
+        },
+        {
+          "source_id": "RF07-01",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF07-01--GUALA_D3_CURRENT_ARCHITECTURE_CORRECTION_2026-08-04.md",
+          "line": 62,
+          "anchor": "finite binary64 normalized source plus its reported phase and relevance",
+          "sha256": "8832bf43b49e00cf882b6d50bc1429dbe56517aa331bdb8788a2012ad886af62"
+        },
+        {
+          "source_id": "RF06-01",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF06-01--GUALA_D3_COMPLETE_DELIVERY_CONTRACT_2026-08-04.md",
+          "line": 28,
+          "anchor": "7. **Forbidden loss:** rational magnitude, numerator/denominator, field family,",
+          "sha256": "213dda82ed5c3c62780e8504fd2170c8c3605b8d7d3237d182e4c04be83601ce"
+        }
+      ]
+    },
+    {
+      "id": "RFR09",
+      "name": "Conserved or deterministic invented laws were explicitly rejected",
+      "classification": "documented_anti_shortcut_precedent_not_current_activation",
+      "historical_requirement_or_mechanism": "Aug4 correction records a three-basin candidate mapping one D1 trit→one phase advance, three advances→one winding, one winding→one ion/energy event. It passed boundedness/conservation tests but the relations were unproved and conflicted with the accepted membrane equation; both source and apparent design authorities were deleted. A later600nm linear hair-cell activation law was rejected for missing anatomical derivation.",
+      "current_disposition": "Passing conservation, determinism and boundedness does not establish the right constitutive physics. Conversely a current ratified functional emulation is not prohibited merely for sharing a mathematical function name. This slice does not prove these deleted candidates execute now or that a particular later parameter is wrong.",
+      "lawful_remedy": "Preserve these exact rejected-mechanism records in source/skill checks and classify every replacement by its actual law, units, authority and causal evidence. No invented trit-to-ion bridge, selected activation threshold or simplistic probability-to-channel conversion may return as a fix.",
+      "unit_acceptance": "Falsify unratified direct mappings and verify exact full-field/physical constraints independently.",
+      "module_acceptance": "Trace all active transition laws and parameters to approved constitutive definitions.",
+      "system_acceptance": "Demonstrate sensory-to-retained-to-action function without a shortcut or substituted answer.",
+      "release_acceptance": "No architecture or speech claim from green tests of a physically unsupported law.",
+      "repair_actions": [
+        "A01",
+        "A04",
+        "A06",
+        "A10",
+        "A15",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "RF07-01",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF07-01--GUALA_D3_CURRENT_ARCHITECTURE_CORRECTION_2026-08-04.md",
+          "line": 80,
+          "anchor": "one D1 trit -> one phase-basin advance",
+          "sha256": "8832bf43b49e00cf882b6d50bc1429dbe56517aa331bdb8788a2012ad886af62"
+        },
+        {
+          "source_id": "RF07-01",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF07-01--GUALA_D3_CURRENT_ARCHITECTURE_CORRECTION_2026-08-04.md",
+          "line": 90,
+          "anchor": "A later hair-cell candidate was also retired because it selected a 600 nm",
+          "sha256": "8832bf43b49e00cf882b6d50bc1429dbe56517aa331bdb8788a2012ad886af62"
+        },
+        {
+          "source_id": "RF07-01",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF07-01--GUALA_D3_CURRENT_ARCHITECTURE_CORRECTION_2026-08-04.md",
+          "line": 92,
+          "anchor": "derivation. Population open-probability curves do not determine the successor",
+          "sha256": "8832bf43b49e00cf882b6d50bc1429dbe56517aa331bdb8788a2012ad886af62"
+        }
+      ]
+    },
+    {
+      "id": "RFR10",
+      "name": "Full delivery contract requires functional integration, not the narrowed spine",
+      "classification": "canonical_scope_and_terminology_reconciliation",
+      "historical_requirement_or_mechanism": "The Aug4 complete contract requires full neuron/DSF/ternary/physical chain, actual internal/external senses, retained recursive relations, conditional distributed memory functions, ten-dimensional capital, needs/curiosity, autonomous action/consequence, sleep, truthful UI and learned speech. Its36-card A–Z/1–10 curriculum excludes zero and distinguishes taught exposure from mastery. It explicitly says a five-day target cannot redefine completion.",
+      "current_disposition": "Later broader curriculum may legitimately add zero; the historical36 count is not today’s immutable asset inventory. Region participation is conditional on the claimed function, not an all-regions cognitive quota. No schedule, sparse-path precursor, release health or subset of closed tasks meets the full charter by itself.",
+      "lawful_remedy": "Reconcile each complete requirement into current specs, actual mechanisms and ordered proof while preserving legitimate functional emulation. Keep external tutor acts outside pupil authority and distinguish every unavailable function. Do not revive absent mechanisms from old docs or use atom-level reconstruction as a prerequisite.",
+      "unit_acceptance": "Classify exact requested function, mounted capacity, real participation and earned retained effect separately.",
+      "module_acceptance": "Bind actual senses/body/learning/ordering/output and read-only UI to one continuing organism.",
+      "system_acceptance": "Complete the preserved-state charter path including ordinary unprompted action and learned expression after tutoring stops.",
+      "release_acceptance": "Exact candidate deployment/live/browser/resource evidence is required; time targets and narrower spine results cannot close full delivery.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A06",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A13",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "RF06-01",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF06-01--GUALA_D3_COMPLETE_DELIVERY_CONTRACT_2026-08-04.md",
+          "line": 5,
+          "anchor": "Status: binding delivery scope. Nothing in this document is a completion",
+          "sha256": "213dda82ed5c3c62780e8504fd2170c8c3605b8d7d3237d182e4c04be83601ce"
+        },
+        {
+          "source_id": "RF06-01",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF06-01--GUALA_D3_COMPLETE_DELIVERY_CONTRACT_2026-08-04.md",
+          "line": 151,
+          "anchor": "The approved deck contains 36 teaching surfaces: A-Z and 1-10. Zero is absent",
+          "sha256": "213dda82ed5c3c62780e8504fd2170c8c3605b8d7d3237d182e4c04be83601ce"
+        },
+        {
+          "source_id": "RF06-01",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF06-01--GUALA_D3_COMPLETE_DELIVERY_CONTRACT_2026-08-04.md",
+          "line": 242,
+          "anchor": "five-focused-engineering-day delivery window. That correction distinguishes",
+          "sha256": "213dda82ed5c3c62780e8504fd2170c8c3605b8d7d3237d182e4c04be83601ce"
+        },
+        {
+          "source_id": "RF04-01",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF04-01--GUALA_D3_DISTRIBUTED_REASSEMBLY_LAW_2026-08-03.md",
+          "line": 71,
+          "anchor": "  not required for every recognition or thought.",
+          "sha256": "28b7e00fa5657a5d0bc2ed9cf91f2bedfba3a01e9900be42c6e804fa380f884d"
+        }
+      ]
+    },
+    {
+      "id": "RFR11",
+      "name": "Test retirement and complete source-document reading do not qualify the surviving system",
+      "classification": "historical_test_debt_and_evidence_limit",
+      "historical_requirement_or_mechanism": "Aug4 correction reports103 tracked tests retired with deleted chatbot/owner code, but also one surviving reduced auditory owner chain, nine current physics/native regressions and eight UI/live defects. C002 records17 stale mock failures outside its narrow suite. All1418 latest lines and14 older-only passages/82 lines across13 versions/seven paths are now read, including residue exclusion→inclusion and rejected layer6 rules.",
+      "current_disposition": "Retiring tests of a retired architecture can be legitimate; it does not dispose of failures in surviving mechanisms. Historical counts require exact source/execution context and cannot be combined into a current total. No product code/tests, native imports or current live refresh ran in this documentary slice.",
+      "lawful_remedy": "Trace each failing or retired obligation to the exact required function, current mechanism and independent acceptance. Preserve failures and their resolution/supersession evidence; recover original approvals and source/state lineage before qualification. Continue the full reconciliation without treating this content review as a certificate.",
+      "unit_acceptance": "Validate hashes/anchors/supersession and classify each retired versus unresolved test obligation.",
+      "module_acceptance": "Map surviving product interfaces and actual compiled tests rather than reproducing stale mocks.",
+      "system_acceptance": "Prove current full functions on preserved state with meaningful controls and visible failures.",
+      "release_acceptance": "Overall reconciliation stays OPEN until remaining history/source/authority and exact-release acceptance close.",
+      "repair_actions": [
+        "A01",
+        "A03",
+        "A16",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "RF07-01",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF07-01--GUALA_D3_CURRENT_ARCHITECTURE_CORRECTION_2026-08-04.md",
+          "line": 134,
+          "anchor": "One hundred three tracked Python tests that could not collect without the",
+          "sha256": "8832bf43b49e00cf882b6d50bc1429dbe56517aa331bdb8788a2012ad886af62"
+        },
+        {
+          "source_id": "RF07-01",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF07-01--GUALA_D3_CURRENT_ARCHITECTURE_CORRECTION_2026-08-04.md",
+          "line": 137,
+          "anchor": "owner chain, nine current physics/native regressions, and eight UI/live-contract",
+          "sha256": "8832bf43b49e00cf882b6d50bc1429dbe56517aa331bdb8788a2012ad886af62"
+        },
+        {
+          "source_id": "RF01-03",
+          "path": "docs/guala_reconciliation/sources/recognition-foundations/RF01-03--GUALA_C002_PER_NEURON_FRACTAL_SPRINT_2026-08-12.md",
+          "line": 237,
+          "anchor": "broadened Python command also exposed 17 stale production-fixture failures:",
+          "sha256": "cb30e1507bc4fc27410952387477577973e14c007069d4c078617e009438b5cc"
+        }
+      ]
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "product_execution": false,
+  "product_acceptance": false
+}

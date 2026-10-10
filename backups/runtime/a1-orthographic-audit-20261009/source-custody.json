@@ -1,0 +1,62 @@
+[
+  {
+    "path": "dsf_ai_service/orthographic_sensory_transducer.py",
+    "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/orthographic_sensory_transducer.py",
+    "bytes": 34081,
+    "sha256": "a7c6ed3563dbb93680c7eb3ff8f51d0835226534af4bd472e867a6f734889967"
+  },
+  {
+    "path": "dsf_ai_service/dynamic_television_broadcast.py",
+    "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/dynamic_television_broadcast.py",
+    "bytes": 10901,
+    "sha256": "4ef037c8ce14bb8b1ca641f5822b0fd768ee68e4c48c1816fffca6f0df96034c"
+  },
+  {
+    "path": "dsf_ai_service/guala_home_world.py",
+    "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/guala_home_world.py",
+    "bytes": 128305,
+    "sha256": "ef990956ded18c3dc9c3abe690dadd3df171eec9e02dbff9c523490757b27595"
+  },
+  {
+    "path": "dsf_ai_service/guala_caretaker_hand.py",
+    "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/guala_caretaker_hand.py",
+    "bytes": 97339,
+    "sha256": "d2df9d3344b8dec9f3601149ec6618cc1da4cd54053b792665c351492f9bd5b6"
+  },
+  {
+    "path": "dsf_ai_service/guala_voice.py",
+    "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/guala_voice.py",
+    "bytes": 12385,
+    "sha256": "a7b03520aaf5df0dc3082d8c8860eaa0ea0f7d6f39041013dc2b15e301090313"
+  },
+  {
+    "path": "dsf_ai_service/lean_sensory_occurrence.py",
+    "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/dsf_ai_service/lean_sensory_occurrence.py",
+    "bytes": 13571,
+    "sha256": "cb7ebef4b506c04f1f87e0f2dc593d53d21dd3d76badf3d41d514c8dc93f8b6d"
+  },
+  {
+    "path": "tests/test_orthographic_sensory_transducer.py",
+    "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/tests/test_orthographic_sensory_transducer.py",
+    "bytes": 9459,
+    "sha256": "27438596491858db5f6714f6f8e98cb3ee0f3cb3e5c0b9ba46272147b3b8e4bf"
+  },
+  {
+    "path": "docs/COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+    "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/docs/COGNITIVE_ASSETS_SPECIFICATION_20260917.md",
+    "bytes": 11180,
+    "sha256": "f281291714949f1f3654717579d03f79223ee203f4c90939fe3ef01f45589c54"
+  },
+  {
+    "path": "docs/TODO.md",
+    "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/docs/TODO.md",
+    "bytes": 7879,
+    "sha256": "48d3d2262a27a36f3f973469f8a495f747584f7fc30671384cf4e0850bac9307"
+  },
+  {
+    "path": "tests/test_environmental_variety_and_channels.py",
+    "snapshot": "backups/runtime/a1-orthographic-audit-20261009/source/tests/test_environmental_variety_and_channels.py",
+    "bytes": 12203,
+    "sha256": "fbd0df17b6b71511bbcc648325f949f734d460576ba9b713eac89c5097bbe6af"
+  }
+]

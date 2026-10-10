@@ -1,0 +1,6 @@
+{
+  "failed_helper": "backups/runtime/a1-orthographic-audit-20261009/build_audit.failed.4f56ba8396473092fbe589eac55f74d122686bd3969642323f1586cdee0e7566.py",
+  "error": "Reference range 200-225 exceeded actual 223-line test source; builder refused to emit registry/report.",
+  "correction": "Full-file AST regeneration uses verified range200-223; old failed helper preserved.",
+  "scope": "Auditor documentation metadata; no product execution or edit."
+}

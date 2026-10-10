@@ -1,0 +1,2003 @@
+{
+  "schema": "guala.historical_family_reconciliation.v1",
+  "task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "at_utc": "2026-10-10T02:22:56.024118+00:00",
+  "scope": "All 48 recovered versions of Attempt44–53 (10 paths), read completely by base plus every delta or full version; three historical source snapshots have selected-line scope. Attempts43/54 remain unreconciled here. Historical reports are not original execution receipts.",
+  "source_read_complete": true,
+  "implementation_closure": false,
+  "sources": [
+    {
+      "id": "LSP44-01",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md",
+      "git_blob": "bc2018d6e00d4ea3f2a3a657a5b4c58fa686fd7b",
+      "sha256": "272a011ca07230da2b968da997fa4e01960c067facd2d6488e1feacd385b8a1e",
+      "bytes": 8243,
+      "lines": 152,
+      "observations": [
+        {
+          "author_time": "2026-09-04T16:22:15+00:00",
+          "commit": "dfed68a3e692357b4e91d5eef040dfef2d5b6871",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-04T07:49:26+00:00",
+          "commit": "69a6f2b611dc50be6863e5b6cdfcbcfeb9161aa4",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP44-01--GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md",
+      "delta": null,
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP44-01--GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md"
+    },
+    {
+      "id": "LSP44-02",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md",
+      "git_blob": "f2372ae5beff03639ad7a691e5caae1d6e4a5d0e",
+      "sha256": "8a6a283da9079ac94923cfeecd46642a75b175e925ce76cb7b259c927212c169",
+      "bytes": 24574,
+      "lines": 427,
+      "observations": [
+        {
+          "author_time": "2026-09-04T17:08:03+00:00",
+          "commit": "839af92fe616b98a784b310e718d4212ba3b7342",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-04T16:22:15+00:00",
+          "commit": "dfed68a3e692357b4e91d5eef040dfef2d5b6871",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP44-02--GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP44-02--GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP44-02--GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md"
+    },
+    {
+      "id": "LSP44-03",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md",
+      "git_blob": "1bb70b5a5f0101ef7e7413fd088797599b552dc7",
+      "sha256": "9c4478a2503a177adf5ccc0c106f2002176735c5546f98093b3c6f1c8cde93d3",
+      "bytes": 26313,
+      "lines": 455,
+      "observations": [
+        {
+          "author_time": "2026-09-04T17:18:39+00:00",
+          "commit": "63a2d7dac1a63a13e927762a548455591e56d117",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-04T17:08:03+00:00",
+          "commit": "839af92fe616b98a784b310e718d4212ba3b7342",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP44-03--GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP44-03--GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP44-03--GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md"
+    },
+    {
+      "id": "LSP44-04",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md",
+      "git_blob": "7ba70ab15f87b95677b18584d8d0757f72de8090",
+      "sha256": "9b247daab9a434eda6d8901fa83eee3bbb63dfbf251143cd82d972c6639dd12a",
+      "bytes": 26158,
+      "lines": 453,
+      "observations": [
+        {
+          "author_time": "2026-09-04T17:33:52+00:00",
+          "commit": "a7398bc1b36436c887fa10f370f5a7aaf27d1141",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-04T17:18:39+00:00",
+          "commit": "63a2d7dac1a63a13e927762a548455591e56d117",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP44-04--GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP44-04--GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP44-04--GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md"
+    },
+    {
+      "id": "LSP44-05",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md",
+      "git_blob": "fc4a4fa57499f227578b2565238735d7ab12342c",
+      "sha256": "7b2f0191705187efea56ed33b6e1050dedb40b8d5858c89b668992d94676a094",
+      "bytes": 27615,
+      "lines": 480,
+      "observations": [
+        {
+          "author_time": "2026-09-04T18:06:33+00:00",
+          "commit": "bd15840e01e98a5199c966e64749ffae55b6183c",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-04T17:33:52+00:00",
+          "commit": "a7398bc1b36436c887fa10f370f5a7aaf27d1141",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP44-05--GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP44-05--GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP44-05--GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md"
+    },
+    {
+      "id": "LSP44-06",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md",
+      "git_blob": "2b2a7c6af7c9784d35ff6faea64ec5f6b42ad34b",
+      "sha256": "a2d23a2bb8e571bbab98bdd7ba97818e69e021ea7bf533368c2e6bb9deb69be4",
+      "bytes": 31680,
+      "lines": 549,
+      "observations": [
+        {
+          "author_time": "2026-09-04T18:06:33+00:00",
+          "commit": "bd15840e01e98a5199c966e64749ffae55b6183c",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP44-06--GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP44-06--GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP44-06--GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md"
+    },
+    {
+      "id": "LSP45-01",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_45_RESPIRATORY_THERMAL_REACHABILITY_2026-09-04.md",
+      "git_blob": "1d01a8db482288aadb978f31999ed22689f0aee5",
+      "sha256": "29da57f579c144745c4d829de404a1800321686c2cd9a133622de677853b2f1d",
+      "bytes": 7488,
+      "lines": 140,
+      "observations": [
+        {
+          "author_time": "2026-09-04T20:42:57+00:00",
+          "commit": "c3c45802137e8ded65f2a16aaa265c5e02ddac87",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-04T19:42:43+00:00",
+          "commit": "0c68eda05fcacf9b90d845f7dc5bb3c9ca97a980",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP45-01--GUALA_SPEECH_REPAIR_ATTEMPT_45_RESPIRATORY_THERMAL_REACHABILITY_2026-09-04.md",
+      "delta": null,
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP45-01--GUALA_SPEECH_REPAIR_ATTEMPT_45_RESPIRATORY_THERMAL_REACHABILITY_2026-09-04.md"
+    },
+    {
+      "id": "LSP45-02",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_45_RESPIRATORY_THERMAL_REACHABILITY_2026-09-04.md",
+      "git_blob": "e8342a6a7f82f79989a64f3bcff9ea587ce69cae",
+      "sha256": "82a0a56f29f02a3fb13c66fe3fa2e46eecb20b6f05b2a170cabb8071a1498c44",
+      "bytes": 9926,
+      "lines": 187,
+      "observations": [
+        {
+          "author_time": "2026-09-04T20:42:57+00:00",
+          "commit": "c3c45802137e8ded65f2a16aaa265c5e02ddac87",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP45-02--GUALA_SPEECH_REPAIR_ATTEMPT_45_RESPIRATORY_THERMAL_REACHABILITY_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP45-02--GUALA_SPEECH_REPAIR_ATTEMPT_45_RESPIRATORY_THERMAL_REACHABILITY_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP45-02--GUALA_SPEECH_REPAIR_ATTEMPT_45_RESPIRATORY_THERMAL_REACHABILITY_2026-09-04.md"
+    },
+    {
+      "id": "LSP46-01",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md",
+      "git_blob": "df4de25b4236566c316252f27072ee5e3a6fd299",
+      "sha256": "ec28617abeacb22628d2803c0aed4988a7428e3d7cfb9e8c90741728d6d07c60",
+      "bytes": 6603,
+      "lines": 121,
+      "observations": [
+        {
+          "author_time": "2026-09-04T21:10:52+00:00",
+          "commit": "52736ea1961f8f4b67b32a7656d409906ea36b3a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-04T20:53:02+00:00",
+          "commit": "26c71f2d00a7466a9a7ae1cbd282333551eab931",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP46-01--GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md",
+      "delta": null,
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP46-01--GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md"
+    },
+    {
+      "id": "LSP46-02",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md",
+      "git_blob": "f1b0493381527d161a948d0206c81af9ba3e6da4",
+      "sha256": "937f65f213703ea984e3e94c9cd2ca118c7a5feffd8e1fa581769fbd0a30bc99",
+      "bytes": 7658,
+      "lines": 139,
+      "observations": [
+        {
+          "author_time": "2026-09-04T21:14:52+00:00",
+          "commit": "af42e97a274a44ba1a9b1f3ff54dd6a1334cd81a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-04T21:10:52+00:00",
+          "commit": "52736ea1961f8f4b67b32a7656d409906ea36b3a",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP46-02--GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP46-02--GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP46-02--GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md"
+    },
+    {
+      "id": "LSP46-03",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md",
+      "git_blob": "cd085e86aab35e6841eaaba764319e384a73243c",
+      "sha256": "781a1264f15b2c50527b847a2d45bf03ebf516d373e70e357af71d40a2233be1",
+      "bytes": 8086,
+      "lines": 145,
+      "observations": [
+        {
+          "author_time": "2026-09-04T21:25:17+00:00",
+          "commit": "f301772a04b94e8a18c31e282a27a1a1ccc83d44",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-04T21:14:52+00:00",
+          "commit": "af42e97a274a44ba1a9b1f3ff54dd6a1334cd81a",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP46-03--GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP46-03--GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP46-03--GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md"
+    },
+    {
+      "id": "LSP46-04",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md",
+      "git_blob": "cb08eecc4d5cf734391fdcea5f9768afcb1be113",
+      "sha256": "93c2a37350b16022ef66f7bcfdc639de49a870697c8a142969696199eedee683",
+      "bytes": 9725,
+      "lines": 175,
+      "observations": [
+        {
+          "author_time": "2026-09-04T21:51:49+00:00",
+          "commit": "80c12429c5b88b515aeb65eb45c62bd750f97a01",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-04T21:25:17+00:00",
+          "commit": "f301772a04b94e8a18c31e282a27a1a1ccc83d44",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP46-04--GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP46-04--GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP46-04--GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md"
+    },
+    {
+      "id": "LSP46-05",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md",
+      "git_blob": "60d22d84b52cc16b60c59ebc43c7595ce996019c",
+      "sha256": "e9c26bc5b34a6c91ffded05f3e822fb70feb41a3141396685cdd84582b6367c5",
+      "bytes": 10621,
+      "lines": 191,
+      "observations": [
+        {
+          "author_time": "2026-09-04T21:51:49+00:00",
+          "commit": "80c12429c5b88b515aeb65eb45c62bd750f97a01",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP46-05--GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP46-05--GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP46-05--GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md"
+    },
+    {
+      "id": "LSP47-01",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "git_blob": "1f024e95ce87b40330f64f50ecab2e1b3e25cb7a",
+      "sha256": "73bab99eea8a1fd5538aa79b8723c9a1d7807f099af2f8ea036ef2c243edcd44",
+      "bytes": 13135,
+      "lines": 259,
+      "observations": [
+        {
+          "author_time": "2026-09-04T22:46:09+00:00",
+          "commit": "b3be781824109c0bb6a50f6e3e27da2c0c9ed14e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-04T22:26:33+00:00",
+          "commit": "2b6a277b035c1a1365e2889f32634a1e55d7bb23",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-01--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "delta": null,
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP47-01--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md"
+    },
+    {
+      "id": "LSP47-02",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "git_blob": "0d2d1139d7a675bfedf9b06480c788964d293855",
+      "sha256": "43377c489751bce947a86d91d439559fb3873b6d7a57a0c99969cf5c5590c64f",
+      "bytes": 18604,
+      "lines": 362,
+      "observations": [
+        {
+          "author_time": "2026-09-04T23:12:29+00:00",
+          "commit": "2929d420338786399f9f0421681ad680ad157776",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-04T22:46:09+00:00",
+          "commit": "b3be781824109c0bb6a50f6e3e27da2c0c9ed14e",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-02--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-02--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP47-02--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md"
+    },
+    {
+      "id": "LSP47-03",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "git_blob": "807403cfea98d350eac55699ee0e7131bbd99436",
+      "sha256": "1ebd1bb026901996b80cc103f8822f24045afd9cb7504914e1b454a466c6ab68",
+      "bytes": 22987,
+      "lines": 436,
+      "observations": [
+        {
+          "author_time": "2026-09-05T00:53:57+00:00",
+          "commit": "853548b224d71ad89b56c4dec6c6ca60dad240a7",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-04T23:12:29+00:00",
+          "commit": "2929d420338786399f9f0421681ad680ad157776",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-03--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-03--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP47-03--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md"
+    },
+    {
+      "id": "LSP47-04",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "git_blob": "71c726a26a9bf669764e668011e07e7e398a9c6e",
+      "sha256": "e46aa2d148e0923f627676d3bbdaa711b403369f91c3103b0e46829f51eb345e",
+      "bytes": 29033,
+      "lines": 539,
+      "observations": [
+        {
+          "author_time": "2026-09-05T01:32:30+00:00",
+          "commit": "5a71211b0ef17bc51a09549e1df33af8efbd5d75",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T00:53:57+00:00",
+          "commit": "853548b224d71ad89b56c4dec6c6ca60dad240a7",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-04--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-04--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP47-04--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md"
+    },
+    {
+      "id": "LSP47-05",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "git_blob": "5803ce26c9f44d230ef8a6ea794dce416ddc5ae2",
+      "sha256": "b3aba48f65ec22d2452a641f7820c6c5fad4823efef34bfcbd22a3c55ac542df",
+      "bytes": 37989,
+      "lines": 707,
+      "observations": [
+        {
+          "author_time": "2026-09-05T02:09:24+00:00",
+          "commit": "f04f0cefc01a44f8562ab72309b4e00356ff0367",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T01:32:30+00:00",
+          "commit": "5a71211b0ef17bc51a09549e1df33af8efbd5d75",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-05--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-05--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP47-05--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md"
+    },
+    {
+      "id": "LSP47-06",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "git_blob": "d7934fb0855d0e5e7cbe8ea2ffb09c81433ccd43",
+      "sha256": "d8c5e6b0b8b2e1fe3fadd36aa9c6fae58d7f4fed4d94c7edfa3ef4a236f9ffce",
+      "bytes": 40591,
+      "lines": 754,
+      "observations": [
+        {
+          "author_time": "2026-09-05T03:37:01+00:00",
+          "commit": "1d7328b99f9ea2f4109f1ca0e07fd27208c0225e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T02:09:24+00:00",
+          "commit": "f04f0cefc01a44f8562ab72309b4e00356ff0367",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-06--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-06--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP47-06--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md"
+    },
+    {
+      "id": "LSP47-07",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "git_blob": "18d323122657c957eeec13973fa7bfe022cf18ba",
+      "sha256": "1bbaae4eab368a31c8ed58be93494bcd817b3ee8247c9678cf5f28d8bf8601ac",
+      "bytes": 44801,
+      "lines": 822,
+      "observations": [
+        {
+          "author_time": "2026-09-05T04:10:56+00:00",
+          "commit": "429b8fa2b17cab32265f082eaf1d279676d25976",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T03:37:01+00:00",
+          "commit": "1d7328b99f9ea2f4109f1ca0e07fd27208c0225e",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-07--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-07--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP47-07--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md"
+    },
+    {
+      "id": "LSP47-08",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "git_blob": "714d0f68f5b14c14c4d5285a6be6ce29306f978e",
+      "sha256": "50912f0a28e8fa625aa3ca48bad3d2f5b3a2a404e3b0e409141dc82a867d2617",
+      "bytes": 47060,
+      "lines": 858,
+      "observations": [
+        {
+          "author_time": "2026-09-05T05:06:58+00:00",
+          "commit": "8ef9930e9e05e3f192d9b1f4016c60683c43f4d9",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T04:10:56+00:00",
+          "commit": "429b8fa2b17cab32265f082eaf1d279676d25976",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-08--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-08--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP47-08--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md"
+    },
+    {
+      "id": "LSP47-09",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "git_blob": "7066db80d7adb4d4233561644e16c4f2bc8f3357",
+      "sha256": "fd1675673c82164f655d30152a88e99b3fa0b902f333d9f5a5f62d4baed4dbf9",
+      "bytes": 49358,
+      "lines": 897,
+      "observations": [
+        {
+          "author_time": "2026-09-05T06:34:40+00:00",
+          "commit": "0f5d8c6d00d7be44dd1876a1fd1b14989d88b985",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T05:06:58+00:00",
+          "commit": "8ef9930e9e05e3f192d9b1f4016c60683c43f4d9",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-09--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-09--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP47-09--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md"
+    },
+    {
+      "id": "LSP47-10",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "git_blob": "f4f411e10f6ebe0a8d2d42508da025a445262421",
+      "sha256": "c9e9b72d0d31b43703edf303fcfbe23679acdcfb987a13be92da4252e6b1ba10",
+      "bytes": 59721,
+      "lines": 1070,
+      "observations": [
+        {
+          "author_time": "2026-09-05T10:10:11+00:00",
+          "commit": "22db05b8f4a133ef5533058988f3df1649a99b02",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T06:34:40+00:00",
+          "commit": "0f5d8c6d00d7be44dd1876a1fd1b14989d88b985",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-10--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-10--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP47-10--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md"
+    },
+    {
+      "id": "LSP47-11",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "git_blob": "f702bb8c0465209e83ea63b60f3a833868dd954e",
+      "sha256": "89e7bb2d68ca8b4cb68c55717f34489d8bf0969d89186e0c73c6ca67be32fab1",
+      "bytes": 63417,
+      "lines": 1134,
+      "observations": [
+        {
+          "author_time": "2026-09-05T11:03:20+00:00",
+          "commit": "5c66284787d8c27f2c871e5fec88ae195e18d018",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T10:10:11+00:00",
+          "commit": "22db05b8f4a133ef5533058988f3df1649a99b02",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-11--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-11--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP47-11--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md"
+    },
+    {
+      "id": "LSP47-12",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "git_blob": "f02cf328c136818da474961d2ea9b8810bec1df6",
+      "sha256": "c447324fc3178d04da5d0f0588c8faced1538548659267639ced9fda8a3c9081",
+      "bytes": 66561,
+      "lines": 1185,
+      "observations": [
+        {
+          "author_time": "2026-09-05T13:06:21+00:00",
+          "commit": "21c9db5f3ffd80ee0ddc94289caec128b921dd12",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T11:03:20+00:00",
+          "commit": "5c66284787d8c27f2c871e5fec88ae195e18d018",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-12--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-12--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP47-12--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md"
+    },
+    {
+      "id": "LSP47-13",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "git_blob": "e380833cb92f7a229df4edcc60cd0dee9c297c2a",
+      "sha256": "a7b1f5c7f27de24d030c1777530992f3728985bf43c8d94b2d47b0675482fdd8",
+      "bytes": 69042,
+      "lines": 1226,
+      "observations": [
+        {
+          "author_time": "2026-09-05T15:09:50+00:00",
+          "commit": "b11c8aa702a7a4e74cb7874d8bc4566639f1905e",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T13:06:21+00:00",
+          "commit": "21c9db5f3ffd80ee0ddc94289caec128b921dd12",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-13--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-13--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP47-13--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md"
+    },
+    {
+      "id": "LSP47-14",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "git_blob": "19146680794af1ecbe8deba410b3ee4fead74eaf",
+      "sha256": "74339bc73ff226a2eb61593bf91cca3692e4b948ad94cc42306b6bcc692db8dc",
+      "bytes": 72328,
+      "lines": 1279,
+      "observations": [
+        {
+          "author_time": "2026-09-05T15:52:41+00:00",
+          "commit": "e5c23efca9ca1ab2c786271fef0eb7110bb84331",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T15:09:50+00:00",
+          "commit": "b11c8aa702a7a4e74cb7874d8bc4566639f1905e",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-14--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-14--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP47-14--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md"
+    },
+    {
+      "id": "LSP47-15",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "git_blob": "1aed6a185f053773034d5d00ca6c9eb60c34f7b6",
+      "sha256": "660f40c48e34feb7cd0595dfd519227d200cbc02f86d04b2ad6619753c7564ad",
+      "bytes": 74474,
+      "lines": 1314,
+      "observations": [
+        {
+          "author_time": "2026-09-05T18:56:29+00:00",
+          "commit": "09c75f85ecb51c4f4cbd2fc1052c427249cc5196",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T15:52:41+00:00",
+          "commit": "e5c23efca9ca1ab2c786271fef0eb7110bb84331",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-15--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-15--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP47-15--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md"
+    },
+    {
+      "id": "LSP47-16",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "git_blob": "d63eb240791de0ffc417532c63f5d0ec5e3f11ea",
+      "sha256": "03979e1a7d9cc46464bbaf98b9b117e88cd26b48cd546fa38475e8089828033f",
+      "bytes": 78594,
+      "lines": 1384,
+      "observations": [
+        {
+          "author_time": "2026-09-05T18:56:29+00:00",
+          "commit": "09c75f85ecb51c4f4cbd2fc1052c427249cc5196",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-16--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP47-16--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP47-16--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md"
+    },
+    {
+      "id": "LSP48-01",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+      "git_blob": "87675a80c060fdb4c94cdf26b5335b2908a464ac",
+      "sha256": "82627ee967853e32a3659068ff27776b3db48379c8e8d5ed220f2ca57d3e950e",
+      "bytes": 13653,
+      "lines": 248,
+      "observations": [
+        {
+          "author_time": "2026-09-05T20:03:58+00:00",
+          "commit": "4cf2fde694674cf44cf79f74bf00ff2a93c467f4",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T19:26:07+00:00",
+          "commit": "0546b40d3bebd21dd073a68f9565c8404a5dbd2b",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP48-01--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+      "delta": null,
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP48-01--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md"
+    },
+    {
+      "id": "LSP48-02",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+      "git_blob": "eab9c3cf45c5af1b9b33355e7587fddc1272f32e",
+      "sha256": "aec8ab2bc8b6e80afc10c98f344e5601e5ba9e9fe23ea503da0a95cb837856d7",
+      "bytes": 16860,
+      "lines": 301,
+      "observations": [
+        {
+          "author_time": "2026-09-05T21:03:50+00:00",
+          "commit": "f011acf0e4159c3a2e422e3bcc1bbbbf96b96e7a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T20:03:58+00:00",
+          "commit": "4cf2fde694674cf44cf79f74bf00ff2a93c467f4",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP48-02--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP48-02--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP48-02--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md"
+    },
+    {
+      "id": "LSP48-03",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+      "git_blob": "6e43df433d74ba0493510be5f882b21bc3bd4e9e",
+      "sha256": "5314b27080c19c2fef42d4a7d7422cd4ff672d95bab1ceaa1ae994a30d4fbe3b",
+      "bytes": 18767,
+      "lines": 333,
+      "observations": [
+        {
+          "author_time": "2026-09-05T21:14:18+00:00",
+          "commit": "1a2cf77a32254fbe1f186d84e527997298006e85",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T21:03:50+00:00",
+          "commit": "f011acf0e4159c3a2e422e3bcc1bbbbf96b96e7a",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP48-03--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP48-03--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP48-03--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md"
+    },
+    {
+      "id": "LSP48-04",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+      "git_blob": "3cb4547435bb804eb89346a156a826dab74184b4",
+      "sha256": "3edd68e80bf6fb2e06215886c8825d17c401230161a762dedf089f63d0d20488",
+      "bytes": 19155,
+      "lines": 341,
+      "observations": [
+        {
+          "author_time": "2026-09-06T03:18:45+00:00",
+          "commit": "8e1780f7ce88b490cd68b39ecb5a5e29e4b3590b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-05T21:14:18+00:00",
+          "commit": "1a2cf77a32254fbe1f186d84e527997298006e85",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP48-04--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP48-04--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP48-04--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md"
+    },
+    {
+      "id": "LSP48-05",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+      "git_blob": "01e06079338d0dac8abaa085fc3aa11e82a6c587",
+      "sha256": "81a5e88f495de15c99796c29a3938f2e549ea7c82dec37df089fc6dd7c210ead",
+      "bytes": 30056,
+      "lines": 531,
+      "observations": [
+        {
+          "author_time": "2026-09-06T04:39:37+00:00",
+          "commit": "4c163fb5ca39f3fc77831a4049cdb841f9afc577",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-06T03:18:45+00:00",
+          "commit": "8e1780f7ce88b490cd68b39ecb5a5e29e4b3590b",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP48-05--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP48-05--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP48-05--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md"
+    },
+    {
+      "id": "LSP48-06",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+      "git_blob": "4aac6190f08d96e5ea17e7df77033cccde08daa3",
+      "sha256": "a48276c6e2dac58827f266e2bd36c859d2944366c715ee1706d95586d40a3279",
+      "bytes": 33929,
+      "lines": 599,
+      "observations": [
+        {
+          "author_time": "2026-09-06T05:02:43+00:00",
+          "commit": "e15a033fcbaaea86f20b94ad7eebff7cc49d70c3",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-06T04:39:37+00:00",
+          "commit": "4c163fb5ca39f3fc77831a4049cdb841f9afc577",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP48-06--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP48-06--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP48-06--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md"
+    },
+    {
+      "id": "LSP48-07",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+      "git_blob": "19308ad8b67ac14ddc4dbf719345ba0f7f156c36",
+      "sha256": "86779ec8a7f3175fbfac261196cf9d70eb7665abab94cba8991cdbf0a42c176e",
+      "bytes": 41515,
+      "lines": 720,
+      "observations": [
+        {
+          "author_time": "2026-09-06T06:03:56+00:00",
+          "commit": "439e1e0586caf6e7eac8b4a02b1c539537be7c20",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-06T05:02:43+00:00",
+          "commit": "e15a033fcbaaea86f20b94ad7eebff7cc49d70c3",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP48-07--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP48-07--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP48-07--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md"
+    },
+    {
+      "id": "LSP48-08",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+      "git_blob": "df58024f1f1304a190bcc26be68ff77a2606a360",
+      "sha256": "5d1b20fdd038cc2de10b4a895f5c8bdb0fd5f249a6faf5ba23c2ba6171a01cb5",
+      "bytes": 45955,
+      "lines": 795,
+      "observations": [
+        {
+          "author_time": "2026-09-06T06:37:38+00:00",
+          "commit": "5813b9d4e85e8acbe4ae87fe3fccc284746ed90f",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-06T06:03:56+00:00",
+          "commit": "439e1e0586caf6e7eac8b4a02b1c539537be7c20",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP48-08--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP48-08--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP48-08--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md"
+    },
+    {
+      "id": "LSP48-09",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+      "git_blob": "5cc8fd4b4a42934f543f155aea8b38809e8a6b0e",
+      "sha256": "5b75e3bc520a39e0fe0ffc7b709ca12a4f24161fd65cbef1983dd6be8a8d9c9f",
+      "bytes": 49449,
+      "lines": 858,
+      "observations": [
+        {
+          "author_time": "2026-09-06T06:37:38+00:00",
+          "commit": "5813b9d4e85e8acbe4ae87fe3fccc284746ed90f",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP48-09--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP48-09--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP48-09--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md"
+    },
+    {
+      "id": "LSP49-01",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_49_EXISTING_ORGAN_ONLY_2026-09-06.md",
+      "git_blob": "add4fe294fe9428b138f1897ccf41cf598840ddd",
+      "sha256": "1aec185ba7d48a9289fabd731769ec7210f5c8c922174adbe22fe59af882e29f",
+      "bytes": 7659,
+      "lines": 142,
+      "observations": [
+        {
+          "author_time": "2026-09-06T10:44:19+00:00",
+          "commit": "b0ffdb4cabf90d0980940308d94064aa5a69151b",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-06T08:23:35+00:00",
+          "commit": "2f43ab1effe4084670e419304a0df4a7d51d662e",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP49-01--GUALA_SPEECH_REPAIR_ATTEMPT_49_EXISTING_ORGAN_ONLY_2026-09-06.md",
+      "delta": null,
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP49-01--GUALA_SPEECH_REPAIR_ATTEMPT_49_EXISTING_ORGAN_ONLY_2026-09-06.md"
+    },
+    {
+      "id": "LSP49-02",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_49_EXISTING_ORGAN_ONLY_2026-09-06.md",
+      "git_blob": "d746c3d6d57a27b76418f2459dc842e8d447a139",
+      "sha256": "b97ad891e34064cc84a28bac4c1e45d33963e59546f65c489ba9233abf3316c9",
+      "bytes": 13215,
+      "lines": 244,
+      "observations": [
+        {
+          "author_time": "2026-09-06T10:44:19+00:00",
+          "commit": "b0ffdb4cabf90d0980940308d94064aa5a69151b",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP49-02--GUALA_SPEECH_REPAIR_ATTEMPT_49_EXISTING_ORGAN_ONLY_2026-09-06.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP49-02--GUALA_SPEECH_REPAIR_ATTEMPT_49_EXISTING_ORGAN_ONLY_2026-09-06.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP49-02--GUALA_SPEECH_REPAIR_ATTEMPT_49_EXISTING_ORGAN_ONLY_2026-09-06.md"
+    },
+    {
+      "id": "LSP50-01",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_50_LEARNED_VOCAL_GESTURE_CAUSAL_IMPACT_2026-09-06.md",
+      "git_blob": "9d93f85754630b4956d1fc37bf03b2f4935a3346",
+      "sha256": "9c807e2481d3db9f655437e161ee55dfd42b45dfea04a2ca755100f442888f03",
+      "bytes": 14456,
+      "lines": 291,
+      "observations": [
+        {
+          "author_time": "2026-09-06T14:27:31+00:00",
+          "commit": "39e3c555b1248162abf3b5ce063899d109a68892",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-06T13:24:49+00:00",
+          "commit": "d942b0b49f9c7b9dd71cd933c806c8a1d900f41c",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP50-01--GUALA_SPEECH_REPAIR_ATTEMPT_50_LEARNED_VOCAL_GESTURE_CAUSAL_IMPACT_2026-09-06.md",
+      "delta": null,
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP50-01--GUALA_SPEECH_REPAIR_ATTEMPT_50_LEARNED_VOCAL_GESTURE_CAUSAL_IMPACT_2026-09-06.md"
+    },
+    {
+      "id": "LSP50-02",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_50_LEARNED_VOCAL_GESTURE_CAUSAL_IMPACT_2026-09-06.md",
+      "git_blob": "c722e34385a7a998b82dac2e1c85674d98e7e8ea",
+      "sha256": "48c174bde31786893261a2ed9c217c7de849aace305be35b6451f599fad33009",
+      "bytes": 17454,
+      "lines": 353,
+      "observations": [
+        {
+          "author_time": "2026-09-06T16:41:14+00:00",
+          "commit": "c4dbb030299bdfb8c2be7bcc450f7e9d1427ee7a",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-06T14:27:31+00:00",
+          "commit": "39e3c555b1248162abf3b5ce063899d109a68892",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP50-02--GUALA_SPEECH_REPAIR_ATTEMPT_50_LEARNED_VOCAL_GESTURE_CAUSAL_IMPACT_2026-09-06.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP50-02--GUALA_SPEECH_REPAIR_ATTEMPT_50_LEARNED_VOCAL_GESTURE_CAUSAL_IMPACT_2026-09-06.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP50-02--GUALA_SPEECH_REPAIR_ATTEMPT_50_LEARNED_VOCAL_GESTURE_CAUSAL_IMPACT_2026-09-06.md"
+    },
+    {
+      "id": "LSP50-03",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_50_LEARNED_VOCAL_GESTURE_CAUSAL_IMPACT_2026-09-06.md",
+      "git_blob": "18a4ad63206fab8787ec1505b984f3c2e4c22220",
+      "sha256": "5a3d8397a57e3d6a7cffdb375334506de43ee2659734bb0917109947a3187837",
+      "bytes": 19990,
+      "lines": 398,
+      "observations": [
+        {
+          "author_time": "2026-09-06T16:41:14+00:00",
+          "commit": "c4dbb030299bdfb8c2be7bcc450f7e9d1427ee7a",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP50-03--GUALA_SPEECH_REPAIR_ATTEMPT_50_LEARNED_VOCAL_GESTURE_CAUSAL_IMPACT_2026-09-06.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP50-03--GUALA_SPEECH_REPAIR_ATTEMPT_50_LEARNED_VOCAL_GESTURE_CAUSAL_IMPACT_2026-09-06.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP50-03--GUALA_SPEECH_REPAIR_ATTEMPT_50_LEARNED_VOCAL_GESTURE_CAUSAL_IMPACT_2026-09-06.md"
+    },
+    {
+      "id": "LSP51-01",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_51_PREMOTOR_POPULATION_2026-09-06.md",
+      "git_blob": "88da1456fa66704bc9d42998ef3bf13b30940104",
+      "sha256": "a031e4bf674e74efddaabfee16e07f45218e03f195e1471220d34a58b38b56ee",
+      "bytes": 20248,
+      "lines": 366,
+      "observations": [
+        {
+          "author_time": "2026-09-07T03:44:56+00:00",
+          "commit": "77a8cc3cd86dc366f1d44367d4200dab56917701",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP51-01--GUALA_SPEECH_REPAIR_ATTEMPT_51_PREMOTOR_POPULATION_2026-09-06.md",
+      "delta": null,
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP51-01--GUALA_SPEECH_REPAIR_ATTEMPT_51_PREMOTOR_POPULATION_2026-09-06.md"
+    },
+    {
+      "id": "LSP52-01",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_52_CUMULATIVE_INTEGRATION_2026-09-07.md",
+      "git_blob": "37e69fbec5a17a818f86ce4b9d867d37c0adf4c3",
+      "sha256": "741fd9c9f89744cb9c82bc3f18aecf07ec7b63761f103a4b3a4391a0371dfe7a",
+      "bytes": 17899,
+      "lines": 337,
+      "observations": [
+        {
+          "author_time": "2026-09-07T05:48:29+00:00",
+          "commit": "2fd5fb8ab76f3ccbc7a9647ca06da8579ba400d3",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-07T03:44:56+00:00",
+          "commit": "77a8cc3cd86dc366f1d44367d4200dab56917701",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP52-01--GUALA_SPEECH_REPAIR_ATTEMPT_52_CUMULATIVE_INTEGRATION_2026-09-07.md",
+      "delta": null,
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP52-01--GUALA_SPEECH_REPAIR_ATTEMPT_52_CUMULATIVE_INTEGRATION_2026-09-07.md"
+    },
+    {
+      "id": "LSP52-02",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_52_CUMULATIVE_INTEGRATION_2026-09-07.md",
+      "git_blob": "6a827668474e76a9129ad644e0e89bba206be028",
+      "sha256": "7cc5eee2e0800d0f73dc67cd063195ef15759132923ccbd92c7397ed11deb0be",
+      "bytes": 23599,
+      "lines": 436,
+      "observations": [
+        {
+          "author_time": "2026-09-07T06:21:31+00:00",
+          "commit": "e666f0c22d3aa5afcdb829aa85fdb9f8f651cc40",
+          "side": "old"
+        },
+        {
+          "author_time": "2026-09-07T05:48:29+00:00",
+          "commit": "2fd5fb8ab76f3ccbc7a9647ca06da8579ba400d3",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP52-02--GUALA_SPEECH_REPAIR_ATTEMPT_52_CUMULATIVE_INTEGRATION_2026-09-07.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP52-02--GUALA_SPEECH_REPAIR_ATTEMPT_52_CUMULATIVE_INTEGRATION_2026-09-07.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP52-02--GUALA_SPEECH_REPAIR_ATTEMPT_52_CUMULATIVE_INTEGRATION_2026-09-07.md"
+    },
+    {
+      "id": "LSP52-03",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_52_CUMULATIVE_INTEGRATION_2026-09-07.md",
+      "git_blob": "23e320aef4eaa17600bf41435bef162dfea17252",
+      "sha256": "d3827e22772955a89bf6137d0457ea81335ac4d49ed74ec5cb43047858494a9d",
+      "bytes": 26167,
+      "lines": 480,
+      "observations": [
+        {
+          "author_time": "2026-09-07T06:21:31+00:00",
+          "commit": "e666f0c22d3aa5afcdb829aa85fdb9f8f651cc40",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP52-03--GUALA_SPEECH_REPAIR_ATTEMPT_52_CUMULATIVE_INTEGRATION_2026-09-07.md",
+      "delta": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP52-03--GUALA_SPEECH_REPAIR_ATTEMPT_52_CUMULATIVE_INTEGRATION_2026-09-07.md.diff",
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP52-03--GUALA_SPEECH_REPAIR_ATTEMPT_52_CUMULATIVE_INTEGRATION_2026-09-07.md"
+    },
+    {
+      "id": "LSP53-01",
+      "path": "docs/GUALA_SPEECH_REPAIR_ATTEMPT_53_LEARNED_CUE_TO_VOCAL_ORDERING_2026-09-07.md",
+      "git_blob": "cbbcde61aca8102b62d562cbd6ba18f826a5de76",
+      "sha256": "f92c4560efb2b87367ba6977888a17272bc4ce585d7a92fc24300e8e13309188",
+      "bytes": 68873,
+      "lines": 1154,
+      "observations": [
+        {
+          "author_time": "2026-09-08T05:10:03+00:00",
+          "commit": "f0be7e7da3135fe0a112f79a373f6763fb18c2c6",
+          "side": "new"
+        }
+      ],
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-history/LSP53-01--GUALA_SPEECH_REPAIR_ATTEMPT_53_LEARNED_CUE_TO_VOCAL_ORDERING_2026-09-07.md",
+      "delta": null,
+      "review": "Complete documentary content read: complete base and every intervening delta, or complete version. Reported execution/approval remains secondary evidence unless separately authenticated.",
+      "all_path_versions_recovered": true,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSP53-01--GUALA_SPEECH_REPAIR_ATTEMPT_53_LEARNED_CUE_TO_VOCAL_ORDERING_2026-09-07.md"
+    }
+  ],
+  "code_sources": [
+    {
+      "id": "LSC01",
+      "commit": "dfed68a3e692357b4e91d5eef040dfef2d5b6871",
+      "path": "native/guala_core/src/resident_cognitive_formation.rs",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-code/LSC01--resident_cognitive_formation.rs",
+      "sha256": "1ddddee19e749f5ffa81034600ea50c02dbfee7ce6bf00de0f67d44093ae5d90",
+      "bytes": 1365852,
+      "lines": 32030,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSC01--resident_cognitive_formation.rs",
+      "review": "Selected lines 19340–19695 and 19910–19970: fixed-one-carrier rewrite, work guard and calibration caller. Symbol locations separately inspected. Not complete 32030-line source."
+    },
+    {
+      "id": "LSC02",
+      "commit": "2fd5fb8ab76f3ccbc7a9647ca06da8579ba400d3",
+      "path": "native/guala_core/src/resident_cognitive_formation.rs",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-code/LSC02--resident_cognitive_formation.rs",
+      "sha256": "1f239818a2954ca2eade5eae82df6192e4bf62508420d6d33cf7e0682089f9df",
+      "bytes": 1404265,
+      "lines": 32846,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSC02--resident_cognitive_formation.rs",
+      "review": "Selected lines 14949–15070, 17118–17220 and 17310–17435: occurrence partition, synergy selection and family bridge. Not complete 32846-line source."
+    },
+    {
+      "id": "LSC03",
+      "commit": "f0be7e7da3135fe0a112f79a373f6763fb18c2c6",
+      "path": "native/guala_core/src/resident_cognitive_formation.rs",
+      "copy": "backups/runtime/a1-speech-reconciliation-20261010/later-code/LSC03--resident_cognitive_formation.rs",
+      "sha256": "750c615d3a81c290337480f4e3c2f74b4329ee0213ab3c7c712106fe5890543e",
+      "bytes": 1402791,
+      "lines": 32839,
+      "canonical_copy": "docs/guala_reconciliation/sources/later-speech-history/LSC03--resident_cognitive_formation.rs",
+      "review": "Selected lines 9080–9140, 15025–15110 and 15215–15470; symbol inventory. Commit containing the final Attempt53 document already includes a subsequent lean-route caller; it is not authenticated as the exact tested53F candidate. Not complete source."
+    }
+  ],
+  "requirements": [
+    {
+      "id": "LS01",
+      "name": "Fixed one-carrier output was passed off as a physical invariant",
+      "classification": "source-verified unsupported replacement",
+      "historical_requirement_or_mechanism": "The dfed68a3 source cancels the ordinary learned-contact transition, selects a founding transfer of at least two carriers, subtracts exactly one carrier and emits transferred_whole_carriers:1. It then checks only total charge and aggregate energy descent. Attempt47 later rejects this law and its inference from a limited range test.",
+      "current_disposition": "Conservation is necessary but does not derive this particular split. The later rejection is not evidence that every earlier component failed, or that this retired law is in the current64 candidate.",
+      "lawful_remedy": "Retire fixed dispatch and every port. Bind the approved local input/contact/gate law; let actual predecessor state determine discharge and account every affected contact current, phase, work and heat together.",
+      "acceptance_falsifier": "Vary strength, interval, contact state, direction and convergence under identical authority; permute branch order. Exact conservation alone cannot grant passage. Preserve the failure if no constitutive law applies.",
+      "repair_actions": [
+        "A04",
+        "A08",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LSC01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSC01--resident_cognitive_formation.rs",
+          "sha256": "1ddddee19e749f5ffa81034600ea50c02dbfee7ce6bf00de0f67d44093ae5d90",
+          "line": 19520,
+          "anchor": "                transferred_whole_carriers: 1,"
+        },
+        {
+          "source_id": "LSP47-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP47-01--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+          "sha256": "73bab99eea8a1fd5538aa79b8723c9a1d7807f099af2f8ea036ef2c243edcd44",
+          "line": 6,
+          "anchor": "complete. The present fixed-one-carrier mechanism is rejected. Production is"
+        },
+        {
+          "source_id": "LSP47-02",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP47-02--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+          "sha256": "43377c489751bce947a86d91d439559fb3873b6d7a57a0c99969cf5c5590c64f",
+          "line": 265,
+          "anchor": "of the 21 route/clock cases, three samples reconstruct one quadratic work curve"
+        }
+      ]
+    },
+    {
+      "id": "LS02",
+      "name": "Respiratory thermal refusal silently lost the vocal consequence",
+      "classification": "historically reported physical and failure-visibility defect",
+      "historical_requirement_or_mechanism": "Attempt45 records an isolated respiratory cell with only 0.2443 zJ thermal headroom against a 0.32014 zJ two-carrier release. The deposit returned None, and the caller committed only Some. Reached metabolic cooling had been omitted.",
+      "current_disposition": "The report preserves a finite-work component repair; it does not prove learned articulation. Raw probe receipts have not been recovered here.",
+      "lawful_remedy": "Service every actually recruited respiratory cell through its ordinary bounded metabolic law before settlement; make refusal explicit and atomic. Do not increase capacity, reset heat or shrink a carrier command to obtain sound.",
+      "acceptance_falsifier": "Test repeated mature-body recruitment, exhausted headroom, exact heat/work totals, refusal rollback and cold continuation. Successful sound must identify its actual respiratory debit.",
+      "repair_actions": [
+        "A04",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP45-02",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP45-02--GUALA_SPEECH_REPAIR_ATTEMPT_45_RESPIRATORY_THERMAL_REACHABILITY_2026-09-04.md",
+          "sha256": "82a0a56f29f02a3fb13c66fe3fa2e46eecb20b6f05b2a170cabb8071a1498c44",
+          "line": 63,
+          "anchor": "  or approximately `0.244260428467` zJ of headroom."
+        },
+        {
+          "source_id": "LSP45-02",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP45-02--GUALA_SPEECH_REPAIR_ATTEMPT_45_RESPIRATORY_THERMAL_REACHABILITY_2026-09-04.md",
+          "sha256": "82a0a56f29f02a3fb13c66fe3fa2e46eecb20b6f05b2a170cabb8071a1498c44",
+          "line": 158,
+          "anchor": "The unchanged tick-434112 copied production body then passed 512 ordinary"
+        }
+      ]
+    },
+    {
+      "id": "LS03",
+      "name": "A recognizable test phrase demonstrated actuator capacity only",
+      "classification": "preserve valid narrow component evidence",
+      "historical_requirement_or_mechanism": "Attempt46 supplied a physical Mama-A trajectory and records Joe accepting its sound. The report distinguishes the test trajectory from organism-learned control. Attempt50 describes four supplied phases and eight directional primitives.",
+      "current_disposition": "Reported listening approval applies to acoustic capacity; original approval context is not authenticated here. It is neither a lexical memory nor a production word.",
+      "lawful_remedy": "Keep the reference outside pupil state. Qualify learned articulation only when prior experience changes retained state and that state later causes movement after cue removal.",
+      "acceptance_falsifier": "Remove all supplied posture, phrase and motor commands; use pre-learning, learned, severed and cold-restored bodies. Similar-sounding output alone cannot pass.",
+      "repair_actions": [
+        "A10",
+        "A12",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP46-05",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP46-05--GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md",
+          "sha256": "e9c26bc5b34a6c91ffded05f3e822fb70feb41a3141396685cdd84582b6367c5",
+          "line": 181,
+          "anchor": "`ma-ma`, and selected **Mama-A** as the approved candidate. He described its"
+        },
+        {
+          "source_id": "LSP50-03",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP50-03--GUALA_SPEECH_REPAIR_ATTEMPT_50_LEARNED_VOCAL_GESTURE_CAUSAL_IMPACT_2026-09-06.md",
+          "sha256": "5a3d8397a57e3d6a7cffdb375334506de43ee2659734bb0917109947a3187837",
+          "line": 51,
+          "anchor": "1. closed tract for 150 ms;"
+        }
+      ]
+    },
+    {
+      "id": "LS04",
+      "name": "Repeated candidate energy substitutions were explicitly rejected",
+      "classification": "rejected physical shortcuts; anti-resurrection requirement",
+      "historical_requirement_or_mechanism": "Attempt47 rejects spending contact-transition phase twice (47C), creating recovery material (47D), treating absolute-directional work as established (47E), and declaring one subthreshold event incapable of future output (47F). These are distinct failed hypotheses, not cumulative accepted repairs.",
+      "current_disposition": "A conserved total does not authorize changing what a retained coordinate means. Detailed results remain historical report evidence.",
+      "lawful_remedy": "Use only a named physically available energy source, its actual recipient and a single atomic debit. Preserve phase as phase and material as material. Reject missing law rather than inventing an energy store.",
+      "acceptance_falsifier": "Track source work, receiving residue, gate work, heat and material independently through repeats and cold boundaries; severing cannot erase already retained energy.",
+      "repair_actions": [
+        "A04",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP47-16",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP47-16--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+          "sha256": "03979e1a7d9cc46464bbaf98b9b117e88cd26b48cd546fa38475e8089828033f",
+          "line": 541,
+          "anchor": "## Candidate 47C — bounded learned-contact work transduction"
+        },
+        {
+          "source_id": "LSP47-16",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP47-16--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+          "sha256": "03979e1a7d9cc46464bbaf98b9b117e88cd26b48cd546fa38475e8089828033f",
+          "line": 756,
+          "anchor": "## Candidate 47D rejected — source work is not recovery material"
+        },
+        {
+          "source_id": "LSP47-16",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP47-16--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+          "sha256": "03979e1a7d9cc46464bbaf98b9b117e88cd26b48cd546fa38475e8089828033f",
+          "line": 860,
+          "anchor": "## Candidate 47F rejected — equal-conductance load division silences real vocal routes"
+        }
+      ]
+    },
+    {
+      "id": "LS05",
+      "name": "Motor-gate API mismatch must not be repaired by weakening anatomy",
+      "classification": "rejected type/physics mismatch and narrower candidate evolution",
+      "historical_requirement_or_mechanism": "47G used a multichannel receptor-population delivery API on a one-conformation intrinsic motor gate and failed GatePopulationExceeded. 47H instead used that gate’s existing free-energy transition and local work residue.",
+      "current_disposition": "This supports rejecting the mismatched API, not increasing the population or assuming47H was production-qualified.",
+      "lawful_remedy": "Match the actual motor anatomy and authority before proposing a transition. Persist genuine subthreshold work and use the ordinary intrinsic gate; any new law requires explicit derivation.",
+      "acceptance_falsifier": "One-conformation and independent-channel fixtures must remain distinct; no target population, carrier choice or special vocal threshold may bridge them.",
+      "repair_actions": [
+        "A04",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP47-11",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP47-11--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+          "sha256": "89e7bb2d68ca8b4cb68c55717f34489d8bf0969d89186e0c73c6ca67be32fab1",
+          "line": 1076,
+          "anchor": "`GatePopulationExceeded`. The failure is not a production incident and did"
+        },
+        {
+          "source_id": "LSP47-12",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP47-12--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+          "sha256": "c447324fc3178d04da5d0f0588c8faced1538548659267639ced9fda8a3c9081",
+          "line": 1136,
+          "anchor": "## Candidate 47H — intrinsic one-gate range passes its first boundary"
+        }
+      ]
+    },
+    {
+      "id": "LS06",
+      "name": "Isolated motor amplitude overstated the integrated effect",
+      "classification": "preserve useful result; reject evidence-scope inflation",
+      "historical_requirement_or_mechanism": "47H reported roughly1446–1475 carriers at vocal crossing;47I’s complete sparse-contact settlement produced five carriers, with first events52/53 at real copied source strength. The report explains that inter-neuron currents change the result.",
+      "current_disposition": "Isolated capacity cannot stand in for the full field. Natural frequency, spontaneous behavior and an ordered trajectory were not established by repeated copied occurrences.",
+      "lawful_remedy": "Measure the same cause through the complete ordinary settlement and body path. Keep isolated tests labelled capacity; retain actual latency and resulting movement instead of tuning them away.",
+      "acceptance_falsifier": "The integrated release must reproduce its declared full-field successor, not an isolated helper amplitude. Test recurrent and mature conditions as well as first crossing.",
+      "repair_actions": [
+        "A04",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP47-14",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP47-14--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+          "sha256": "74339bc73ff226a2eb61593bf91cca3692e4b948ad94cc42306b6bcc692db8dc",
+          "line": 373,
+          "anchor": "- Every quiescent intrinsic cell is born with gate population `1`, zero gating"
+        },
+        {
+          "source_id": "LSP47-14",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP47-14--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+          "sha256": "74339bc73ff226a2eb61593bf91cca3692e4b948ad94cc42306b6bcc692db8dc",
+          "line": 1248,
+          "anchor": "physical states. Every repetition traversed the complete production sparse-"
+        },
+        {
+          "source_id": "LSP47-12",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP47-12--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+          "sha256": "c447324fc3178d04da5d0f0588c8faced1538548659267639ced9fda8a3c9081",
+          "line": 1183,
+          "anchor": "flat resources. Its measured 52/53-event real-strength vocal latency is also a"
+        }
+      ]
+    },
+    {
+      "id": "LS07",
+      "name": "A closed motor gate cannot serve as a gesture latch",
+      "classification": "falsified hypothesis",
+      "historical_requirement_or_mechanism": "47J’s natural continuation found no retained-open-gate vocal recruitment. Sparse new pulses remained, and passive tissue return dominated. Holding a condition that the organism does not retain was rejected.",
+      "current_disposition": "This falsifies the tested gate-latch explanation, not general temporal cognition.",
+      "lawful_remedy": "Use the actual retained neuronal/contact and tissue dynamics for continuation. Do not introduce a gesture flag, timer or hidden pulse train.",
+      "acceptance_falsifier": "Record the gate and motor cause at every alleged sustained interval; passive tissue movement must remain distinguished from new motor discharge.",
+      "repair_actions": [
+        "A08",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP47-15",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP47-15--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+          "sha256": "660f40c48e34feb7cd0595dfd519227d200cbc02f86d04b2ad6619753c7564ad",
+          "line": 1281,
+          "anchor": "## Candidate 47J rejected — an open motor gate does not retain the gesture"
+        }
+      ]
+    },
+    {
+      "id": "LS08",
+      "name": "Body clock mismatch was real but was not the pressure blocker",
+      "classification": "legitimate synchronization repair; rejected causal attribution",
+      "historical_requirement_or_mechanism": "47K compares a one-millisecond body step held across250ms sound with250 actual tissue steps. Trajectories differ, while pressure occupancy/peak remain essentially unchanged. Combining separate real discharges was explicitly a composition control.",
+      "current_disposition": "Repair time alignment for truthful embodied experience; do not present it as demonstrated speech recovery.",
+      "lawful_remedy": "Use a single declared physical timeline, apply a discharge once, and render each real posture across its corresponding samples with exact return chronology.",
+      "acceptance_falsifier": "Compare complete trajectories and self-hearing timestamps, not just PCM hashes. No multiplication of motor impulses when unfolding time.",
+      "repair_actions": [
+        "A08",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP47-16",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP47-16--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+          "sha256": "03979e1a7d9cc46464bbaf98b9b117e88cd26b48cd546fa38475e8089828033f",
+          "line": 1316,
+          "anchor": "## Candidate 47K rejected — duration unfolding is not the speech-pressure blocker"
+        },
+        {
+          "source_id": "LSP47-16",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP47-16--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+          "sha256": "03979e1a7d9cc46464bbaf98b9b117e88cd26b48cd546fa38475e8089828033f",
+          "line": 1321,
+          "anchor": "explicit composition control; it is not represented as a naturally"
+        }
+      ]
+    },
+    {
+      "id": "LS09",
+      "name": "Learned work was dropped at the observation boundary",
+      "classification": "preserve legitimate evidence transport improvement",
+      "historical_requirement_or_mechanism": "47I emitted LearnedMotorWorkPreparation but a wrapper discarded it, risking rejection of real later discharge for lacking a carrier-transfer tuple. The correction carried work and source lineage separately.",
+      "current_disposition": "Work across a learned relation is not proof that a carrier crossed it. An observation fix is not new cognition.",
+      "lawful_remedy": "Carry exact source, relation, recipient, accepted work, residue, gate and heat through typed read-only evidence. Never fabricate an old tuple to satisfy a validator.",
+      "acceptance_falsifier": "Validate both offered=accepted+source heat and predecessor residue+accepted=gate+successor residue+narrowing heat, with no observer effect.",
+      "repair_actions": [
+        "A10",
+        "A13",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP47-16",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP47-16--GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md",
+          "sha256": "03979e1a7d9cc46464bbaf98b9b117e88cd26b48cd546fa38475e8089828033f",
+          "line": 1351,
+          "anchor": "## Candidate 47I observation completion — learned work is not a carrier transfer"
+        }
+      ]
+    },
+    {
+      "id": "LS10",
+      "name": "Pitch anatomy was a deferred enhancement, not a first-word prerequisite",
+      "classification": "scope correction; separate evolution from overengineering",
+      "historical_requirement_or_mechanism": "Attempt48’s test-only tension range and V9 extension showed controllable pitch, but new motors could not initiate. The final disposition deferred the unshipped schema extension because the existing neutral-pitch organ already had word-shaped acoustic capacity.",
+      "current_disposition": "A failed newborn pitch motor does not prove the existing organ cannot articulate. Do not restore that deferred extension merely because source or a passing test exists.",
+      "lawful_remedy": "Preserve pitch range as a separate candidate with its own authority and migration proof. Resolve learned control of existing axes before adding anatomy unrelated to the first-word boundary.",
+      "acceptance_falsifier": "Bind any currently present V9/46-axis body to subsequent approval and deployment evidence; acoustic range does not certify learned pitch or speech.",
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A10",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP48-09",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP48-09--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+          "sha256": "5b75e3bc520a39e0fe0ffc7b709ca12a4f24161fd65cbef1983dd6be8a8d9c9f",
+          "line": 797,
+          "anchor": "## Scope correction — pitch is not the immediate speech prerequisite"
+        },
+        {
+          "source_id": "LSP48-09",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP48-09--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+          "sha256": "5b75e3bc520a39e0fe0ffc7b709ca12a4f24161fd65cbef1983dd6be8a8d9c9f",
+          "line": 835,
+          "anchor": "  **deferred from the speech-critical path** and must not be deployed with the"
+        }
+      ]
+    },
+    {
+      "id": "LS11",
+      "name": "Snapshot calibration manufactured movement and inflated development claims",
+      "classification": "source-verified forbidden bootstrap; historical correction",
+      "historical_requirement_or_mechanism": "dfed68a3 routes a complete-body calibration flag to special vocal preparation. Attempt48 called its broad movement an ordinary learned motor chain; Attempt49 later identified12 snapshot-caused bindings and only one duplicate learned route, with no new terminal coverage.",
+      "current_disposition": "Distinct pressure hashes were real sounds, but their cause did not establish learned articulation. Removing the flag reportedly left32 ordinary intervals without vocal binding.",
+      "lawful_remedy": "Retire snapshot-to-action authority, including renamed/native equivalents. Body observation may convey actual state; movement requires a separately qualified internal cause.",
+      "acceptance_falsifier": "A complete static snapshot cannot cause a new vocal act. Preserve lawful learned and reflex paths while proving calibration absent at startup, restore and later observation.",
+      "repair_actions": [
+        "A05",
+        "A08",
+        "A10",
+        "A13",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LSC01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSC01--resident_cognitive_formation.rs",
+          "sha256": "1ddddee19e749f5ffa81034600ea50c02dbfee7ce6bf00de0f67d44093ae5d90",
+          "line": 19933,
+          "anchor": "            let regulations = if initial_vocal_tract_calibration"
+        },
+        {
+          "source_id": "LSP49-02",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP49-02--GUALA_SPEECH_REPAIR_ATTEMPT_49_EXISTING_ORGAN_ONLY_2026-09-06.md",
+          "sha256": "b97ad891e34064cc84a28bac4c1e45d33963e59546f65c489ba9233abf3316c9",
+          "line": 48,
+          "anchor": "each section often fired together. These were caused by the body-snapshot"
+        },
+        {
+          "source_id": "LSP49-02",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP49-02--GUALA_SPEECH_REPAIR_ATTEMPT_49_EXISTING_ORGAN_ONLY_2026-09-06.md",
+          "sha256": "b97ad891e34064cc84a28bac4c1e45d33963e59546f65c489ba9233abf3316c9",
+          "line": 162,
+          "anchor": "- all later intervals also caused zero vocal motor bindings;"
+        }
+      ]
+    },
+    {
+      "id": "LS12",
+      "name": "Birth pump admission supplied gradient but no gate-opening cause",
+      "classification": "falsified developmental hypothesis",
+      "historical_requirement_or_mechanism": "48E lawfully pumped six carriers into new motor cells but produced no gate opening or act over the tested range. The recorded anatomy had no voltage-sensing charge, chemical bias or Psi gate contact; a gradient alone was insufficient.",
+      "current_disposition": "Do not invent random babble, an oscillator, a larger pump or copied mature charge. Missing developmental excitability is separate from learning existing motor coordination.",
+      "lawful_remedy": "If required, specify a general finite developmental transition using real material, work and extinction before implementation; first check existing anatomy and current scope.",
+      "acceptance_falsifier": "Connected/severed/exhausted and cold branches must distinguish energized cells from actual motor output. One finite negative run does not prove universal impossibility.",
+      "repair_actions": [
+        "A04",
+        "A08",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP48-08",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP48-08--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+          "sha256": "5d1b20fdd038cc2de10b4a895f5c8bdb0fd5f249a6faf5ba23c2ba6171a01cb5",
+          "line": 722,
+          "anchor": "## Candidate 48E copied-body rejection — pump admission is insufficient"
+        },
+        {
+          "source_id": "LSP48-08",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP48-08--GUALA_SPEECH_REPAIR_ATTEMPT_48_PITCH_AND_GESTURE_CONTROL_2026-09-05.md",
+          "sha256": "5d1b20fdd038cc2de10b4a895f5c8bdb0fd5f249a6faf5ba23c2ba6171a01cb5",
+          "line": 774,
+          "anchor": "now exact in current anatomy: these intrinsic cells have zero voltage-sensing"
+        }
+      ]
+    },
+    {
+      "id": "LS13",
+      "name": "Contact count and an arbitrary run ceiling gave a false conclusion",
+      "classification": "explicitly corrected finite-test overclaim",
+      "historical_requirement_or_mechanism": "50A initially declared contact coverage insufficient after256 events.50B extended the same scale-one diagnostic and reached the second group at335. Both arms had six artificial contacts and remained ineligible as learned-state proof.",
+      "current_disposition": "A fixed stopped range can fail an acceptance budget; it cannot establish that the physical transition can never occur.",
+      "lawful_remedy": "State the budget and observed boundary precisely. Derive timing bounds separately; never infer universal incapacity from a chosen stop or promote diagnostic topology into production.",
+      "acceptance_falsifier": "Report exact first and absent events within the specified range. Keep artificial-contact controls marked nonlearned even if they eventually produce output.",
+      "repair_actions": [
+        "A10",
+        "A14",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP50-03",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP50-03--GUALA_SPEECH_REPAIR_ATTEMPT_50_LEARNED_VOCAL_GESTURE_CAUSAL_IMPACT_2026-09-06.md",
+          "sha256": "5a3d8397a57e3d6a7cffdb375334506de43ee2659734bb0917109947a3187837",
+          "line": 293,
+          "anchor": "## Attempt 50A — artificial missing-contact unblock (first ceiling inconclusive)"
+        },
+        {
+          "source_id": "LSP50-03",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP50-03--GUALA_SPEECH_REPAIR_ATTEMPT_50_LEARNED_VOCAL_GESTURE_CAUSAL_IMPACT_2026-09-06.md",
+          "sha256": "5a3d8397a57e3d6a7cffdb375334506de43ee2659734bb0917109947a3187837",
+          "line": 359,
+          "anchor": "- all four closed-phase motors first discharged together at occurrence `335`;"
+        }
+      ]
+    },
+    {
+      "id": "LS14",
+      "name": "An artificial energy multiplier cannot qualify population recruitment",
+      "classification": "test-only energetic surrogate; forbidden production authority",
+      "historical_requirement_or_mechanism": "50B’s scale-four arm multiplied one source’s work instead of representing four independently powered cells. It produced pressure where scale one’s measured continuation was silent.",
+      "current_disposition": "This was disclosed as a diagnostic, not speech or a lawful energy source. Passing it cannot authorize a factor of four in cognition.",
+      "lawful_remedy": "Actual recruited cells must provide their own finite state and energy. Retire diagnostic multipliers from every product/test-acceptance path.",
+      "acceptance_falsifier": "Account work per real source and show no energy is created by population counts, labels or arithmetic scaling. Verify the unmodified predecessor and all causal controls.",
+      "repair_actions": [
+        "A04",
+        "A10",
+        "A15",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP50-03",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP50-03--GUALA_SPEECH_REPAIR_ATTEMPT_50_LEARNED_VOCAL_GESTURE_CAUSAL_IMPACT_2026-09-06.md",
+          "sha256": "5a3d8397a57e3d6a7cffdb375334506de43ee2659734bb0917109947a3187837",
+          "line": 374,
+          "anchor": "neurons: it was an artificial energetic surrogate for four independently"
+        }
+      ]
+    },
+    {
+      "id": "LS15",
+      "name": "Guided movement was initially credited without organism motor cause",
+      "classification": "explicitly withdrawn lawful-learning claim",
+      "historical_requirement_or_mechanism": "51B called co-aged population growth lawful, but51D records motor_discharges_during_guidance=0. Assisted tissue movement plus a premotor frontier had authored the alleged learned anatomy.",
+      "current_disposition": "Later gates required the exact real learned motor discharge and returned consequence. The stronger earlier claim is withdrawn; induced movement remains a disclosed external experience.",
+      "lawful_remedy": "Separate externally guided experience, organism action, observed sensory association and demonstrated procedural learning. Require the actual law’s causal evidence; no broadened count may substitute.",
+      "acceptance_falsifier": "Guidance-only, sound-only, reflex-only and premotor-only controls cannot receive learned motor-act credit; subsequent unassisted use must depend on retained experience.",
+      "repair_actions": [
+        "A06",
+        "A08",
+        "A10",
+        "A12",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP51-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP51-01--GUALA_SPEECH_REPAIR_ATTEMPT_51_PREMOTOR_POPULATION_2026-09-06.md",
+          "sha256": "a031e4bf674e74efddaabfee16e07f45218e03f195e1471220d34a58b38b56ee",
+          "line": 160,
+          "anchor": "claim. The harness recorded `motor_discharges_during_guidance = 0`: 51B proved"
+        },
+        {
+          "source_id": "LSP51-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP51-01--GUALA_SPEECH_REPAIR_ATTEMPT_51_PREMOTOR_POPULATION_2026-09-06.md",
+          "sha256": "a031e4bf674e74efddaabfee16e07f45218e03f195e1471220d34a58b38b56ee",
+          "line": 157,
+          "anchor": "## 51D — causal-authority correction to 51B"
+        }
+      ]
+    },
+    {
+      "id": "LS16",
+      "name": "Population growth depended on storage order and teacher identity",
+      "classification": "historical atomicity and duplicate-growth defect",
+      "historical_requirement_or_mechanism": "51G/H found sibling teachers could duplicate routes; sequential mutation skipped a needed co-aged source. The claimed target moved from eight to ten routes because two authentic older teachers had to remain.",
+      "current_disposition": "The legitimate improvement is immutable predecessor decisions and preservation, not choosing a convenient route count to pass.",
+      "lawful_remedy": "Derive growth once from the actual event and predecessor family; retain original sources and prove idempotence when later siblings become active. Document why each new source is required.",
+      "acceptance_falsifier": "Permute terminal/regulation order, repeat original and sibling teaching, and cold-continue. Require the same topology and no discarded authentic state.",
+      "repair_actions": [
+        "A03",
+        "A08",
+        "A10",
+        "A14",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP51-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP51-01--GUALA_SPEECH_REPAIR_ATTEMPT_51_PREMOTOR_POPULATION_2026-09-06.md",
+          "sha256": "a031e4bf674e74efddaabfee16e07f45218e03f195e1471220d34a58b38b56ee",
+          "line": 273,
+          "anchor": "source. Regulation storage order had become motor-population authority."
+        },
+        {
+          "source_id": "LSP51-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP51-01--GUALA_SPEECH_REPAIR_ATTEMPT_51_PREMOTOR_POPULATION_2026-09-06.md",
+          "sha256": "a031e4bf674e74efddaabfee16e07f45218e03f195e1471220d34a58b38b56ee",
+          "line": 279,
+          "anchor": "bounded accepted topology is ten routes: two preserved mature teachers plus"
+        }
+      ]
+    },
+    {
+      "id": "LS17",
+      "name": "A local electrical harness omitted the cognitive and returned-consequence loop",
+      "classification": "invalid system-test scope; later corrected",
+      "historical_requirement_or_mechanism": "51J reports prior continuation bypassed formation admission/reassembly and did not apply guided motor recruitment to the body or return consequences. Its temporal rejection was withdrawn.",
+      "current_disposition": "A component harness can test spatial capacity but cannot adjudicate learned temporal recurrence. The corrected full loop remained silent after cold continuation.",
+      "lawful_remedy": "Use the actual production transition and identical returned body/audio path for the system gate. Keep helper tests subordinate and record exactly which stages executed.",
+      "acceptance_falsifier": "Trace stimulus through retained change, cue, real movement, finite sound and sensory return. A harness exit code or nonzero route count cannot close omitted stages.",
+      "repair_actions": [
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP51-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP51-01--GUALA_SPEECH_REPAIR_ATTEMPT_51_PREMOTOR_POPULATION_2026-09-06.md",
+          "sha256": "a031e4bf674e74efddaabfee16e07f45218e03f195e1471220d34a58b38b56ee",
+          "line": 320,
+          "anchor": "## 51J — complete-loop correction rejects recurrence-to-motor sufficiency"
+        },
+        {
+          "source_id": "LSP51-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP51-01--GUALA_SPEECH_REPAIR_ATTEMPT_51_PREMOTOR_POPULATION_2026-09-06.md",
+          "sha256": "a031e4bf674e74efddaabfee16e07f45218e03f195e1471220d34a58b38b56ee",
+          "line": 323,
+          "anchor": "therefore bypassed retained-mosaic admission, reassembly, recurrent-frontier"
+        }
+      ]
+    },
+    {
+      "id": "LS18",
+      "name": "Silence and direct formation membership were misused as proof of incapacity",
+      "classification": "corrected diagnostic inference",
+      "historical_requirement_or_mechanism": "Attempt52 withdraws the inference that missing direct L11/L12 mosaic membership requires a new bridge and distinguishes spontaneous initiation from later partial-cue recall. Its corrected positive cue experiment still failed vocal continuation.",
+      "current_disposition": "Do not replace an unjustified negative with an unjustified positive: general recurrence does not prove speech. Both spontaneous initiation and cued recall remain distinct required capabilities where claimed.",
+      "lawful_remedy": "Specify the precise elicitation condition and prove the actual indirect physical route; do not require direct membership merely for observer convenience or introduce a speech sequence store.",
+      "acceptance_falsifier": "Use lawful partial cue and separate silence/initiative tests, matched learned/prelearning/severed states and authentic post-cue output.",
+      "repair_actions": [
+        "A06",
+        "A09",
+        "A10",
+        "A11",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP52-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP52-01--GUALA_SPEECH_REPAIR_ATTEMPT_52_CUMULATIVE_INTEGRATION_2026-09-07.md",
+          "sha256": "741fd9c9f89744cb9c82bc3f18aecf07ec7b63761f103a4b3a4391a0371dfe7a",
+          "line": 33,
+          "anchor": "   tested spontaneous initiation from silence instead, then incorrectly treated"
+        },
+        {
+          "source_id": "LSP52-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP52-01--GUALA_SPEECH_REPAIR_ATTEMPT_52_CUMULATIVE_INTEGRATION_2026-09-07.md",
+          "sha256": "741fd9c9f89744cb9c82bc3f18aecf07ec7b63761f103a4b3a4391a0371dfe7a",
+          "line": 258,
+          "anchor": "## 52A — one complete copied-body pass rejects the integrated candidate"
+        }
+      ]
+    },
+    {
+      "id": "LS19",
+      "name": "A unit-test bridge was reported as present although the taught body never formed it",
+      "classification": "documented claim contradiction with source-bound distinction",
+      "historical_requirement_or_mechanism": "Attempt52B’s focused fixture formed an experience-to-family link, but its complete result stayed silent. Attempt53 explicitly calls the claim that this anatomy existed in the taught body false. The2fd5fb8 source contains the conditional bridge; source existence cannot prove that its predicates were reached.",
+      "current_disposition": "This is a false activation claim, not proof of deliberate deception. The raw taught bodies/reports are not locally recovered by this slice.",
+      "lawful_remedy": "Withdraw activation claims lacking retained-body evidence. Record the exact post-teaching relation and later physical transfer before claiming causal integration.",
+      "acceptance_falsifier": "The same authenticated mature body must show the new relation actually formed, survived cold restore and caused post-cue output; synthetic fixture anatomy is insufficient.",
+      "repair_actions": [
+        "A06",
+        "A10",
+        "A13",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LSC02",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSC02--resident_cognitive_formation.rs",
+          "sha256": "1f239818a2954ca2eade5eae82df6192e4bf62508420d6d33cf7e0682089f9df",
+          "line": 17359,
+          "anchor": "            for experience_ordering in &causal_path_ordering {"
+        },
+        {
+          "source_id": "LSP53-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP53-01--GUALA_SPEECH_REPAIR_ATTEMPT_53_LEARNED_CUE_TO_VOCAL_ORDERING_2026-09-07.md",
+          "sha256": "f92c4560efb2b87367ba6977888a17272bc4ce585d7a92fc24300e8e13309188",
+          "line": 178,
+          "anchor": "- F-015: Attempt 52's claim that its new current-experience lateral anatomy was"
+        },
+        {
+          "source_id": "LSP52-02",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP52-02--GUALA_SPEECH_REPAIR_ATTEMPT_52_CUMULATIVE_INTEGRATION_2026-09-07.md",
+          "sha256": "7cc5eee2e0800d0f73dc67cd063195ef15759132923ccbd92c7397ed11deb0be",
+          "line": 425,
+          "anchor": "The post-cue WAV remained silent, SHA-256"
+        }
+      ]
+    },
+    {
+      "id": "LS20",
+      "name": "Simultaneous sensory episodes were partitioned so cross-sense association could not form",
+      "classification": "source-verified causal exclusion",
+      "historical_requirement_or_mechanism": "The2fd5fb8 association builder evaluates each occurrence separately and requires at least two source layers within that occurrence. Separate sound-only and body-only episodes therefore fail even when co-admitted in one physical interval.",
+      "current_disposition": "This establishes the printed predicate’s exclusion for that input structure. It does not prove the later candidate fixed all experience association or that the current64 path retains this code.",
+      "lawful_remedy": "Preserve common physical context together with each participant’s exact causal identity. Reconcile the actual full-field plasticity law before changing association construction; do not simply merge every simultaneous input.",
+      "acceptance_falsifier": "Equivalent sensory packaging must preserve the same physical coexperience; unrelated or differently caused movements must remain distinguishable. Check exact retained relations and their subsequent use.",
+      "repair_actions": [
+        "A04",
+        "A06",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LSC02",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSC02--resident_cognitive_formation.rs",
+          "sha256": "1f239818a2954ca2eade5eae82df6192e4bf62508420d6d33cf7e0682089f9df",
+          "line": 15013,
+          "anchor": "    for occurrence in externally_energized_by_occurrence {"
+        },
+        {
+          "source_id": "LSC02",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSC02--resident_cognitive_formation.rs",
+          "sha256": "1f239818a2954ca2eade5eae82df6192e4bf62508420d6d33cf7e0682089f9df",
+          "line": 15039,
+          "anchor": "        if sensory_layer_count < 2 {"
+        },
+        {
+          "source_id": "LSP53-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP53-01--GUALA_SPEECH_REPAIR_ATTEMPT_53_LEARNED_CUE_TO_VOCAL_ORDERING_2026-09-07.md",
+          "sha256": "f92c4560efb2b87367ba6977888a17272bc4ce585d7a92fc24300e8e13309188",
+          "line": 401,
+          "anchor": "## Exact coexisting-sense exclusion found after 53C"
+        }
+      ]
+    },
+    {
+      "id": "LS21",
+      "name": "The broad union repair confused which movement the experience belonged to",
+      "classification": "historically reported identity collapse",
+      "historical_requirement_or_mechanism": "53D combined sound/body inputs into one association and attached it broadly. The reported census shows guided minimum movement producing another route to an already-reached maximum motor; more cycles would repeat wrong topology.",
+      "current_disposition": "Shared context is not permission to collapse participants, directions or causes. The report later rejects this candidate and its compensating cross-source fallback.",
+      "lawful_remedy": "Keep exact occurrence, terminal, direction and physical cause through association, plasticity and later use. Shared sound may participate in multiple distinct experiences without identifying them as the same movement.",
+      "acceptance_falsifier": "Present simultaneous opposing movements with shared sound; verify each retained cause and later consequence without first-item, string or storage-order selection.",
+      "repair_actions": [
+        "A06",
+        "A08",
+        "A10",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP53-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP53-01--GUALA_SPEECH_REPAIR_ATTEMPT_53_LEARNED_CUE_TO_VOCAL_ORDERING_2026-09-07.md",
+          "sha256": "f92c4560efb2b87367ba6977888a17272bc4ce585d7a92fc24300e8e13309188",
+          "line": 669,
+          "anchor": "already motor-connected regulation. The exact guided toward-minimum body"
+        },
+        {
+          "source_id": "LSP53-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP53-01--GUALA_SPEECH_REPAIR_ATTEMPT_53_LEARNED_CUE_TO_VOCAL_ORDERING_2026-09-07.md",
+          "sha256": "f92c4560efb2b87367ba6977888a17272bc4ce585d7a92fc24300e8e13309188",
+          "line": 706,
+          "anchor": "Candidate 53D is rejected as a complete current-body speech repair. Its"
+        }
+      ]
+    },
+    {
+      "id": "LS22",
+      "name": "Moved-body-only association can exclude genuine sensory learning",
+      "classification": "source-verified historical scope restriction; present activation unresolved",
+      "historical_requirement_or_mechanism": "The f0be7e7 snapshot returns no assembly when moved_body_regulations is empty. This is a general association builder called before a vocal-specific mounting helper. It excludes sensory-only coexperience at this boundary, even when sound and sight are real.",
+      "current_disposition": "This commit includes later lean-route work and is not the exact frozen53F test binary. Its restriction requires charter reconciliation; reducing excess speech anatomy cannot silently erase observer-only experience learning.",
+      "lawful_remedy": "Separate a motor-learning evidence requirement from general multimodal memory eligibility. Preserve lawful experience of seeing/hearing another agent as experience, while withholding unearned own-motor credit.",
+      "acceptance_falsifier": "Test own action, assisted movement and observation of another actor independently. A sensory-only experience must not be rejected merely because the pupil did not move; own procedural learning needs its separately specified evidence.",
+      "repair_actions": [
+        "A06",
+        "A08",
+        "A10",
+        "A12",
+        "A16"
+      ],
+      "refs": [
+        {
+          "source_id": "LSC03",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSC03--resident_cognitive_formation.rs",
+          "sha256": "750c615d3a81c290337480f4e3c2f74b4329ee0213ab3c7c712106fe5890543e",
+          "line": 15055,
+          "anchor": "            if local_integrations.is_empty() || moved_body_regulations.is_empty() {"
+        },
+        {
+          "source_id": "LSC03",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSC03--resident_cognitive_formation.rs",
+          "sha256": "750c615d3a81c290337480f4e3c2f74b4329ee0213ab3c7c712106fe5890543e",
+          "line": 9129,
+          "anchor": "        mount_exact_vocal_sensorimotor_routes("
+        }
+      ]
+    },
+    {
+      "id": "LS23",
+      "name": "Later bounded attempts remained failed despite real local improvements",
+      "classification": "preserve improvement and failure separately",
+      "historical_requirement_or_mechanism": "53E preserved same-layer occurrence identity and reportedly grew three missing-direction routes; its first ceiling could not test the second direction. The512-cycle run still failed complete coverage.53F reduced sensory-only duplicate anatomy and failed the same end-to-end gate.",
+      "current_disposition": "These are useful local findings, not completed speech. No longer run or helper pass may be represented as demonstrated learned words.",
+      "lawful_remedy": "Reconcile the entire experience-to-later-action design from frozen source before another candidate. Keep beneficial local identity/atomicity properties only with their whole-organism regression evidence.",
+      "acceptance_falsifier": "Every required stage must be reached by the positive mature-body experiment; record unexecuted later stages as unexecuted. Failure at population learning cannot pass acoustic or lexical gates.",
+      "repair_actions": [
+        "A06",
+        "A10",
+        "A16",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP53-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP53-01--GUALA_SPEECH_REPAIR_ATTEMPT_53_LEARNED_CUE_TO_VOCAL_ORDERING_2026-09-07.md",
+          "sha256": "f92c4560efb2b87367ba6977888a17272bc4ce585d7a92fc24300e8e13309188",
+          "line": 933,
+          "anchor": "## Candidate 53E bounded second-direction result — rejected conclusively"
+        },
+        {
+          "source_id": "LSP53-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP53-01--GUALA_SPEECH_REPAIR_ATTEMPT_53_LEARNED_CUE_TO_VOCAL_ORDERING_2026-09-07.md",
+          "sha256": "f92c4560efb2b87367ba6977888a17272bc4ce585d7a92fc24300e8e13309188",
+          "line": 1085,
+          "anchor": "## Candidate 53F decisive copied-body result — rejected"
+        }
+      ]
+    },
+    {
+      "id": "LS24",
+      "name": "Health and a reported deploy override did not convert speech failure into success",
+      "classification": "historical release/functional truth separation",
+      "historical_requirement_or_mechanism": "Attempt52 records Joe authorizing the failed-copy candidate for deployment, followed by Task1430 health and identity continuity. It explicitly states no live speech or autonomous vocal act was verified.",
+      "current_disposition": "The override is a historical report pending original authority, not present deployment permission. Health, a live task and retained identity are not learned-state equivalence or speech.",
+      "lawful_remedy": "Preserve the failed result and original deployment authority separately. Future release claims must bind exact candidate, body, active path and complete functional acceptance.",
+      "acceptance_falsifier": "A healthy endpoint cannot clear a failed speech gate. Record component, service and functional results independently, including operator exceptions without relabelling them passes.",
+      "repair_actions": [
+        "A02",
+        "A03",
+        "A10",
+        "A17",
+        "A18"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP52-03",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP52-03--GUALA_SPEECH_REPAIR_ATTEMPT_52_CUMULATIVE_INTEGRATION_2026-09-07.md",
+          "sha256": "d3827e22772955a89bf6137d0457ea81335ac4d49ed74ec5cb43047858494a9d",
+          "line": 415,
+          "anchor": "## 52C — explicit operator hot-deploy override"
+        },
+        {
+          "source_id": "LSP52-03",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP52-03--GUALA_SPEECH_REPAIR_ATTEMPT_52_CUMULATIVE_INTEGRATION_2026-09-07.md",
+          "sha256": "d3827e22772955a89bf6137d0457ea81335ac4d49ed74ec5cb43047858494a9d",
+          "line": 458,
+          "anchor": "Functional truth is failure, not closure. The exact pre-deploy copied-body"
+        }
+      ]
+    },
+    {
+      "id": "LS25",
+      "name": "Present inability is not proof of permanent architectural impossibility",
+      "classification": "bounded feasibility judgment",
+      "historical_requirement_or_mechanism": "The history demonstrates repeated broken or unproved joins among multisensory experience, retained relation, later recruitment and ordered articulation. It also preserves real narrow reports of body movement, finite sound, self-hearing and general ordering.",
+      "current_disposition": "There is no accepted learned-speech proof and no demonstrated invariant showing ArcLoom can never support it. The current64 implementation needs its own causal and preservation evidence.",
+      "lawful_remedy": "Answer feasibility by identifying the missing transition and testing its specified physical law on preserved state. If no such lawful mapping exists, declare that capability unimplemented; do not promise emergence or manufacture a controller.",
+      "acceptance_falsifier": "Require experience-dependent, later unguided ordered articulation and grounded use on the exact release, with controls and cold continuation; sound alone never passes.",
+      "repair_actions": [
+        "A03",
+        "A04",
+        "A06",
+        "A10",
+        "A16",
+        "A17"
+      ],
+      "refs": [
+        {
+          "source_id": "LSP53-01",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP53-01--GUALA_SPEECH_REPAIR_ATTEMPT_53_LEARNED_CUE_TO_VOCAL_ORDERING_2026-09-07.md",
+          "sha256": "f92c4560efb2b87367ba6977888a17272bc4ce585d7a92fc24300e8e13309188",
+          "line": 15,
+          "anchor": "component proofs only. Guala cannot presently speak."
+        },
+        {
+          "source_id": "LSP52-03",
+          "path": "docs/guala_reconciliation/sources/later-speech-history/LSP52-03--GUALA_SPEECH_REPAIR_ATTEMPT_52_CUMULATIVE_INTEGRATION_2026-09-07.md",
+          "sha256": "d3827e22772955a89bf6137d0457ea81335ac4d49ed74ec5cb43047858494a9d",
+          "line": 472,
+          "anchor": "custody, and cochlear self-return—remain component truths only; they must not be"
+        }
+      ]
+    }
+  ],
+  "status_authority": "collaborative_todo.md",
+  "full_reconciliation_complete": false,
+  "evidence_gap": "Five named historical raw probe/report paths were checked and absent locally. No tests, native imports, copied-body execution or live refresh occurred."
+}
