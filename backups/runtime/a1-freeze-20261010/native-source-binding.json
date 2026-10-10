@@ -1,0 +1,267 @@
+{
+  "native/guala_core/Cargo.lock": {
+    "image_manifest": "4fea1ce9b215c06b0decd93112fc1d698c0cf844d125fad2850486cb00caca9c",
+    "actual": "4fea1ce9b215c06b0decd93112fc1d698c0cf844d125fad2850486cb00caca9c",
+    "match": true
+  },
+  "native/guala_core/Cargo.toml": {
+    "image_manifest": "ea7e997800d397d2e6f34c62e434af0555cce74b9142c5453b8b38569873f44a",
+    "actual": "ea7e997800d397d2e6f34c62e434af0555cce74b9142c5453b8b38569873f44a",
+    "match": true
+  },
+  "native/guala_core/src/arcloom_neuron.rs": {
+    "image_manifest": "8824748466903ce11333007e3dfe3cd0201e7c88fa9da63abc6c4350f2db181d",
+    "actual": "8824748466903ce11333007e3dfe3cd0201e7c88fa9da63abc6c4350f2db181d",
+    "match": true
+  },
+  "native/guala_core/src/articulated_body_boundary.rs": {
+    "image_manifest": "9546648505a5a207b1bab2a9564c10674319b53e3863a1e8468727087851995e",
+    "actual": "9546648505a5a207b1bab2a9564c10674319b53e3863a1e8468727087851995e",
+    "match": true
+  },
+  "native/guala_core/src/articulatory_arithmetic_tests.rs": {
+    "image_manifest": "55ceec79924915a38a5a007ef51fe1527f5effc99abf5d4aba8fef282e58b08d",
+    "actual": "55ceec79924915a38a5a007ef51fe1527f5effc99abf5d4aba8fef282e58b08d",
+    "match": true
+  },
+  "native/guala_core/src/articulatory_body_boundary_tests.rs": {
+    "image_manifest": "8a4de27fb94860142ff95f7dbca45a703f21a8480420c0ce60dc07819bb447ba",
+    "actual": "8a4de27fb94860142ff95f7dbca45a703f21a8480420c0ce60dc07819bb447ba",
+    "match": true
+  },
+  "native/guala_core/src/auditory.rs": {
+    "image_manifest": "c1ffc7eaf0069ec56bc5e43b34ad0886f06db725766e82695ee04f7bf0afcf8f",
+    "actual": "c1ffc7eaf0069ec56bc5e43b34ad0886f06db725766e82695ee04f7bf0afcf8f",
+    "match": true
+  },
+  "native/guala_core/src/auditory_incremental.rs": {
+    "image_manifest": "059e58d1f0f0dfb5abd7768454451c2e0d67be7ec7a46a8378c21c5cad02ff2f",
+    "actual": "059e58d1f0f0dfb5abd7768454451c2e0d67be7ec7a46a8378c21c5cad02ff2f",
+    "match": true
+  },
+  "native/guala_core/src/auditory_reachability.rs": {
+    "image_manifest": "c87d9db05b46b4f56a4d3fe90048257f317a730a90e9aec364c6d25ebf057c29",
+    "actual": "c87d9db05b46b4f56a4d3fe90048257f317a730a90e9aec364c6d25ebf057c29",
+    "match": true
+  },
+  "native/guala_core/src/body_anatomy_profile_tests.rs": {
+    "image_manifest": "cb9162e16787283e4d34a8ef7431474f48426879a09258b68da8641b7b65a0f4",
+    "actual": "cb9162e16787283e4d34a8ef7431474f48426879a09258b68da8641b7b65a0f4",
+    "match": true
+  },
+  "native/guala_core/src/constitutive.rs": {
+    "image_manifest": "eec3672132b51e8f20d91cd73e75eabacf551e350e9a0617f5b5a3f377199db4",
+    "actual": "eec3672132b51e8f20d91cd73e75eabacf551e350e9a0617f5b5a3f377199db4",
+    "match": true
+  },
+  "native/guala_core/src/cortical_activity_resource_tests.rs": {
+    "image_manifest": "79e5530cd9a446b7560182a7aa1203716e9497e99e1a50c074c6a5a97afdaed2",
+    "actual": "79e5530cd9a446b7560182a7aa1203716e9497e99e1a50c074c6a5a97afdaed2",
+    "match": true
+  },
+  "native/guala_core/src/cortical_articulation_tests.rs": {
+    "image_manifest": "b372013a82bc853e401af4d803457afd29aece8f3d578fc1fe2fe2453227f90c",
+    "actual": "b372013a82bc853e401af4d803457afd29aece8f3d578fc1fe2fe2453227f90c",
+    "match": true
+  },
+  "native/guala_core/src/cortical_column.rs": {
+    "image_manifest": "8062baeca1d58df495df833db9df925b78e7727588417b1d18a7353b285edd99",
+    "actual": "8062baeca1d58df495df833db9df925b78e7727588417b1d18a7353b285edd99",
+    "match": true
+  },
+  "native/guala_core/src/cortical_field_delivery_tests.rs": {
+    "image_manifest": "3784ac1b8fda13496364fd57272c8f501858b9ee390b2b774b62612caa30dfac",
+    "actual": "3784ac1b8fda13496364fd57272c8f501858b9ee390b2b774b62612caa30dfac",
+    "match": true
+  },
+  "native/guala_core/src/cortical_mouth_tests.rs": {
+    "image_manifest": "8242b65cc5e273ff10eb308dd4a368f2b29ee52c765ae308f92810ed3b40c7df",
+    "actual": "8242b65cc5e273ff10eb308dd4a368f2b29ee52c765ae308f92810ed3b40c7df",
+    "match": true
+  },
+  "native/guala_core/src/coupled_synapse.rs": {
+    "image_manifest": "3970e69f0005f346d20c2a8eeb61d21bf559857a47449f1843e54b5e6a7a6f89",
+    "actual": "3970e69f0005f346d20c2a8eeb61d21bf559857a47449f1843e54b5e6a7a6f89",
+    "match": true
+  },
+  "native/guala_core/src/exact_carrier.rs": {
+    "image_manifest": "55eea2775cbd2f2fbd8e2601d418ed2c0edfce185347eeadf107ef423312cfc2",
+    "actual": "55eea2775cbd2f2fbd8e2601d418ed2c0edfce185347eeadf107ef423312cfc2",
+    "match": true
+  },
+  "native/guala_core/src/frame_observability.rs": {
+    "image_manifest": "ad2303774430b09f0514a4ecda73cc1d57fb415dbf8e04109b4a00b947725e5e",
+    "actual": "ad2303774430b09f0514a4ecda73cc1d57fb415dbf8e04109b4a00b947725e5e",
+    "match": true
+  },
+  "native/guala_core/src/functional64_charge.rs": {
+    "image_manifest": "09eff4269b7d2ac49a36fbe2bd1a3be46d8a4398020e051d07ec8496b37b237b",
+    "actual": "09eff4269b7d2ac49a36fbe2bd1a3be46d8a4398020e051d07ec8496b37b237b",
+    "match": true
+  },
+  "native/guala_core/src/functional64_commission_boundary.rs": {
+    "image_manifest": "9eba96164502c2ca11e6f72a9ab9726f135dbac114e6d8c7307bbf0681bd77df",
+    "actual": "9eba96164502c2ca11e6f72a9ab9726f135dbac114e6d8c7307bbf0681bd77df",
+    "match": true
+  },
+  "native/guala_core/src/functional64_contact.rs": {
+    "image_manifest": "f6a08256eb7d97e13637f7027c67a2f9fafeacc2fd625eed448d25ca1a79aef6",
+    "actual": "f6a08256eb7d97e13637f7027c67a2f9fafeacc2fd625eed448d25ca1a79aef6",
+    "match": true
+  },
+  "native/guala_core/src/functional64_contact_predecessor.rs": {
+    "image_manifest": "0486252dc0390df5e4c5e17e69b965589ee40b7a12e02379cc7d1947db7029d3",
+    "actual": "0486252dc0390df5e4c5e17e69b965589ee40b7a12e02379cc7d1947db7029d3",
+    "match": true
+  },
+  "native/guala_core/src/functional64_current_commission.rs": {
+    "image_manifest": "74a86e547719f6e024fcfbbead380fa3b63493802ffe1fa9f2cf8b882006b137",
+    "actual": "74a86e547719f6e024fcfbbead380fa3b63493802ffe1fa9f2cf8b882006b137",
+    "match": true
+  },
+  "native/guala_core/src/functional64_current_commission_tests.rs": {
+    "image_manifest": "15c53ad3fa4e7180db0c25b8619e26d3178d04a3f4f51c868af890de70ff0e08",
+    "actual": "15c53ad3fa4e7180db0c25b8619e26d3178d04a3f4f51c868af890de70ff0e08",
+    "match": true
+  },
+  "native/guala_core/src/functional64_geometry.rs": {
+    "image_manifest": "32bfd98c38c444eeec2f2d62b46fe309067878444935d7a3fdcc3470aa3f270e",
+    "actual": "32bfd98c38c444eeec2f2d62b46fe309067878444935d7a3fdcc3470aa3f270e",
+    "match": true
+  },
+  "native/guala_core/src/functional64_material.rs": {
+    "image_manifest": "14d3493c4672f53ee549fb793bfaf3b7d9f4eee8b8d4845dcce9aace5221c04f",
+    "actual": "14d3493c4672f53ee549fb793bfaf3b7d9f4eee8b8d4845dcce9aace5221c04f",
+    "match": true
+  },
+  "native/guala_core/src/functional64_material_tests.rs": {
+    "image_manifest": "a5f86d159840068ae31ab5f4358af65d9ea353f7ee98baa1bf2cab729e513987",
+    "actual": "a5f86d159840068ae31ab5f4358af65d9ea353f7ee98baa1bf2cab729e513987",
+    "match": true
+  },
+  "native/guala_core/src/functional64_owner.rs": {
+    "image_manifest": "8a32081253636874e282f6596d83755648877158e39bae8c4f51cf90e44e38a9",
+    "actual": "8a32081253636874e282f6596d83755648877158e39bae8c4f51cf90e44e38a9",
+    "match": true
+  },
+  "native/guala_core/src/functional64_owner_boundary.rs": {
+    "image_manifest": "37201443baa88413c3801985a60186caf23f94613986b52e50c295650ba38935",
+    "actual": "37201443baa88413c3801985a60186caf23f94613986b52e50c295650ba38935",
+    "match": true
+  },
+  "native/guala_core/src/functional64_owner_tests.rs": {
+    "image_manifest": "d719755fc92be0b16c130c5f6f3dc9c92bc55d3739f122b9ed7d0c67c734576c",
+    "actual": "d719755fc92be0b16c130c5f6f3dc9c92bc55d3739f122b9ed7d0c67c734576c",
+    "match": true
+  },
+  "native/guala_core/src/functional64_source.rs": {
+    "image_manifest": "0882fa96a85893adef4b834a204a06a4bff711c52e27cbd558e45e5c12027533",
+    "actual": "0882fa96a85893adef4b834a204a06a4bff711c52e27cbd558e45e5c12027533",
+    "match": true
+  },
+  "native/guala_core/src/functional64_source_tests.rs": {
+    "image_manifest": "0741ac1254020d4240784ebd40bae47746a39ea24ec87107a50db252e5556a83",
+    "actual": "0741ac1254020d4240784ebd40bae47746a39ea24ec87107a50db252e5556a83",
+    "match": true
+  },
+  "native/guala_core/src/functional64_work.rs": {
+    "image_manifest": "c9f9765877a3aad56a9ee972a4a0b7dc9db185101c7920f24c3eb397dee41876",
+    "actual": "c9f9765877a3aad56a9ee972a4a0b7dc9db185101c7920f24c3eb397dee41876",
+    "match": true
+  },
+  "native/guala_core/src/joint_uf_source_codec.rs": {
+    "image_manifest": "87e1869ed59178ae3b77865a63feacd8bfd6f6c9aa9d1868e7610e869a11b6cd",
+    "actual": "87e1869ed59178ae3b77865a63feacd8bfd6f6c9aa9d1868e7610e869a11b6cd",
+    "match": true
+  },
+  "native/guala_core/src/joint_uf_source_codec_tests.rs": {
+    "image_manifest": "0f65c2fcbb5d0d09a3f1705e7af7a99cdbd26fe11f0e3bdc6753d88b1f33a43d",
+    "actual": "0f65c2fcbb5d0d09a3f1705e7af7a99cdbd26fe11f0e3bdc6753d88b1f33a43d",
+    "match": true
+  },
+  "native/guala_core/src/joint_uf_vector.rs": {
+    "image_manifest": "3293663734f1a90a73c530324aad0452c29137892bdc98cbd4f5769e397614c9",
+    "actual": "3293663734f1a90a73c530324aad0452c29137892bdc98cbd4f5769e397614c9",
+    "match": true
+  },
+  "native/guala_core/src/joint_uf_vector_tests.rs": {
+    "image_manifest": "667e0f5d1d6304e4bc3f04084d8951504a2c3ef17d19c50bc39b5543d7de95b7",
+    "actual": "667e0f5d1d6304e4bc3f04084d8951504a2c3ef17d19c50bc39b5543d7de95b7",
+    "match": true
+  },
+  "native/guala_core/src/kinematics.rs": {
+    "image_manifest": "10ac03c4da300f169bfe980123305a378b9b51124c4dfc279f9fb6db0a891ab7",
+    "actual": "10ac03c4da300f169bfe980123305a378b9b51124c4dfc279f9fb6db0a891ab7",
+    "match": true
+  },
+  "native/guala_core/src/lib.rs": {
+    "image_manifest": "3ff70b21cf47deb7ccc0ddc527c6108fcefb2e4732f4ff5563779b4390ba559f",
+    "actual": "3ff70b21cf47deb7ccc0ddc527c6108fcefb2e4732f4ff5563779b4390ba559f",
+    "match": true
+  },
+  "native/guala_core/src/mathloom.rs": {
+    "image_manifest": "50b0e524f927032636a9d60bf52f998b24ca948fa4f583ed749dcf2c8b26a751",
+    "actual": "50b0e524f927032636a9d60bf52f998b24ca948fa4f583ed749dcf2c8b26a751",
+    "match": true
+  },
+  "native/guala_core/src/mature_qualification.rs": {
+    "image_manifest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "match": true
+  },
+  "native/guala_core/src/memory_preservation.rs": {
+    "image_manifest": "934a44cbb34a1a56071545ca2836895a76bd3cdda57be5e272b588606bd6e8a8",
+    "actual": "934a44cbb34a1a56071545ca2836895a76bd3cdda57be5e272b588606bd6e8a8",
+    "match": true
+  },
+  "native/guala_core/src/native_current_codec.rs": {
+    "image_manifest": "e6b0a0a233a60195fd114576c2c4606777212ecf3b10badacd17c08663ca9e95",
+    "actual": "e6b0a0a233a60195fd114576c2c4606777212ecf3b10badacd17c08663ca9e95",
+    "match": true
+  },
+  "native/guala_core/src/native_current_codec_tests.rs": {
+    "image_manifest": "54f4a4615e36c265b2a7b8bf9d745c7eb82bff9724c8344e62103408bccf495a",
+    "actual": "54f4a4615e36c265b2a7b8bf9d745c7eb82bff9724c8344e62103408bccf495a",
+    "match": true
+  },
+  "native/guala_core/src/optical_raycast.rs": {
+    "image_manifest": "1b472c74ee17985e7cc4bec17942c73d5504e08884b1208fc5821eeb7a034dee",
+    "actual": "1b472c74ee17985e7cc4bec17942c73d5504e08884b1208fc5821eeb7a034dee",
+    "match": true
+  },
+  "native/guala_core/src/passive_body_source.rs": {
+    "image_manifest": "cca0a39cf1dd1574e24d9a70bdff720f61dc2404f49eaa2977209a38f749750c",
+    "actual": "cca0a39cf1dd1574e24d9a70bdff720f61dc2404f49eaa2977209a38f749750c",
+    "match": true
+  },
+  "native/guala_core/src/persistence_prediction.rs": {
+    "image_manifest": "e1e13e952d69d23aa2241b44f1de57ddf5b4632e9dd74e2177c88d1b1b70fe7d",
+    "actual": "e1e13e952d69d23aa2241b44f1de57ddf5b4632e9dd74e2177c88d1b1b70fe7d",
+    "match": true
+  },
+  "native/guala_core/src/prospective_recombination.rs": {
+    "image_manifest": "6779fa08678a4770d5a13ec6dcfc92ae965836f71d152d0f3b70faf398f4190b",
+    "actual": "6779fa08678a4770d5a13ec6dcfc92ae965836f71d152d0f3b70faf398f4190b",
+    "match": true
+  },
+  "native/guala_core/src/source_ratio.rs": {
+    "image_manifest": "c666d81f9748bc9cc779a3eb6384bd35639550b0d9a1033307850e7d1c2fa6ca",
+    "actual": "c666d81f9748bc9cc779a3eb6384bd35639550b0d9a1033307850e7d1c2fa6ca",
+    "match": true
+  },
+  "native/guala_core/src/ternary_lattice.rs": {
+    "image_manifest": "a5882138cdeb3c034fc55c8c7abe029927a719184f85e594d53ab9e631853abf",
+    "actual": "a5882138cdeb3c034fc55c8c7abe029927a719184f85e594d53ab9e631853abf",
+    "match": true
+  },
+  "native/guala_core/src/virtual_articulated_body.rs": {
+    "image_manifest": "dbdd8d00e2934fe8e85ee122432e5858739131aca4ad6a586a93cd0a14e50a7d",
+    "actual": "dbdd8d00e2934fe8e85ee122432e5858739131aca4ad6a586a93cd0a14e50a7d",
+    "match": true
+  },
+  "native/guala_core/src/virtual_articulatory_body.rs": {
+    "image_manifest": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f",
+    "actual": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f",
+    "match": true
+  }
+}

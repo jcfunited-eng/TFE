@@ -1,0 +1,49 @@
+{
+  "utc": "2026-10-10T19:05:39.594556+00:00",
+  "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1614",
+  "events": [
+    {
+      "id": "4f8f5e63-ea78-4fa7-8c0f-93613ec34b75",
+      "createdAt": "2026-10-10 18:48:38.967000+00:00",
+      "message": "(service dsf-ai-service-lb) has reached a steady state."
+    },
+    {
+      "id": "5a2abc2f-1634-42b1-ad79-9e55943e6d3f",
+      "createdAt": "2026-10-10 18:48:10.490000+00:00",
+      "message": "(service dsf-ai-service-lb) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:418384447921:targetgroup/dsf-ai-tg/40d977cf3f3daf52)"
+    },
+    {
+      "id": "7d43eb0f-68c4-44a9-94ea-955436b4ca2c",
+      "createdAt": "2026-10-10 18:48:10.438000+00:00",
+      "message": "(service dsf-ai-service-lb, taskSet ecs-svc/4887292854040984502) has begun draining connections on 1 tasks."
+    },
+    {
+      "id": "862575d2-659d-4a09-9ef5-5c45cbd87d5a",
+      "createdAt": "2026-10-10 18:48:10.432000+00:00",
+      "message": "(service dsf-ai-service-lb) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:418384447921:targetgroup/dsf-ai-tg/40d977cf3f3daf52)"
+    },
+    {
+      "id": "d0661a66-07fc-4cdc-a99b-6cb8ed46dfec",
+      "createdAt": "2026-10-10 18:48:01.033000+00:00",
+      "message": "(service dsf-ai-service-lb) has stopped 1 running tasks: (task 9885a410e9844358b3c6595c29af7d95)."
+    },
+    {
+      "id": "b3566b41-fa5e-47a1-b698-d8ed7cf21af6",
+      "createdAt": "2026-10-10 18:48:01.032000+00:00",
+      "message": "(service dsf-ai-service-lb) (task 9885a410e9844358b3c6595c29af7d95) failed container health checks."
+    }
+  ],
+  "tasks": [
+    {
+      "taskArn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/231167b25187486f8b071776c5501849",
+      "taskDefinitionArn": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1614",
+      "lastStatus": "RUNNING",
+      "healthStatus": "HEALTHY",
+      "createdAt": "2026-10-10 18:46:36.115000+00:00",
+      "startedAt": "2026-10-10 18:47:36.134000+00:00",
+      "stoppingAt": null,
+      "stopCode": null,
+      "stoppedReason": null
+    }
+  ]
+}

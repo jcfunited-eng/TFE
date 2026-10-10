@@ -1,0 +1,127 @@
+{
+  "events": [
+    {
+      "timestamp": 1791655578656,
+      "message": "INFO:     Started server process [1]",
+      "ingestionTime": 1791655582999
+    },
+    {
+      "timestamp": 1791655578656,
+      "message": "INFO:     Waiting for application startup.",
+      "ingestionTime": 1791655582999
+    },
+    {
+      "timestamp": 1791655591763,
+      "message": "INFO:     Application startup complete.",
+      "ingestionTime": 1791655592979
+    },
+    {
+      "timestamp": 1791655591764,
+      "message": "INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)",
+      "ingestionTime": 1791655592979
+    },
+    {
+      "timestamp": 1791656420089,
+      "message": "FATAL: physical actor stopped at tick 4234932 - ValueError('Material(UnresolvedEvent(\"input path finite tail budget\"))')",
+      "ingestionTime": 1791656422979
+    },
+    {
+      "timestamp": 1791656420089,
+      "message": "Traceback (most recent call last):",
+      "ingestionTime": 1791656422979
+    },
+    {
+      "timestamp": 1791656420090,
+      "message": "  File \"/app/dsf_ai_service/lean_actor.py\", line 414, in _run",
+      "ingestionTime": 1791656422979
+    },
+    {
+      "timestamp": 1791656420090,
+      "message": "    self._settle_unattended()",
+      "ingestionTime": 1791656422979
+    },
+    {
+      "timestamp": 1791656420090,
+      "message": "  File \"/app/dsf_ai_service/lean_actor.py\", line 448, in _settle_unattended",
+      "ingestionTime": 1791656422979
+    },
+    {
+      "timestamp": 1791656420090,
+      "message": "    result = self._physical.unattended(self._runtime, self._world)",
+      "ingestionTime": 1791656422979
+    },
+    {
+      "timestamp": 1791656420090,
+      "message": "             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+      "ingestionTime": 1791656422979
+    },
+    {
+      "timestamp": 1791656420090,
+      "message": "  File \"/app/dsf_ai_service/guala_functional64_loop.py\", line 91, in unattended",
+      "ingestionTime": 1791656422979
+    },
+    {
+      "timestamp": 1791656420090,
+      "message": "    return self._advance(runtime, world, None)",
+      "ingestionTime": 1791656422979
+    },
+    {
+      "timestamp": 1791656420090,
+      "message": "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+      "ingestionTime": 1791656422979
+    },
+    {
+      "timestamp": 1791656420090,
+      "message": "  File \"/app/dsf_ai_service/guala_functional64_loop.py\", line 162, in _advance",
+      "ingestionTime": 1791656422979
+    },
+    {
+      "timestamp": 1791656420090,
+      "message": "    own_ear, _rendered) = native.prepare_millisecond()",
+      "ingestionTime": 1791656422979
+    },
+    {
+      "timestamp": 1791656420090,
+      "message": "                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+      "ingestionTime": 1791656422979
+    },
+    {
+      "timestamp": 1791656420090,
+      "message": "ValueError: Material(UnresolvedEvent(\"input path finite tail budget\"))",
+      "ingestionTime": 1791656422979
+    },
+    {
+      "timestamp": 1791658175587,
+      "message": "INFO:     Shutting down",
+      "ingestionTime": 1791658177977
+    },
+    {
+      "timestamp": 1791658175688,
+      "message": "INFO:     Waiting for application shutdown.",
+      "ingestionTime": 1791658177977
+    },
+    {
+      "timestamp": 1791658175688,
+      "message": "INFO:     Application shutdown complete.",
+      "ingestionTime": 1791658177977
+    },
+    {
+      "timestamp": 1791658175688,
+      "message": "INFO:     Finished server process [1]",
+      "ingestionTime": 1791658177977
+    }
+  ],
+  "nextForwardToken": "f/39955312458882301638131702250344191229430386514449334275/s",
+  "nextBackwardToken": "b/39955254543133397207750420604419106299470514504146288640/s",
+  "ResponseMetadata": {
+    "RequestId": "8d5cd568-9379-4060-884b-1ee136b4052a",
+    "HTTPStatusCode": 200,
+    "HTTPHeaders": {
+      "x-amzn-requestid": "8d5cd568-9379-4060-884b-1ee136b4052a",
+      "content-type": "application/x-amz-json-1.1",
+      "content-length": "4478",
+      "date": "Sat, 10 Oct 2026 19:06:22 GMT"
+    },
+    "RetryAttempts": 0
+  }
+}

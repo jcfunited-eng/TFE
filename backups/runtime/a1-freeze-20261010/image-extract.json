@@ -1,0 +1,36 @@
+{
+  "container": "5c72ec225c4d777c7cdeda609b2b40d45d8507df0ac9ec86a7ed64108257c237",
+  "image": "sha256:a28b588686196947d95f59dc2cf7ab8f90ab38c0fdce7cd5f924da6bcd5aeb29",
+  "files": {
+    "/app/release_manifest.json": {
+      "copied": true,
+      "error": null,
+      "sha256": "e8efbbcb1afdefb1dd65f3a4e80c443b60220efc3ff12e565437fb7c26d8fcff"
+    },
+    "/opt/release_manifest.json": {
+      "copied": true,
+      "error": null,
+      "sha256": "e8efbbcb1afdefb1dd65f3a4e80c443b60220efc3ff12e565437fb7c26d8fcff"
+    },
+    "/usr/local/lib/python3.11/site-packages/guala_core/guala_core.cpython-311-x86_64-linux-gnu.so": {
+      "copied": true,
+      "error": null,
+      "sha256": "853c6f7edd03a875e6086fce13aad8da2fa166bd4a6e12d0d0b153e4cf471ee3"
+    },
+    "/app/dsf_ai_service/lean_actor.py": {
+      "copied": true,
+      "error": null,
+      "sha256": "a92a571a4e9276321273a907c630bf69a11947b52714f63effdef14da4ded6f8"
+    },
+    "/app/dsf_ai_service/lean_production_app.py": {
+      "copied": true,
+      "error": null,
+      "sha256": "e0eae159c9aac1038cecb7effa10fca158a058f9e493b5b97a196abbfba5c9da"
+    },
+    "/app/dsf_ai_service/guala_functional64_loop.py": {
+      "copied": true,
+      "error": null,
+      "sha256": "59c5044d425e0482f93a1997423f4df846d8418a83e3b08bbbdbdfe1503c8fc6"
+    }
+  }
+}

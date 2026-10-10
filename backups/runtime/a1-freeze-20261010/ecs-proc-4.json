@@ -1,0 +1,70 @@
+{
+  "utc": 1791658966.872792,
+  "hz": 100,
+  "threads": [
+    [
+      "1",
+      "S",
+      1363,
+      231,
+      "ep_poll"
+    ],
+    [
+      "27",
+      "S",
+      10,
+      0,
+      "futex_wait_queue"
+    ],
+    [
+      "28",
+      "S",
+      10,
+      0,
+      "futex_wait_queue"
+    ],
+    [
+      "29",
+      "S",
+      10,
+      0,
+      "futex_wait_queue"
+    ],
+    [
+      "168",
+      "S",
+      0,
+      0,
+      "futex_wait_queue"
+    ],
+    [
+      "169",
+      "S",
+      0,
+      0,
+      "futex_wait_queue"
+    ]
+  ],
+  "cgroup": {},
+  "files": {
+    "dsf_ai_service/lean_actor.py": "a92a571a4e9276321273a907c630bf69a11947b52714f63effdef14da4ded6f8",
+    "dsf_ai_service/lean_production_app.py": "e0eae159c9aac1038cecb7effa10fca158a058f9e493b5b97a196abbfba5c9da"
+  },
+  "status": [
+    "VmHWM:\t 2925404 kB",
+    "VmRSS:\t 2058496 kB",
+    "Threads:\t6"
+  ],
+  "cgroup_membership": "12:memory:/ecs/231167b25187486f8b071776c5501849/231167b25187486f8b071776c5501849-0162997303\n11:hugetlb:/ecs/231167b25187486f8b071776c5501849/231167b25187486f8b071776c5501849-0162997303\n10:freezer:/ecs/231167b25187486f8b071776c5501849/231167b25187486f8b071776c5501849-0162997303\n9:blkio:/ecs/231167b25187486f8b071776c5501849/231167b25187486f8b071776c5501849-0162997303\n8:devices:/ecs/231167b25187486f8b071776c5501849/231167b25187486f8b071776c5501849-0162997303\n7:net_cls,net_prio:/ecs/231167b25187486f8b071776c5501849/231167b25187486f8b071776c5501849-0162997303\n6:cpu,cpuacct:/ecs/231167b25187486f8b071776c5501849/231167b25187486f8b071776c5501849-0162997303\n5:cpuset:/ecs/231167b25187486f8b071776c5501849/231167b25187486f8b071776c5501849-0162997303\n4:perf_event:/ecs/231167b25187486f8b071776c5501849/231167b25187486f8b071776c5501849-0162997303\n3:pids:/ecs/231167b25187486f8b071776c5501849/231167b25187486f8b071776c5501849-0162997303\n2:misc:/ecs/231167b25187486f8b071776c5501849/231167b25187486f8b071776c5501849-0162997303\n1:name=systemd:/ecs/231167b25187486f8b071776c5501849/231167b25187486f8b071776c5501849-0162997303\n0::/ecs/231167b25187486f8b071776c5501849/231167b25187486f8b071776c5501849-0162997303\n",
+  "maps": [
+    "7fda6bd84000-7fda6bdd3000 r--p 00000000 103:00 156548                    /usr/local/lib/python3.11/site-packages/guala_core/guala_core.cpython-311-x86_64-linux-gnu.so",
+    "7fda6bdd3000-7fda6bf54000 r-xp 0004e000 103:00 156548                    /usr/local/lib/python3.11/site-packages/guala_core/guala_core.cpython-311-x86_64-linux-gnu.so",
+    "7fda6bf54000-7fda6bf62000 r--p 001ce000 103:00 156548                    /usr/local/lib/python3.11/site-packages/guala_core/guala_core.cpython-311-x86_64-linux-gnu.so",
+    "7fda6bf62000-7fda6bf64000 rw-p 001db000 103:00 156548                    /usr/local/lib/python3.11/site-packages/guala_core/guala_core.cpython-311-x86_64-linux-gnu.so"
+  ],
+  "tools": {
+    "py-spy": null,
+    "perf": null,
+    "gdb": null
+  }
+}

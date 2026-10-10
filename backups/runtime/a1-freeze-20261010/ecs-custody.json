@@ -1,0 +1,36 @@
+{
+  "utc": 1791659299.2671745,
+  "loaded_native_sha256": "853c6f7edd03a875e6086fce13aad8da2fa166bd4a6e12d0d0b153e4cf471ee3",
+  "memory/memory.usage_in_bytes": "2228629504\n",
+  "memory/memory.max_usage_in_bytes": "3069698048\n",
+  "memory/memory.limit_in_bytes": "9223372036854771712\n",
+  "memory/memory.failcnt": "0\n",
+  "memory/memory.oom_control": "oom_kill_disable 0\nunder_oom 0\noom_kill 0\n",
+  "cpu/cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0\nnr_bursts 0\nburst_time 0\n",
+  "cpu/cpu.cfs_quota_us": "-1\n",
+  "cpu/cpu.cfs_period_us": "100000\n",
+  "paired_top_entries": [
+    {
+      "name": "world-generations",
+      "bytes": 6144,
+      "mtime": 1791652816.83
+    },
+    {
+      "name": "CURRENT.stalled-710402-1789354999",
+      "bytes": 255,
+      "mtime": 1789354288.058
+    },
+    {
+      "name": "body-generations",
+      "bytes": 6144,
+      "mtime": 1791652816.818
+    },
+    {
+      "name": "CURRENT",
+      "bytes": 255,
+      "mtime": 1791652816.797
+    }
+  ],
+  "current_hex": "474c504149523032020031636334653730612d663261302d343463352d613131312d663461356263393135636331af9e400000000000eb48ab7fa17e6ba50b8b6bc811260e48427724bada692b23e3b0d9352c93560f254e5018000000003c02a347826152cfa1254ee4a14b45bbc6adf7521093b690b36c738e1b87b932973417000000000001ad9e40000000000027a5d538351e62a4f6030e728bc8339ce430f0c06030bc878c60b871648af99a2e1e9003000000005ca9c6b980073d3e349a65561fef3de711a5299427d9fd06c5f00227970e20bd3322100000000000a784e008a02bed482ae8d21f2b59af38dd381e9437916e9fb494b3a3cd9ef036",
+  "sha256": "c8504638dc4678d9a338c8bde8f3d2f4ad3928c7c4dd5ad638c63495d3cc46e1"
+}

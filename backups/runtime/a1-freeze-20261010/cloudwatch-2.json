@@ -1,0 +1,107 @@
+{
+  "events": [
+    {
+      "timestamp": 1791658040907,
+      "message": "INFO:     Started server process [1]",
+      "ingestionTime": 1791658045344
+    },
+    {
+      "timestamp": 1791658040907,
+      "message": "INFO:     Waiting for application startup.",
+      "ingestionTime": 1791658045344
+    },
+    {
+      "timestamp": 1791658054038,
+      "message": "INFO:     Application startup complete.",
+      "ingestionTime": 1791658055322
+    },
+    {
+      "timestamp": 1791658054039,
+      "message": "INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)",
+      "ingestionTime": 1791658055322
+    },
+    {
+      "timestamp": 1791658907858,
+      "message": "FATAL: physical actor stopped at tick 4234932 - ValueError('Material(UnresolvedEvent(\"input path finite tail budget\"))')",
+      "ingestionTime": 1791658910320
+    },
+    {
+      "timestamp": 1791658907859,
+      "message": "Traceback (most recent call last):",
+      "ingestionTime": 1791658910320
+    },
+    {
+      "timestamp": 1791658907859,
+      "message": "  File \"/app/dsf_ai_service/lean_actor.py\", line 414, in _run",
+      "ingestionTime": 1791658910320
+    },
+    {
+      "timestamp": 1791658907859,
+      "message": "    self._settle_unattended()",
+      "ingestionTime": 1791658910320
+    },
+    {
+      "timestamp": 1791658907859,
+      "message": "  File \"/app/dsf_ai_service/lean_actor.py\", line 448, in _settle_unattended",
+      "ingestionTime": 1791658910320
+    },
+    {
+      "timestamp": 1791658907859,
+      "message": "    result = self._physical.unattended(self._runtime, self._world)",
+      "ingestionTime": 1791658910320
+    },
+    {
+      "timestamp": 1791658907859,
+      "message": "             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+      "ingestionTime": 1791658910320
+    },
+    {
+      "timestamp": 1791658907859,
+      "message": "  File \"/app/dsf_ai_service/guala_functional64_loop.py\", line 91, in unattended",
+      "ingestionTime": 1791658910320
+    },
+    {
+      "timestamp": 1791658907859,
+      "message": "    return self._advance(runtime, world, None)",
+      "ingestionTime": 1791658910320
+    },
+    {
+      "timestamp": 1791658907859,
+      "message": "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+      "ingestionTime": 1791658910320
+    },
+    {
+      "timestamp": 1791658907859,
+      "message": "  File \"/app/dsf_ai_service/guala_functional64_loop.py\", line 162, in _advance",
+      "ingestionTime": 1791658910320
+    },
+    {
+      "timestamp": 1791658907859,
+      "message": "    own_ear, _rendered) = native.prepare_millisecond()",
+      "ingestionTime": 1791658910320
+    },
+    {
+      "timestamp": 1791658907859,
+      "message": "                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+      "ingestionTime": 1791658910320
+    },
+    {
+      "timestamp": 1791658907859,
+      "message": "ValueError: Material(UnresolvedEvent(\"input path finite tail budget\"))",
+      "ingestionTime": 1791658910320
+    }
+  ],
+  "nextForwardToken": "f/39955328786841214391496579297040788080249541422753579021/s",
+  "nextBackwardToken": "b/39955309453165563034975784450675003107548080734297784320/s",
+  "ResponseMetadata": {
+    "RequestId": "3e9a7376-979e-4754-a99e-88a27310a19a",
+    "HTTPStatusCode": 200,
+    "HTTPHeaders": {
+      "x-amzn-requestid": "3e9a7376-979e-4754-a99e-88a27310a19a",
+      "content-type": "application/x-amz-json-1.1",
+      "content-length": "3775",
+      "date": "Sat, 10 Oct 2026 19:03:05 GMT"
+    },
+    "RetryAttempts": 0
+  }
+}

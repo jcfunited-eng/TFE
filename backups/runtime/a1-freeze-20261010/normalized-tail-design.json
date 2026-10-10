@@ -1,0 +1,28 @@
+{
+  "scope": "Scaled stopping-criterion design verified on independent tiny-charge counterexample only; no physical output serialization, product implementation, live replay or speed qualification",
+  "result": {
+    "degree": 30,
+    "scales_binary_exponent": [
+      -488,
+      -488
+    ],
+    "budgets": [
+      4.925250774549309e-32,
+      4.9201262289254464e-32,
+      4.9201262289254464e-32
+    ],
+    "tails": [
+      3.1914011588313124e-33,
+      1.780399159009933e-32,
+      1.780399159009933e-32
+    ],
+    "normalized_integrals": [
+      -0.45616181576890696,
+      0.23449750534054925
+    ],
+    "relative_errors_vs_100_digit_held_capacitance_law": [
+      7.124724524889443e-17,
+      2.9296652847776897e-16
+    ]
+  }
+}

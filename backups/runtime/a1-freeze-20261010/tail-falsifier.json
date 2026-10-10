@@ -1,0 +1,22 @@
+{
+  "kind": "independent arithmetic falsifier of image-bound expression; not captured live operands",
+  "r0": -1e-147,
+  "v0": 1e-147,
+  "a": 1.25,
+  "z": 0.0,
+  "budgets": [
+    6.1629758220391535e-179,
+    -5e-324,
+    -5e-324
+  ],
+  "result": {
+    "refusal": "input path finite tail budget",
+    "degree": 108,
+    "tails": [
+      2.32936311e-315,
+      1.5e-323,
+      1.5e-323
+    ]
+  },
+  "reason": "down of a positive budget that rounds to zero becomes negative smallest subnormal; nonnegative tail can never satisfy it"
+}
