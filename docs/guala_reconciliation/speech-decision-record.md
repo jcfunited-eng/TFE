@@ -1,5 +1,8 @@
 # Speech: engineering verdict, failures and required solution
 
+**Latest direction, October 10:** Joe now permits consideration of bounded adaptive learning and explicitly requires an intrinsic need to learn. The [revised worked hypothetical](speech-complete-hypothetical-loop.md) joins that drive to sensorimotor acquisition, temporal traces, actual need/social consequences and native speech. Its local learning rule family is a proposal, not a ratified numerical law. Earlier blanket no-ML language is historical to the extent superseded by this clarification; retired lookups, hidden policies, false evidence and memory resets remain rejected.
+
+
 **Guala's current learned, intelligible, grounded speech is not demonstrated. There is no proof here that ArcLoom can never support speech, and no basis to promise that it inevitably will.** The required test is the functional chain below. A more microscopic mouth or a new research program is not the answer to missing retained causation.
 
 ## Concrete implementation support and first failure report

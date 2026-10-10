@@ -85,5 +85,18 @@
     "missing": "Derived outcome-to-selective-retention mechanism linking temporal causality, need fulfillment and social consequences.",
     "new_product_verification": false,
     "approval_to_implement_reward_learning": false
+  },
+  "learning_drive_revision": {
+    "at_utc": "2026-10-10T16:15:14.465419+00:00",
+    "status": "worked hypothetical; candidate rule family only",
+    "intrinsic_learning_drive_required": true,
+    "bounded_adaptive_learning_considered": true,
+    "numerical_law_ratified": false,
+    "production_changed": false,
+    "classification": [
+      "online associative/predictive learning proposal",
+      "local outcome-modulated reinforcement learning proposal"
+    ],
+    "scope": "Existing 64 columns, full DSF, native output, preserved acquired state and bounded execution. No framework/model/lookup approval."
   }
 }

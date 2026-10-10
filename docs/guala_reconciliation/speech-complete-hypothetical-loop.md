@@ -1,183 +1,92 @@
-# Speech loop: hypothetical route with an unresolved consequence-learning mechanism
+# Bounded learning-driven speech: a worked hypothetical
 
-## Correction: consequences, need fulfillment and social interaction
+**Requested architecture, not an implementation claim.** Joe's October 10 clarification permits consideration of limited, explicitly classified adaptive learning and requires an intrinsic need to learn. This proposal uses existing 64-column sensing, recurrence and native output with an online local learning mechanism. It adds no TensorFlow dependency, pretrained model, word dictionary, action-value table, TTS or separate Python cognitive chooser. No numerical learning law is ratified or installed here. “Lightweight” must be established through measured state and work bounds, not by a label.
 
-**A1 withdraws the claim that the earlier account is a complete causal learning design.** It describes a conditional sensory/motor/acoustic route, but assumes rather than derives how outcomes selectively alter retained experience and future communication. Joe identified the missing links on October 10, 2026: causality, need fulfillment and social consequences. This correction governs the hypothetical account retained below. No product defect is claimed newly verified by this conceptual review.
+The earlier sensory-to-motor account remains in Git history. A1 withdrew its completeness claim because it assumed the consequence-to-retention mechanism. This revision supplies an explicit candidate learning architecture, including intrinsic motivation and delayed consequences; the candidate's numerical derivation, native integration and behavioral qualification remain open. In the worked hypothetical, those implementations and tests have succeeded. That is not evidence that today's pupil can speak.
 
-The required additional loop is actual internal condition → context-dependent action or communication → actual environmental/other-participant response → sensed outcome and any real change in internal condition → selective retained change → later context-sensitive use. An utterance can affect another participant, who supplies food or continues interaction. Eating can change material reserve; receiving a smile or spoken response does not itself add nutritional energy. The social and nutritional consequences must remain distinct.
+## The chosen hypothetical mechanism
 
-The specific missing design obligation is temporal causal attribution: which continuing neuronal/contact state carries the earlier activity until the consequence arrives, how the actual consequence reaches that state, why the resulting local transition changes some retained relations rather than every recently active contact, and how this changes later native behavior. Existing recurrence may supply the required history; a new trace structure is not automatically required. A trace of recent activity is not itself proof that the activity caused the outcome. Neither the prior yield equation nor a generic statement that experience changes contacts closes this obligation.
+Use **bounded online associative/predictive learning plus local, outcome-modulated plasticity with retained activity traces** inside the existing recurrent substrate. Where outcome modulation reinforces later behavior, classify that component as reinforcement learning; where observed consequences supply prediction targets, classify the corresponding learning explicitly. “Physical” and “native” are not exemptions. A general-purpose deep-learning framework is not a prerequisite for these rules.
 
-The earlier local energy expression lambda*(u-a*v)^2/2 and its yield return are compatible with an associative parameter-fitting interpretation unless their independently justified constitutive meaning and actual use establish the claimed material mechanism. Calling the expression energy does not settle that classification. Conversely, minimizing a physical potential does not, by itself, make a physical system an ML algorithm. The mechanism, derivation and use require classification together.
+This is a proposed extension of the learning specification, not a claim that today's yield law already implements the proposal. The relationship between learned contact change and the existing material bounds/work accounting must be specified and ratified before code. Do not hide a new learning-rate update inside the old plastic_return function or silently replace the unchanged kernel.
 
-### Distinctions that withstand scrutiny
+Let X be the persistent native state, G its adaptive contact state, and F the complete joint DSF input with all required fields, local histories and relations. Add only the bounded local state needed for prediction, ongoing activity history and learning-drive dynamics. Body reserve, sensed social consequences and epistemic conditions remain distinct inputs to this state. They are not flattened into a single global score that ranks actions.
 
-| Mechanism | Honest classification boundary |
-|---|---|
-| Food really changes retained energy/material state; this changes available work and sensed internal conditions | Physical/environmental regulation. A numeric reservoir is not automatically an evaluative reward score. It does not by itself explain which earlier action should be retained. |
-| Deficit reduction is converted into reward and used to learn behavior maximizing expected return | Reinforcement learning, even if the reward is internal, deterministic, biologically named, local, or represented by several quantities. |
-| Another participant responds through actual sound, movement, contact or shared activity | Social experience. It becomes reinforcing only if a specified substrate mechanism changes retention or later behavior in consequence. A smiling image or a positive phrase has no inherently installed positive meaning. |
-| A semantic positive-response detector produces points, multiplies plasticity or ranks utterances | A constructed evaluator; if it trains a reward-seeking policy, classify it as such. Calling it dopamine, social energy or affection does not exempt it. |
-| Approved local material change carries actual sensed history into later action | A candidate permitted physical-learning mechanism, subject to derivation and executable proof. It is not automatically outside every broad definition of machine learning. |
+The following trace rule illustrates the selected mechanism family:
 
-Internal origin is not an exemption from RL: [Keramati and Gutkin's primary homeostatic RL paper](https://elifesciences.org/articles/04811.pdf) explicitly constructs rewards from physiological need fulfillment. Neuroscience terminology is also no exemption: [Schmidgall et al.'s primary study](https://www.frontiersin.org/journals/neuroscience/articles/10.3389/fnins.2023.1183321/full) implements learning with synaptic plasticity and neuromodulation together with gradient-based meta-learning. These are examples of overlapping mechanisms, not evidence about Guala's active implementation.
+    tau_e * de_ij/dt = -e_ij + c_ij(t)
+    dg_ij/dt = eta_ij * e_ij(t) * m_j(t).
 
-The proposed next specification must identify the actual need/interoceptive producers in functional64_source.rs and the owner, their consuming dynamics in functional64_material.rs, the retained participating history, the local outcome-to-plasticity path, native output and serialization. These are existing investigation/implementation destinations, not a claim that a new modulator is already ratified or that any identified function should be patched with a reward multiplier. Social consequence ingress must be real sensory occurrence; do not add a positive-phrase dictionary, automatic word recognizer or teacher score to the pupil. Any innate functional sensitivities require explicit specification; learned social valence cannot simply be assumed.
+Here c_ij is actual participating local activity, e_ij retains its recent influence, and m_j is a local signed learning signal delivered through specified sensory/internal pathways. tau_e and eta_ij require explicit units, range, retention horizon and a reviewed derivation or declared engineered choice. A physically valid, admitted transition must settle any resulting material/work effect; the expression is not permission to overwrite conductance for free. The trace marks participation, not infallible proof of causation. Matched outcome-contingency tests remain necessary. Exact c_ij, m_j, bounds and coefficient values are open implementation-specification parameters; no invented numerical values are presented as settled physics.
 
-One decisive qualification design is a bounded comparison on authenticated copies: keep sensed cues comparable while changing whether an actual action produces its consequence; separate actual nutrition from praise/attention; compare relevant internal conditions; and test later behavior after the actual causal relation changes. The retained changes must depend on actual outcomes and transfer beyond a fixed cue-response pairing. This is a proposed diagnostic specification, not a run, pass, new production intervention or permission to reset the organism. A program can pass such behavior checks using RL, so source/update-law classification remains independently necessary.
+This mechanism makes the previously missing function concrete: an actual delayed outcome can change the still-retained participating relation. It does not require a word-indexed payoff entry. A local learning signal also does not constitute an action chooser: subsequent actions still arise from the full recurrent substrate, with all applicable field and body inputs present.
 
-Learned association is not inherently a dictionary lookup, and the omissions do not prove that ArcLoom can never produce speech. They do invalidate a claim that the preceding account supplies a complete mechanism for self-directed, context-sensitive communication.
+## 1. A need to learn exists even when food is sufficient
 
-**No unconditional “ML-free” claim is supported.** [NIST's glossary](https://csrc.nist.gov/glossary/term/machine_learning) uses a broad definition involving adaptation from data to improve accuracy. A defensible project statement must disclose experience-dependent physical adaptation and name exactly which fitted models, reward-optimized policies, semantic lookups and external inference mechanisms are excluded and independently verified. This is a recommendation to make the constraint auditable, not an amendment of Joe's existing prohibitions or approval to implement RL. If the eventual necessary rule falls inside a forbidden category, report the conflict before implementation; do not rename it.
+Specify an **intrinsic drive to improve prediction and control**, independent of immediate hunger relief or caretaker praise. It must causally sustain attention, investigation and practice when nourishment is sufficient and the caretaker is absent. It is a functional motivational mechanism, not a conserved quantity called learning energy.
 
-## Earlier hypothetical account — retained with the correction above
+The proposed drive uses unresolved reachable structure together with demonstrated learning progress. For a sensory/control coordinate j, an actual pre-outcome prediction gives residual epsilon_j(t)=y_j(t)-yhat_j(t). Compare prediction/control performance across comparable later experiences to determine whether engaging that structure is improving competence. This assessment remains local/contextual; it does not replace the full DSF input with a scalar novelty score or rank a menu of activities.
 
+Unencountered structure can initiate native exploration; measurable improvement can sustain it; a mastered activity provides little further learning progress. Persistent unpredictable noise must not remain attractive merely because its residual is large. A learning-progress objective is an explicitly engineered motivation proposal, not a first-principles law inferred from DSF. Its comparison windows, contextual comparability and influence on native drive need specification. Noise rejection, initial exploration and re-engagement after a real change are required tests, not benefits guaranteed by the phrase learning progress.
 
-**Status: proposed functional account requested by Joe on October 10, 2026. Every unproved capability below is treated as successfully resolved for this hypothetical, not reported as an implemented or verified result.** This document supplements the [speech decision](speech-decision-record.md). It neither ratifies a new material law nor closes the reconciliation or speech qualification.
+Primary work on [intrinsic motivation through learning progress](https://www.pyoudeyer.com/ims.pdf) demonstrates this kind of distinction in robots. Its implementation is not adopted wholesale and is not proof that Guala has the mechanism. Work on [local online learning in recurrent spiking networks](https://www.nature.com/articles/s41467-020-17236-y) supports the availability of such learning families, not a performance guarantee or endorsement of importing its approximations into ArcLoom.
 
-The answer to the anatomy question is yes: vocal machinery can be overengineered. Guala requires a controllable sound-producing instrument, its connection to retained cognition, and sensory feedback. It does not require human lungs, muscles or tissue fidelity. The present source already offers direct acoustic controls. The recommendation is to complete their acquired causal control first; unnecessary physiological restrictions can then be removed under an explicit functional instrument specification. Increasing anatomical detail does not supply the missing acquired sequence.
+## 2. Exploration acquires the sound instrument's causal behavior
 
-## 1. State and the meaning of “hypothetically resolved”
+The learning drive reaches existing attention and motor circuitry. Funded native activity moves vocal controls and creates actual pressure. The pupil hears that pressure and senses the corresponding control/body state, preserving the real action-to-hearing delay. Current source uses a previous-quarter 250 ms self-hearing FIFO; a qualified implementation must accommodate or explicitly repair it, never pretend feedback is instantaneous.
 
-Let X contain the actual native send/receive phases, ternary constraint-ring phases, input/output aperture and charge, retained contact deformations, body/control positions, acoustic resonator state, energy reserve, continuous cochlear state, source history and in-flight delayed signals. There is no word variable or phoneme list in X. The term “apple” in this document is the observer's description of a physical experience and eventual sound.
+The local predictor learns what follows its own controls. Retained participating activity links the movement with the later acoustic consequence. The native capacity for variation must actually exist; learning cannot start from a permanently silent, immobile attractor. No script supplies apple syllables as exploration. These are learned sensorimotor relations, not a stored recording used as the answer.
 
-For this hypothetical the following repairs have succeeded:
+## 3. The caretaker supplies a socially situated example
 
-| Present unproved or unresolved boundary | Hypothetical resolved state and concrete implementation destination |
-|---|---|
-| Acquired-state continuity across the 64-column transition | A causative old-to-new state correspondence preserves demonstrated acquired effects. Phases, contacts, queues, body, ear and energy states continue; missing coordinates are not replaced by a fresh pupil. lean_production_app.py mature restore and functional64_current_commission.rs. |
-| Bounded chronological execution | Native material settlement advances at the declared clocks with admitted work and recorded refusals. Python responsiveness and material throughput both pass; merely releasing the GIL is insufficient. functional64_owner_boundary.rs and functional64_material.rs. |
-| Complete physical sensing and full DSF participation | Required external/internal observations reach the joint source in their real order. All seven fields, local histories, incident relations and applicable measured global stability participate through the approved coupling, with no scalar substitute or invented stability value. functional64_source.rs, joint_uf_vector.rs, functional64_material.rs. |
-| Motor experience | Ordinary substrate activity produces varied, funded vocal actions; their actual sounds and control positions return as one time-correlated experience. No operator injects an apple motor sequence. functional64_owner.rs and guala_functional64_loop.py. |
-| Retained associative and temporal causation | Lawful contact change links heard/contextual patterns with experienced own-action consequences. The recurrent native state carries order through cue removal; it does not stop at an object-recognition equilibrium. functional64_material.rs and functional64_geometry.rs. |
-| Functional instrument reachability | Native controls can produce, sustain, interrupt and alter the relevant acoustic trajectories within their range and energy limits. Respiratory admission and aperture restrictions no longer prevent the specified function. virtual_articulated_body.rs and virtual_articulatory_body.rs. |
-| Feedback and continuation | Actual emitted pressure reaches ears at a measured delay, returns with correct timestamps and survives restart along with the rest of X. No previous-quarter sound is attributed to the current motor instant. functional64_owner.rs and guala_functional64_loop.py. |
-| Audible delivery | The exact emitted samples, in order and at the declared rate, reach the listener. Transport adds no TTS, word interpretation, completion or replacement sound. lean_actor.py, lean_production_app.py and the listening client. |
+Seeing, touching or otherwise encountering food while hearing the caretaker's real utterance produces a shared chronological experience. Attention, internal condition, what the caretaker is doing and the pupil's own actions are part of that history. There is no apple identifier or transcript in the pupil's learning target. The observer may use the word apple to describe the experience.
 
-These assumptions are the requested hypothetical resolutions. They are not new observations. In particular, specifying the outcome of acquired temporal organization does not prove that today's contact law acquires it. That distinction remains necessary even in a complete hypothetical explanation.
+Hearing and other afferents pass through the unchanged full-field kernel and the native substrate. Distributed predictive/associative changes connect the acoustic progression, encountered object properties, body state and social context. Mere co-occurrence is insufficient for a claim of causal understanding; the associations must later survive context changes and support the relevant action/consequence distinctions.
 
-## 2. The experience enters as physical signals
+## 4. The entity has a reason to practice and attend to another participant
 
-During earlier encounters, retinal input, contact/taste/internal consequences, the caretaker's pressure waveform and Guala's own actions occur in chronological relation. Different senses need not all be present at every encounter. Their conjunction and order give the “story”; no software record called apple must be supplied to the pupil.
+The intrinsic learning drive makes improving control worthwhile before an attempt obtains food. A separately specified social-engagement mechanism makes contingent interaction relevant; its initial sensitivities and acquired development must be declared rather than assumed. Social response can arrive through timing, reciprocal sound, orientation, shared activity and contact. A smile or the phrase good job is not intrinsically an encoded positive score.
 
-At sample n, hearing receives p_ext[n]+p_self[n-d], with actual propagation/transport delay d. The current loop sums PCM without clipping and supplies the same mono mixture to both ears; it does not establish binaural localization. The retained cochlear filter has, per band and stage,
+Caregiver demonstrations can guide acquisition through normal sensory experience. Their temporal acoustic structure can become an internally reinstated sensory goal connected to the pupil's learned motor/acoustic relations. A prerecorded answer is not played back, and a phoneme schedule is not inserted. Successful improvement is measured on actual subsequent output, not asserted from a chosen command or from fitting and rechecking the same sample.
 
-    z(b,j,n) = a_b z(b,j,n-1) + (1-r_b) z(b,j-1,n)
-    a_b = r_b exp(i omega_b),   z(b,0,n) = received pressure[n].
+## 5. Consequences reinforce the participating experience
 
-Its four stages retain state; 160-sample intervals at 16 kHz produce envelope and phase observations. These are sound measurements, not recognized words. Other senses and internal native coordinates enter the same chronological source. The present source includes actual native phases, gate apertures/charges, body positions, reserve and contact evidence: internal state already has a defined re-entry route.
+An attempt may prompt the caretaker to respond or provide food. Those are different consequences. Actual eating changes reserve and internal sensation. Social engagement changes the separately specified interaction-related state. A sated entity can still learn through competence gains or engagement; every word does not require food reward.
 
-The unchanged kernel evaluates the joint history:
+These actual consequences reach local learning signals while relevant earlier activity remains in e_ij or its ratified native equivalent. Only participating reachable contacts are eligible for the corresponding local transition. An unrelated concurrently active path is not automatically deemed causal. Comparisons where the same sensory event happens independently of the pupil's action distinguish a learned contingency from coincidental pairing.
 
-    F = UF_L0-L4(actual joint source history)
-    local field = (D_k, M_k, R_rev,k, U*_k, C_k, P_k, B_k).
+Positive/negative learning effects must arise from the declared adaptive mechanism and sensed outcome. A teacher may naturally respond to an utterance, but the pupil receives that response through its senses, not an answer-correct flag, positive-phrase dictionary, hidden speech recognizer or action-value entry. This is the proposed delayed-consequence learning link previously omitted. It is an adaptive algorithm and must be named as such.
 
-F also retains source relationships, local coordinate histories and incident contacts; global S_UF requires its measured components. The hypothetical repair makes those structures causally effective through the ratified interface, not merely archived. This document deliberately does not invent a replacement kernel formula or a weighted sum to fill an implementation gap.
+## 6. Temporal learning connects a progression, not a static sound label
 
-For an exact downstream finite value x=p/q, balanced ternary retains signed digits with positional powers of three in both integers. It does not keep only a sign or the first N digits. Present constraint rings use digit-dependent phase offsets tau=2*pi*d/3 and terms kappa*(1-cos(delta_phase-tau)); the full-field repair must preserve the additional required structures, not call these scalar rings sufficient by themselves.
+Recurrent native state carries preceding activity into following moments. Own-action predictions and delayed consequence modulation alter the participating recurrent/motor relations across that progression. Consequently, acquisition concerns a trajectory of control and sensation rather than a final static recognition pattern. The relevant history must last across actual acoustic/social delays within declared memory bounds.
 
-## 3. Experience changes the substrate, including the motor relation
+In the successful hypothetical, later partial reactivation continues through the learned ordered trajectory. Timing and termination depend on that evolving native state and feedback. There is no list that advances through developer-written apple segments, fixed word duration or Python-selected next syllable. This behavior is a qualification target of the proposed learner, not mathematically guaranteed by the schematic trace rule alone.
 
-External speech alone teaches neither the physical inverse of the vocal instrument nor the correct motor sequence. Guala also experiences its own vocal movement, pressure and internal consequences. In the hypothetical completed system, persistent recurrent relations join three overlapping experiences: context/object and heard sound; own motor activity and its heard consequence; and the preceding/following states of those events.
+## 7. Current needs and context initiate appropriate later speech
 
-The existing contact implementation supplies a concrete candidate mathematical mechanism. For a contact with sending value v=sin(phi_send), receiving value u=sin(phi_receive), baseline b and retained deformation w, let a=b+w. Its local residual and yield proxy are
+Later hunger, a wish to engage, or a learning-related encounter reactivates relevant acquired relations in the full current context. Seeing the food can contribute a partial cue. The substrate can then reproduce an acquired vocal trajectory to request, identify or share attention, according to what has actually been learned. An observer's interpretation of intent must be supported by context-sensitive behavior; the pupil does not execute a built-in if hungry then say apple rule.
 
-    r = u-a*v,       chi = v*(u-a*v).
+Need relief, social engagement and learning drive interact through the specified recurrent circuitry and actual resource state. They are not assigned invented weights in a global hunger-plus-social-plus-curiosity action ranking. A future implementation that does use such a policy would be a distinct proposal needing disclosure, not an unnoticed consequence of allowing limited ML.
 
-Below its threshold Y, the contact retains w. For an admissible monotone yield event with v nonzero, the ideal endpoint is
+## 8. Native output makes the actual sound
 
-    a_new = u/v - sign(chi)*Y/(v*v),       w_new = a_new-b.
+The acquired trajectory changes native output gates. Funded circuit currents settle load charge into efferent carriers; opposed terminals move the existing direct acoustic controls. The sound instrument needs controllable excitation, spectral shape, interruption/release and energy accounting. It does not need anatomically faithful human lungs or more microscopic tissue.
 
-Actual code encloses the path, rejects unresolved reversals and chooses a representable endpoint satisfying the yield boundary. It accounts for released, dissipated and numerical-return energy. The formula's existence does not certify the stress proxy's physical correspondence; that qualification is assumed resolved here. There is no teacher word, reward score or desired phoneme argument in this rule.
+Current implementation has direct glottal/tract controls and five spectral resonators. Their fixed-point recurrence produces pressure at 16 kHz. No instrument call receives the word apple. The learned sequence of actual controls creates the waveform. The hypothetical includes qualification that the instrument's existing ranges, respiratory admission and aperture gates permit the required sound; those source restrictions are not automatically justified by biological names.
 
-The local energy term E_contact=(lambda/2)*(u-a*v)^2 gives reciprocal forces
+## 9. Hearing and the social world close the loop
 
-    -dE/du = -lambda*(u-a*v),
-    -dE/dv =  lambda*a*(u-a*v).
+The actual emitted PCM reaches the listener and returns through the pupil's ears at its real delay. It changes subsequent predictions, retained adaptation and ongoing control. The caretaker's next response is another actual sensory consequence. The utterance terminates through the learned state progression and instrument relaxation, not a word timer.
 
-Thus a retained sensory-side perturbation can exert a force back toward a connected motor-side state; a contact need not function as a one-way detector. Actual phase forces also include the sine derivative, other contacts, native constraints and gate reactions. The source topology declares recurrent routes between auditory columns 8–15, association columns 32–39 and output columns 40–47. A declared route is not evidence that the requisite relation has been acquired.
+The same acquired state survives ordinary sleep/consolidation and cold continuation. Consolidation can stabilize or reorganize already acquired causal relations under the approved learner; it cannot insert unexperienced vocabulary or erase the mature predecessor. Independent listening and changed-context behavior establish intelligibility and grounding. A word alone does not prove syntax; syntax requires compositional behavior on relationships and combinations not supplied as an answer sequence.
 
-This supplies a specific associative mechanism, not a guarantee of speech acquisition. For the hypothetical, actual experience has produced a retained contact/state configuration that performs the required reciprocal recruitment. Neither A1 nor G1 may install that configuration by hand and call it learned. If sleep strengthens it, sleep must continue lawful state dynamics and preserve experience ancestry; it may not create a pronunciation table or rehearse an injected answer. Sleep is not an extra biological prerequisite for this single functional loop.
+## Bounded implementation and decisive acceptance
 
-## 4. Recall becomes a trajectory, rather than a word choice
+For N_max native participants, E_max admitted adaptive contacts, k fixed state values per contact and bounded buffers B, added learning storage is bounded by O(k*E_max + N_max + B). A local update touches reached participants and contacts; total tick work must also include the native solver's admitted iteration/substep bounds, sensing and sound. This does not prove today's runtime is fast. Measure the complete settled tick, not only a small learning kernel.
 
-A later partial cue—seeing the object, hearing part of the sound, or internally reactivating the experience—perturbs X. Context and current internal needs participate; recognizing an object does not oblige speech on every encounter.
+Do not add a stored example/word table on each encounter, an ever-growing transcript, an external model, or an unbounded replay archive. A fixed-capacity substrate has finite learning capacity and interference risks; bounded storage does not promise unlimited knowledge or perfect preservation of every skill. Preserve actual acquired state and report capacity/interference, rather than resetting memory to hide it.
 
-Native phases and constraint rings advance through their coupled forces. The current implicit material settlement has the form
+The single G1 design item is to close this learning-drive → experienced action/consequence → selective retained change → later native speech chain within A09/A10 and D09. First bind the learner's exact update, prediction/learning-drive inputs, native consumers, innate sensitivities, units/coefficients, work bounds and serialization to functional64_source.rs, functional64_material.rs, functional64_geometry.rs and functional64_owner.rs. Their names identify integration destinations, not permission to patch an unratified rule into production.
 
-    phi_next = phi_now - h*discrete_gradient(E, X_now, X_next)/drag.
-
-This is a description of the implemented coupled solve, not a new explicit Euler approximation. Gate, charge, contact and sensory states settle with it. The energy depends on changing physical inputs and funded circuits; it is not legitimate to infer an autonomous oscillator solely from a passive static gradient law.
-
-For the hypothetical acquired state, the partial cue now starts a finite, ordered trajectory through this recurrent system. Retained contact structure supplies the relationships; transient phases, charges, control dynamics and feedback carry position and timing along the trajectory. Distinct moments remain distinct physical states. A stable recognition pattern alone would fail this requirement.
-
-An observer can label successive portions “initial vowel-like output, closure/release, later voiced output.” Those labels and their order are descriptions of the resulting waveform, not an array supplied to an action chooser. Formally, observed regions R1, R2, ... of state space are crossed at t1<t2<..., while the motor projection changes accordingly. The program contains neither those word-specific regions nor a schedule that advances through them. Their ordered crossing is a measurable property of the acquired trajectory.
-
-This is the central hypothetical success condition: ordinary experience has shaped dynamics that reproduce an ordered action, including its completion, after the original external sound has ceased. The existing equations do not let us calculate the numerical trajectory without the actual acquired predecessor. Inventing that predecessor or example motor values would fabricate the very link being investigated.
-
-## 5. Native state becomes physical vocal control
-
-The motor projection is not a Python ranking function. Native receive/send phase differences move output gates. In the current settle equation, with s the mean receive-minus-send sine difference over the step,
-
-    y_trial = y0 + (h/zeta)*K*(REST-y0+alpha*s)/(1+h*K/(2*zeta))
-    y_next  = mechanical_stop(y_trial, 0, 1).
-
-The output circuit then has membrane/receiver voltages Vm=qm/Cm and Vr=qr/Cr, source conductance Gs when funded, gate conductance Gg(y), and load conductance Gl:
-
-    dqm/dt = Gs*(Vs-Vm) - Gg(y)*(Vm-Vr)
-    dqr/dt = Gg(y)*(Vm-Vr) - Gl*Vr
-    Q_load = integral(Gl*Vr dt).
-
-The implementation uses bounded positive circuit evolution and retains charge remainder when producing whole efferent carriers. Sub-carrier output is not discarded. Opposed carrier terminals provide the difference driving each control, with bounded retained activation and mechanical response. The owner applies the previous millisecond's terminal output, a real one-millisecond causal delay.
-
-Today there are 45 paired body axes, six root-motion terminals and one respiratory terminal. The sound path uses direct glottal and eight tract-section controls plus energy drive; it does not require every body axis to participate. Existing activation moves each axis toward its activation-dependent bounded equilibrium and retains decay state. In the hypothetical, the learned trajectory reaches the required control positions, durations and energy through these terminals alone.
-
-## 6. Vocal control becomes pressure, without a biological mouth requirement
-
-The minimum functional responsibilities are excitation, controllable spectral shaping, interruption/release, bounded energy and a measurable acoustic output. The exact number of modes or anatomical names is not dictated by the charter. Current source uses five spectral resonators with direct controls and deterministic excitation. Keeping that already available instrument is the least disruptive starting point; five modes are not proved to be a universal minimum.
-
-For each mode, its underlying recurrence is
-
-    y_j[n] = g_j*x_j[n] + 2*r_j*cos(theta_j)*y_j[n-1] - r_j^2*y_j[n-2],
-    theta_j = 2*pi*f_j/Fs,       x_(j+1)[n] = y_j[n].
-
-Controls determine f_j and the excitation/flow/output conditions. The actual implementation uses specified Q30 integer coefficients, rational pi, a fixed cosine approximation and integer rounding; the real-valued equation above is explanatory, not a claim of bit-identical arithmetic. Those fixed instrument approximations must be classified and justified. “Deterministic” does not mean mathematically exact or automatically free of prohibited shortcuts.
-
-No call asks this recurrence for apple. It receives the continuously changing native controls; the resulting sample sequence is what listeners might recognize as that word. Word-specific formant values, a phoneme scheduler, saved answer waveform and TTS are excluded from pupil control.
-
-Two existing restrictions deserve a functional review: respiratory carriers are admitted only when the simulated lung is exactly at its neutral volume with zero fractional expiration remainder; glottal flow is zero at both extreme area settings. These facts alone do not prove either rule is wrong or causing the live failure. For this hypothetical they have been reconciled with the instrument's reachable-control and energy contract, so they do not prevent the intended trajectories. A copied physiological label is not sufficient justification for an obstructive gate.
-
-If the explicit air-volume model is unnecessary, a proposed functional replacement is an instrument energy store with E_next=E+W_native-W_acoustic-W_loss, E_next>=0, native control of excitation, and measured acoustic load. That is a design alternative requiring a complete unit-consistent transfer law and review, not an already approved patch or permission to create energy. It does not replace the acquired temporal mechanism. The complete loop here uses the existing qualified instrument, not an unspecified new oscillator.
-
-## 7. Pressure returns to the pupil and reaches the listener
-
-The native instrument emits 16 samples per millisecond at 16 kHz. The owner, body and world commit one consistent successor. The present owner returns self-pressure from the previous 250 ms FIFO while filling it with the current quarter's output: the hypothetical resolved timing preserves or explicitly repairs that delay and associates consequences with the correct earlier action.
-
-Actual own pressure re-enters the same cochlea with external pressure. Changed hearing, native state and control-position feedback become the next joint observation. They can change the ongoing trajectory and, when the approved yield conditions occur, its retained contacts. No separate transcript-based error scorer supplies the next phoneme. A delay-aware acquired loop is required; instantaneous correction must not be claimed with a 250 ms feedback queue.
-
-Separately, the transport publishes the emitted PCM under its pressure receipt. In the hypothetical resolved listening path, the client verifies order/rate, decodes those samples and plays them. Hearing actual sound completes the speaker-output boundary; a pressure hash, a moving mouth, nonzero samples or a displayed word alone does not.
-
-When the learned trajectory ends, its native excitation/drive returns to the relevant resting state and the instrument dissipates remaining stored energy. There is no word-length timer. Native silence, ending a control trajectory and eventual acoustic quiescence are distinct observations.
-
-## 8. What makes this learned “apple,” and what it does not establish
-
-The complete loop is:
-
-    real multimodal history + own vocal consequences
-      -> unchanged joint DSF and lawful persistent native change
-      -> later partial cue/internal reactivation
-      -> acquired recurrent temporal trajectory
-      -> native efferent carriers
-      -> controllable acoustic instrument
-      -> actual pressure -> ears + listener
-      -> new experience and retained continuation.
-
-Under the stated hypothetical, that pressure is intelligible as apple, occurs in the relevant learned context, and depends on acquired substrate state. For reality to match it, matched controls must show that removing the relevant experience or severing its acquired causal relation changes the result; ordinary restart must preserve it; the original external utterance must be absent during the later production. These are qualification observations, not a reward mechanism used to train the pupil.
-
-This establishes the hypothetical path for a learned grounded word, not compositional syntax. Syntax needs context-sensitive composition of acquired relations whose ordering changes with the relationship being expressed; concatenating a programmed list of learned word sounds would not establish it. That separate qualification remains explicit.
-
-The proposed loop contains no lexical answer mechanism or statistical optimizer. Repository-wide absence of ML/heuristics is a different executable-evidence claim and remains uncertified. Local material plasticity must satisfy the project's permitted physical-learning definition; renaming an optimization variable as a contact does not establish compliance.
-
-## Source custody and G1 handoff
-
-The [source receipt](speech-complete-hypothetical-loop.json) binds the source excerpts used here to frozen copies. This is source analysis and a requested hypothetical design, not a live trace or executed utterance. G1's single implementation item remains completion of the preserved-state causal speech loop, locating its earliest actual failure against these boundaries. No runtime code, kernel, live state or deployment was changed by A1 for this document.
+Ordered qualification must distinguish: sated unattended learning; mastery-related disengagement; rejection of unlearnable noise; genuine motor/acoustic acquisition; delayed contingent outcome effects; hunger versus social versus learning influence; independent later intelligible production; and cold persistence. Source inspection separately proves the absence of forbidden answer injection. Specification, development, unit, module, system and deployment gates remain separate. No successful speech date, qualified mechanism or new runtime result is claimed here.

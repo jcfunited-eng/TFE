@@ -1,5 +1,14 @@
 # Canonical historical reconciliation entry point — 2026-10-09
 
+## Latest direction: intrinsic learning and bounded adaptation — Joe, October 10, 2026
+
+Joe clarified that his objection to ML concerns substitution of conventional AI for the substrate, opacity, bloat and runaway computing requirements. He recognizes that limited adaptive learning may be necessary and explicitly requires a need to learn, alongside bodily needs and social consequences. The former blanket no-ML framing must not block honest consideration of an explicitly classified, bounded, substrate-owned learning proposal.
+
+This authorizes the requested design discussion; it does not approve a particular update equation, framework, pretrained model, reward policy, resource allowance or deployment. Retired lookup/scripted controllers, fabricated evidence, memory reset and hidden cognition remain rejected. Preserve unchanged full DSF, the existing 64 columns, retained history, functional emulation and bounded execution. Name any ML, reinforcement learning, approximation or engineered objective honestly. Do not call an unqualified learning rule a derived material law. Earlier prohibitions retain their historical scope and cannot override this later clarification about considering bounded adaptation.
+
+The immediate design reference is the learning-driven speech proposal in docs/guala_reconciliation/speech-complete-hypothetical-loop.md. It is a worked hypothetical, not a ratified numerical law or a current capability claim. No unconditional ML-free certification is sought for a design that deliberately includes an ML-class learning mechanism.
+
+
 For architectural history, cognitive terms and recovered code, start with
 [the canonical reconciliation](docs/GUALA_CANONICAL_RECONCILIATION.md).
 Joe confirmed April 2026 as its start. The source catalog preserves original
