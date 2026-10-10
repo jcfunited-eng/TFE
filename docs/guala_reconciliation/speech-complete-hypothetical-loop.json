@@ -98,5 +98,34 @@
       "local outcome-modulated reinforcement learning proposal"
     ],
     "scope": "Existing 64 columns, full DSF, native output, preserved acquired state and bounded execution. No framework/model/lookup approval."
+  },
+  "mathematical_candidate_revision": {
+    "at_utc": "2026-10-10T16:54:13.656919+00:00",
+    "status": "Explicit functional hypothesis; not ratified or qualified",
+    "equations": 23,
+    "includes": [
+      "full unchanged DSF boundary",
+      "prediction updates",
+      "learning-progress need",
+      "disclosed engineered exploratory controller",
+      "own-action prediction",
+      "recurrent auditory recall",
+      "adaptive vocal correction",
+      "homeostatic and conditioned social reinforcement",
+      "local approximate delayed credit",
+      "native pressure and self-hearing",
+      "sleep retention",
+      "write-energy bookkeeping",
+      "resource bounds"
+    ],
+    "not_claimed": [
+      "current learned speech",
+      "convergence proof",
+      "hardware/constitutive mapping completed",
+      "ML-free design",
+      "all reconciliation complete"
+    ],
+    "production_changed": false,
+    "approval_to_implement": false
   }
 }
