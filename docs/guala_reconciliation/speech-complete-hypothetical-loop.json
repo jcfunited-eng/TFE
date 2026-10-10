@@ -127,5 +127,11 @@
     ],
     "production_changed": false,
     "approval_to_implement": false
+  },
+  "implementation_guidance_superseded_by": {
+    "specification": "docs/GUALA_SPEECH_LEARNING_SPECIFICATION.md",
+    "id": "GUALA-SPEECH-01",
+    "revision": "1.0",
+    "reason": "Skeptical review corrected control, timing, provenance, credit, ownership and boundedness; prior equations are historical where conflicting."
   }
 }

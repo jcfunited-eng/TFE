@@ -1,0 +1,103 @@
+{
+  "at_utc": "2026-10-10T17:26:32.447075+00:00",
+  "head": "465f87cf0728d0e8c193277db6da7c030f981dcd",
+  "source": [
+    {
+      "path": "native/guala_core/src/functional64_owner.rs",
+      "bytes": 47874,
+      "sha256": "8a32081253636874e282f6596d83755648877158e39bae8c4f51cf90e44e38a9",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    },
+    {
+      "path": "native/guala_core/src/functional64_source.rs",
+      "bytes": 54472,
+      "sha256": "0882fa96a85893adef4b834a204a06a4bff711c52e27cbd558e45e5c12027533",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    },
+    {
+      "path": "native/guala_core/src/functional64_material.rs",
+      "bytes": 150932,
+      "sha256": "14d3493c4672f53ee549fb793bfaf3b7d9f4eee8b8d4845dcce9aace5221c04f",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    },
+    {
+      "path": "native/guala_core/src/functional64_geometry.rs",
+      "bytes": 9538,
+      "sha256": "32bfd98c38c444eeec2f2d62b46fe309067878444935d7a3fdcc3470aa3f270e",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    },
+    {
+      "path": "native/guala_core/src/functional64_contact.rs",
+      "bytes": 31852,
+      "sha256": "f6a08256eb7d97e13637f7027c67a2f9fafeacc2fd625eed448d25ca1a79aef6",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    },
+    {
+      "path": "native/guala_core/src/functional64_owner_boundary.rs",
+      "bytes": 13894,
+      "sha256": "37201443baa88413c3801985a60186caf23f94613986b52e50c295650ba38935",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    },
+    {
+      "path": "native/guala_core/src/virtual_articulated_body.rs",
+      "bytes": 92979,
+      "sha256": "dbdd8d00e2934fe8e85ee122432e5858739131aca4ad6a586a93cd0a14e50a7d",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    },
+    {
+      "path": "native/guala_core/src/virtual_articulatory_body.rs",
+      "bytes": 92948,
+      "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    },
+    {
+      "path": "dsf_ai_service/guala_functional64_loop.py",
+      "bytes": 18876,
+      "sha256": "59c5044d425e0482f93a1997423f4df846d8418a83e3b08bbbdbdfe1503c8fc6",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    },
+    {
+      "path": "dsf_ai_service/lean_actor.py",
+      "bytes": 26532,
+      "sha256": "a92a571a4e9276321273a907c630bf69a11947b52714f63effdef14da4ded6f8",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    }
+  ],
+  "analytic_counterexamples": {
+    "raw_slot_trace_bytes_three_f64": 2076180480,
+    "raw_slot_trace_GiB": 1.93359375,
+    "trace_2s_remaining_after_10s": 0.006737946999085467,
+    "trace_2s_remaining_after_20s": 4.5399929762484854e-05,
+    "trace_32s_remaining_after_20s": 0.5352614285189903,
+    "native_source_observation_span_ms": 450,
+    "native_source_steady_stride_ms": 250,
+    "constant_gain_instability": {
+      "J": 10,
+      "gain": 0.05,
+      "closed_loop_error_multiplier": -4.0
+    },
+    "one_step_delay_counterexample": {
+      "plant": "y[n+1]=u[n-2]",
+      "immediate_jacobian": 0,
+      "delayed_jacobian_at_3_frames": 1
+    },
+    "ambiguous_regression_counterexample": {
+      "identical_predictor_state_targets": [
+        -1,
+        1
+      ],
+      "least_squares_prediction": 0,
+      "observed_target_equal_to_prediction": false
+    },
+    "consolidation_transfer": {
+      "stable_before": 0.3,
+      "labile_before": 0.2,
+      "fraction": 0.5,
+      "effective_before": 0.5,
+      "effective_after": 0.5
+    }
+  },
+  "product_tests_run": false,
+  "live_inspected_this_turn": false,
+  "scope": "Bounded source and mathematical review of the proposed speech specification"
+}

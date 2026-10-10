@@ -1,0 +1,289 @@
+{
+  "schema": "guala.speech_learning_contract.v1",
+  "id": "GUALA-SPEECH-01",
+  "revision": "1.0",
+  "at_utc": "2026-10-10T17:32:10.745815+00:00",
+  "authority": "Joe requested canonical finalization, skeptical fault/resolution review, G1 development and spot audits on 2026-10-10",
+  "status": "canonical development baseline; capability unqualified",
+  "specification": "docs/GUALA_SPEECH_LEARNING_SPECIFICATION.md",
+  "implementation_owner": "G1",
+  "independent_auditor": "A1",
+  "broad_task": "GUALA-APRIL-CURRENT-RECONCILIATION-2026-10-09",
+  "development_authorized": true,
+  "production_qualified": false,
+  "ml_free": false,
+  "exception_ids": [
+    "SPEECH-EX01",
+    "SPEECH-EX02",
+    "SPEECH-EX03",
+    "SPEECH-EX04",
+    "SPEECH-EX05",
+    "SPEECH-EX06"
+  ],
+  "review_findings": [
+    {
+      "id": "SPF01",
+      "design_disposition": "specified in normative review table",
+      "implementation": "NOT_VERIFIED"
+    },
+    {
+      "id": "SPF02",
+      "design_disposition": "specified in normative review table",
+      "implementation": "NOT_VERIFIED"
+    },
+    {
+      "id": "SPF03",
+      "design_disposition": "specified in normative review table",
+      "implementation": "NOT_VERIFIED"
+    },
+    {
+      "id": "SPF04",
+      "design_disposition": "specified in normative review table",
+      "implementation": "NOT_VERIFIED"
+    },
+    {
+      "id": "SPF05",
+      "design_disposition": "specified in normative review table",
+      "implementation": "NOT_VERIFIED"
+    },
+    {
+      "id": "SPF06",
+      "design_disposition": "specified in normative review table",
+      "implementation": "NOT_VERIFIED"
+    },
+    {
+      "id": "SPF07",
+      "design_disposition": "specified in normative review table",
+      "implementation": "NOT_VERIFIED"
+    },
+    {
+      "id": "SPF08",
+      "design_disposition": "specified in normative review table",
+      "implementation": "NOT_VERIFIED"
+    },
+    {
+      "id": "SPF09",
+      "design_disposition": "specified in normative review table",
+      "implementation": "NOT_VERIFIED"
+    },
+    {
+      "id": "SPF10",
+      "design_disposition": "specified in normative review table",
+      "implementation": "NOT_VERIFIED"
+    },
+    {
+      "id": "SPF11",
+      "design_disposition": "specified in normative review table",
+      "implementation": "NOT_VERIFIED"
+    },
+    {
+      "id": "SPF12",
+      "design_disposition": "specified in normative review table",
+      "implementation": "NOT_VERIFIED"
+    },
+    {
+      "id": "SPF13",
+      "design_disposition": "specified in normative review table",
+      "implementation": "NOT_VERIFIED"
+    },
+    {
+      "id": "SPF14",
+      "design_disposition": "specified in normative review table",
+      "implementation": "NOT_VERIFIED"
+    },
+    {
+      "id": "SPF15",
+      "design_disposition": "specified in normative review table",
+      "implementation": "NOT_VERIFIED"
+    },
+    {
+      "id": "SPF16",
+      "design_disposition": "specified in normative review table",
+      "implementation": "NOT_VERIFIED"
+    }
+  ],
+  "resource_ceilings": {
+    "adaptive_records": 262144,
+    "persistent_bytes": 25165824,
+    "resident_bytes": 33554432,
+    "peak_incremental_bytes": 67108864,
+    "prediction_horizon_frames": 32,
+    "routine_diagnostic_bytes": 67108864
+  },
+  "mechanisms": [
+    {
+      "id": "SL01",
+      "name": "local predictor and temporal association",
+      "exception": "SPEECH-EX01",
+      "status": "development authorized; not source/test/live qualified",
+      "owner": "single native organism",
+      "consumer": "mounted existing sensory/association/motor routes; exact sites required before compile",
+      "persistence": "canonical native owner checkpoint; all causal adaptive state",
+      "semantic_inputs_allowed": false,
+      "evidence": {
+        "source": "NOT_VERIFIED",
+        "unit": "NOT_RUN",
+        "module": "NOT_RUN",
+        "system": "NOT_RUN",
+        "release": "NOT_RUN",
+        "live": "NOT_RUN"
+      }
+    },
+    {
+      "id": "SL02",
+      "name": "intrinsic progress and learning need",
+      "exception": "SPEECH-EX02",
+      "status": "development authorized; not source/test/live qualified",
+      "owner": "single native organism",
+      "consumer": "mounted existing sensory/association/motor routes; exact sites required before compile",
+      "persistence": "canonical native owner checkpoint; all causal adaptive state",
+      "semantic_inputs_allowed": false,
+      "evidence": {
+        "source": "NOT_VERIFIED",
+        "unit": "NOT_RUN",
+        "module": "NOT_RUN",
+        "system": "NOT_RUN",
+        "release": "NOT_RUN",
+        "live": "NOT_RUN"
+      }
+    },
+    {
+      "id": "SL03",
+      "name": "bounded deterministic vocal exploration",
+      "exception": "SPEECH-EX03",
+      "status": "development authorized; not source/test/live qualified",
+      "owner": "single native organism",
+      "consumer": "mounted existing sensory/association/motor routes; exact sites required before compile",
+      "persistence": "canonical native owner checkpoint; all causal adaptive state",
+      "semantic_inputs_allowed": false,
+      "evidence": {
+        "source": "NOT_VERIFIED",
+        "unit": "NOT_RUN",
+        "module": "NOT_RUN",
+        "system": "NOT_RUN",
+        "release": "NOT_RUN",
+        "live": "NOT_RUN"
+      }
+    },
+    {
+      "id": "SL04",
+      "name": "native engagement and delayed acoustic control",
+      "exception": "SPEECH-EX04",
+      "status": "development authorized; not source/test/live qualified",
+      "owner": "single native organism",
+      "consumer": "mounted existing sensory/association/motor routes; exact sites required before compile",
+      "persistence": "canonical native owner checkpoint; all causal adaptive state",
+      "semantic_inputs_allowed": false,
+      "evidence": {
+        "source": "NOT_VERIFIED",
+        "unit": "NOT_RUN",
+        "module": "NOT_RUN",
+        "system": "NOT_RUN",
+        "release": "NOT_RUN",
+        "live": "NOT_RUN"
+      }
+    },
+    {
+      "id": "SL05",
+      "name": "outcome modulation and conditioned social value",
+      "exception": "SPEECH-EX05",
+      "status": "development authorized; not source/test/live qualified",
+      "owner": "single native organism",
+      "consumer": "mounted existing sensory/association/motor routes; exact sites required before compile",
+      "persistence": "canonical native owner checkpoint; all causal adaptive state",
+      "semantic_inputs_allowed": false,
+      "evidence": {
+        "source": "NOT_VERIFIED",
+        "unit": "NOT_RUN",
+        "module": "NOT_RUN",
+        "system": "NOT_RUN",
+        "release": "NOT_RUN",
+        "live": "NOT_RUN"
+      }
+    },
+    {
+      "id": "SL06",
+      "name": "functional adaptive registers and consolidation",
+      "exception": "SPEECH-EX06",
+      "status": "development authorized; not source/test/live qualified",
+      "owner": "single native organism",
+      "consumer": "mounted existing sensory/association/motor routes; exact sites required before compile",
+      "persistence": "canonical native owner checkpoint; all causal adaptive state",
+      "semantic_inputs_allowed": false,
+      "evidence": {
+        "source": "NOT_VERIFIED",
+        "unit": "NOT_RUN",
+        "module": "NOT_RUN",
+        "system": "NOT_RUN",
+        "release": "NOT_RUN",
+        "live": "NOT_RUN"
+      }
+    }
+  ],
+  "source_review": [
+    {
+      "path": "native/guala_core/src/functional64_owner.rs",
+      "bytes": 47874,
+      "sha256": "8a32081253636874e282f6596d83755648877158e39bae8c4f51cf90e44e38a9",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    },
+    {
+      "path": "native/guala_core/src/functional64_source.rs",
+      "bytes": 54472,
+      "sha256": "0882fa96a85893adef4b834a204a06a4bff711c52e27cbd558e45e5c12027533",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    },
+    {
+      "path": "native/guala_core/src/functional64_material.rs",
+      "bytes": 150932,
+      "sha256": "14d3493c4672f53ee549fb793bfaf3b7d9f4eee8b8d4845dcce9aace5221c04f",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    },
+    {
+      "path": "native/guala_core/src/functional64_geometry.rs",
+      "bytes": 9538,
+      "sha256": "32bfd98c38c444eeec2f2d62b46fe309067878444935d7a3fdcc3470aa3f270e",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    },
+    {
+      "path": "native/guala_core/src/functional64_contact.rs",
+      "bytes": 31852,
+      "sha256": "f6a08256eb7d97e13637f7027c67a2f9fafeacc2fd625eed448d25ca1a79aef6",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    },
+    {
+      "path": "native/guala_core/src/functional64_owner_boundary.rs",
+      "bytes": 13894,
+      "sha256": "37201443baa88413c3801985a60186caf23f94613986b52e50c295650ba38935",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    },
+    {
+      "path": "native/guala_core/src/virtual_articulated_body.rs",
+      "bytes": 92979,
+      "sha256": "dbdd8d00e2934fe8e85ee122432e5858739131aca4ad6a586a93cd0a14e50a7d",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    },
+    {
+      "path": "native/guala_core/src/virtual_articulatory_body.rs",
+      "bytes": 92948,
+      "sha256": "55f22a1d488bab5b1002178243d3d3af5bef782e236dcd1e85883ad3415cec7f",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    },
+    {
+      "path": "dsf_ai_service/guala_functional64_loop.py",
+      "bytes": 18876,
+      "sha256": "59c5044d425e0482f93a1997423f4df846d8418a83e3b08bbbdbdfe1503c8fc6",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    },
+    {
+      "path": "dsf_ai_service/lean_actor.py",
+      "bytes": 26532,
+      "sha256": "a92a571a4e9276321273a907c630bf69a11947b52714f63effdef14da4ded6f8",
+      "scope": "Selected causal-path source review; no compile or live verification"
+    }
+  ],
+  "review_receipt": "backups/runtime/a1-speech-specification-20261010/review.json",
+  "spot_audit_status": "protocol established; future implementation audits NOT_RUN",
+  "g1_acknowledgment": "NOT_VERIFIED",
+  "specification_sha256": "6d756688c95cbb56e0357abf12083bfcf13ccdac4a169a065ab7c289858406d5"
+}

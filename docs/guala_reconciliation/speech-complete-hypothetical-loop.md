@@ -1,3 +1,7 @@
+<!-- GUALA-SPEECH-01 authority notice, 2026-10-10 -->
+
+**Superseded implementation recommendations:** [GUALA-SPEECH-01 revision 1.0](../GUALA_SPEECH_LEARNING_SPECIFICATION.md) is the canonical development baseline requested by Joe after skeptical review. G1 is assigned implementation; A1 performs independent spot audits. SPEECH-EX01–06 authorize only the disclosed bounded native speech-learning/control mechanisms; earlier blanket ML prohibitions are superseded only within that scope. Full DSF, preserved history, truthful tests, retired-controller exclusion and financial L5 restrictions remain. This is development authority, not a product, performance, hardware-physics or ML-free certificate. The specification supersedes conflicting recommendations in the earlier speech hypothesis; dated text below remains historical to that extent. Broad reconciliation and product qualification remain OPEN.
+
 # Speech acquisition and production: explicit mathematical candidate
 
 **Status: proposed functional model, not a ratified law, implemented repair, learned utterance or production certificate.** Joe requested a mathematically grounded full speech loop with missing mechanisms supplied hypothetically and coefficients estimated where necessary. This replaces the previous rule-family overview. It specifies one candidate, including its engineered approximations, instead of concealing unspecified functions behind “learning signal.”

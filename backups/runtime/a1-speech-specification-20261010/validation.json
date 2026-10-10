@@ -1,0 +1,36 @@
+{
+  "at_utc": "2026-10-10T17:34:31.154001+00:00",
+  "checks": [
+    "balanced display math delimiters",
+    "16 findings have normative dispositions",
+    "6 scoped exceptions present",
+    "new specification local links exist",
+    "changed JSON and manifest custody consistent",
+    "normalized scalar fixed-model step is nonexpansive for checked gains; not a nonlinear product proof",
+    "consolidation bound/authority arithmetic cases pass; not retention qualification"
+  ],
+  "checks_count": 7,
+  "product_tests_run": false,
+  "source_or_runtime_changed": false,
+  "specification_sha256": "6d756688c95cbb56e0357abf12083bfcf13ccdac4a169a065ab7c289858406d5",
+  "paths_for_publication": [
+    "AGENTS.md",
+    "backups/runtime/a1-speech-specification-20261010/finalize.py",
+    "backups/runtime/a1-speech-specification-20261010/review.json",
+    "backups/runtime/a1-speech-specification-20261010/review.py",
+    "backups/runtime/a1-speech-specification-20261010/validation.json",
+    "collaborative_todo.md",
+    "docs/GUALA_CANONICAL_RECONCILIATION.md",
+    "docs/GUALA_LEARNING_DECISION_MECHANISM_CONTRACT_2026-10-08.md",
+    "docs/GUALA_SPEECH_LEARNING_SPECIFICATION.md",
+    "docs/guala_reconciliation/designs.md",
+    "docs/guala_reconciliation/gualaloom-configuration.md",
+    "docs/guala_reconciliation/indexes/artifact-manifest.json",
+    "docs/guala_reconciliation/qualification-requirements.md",
+    "docs/guala_reconciliation/specifications.md",
+    "docs/guala_reconciliation/speech-complete-hypothetical-loop.json",
+    "docs/guala_reconciliation/speech-complete-hypothetical-loop.md",
+    "docs/guala_reconciliation/speech-decision-record.md",
+    "docs/guala_reconciliation/speech-learning-contract.json"
+  ]
+}

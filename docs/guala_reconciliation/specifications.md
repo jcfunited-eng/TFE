@@ -1,3 +1,7 @@
+<!-- GUALA-SPEECH-01 authority notice, 2026-10-10 -->
+
+**Canonical speech specification:** [GUALA-SPEECH-01 revision 1.0](../GUALA_SPEECH_LEARNING_SPECIFICATION.md) is the canonical development baseline requested by Joe after skeptical review. G1 is assigned implementation; A1 performs independent spot audits. SPEECH-EX01–06 authorize only the disclosed bounded native speech-learning/control mechanisms; earlier blanket ML prohibitions are superseded only within that scope. Full DSF, preserved history, truthful tests, retired-controller exclusion and financial L5 restrictions remain. This is development authority, not a product, performance, hardware-physics or ML-free certificate. The specification supersedes conflicting recommendations in the earlier speech hypothesis; dated text below remains historical to that extent. Broad reconciliation and product qualification remain OPEN.
+
 # Specification reconciliation
 
 The212 clauses below reconcile reviewed historical requirements, implementation conflicts and remedies. Their [structured crosswalk](specification-crosswalk.json) is unchanged. The full historical corpus is not claimed reviewed and no product certificate is issued. [The shared ledger](../../collaborative_todo.md) remains the sole execution-status authority.

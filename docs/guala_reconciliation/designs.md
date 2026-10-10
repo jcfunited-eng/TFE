@@ -1,3 +1,7 @@
+<!-- GUALA-SPEECH-01 authority notice, 2026-10-10 -->
+
+**Reviewed speech design:** [GUALA-SPEECH-01 revision 1.0](../GUALA_SPEECH_LEARNING_SPECIFICATION.md) is the canonical development baseline requested by Joe after skeptical review. G1 is assigned implementation; A1 performs independent spot audits. SPEECH-EX01–06 authorize only the disclosed bounded native speech-learning/control mechanisms; earlier blanket ML prohibitions are superseded only within that scope. Full DSF, preserved history, truthful tests, retired-controller exclusion and financial L5 restrictions remain. This is development authority, not a product, performance, hardware-physics or ML-free certificate. The specification supersedes conflicting recommendations in the earlier speech hypothesis; dated text below remains historical to that extent. Broad reconciliation and product qualification remain OPEN.
+
 # Reconciled functional design
 
 This is the required design, not a claim that every connection works. G1 owns implementation; A1 audits the evidence. Requested architecture is one retained, bounded ArcLoom organism; current qualification is incomplete, so conflict is **yes**. Retired controllers, semantic answer stores and reduced field selectors must not be extended. The next engineering item is preserved-state functional qualification. Full-field relationships remain required; this document evaluates no reduced substitute.

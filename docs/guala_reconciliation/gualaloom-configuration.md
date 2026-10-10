@@ -1,3 +1,7 @@
+<!-- GUALA-SPEECH-01 authority notice, 2026-10-10 -->
+
+**Speech development configuration and budgets:** [GUALA-SPEECH-01 revision 1.0](../GUALA_SPEECH_LEARNING_SPECIFICATION.md) is the canonical development baseline requested by Joe after skeptical review. G1 is assigned implementation; A1 performs independent spot audits. SPEECH-EX01–06 authorize only the disclosed bounded native speech-learning/control mechanisms; earlier blanket ML prohibitions are superseded only within that scope. Full DSF, preserved history, truthful tests, retired-controller exclusion and financial L5 restrictions remain. This is development authority, not a product, performance, hardware-physics or ML-free certificate. The specification supersedes conflicting recommendations in the earlier speech hypothesis; dated text below remains historical to that extent. Broad reconciliation and product qualification remain OPEN.
+
 # GualaLoom configuration and serving contract
 
 **Status: unqualified.** This is a configuration and behavior reconciliation, not a new deployment. Observed values are dated facts, not newly approved laws. G1 owns implementation; A1 independently audits. No credentials are published.
@@ -267,3 +271,8 @@ Bind backend image/native library/effective configuration/paired state independe
 The operation allowance1,000,000,000 is a counted-work capacity, not a physical energy value. Its size alone proves neither necessity nor a defect; measured admitted work, latency and bounds must justify it. Transport timeouts, represented physical time and physiological quantities remain distinct. [A14](remediation-plan.md#a14).
 
 Detailed later conflicts and corrections remain in [Task1606](task1606-boundary-reconciliation.md), [UI history](ui-history-reconciliation.md), [continuous ingress/care history](continuous-ingress-care-reconciliation.md) and [qualification requirements](qualification-requirements.md). Configuration does not confer cognitive authority on environmental code.
+
+
+## GUALA-SPEECH-01 v1 configuration status
+
+The normative resource/timing table is in the canonical speech specification, section 6. It defines development targets, not observed production values or already implemented environment variables. New adaptive state is limited to 24 MiB serialized, 32 MiB steady resident and 64 MiB peak incremental; all banks/copies count. G1 must bind the actual task's CPU/RAM, native binary, source-window/feedback clocks, exact record size, mounted endpoints, coefficient configuration and queue bounds before candidate qualification. Changing a cap or coefficient requires the recorded configuration to change; an unexplained billion-work override cannot qualify performance. The old Task1598 and Task1606 observations below/above retain their dated scope.

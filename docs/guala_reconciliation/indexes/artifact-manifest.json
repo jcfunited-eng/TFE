@@ -1,8 +1,23 @@
 {
   "schema": "guala.reconciliation_artifact_manifest.v1",
-  "at_utc": "2026-10-10T16:54:13.656919+00:00",
+  "at_utc": "2026-10-10T17:34:30.822230+00:00",
   "scope": "Canonical reconciliation custody; not product qualification",
   "files": [
+    {
+      "path": "docs/GUALA_CANONICAL_RECONCILIATION.md",
+      "bytes": 12492,
+      "sha256": "ca0a4f67a0f35d5b1dbc998d628ef0d2f1d6966d175f25a1cb8d5a1057321aa7"
+    },
+    {
+      "path": "docs/GUALA_LEARNING_DECISION_MECHANISM_CONTRACT_2026-10-08.md",
+      "bytes": 24603,
+      "sha256": "cd2da64f4fa3d9beabebb8afe68d57b8d1e3931f66c21e89c38e83c022ace08a"
+    },
+    {
+      "path": "docs/GUALA_SPEECH_LEARNING_SPECIFICATION.md",
+      "bytes": 38781,
+      "sha256": "6d756688c95cbb56e0357abf12083bfcf13ccdac4a169a065ab7c289858406d5"
+    },
     {
       "path": "docs/guala_reconciliation/agents-history-reconciliation.json",
       "bytes": 24296,
@@ -185,8 +200,8 @@
     },
     {
       "path": "docs/guala_reconciliation/designs.md",
-      "bytes": 17210,
-      "sha256": "1ee4ccfb3f9fdb53f2b77413691812acc4fc000106dc0b012e5d5c1222b1eee5"
+      "bytes": 18098,
+      "sha256": "4790f9c06cec7f2787ee776267fbf96c11a8bc64ab0d673e15f348195a08c2c4"
     },
     {
       "path": "docs/guala_reconciliation/documentation-sources.json",
@@ -255,8 +270,8 @@
     },
     {
       "path": "docs/guala_reconciliation/gualaloom-configuration.md",
-      "bytes": 23734,
-      "sha256": "0d2d5c0e8fb4c3ac7eba017423e8c134ed73075e2cca93b611b270c32fa409e1"
+      "bytes": 25438,
+      "sha256": "6be23254638524ace012350359f010bf7b226513df661fc92df9b1bddfd7b94e"
     },
     {
       "path": "docs/guala_reconciliation/historical-equation-falsifiers.json",
@@ -895,8 +910,8 @@
     },
     {
       "path": "docs/guala_reconciliation/qualification-requirements.md",
-      "bytes": 14008,
-      "sha256": "a3dc8ad1492c2bf1ce4e0019330a2ff77adfdce17aeae66c4e10edbe485d10ef"
+      "bytes": 14922,
+      "sha256": "d7c0bf363f03cc5e56f98b31aa980cdb57a59da37b5ce981fde0b4dad88cd4c3"
     },
     {
       "path": "docs/guala_reconciliation/ratified-operator-delivery-reconciliation.json",
@@ -1027,6 +1042,11 @@
       "path": "docs/guala_reconciliation/sleep-history-reconciliation.md",
       "bytes": 31054,
       "sha256": "5eaab11cb4edf349a11b83807c9365fd1412a3235452aa0e56f4b6133710a5c1"
+    },
+    {
+      "path": "docs/guala_reconciliation/sources.json",
+      "bytes": 32339,
+      "sha256": "236f40d71151d0c5bfe4738aedf3aa0c7ae7fc114e0782caed0dd9b32ae72df1"
     },
     {
       "path": "docs/guala_reconciliation/sources/05f8f5c560e0--GUALA_COGNITIVE_CHAIN_SPECIFICATION_AND_DESIGN_2026-08-08.md",
@@ -5284,6 +5304,11 @@
       "sha256": "becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589"
     },
     {
+      "path": "docs/guala_reconciliation/sources/language-mirror-mathematical-receipt.json",
+      "bytes": 2190,
+      "sha256": "e0611427543fba6de1996574d39d7211ff605f004f205c2ff4f170273ab2fd7a"
+    },
+    {
       "path": "docs/guala_reconciliation/sources/language-mirror/LD16-01--color.md",
       "bytes": 40883,
       "sha256": "afae8dd15ed0b1d6eab8e7c33e8d5d8404439f942f83a17a5fad679d865ed8a8"
@@ -5329,9 +5354,9 @@
       "sha256": "1c44e2a5b61ae346f7399438fe668fa0fb63f4ebbdf1d9428ba9839c75b1a303"
     },
     {
-      "path": "docs/guala_reconciliation/sources/language-mirror-mathematical-receipt.json",
-      "bytes": 2190,
-      "sha256": "e0611427543fba6de1996574d39d7211ff605f004f205c2ff4f170273ab2fd7a"
+      "path": "docs/guala_reconciliation/sources/language-vocabulary-predicate-receipt.json",
+      "bytes": 3157,
+      "sha256": "2c8efda2455bb00798f45f01c34b07517f173911950b3708a56a6e6197c4aa12"
     },
     {
       "path": "docs/guala_reconciliation/sources/language-vocabulary/LD02-01--126_deep_programming_languages.md",
@@ -5417,11 +5442,6 @@
       "path": "docs/guala_reconciliation/sources/language-vocabulary/LD15-02--89_deep_language.md",
       "bytes": 29121,
       "sha256": "322ebfc5f6ca1945ba00655df05a62aeda83d97aa0da66a95943b966b25af2db"
-    },
-    {
-      "path": "docs/guala_reconciliation/sources/language-vocabulary-predicate-receipt.json",
-      "bytes": 3157,
-      "sha256": "2c8efda2455bb00798f45f01c34b07517f173911950b3708a56a6e6197c4aa12"
     },
     {
       "path": "docs/guala_reconciliation/sources/later-speech-history/LSC01--resident_cognitive_formation.rs",
@@ -9469,6 +9489,11 @@
       "sha256": "6034ef3831ea62fa2e14c3370611959ef9b873e84b367045d064cd143d8778eb"
     },
     {
+      "path": "docs/guala_reconciliation/sources/syntax-context-predicate-receipt.json",
+      "bytes": 958,
+      "sha256": "cf7a6c7896d6d63f870c08fbce806e04ac7dc727108dd08b45f50a359dfe7baa"
+    },
+    {
       "path": "docs/guala_reconciliation/sources/syntax-context/LCX01-01--74_cognitive_syntax.md",
       "bytes": 6180,
       "sha256": "ca90babffcfdd554f9787c10cca36149ab1caa5b2f3ee1c68a5ac06317adcce6"
@@ -9522,11 +9547,6 @@
       "path": "docs/guala_reconciliation/sources/syntax-context/LCX03-02--144_deep_linguistics.md",
       "bytes": 51659,
       "sha256": "c52076cc154b776aaca1c16ffffca8e4c5065f490db3b93617b4dc72a796168d"
-    },
-    {
-      "path": "docs/guala_reconciliation/sources/syntax-context-predicate-receipt.json",
-      "bytes": 958,
-      "sha256": "cf7a6c7896d6d63f870c08fbce806e04ac7dc727108dd08b45f50a359dfe7baa"
     },
     {
       "path": "docs/guala_reconciliation/sources/task1606-boundary/TS01--lean_production_app.py",
@@ -10169,19 +10189,14 @@
       "sha256": "de642b233d3b62a48a87dd71d19288136b91fa86c4e179f161214c46420f5184"
     },
     {
-      "path": "docs/guala_reconciliation/sources.json",
-      "bytes": 32339,
-      "sha256": "236f40d71151d0c5bfe4738aedf3aa0c7ae7fc114e0782caed0dd9b32ae72df1"
-    },
-    {
       "path": "docs/guala_reconciliation/specification-crosswalk.json",
       "bytes": 702853,
       "sha256": "11ae663217f993327d46a960bc9f8444e68de5e7ea652ca7ce6febf6f8d766ae"
     },
     {
       "path": "docs/guala_reconciliation/specifications.md",
-      "bytes": 195718,
-      "sha256": "5294054cb8be5078ec1b1ddf43a4049c407bb93cc8954bade80682c2de22b951"
+      "bytes": 196614,
+      "sha256": "155db22182b6cb0792ecc10eefb5226470c9f99ec7881580c8142915db93205d"
     },
     {
       "path": "docs/guala_reconciliation/speech-acoustic-authority-correction.json",
@@ -10195,13 +10210,13 @@
     },
     {
       "path": "docs/guala_reconciliation/speech-complete-hypothetical-loop.json",
-      "bytes": 6188,
-      "sha256": "80067c9c051bcb555fa7751fd0c08001c2713b53d6fc95ef363d839010ee0bd7"
+      "bytes": 6515,
+      "sha256": "a66624098c085c592349b9fff6aeec376721f48e4a65e1146f22226d090f7cc7"
     },
     {
       "path": "docs/guala_reconciliation/speech-complete-hypothetical-loop.md",
-      "bytes": 26145,
-      "sha256": "595b1b1c01fc8af8bf0b58edfdd275a077b69ee361736afa4db7194ce057523d"
+      "bytes": 27052,
+      "sha256": "f849fa07a5cfff6f6b18ad58d91559abff129982293fe7b57d2fdf1d3732c0c2"
     },
     {
       "path": "docs/guala_reconciliation/speech-decision-record.json",
@@ -10210,8 +10225,8 @@
     },
     {
       "path": "docs/guala_reconciliation/speech-decision-record.md",
-      "bytes": 15483,
-      "sha256": "944276a8090eee1fb33257aba4d40f5a1b0936965973fb02e9c4c19cea9ddede"
+      "bytes": 16388,
+      "sha256": "316c09db53f09ba95ec73b8021851a193620148ab309415424bef584ce29ff3e"
     },
     {
       "path": "docs/guala_reconciliation/speech-execution-reconciliation.json",
@@ -10232,6 +10247,11 @@
       "path": "docs/guala_reconciliation/speech-history-reconciliation.md",
       "bytes": 138045,
       "sha256": "eaec894a34cc87731b8ddb8bdfc55ecf29f9f6cebba75f106647a64bea26d997"
+    },
+    {
+      "path": "docs/guala_reconciliation/speech-learning-contract.json",
+      "bytes": 10371,
+      "sha256": "9b3e6aefd2080005a90aded68aad06a08abf3e23b4d024cf6fc02aee132f688f"
     },
     {
       "path": "docs/guala_reconciliation/speech-organ-history-reconciliation.json",
