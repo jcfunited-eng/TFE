@@ -1,6 +1,6 @@
 {
   "schema": "guala.reconciliation_artifact_manifest.v1",
-  "at_utc": "2026-10-10T15:28:28.515758+00:00",
+  "at_utc": "2026-10-10T15:50:23.311023+00:00",
   "scope": "Canonical reconciliation custody; not product qualification",
   "files": [
     {
@@ -10195,13 +10195,13 @@
     },
     {
       "path": "docs/guala_reconciliation/speech-complete-hypothetical-loop.json",
-      "bytes": 4201,
-      "sha256": "d057982b665b0294387baa902b19c46f142ea68ba8b8f71a88bacebbc4056e90"
+      "bytes": 4618,
+      "sha256": "ad1cf8861ed34e0dbbdccac7a67da58bddd23465b463c7c0b2794daf757d2dae"
     },
     {
       "path": "docs/guala_reconciliation/speech-complete-hypothetical-loop.md",
-      "bytes": 19276,
-      "sha256": "1db57c537c5d1641c97357c622239d4303cc66f276560de2d320b385b503cda5"
+      "bytes": 26110,
+      "sha256": "54b95669a42874a4c70e6085261db68b21c4e08a213e9b095115bcd136fc6c2b"
     },
     {
       "path": "docs/guala_reconciliation/speech-decision-record.json",
@@ -10210,8 +10210,8 @@
     },
     {
       "path": "docs/guala_reconciliation/speech-decision-record.md",
-      "bytes": 14080,
-      "sha256": "9a65573bafc233faed8958f3872f0648d55971b675984f31aa066a2a94e3e3c4"
+      "bytes": 14897,
+      "sha256": "43efeff7ea86f1ead0e3a94f64cb9def34ffe47939e17f0f089f3fc98fb9000c"
     },
     {
       "path": "docs/guala_reconciliation/speech-execution-reconciliation.json",

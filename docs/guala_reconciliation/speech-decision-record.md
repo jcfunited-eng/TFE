@@ -69,3 +69,7 @@ For every failure G1 must record the exact input/predecessor, expected and obser
 ## October 10: requested complete hypothetical loop
 
 Joe explicitly requested that all unresolved causal links be treated as hypothetically resolved and the full path be explained. [Complete hypothetical speech loop](speech-complete-hypothetical-loop.md) provides the acquired sensorimotor relation, native temporal recruitment, exact output-circuit boundary, functional sound instrument, feedback delay and listener delivery. Its assumptions are not implementation evidence or ratification. No additional human anatomical fidelity is required.
+
+## October 10 correction: consequence-sensitive learning remains unspecified
+
+Joe correctly identified that the hypothetical speech account omitted a derived connection from actual need/social outcomes to selective retained change and later communication. A1 withdraws its completeness claim. [Correction and mechanism distinctions](speech-complete-hypothetical-loop.md#correction-consequences-need-fulfillment-and-social-interaction). Physical regulation is distinct from a reward objective, but physiological or social reward can still implement RL. No non-ML exemption follows from local, deterministic or biological naming. The single next specification must close temporal causal attribution and outcome-to-retention under the existing charter; no reward-policy implementation is authorized by this discussion.

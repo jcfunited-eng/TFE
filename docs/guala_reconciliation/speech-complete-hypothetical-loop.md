@@ -1,4 +1,37 @@
-# Complete hypothetical speech loop: experience to spoken “apple”
+# Speech loop: hypothetical route with an unresolved consequence-learning mechanism
+
+## Correction: consequences, need fulfillment and social interaction
+
+**A1 withdraws the claim that the earlier account is a complete causal learning design.** It describes a conditional sensory/motor/acoustic route, but assumes rather than derives how outcomes selectively alter retained experience and future communication. Joe identified the missing links on October 10, 2026: causality, need fulfillment and social consequences. This correction governs the hypothetical account retained below. No product defect is claimed newly verified by this conceptual review.
+
+The required additional loop is actual internal condition → context-dependent action or communication → actual environmental/other-participant response → sensed outcome and any real change in internal condition → selective retained change → later context-sensitive use. An utterance can affect another participant, who supplies food or continues interaction. Eating can change material reserve; receiving a smile or spoken response does not itself add nutritional energy. The social and nutritional consequences must remain distinct.
+
+The specific missing design obligation is temporal causal attribution: which continuing neuronal/contact state carries the earlier activity until the consequence arrives, how the actual consequence reaches that state, why the resulting local transition changes some retained relations rather than every recently active contact, and how this changes later native behavior. Existing recurrence may supply the required history; a new trace structure is not automatically required. A trace of recent activity is not itself proof that the activity caused the outcome. Neither the prior yield equation nor a generic statement that experience changes contacts closes this obligation.
+
+The earlier local energy expression lambda*(u-a*v)^2/2 and its yield return are compatible with an associative parameter-fitting interpretation unless their independently justified constitutive meaning and actual use establish the claimed material mechanism. Calling the expression energy does not settle that classification. Conversely, minimizing a physical potential does not, by itself, make a physical system an ML algorithm. The mechanism, derivation and use require classification together.
+
+### Distinctions that withstand scrutiny
+
+| Mechanism | Honest classification boundary |
+|---|---|
+| Food really changes retained energy/material state; this changes available work and sensed internal conditions | Physical/environmental regulation. A numeric reservoir is not automatically an evaluative reward score. It does not by itself explain which earlier action should be retained. |
+| Deficit reduction is converted into reward and used to learn behavior maximizing expected return | Reinforcement learning, even if the reward is internal, deterministic, biologically named, local, or represented by several quantities. |
+| Another participant responds through actual sound, movement, contact or shared activity | Social experience. It becomes reinforcing only if a specified substrate mechanism changes retention or later behavior in consequence. A smiling image or a positive phrase has no inherently installed positive meaning. |
+| A semantic positive-response detector produces points, multiplies plasticity or ranks utterances | A constructed evaluator; if it trains a reward-seeking policy, classify it as such. Calling it dopamine, social energy or affection does not exempt it. |
+| Approved local material change carries actual sensed history into later action | A candidate permitted physical-learning mechanism, subject to derivation and executable proof. It is not automatically outside every broad definition of machine learning. |
+
+Internal origin is not an exemption from RL: [Keramati and Gutkin's primary homeostatic RL paper](https://elifesciences.org/articles/04811.pdf) explicitly constructs rewards from physiological need fulfillment. Neuroscience terminology is also no exemption: [Schmidgall et al.'s primary study](https://www.frontiersin.org/journals/neuroscience/articles/10.3389/fnins.2023.1183321/full) implements learning with synaptic plasticity and neuromodulation together with gradient-based meta-learning. These are examples of overlapping mechanisms, not evidence about Guala's active implementation.
+
+The proposed next specification must identify the actual need/interoceptive producers in functional64_source.rs and the owner, their consuming dynamics in functional64_material.rs, the retained participating history, the local outcome-to-plasticity path, native output and serialization. These are existing investigation/implementation destinations, not a claim that a new modulator is already ratified or that any identified function should be patched with a reward multiplier. Social consequence ingress must be real sensory occurrence; do not add a positive-phrase dictionary, automatic word recognizer or teacher score to the pupil. Any innate functional sensitivities require explicit specification; learned social valence cannot simply be assumed.
+
+One decisive qualification design is a bounded comparison on authenticated copies: keep sensed cues comparable while changing whether an actual action produces its consequence; separate actual nutrition from praise/attention; compare relevant internal conditions; and test later behavior after the actual causal relation changes. The retained changes must depend on actual outcomes and transfer beyond a fixed cue-response pairing. This is a proposed diagnostic specification, not a run, pass, new production intervention or permission to reset the organism. A program can pass such behavior checks using RL, so source/update-law classification remains independently necessary.
+
+Learned association is not inherently a dictionary lookup, and the omissions do not prove that ArcLoom can never produce speech. They do invalidate a claim that the preceding account supplies a complete mechanism for self-directed, context-sensitive communication.
+
+**No unconditional “ML-free” claim is supported.** [NIST's glossary](https://csrc.nist.gov/glossary/term/machine_learning) uses a broad definition involving adaptation from data to improve accuracy. A defensible project statement must disclose experience-dependent physical adaptation and name exactly which fitted models, reward-optimized policies, semantic lookups and external inference mechanisms are excluded and independently verified. This is a recommendation to make the constraint auditable, not an amendment of Joe's existing prohibitions or approval to implement RL. If the eventual necessary rule falls inside a forbidden category, report the conflict before implementation; do not rename it.
+
+## Earlier hypothetical account — retained with the correction above
+
 
 **Status: proposed functional account requested by Joe on October 10, 2026. Every unproved capability below is treated as successfully resolved for this hypothetical, not reported as an implemented or verified result.** This document supplements the [speech decision](speech-decision-record.md). It neither ratifies a new material law nor closes the reconciliation or speech qualification.
 

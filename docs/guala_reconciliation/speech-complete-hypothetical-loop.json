@@ -77,5 +77,13 @@
       "copy": "docs/guala_reconciliation/sources/speech-complete-loop/SL10--lean_production_app.py",
       "scope": "Function/excerpt review, not a new complete-file historical review credit or execution proof."
     }
-  ]
+  ],
+  "consequence_learning_correction": {
+    "at_utc": "2026-10-10T15:50:23.311023+00:00",
+    "complete_causal_learning_design": false,
+    "earlier_completeness_claim_withdrawn": true,
+    "missing": "Derived outcome-to-selective-retention mechanism linking temporal causality, need fulfillment and social consequences.",
+    "new_product_verification": false,
+    "approval_to_implement_reward_learning": false
+  }
 }
